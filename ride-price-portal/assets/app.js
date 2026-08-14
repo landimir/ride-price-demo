@@ -57,6 +57,23 @@ const Store = (function () {
 const $ = (sel, root) => (root || document).querySelector(sel);
 const $$ = (sel, root) => Array.from((root || document).querySelectorAll(sel));
 const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* dates: ISO in state, MM/DD/YYYY on screen. Native date inputs open the OS
+   picker on phones — same brand break as native selects — so date fields are
+   masked text inputs marked data-date (mask wired once in boot) */
+const dateUS = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ""));
+  return m ? m[2] + "/" + m[3] + "/" + m[1] : String(iso || "");
+};
+const dateISO = (us) => {
+  const m = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(String(us || "").trim());
+  if (!m) return "";
+  const month = +m[1], day = +m[2], year = +m[3];
+  const days = [31, (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) ? 29 : 28,
+    31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+  if (!days || day < 1 || day > days) return "";
+  return year + "-" + String(month).padStart(2, "0") + "-" + String(day).padStart(2, "0");
+};
 const uid = (p) => p + "-" + Math.random().toString(36).slice(2, 9);
 const money = RIDE_PRICE_CALC.money, money0 = RIDE_PRICE_CALC.money0;
 const today = () => new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
@@ -115,7 +132,7 @@ function dealTitle(deal) {
   const v = Store.vehicle(deal.stock);
   const names = `${c ? esc(c.first + " " + c.last) : "—"}${cb ? " + " + esc(cb.first + " " + cb.last) : ""}`;
   return `${names} · ${v ? esc(v.year + " " + v.make + " " + v.model) : "no vehicle yet"}
-    <button class="crumb-btn" data-buyers="${esc(deal.id)}" title="Buyers on this deal">👥 Buyers</button>`;
+    <button class="crumb-btn" data-buyers="${esc(deal.id)}" title="Buyers on this deal">${cb ? "👥 Buyers" : "👤 Buyer"}</button>`;
 }
 
 /* ---------------- buyers on a deal (add / scan / swap / drop) ---------------- */
@@ -737,10 +754,10 @@ function openScanFlow(opts) {
         <label class="f"><span class="lab">First Name <i class="req">*</i></span><input id="svFirst" type="text" value="${esc(p.first)}"></label>
         <label class="f"><span class="lab">Middle Name</span><input id="svMiddle" type="text" value="${esc(p.middle || "")}"></label>
         <label class="f"><span class="lab">Last Name <i class="req">*</i></span><input id="svLast" type="text" value="${esc(p.last)}"></label>
-        <label class="f"><span class="lab">Date of Birth</span><input id="svDob" type="date" value="${esc(p.dob)}"></label>
+        <label class="f"><span class="lab">Date of Birth</span><input id="svDob" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.dob))}"></label>
         <label class="f"><span class="lab">License #</span><input id="svDl" type="text" value="${esc(p.license.number)}"></label>
         <label class="f"><span class="lab">Issuing State</span><input id="svDlState" type="text" value="${esc(p.license.state)}"></label>
-        <label class="f"><span class="lab">Expires</span><input id="svDlExp" type="date" value="${esc(p.license.expires)}"></label>
+        <label class="f"><span class="lab">Expires</span><input id="svDlExp" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.license.expires))}"></label>
         <label class="f"><span class="lab">Address <i class="req">*</i></span><input id="svAddr" type="text" value="${esc(p.address)}"></label>
         <label class="f"><span class="lab">City</span><input id="svCity" type="text" value="${esc(p.city)}"></label>
         <label class="f"><span class="lab">State</span><input id="svState" type="text" value="${esc(p.state)}"></label>
@@ -769,12 +786,18 @@ function openScanFlow(opts) {
 
     $("#svSave", body).onclick = () => {
       const val = (id) => $("#" + id, body).value.trim();
+      /* blank optional dates are fine; a typed-but-invalid one must never
+         silently erase a stored date on an existing record */
+      const dobText = val("svDob"), expText = val("svDlExp");
+      const dob = dobText ? dateISO(dobText) : "";
+      const expires = expText ? dateISO(expText) : "";
+      if ((dobText && !dob) || (expText && !expires)) return toast("Enter valid dates (MM/DD/YYYY)");
       const vals = {
         first: val("svFirst"), middle: val("svMiddle"), last: val("svLast"),
-        dob: val("svDob"), address: val("svAddr"), city: val("svCity"),
+        dob, address: val("svAddr"), city: val("svCity"),
         state: val("svState"), zip: val("svZip"),
         email: val("svEmail"), phone: val("svPhone"),
-        license: { number: val("svDl"), state: val("svDlState"), expires: val("svDlExp") }
+        license: { number: val("svDl"), state: val("svDlState"), expires }
       };
       if (!vals.first || !vals.last) return toast("First and last name are required");
       if (!vals.email && !vals.phone) return toast("Provide an email or a phone number");
@@ -830,19 +853,23 @@ function openScanFlow(opts) {
       <div class="fields">
         <label class="f"><span class="lab">License # <i class="req">*</i></span><input id="svDl" type="text" value="${esc(p.license.number)}"></label>
         <label class="f"><span class="lab">Issuing State</span><input id="svDlState" type="text" value="${esc(p.license.state)}"></label>
-        <label class="f"><span class="lab">Expires</span><input id="svDlExp" type="date" value="${esc(p.license.expires)}"></label>
-        <label class="f"><span class="lab">Date of Birth</span><input id="svDob" type="date" value="${esc(p.dob)}"></label>
+        <label class="f"><span class="lab">Expires</span><input id="svDlExp" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.license.expires))}"></label>
+        <label class="f"><span class="lab">Date of Birth</span><input id="svDob" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.dob))}"></label>
       </div>
       <div class="flex mt" style="justify-content:flex-end;gap:10px">
         <button class="btn btn--ghost" data-close>Cancel</button>
         <button class="btn btn--primary" id="svSave">Use These Details →</button>
       </div>`;
     $("#svSave", body).onclick = () => {
-      const lic = { number: $("#svDl", body).value.trim(), state: $("#svDlState", body).value.trim(), expires: $("#svDlExp", body).value };
+      const expText = $("#svDlExp", body).value.trim(), dobText = $("#svDob", body).value.trim();
+      const expires = expText ? dateISO(expText) : "";
+      const dob = dobText ? dateISO(dobText) : "";
+      if ((expText && !expires) || (dobText && !dob)) return toast("Enter valid dates (MM/DD/YYYY)");
+      const lic = { number: $("#svDl", body).value.trim(), state: $("#svDlState", body).value.trim(), expires };
       if (!lic.number) return toast("License number is required");
       /* on a name mismatch the card may belong to someone else — fill the agreement
          but never write that identity onto this customer's record */
-      if (c && !mismatch) { c.dob = $("#svDob", body).value || c.dob; c.license = lic; Store.save(); }
+      if (c && !mismatch) { c.dob = dob || c.dob; c.license = lic; Store.save(); }
       done();
       if (o.onDone) o.onDone(c, Object.assign({}, p, { license: lic }));
     };
@@ -966,7 +993,7 @@ route("vehicles/:id", ({ id }) => {
           <label class="f"><span class="lab">Vehicle Type</span><select id="fType" data-ui="seg"><option value="">All</option><option>New</option><option>Used</option><option>CPO</option></select></label>
           <label class="f"><span class="lab">Make</span><select id="fMake" data-ui="seg"><option value="">All</option>${makes.map(m => `<option>${m}</option>`).join("")}</select></label>
           <label class="f"><span class="lab">Body Style</span><select id="fBody" data-ui="seg"><option value="">All</option>${bodies.map(b => `<option>${b}</option>`).join("")}</select></label>
-          <label class="f"><span class="lab">Max Price</span><input type="number" id="fPrice" placeholder="e.g. 50000" step="1000"></label>
+          <label class="f"><span class="lab">Max Price</span><span class="minput"><input type="number" id="fPrice" placeholder="50,000" step="1000"></span></label>
           <label class="f"><span class="lab">Sort By</span><select id="fSort" data-ui="seg"><option value="hi">High → low</option><option value="lo">Low → high</option></select></label>
         </div>
       </div>
@@ -1089,9 +1116,9 @@ route("testdrive/:id", ({ id }) => {
               <label class="f"><span class="lab">Type buyer name</span><input type="text" id="sigName" value="${esc(c.first + " " + c.last)}"></label>
               <span class="lab" style="font-size:12px;font-weight:700;color:var(--ink)">Review your signature</span>
               <div class="sig-box" id="sigPreview">${esc(c.first + " " + c.last)}</div>
-              <label class="f mt" style="font-weight:600;font-size:13px;display:flex;gap:8px;align-items:flex-start">
-                <input type="checkbox" id="sigAck" style="width:auto;margin-top:3px">
-                <span>I understand that checking this box constitutes a legal signature confirming that I acknowledge and agree to the above Terms of Acceptance.</span></label>
+              <label class="opt-row mt">
+                <input type="checkbox" id="sigAck">
+                <span class="opt-row__label">I understand that checking this box constitutes a legal signature confirming that I acknowledge and agree to the above Terms of Acceptance.</span></label>
             </div>
           </div>
           <div class="right mt"><button class="btn btn--grad" id="authNext">Continue →</button></div>
@@ -1114,7 +1141,7 @@ route("testdrive/:id", ({ id }) => {
             <div class="fields">
               <label class="f"><span class="lab">Driver's License # <i class="req">*</i></span><input type="text" id="dl" value="${esc(td.license || (c.license && c.license.number) || "")}" placeholder="987654321"></label>
               <label class="f"><span class="lab">Issuing State</span><input type="text" id="dlState" value="${esc(td.issuingState || (c.license && c.license.state) || c.state)}"></label>
-              <label class="f"><span class="lab">Expiration Date</span><input type="date" id="dlExp" value="${esc(td.expDate || (c.license && c.license.expires) || "")}"></label>
+              <label class="f"><span class="lab">Expiration Date</span><input type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" id="dlExp" value="${esc(dateUS(td.expDate || (c.license && c.license.expires) || ""))}"></label>
               <label class="f"><span class="lab">Additional Driver(s)</span><input type="text" id="addl" value="${esc(td.addlDriver || "")}" placeholder="Name – license #"></label>
               <label class="f"><span class="lab">Insurance Company</span><input type="text" id="ins" value="${esc(td.insurance || "")}" placeholder="Ask for auto insurance co."></label>
               <label class="f"><span class="lab">Mileage you will be driving</span><input type="number" id="tdMiles" value="${td.miles || 20}"></label>
@@ -1148,7 +1175,7 @@ route("testdrive/:id", ({ id }) => {
         const dl = $("#dl"); if (!dl) return; /* view navigated away mid-scan */
         dl.value = persona.license.number;
         $("#dlState").value = persona.license.state;
-        $("#dlExp").value = persona.license.expires;
+        $("#dlExp").value = dateUS(persona.license.expires);
         toast("License captured — verify the details against the card");
       }
     });
@@ -1159,7 +1186,10 @@ route("testdrive/:id", ({ id }) => {
     $("#printTd").onclick = () => window.print();
     $("#tdNext").onclick = () => {
       if (!td.signed) return toast("Driver One must sign & accept the terms first");
-      td.license = $("#dl").value; td.issuingState = $("#dlState").value; td.expDate = $("#dlExp").value;
+      const expText = $("#dlExp").value.trim();
+      const expDate = expText ? dateISO(expText) : "";
+      if (expText && !expDate) return toast("Enter a valid expiration date (MM/DD/YYYY)");
+      td.license = $("#dl").value; td.issuingState = $("#dlState").value; td.expDate = expDate;
       td.addlDriver = $("#addl").value; td.insurance = $("#ins").value; td.miles = parseInt($("#tdMiles").value, 10) || 20;
       td.started = true; Store.save(); render();
     };
@@ -1232,7 +1262,7 @@ route("trade/:id", ({ id }) => {
           <label class="f"><span class="lab">Mileage</span><input type="number" id="tMiles" value="${deal.trade.miles || 60000}"></label>
           <label class="f"><span class="lab">Condition</span><select id="tCond" data-ui="seg">
             ${["Excellent", "Good", "Fair", "Rough"].map(o => `<option ${deal.trade.condition === o ? "selected" : ""}>${o}</option>`).join("")}</select></label>
-          <label class="f"><span class="lab">Payoff amount (if financed)</span><input type="number" id="tPayoff" value="${deal.trade.payoff || 0}" step="100"></label>
+          <label class="f"><span class="lab">Payoff amount (if financed)</span><span class="minput"><input type="number" id="tPayoff" value="${esc(String(deal.trade.payoff || 0))}" step="100"></span></label>
         </div>
         <button class="btn btn--primary" id="evalBtn">Run Evaluation</button>
         <div id="evalOut" class="mt"></div>
@@ -1309,13 +1339,13 @@ route("desk/:id", ({ id }) => {
           <div class="note note--wt" id="hPayTrack"><span class="lab">Discovery question</span>${PAY_TRACKS[paying].q}<br>${PAY_TRACKS[paying].wt}</div>
 
           <div class="grid grid--2" style="margin-top:6px">
-            <label class="f" style="display:flex;gap:10px;align-items:center">
+            <label class="opt-row">
               <span class="switch"><input type="checkbox" id="hTrade" ${h.trade != null ? (h.trade ? "checked" : "") : (deal.trade.has ? "checked" : "")}><span class="sl"></span></span>
-              <span class="lab" style="margin:0">3 · Trade evaluation needed${deal.trade.has && deal.trade.value ? ` — documented (${money0(deal.trade.value)})` : ""}</span>
+              <span class="opt-row__label">3 · Trade evaluation needed${deal.trade.has && deal.trade.value ? ` — documented (${money0(deal.trade.value)})` : ""}</span>
             </label>
-            <label class="f" style="display:flex;gap:10px;align-items:center">
+            <label class="opt-row">
               <span class="switch"><input type="checkbox" id="hStock" ${h.inStock === false ? "" : "checked"}><span class="sl"></span></span>
-              <span class="lab" style="margin:0">4 · Car in stock today — ${v.year} ${esc(v.make)} ${esc(v.model)} · ${v.stock}</span>
+              <span class="opt-row__label">4 · Car in stock today — ${v.year} ${esc(v.make)} ${esc(v.model)} · ${v.stock}</span>
             </label>
           </div>
 
@@ -1401,8 +1431,8 @@ route("desk/:id", ({ id }) => {
           <div class="panel__head"><h2>Customized Options — Accessories</h2></div>
           <div class="panel__body">
             <div class="fields fields--tight">
-              ${RIDE_PRICE_DATA.accessories.map(a => `<label style="font-size:13px;font-weight:600;display:flex;gap:8px;align-items:center;margin-bottom:8px">
-                <input type="checkbox" data-acc="${a.id}" ${deal.desk.accessories.includes(a.id) ? "checked" : ""} style="width:auto"> ${a.name} <span style="white-space:nowrap">${money0(a.price)}</span></label>`).join("")}
+              ${RIDE_PRICE_DATA.accessories.map(a => `<label class="opt-row">
+                <input type="checkbox" data-acc="${a.id}" ${deal.desk.accessories.includes(a.id) ? "checked" : ""}><span class="opt-row__label">${a.name}</span><span class="opt-row__val">${money0(a.price)}</span></label>`).join("")}
             </div>
           </div>
         </div>
@@ -1412,11 +1442,10 @@ route("desk/:id", ({ id }) => {
             <div class="right"><a class="btn btn--sm btn--ghost" href="#/trade/${deal.id}">Import Trade</a></div></div>
           <div class="panel__body">
             <div class="fields fields--tight">
-              <label class="f"><span class="lab">Trade Value</span><input type="number" id="tradeVal" value="${deal.trade.value || 0}" step="100"></label>
-              <label class="f"><span class="lab">Trade Payoff</span><input type="number" id="tradePay" value="${deal.trade.payoff || 0}" step="100"></label>
-              <label class="f"><span class="lab">ⓘ Rebates</span><input type="number" id="rebates" value="${deal.trade.rebates || 0}" step="100"></label>
-              <label class="f"><span class="lab">Apply Tax Credit</span><br>
-                <span class="switch"><input type="checkbox" id="taxCredit" ${deal.trade.applyTaxCredit ? "checked" : ""}><span class="sl"></span></span></label>
+              <label class="f"><span class="lab">Trade Value</span><span class="minput"><input type="number" id="tradeVal" value="${esc(String(deal.trade.value || 0))}" step="100"></span></label>
+              <label class="f"><span class="lab">Trade Payoff</span><span class="minput"><input type="number" id="tradePay" value="${esc(String(deal.trade.payoff || 0))}" step="100"></span></label>
+              <label class="f"><span class="lab">ⓘ Rebates</span><span class="minput"><input type="number" id="rebates" value="${esc(String(deal.trade.rebates || 0))}" step="100"></span></label>
+              <label class="opt-row" style="align-self:end"><span class="switch"><input type="checkbox" id="taxCredit" ${deal.trade.applyTaxCredit ? "checked" : ""}><span class="sl"></span></span><span class="opt-row__label">Apply Tax Credit</span></label>
             </div>
           </div>
         </div>
@@ -1430,7 +1459,7 @@ route("desk/:id", ({ id }) => {
               <div class="fields fields--tight">
                 <label class="f"><span class="lab">Term</span><select id="leaseTerm" data-ui="seg">${RIDE_PRICE_DATA.leaseTerms.map(t => `<option ${deal.desk.leaseTerm === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
                 <label class="f"><span class="lab">Miles Per Year</span><select id="mpy" data-ui="seg">${RIDE_PRICE_DATA.milesOptions.map(m2 => `<option value="${m2}" ${deal.desk.milesPerYear === m2 ? "selected" : ""}>${m2 / 1000}k</option>`).join("")}</select></label>
-                ${deal.dealType === "lease" ? `<label class="f"><span class="lab">Due At Signing</span><input type="number" id="das" value="${deal.desk.dueAtSigning}" step="100"></label>` : ""}
+                ${deal.dealType === "lease" ? `<label class="f"><span class="lab">Due At Signing</span><span class="minput"><input type="number" id="das" value="${esc(String(deal.desk.dueAtSigning))}" step="100"></span></label>` : ""}
               </div>
               <ul class="lines small">
                 <li><span>Lease Factor</span><b class="amt">${(deal.dealType === "onepay" ? Math.max(0.00001, deal.desk.leaseFactor - 0.0004) : deal.desk.leaseFactor).toFixed(5)}</b></li>
@@ -1440,7 +1469,7 @@ route("desk/:id", ({ id }) => {
               <div class="fields fields--tight">
                 <label class="f"><span class="lab">Term</span><select id="finTerm" data-ui="seg">${RIDE_PRICE_DATA.financeTerms.map(t => `<option ${deal.desk.term === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
                 <label class="f"><span class="lab">APR %</span><input type="number" id="apr" value="${deal.desk.apr}" step="0.1"></label>
-                <label class="f"><span class="lab">Down Payment</span><input type="number" id="down" value="${deal.desk.downPayment}" step="100"></label>
+                <label class="f"><span class="lab">Down Payment</span><span class="minput"><input type="number" id="down" value="${esc(String(deal.desk.downPayment))}" step="100"></span></label>
                 <label class="f"><span class="lab">Days to First Payment</span><select id="dtf" data-ui="seg">${[30, 45, 60].map(d2 => `<option ${deal.desk.daysToFirst === d2 ? "selected" : ""}>${d2}</option>`).join("")}</select></label>
               </div>`}
             <div class="pay-hero mt">
@@ -1712,7 +1741,7 @@ route("credit/:id", ({ id }) => {
           <label class="f"><span class="lab">First Name <i class="req">*</i></span><input type="text" id="caFirst" data-req="First Name" value="${esc(c.first)}"></label>
           <label class="f"><span class="lab">Middle</span><input type="text" id="caMiddle" value="${esc(c.middle || "")}"></label>
           <label class="f"><span class="lab">Last Name <i class="req">*</i></span><input type="text" id="caLast" data-req="Last Name" value="${esc(c.last)}"></label>
-          <label class="f"><span class="lab">Date of Birth <i class="req">*</i></span><input type="date" id="caDob" data-req="Date of Birth" value="${esc(c.dob || "")}"></label>
+          <label class="f"><span class="lab">Date of Birth <i class="req">*</i></span><input type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" id="caDob" data-req="Date of Birth" value="${esc(dateUS(c.dob || ""))}"></label>
           <label class="f"><span class="lab">SSN <i class="req">*</i></span><input type="text" id="caSsn" data-req="SSN" data-ssn inputmode="numeric" maxlength="11" placeholder="000-00-0000"></label>
           <label class="f"><span class="lab">Driver License <i class="req">*</i></span><input type="text" id="caDl" data-req="Driver License" value="${esc((c.license && c.license.number) || deal.testDrive.license || "")}"></label>
           <label class="f"><span class="lab">Phone <i class="req">*</i></span><input type="tel" id="caPhone" data-req="Phone" value="${esc(c.phone)}"></label>
@@ -1727,11 +1756,11 @@ route("credit/:id", ({ id }) => {
           <label class="f"><span class="lab">City</span><input type="text" id="caCity" value="${esc(c.city)}"></label>
           <label class="f"><span class="lab">State</span><input type="text" id="caState" value="${esc(c.state)}"></label>
           <label class="f"><span class="lab">Residential Status <i class="req">*</i></span><select id="caHouse" data-ui="seg"><option>Own</option><option>Rent</option><option>Buying</option><option>Parents</option><option>Other</option></select></label>
-          <label class="f"><span class="lab">Monthly Rent / Mortgage Payment <i class="req">*</i></span><input type="number" id="caHousePmt" data-req="Monthly Rent/Mortgage" placeholder="e.g. 1800" step="50"></label>
+          <label class="f"><span class="lab">Monthly Rent / Mortgage Payment <i class="req">*</i></span><span class="minput"><input type="number" id="caHousePmt" data-req="Monthly Rent/Mortgage" placeholder="1,800" step="50"></span></label>
           <label class="f"><span class="lab">Time at Address (years) <i class="req">*</i></span><input type="number" id="caResYrs" data-req="Time at Address" value="3" min="0" step="0.5"></label>
         </div>
         <div id="prevAddrWrap"></div>
-        <p class="flex" style="margin:4px 0 0"><span class="switch"><input type="checkbox" id="caMailDiff"><span class="sl"></span></span> <span style="font-size:13.5px;font-weight:600">Mailing address is different</span></p>
+        <label class="opt-row" style="margin-top:4px"><span class="switch"><input type="checkbox" id="caMailDiff"><span class="sl"></span></span><span class="opt-row__label">Mailing address is different</span></label>
         <div id="mailWrap"></div>
 
         <h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px">Employment &amp; Income</h3>
@@ -1740,16 +1769,16 @@ route("credit/:id", ({ id }) => {
           <label class="f"><span class="lab">Occupation <i class="req">*</i></span><input type="text" id="caOcc" data-req="Occupation" placeholder="e.g. Project manager"></label>
           <label class="f"><span class="lab">Employer Phone</span><input type="tel" id="caEmpPhone" placeholder="(000) 000-0000"></label>
           <label class="f"><span class="lab">Time at Employer (years) <i class="req">*</i></span><input type="number" id="caEmpYrs" data-req="Time at Employer" value="4" min="0" step="0.5"></label>
-          <label class="f"><span class="lab">Gross Monthly Income <i class="req">*</i></span><input type="number" id="caIncome" data-req="Gross Monthly Income" placeholder="e.g. 6500" step="100"></label>
-          <label class="f"><span class="lab">Other Monthly Income</span><input type="number" id="caOther" placeholder="0" step="100"></label>
+          <label class="f"><span class="lab">Gross Monthly Income <i class="req">*</i></span><span class="minput"><input type="number" id="caIncome" data-req="Gross Monthly Income" placeholder="6,500" step="100"></span></label>
+          <label class="f"><span class="lab">Other Monthly Income</span><span class="minput"><input type="number" id="caOther" placeholder="0" step="100"></span></label>
           <label class="f"><span class="lab">Other Income Source</span><input type="text" id="caOtherSrc" placeholder="e.g. rental income"></label>
-          <label class="f"><span class="lab">Self-Employed</span><br><span class="switch"><input type="checkbox" id="caSelfEmp"><span class="sl"></span></span></label>
+          <label class="opt-row" style="align-self:end"><span class="switch"><input type="checkbox" id="caSelfEmp"><span class="sl"></span></span><span class="opt-row__label">Self-Employed</span></label>
         </div>
         <div id="prevEmpWrap"></div>
 
         <h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px">Disclosures</h3>
         ${[["dBk", "Filed bankruptcy?"], ["dAlias", "Obtained credit under another name?"], ["dRepo", "Had a vehicle repossessed?"]].map(([did, q]) => `
-          <p class="flex" style="margin:7px 0"><span class="switch"><input type="checkbox" id="${did}" data-disc><span class="sl"></span></span> <span style="font-size:13.5px;font-weight:600">${q}</span></p>
+          <label class="opt-row"><span class="switch"><input type="checkbox" id="${did}" data-disc><span class="sl"></span></span><span class="opt-row__label">${q}</span></label>
           <div id="${did}Wrap"></div>`).join("")}
 
         <div id="coWrap"></div>
@@ -1779,9 +1808,9 @@ route("credit/:id", ({ id }) => {
 
     <div class="panel">
       <div class="panel__body">
-        <label class="f" style="font-weight:600;font-size:13px;display:flex;gap:8px;align-items:flex-start;margin-bottom:10px">
-          <input type="checkbox" id="caConsent" style="width:auto;margin-top:3px">
-          <span>I understand that checking this box constitutes my electronic signature, and I authorize Ride Price to obtain credit bureau reports in connection with this application. <span class="demo-note">Demo — no real inquiry ever occurs.</span></span></label>
+        <label class="opt-row" style="margin-bottom:10px">
+          <input type="checkbox" id="caConsent">
+          <span class="opt-row__label">I understand that checking this box constitutes my electronic signature, and I authorize Ride Price to obtain credit bureau reports in connection with this application. <span class="demo-note">Demo — no real inquiry ever occurs.</span></span></label>
         <div class="right"><button class="btn btn--grad" id="caSubmit">Submit Application</button></div>
       </div>
     </div>
@@ -1807,7 +1836,7 @@ route("credit/:id", ({ id }) => {
           <option selected>Joint Applicant</option><option>Spousal Joint Applicant</option><option>Co-signer / Guarantor</option></select></label>
         <label class="f"><span class="lab">First Name <i class="req">*</i></span><input type="text" id="coFirst" data-req="Co-Buyer First Name" value="${esc(cb.first)}"></label>
         <label class="f"><span class="lab">Last Name <i class="req">*</i></span><input type="text" id="coLast" data-req="Co-Buyer Last Name" value="${esc(cb.last)}"></label>
-        <label class="f"><span class="lab">Date of Birth <i class="req">*</i></span><input type="date" id="coDob" data-req="Co-Buyer Date of Birth" value="${esc(cb.dob || "")}"></label>
+        <label class="f"><span class="lab">Date of Birth <i class="req">*</i></span><input type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" id="coDob" data-req="Co-Buyer Date of Birth" value="${esc(dateUS(cb.dob || ""))}"></label>
         <label class="f"><span class="lab">Driver License <i class="req">*</i></span><input type="text" id="coDl" data-req="Co-Buyer Driver License" value="${esc((cb.license && cb.license.number) || "")}"></label>
         <label class="f"><span class="lab">Address</span><input type="text" id="coAddr" value="${esc(cb.address || "")}"></label>
         <label class="f"><span class="lab">ZIP Code</span><input type="text" id="coZip" inputmode="numeric" maxlength="5" data-zip data-zip-city="coCity" data-zip-state="coState" value="${esc(cb.zip || "")}"></label>
@@ -1901,6 +1930,7 @@ route("credit/:id", ({ id }) => {
       if (!el.value.trim()) bad.push({ el, msg: "Required" });
       /* demo rule: the only SSN this tool ever accepts is the sample one */
       else if (el.id === "caSsn" && el.value.replace(/\D/g, "") !== "000000000") bad.push({ el, msg: "Demo tool — the SSN is always 000-00-0000" });
+      else if (el.hasAttribute("data-date") && !dateISO(el.value)) bad.push({ el, msg: "Enter MM/DD/YYYY" });
     });
     if (bad.length) {
       bad.forEach(({ el, msg }) => {
@@ -1926,6 +1956,7 @@ route("credit/:id", ({ id }) => {
       employer: $("#caEmp").value,
       form: {
         consent: { electronicSignature: true, acceptedAt: submittedAt },
+        dob: dateISO(val("caDob")), coDob: dateISO(val("coDob")) || null,
         creditType: val("caType"), primaryUse: val("caUse"),
         joint: $("#atypeJoint").checked, coRel: val("caCoRel"),
         marital: val("caMar"),
@@ -2464,7 +2495,7 @@ route("menu/:id", ({ id }) => {
           <div class="grid grid--2">
           ${Object.entries(groups).map(([g, forms]) => `
             <div><h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:0 0 8px">${g}</h3>
-            ${forms.map(f => `<p class="flex" style="margin:7px 0"><span class="switch"><input type="checkbox" data-form="${f.id}" ${deal.forms.selected.includes(f.id) ? "checked" : ""}><span class="sl"></span></span> <span style="font-size:13.5px;font-weight:600">${f.label}</span></p>`).join("")}</div>`).join("")}
+            ${forms.map(f => `<label class="opt-row"><span class="switch"><input type="checkbox" data-form="${f.id}" ${deal.forms.selected.includes(f.id) ? "checked" : ""}><span class="sl"></span></span><span class="opt-row__label">${f.label}</span></label>`).join("")}</div>`).join("")}
           </div>
           <p class="hint">Additional forms may be printed by your team lead or processing department.</p>
         </div>
@@ -2795,6 +2826,15 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   window.addEventListener("hashchange", syncDrawer);
   syncDrawer();
+
+  /* date mask: digits type as MM/DD/YYYY on every data-date field */
+  document.addEventListener("input", (e) => {
+    const el = e.target.closest("[data-date]");
+    if (!el) return;
+    const dg = el.value.replace(/\D/g, "").slice(0, 8);
+    el.value = dg.length > 4 ? dg.slice(0, 2) + "/" + dg.slice(2, 4) + "/" + dg.slice(4)
+      : dg.length > 2 ? dg.slice(0, 2) + "/" + dg.slice(2) : dg;
+  });
 
   /* branded controls: enhance after every render, close open dropdowns on
      outside taps. The observer covers views that re-render themselves. */
