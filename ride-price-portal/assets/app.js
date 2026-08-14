@@ -1686,45 +1686,103 @@ route("credit/:id", ({ id }) => {
      "no co-buyer" here exactly as it does in dealTitle() and the submit guard */
   const cbRec = () => deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
 
+  const v = deal.stock ? Store.vehicle(deal.stock) : null;
+  const r = v ? RIDE_PRICE_CALC.calc(deal, v) : null;
+  const scanned = !!(c.dob && c.license && c.license.number);
+
   view().innerHTML = `
     <div class="panel panel--navyhead">
-      <div class="panel__head"><h2>Credit Application for ${RIDE_PRICE_DATA.dealership.name}</h2>
+      <div class="panel__head"><h2>Ride Price Credit Application</h2>
         <div class="right"><span class="chip chip--demo">DEMO — sample data only, never real SSNs</span></div></div>
       <div class="panel__body">
-        <h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:0 0 6px">Application Type</h3>
-        <div class="radio-row">
-          <label><input type="radio" name="atype" id="atypeInd" ${cbRec() ? "" : "checked"}><span><b>Individual:</b> applying for individual credit in your own name, relying on your own income and assets.</span></label>
-          <label><input type="radio" name="atype" id="atypeJoint" ${cbRec() ? "checked" : ""}><span><b>Joint:</b> in accordance with Regulation B, you certify that you are applying for joint credit with another person.</span></label>
+        <div class="fields">
+          <label class="f"><span class="lab">Credit Type <i class="req">*</i></span><select id="caType" data-ui="seg">
+            ${["Retail", "Lease", "Balloon"].map(t => `<option ${(deal.dealType === "lease" || deal.dealType === "onepay" ? "Lease" : "Retail") === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
+          <label class="f"><span class="lab">Primary Use</span><select id="caUse" data-ui="seg">
+            <option selected>Personal, family or household</option><option>Business or commercial</option></select></label>
         </div>
-        <h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px">Customer Information</h3>
+        <div class="radio-row">
+          <label><input type="radio" name="atype" id="atypeInd" ${cbRec() ? "" : "checked"}><span><b>Individually:</b> applying for individual credit in your own name, relying on your own income and assets.</span></label>
+          <label><input type="radio" name="atype" id="atypeJoint" ${cbRec() ? "checked" : ""}><span><b>With another person:</b> in accordance with Regulation B, you certify that you are applying for joint credit.</span></label>
+        </div>
+
+        <h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px">Applicant
+          ${scanned ? `<span class="badge badge--approved" style="margin-left:8px">✓ filled from license scan</span>` : ""}</h3>
         <div class="fields">
           <label class="f"><span class="lab">First Name <i class="req">*</i></span><input type="text" id="caFirst" data-req="First Name" value="${esc(c.first)}"></label>
+          <label class="f"><span class="lab">Middle</span><input type="text" id="caMiddle" value="${esc(c.middle || "")}"></label>
           <label class="f"><span class="lab">Last Name <i class="req">*</i></span><input type="text" id="caLast" data-req="Last Name" value="${esc(c.last)}"></label>
-          <label class="f"><span class="lab">Email <i class="req">*</i></span><input type="email" id="caEmail" data-req="Email" value="${esc(c.email)}"></label>
-          <label class="f"><span class="lab">Phone <i class="req">*</i></span><input type="tel" id="caPhone" data-req="Phone" value="${esc(c.phone)}"></label>
           <label class="f"><span class="lab">Date of Birth <i class="req">*</i></span><input type="date" id="caDob" data-req="Date of Birth" value="${esc(c.dob || "")}"></label>
           <label class="f"><span class="lab">SSN <i class="req">*</i></span><input type="text" id="caSsn" data-req="SSN" data-ssn inputmode="numeric" maxlength="11" placeholder="000-00-0000"></label>
           <label class="f"><span class="lab">Driver License <i class="req">*</i></span><input type="text" id="caDl" data-req="Driver License" value="${esc((c.license && c.license.number) || deal.testDrive.license || "")}"></label>
-          <label class="f"><span class="lab">Marital Status</span><select id="caMar" data-ui="seg"><option value="" data-ph selected hidden>Select Status</option><option>Married</option><option>Single</option><option>Separated</option></select></label>
+          <label class="f"><span class="lab">Phone <i class="req">*</i></span><input type="tel" id="caPhone" data-req="Phone" value="${esc(c.phone)}"></label>
+          <label class="f"><span class="lab">Email <i class="req">*</i></span><input type="email" id="caEmail" data-req="Email" value="${esc(c.email)}"></label>
+          <label class="f"><span class="lab">Marital Status</span><select id="caMar" data-ui="seg"><option value="" data-ph selected hidden>Select Status</option><option>Married</option><option>Unmarried</option><option>Separated</option></select></label>
         </div>
-        <h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px">Residency &amp; Mailing Address</h3>
+
+        <h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px">Residence</h3>
         <div class="fields">
           <label class="f"><span class="lab">Address <i class="req">*</i></span><input type="text" id="caAddr" data-req="Address" value="${esc(c.address)}"></label>
           <label class="f"><span class="lab">ZIP Code</span><input type="text" id="caZip" inputmode="numeric" maxlength="5" data-zip data-zip-city="caCity" data-zip-state="caState" value="${esc(c.zip)}"></label>
           <label class="f"><span class="lab">City</span><input type="text" id="caCity" value="${esc(c.city)}"></label>
           <label class="f"><span class="lab">State</span><input type="text" id="caState" value="${esc(c.state)}"></label>
-          <label class="f"><span class="lab">Housing Status</span><select id="caHouse" data-ui="seg"><option>Own</option><option>Rent</option><option>Other</option></select></label>
-          <label class="f"><span class="lab">Time at Residence (years) <i class="req">*</i></span><input type="number" id="caResYrs" data-req="Time at Residence" value="3"></label>
+          <label class="f"><span class="lab">Residential Status <i class="req">*</i></span><select id="caHouse" data-ui="seg"><option>Own</option><option>Rent</option><option>Buying</option><option>Parents</option><option>Other</option></select></label>
+          <label class="f"><span class="lab">Monthly Rent / Mortgage Payment <i class="req">*</i></span><input type="number" id="caHousePmt" data-req="Monthly Rent/Mortgage" placeholder="e.g. 1800" step="50"></label>
+          <label class="f"><span class="lab">Time at Address (years) <i class="req">*</i></span><input type="number" id="caResYrs" data-req="Time at Address" value="3" min="0" step="0.5"></label>
         </div>
+        <div id="prevAddrWrap"></div>
+        <p class="flex" style="margin:4px 0 0"><span class="switch"><input type="checkbox" id="caMailDiff"><span class="sl"></span></span> <span style="font-size:13.5px;font-weight:600">Mailing address is different</span></p>
+        <div id="mailWrap"></div>
+
         <h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px">Employment &amp; Income</h3>
         <div class="fields">
           <label class="f"><span class="lab">Employer <i class="req">*</i></span><input type="text" id="caEmp" data-req="Employer" placeholder="Employer name"></label>
-          <label class="f"><span class="lab">Time at Employer (years) <i class="req">*</i></span><input type="number" id="caEmpYrs" data-req="Time at Employer" value="4"></label>
+          <label class="f"><span class="lab">Occupation <i class="req">*</i></span><input type="text" id="caOcc" data-req="Occupation" placeholder="e.g. Project manager"></label>
+          <label class="f"><span class="lab">Employer Phone</span><input type="tel" id="caEmpPhone" placeholder="(000) 000-0000"></label>
+          <label class="f"><span class="lab">Time at Employer (years) <i class="req">*</i></span><input type="number" id="caEmpYrs" data-req="Time at Employer" value="4" min="0" step="0.5"></label>
           <label class="f"><span class="lab">Gross Monthly Income <i class="req">*</i></span><input type="number" id="caIncome" data-req="Gross Monthly Income" placeholder="e.g. 6500" step="100"></label>
+          <label class="f"><span class="lab">Other Monthly Income</span><input type="number" id="caOther" placeholder="0" step="100"></label>
+          <label class="f"><span class="lab">Other Income Source</span><input type="text" id="caOtherSrc" placeholder="e.g. rental income"></label>
+          <label class="f"><span class="lab">Self-Employed</span><br><span class="switch"><input type="checkbox" id="caSelfEmp"><span class="sl"></span></span></label>
         </div>
+        <div id="prevEmpWrap"></div>
+
+        <h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px">Disclosures</h3>
+        ${[["dBk", "Filed bankruptcy?"], ["dAlias", "Obtained credit under another name?"], ["dRepo", "Had a vehicle repossessed?"]].map(([did, q]) => `
+          <p class="flex" style="margin:7px 0"><span class="switch"><input type="checkbox" id="${did}" data-disc><span class="sl"></span></span> <span style="font-size:13.5px;font-weight:600">${q}</span></p>
+          <div id="${did}Wrap"></div>`).join("")}
+
         <div id="coWrap"></div>
-        <p class="hint">Make sure all information is accurate and complete — proper time amounts for both residency and employment per your dealership requirements.</p>
-        <div class="right"><button class="btn btn--grad" id="caSubmit">I Agree / Submit</button></div>
+
+        <div class="mt"><button type="button" class="btn btn--ghost btn--sm" id="refsToggle">＋ Optional — bank &amp; references</button></div>
+        <div id="refsWrap"></div>
+      </div>
+    </div>
+
+    ${r ? `
+    <div class="panel">
+      <div class="panel__head"><h2>Synced From Your Worksheet</h2><div class="right"><a class="btn btn--ghost btn--sm" href="#/desk/${deal.id}">Edit in desking</a></div></div>
+      <div class="panel__body">
+        <ul class="lines small">
+          <li><span>Vehicle</span><b class="amt amt--wrap">${v.year} ${esc(v.make)} ${esc(v.model)} · ${esc(v.stock)}</b></li>
+          <li><span>MSRP</span><b class="amt">${money(v.msrp)}</b></li>
+          <li><span>Cash Price</span><b class="amt">${money(r.yourPrice)}</b></li>
+          <li><span>Sales Tax</span><b class="amt">${money(r.taxes.total || 0)}</b></li>
+          <li><span>Cash Down</span><b class="amt">${money(deal.desk.downPayment || 0)}</b></li>
+          <li><span>Trade-In Amount</span><b class="amt">${money(deal.trade.value || 0)}</b></li>
+          ${deal.dealType === "cash" ? `<li class="total"><span>Total Due</span><b class="amt">${money(r.totalDue)}</b></li>`
+            : `<li class="total"><span>Amount Financed</span><b class="amt">${money(r.amountFinanced)}</b></li>
+               <li class="sub"><span>Term / Estimated Payment</span><b class="amt">${r.term} mo · ${money(r.payment)}</b></li>`}
+        </ul>
+      </div>
+    </div>` : ""}
+
+    <div class="panel">
+      <div class="panel__body">
+        <label class="f" style="font-weight:600;font-size:13px;display:flex;gap:8px;align-items:flex-start;margin-bottom:10px">
+          <input type="checkbox" id="caConsent" style="width:auto;margin-top:3px">
+          <span>I understand that checking this box constitutes my electronic signature, and I authorize Ride Price to obtain credit bureau reports in connection with this application. <span class="demo-note">Demo — no real inquiry ever occurs.</span></span></label>
+        <div class="right"><button class="btn btn--grad" id="caSubmit">Submit Application</button></div>
       </div>
     </div>
 `;
@@ -1743,8 +1801,10 @@ route("credit/:id", ({ id }) => {
         <button type="button" class="btn btn--ghost btn--sm" data-buyers="${esc(deal.id)}">Choose existing customer</button>
       </div>`;
     return `
-      <h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px">Co-Buyer Information</h3>
+      <h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:14px 0 6px">Co-Applicant Information</h3>
       <div class="fields">
+        <label class="f" style="grid-column:1/-1"><span class="lab">This Person Is A</span><select id="caCoRel" data-ui="seg">
+          <option selected>Joint Applicant</option><option>Spousal Joint Applicant</option><option>Co-signer / Guarantor</option></select></label>
         <label class="f"><span class="lab">First Name <i class="req">*</i></span><input type="text" id="coFirst" data-req="Co-Buyer First Name" value="${esc(cb.first)}"></label>
         <label class="f"><span class="lab">Last Name <i class="req">*</i></span><input type="text" id="coLast" data-req="Co-Buyer Last Name" value="${esc(cb.last)}"></label>
         <label class="f"><span class="lab">Date of Birth <i class="req">*</i></span><input type="date" id="coDob" data-req="Co-Buyer Date of Birth" value="${esc(cb.dob || "")}"></label>
@@ -1764,6 +1824,53 @@ route("credit/:id", ({ id }) => {
   $("#atypeInd").onchange = renderCoWrap;
   $("#atypeJoint").onchange = renderCoWrap;
   renderCoWrap();
+
+  /* conditional sections render into the DOM only while active — submit
+     validates every [data-req] on the page, so a hidden required field
+     would block it invisibly (same invariant as the co-buyer section) */
+  const under3 = (id2) => { const n = parseFloat($("#" + id2).value); return !isNaN(n) && n < 3; };
+  function renderPrevAddr() {
+    $("#prevAddrWrap").innerHTML = under3("caResYrs") ? `<div class="fields">
+      <label class="f"><span class="lab">Previous Full Address (under 3 years at current) <i class="req">*</i></span>
+        <input type="text" id="caPrevAddr" data-req="Previous Address" placeholder="Street, city, state, ZIP"></label></div>` : "";
+  }
+  function renderPrevEmp() {
+    $("#prevEmpWrap").innerHTML = under3("caEmpYrs") ? `<div class="fields">
+      <label class="f"><span class="lab">Previous Employer (under 3 years at current) <i class="req">*</i></span>
+        <input type="text" id="caPrevEmp" data-req="Previous Employer"></label>
+      <label class="f"><span class="lab">Previous Occupation</span><input type="text" id="caPrevOcc"></label>
+      <label class="f"><span class="lab">Years There</span><input type="number" id="caPrevEmpYrs" min="0" step="0.5"></label></div>` : "";
+  }
+  $("#caResYrs").oninput = renderPrevAddr;
+  $("#caEmpYrs").oninput = renderPrevEmp;
+  renderPrevAddr(); renderPrevEmp();
+
+  $("#caMailDiff").onchange = () => {
+    $("#mailWrap").innerHTML = $("#caMailDiff").checked ? `<div class="fields mt">
+      <label class="f"><span class="lab">Mailing Address</span><input type="text" id="caMailAddr"></label>
+      <label class="f"><span class="lab">ZIP Code</span><input type="text" id="caMailZip" inputmode="numeric" maxlength="5" data-zip data-zip-city="caMailCity" data-zip-state="caMailState"></label>
+      <label class="f"><span class="lab">City</span><input type="text" id="caMailCity"></label>
+      <label class="f"><span class="lab">State</span><input type="text" id="caMailState"></label></div>` : "";
+  };
+
+  $$("[data-disc]").forEach(sw => sw.onchange = () => {
+    $("#" + sw.id + "Wrap").innerHTML = sw.checked ? `<label class="f" style="margin:2px 0 10px"><span class="lab">Please explain <i class="req">*</i></span>
+      <input type="text" id="${sw.id}Note" data-req="Disclosure explanation"></label>` : "";
+  });
+
+  $("#refsToggle").onclick = () => {
+    const open = !$("#refsWrap").innerHTML;
+    $("#refsToggle").textContent = open ? "− Optional — bank & references" : "＋ Optional — bank & references";
+    $("#refsWrap").innerHTML = open ? `<div class="fields mt">
+      <label class="f"><span class="lab">Bank Reference</span><input type="text" id="refBank" placeholder="Bank or credit union name"></label>
+      <label class="f"><span class="lab">Account Type</span><select id="refAcctType" data-ui="seg"><option value="" data-ph selected hidden>—</option><option>Checking</option><option>Savings</option></select></label>
+      <label class="f"><span class="lab">Nearest Relative Not Living With You</span><input type="text" id="refKinName" placeholder="Name"></label>
+      <label class="f"><span class="lab">Relative's Phone</span><input type="tel" id="refKinPhone" placeholder="(000) 000-0000"></label>
+      <label class="f"><span class="lab">Relationship</span><input type="text" id="refKinRel" placeholder="e.g. sister"></label>
+      <label class="f"><span class="lab">Personal Reference</span><input type="text" id="refP1" placeholder="Name · phone"></label>
+      <label class="f"><span class="lab">Personal Reference 2</span><input type="text" id="refP2" placeholder="Name · phone"></label>
+    </div>` : "";
+  };
 
   /* SSN mask: digits only, dashed as XXX-XX-XXXX while typing */
   $("#caSsn").oninput = (e) => {
@@ -1786,13 +1893,14 @@ route("credit/:id", ({ id }) => {
   });
 
   $("#caSubmit").onclick = () => {
-    if ($("#atypeJoint").checked && !cbRec()) return toast("Add a co-buyer or select Individual");
+    if ($("#atypeJoint").checked && !cbRec()) return toast("Add a co-buyer or select Individually");
     $$("[data-req]").forEach(el => { el.style.borderColor = ""; });
     $$(".f-err", view()).forEach(el => el.remove());
     const bad = [];
     $$("[data-req]").forEach(el => {
       if (!el.value.trim()) bad.push({ el, msg: "Required" });
-      else if (el.id === "caSsn" && el.value.replace(/\D/g, "").length !== 9) bad.push({ el, msg: "Enter a full 9-digit SSN" });
+      /* demo rule: the only SSN this tool ever accepts is the sample one */
+      else if (el.id === "caSsn" && el.value.replace(/\D/g, "") !== "000000000") bad.push({ el, msg: "Demo tool — the SSN is always 000-00-0000" });
     });
     if (bad.length) {
       bad.forEach(({ el, msg }) => {
@@ -1803,11 +1911,43 @@ route("credit/:id", ({ id }) => {
       bad[0].el.focus({ preventScroll: true });
       return toast("Missing: " + bad.map(b => b.el.dataset.req).join(", "));
     }
+    if (!$("#caConsent").checked) {
+      $("#caConsent").scrollIntoView({ block: "center", behavior: "smooth" });
+      return toast("The applicant must check the electronic-signature consent box");
+    }
+    const val = (id2) => { const el = $("#" + id2); return el ? el.value.trim() : ""; };
     const tier = RIDE_PRICE_CALC.creditTier(c.creditScore || 700);
+    const submittedAt = new Date().toISOString();
+    /* the simulated approval is untouched (decision 25) — the form details are
+       captured alongside it as the application of record */
     deal.creditApp = {
-      submitted: new Date().toISOString(), approved: true,
+      submitted: submittedAt, approved: true,
       lender: RIDE_PRICE_DATA.lenders[0], qualifiedApr: tier.qualifiedApr, leaseFactor: Math.max(0.00001, tier.leaseFactor - 0.0003),
-      employer: $("#caEmp").value
+      employer: $("#caEmp").value,
+      form: {
+        consent: { electronicSignature: true, acceptedAt: submittedAt },
+        creditType: val("caType"), primaryUse: val("caUse"),
+        joint: $("#atypeJoint").checked, coRel: val("caCoRel"),
+        marital: val("caMar"),
+        housing: val("caHouse"), housePmt: val("caHousePmt"), resYrs: val("caResYrs"),
+        prevAddress: val("caPrevAddr"),
+        mailing: $("#caMailDiff").checked
+          ? { address: val("caMailAddr"), city: val("caMailCity"), state: val("caMailState"), zip: val("caMailZip") } : null,
+        occupation: val("caOcc"), selfEmployed: $("#caSelfEmp").checked,
+        employerPhone: val("caEmpPhone"), empYrs: val("caEmpYrs"),
+        income: val("caIncome"), otherIncome: val("caOther"), otherSource: val("caOtherSrc"),
+        prevEmployer: val("caPrevEmp"), prevOccupation: val("caPrevOcc"), prevEmpYrs: val("caPrevEmpYrs"),
+        disclosures: {
+          bankruptcy: $("#dBk").checked ? val("dBkNote") : null,
+          alias: $("#dAlias").checked ? val("dAliasNote") : null,
+          repossession: $("#dRepo").checked ? val("dRepoNote") : null
+        },
+        references: {
+          bank: val("refBank"), acctType: val("refAcctType"),
+          kin: val("refKinName") ? { name: val("refKinName"), phone: val("refKinPhone"), relationship: val("refKinRel") } : null,
+          personal: [val("refP1"), val("refP2")].filter(Boolean)
+        }
+      }
     };
     deal.stage = "menu"; Store.save();
     renderApproved(true);
