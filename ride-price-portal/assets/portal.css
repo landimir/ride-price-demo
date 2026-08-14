@@ -185,7 +185,9 @@ label.f .seg { display: flex; }
 .seg__opt {
   border: 0; background: none; font-family: inherit; font-size: 13px; font-weight: 700;
   color: var(--ink); padding: 8px 12px; border-radius: 7px; cursor: pointer; flex: 1 1 auto;
-  white-space: nowrap;
+  /* long labels wrap at spaces inside the button — nowrap here made any label
+     wider than its container bleed out invisibly under the panel's clipping */
+  min-width: 0; white-space: normal; overflow-wrap: normal; line-height: 1.3;
 }
 .seg__opt:hover:not(.on) { background: #f2f1fb; }
 .seg__opt.on { background: var(--navy); color: #fff; }
