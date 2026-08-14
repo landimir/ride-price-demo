@@ -1,0 +1,296 @@
+/* Ride Price Portal — seed data & catalogs (demo data only) */
+"use strict";
+
+const RIDE_PRICE_DATA = {
+
+  dealership: {
+    name: "Ride Price Motors",
+    advisor: "Ashley Collins",
+    teamLead: "Jordan Reyes",
+    address: "321 Main St, Englewood, CO 80111",
+    phone: "(303) 867-5309"
+  },
+
+  /* Colorado-style tax + fee structure used throughout the binder examples */
+  taxes: [
+    { label: "State Tax", rate: 0.029 },
+    { label: "County Tax", rate: 0.0025 },
+    { label: "City Tax", rate: 0.03 },
+    { label: "Regional Transportation District Tax", rate: 0.011 }
+  ],
+  fees: [
+    { label: "Documentation Fee", amount: 99.00 },
+    { label: "Registration Fee", amount: 7.20 },
+    { label: "Filing Fee", amount: 20.00 }
+  ],
+
+  financeTerms: [36, 48, 60, 72, 84],
+  leaseTerms: [24, 36, 39, 48],
+  milesOptions: [10000, 12000, 15000],
+
+  /* residual % of MSRP by lease term */
+  residuals: { 24: 0.68, 36: 0.64, 39: 0.61, 48: 0.54 },
+
+  leaseFees: { acquisition: 995.00, securityDeposit: 0 },
+
+  /* credit tiers: agreed rate is presented at desking; qualified comes back from the "lender" */
+  creditTiers: [
+    { min: 740, label: "Excellent", agreedApr: 3.5, qualifiedApr: 2.49, leaseFactor: 0.00117 },
+    { min: 700, label: "Very Good", agreedApr: 4.5, qualifiedApr: 3.49, leaseFactor: 0.00150 },
+    { min: 660, label: "Good", agreedApr: 5.9, qualifiedApr: 4.99, leaseFactor: 0.00190 },
+    { min: 600, label: "Fair", agreedApr: 8.9, qualifiedApr: 7.49, leaseFactor: 0.00260 },
+    { min: 0,   label: "Building", agreedApr: 12.9, qualifiedApr: 10.99, leaseFactor: 0.00340 }
+  ],
+
+  lenders: ["CUDC Alliant C.U.", "Hyundai Motor Finance", "Ally Financial", "US Bank", "Chase Auto"],
+
+  /* Demo ZIP directory — Denver-metro codes covering the personas plus nearby
+     towns, so typing a ZIP fills city/state. Not a real ZIP database. */
+  zipLookup: {
+    "80111": { city: "Cherry Hills Village", state: "CO" },
+    "80104": { city: "Castle Rock", state: "CO" },
+    "80110": { city: "Englewood", state: "CO" },
+    "80113": { city: "Englewood", state: "CO" },
+    "80120": { city: "Littleton", state: "CO" },
+    "80134": { city: "Parker", state: "CO" },
+    "80122": { city: "Centennial", state: "CO" },
+    "80202": { city: "Denver", state: "CO" },
+    "80014": { city: "Aurora", state: "CO" },
+    "80401": { city: "Golden", state: "CO" }
+  },
+
+  accessories: [
+    { id: "mats", name: "All-Season Floor Mats", price: 195 },
+    { id: "tint", name: "Window Tint", price: 399 },
+    { id: "charger", name: "Wireless Charger", price: 349 },
+    { id: "ppf", name: "Clear Mask Paint Film", price: 899 },
+    { id: "crossbars", name: "Roof Cross Bars", price: 289 },
+    { id: "cargo", name: "Cargo Organizer", price: 149 },
+    { id: "edge", name: "Door Edge Guards", price: 99 },
+    { id: "locks", name: "Wheel Locks", price: 79 }
+  ],
+
+  /* F&I product catalog */
+  products: [
+    { id: "vsc10", name: "Vehicle Service Contract", detail: "10 yr / 120,000 mi / $100 ded.", price: 3404, monthlyHint: null, types: ["finance", "cash", "lease-limited"] },
+    { id: "vsc7", name: "Vehicle Service Contract", detail: "7 yr / 100,000 mi / $100 ded.", price: 2750, types: ["finance", "cash"] },
+    { id: "ppm8", name: "Pre-Paid Maintenance", detail: "8 yr / 96,000 mi", price: 2064, types: ["finance", "cash"] },
+    { id: "ppm3", name: "Pre-Paid Maintenance", detail: "3 yr / 36,000 mi", price: 649, types: ["finance", "cash", "lease"] },
+    { id: "gap", name: "GAP Coverage", detail: "Full loan term", price: 995, types: ["finance"] },
+    { id: "multi", name: "Multi-Protect Bundle", detail: "7 yr — tire & wheel, dent, key, windshield", price: 2059, types: ["finance", "cash", "lease"] },
+    { id: "appear", name: "Appearance Protection", detail: "5 yr — paint & interior", price: 1295, types: ["finance", "cash", "lease"] },
+    { id: "lep", name: "Lease-End Protection", detail: "Waives up to $5,000 excess wear & tear", price: 1095, types: ["lease"] },
+    { id: "wind", name: "Windshield Protection", detail: "3 yr", price: 495, types: ["lease-limited"] },
+    { id: "roadhaz", name: "Road Hazard Protection", detail: "5 yr — tires & wheels", price: 899, types: ["finance", "cash", "lease"] },
+    { id: "keyrep", name: "Key Replacement", detail: "3 yr — lost or damaged remotes", price: 399, types: ["finance", "cash", "lease"] },
+    { id: "tlp", name: "Total Loss Protection", detail: "5 yr", price: 795, types: ["finance", "cash"] },
+    { id: "recovery", name: "Theft Recovery System", detail: "3 yr", price: 699, types: ["finance", "cash"] }
+  ],
+
+  /* product presentation copy — the Preferred walkthrough page */
+  presentations: {
+    rate: { icon: "📊", label: "Rate",
+      headline: "A rate you actually qualified for.",
+      body: "The rate on this menu comes from the lender's real approval of your credit application — not an estimate. We submitted to the lender you preferred and went to work to earn you a competitive rate.",
+      benefits: ["Based on your actual lender approval", "Compared across lenders for competitiveness", "Locked to the structure you agreed to"] },
+    term: { icon: "📅", label: "Term",
+      headline: "A term that matches how you own.",
+      body: "Your term is set to mirror how long you actually keep and drive your vehicles — so your coverage, payment, and equity all line up with real life instead of a generic contract.",
+      benefits: ["Matched to your driving habits from discovery", "Shorter terms build equity faster", "Extended options available for payment relief"] },
+    vsc10: { icon: "🛡️", label: "Vehicle Service Contract",
+      headline: "Coverage that outlasts the factory warranty.",
+      body: "Your manufacturer's comprehensive coverage ends long before most owners are done with the vehicle. A service contract keeps the mechanical, electrical, and technology components covered after the factory walks away — with parts and labor at today's rates, not tomorrow's.",
+      benefits: ["10 years / 120,000 miles of protection", "Covers parts and labor with a $100 deductible", "Rental and roadside benefits while in the shop", "Cancelable anytime for a prorated amount"] },
+    vsc7: { icon: "🛡️", label: "Vehicle Service Contract",
+      headline: "Coverage that outlasts the factory warranty.",
+      body: "Keeps the mechanical, electrical, and technology components covered after the factory coverage expires — parts and labor at today's rates.",
+      benefits: ["7 years / 100,000 miles of protection", "$100 deductible per visit", "Rental and roadside benefits included"] },
+    ppm8: { icon: "🔧", label: "Pre-Paid Maintenance",
+      headline: "Lock in today's maintenance prices.",
+      body: "Every scheduled service for the life of the plan, prepaid at today's rates. How much was an oil change three years ago? Factory-trained technicians, OEM parts, and a documented service history that pays you back at trade-in.",
+      benefits: ["8 years / 96,000 miles of scheduled service", "OEM parts and factory-trained technicians", "Inflation-proof — priced at today's rates", "Complete service records boost resale value"] },
+    ppm3: { icon: "🔧", label: "Pre-Paid Maintenance",
+      headline: "Lock in today's maintenance prices.",
+      body: "Every scheduled service in the plan, prepaid at today's rates with factory-trained technicians and OEM parts.",
+      benefits: ["3 years / 36,000 miles of scheduled service", "OEM parts and multi-point inspections", "Service history documented for resale"] },
+    gap: { icon: "🌉", label: "GAP Coverage",
+      headline: "Protection for the loan, not just the car.",
+      body: "If the vehicle is ever totaled or stolen, insurance pays what the car is worth — not what you owe. GAP covers the difference so a total loss doesn't leave you making payments on a car you no longer have.",
+      benefits: ["Covers the gap between payoff and insurance settlement", "Protects through the full loan term", "Deductible assistance included"] },
+    multi: { icon: "📦", label: "Multi-Protect Bundle",
+      headline: "One bundle. Four everyday protections.",
+      body: "The four most common out-of-pocket repairs — tires and wheels, dents and dings, keys, and windshield chips — bundled into one plan for less than they cost separately.",
+      benefits: ["Tire & wheel road hazard repair or replacement", "Paintless dent and ding removal", "Key and remote replacement", "Windshield chip repair"] },
+    appear: { icon: "✨", label: "Appearance Protection",
+      headline: "Keep it showroom-new.",
+      body: "Modern paint is thinner and more environmentally fragile than ever, and interiors live hard lives. Appearance protection treats and covers the surfaces the factory warranty explicitly excludes.",
+      benefits: ["5 years of exterior paint protection", "Interior stain and fade coverage", "Protects the resale value your trade depends on"] },
+    lep: { icon: "🔑", label: "Lease-End Protection",
+      headline: "Turn the lease in with confidence.",
+      body: "At lease turn-in, the leasing company bills for every scratch, stain, chip, and worn tire. Lease-end protection waives those charges so the car comes back like you drove it — no checkbook required.",
+      benefits: ["Waives up to $5,000 in excess wear & tear", "Covers dents, scratches, chips, stains, and tire wear", "Missing parts covered up to $150"] },
+    wind: { icon: "🪟", label: "Windshield Protection",
+      headline: "Chips happen. Bills don't have to.",
+      body: "Highway debris doesn't care how new your car is. Windshield protection repairs chips and cracks fast, before they spread into a full replacement.",
+      benefits: ["3 years of coverage", "Repairs before cracks spread", "No deductible on covered repairs"] },
+    roadhaz: { icon: "🛞", label: "Road Hazard Protection",
+      headline: "The road doesn't care about your tires.",
+      body: "Potholes, nails, and debris are the most common out-of-pocket surprise a new owner faces — and low-profile tires and alloy wheels make each incident more expensive than the last one you remember.",
+      benefits: ["5 years of tire & wheel coverage", "Repair or replacement from road hazard damage", "Mounting, balancing, and taxes included"] },
+    keyrep: { icon: "🗝️", label: "Key Replacement",
+      headline: "Easy to misplace, yet costly to replace.",
+      body: "Modern keys are as easy to lose as they ever were — but today's encrypted remotes and smart keys have made replacement dramatically more expensive. Key protection covers the cost of replacing your key and remote when they go missing.",
+      benefits: ["Up to 84 months of coverage", "Up to $5,000 in total benefits", "Coverage for both key and remote", "Emergency roadside assistance included"] },
+    tlp: { icon: "🚙", label: "Total Loss Protection",
+      headline: "If the worst happens, start fresh.",
+      body: "A total loss shouldn't total your finances. Total loss protection provides a credit toward your replacement vehicle when insurance writes the car off — money that gets you back on the road here.",
+      benefits: ["5 years of protection", "Replacement-vehicle credit on a covered total loss", "Works alongside your insurance settlement"] },
+    recovery: { icon: "📡", label: "Theft Recovery",
+      headline: "Stolen doesn't have to mean gone.",
+      body: "A recovery system dramatically improves the odds your vehicle comes back — and pays a benefit if it doesn't. It also marks the vehicle as a harder target in the first place.",
+      benefits: ["3 years of recovery service", "Benefit paid if the vehicle isn't recovered", "Theft deterrent registered to the VIN"] }
+  },
+
+  /* menu programs by deal type: product ids per column */
+  programs: {
+    finance: {
+      preferred: { label: "Preferred", products: ["vsc10", "ppm8", "gap", "multi", "appear", "roadhaz", "keyrep"], termAdj: 0, aprAdj: 0 },
+      standard:  { label: "Standard",  products: ["vsc7", "ppm3", "gap", "keyrep", "tlp"], termAdj: 0, aprAdj: 0 },
+      budget:    { label: "Budget",    products: ["vsc10", "ppm8", "multi", "roadhaz"], termAdj: 12, aprAdj: 0.4 }
+    },
+    lease: {
+      preferred: { label: "Full Service Lease", products: ["lep", "ppm3", "multi", "appear", "keyrep"] },
+      standard:  { label: "Standard Lease",     products: ["lep", "ppm3"] },
+      budget:    { label: "Limited Lease",      products: ["vsc10", "wind"] }
+    },
+    cash: {
+      preferred: { label: "Preferred", products: ["vsc10", "ppm8", "multi", "appear", "roadhaz", "keyrep"] },
+      standard:  { label: "Standard",  products: ["vsc7", "ppm3", "appear", "tlp"] }
+    }
+  },
+
+  /* demo inventory (fictional stock; figures modeled on the binder examples) */
+  inventory: [
+    { stock: "7H21313", vin: "5NMS4DAL4NH457995", year: 2022, make: "Hyundai", model: "Santa Fe", trim: "Limited", body: "SUV", type: "New",
+      msrp: 42910, selling: 41431, includedOptions: 395, miles: 5, ext: "Twilight Black", int: "Gray", drive: "AWD", engine: "2.5L Turbo I4", mpg: "22/28",
+      emoji: "🚙", hue: 250,
+      blurb: "Panoramic sunroof, heated & ventilated leather, Highway Drive Assist, 360° camera." },
+    { stock: "7H21477", vin: "KM8R5DHE6NU334821", year: 2022, make: "Hyundai", model: "Palisade", trim: "Limited", body: "SUV", type: "New",
+      msrp: 49605, selling: 52105, includedOptions: 495, miles: 5, ext: "Moonlight Cloud", int: "Beige", drive: "AWD", engine: "3.8L V6", mpg: "19/24",
+      emoji: "🚐", hue: 215,
+      blurb: "7-passenger captain's chairs, dual sunroofs, Harman Kardon audio, tow package." },
+    { stock: "7H21482", vin: "5NMS3DAJ2NH409112", year: 2022, make: "Hyundai", model: "Santa Fe", trim: "Calligraphy", body: "SUV", type: "New",
+      msrp: 45765, selling: 45765, includedOptions: 0, miles: 12, ext: "Serenity White", int: "Black", drive: "AWD", engine: "2.5L Turbo I4", mpg: "21/28",
+      emoji: "🚙", hue: 0,
+      blurb: "Quilted Nappa leather, premium paint, 20\" alloys, remote smart park." },
+    { stock: "B220997", vin: "WBA73AK07N7K56863", year: 2022, make: "BMW", model: "2 Series", trim: "228i xDrive Gran Coupe", body: "Sedan", type: "New",
+      msrp: 47645, selling: 45035, includedOptions: 1995, miles: 8, ext: "Melbourne Red", int: "Black", drive: "AWD", engine: "2.0L Turbo I4", mpg: "23/33",
+      emoji: "🚗", hue: 8,
+      blurb: "M Performance package, live cockpit pro, ambient lighting, heated sport seats." },
+    { stock: "B220331", vin: "WBA7U2C09NCG55107", year: 2022, make: "BMW", model: "7 Series", trim: "740i xDrive Sedan", body: "Sedan", type: "New",
+      msrp: 97615, selling: 91460, includedOptions: 1972, miles: 10, ext: "Carbon Black", int: "Cognac", drive: "AWD", engine: "3.0L Turbo I6", mpg: "20/28",
+      emoji: "🚘", hue: 230,
+      blurb: "Executive lounge seating, laser headlights, gesture control, sky lounge roof." },
+    { stock: "6S20300", vin: "4S4BTGUD6N3123889", year: 2022, make: "Subaru", model: "Outback", trim: "Touring XT", body: "Wagon", type: "New",
+      msrp: 41995, selling: 40780, includedOptions: 350, miles: 6, ext: "Autumn Green", int: "Java Brown", drive: "AWD", engine: "2.4L Turbo Boxer", mpg: "23/30",
+      emoji: "🚙", hue: 130,
+      blurb: "EyeSight driver assist, Nappa leather, 11.6\" touchscreen, hands-free power gate." },
+    { stock: "6S20922", vin: "JF2SKAXC4NH477215", year: 2022, make: "Subaru", model: "Forester", trim: "Premium", body: "SUV", type: "New",
+      msrp: 31745, selling: 30990, includedOptions: 245, miles: 4, ext: "Horizon Blue", int: "Gray", drive: "AWD", engine: "2.5L Boxer", mpg: "26/33",
+      emoji: "🚙", hue: 205,
+      blurb: "Panoramic moonroof, X-Mode, heated seats, wireless CarPlay." },
+    { stock: "U19834", vin: "5NMS3CAD3LH204577", year: 2020, make: "Hyundai", model: "Santa Fe", trim: "SEL 2.4", body: "SUV", type: "Used",
+      msrp: 24990, selling: 23990, includedOptions: 0, miles: 31240, ext: "Machine Gray", int: "Black", drive: "AWD", engine: "2.4L I4", mpg: "21/27",
+      emoji: "🚙", hue: 270,
+      blurb: "One owner, clean history, new tires, remaining powertrain warranty." },
+    { stock: "U20641", vin: "WBA5R7C55KAJ81226", year: 2019, make: "BMW", model: "3 Series", trim: "330i xDrive", body: "Sedan", type: "CPO",
+      msrp: 31490, selling: 30490, includedOptions: 0, miles: 27882, ext: "Alpine White", int: "Oyster", drive: "AWD", engine: "2.0L Turbo I4", mpg: "25/34",
+      emoji: "🚗", hue: 195,
+      blurb: "Certified pre-owned — 1 yr unlimited-mile CPO coverage, premium package." },
+    { stock: "U21077", vin: "4S4WMAPD1L3428441", year: 2020, make: "Subaru", model: "Ascent", trim: "Limited", body: "SUV", type: "CPO",
+      msrp: 33985, selling: 32985, includedOptions: 0, miles: 35120, ext: "Crimson Red", int: "Slate", drive: "AWD", engine: "2.4L Turbo Boxer", mpg: "20/26",
+      emoji: "🚐", hue: 350,
+      blurb: "3-row certified SUV, tow package, heated leather, fresh service." },
+    { stock: "7H22208", vin: "KM8SRDHF2NU391004", year: 2022, make: "Hyundai", model: "Palisade", trim: "SEL", body: "SUV", type: "New",
+      msrp: 37635, selling: 43134, includedOptions: 0, miles: 24, ext: "Hyper White", int: "Black", drive: "FWD", engine: "3.8L V6", mpg: "19/26",
+      emoji: "🚐", hue: 45,
+      blurb: "8-passenger, blind-spot collision avoidance, hands-free liftgate." },
+    { stock: "6S21440", vin: "4S4BTACC7N3211856", year: 2022, make: "Subaru", model: "Outback", trim: "Premium", body: "Wagon", type: "New",
+      msrp: 30070, selling: 29490, includedOptions: 190, miles: 9, ext: "Ice Silver", int: "Gray", drive: "AWD", engine: "2.5L Boxer", mpg: "26/32",
+      emoji: "🚙", hue: 170,
+      blurb: "All-weather package, 11.6\" touchscreen, adaptive cruise." }
+  ],
+
+  discoveryQuestions: [
+    { key: "week", title: "Describe a week in the life of your vehicle.", hint: "Commute, errands, road trips — paint the picture." },
+    { key: "trips", title: "What trips do you take — near and far?", hint: "Weekend getaways? Mountains? Long highway drives?" },
+    { key: "family", title: "Who rides with you?", hint: "Family, kids, carpool — how many seats do you really use?" },
+    { key: "pets", title: "Any pets along for the ride?", hint: "Cargo space, seat protection, hair-friendly interiors." },
+    { key: "activities", title: "What activities does your vehicle support?", hint: "Sports gear, camping, towing, home projects." },
+    { key: "commute", title: "Tell me about your commute and parking.", hint: "Miles per year? Garage or street? Highway or city?" },
+    { key: "drive", title: "How do you like a car to drive?", hint: "Sporty, comfortable, quiet, commanding view?" }
+  ],
+
+  testDriveTerms: [
+    "I have a valid driver's license to operate a motor vehicle in this state and I presently have in effect liability and property damage insurance that meets or exceeds the minimum state requirements.",
+    "I understand that this Test Drive Agreement must be in the vehicle at all times and that I must present it to a law enforcement officer upon request. I am authorized to drive the vehicle up to 20 miles and must return the vehicle to the dealership at the agreed time.",
+    "I cannot remove the vehicle from this state or use the vehicle negligently or contrary to law. I must immediately report any damage, accident, theft, or vandalism involving the vehicle to the police, the dealership, and my insurance company.",
+    "I have personally inspected the vehicle and found it free from any visible damage and/or defects, except as otherwise noted. I must pay for any loss or damage to the vehicle that occurs while the vehicle is in my possession or control.",
+    "If I am in breach of this Agreement or fail to return the vehicle as required, I will be required to pay all expenses incurred by the dealership to have the vehicle returned.",
+    "Additional authorized drivers are subject to all of the obligations and responsibilities as set forth in this Agreement."
+  ],
+
+  dealForms: [
+    { id: "privacy", label: "Privacy Policy", group: "Delivery Forms" },
+    { id: "settings", label: "Personalized Setting Sheet", group: "Delivery Forms" },
+    { id: "accsheet", label: "Accessory Sell Sheet", group: "Delivery Forms" },
+    { id: "tqi", label: "TQI Checklist", group: "Delivery Forms" },
+    { id: "poa", label: "Power of Attorney Forms", group: "Motor Vehicle Forms" },
+    { id: "reg", label: "Registration & Title Application", group: "Motor Vehicle Forms" },
+    { id: "license", label: "Copy of License", group: "Motor Vehicle Forms" },
+    { id: "plates", label: "Transfer Plates Registration", group: "Motor Vehicle Forms" },
+    { id: "contracts", label: "Signed Contracts", group: "Financing Forms" },
+    { id: "creditmatch", label: "Signed Matching Credit App", group: "Financing Forms" },
+    { id: "fimenu", label: "F&I Menu Forms", group: "Financing Forms" },
+    { id: "riskdisc", label: "Risk-Based Disclosure", group: "Financing Forms" },
+    { id: "insurance", label: "Insurance Card / Binder", group: "Financing Forms" },
+    { id: "title", label: "Sign Title / Duplicate Title Form", group: "Trade-In Forms" },
+    { id: "lienrel", label: "Lien Release Letter", group: "Trade-In Forms" },
+    { id: "appraisal", label: "Appraisal Sheet", group: "Trade-In Forms" }
+  ],
+
+  seedCustomers: [
+    { id: "c-demo1", first: "John", last: "Smith", middle: "", email: "jsmithtest@testing.com", phone: "(303) 555-0134",
+      address: "3321 Main St", city: "Cherry Hills Village", state: "CO", zip: "80111", creditScore: 740, createdAt: "2026-07-10T16:00:00Z" },
+    { id: "c-demo2", first: "Cheri", last: "Bridwell", middle: "", email: "cbridwell@testing.com", phone: "(720) 555-1212",
+      address: "88 Aspen Way", city: "Castle Rock", state: "CO", zip: "80104", creditScore: 705, createdAt: "2026-07-08T19:30:00Z" }
+  ],
+
+  /* license-scan prop personas — ALL FICTIONAL, printed as training props.
+     prop 1 & 2 mirror the seed customers so a fresh demo shows "existing
+     customer found"; 3–5 demo "new customer created". The barcode on each
+     printed prop back encodes only the prop number — the scanner can never
+     read anything else. */
+  licenseProps: [
+    { prop: 1, first: "John", middle: "A", last: "Smith", dob: "1987-03-14",
+      license: { number: "T-0000101", state: "CO", expires: "2029-03-14" },
+      address: "3321 Main St", city: "Cherry Hills Village", state: "CO", zip: "80111",
+      issued: "2025-03-14", cls: "R", sex: "M", eyes: "BRO", hgt: "5'-11\"" },
+    { prop: 2, first: "Cheri", middle: "L", last: "Bridwell", dob: "1990-11-02",
+      license: { number: "T-0000102", state: "CO", expires: "2028-11-02" },
+      address: "88 Aspen Way", city: "Castle Rock", state: "CO", zip: "80104",
+      issued: "2024-11-02", cls: "R", sex: "F", eyes: "GRN", hgt: "5'-06\"" },
+    { prop: 3, first: "Marcus", middle: "", last: "Alvarez", dob: "1995-06-21",
+      license: { number: "T-0000103", state: "CO", expires: "2030-06-21" },
+      address: "4102 Birch Ct", city: "Englewood", state: "CO", zip: "80110",
+      issued: "2025-06-21", cls: "R", sex: "M", eyes: "BRO", hgt: "5'-09\"" },
+    { prop: 4, first: "Dana", middle: "K", last: "Whitfield", dob: "1983-09-08",
+      license: { number: "T-0000104", state: "CO", expires: "2029-09-08" },
+      address: "210 Larkspur Ln", city: "Littleton", state: "CO", zip: "80120",
+      issued: "2024-09-08", cls: "R", sex: "F", eyes: "BLU", hgt: "5'-04\"" },
+    { prop: 5, first: "Priya", middle: "", last: "Natarajan", dob: "1999-01-27",
+      license: { number: "T-0000105", state: "CO", expires: "2031-01-27" },
+      address: "77 Silver Sage Dr", city: "Parker", state: "CO", zip: "80134",
+      issued: "2026-01-27", cls: "R", sex: "F", eyes: "BRO", hgt: "5'-05\"" }
+  ]
+};

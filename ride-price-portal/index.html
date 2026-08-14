@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ride Price Portal — Dealer Desking Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/portal.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚘</text></svg>">
+</head>
+<body>
+
+<header class="appbar">
+  <button class="hamburger" id="hamburgerBtn" type="button" aria-label="Open navigation menu" aria-expanded="false">☰</button>
+  <div class="brand" id="brandHome" title="Deals">
+    <span class="rideprice">Ride</span><span class="price">PRICE</span>
+  </div>
+  <span class="store" id="appbarStore">Ride Price Motors</span>
+  <nav class="flex" style="gap:4px">
+    <a class="btn btn--sm" data-nav="#/deals" href="#/deals" style="color:#cfcde6">Deals</a>
+    <a class="btn btn--sm" data-nav="#/customers" href="#/customers" style="color:#cfcde6">Customers</a>
+    <a class="btn btn--sm" data-nav="#/vehicles/browse" href="#/vehicles/browse" style="color:#cfcde6">Inventory</a>
+  </nav>
+  <div class="spacer"></div>
+  <span class="chip">DEMO</span>
+  <span class="user" id="appbarUser">Welcome <b>Ashley Collins</b></span>
+</header>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer__head">
+    <div class="brand"><span class="rideprice">Ride</span><span class="price">PRICE</span></div>
+    <div class="drawer__store" id="drawerStore">Ride Price Motors</div>
+    <div class="drawer__user" id="drawerUser">Ashley Collins · Client Advisor</div>
+  </div>
+  <nav class="drawer__nav">
+    <span class="drawer__label">Workflow</span>
+    <a href="#/deals" data-drawer-link><i>📋</i> Deals List</a>
+    <a href="#/vehicles/browse" data-drawer-link><i>🚗</i> Vehicle Search</a>
+    <a href="#/customers" data-drawer-link class="drawer__cta"><i>＋</i> New Customer Visit</a>
+    <span class="drawer__label">Resources</span>
+    <a href="#/props" data-drawer-link><i>🪪</i> Training Licenses</a>
+    <a href="../ride-price-training-hub/index.html" target="_blank" rel="noopener" data-drawer-link><i>🎓</i> Training Hub</a>
+  </nav>
+  <div class="drawer__foot">
+    <button class="btn btn--danger btn--sm" id="drawerReset" type="button">Reset demo data</button>
+    <span class="drawer__ver">Demo portal · training use only</span>
+  </div>
+</aside>
+
+<div class="pagebar">
+  <div>
+    <h1 id="pageTitle">Deals</h1>
+    <div class="crumbs" id="pageCrumbs"></div>
+  </div>
+  <div class="actions" id="pageActions"></div>
+</div>
+
+<main class="view" id="view">
+  <p class="muted center" style="padding:60px 0">Loading…</p>
+</main>
+
+<script src="assets/data.js"></script>
+<script src="assets/calc.js"></script>
+<script src="assets/scan.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
