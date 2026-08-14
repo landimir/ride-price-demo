@@ -147,10 +147,13 @@ function openBuyersModal(dealId) {
   if (!deal) return;
   modal("Buyers on this deal", `<div id="buyersBody"></div>`);
 
-  const card = (cust, roleLabel, chipMod) => `<div class="buyer-card">
+  /* each card is a tap target routing to the application profile — affordance
+     is the chevron plus hover/active states, nothing louder (owner spec) */
+  const card = (cust, roleLabel, chipMod) => `<div class="buyer-card buyer-card--link" role="button" tabindex="0" title="Open the credit application">
     <div class="who"><b>${esc(cust.first + " " + cust.last)}</b><br>
       <span class="small">${esc(cust.phone || cust.email || "no contact on file")}</span></div>
     <span class="chip ${chipMod || ""}">${roleLabel}</span>
+    <span class="buyer-card__go">›</span>
   </div>`;
 
   function render() {
@@ -173,6 +176,19 @@ function openBuyersModal(dealId) {
           <input type="search" id="bySearch" placeholder="Name, phone, or license #" aria-label="Search customers" style="width:100%">
           <div id="byResults" class="mt"></div>
         </div>`}`;
+
+    $$(".buyer-card--link", body).forEach(el => {
+      const go = (e) => {
+        if (e.target.closest("button")) return;
+        closeModal();
+        navigate(`#/credit/${deal.id}`);
+      };
+      el.onclick = go;
+      el.onkeydown = (e) => {
+        if (e.target.closest("button")) return; /* guard before preventDefault, or a nested button's own key action dies */
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(e); }
+      };
+    });
 
     const scanBtn = $("#byScan", body);
     if (scanBtn) scanBtn.onclick = () => {
