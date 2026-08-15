@@ -20,7 +20,8 @@ const RIDE_PRICE_DATA = {
     { label: "Metropolitan Commuter Transportation District Tax", rate: 0.00375 }
   ],
   fees: [
-    { label: "Documentation Fee", amount: 99.00 },
+    /* New York caps dealer documentation fees at $175. */
+    { label: "Documentation Fee", amount: 175.00 },
     { label: "Registration Fee", amount: 7.20 },
     { label: "Filing Fee", amount: 20.00 }
   ],
