@@ -381,8 +381,14 @@ label.f .seg { display: flex; }
 .sig-box.empty { color: #b6b3cc; font-family: inherit; font-size: 13px; }
 
 /* ---------- menu columns ---------- */
-.menu-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); align-items: start; }
-.mcol { background: #fff; border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+/* align-items:stretch (not start) plus a flex column is what puts every
+   program's payment on the same line. A menu exists to be compared, and
+   four payments at four different heights cannot be. */
+.menu-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); align-items: stretch; }
+.mcol { background: #fff; border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+.mcol__products { flex: 1; }
+/* the recommended program, called out in both layouts */
+.pop-chip { background: var(--grad); color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .3px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
 .mcol--active { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(240,127,41,.18), var(--shadow-lg); }
 .mcol__head { padding: 12px 16px; background: #fbfbfe; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
 .mcol__head h3 { margin: 0; font-size: 15px; color: var(--navy); }
@@ -933,4 +939,105 @@ label.f .seg { display: flex; }
   body[data-screen="present"] .pnav .btn { flex: 1; margin: 0; }
   body[data-screen="present"] .pnav .btn[disabled] { opacity: .45; }
   body[data-screen="present"] .view { padding-bottom: 104px; }
+}
+
+
+/* ============================================================
+   Repayment Options — phone layout (owner mockup, 2026-08-15)
+   Four programs stacked to 2758px / 3.68 screens, so comparing
+   them — the entire point of a menu — was impossible on a phone.
+   Tabs show one at a time. Desktop DOM is untouched; everything
+   new is display:none above 720px.
+   ============================================================ */
+.mtabs, .mcol__mhead, .mfoot { display: none; }
+.mprice { font: inherit; color: inherit; }
+
+@media screen and (max-width: 720px) {
+  body[data-screen="menu3"] .pagebar h1,
+  body[data-screen="menu3"] .pagebar .actions,
+  body[data-screen="menu3"] .stepper { display: none; }
+
+  /* tab bar */
+  body[data-screen="menu3"] .mtabs {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 0 0 14px;
+  }
+  .mtab {
+    min-height: 44px; padding: 8px 4px; border: 1px solid var(--line); border-radius: 12px;
+    background: #fff; color: var(--navy); font-family: inherit; font-size: 12.5px;
+    font-weight: 700; cursor: pointer;
+  }
+  .mtab.on { background: var(--grad); color: #fff; border-color: transparent; }
+
+  /* one program at a time */
+  body[data-screen="menu3"] .menu-grid { display: block; }
+  body[data-screen="menu3"] .mcol { display: none; }
+  body[data-screen="menu3"] .menu-grid[data-activetab="preferred"] .mcol[data-col="preferred"],
+  body[data-screen="menu3"] .menu-grid[data-activetab="standard"] .mcol[data-col="standard"],
+  body[data-screen="menu3"] .menu-grid[data-activetab="budget"] .mcol[data-col="budget"],
+  body[data-screen="menu3"] .menu-grid[data-activetab="custom"] .mcol[data-col="custom"] { display: block; }
+
+  /* the payment moves to a dark header card */
+  body[data-screen="menu3"] .mcol__mhead {
+    display: block; background: var(--navy); color: #fff;
+    border-radius: 14px 14px 0 0; padding: 16px 18px;
+  }
+  .mh-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .mh-top b { font-size: 16px; letter-spacing: .8px; }
+  .mh-star { color: var(--gold); font-size: 18px; }
+  .mh-top .pop-chip { font-size: 11px; padding: 3px 10px; }
+  .mh-bot { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 6px; }
+  .mh-bot span { font-size: 13px; color: #c9c6e4; }
+  .mh-pay { font-size: 26px; color: var(--green); overflow-wrap: normal; }
+
+  /* the desktop head/foot are redundant once the card exists */
+  body[data-screen="menu3"] .mcol__head,
+  body[data-screen="menu3"] .mcol__pay,
+  body[data-screen="menu3"] .mprice,
+  body[data-screen="menu3"] .mprod .mv { display: none; }
+
+  /* rows read as included, and the whole row is the tap target */
+  body[data-screen="menu3"] .mprod {
+    display: flex; align-items: center; gap: 12px; cursor: pointer;
+    justify-content: flex-start; padding: 12px 14px;
+  }
+  body[data-screen="menu3"] .mprod > div { flex: 1; text-align: left; }
+  body[data-screen="menu3"] .mprod b { font-size: 14px; margin-bottom: 2px; }
+  body[data-screen="menu3"] .mprod span { color: var(--ink); }
+  body[data-screen="menu3"] .mprod::before {
+    content: "✓"; flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%;
+    background: var(--green); color: #fff; font-size: 14px; font-weight: 800;
+    display: grid; place-items: center;
+  }
+  body[data-screen="menu3"] .mcol[data-col="custom"] .mprod::before { content: "−"; background: var(--muted); }
+
+  /* accept / decline / advisor script */
+  body[data-screen="menu3"] .mfoot { display: block; margin-top: 16px; }
+  .advscript-card {
+    display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px;
+    padding: 10px 14px; margin-bottom: 12px; border: 1px solid var(--line);
+    border-radius: 14px; background: #fff; font-family: inherit; cursor: pointer;
+  }
+  .advscript-card__ico {
+    flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px; background: var(--grad);
+    display: grid; place-items: center; font-size: 17px;
+  }
+  .advscript-card__lab { flex: 1; text-align: left; font-size: 15px; font-weight: 700; color: var(--navy); }
+  .advscript-card__chev { color: var(--navy); font-size: 18px; }
+  .macpt { width: 100%; min-height: 56px; font-size: 15px; }
+  .mdecline {
+    display: block; width: 100%; min-height: 44px; margin-top: 10px; padding: 10px;
+    border: 0; background: none; font-family: inherit; font-size: 14px;
+    font-weight: 600; color: var(--muted); text-decoration: underline; cursor: pointer;
+  }
+
+  /* the desktop nav row is replaced by Accept/decline, except Toggle Payment
+     which the Custom tab still needs to reveal its figure */
+  body[data-screen="menu3"] .mfoot ~ .flex.mt { display: none; }
+  body[data-screen="menu3"] .menu-grid[data-activetab="custom"] ~ .flex.mt { display: flex; }
+  body[data-screen="menu3"] .menu-grid[data-activetab="custom"] ~ .flex.mt #backS1,
+  body[data-screen="menu3"] .menu-grid[data-activetab="custom"] ~ .flex.mt #s2next,
+  body[data-screen="menu3"] .menu-grid[data-activetab="custom"] ~ .flex.mt .push { display: none; }
+
+  body[data-screen="menu3"] .advscript-item { display: none; }
+  body[data-screen="menu3"].script-open .advscript-item { display: block; }
 }

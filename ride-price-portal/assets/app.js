@@ -112,6 +112,24 @@ function confirmModal(title, bodyHtml, confirmLabel, onConfirm) {
   $("#confirmGo").onclick = () => { closeModal(); onConfirm(); };
 }
 
+/* the client initials to select a program; on a phone this is reached through
+   the Accept button rather than a box wedged into a column header */
+function initialsModal(programLabel, onAccept) {
+  modal("Client initials", `<p style="margin:0 0 12px">Have the client initial to accept <b>${esc(programLabel)}</b>.</p>
+    <label class="f"><span class="lab">Initials</span><input id="iniModalInput" type="text" maxlength="4" placeholder="initial" autocomplete="off"></label>`,
+    `<button class="btn btn--ghost" data-close>Cancel</button>
+     <button class="btn btn--grad" id="iniModalGo">Accept</button>`);
+  const inp = $("#iniModalInput");
+  if (inp) inp.focus();
+  const go = () => {
+    const val = (inp.value || "").trim().toUpperCase();
+    if (!val) { inp.style.borderColor = "var(--crimson)"; return; }
+    closeModal(); onAccept(val);
+  };
+  $("#iniModalGo").onclick = go;
+  if (inp) inp.onkeydown = (e) => { if (e.key === "Enter") { e.preventDefault(); go(); } };
+}
+
 const DEAL_TYPES = { finance: "Finance", lease: "Lease", cash: "Cash", onepay: "One Pay" };
 const STAGES = {
   discovery: { label: "Discovery", badge: "badge--new", route: (d) => `#/discovery/${d.id}` },
@@ -2384,8 +2402,12 @@ route("menu/:id", ({ id }) => {
   }
 
   /* ---------- step 2: repayment options ---------- */
+  /* which program the phone tab bar is showing. Deliberately not persisted:
+     it is a view position, not deal state. */
+  let mTab = null;
   function step2() {
     const cols = Object.entries(progSet).map(([key, p]) => RIDE_PRICE_CALC.menuColumn(deal, v, key, p));
+    if (!mTab) mTab = cols[0].key;
     const customResult = RIDE_PRICE_CALC.menuColumn(deal, v, "custom", {
       label: "Custom", products: M.custom,
       termAdj: M.customSource === "budget" ? (progSet.budget ? progSet.budget.termAdj : 0) : 0,
@@ -2400,10 +2422,21 @@ route("menu/:id", ({ id }) => {
       </div>`;
     }
 
+    const activeCol = mTab === "custom" ? customResult : (cols.find(c => c.key === mTab) || cols[0]);
+    const acceptLabel = mTab === "custom" ? "Custom" : activeCol.label;
+    const acceptPay = mTab === "custom" ? customResult.payment : activeCol.payment;
+    /* Custom deliberately withholds its figure until Toggle Payment is used —
+       the Accept button must not leak what the column is concealing. */
+    const acceptHidden = mTab === "custom" && !M.showCustomPay;
+    /* on cash and one-pay, menuColumn returns a TOTAL DUE, not a monthly
+       payment (calc.js: isTotal). Never suffix that with "/mo". */
+    const acceptSuffix = activeCol.isTotal ? " total" : "/mo";
+    const acceptFigure = acceptHidden ? "" : ` (${money(acceptPay)}${acceptSuffix})`;
+
     function prodHtml(pid, colKey) {
       const p = RIDE_PRICE_CALC.productById(pid);
       return `<div class="mprod" draggable="true" data-prod="${pid}" data-from="${colKey}">
-        <div><b>${p.name}</b><span>${p.detail} · ${money0(p.price)}</span></div>
+        <div><b>${p.name}</b><span>${p.detail}<span class="mprice"> · ${money0(p.price)}</span></span></div>
         ${colKey === "custom"
           ? `<button class="mv mv--x" data-return="${pid}">✕ remove</button>`
           : `<button class="mv" data-move="${pid}" data-src="${colKey}">→ Custom</button>`}
@@ -2412,25 +2445,46 @@ route("menu/:id", ({ id }) => {
 
     view().innerHTML = `${menuStepperHtml(deal, M.step)}
       <div class="flex" style="margin-bottom:14px">
-        <p class="note note--wt" style="flex:1;min-width:min(280px,100%);margin:0"><span class="lab">Take control — the 300% rule</span>${M.presented ? `Every product has been presented — now show the options and let the client choose.` : `Present every product before showing payments.`} When they push back: <i>“Which product do you see the least amount of value in?”</i></p>
-        <a class="btn ${M.presented ? "btn--ghost" : "btn--grad"}" href="#/present/${deal.id}">🎤 ${M.presented ? "Re-present products" : `Present ${cols[0].label} →`}</a>
+        <p class="note note--wt advscript-item" style="flex:1;min-width:min(280px,100%);margin:0"><span class="lab">Take control — the 300% rule</span>${M.presented ? `Every product has been presented — now show the options and let the client choose.` : `Present every product before showing payments.`} When they push back: <i>“Which product do you see the least amount of value in?”</i></p>
+        <a class="btn advscript-item ${M.presented ? "btn--ghost" : "btn--grad"}" href="#/present/${deal.id}">🎤 ${M.presented ? "Re-present products" : `Present ${cols[0].label} →`}</a>
       </div>
-      <div class="menu-grid">
+      <div class="mtabs" role="tablist">
+        ${[...cols.map(c => ({ key: c.key, label: c.label })), { key: "custom", label: "Custom" }]
+          .map(t => `<button type="button" role="tab" class="mtab ${mTab === t.key ? "on" : ""}" data-mtab="${t.key}" aria-selected="${mTab === t.key}">${esc(t.label)}</button>`).join("")}
+      </div>
+      <div class="menu-grid" data-activetab="${mTab}">
         ${cols.map(col => `
           <div class="mcol ${M.selectedProgram === col.key ? "mcol--active" : ""}" data-col="${col.key}">
-            <div class="mcol__head"><h3>${col.label}</h3>${iniBoxHtml(col.key)}</div>
+            <div class="mcol__mhead">
+              <div class="mh-top"><span class="mh-star">★</span><b>${esc(col.label.toUpperCase())}</b>${col.key === "preferred" ? `<span class="pop-chip">Most Popular</span>` : ""}</div>
+              <div class="mh-bot"><span>${col.detail}</span><b class="mh-pay">${money(col.payment)}</b></div>
+            </div>
+            <div class="mcol__head"><h3>${col.label}</h3>${col.key === "preferred" ? `<span class="pop-chip">Most Popular</span>` : ""}${iniBoxHtml(col.key)}</div>
             <div class="mcol__products">
               ${col.products.filter(pid => !M.custom.includes(pid)).map(pid => prodHtml(pid, col.key)).join("") || `<div class="mcol__empty">all products moved</div>`}
             </div>
             <div class="mcol__pay"><span>${col.detail}</span><b>${money(col.payment)}</b></div>
           </div>`).join("")}
         <div class="mcol ${M.selectedProgram === "custom" ? "mcol--active" : ""}" data-col="custom" id="customCol">
+          <div class="mcol__mhead">
+            <div class="mh-top"><span class="mh-star">★</span><b>CUSTOM</b></div>
+            <div class="mh-bot"><span>${M.showCustomPay ? customResult.detail : "Custom payment"}</span><b class="mh-pay">${M.showCustomPay ? money(customResult.payment) : "— — —"}</b></div>
+          </div>
           <div class="mcol__head"><h3>Custom</h3>${iniBoxHtml("custom")}</div>
           <div class="mcol__products">
             ${M.custom.length ? M.custom.map(pid => prodHtml(pid, "custom")).join("") : `<div class="mcol__empty">Send products here to build a custom program.<br>The first product's source column sets the rate &amp; term.</div>`}
           </div>
           <div class="mcol__pay"><span id="togglePayLab">${M.showCustomPay ? customResult.detail : "Custom payment"}</span><b>${M.showCustomPay ? money(customResult.payment) : "— — —"}</b></div>
         </div>
+      </div>
+      <div class="mfoot">
+        <button type="button" class="advscript-card" id="menuAdvToggle" aria-expanded="false">
+          <span class="advscript-card__ico" aria-hidden="true">💡</span>
+          <span class="advscript-card__lab">Advisor Script</span>
+          <span class="advscript-card__chev" aria-hidden="true">▾</span>
+        </button>
+        <button type="button" class="btn btn--grad macpt" id="menuAccept">Accept ${esc(acceptLabel)} Package${acceptFigure} →</button>
+        <button type="button" class="mdecline" id="menuDecline">Continue without products</button>
       </div>
       <div class="flex mt">
         <button class="btn btn--primary" id="togglePay">Toggle Payment</button>
@@ -2439,7 +2493,46 @@ route("menu/:id", ({ id }) => {
         <button class="btn btn--ghost" id="backS1">← Back</button>
         <button class="btn btn--grad" id="s2next">Next →</button>
       </div>
-      <p class="note">Products can move from Preferred and Standard into Custom. ${isCash ? "You cannot pull from Budget on a cash deal unless you switch the deal to finance." : "Moving remaining products from Standard provides payment relief."} It's possible to move forward with no products — but anything in the custom box must be initialed.</p>`;
+      <p class="note advscript-item">Products can move from Preferred and Standard into Custom. ${isCash ? "You cannot pull from Budget on a cash deal unless you switch the deal to finance." : "Moving remaining products from Standard provides payment relief."} It's possible to move forward with no products — but anything in the custom box must be initialed.</p>`;
+
+    /* phone tab bar */
+    $$("[data-mtab]").forEach(b => b.onclick = () => { mTab = b.dataset.mtab; step2(); });
+
+    /* on a phone the whole product row is the control that sends it to Custom;
+       the button it replaces is hidden at that width, never removed */
+    const phone = () => window.matchMedia("(max-width: 720px)").matches;
+    $$(".mprod[data-from]").forEach(row => row.addEventListener("click", (e) => {
+      if (!phone() || e.target.closest("button")) return;
+      const btn = row.querySelector("[data-move]") || row.querySelector("[data-return]");
+      if (btn) btn.click();
+    }));
+
+    const advBtn = $("#menuAdvToggle");
+    if (advBtn) {
+      advBtn.setAttribute("aria-expanded", String(document.body.classList.contains("script-open")));
+      advBtn.onclick = () => {
+        const open = document.body.classList.toggle("script-open");
+        advBtn.setAttribute("aria-expanded", String(open));
+      };
+    }
+
+    $("#menuAccept").onclick = () => {
+      if (mTab === "custom" && !M.custom.length) return toast("The custom box is empty — add a product first");
+      initialsModal(acceptLabel, (val) => {
+        M.selectedProgram = mTab; M.initials = val; Store.save();
+        toast("Client initialed: " + acceptLabel);
+        step2();
+      });
+    };
+    $("#menuDecline").onclick = () => {
+      if (M.custom.length && !M.selectedProgram) return toast("Anything in the custom box must be initialed");
+      confirmModal("Move forward with no products?",
+        "The client is declining every product on the menu. This is a legitimate outcome — the deal continues without a protection program.",
+        "Continue without products", () => {
+          M.selectedProgram = "none"; M.initials = "";
+          M.step = 4; M.maxStep = Math.max(M.maxStep || 1, 4); Store.save(); render();
+        });
+    };
 
     /* move buttons */
     $$("[data-move]").forEach(b => b.onclick = () => {
@@ -2505,8 +2598,12 @@ route("menu/:id", ({ id }) => {
     $("#s2next").onclick = () => {
       if (M.custom.length && M.selectedProgram !== "custom" && !M.selectedProgram) return toast("Anything in the custom box must be initialed — have the client initial a program box");
       if (!M.selectedProgram) {
-        if (!confirm("Move forward with no products selected?")) return;
-        M.selectedProgram = "none"; M.initials = "";
+        return confirmModal("Move forward with no products?",
+          "No program has been initialed. The deal continues without a protection program.",
+          "Continue without products", () => {
+            M.selectedProgram = "none"; M.initials = "";
+            M.step = 4; M.maxStep = Math.max(M.maxStep || 1, 4); Store.save(); render();
+          });
       }
       M.step = 4; M.maxStep = Math.max(M.maxStep || 1, 4); Store.save(); render();
     };
@@ -2609,6 +2706,8 @@ route("menu/:id", ({ id }) => {
   function render() {
     if (M.step === 2) return navigate(`#/present/${deal.id}`);
     chrome();
+    /* renderChrome() cleared this; step 3 is the one with a phone layout */
+    document.body.dataset.screen = M.step === 3 ? "menu3" : "";
     ({ 1: step1, 3: step2, 4: step3, 5: step4 }[Math.min(5, Math.max(1, M.step))] || step1)();
     bindMenuStepper(deal, render);
   }
