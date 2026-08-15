@@ -7,16 +7,17 @@ const RIDE_PRICE_DATA = {
     name: "Ride Price Motors",
     advisor: "Ashley Collins",
     teamLead: "Jordan Reyes",
-    address: "321 Main St, Englewood, CO 80111",
-    phone: "(303) 867-5309"
+    address: "321 Northern Blvd, Long Island City, NY 11101",
+    phone: "(718) 867-5309"
   },
 
-  /* Colorado-style tax + fee structure used throughout the binder examples */
+  /* New York City tax + fee structure. Total 8.875% — the combined rate for
+     all five boroughs, which is why the ZIP directory below is NYC-only:
+     one table can only be correct for one jurisdiction. */
   taxes: [
-    { label: "State Tax", rate: 0.029 },
-    { label: "County Tax", rate: 0.0025 },
-    { label: "City Tax", rate: 0.03 },
-    { label: "Regional Transportation District Tax", rate: 0.011 }
+    { label: "State Tax", rate: 0.04 },
+    { label: "New York City Tax", rate: 0.045 },
+    { label: "Metropolitan Commuter Transportation District Tax", rate: 0.00375 }
   ],
   fees: [
     { label: "Documentation Fee", amount: 99.00 },
@@ -44,19 +45,20 @@ const RIDE_PRICE_DATA = {
 
   lenders: ["CUDC Alliant C.U.", "Hyundai Motor Finance", "Ally Financial", "US Bank", "Chase Auto"],
 
-  /* Demo ZIP directory — Denver-metro codes covering the personas plus nearby
-     towns, so typing a ZIP fills city/state. Not a real ZIP database. */
+  /* Demo ZIP directory — NYC codes covering the personas plus nearby
+     neighborhoods, so typing a ZIP fills city/state. Not a real ZIP database.
+     County rides along because the registration forms ask for it. */
   zipLookup: {
-    "80111": { city: "Cherry Hills Village", state: "CO" },
-    "80104": { city: "Castle Rock", state: "CO" },
-    "80110": { city: "Englewood", state: "CO" },
-    "80113": { city: "Englewood", state: "CO" },
-    "80120": { city: "Littleton", state: "CO" },
-    "80134": { city: "Parker", state: "CO" },
-    "80122": { city: "Centennial", state: "CO" },
-    "80202": { city: "Denver", state: "CO" },
-    "80014": { city: "Aurora", state: "CO" },
-    "80401": { city: "Golden", state: "CO" }
+    "11106": { city: "Astoria", state: "NY", county: "Queens" },
+    "11103": { city: "Astoria", state: "NY", county: "Queens" },
+    "11101": { city: "Long Island City", state: "NY", county: "Queens" },
+    "11361": { city: "Bayside", state: "NY", county: "Queens" },
+    "11375": { city: "Forest Hills", state: "NY", county: "Queens" },
+    "11215": { city: "Brooklyn", state: "NY", county: "Kings" },
+    "11201": { city: "Brooklyn", state: "NY", county: "Kings" },
+    "10001": { city: "New York", state: "NY", county: "New York" },
+    "10461": { city: "Bronx", state: "NY", county: "Bronx" },
+    "10301": { city: "Staten Island", state: "NY", county: "Richmond" }
   },
 
   accessories: [
@@ -260,10 +262,10 @@ const RIDE_PRICE_DATA = {
   ],
 
   seedCustomers: [
-    { id: "c-demo1", first: "John", last: "Smith", middle: "", email: "jsmithtest@testing.com", phone: "(303) 555-0134",
-      address: "3321 Main St", city: "Cherry Hills Village", state: "CO", zip: "80111", creditScore: 740, createdAt: "2026-07-10T16:00:00Z" },
-    { id: "c-demo2", first: "Cheri", last: "Bridwell", middle: "", email: "cbridwell@testing.com", phone: "(720) 555-1212",
-      address: "88 Aspen Way", city: "Castle Rock", state: "CO", zip: "80104", creditScore: 705, createdAt: "2026-07-08T19:30:00Z" }
+    { id: "c-demo1", first: "John", last: "Smith", middle: "", email: "jsmithtest@testing.com", phone: "(718) 555-0134",
+      address: "31-14 Broadway", city: "Astoria", state: "NY", zip: "11106", creditScore: 740, createdAt: "2026-07-10T16:00:00Z" },
+    { id: "c-demo2", first: "Cheri", last: "Bridwell", middle: "", email: "cbridwell@testing.com", phone: "(347) 555-1212",
+      address: "88 Garfield Pl", city: "Brooklyn", state: "NY", zip: "11215", creditScore: 705, createdAt: "2026-07-08T19:30:00Z" }
   ],
 
   /* license-scan prop personas — ALL FICTIONAL, printed as training props.
@@ -273,24 +275,24 @@ const RIDE_PRICE_DATA = {
      read anything else. */
   licenseProps: [
     { prop: 1, first: "John", middle: "A", last: "Smith", dob: "1987-03-14",
-      license: { number: "T-0000101", state: "CO", expires: "2029-03-14" },
-      address: "3321 Main St", city: "Cherry Hills Village", state: "CO", zip: "80111",
-      issued: "2025-03-14", cls: "R", sex: "M", eyes: "BRO", hgt: "5'-11\"" },
+      license: { number: "T-0000101", state: "NY", expires: "2029-03-14" },
+      address: "31-14 Broadway", city: "Astoria", state: "NY", zip: "11106",
+      issued: "2025-03-14", cls: "D", sex: "M", eyes: "BRO", hgt: "5'-11\"" },
     { prop: 2, first: "Cheri", middle: "L", last: "Bridwell", dob: "1990-11-02",
-      license: { number: "T-0000102", state: "CO", expires: "2028-11-02" },
-      address: "88 Aspen Way", city: "Castle Rock", state: "CO", zip: "80104",
-      issued: "2024-11-02", cls: "R", sex: "F", eyes: "GRN", hgt: "5'-06\"" },
+      license: { number: "T-0000102", state: "NY", expires: "2028-11-02" },
+      address: "88 Garfield Pl", city: "Brooklyn", state: "NY", zip: "11215",
+      issued: "2024-11-02", cls: "D", sex: "F", eyes: "GRN", hgt: "5'-06\"" },
     { prop: 3, first: "Marcus", middle: "", last: "Alvarez", dob: "1995-06-21",
-      license: { number: "T-0000103", state: "CO", expires: "2030-06-21" },
-      address: "4102 Birch Ct", city: "Englewood", state: "CO", zip: "80110",
-      issued: "2025-06-21", cls: "R", sex: "M", eyes: "BRO", hgt: "5'-09\"" },
+      license: { number: "T-0000103", state: "NY", expires: "2030-06-21" },
+      address: "4102 Bell Blvd", city: "Bayside", state: "NY", zip: "11361",
+      issued: "2025-06-21", cls: "D", sex: "M", eyes: "BRO", hgt: "5'-09\"" },
     { prop: 4, first: "Dana", middle: "K", last: "Whitfield", dob: "1983-09-08",
-      license: { number: "T-0000104", state: "CO", expires: "2029-09-08" },
-      address: "210 Larkspur Ln", city: "Littleton", state: "CO", zip: "80120",
-      issued: "2024-09-08", cls: "R", sex: "F", eyes: "BLU", hgt: "5'-04\"" },
+      license: { number: "T-0000104", state: "NY", expires: "2029-09-08" },
+      address: "210 Clinton St", city: "Brooklyn", state: "NY", zip: "11201",
+      issued: "2024-09-08", cls: "D", sex: "F", eyes: "BLU", hgt: "5'-04\"" },
     { prop: 5, first: "Priya", middle: "", last: "Natarajan", dob: "1999-01-27",
-      license: { number: "T-0000105", state: "CO", expires: "2031-01-27" },
-      address: "77 Silver Sage Dr", city: "Parker", state: "CO", zip: "80134",
-      issued: "2026-01-27", cls: "R", sex: "F", eyes: "BRO", hgt: "5'-05\"" }
+      license: { number: "T-0000105", state: "NY", expires: "2031-01-27" },
+      address: "77 Bay St", city: "Staten Island", state: "NY", zip: "10301",
+      issued: "2026-01-27", cls: "D", sex: "F", eyes: "BRO", hgt: "5'-05\"" }
   ]
 };

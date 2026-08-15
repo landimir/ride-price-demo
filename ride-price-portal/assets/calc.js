@@ -22,6 +22,16 @@ const RIDE_PRICE_CALC = (function () {
   }
 
   const totalTaxRate = () => RIDE_PRICE_DATA.taxes.reduce((s, t) => s + t.rate, 0);
+
+  /* Tax rates display at their true precision — two decimals normally, three
+     when the rate needs it. NYC's MCTD rate is 0.375% and the combined rate is
+     8.875%; a flat toFixed(2) rounded those to 0.38% and 8.88% on screen while
+     the math used the real figure. Never widen this to fixed 3 decimals — it
+     would print every ordinary rate as "4.000%". */
+  const taxPct = (rate) => {
+    const three = (rate * 100).toFixed(3);
+    return three.endsWith("0") ? (rate * 100).toFixed(2) : three;
+  };
   const totalFees = () => RIDE_PRICE_DATA.fees.reduce((s, f) => s + f.amount, 0);
 
   /* taxable base: your price + accessories − trade allowance (when tax credit applies) */
@@ -33,7 +43,7 @@ const RIDE_PRICE_CALC = (function () {
   }
 
   function taxBreakdown(base) {
-    const rows = RIDE_PRICE_DATA.taxes.map(t => ({ label: `${t.label} @ ${(t.rate * 100).toFixed(2)}%`, amount: round2(base * t.rate) }));
+    const rows = RIDE_PRICE_DATA.taxes.map(t => ({ label: `${t.label} @ ${taxPct(t.rate)}%`, amount: round2(base * t.rate) }));
     return { rows, total: round2(rows.reduce((s, r) => s + r.amount, 0)) };
   }
 
@@ -88,7 +98,7 @@ const RIDE_PRICE_CALC = (function () {
       residual, residualPct: residualPct + mileAdj, term: o.term, miles: o.miles, factor: o.factor,
       basePayment, monthlyTax, payment, capCostReduction: round2(capCostReduction), ccrTax,
       acquisitionFee: RIDE_PRICE_DATA.leaseFees.acquisition, dueAtSigning: o.dueAtSigning || 0,
-      taxes: { rows: [{ label: `Sales Tax on Payment @ ${(taxRate * 100).toFixed(2)}%`, amount: monthlyTax }], total: monthlyTax },
+      taxes: { rows: [{ label: `Sales Tax on Payment @ ${taxPct(taxRate)}%`, amount: monthlyTax }], total: monthlyTax },
       fees: totalFees(), netTrade: round2(netTrade)
     };
   }
@@ -148,5 +158,5 @@ const RIDE_PRICE_CALC = (function () {
   const money = (n) => (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const money0 = (n) => (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
-  return { creditTier, accessoriesTotal, productsTotal, productById, totalTaxRate, totalFees, taxBreakdown, taxableBase, finance, lease, cash, onePay, calc, menuColumn, money, money0, round2 };
+  return { creditTier, accessoriesTotal, productsTotal, productById, totalTaxRate, taxPct, totalFees, taxBreakdown, taxableBase, finance, lease, cash, onePay, calc, menuColumn, money, money0, round2 };
 })();

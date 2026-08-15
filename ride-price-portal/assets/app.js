@@ -22,7 +22,7 @@ const Store = (function () {
     return {
       id: "d-demo1", customerId: "c-demo1", stock: "7H21313", dealType: "finance",
       stage: "desking", createdAt: "2026-07-14T17:20:00Z",
-      discovery: { answers: { week: "Daily commute to DTC, weekend trips to the mountains.", family: "Two kids, one dog." }, done: true },
+      discovery: { answers: { week: "Daily commute to Midtown, weekend trips upstate.", family: "Two kids, one dog." }, done: true },
       testDrive: { done: true, completedMiles: 12 },
       trade: { has: true, desc: "2018 Hyundai Tucson", miles: 61200, condition: "Good", value: 15500, payoff: 10750, rebates: 500, applyTaxCredit: true },
       huddle: { done: false },
@@ -500,12 +500,12 @@ route("customers", () => {
         <label class="f"><span class="lab">Middle Name</span><input id="nMiddle" type="text"></label>
         <label class="f"><span class="lab">Last Name <i class="req">*</i></span><input id="nLast" type="text"></label>
         <label class="f"><span class="lab">Email <i class="req">*</i></span><input id="nEmail" type="email"></label>
-        <label class="f"><span class="lab">Phone <i class="req">*</i></span><input id="nPhone" type="tel" placeholder="(720) 555-5555"></label>
+        <label class="f"><span class="lab">Phone <i class="req">*</i></span><input id="nPhone" type="tel" placeholder="(718) 555-5555"></label>
         <label class="f"><span class="lab">Est. Credit Score</span><input id="nScore" type="number" min="400" max="850" value="700"></label>
         <label class="f"><span class="lab">Address <i class="req">*</i></span><input id="nAddr" type="text"></label>
         <label class="f"><span class="lab">ZIP Code <i class="req">*</i></span><input id="nZip" type="text"></label>
-        <label class="f"><span class="lab">City</span><input id="nCity" type="text" value="Greenwood Village"></label>
-        <label class="f"><span class="lab">State</span><input id="nState" type="text" value="CO"></label>
+        <label class="f"><span class="lab">City</span><input id="nCity" type="text" value="Astoria"></label>
+        <label class="f"><span class="lab">State</span><input id="nState" type="text" value="NY"></label>
       </div>
       <p class="hint">Required: first &amp; last name, either email or phone, address and zip code. <span class="demo-note">Demo tool — use sample data only.</span></p>`,
       `<button class="btn btn--ghost" data-close>Cancel</button><button class="btn btn--primary" id="saveCust">Save</button>`);
@@ -779,7 +779,7 @@ function openScanFlow(opts) {
         <label class="f"><span class="lab">State</span><input id="svState" type="text" value="${esc(p.state)}"></label>
         <label class="f"><span class="lab">ZIP Code <i class="req">*</i></span><input id="svZip" type="text" value="${esc(p.zip)}"></label>
         <label class="f"><span class="lab">Email <i class="req">*</i></span><input id="svEmail" type="email" value="${esc(ex ? ex.email : "")}"></label>
-        <label class="f"><span class="lab">Phone <i class="req">*</i></span><input id="svPhone" type="tel" value="${esc(ex ? ex.phone : "")}" placeholder="(720) 555-5555"></label>
+        <label class="f"><span class="lab">Phone <i class="req">*</i></span><input id="svPhone" type="tel" value="${esc(ex ? ex.phone : "")}" placeholder="(718) 555-5555"></label>
         ${ex ? "" : `<label class="f"><span class="lab">Est. Credit Score</span><input id="svScore" type="number" min="400" max="850" value="700"></label>`}
       </div>
       <p class="hint">Required: first &amp; last name, either email or phone, address and zip code. <span class="demo-note">Demo tool — sample data only.</span></p>
@@ -919,7 +919,7 @@ route("props", () => {
       ${RIDE_PRICE_DATA.licenseProps.map(p => `
        <div class="prop-pair">
         <div class="prop-card">
-          <div class="prop-head"><span>COLORADO · USA</span><b>TRAINING SAMPLE</b></div>
+          <div class="prop-head"><span>NEW YORK · USA</span><b>TRAINING SAMPLE</b></div>
           <div class="prop-body">
             <div class="prop-photo">${SCAN_SILHOUETTE}</div>
             <div class="prop-fields">
@@ -2306,8 +2306,8 @@ route("menu/:id", ({ id }) => {
     } else if (isLease) {
       const l = snap;
       bars = [
-        { key: "taxpay", label: "Sales Tax on Monthly Payment", body: `${(deal.desk.milesPerYear).toLocaleString()} miles per year for ${l.term} months — monthly sales tax is an addition to any base monthly payment quoted. Your sales tax is <b>${money(l.monthlyTax)}</b> per month at a rate of ${(RIDE_PRICE_CALC.totalTaxRate() * 100).toFixed(2)}%.` },
-        { key: "ccrtax", label: "Sales Tax on Cap Cost Reduction", body: `We are required, by law, to collect and forward these taxes: a total of <b>${money(l.ccrTax)}</b> at ${(RIDE_PRICE_CALC.totalTaxRate() * 100).toFixed(2)}% on capitalized cost reduction.` },
+        { key: "taxpay", label: "Sales Tax on Monthly Payment", body: `${(deal.desk.milesPerYear).toLocaleString()} miles per year for ${l.term} months — monthly sales tax is an addition to any base monthly payment quoted. Your sales tax is <b>${money(l.monthlyTax)}</b> per month at a rate of ${RIDE_PRICE_CALC.taxPct(RIDE_PRICE_CALC.totalTaxRate())}%.` },
+        { key: "ccrtax", label: "Sales Tax on Cap Cost Reduction", body: `We are required, by law, to collect and forward these taxes: a total of <b>${money(l.ccrTax)}</b> at ${RIDE_PRICE_CALC.taxPct(RIDE_PRICE_CALC.totalTaxRate())}% on capitalized cost reduction.` },
         { key: "lev", label: "Lease End Value", body: `The lease end value for your vehicle is <b>${money(l.residual)}</b>. You may be responsible for costs over and above the lease end value at lease termination.` },
         { key: "disclosure", label: "Disclosure — Your Responsibility", body: `Excessive wear and use includes, but is not limited to: mechanical defects; broken or missing parts and keys; damaged body, fenders, lights or glass; chipped paint; interior rips, stains or burns; tires with less than 1/8" tread; and any condition making the vehicle unsafe or unlawful to operate. <i>Explaining a lessee's responsibilities generates the need for the protections you're about to show.</i>` }
       ];
