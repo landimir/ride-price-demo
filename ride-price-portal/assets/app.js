@@ -331,6 +331,9 @@ function renderChrome(title, crumbs, actionsHtml) {
   $("#pageTitle").textContent = title;
   $("#pageCrumbs").innerHTML = crumbs || "";
   $("#pageActions").innerHTML = actionsHtml || "";
+  /* per-screen styling hook; routes that want it re-set it after this call */
+  document.body.dataset.screen = "";
+  document.body.classList.remove("script-open");
 }
 
 /* ---------------- router ---------------- */
@@ -2089,6 +2092,7 @@ route("present/:id", ({ id }) => {
   renderChrome(`Step 2 · ${prog.label} — Product Presentation`, dealTitle(deal),
     `<button class="btn btn--ghost btn--sm" id="retOptsTop">Continue to Repayment Options →</button>`);
   $("#retOptsTop").onclick = toOptions;
+  document.body.dataset.screen = "present";
 
   function tileInfo(key) {
     const p = RIDE_PRICE_CALC.productById(key);
@@ -2096,6 +2100,7 @@ route("present/:id", ({ id }) => {
     return {
       key,
       label: pres.label || (p ? p.name : key),
+      short: pres.short || pres.label || (p ? p.name : key),
       icon: pres.icon || "🛡️",
       headline: pres.headline || "",
       body: pres.body || "",
@@ -2118,7 +2123,7 @@ route("present/:id", ({ id }) => {
         ${tileKeys.map(k => {
           const ti = tileInfo(k);
           return `<button type="button" class="ptile ${k === sel ? "on" : ""} ${visited.has(k) ? "seen" : ""}" data-tile="${k}">
-            <span class="pt-icon">${ti.icon}</span>${ti.label}${visited.has(k) && k !== sel ? `<span class="pt-check">✓</span>` : ""}
+            <span class="pt-icon">${ti.icon}</span><span class="pt-long">${ti.label}</span><span class="pt-short">${ti.short}</span>${visited.has(k) && k !== sel ? `<span class="pt-check">✓</span>` : ""}
           </button>`;
         }).join("")}
       </div>
@@ -2139,33 +2144,49 @@ route("present/:id", ({ id }) => {
                 <input type="range" id="mwoMiles" min="5000" max="25000" step="2500" value="${deal.desk.milesPerYear || 15000}" style="width:100%;margin:10px 0 4px">
                 <div id="mwoOut" class="small"></div>
               </div>` : ""}
-              ${t.product ? `<p class="hint mt">Tie it down to what they told you in discovery — the benefit must make sense to <b>them</b> (WIIFM).</p>` : ""}
+              ${t.product ? `<p class="hint mt advscript-item">Tie it down to what they told you in discovery — the benefit must make sense to <b>them</b> (WIIFM).</p>` : ""}
             </div>
             ${t.product ? `
-            <div style="display:flex;flex-direction:column;gap:10px;min-width:min(180px,100%)">
+            <div class="pcol advscript-item">
               <button class="btn btn--primary" id="mdBudget">M/D Budget</button>
               <button class="btn btn--ghost" id="moreInfo">More Info</button>
               <div id="mdOut"></div>
             </div>` : ""}
           </div>
+          <button type="button" class="advscript-toggle" id="advToggle" aria-expanded="${document.body.classList.contains("script-open")}"><span aria-hidden="true">💬</span> Advisor Script</button>
         </div>
       </div>
 
-      <div class="flex mt">
+      <div class="flex mt pnav">
         <button class="btn btn--ghost" id="backToTerms">← Purchase Terms</button>
         <span class="pill ${allSeen ? "pill--hot" : ""}" style="padding:8px 16px">${visited.size} / ${tileKeys.length} presented</span>
         <div class="push"></div>
         <button class="btn btn--ghost" id="prevTile">← Prev</button>
         <button class="btn btn--grad" id="nextTile">${tileKeys.indexOf(sel) === tileKeys.length - 1 ? "Done — Repayment Options →" : "Next product →"}</button>
       </div>
-      <p class="note note--wt"><span class="lab">The 300% rule</span>Present every product without attempting to close after each one. Ask which option they choose only after Preferred, Standard, and Budget have all been presented.</p>`;
+      <p class="note note--wt advscript-item"><span class="lab">The 300% rule</span>Present every product without attempting to close after each one. Ask which option they choose only after Preferred, Standard, and Budget have all been presented.</p>`;
 
     bindMenuStepper(deal);
     $$("[data-tile]").forEach(b => b.onclick = () => { sel = b.dataset.tile; visited.add(sel); render(); });
+    /* render() replaces the rail, which resets scrollLeft to 0 — on a phone
+       that leaves the tile you just tapped off-screen. Re-centre it.
+       Measured off rects, not offsetLeft: .ptile is position:relative, so its
+       offsetParent is not the rail. */
+    const rail = $(".ptiles"), onTile = $(".ptile.on");
+    if (rail && onTile && rail.scrollWidth > rail.clientWidth) {
+      const r = rail.getBoundingClientRect(), t = onTile.getBoundingClientRect();
+      rail.scrollLeft += (t.left - r.left) - (r.width - t.width) / 2;
+    }
     $("#backToTerms").onclick = () => { M2.step = 1; Store.save(); navigate(`#/menu/${deal.id}`); };
+    const advBtn = $("#advToggle");
+    if (advBtn) advBtn.onclick = () => {
+      const open = document.body.classList.toggle("script-open");
+      advBtn.setAttribute("aria-expanded", open ? "true" : "false");
+    };
     const prev = $("#prevTile"), next = $("#nextTile");
     prev.disabled = tileKeys.indexOf(sel) === 0;
-    prev.style.visibility = prev.disabled ? "hidden" : "";
+    /* desktop hides a disabled Prev via CSS; the phone bar greys it in place
+       so the two buttons do not jump when you reach the first product */
     prev.onclick = () => { sel = tileKeys[Math.max(0, tileKeys.indexOf(sel) - 1)]; visited.add(sel); render(); };
     next.onclick = () => {
       const i = tileKeys.indexOf(sel);

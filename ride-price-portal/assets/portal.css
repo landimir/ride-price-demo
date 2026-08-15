@@ -860,3 +860,77 @@ label.f .seg { display: flex; }
   .props-grid { display: block; overflow-x: auto; }
   .prop-pair { flex-wrap: wrap; gap: 4mm; margin-bottom: 8mm; }
 }
+
+
+/* ============================================================
+   Product presentation — phone layout (owner mockup, 2026-08-15)
+   Desktop is deliberately untouched: everything visual below sits
+   inside a phone media query, scoped to body[data-screen="present"].
+   Measured before: 888px of stacked tiles, first talking point
+   1358px down — 1.8 screens of scrolling mid-presentation.
+   ============================================================ */
+.pcol { display: flex; flex-direction: column; gap: 10px; min-width: min(180px, 100%); }
+.pt-short { display: none; }
+.advscript-toggle { display: none; }
+
+@media screen and (min-width: 721px) {
+  /* unchanged desktop behaviour: a disabled Prev is hidden, not greyed */
+  .pnav .btn[disabled] { visibility: hidden; }
+}
+
+@media screen and (max-width: 720px) {
+  /* the heading, step chips and top continue-action are what pushed the
+     content below the fold; the crumb line already says who and what */
+  body[data-screen="present"] .pagebar h1,
+  body[data-screen="present"] .pagebar .actions,
+  body[data-screen="present"] .stepper { display: none; }
+
+  /* the tile stack becomes a horizontally scrolling strip */
+  body[data-screen="present"] .ptiles {
+    display: flex; gap: 8px; overflow-x: auto; overflow-y: visible;
+    border-radius: 0; margin-bottom: 14px; padding: 2px 2px 8px;
+    scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+  }
+  body[data-screen="present"] .ptile {
+    flex: 0 0 auto; width: 88px; min-height: 84px; padding: 12px 8px 10px;
+    border-radius: 14px; scroll-snap-align: start;
+    background: #fff; color: var(--navy); border: 1px solid var(--line);
+    font-size: 11px; font-weight: 700; letter-spacing: .2px;
+    line-height: 1.25; text-transform: none;
+  }
+  body[data-screen="present"] .ptile.on { background: var(--grad); color: #fff; border-color: transparent; }
+  /* deliberately NOT dimmed: the desktop rail greys visited tiles against a
+     dark background, but these are dark-on-white and still tap targets, and
+     ui-context says load-bearing text is --ink, never --muted, because the
+     app is used outdoors. The check badge carries the visited state. */
+  body[data-screen="present"] .ptile.seen:not(.on) { color: var(--navy); }
+  body[data-screen="present"] .ptile .pt-icon { font-size: 22px; margin-bottom: 6px; }
+  body[data-screen="present"] .pt-long { display: none; }
+  body[data-screen="present"] .pt-short { display: inline; }
+
+  /* coaching content folds behind one control so the card is what the
+     customer sees and the guidance is one tap away */
+  body[data-screen="present"] .advscript-item { display: none; }
+  body[data-screen="present"].script-open .advscript-item { display: block; }
+  body[data-screen="present"].script-open .pcol { display: flex; }
+  body[data-screen="present"] .advscript-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; min-height: 44px; margin: 18px 0 0; padding: 12px 14px 2px;
+    border: 0; border-top: 1px solid var(--line); background: none;
+    font-family: inherit; font-size: 14px; font-weight: 700; color: var(--navy);
+    cursor: pointer;
+  }
+
+  /* nav becomes a fixed bar; back link and counter drop per the mockup */
+  body[data-screen="present"] .pnav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; margin: 0;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    background: var(--navy); gap: 10px;
+  }
+  body[data-screen="present"] .pnav #backToTerms,
+  body[data-screen="present"] .pnav .pill,
+  body[data-screen="present"] .pnav .push { display: none; }
+  body[data-screen="present"] .pnav .btn { flex: 1; margin: 0; }
+  body[data-screen="present"] .pnav .btn[disabled] { opacity: .45; }
+  body[data-screen="present"] .view { padding-bottom: 104px; }
+}
