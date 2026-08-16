@@ -2929,11 +2929,11 @@ function jacketOf(deal) {
   return deal.jacket;
 }
 
-const EMPTY_JACKET = { docs: {}, extra: [], req: {}, override: null };
+const EMPTY_JACKET = { docs: {}, extra: [], req: {}, override: null, client: {}, reqSentAt: null };
 function jacketRead(deal) {
   const j = deal && deal.jacket;
   if (!j) return EMPTY_JACKET;
-  return { docs: j.docs || {}, extra: j.extra || [], req: j.req || {}, override: j.override || null };
+  return { docs: j.docs || {}, extra: j.extra || [], req: j.req || {}, override: j.override || null, client: j.client || {}, reqSentAt: j.reqSentAt || null };
 }
 
 /* jacket document ids match the print route: a core printable is its own
@@ -3057,6 +3057,63 @@ function jacketRequest(deal, docIds) {
   Store.save();
 }
 
+/* ---------------- the document-request flow (owner's v2 prototype) ----------------
+   Three customer documents travel a state machine:
+     requested → received → accepted, or requested/received → rejected →
+     the client retakes through the SAME link → received → accepted.
+   Two ledgers stay separate at all times: RECEIVED counts a file the moment
+   it lands (a rejected file still landed); ACCEPTED counts only what the
+   advisor pressed Accept on, and the funding gate reads accepted only.
+   Accepted documents live in jacket.docs like everything else (how:"client");
+   the in-flight pipeline lives in jacket.client. Records only — the photos a
+   client "sends" exist solely in this session's memory, below. */
+
+const CLIENT_QUEUE_IDS = ["form-insurance", "form-license", "form-paystub"];
+function clientMeta(docId) { return RIDE_PRICE_DATA.clientDocs[docId.replace(/^form-/, "")] || null; }
+
+function jacketClient(deal) {
+  const j = deal && deal.jacket;
+  return (j && j.client) || {};
+}
+function jacketClientOf(deal) {
+  const j = jacketOf(deal);
+  if (!j.client) j.client = {};
+  return j.client;
+}
+/* which of the three this deal actually needs, still in flight */
+function clientQueue(deal) {
+  const need = jacketDocs(deal).map(d => d.id);
+  return CLIENT_QUEUE_IDS.filter(id => need.includes(id) && !jacketState(deal, id));
+}
+function jacketLedgers(deal) {
+  const docs = jacketDocs(deal);
+  const cl = jacketClient(deal);
+  const accepted = docs.filter(d => jacketState(deal, d.id)).length;
+  const landed = docs.filter(d => !jacketState(deal, d.id) && cl[d.id] && cl[d.id].state !== "requested").length;
+  return { total: docs.length, accepted, received: accepted + landed, missing: docs.length - accepted };
+}
+
+/* the photos a client captures live for THIS session only — a JS map of
+   object URLs, never the Store, never localStorage (owner decision + the
+   quota measurement). A reload forgets them; the records survive. */
+const CLIENT_PHOTOS = {};
+function clientPhotoKey(dealId, docId) { return dealId + ":" + docId; }
+function clientPhotos(dealId, docId) { return CLIENT_PHOTOS[clientPhotoKey(dealId, docId)] || []; }
+function clientPhotosSet(dealId, docId, urls) { CLIENT_PHOTOS[clientPhotoKey(dealId, docId)] = urls; }
+function clientPhotoDrop(dealId, docId, idx) {
+  const urls = clientPhotos(dealId, docId);
+  const gone = urls.splice(idx, 1);
+  gone.forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} });
+}
+/* replacing a page set must revoke the old URLs, or every recapture leaks
+   the earlier blobs for the rest of the session */
+function clientPhotosClear(dealId, docId) {
+  clientPhotos(dealId, docId).forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} });
+  clientPhotosSet(dealId, docId, []);
+}
+
+const drStamp = (iso) => iso ? jacketStamp(iso) : "";
+
 /* remove a hand-added document from the deal entirely — computed ones stay */
 function jacketDrop(deal, docId) {
   const j = jacketOf(deal);
@@ -3134,13 +3191,51 @@ route("jacket/:id", ({ id }) => {
       : n.missing
         ? (ov
           ? `<span class="jk-gate__ov">Sign-off unlocked by override — ${esc(ov.by)}: “${esc(ov.reason)}”</span>`
-          : `<span class="jk-gate__warn">⚠ ${n.missing} item${n.missing === 1 ? "" : "s"} required before funding sign-off.</span>`)
+          : `<span class="jk-gate__warn">⚠ ${n.missing} item${n.missing === 1 ? "" : "s"} needed before funding sign-off. Meter moves on accepted only.</span>`)
         : `<span class="jk-gate__ok">✓ Jacket complete — ready for funding sign-off</span>`;
 
     /* rows replicate the owner's phone mockup (2026-08-16, reaffirmed): one
        primary action pinned right — Scan for the app's own paper, Upload for
        anything from outside. The secondary actions stay in the DOM and fold
        behind a tap on the row text on phones; desktop shows them inline. */
+    const led = jacketLedgers(deal);
+    const cl = jacketClient(deal);
+    const queue = clientQueue(deal);
+    const reqSent = !!jk.reqSentAt;
+    /* the queue owns its three; the general missing list keeps the rest */
+    const dealerMissing = outstanding.filter(d => !queue.includes(d.id));
+
+    /* the customer-documents queue (v2 prototype): chip per state, Review
+       when a file has landed, the fold keeps the hand path available */
+    const clChip = (id) => {
+      const r = cl[id];
+      if (!r) return `<span class="dr-chip dr-chip--needed">Needed</span>`;
+      if (r.state === "requested") return `<span class="dr-chip dr-chip--requested">Requested${r.requestedAt ? " " + esc(drStamp(r.requestedAt)) : ""}</span>`;
+      if (r.state === "received") return `<span class="dr-chip dr-chip--received">Received</span>`;
+      return `<span class="dr-chip dr-chip--rejected">Rejected</span>`;
+    };
+    const queueRow = (id) => {
+      const d = docs.find(x => x.id === id);
+      const m = clientMeta(id); const r = cl[id];
+      const landed = r && (r.state === "received" || r.state === "rejected");
+      return `<div class="jk-row dr-qrow">
+        <span class="dr-qicon${r && r.state === "received" ? " dr-qicon--amber" : ""}">${m.icon}</span>
+        <button type="button" class="jk-row__main jk-row__disclose" data-toggles-row aria-expanded="false">
+          <b>${esc(d.label)}</b>
+          <span class="jk-row__why">${r && r.state === "rejected" ? `<i class="jk-miss">Needs a redo</i> · ${esc(r.rejectedReason || "")}` : esc(m.plainReason)}${r && r.receivedAt ? ` · ${esc(drStamp(r.receivedAt))}` : ""}</span>
+        </button>
+        <div class="jk-row__act">
+          ${landed
+            ? `<a class="btn btn--sm dr-review" href="#/docreview/${esc(deal.id)}/${esc(id)}">Review</a>`
+            : clChip(id)}
+        </div>
+        <div class="jk-row__more">
+          ${landed ? clChip(id) : ""}
+          <button class="btn btn--ghost btn--sm" data-upl="${esc(id)}">Mark received by hand</button>
+        </div>
+      </div>`;
+    };
+
     const missRow = (d) => `
       <div class="jk-row jk-row--miss">
         <span class="jk-row__mark jk-row__mark--miss">!</span>
@@ -3178,7 +3273,7 @@ route("jacket/:id", ({ id }) => {
           ${d.origin === "outside" ? `<span class="jk-chip">arrives from outside</span>` : ""}
           ${d.added ? `<span class="jk-chip jk-chip--added">added by hand</span>` : ""}
           <span class="jk-row__why"><span class="jk-why-l">${esc(d.why)}</span><span class="jk-why-s">${esc(d.whyShort)}</span></span>
-          <span class="jk-row__state">Source: ${verified ? "Camera Scan · Verified" : "Manual Entry · Received by " + esc(st.by)} · ${esc(jacketStamp(st.at))}${st.note ? " · " + esc(st.note) : ""}</span>
+          <span class="jk-row__state">Source: ${verified ? "Camera Scan · Verified" : st.how === "client" ? "Client Upload · Accepted" : "Manual Entry · Received by " + esc(st.by)} · ${esc(jacketStamp(st.at))}${st.note ? " · " + esc(st.note) : ""}</span>
         </button>
         <div class="jk-row__act">
           ${d.origin !== "outside"
@@ -3199,21 +3294,37 @@ route("jacket/:id", ({ id }) => {
       </div>
       <div class="panel panel--navyhead jk-banner">
         <div class="panel__head"><h2>Deal jacket compliance</h2>
-          <div class="right"><span class="badge ${n.missing ? "badge--prog" : "badge--approved"}">${n.have} / ${n.total} Docs</span></div></div>
+          <div class="right"><span class="badge ${led.missing ? "badge--prog" : "badge--approved"}">#${esc(deal.dealNo || "")}</span></div></div>
         <div class="panel__body">
-          <div class="jk-bar"><span style="width:${pct}%"></span></div>
+          <div class="dr-counts">
+            <div class="dr-countbox"><span class="dr-countlabel">Document inbox</span><b>Received ${led.received}/${led.total}</b><span class="dr-countsub">File landed — may still need review</span></div>
+            <div class="dr-countbox"><span class="dr-countlabel">Compliance ledger</span><b>Accepted ${led.accepted}/${led.total}</b><span class="dr-countsub">${led.missing} before funding sign-off</span></div>
+          </div>
+          <div class="jk-bar dr-dualtrack">
+            <span class="dr-fill-received" style="width:${led.total ? Math.round(led.received / led.total * 100) : 0}%"></span>
+            <span class="dr-fill-accepted" style="width:${led.total ? Math.round(led.accepted / led.total * 100) : 0}%"></span>
+          </div>
+          <div class="dr-legend"><span>Light = received</span><span>Solid green = accepted</span></div>
           <div class="jk-banner__foot"><p class="jk-gate">${gateLine}</p><span class="jk-banner__pct">${pct}% Complete</span></div>
         </div>
       </div>
       <button class="btn jk-scanwide" id="jkScanWide">📷 + Upload / Scan Document</button>
+      ${queue.length || Object.keys(cl).length ? `
+      <section class="jk-col dr-queue">
+        <h3 class="jk-col__head">Customer documents <span class="jk-count--miss">(${queue.length} in queue)</span>
+          <span class="dr-qaction">${reqSent
+            ? `<button class="dr-sent" id="drResend">Requested ${esc(drStamp(jk.reqSentAt))} · Resend</button>`
+            : `<button class="btn btn--grad btn--sm" id="drCompose">Send Text Request</button>`}</span></h3>
+        ${queue.length ? queue.map(queueRow).join("") : `<p class="note">All requested customer documents are accepted. ✓</p>`}
+      </section>` : ""}
       <div class="jk-cols">
         <section class="jk-col jk-col--miss">
-          <h3 class="jk-col__head">Required for compliance${outstanding.length ? ` <span class="jk-count--miss">(${outstanding.length} missing)</span>` : ""}</h3>
-          ${outstanding.length ? `<button class="btn btn--ghost jk-reqall" id="jkReqAll">✉ Request all missing from the client</button>` : ""}
-          ${outstanding.length ? outstanding.map(missRow).join("") : `<p class="note">Nothing outstanding — every document this deal needs is in the jacket.</p>`}
+          <h3 class="jk-col__head">Required for compliance${dealerMissing.length ? ` <span class="jk-count--miss">(${dealerMissing.length} missing)</span>` : ""}</h3>
+          ${dealerMissing.length ? `<button class="btn btn--ghost jk-reqall" id="jkReqAll">✉ Request all missing from the client</button>` : ""}
+          ${dealerMissing.length ? dealerMissing.map(missRow).join("") : `<p class="note">Nothing outstanding — every document this deal needs is in the jacket.</p>`}
         </section>
         <section class="jk-col jk-col--in">
-          <h3 class="jk-col__head">Completed &amp; in the jacket${received.length ? ` <span class="jk-count--in">(${received.length} verified)</span>` : ""}</h3>
+          <h3 class="jk-col__head">Accepted in the jacket${received.length ? ` <span class="jk-count--in">(${led.accepted}/${led.total})</span>` : ""}</h3>
           ${received.length ? received.map(inRow).join("") : `<p class="note">Nothing collected yet.</p>`}
           <div class="jk-addrow">
             <label class="f"><span class="lab">This deal also needs</span>
@@ -3249,7 +3360,9 @@ route("jacket/:id", ({ id }) => {
       </div>
       <div class="jk-bottombar">
         <button class="btn btn--ghost" id="jkBack">← Prev</button>
-        <a class="btn btn--grad${n.missing ? " jk-cta--dim" : ""}" href="${esc(STAGES[deal.stage] ? STAGES[deal.stage].route(deal) : "#/deals")}">Next Step →</a>
+        ${led.missing === 0 && !deal.signoff
+          ? `<a class="btn dr-funding" href="#/menu/${esc(deal.id)}">Push Deal to Processing / F&amp;I Sign-off →</a>`
+          : `<a class="btn btn--grad${n.missing ? " jk-cta--dim" : ""}" href="${esc(STAGES[deal.stage] ? STAGES[deal.stage].route(deal) : "#/deals")}">Next Step →</a>`}
       </div>`;
 
     /* one modal for marking received; the note is optional, the by-name
@@ -3374,7 +3487,9 @@ route("jacket/:id", ({ id }) => {
     $$("[data-req]").forEach(b => b.onclick = () => requestFlow([b.dataset.req]));
     /* one bulk request trigger — the top of the missing list (owner usability
        pass, 2026-08-16: duplicate Request triggers removed) */
-    if ($("#jkReqAll")) $("#jkReqAll").onclick = () => requestFlow(outstanding.map(d => d.id));
+    if ($("#jkReqAll")) $("#jkReqAll").onclick = () => requestFlow(dealerMissing.map(d => d.id));
+    if ($("#drCompose")) $("#drCompose").onclick = () => navigate("#/docreq/" + deal.id);
+    if ($("#drResend")) $("#drResend").onclick = () => navigate("#/docreq/" + deal.id + "/resend");
     $("#jkBack").onclick = () => history.back();
     $("#jkAdvToggle").onclick = () => {
       const open = $("#jkScript").classList.toggle("jk-script--open");
@@ -3504,6 +3619,417 @@ function openDocScanFlow(deal, onDone, opts) {
 
   renderCapture();
 }
+/* ============================================================
+   VIEW: document request flow — composer, simulated client link,
+   advisor review (owner's v2 prototype, 2026-08-16). The "SMS" and
+   the client's phone are played by this same browser: the demo is
+   one device, the send is theater like the credit pull, and the
+   photos a client "sends" live only in this session's memory.
+   ============================================================ */
+
+function drVehicleShort(v) { return v ? `${v.year} ${v.model}` : "your new vehicle"; }
+function drSmsText(deal) {
+  const ds = RIDE_PRICE_DATA.dealership;
+  const cst = Store.customer(deal.customerId);
+  const v = Store.vehicle(deal.stock);
+  const first = (Store.s.advisor || "").split(" ")[0];
+  const nItems = clientQueue(deal).length || 3;
+  return `${ds.name} — ${first} here. To finish paperwork on your ${drVehicleShort(v)}, upload ${nItems} item${nItems === 1 ? "" : "s"}: rideprice.com/u/${deal.dealNo || ""}. Questions: ${ds.phone}${cst ? "" : ""}`;
+}
+function drLogoMark() {
+  return RIDE_PRICE_DATA.dealership.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
+}
+
+function drComposer(id, mode) {
+  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const isResend = mode === "resend";
+  const cst = Store.customer(deal.customerId);
+  /* one count drives both the list and the button: a first-time send covers
+     documents not yet requested-or-landed; a resend covers everything still
+     on the link (anything not accepted) */
+  const queue = isResend ? clientQueue(deal) : clientQueue(deal).filter(d => {
+    const r = jacketClient(deal)[d];
+    return !r || r.state === "requested";
+  });
+  renderChrome(isResend ? "Resend document request" : "Request documents", dealTitle(deal), "");
+  document.body.dataset.screen = "docreq";
+  view().innerHTML = `
+    <div class="dr-sheet">
+      <div class="dr-sheethead"><h2>${isResend ? "Resend document request" : "Request documents"}</h2>
+        <a class="dr-close" href="#/jacket/${esc(deal.id)}" aria-label="Close">×</a></div>
+      <div class="dr-sheetbody">
+        <div class="dr-person"><span class="dr-kicker">Send to</span>
+          <b>${cst ? esc(cst.first + " " + cst.last) : "—"}</b>
+          <span>${cst ? esc(cst.phone || "") : ""}</span></div>
+        <p class="dr-summary">We'll text ${cst ? esc(cst.first) : "the client"} one secure link for the customer-provided documents still needed. Missing items are auto-selected.</p>
+        <div class="dr-items">
+          ${queue.length ? queue.map(qid => {
+            const d = docMeta(qid); const m = clientMeta(qid);
+            return `<div class="dr-item"><span class="dr-qicon">${m.icon}</span>
+              <span class="dr-itemcopy"><b>${esc(d.label)}</b><span>${esc(m.plainReason)}</span></span>
+              <span class="dr-itemcheck">✓</span></div>`;
+          }).join("") : `<p class="note">No new customer documents need a first-time request.</p>`}
+        </div>
+        <div class="dr-smspreview"><span class="dr-kicker">Exact SMS preview</span>
+          <p>${esc(drSmsText(deal))}</p></div>
+        <p class="dr-expiry">🔒 Session link expires in 24 hours. If it expires, Resend issues a fresh link.</p>
+        <p class="demo-note">Demo — the text is simulated; the client's phone is played by this same browser and nothing leaves this device.</p>
+        <button class="btn dr-bigcta" id="drSend" ${queue.length === 0 ? "disabled" : ""}>${isResend ? "Resend Text Request" : "Send Text Request"} (${queue.length} item${queue.length === 1 ? "" : "s"}) →</button>
+        <a class="dr-cancel" href="#/jacket/${esc(deal.id)}">Cancel</a>
+      </div>
+    </div>`;
+  $("#drSend").onclick = () => {
+    const j = jacketOf(deal);
+    const cl = jacketClientOf(deal);
+    const at = new Date().toISOString();
+    j.reqSentAt = at;
+    clientQueue(deal).forEach(qid => {
+      if (!cl[qid] || cl[qid].state === "requested") cl[qid] = { state: "requested", requestedAt: at };
+    });
+    Store.save();
+    toast(isResend ? "Fresh link sent" : "Text request sent");
+    navigate("#/clientlink/" + deal.id + "/sms");
+  };
+}
+route("docreq/:id", ({ id }) => drComposer(id));
+route("docreq/:id/:mode", ({ id, mode }) => drComposer(id, mode));
+
+/* ---------------- the simulated client phone ---------------- */
+
+route("clientlink/:id", ({ id }) => drClientLink(id, "landing"));
+route("clientlink/:id/:start", ({ id, start }) => drClientLink(id, start));
+
+function drClientLink(id, startScreen) {
+  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const ds = RIDE_PRICE_DATA.dealership;
+  const cst = Store.customer(deal.customerId);
+  const v = Store.vehicle(deal.stock);
+  const st = { screen: startScreen === "sms" ? "sms" : "landing", docId: null, badPhoto: false, zoom: 1, page: 0, pendingSource: "camera" };
+
+  renderChrome("Client link", dealTitle(deal), "");
+  document.body.dataset.screen = "clientlink";
+
+  const cl = () => jacketClient(deal);
+  const rec = (docId) => cl()[docId] || null;
+  const stateOf = (docId) => jacketState(deal, docId) ? "accepted" : (rec(docId) ? rec(docId).state : "needed");
+  const queueIds = () => CLIENT_QUEUE_IDS.filter(q => jacketDocs(deal).some(d => d.id === q));
+  const sentCount = () => queueIds().filter(q => stateOf(q) === "received" || stateOf(q) === "rejected" || stateOf(q) === "accepted").length;
+
+  function trustHeader(sub) {
+    return `<div class="dr-trust">
+      <div class="dr-dealerline"><span class="dr-logomark">${esc(drLogoMark())}</span>
+        <span class="dr-dealercopy"><b>${esc(ds.name)}</b><span>${esc(Store.s.advisor)} · Sales Advisor · ${esc(ds.phone)}</span></span>
+        <a class="dr-advlink" href="#/jacket/${esc(deal.id)}">Advisor view ›</a></div>
+      ${sub}
+    </div>`;
+  }
+
+  function clientRowHtml(docId) {
+    const d = docMeta(docId); const m = clientMeta(docId);
+    const s = stateOf(docId); const r = rec(docId);
+    let status = "Needed", cls = "needed";
+    if (s === "received") { status = "Sent — being reviewed"; cls = "received"; }
+    if (s === "accepted") { status = "Accepted"; cls = "accepted"; }
+    if (s === "rejected") { status = "Needs a redo — " + (r.rejectedReason || ""); cls = "rejected"; }
+    return `<button type="button" class="dr-clientrow" data-detail="${esc(docId)}" ${s === "accepted" ? "disabled" : ""}>
+      <span class="dr-qicon${s === "accepted" ? " dr-qicon--green" : ""}">${s === "accepted" ? "✓" : m.icon}</span>
+      <span class="dr-itemcopy"><b>${esc(d.label)}</b><span class="dr-status dr-status--${cls}">${esc(status)}</span></span>
+      <span class="dr-chev">${s === "rejected" ? "Retake ›" : "›"}</span>
+    </button>`;
+  }
+
+  function render() {
+    const host = view();
+    if (st.screen === "sms") host.innerHTML = smsScreen();
+    else if (st.screen === "landing") host.innerHTML = landingScreen();
+    else if (st.screen === "detail") host.innerHTML = detailScreen();
+    else if (st.screen === "review") host.innerHTML = reviewScreen();
+    else if (st.screen === "failure") host.innerHTML = failureScreen();
+    else if (st.screen === "receipt") host.innerHTML = receiptScreen();
+    wire();
+  }
+
+  function smsScreen() {
+    const first = (Store.s.advisor || "").split(" ")[0];
+    return `<div class="dr-client dr-sms">
+      <div class="dr-smstop"><span class="dr-smsback">‹</span><span class="dr-logomark">${esc(drLogoMark())}</span>
+        <span class="dr-dealercopy"><b>${esc(ds.name)} · ${esc(first)}</b><span>${esc(ds.phone)}</span></span></div>
+      <div class="dr-msgwrap">
+        <span class="dr-brandedlabel">Verified dealership message</span>
+        <div class="dr-bubble">${esc(drSmsText(deal)).replace(esc("rideprice.com/u/" + (deal.dealNo || "")), `<a href="#" data-open-client>rideprice.com/u/${esc(deal.dealNo || "")}</a>`)}</div>
+        <span class="dr-callback">Tap the dealership number above if you want to verify the request.</span>
+      </div>
+      <div class="dr-smsfooter"><span>＋</span><span class="dr-msginput">Text Message</span><span class="dr-smssend">↑</span></div>
+    </div>`;
+  }
+
+  function landingScreen() {
+    const sent = sentCount();
+    const all = queueIds().length;
+    return `<div class="dr-client">
+      ${trustHeader(`<div class="dr-trustmeta"><b>${esc(drVehicleShort(v))}</b><br>Deal #${esc(deal.dealNo || "")} · These documents are needed to finish your vehicle paperwork.</div>
+        <div class="dr-trustnote">We use these documents only for this vehicle purchase and compliance review. Your advisor will review what you send.</div>`)}
+      <div class="dr-clientbody">
+        <h1>Upload your documents</h1>
+        <p class="dr-subhead">No account or password needed. You can stop and return to this same link anytime.</p>
+        <div class="dr-needbox"><b>You'll need</b><span>Photo ID · your insurance card · a recent pay stub.</span></div>
+        ${queueIds().map(clientRowHtml).join("")}
+        <button class="dr-savelater" data-save-later>Save & finish later</button>
+      </div>
+      <div class="dr-clientbottom">
+        <button class="dr-clientcta${sent === all && all > 0 ? " dr-clientcta--green" : ""}" data-receipt ${sent === 0 ? "disabled" : ""}>${sent === 0 ? "Upload at least 1 item" : `Send ${sent} of ${all} items`} →</button>
+      </div>
+    </div>`;
+  }
+
+  function detailScreen() {
+    const m = clientMeta(st.docId); const d = docMeta(st.docId);
+    return `<div class="dr-client">
+      <div class="dr-detailhead"><button class="dr-back" data-back-landing>‹</button><b>${esc(d.label)}</b></div>
+      <div class="dr-clientbody">
+        <div class="dr-requirement"><b>What we need</b>${esc(m.requirement)}</div>
+        <div class="dr-example"><span class="dr-thumb"></span>
+          <span class="dr-itemcopy"><b>See what a good example looks like</b><span>Clear, complete and current.</span></span>
+          <button class="btn btn--ghost btn--sm" data-example>See example</button></div>
+        <div class="dr-multinote"><b>${esc(m.multiNote.split(".")[0])}.</b> ${esc(m.multiNote.split(".").slice(1).join(".").trim())}
+          ${st.docId === "form-paystub" ? `<button class="dr-cancel" data-other-income>Other income type</button>` : ""}</div>
+        <div class="dr-capturegrid">
+          <button class="dr-capture dr-capture--primary" data-capture="camera">📷 Take photo</button>
+          <button class="dr-capture" data-capture="library">▣ Choose from library</button>
+          <button class="dr-capture" data-capture="pdf">PDF Choose a PDF</button>
+        </div>
+        <label class="opt-row dr-badtoggle"><input type="checkbox" id="drBad" ${st.badPhoto ? "checked" : ""}><span class="opt-row__label">Demo only: simulate bad photo to test the failure path.</span></label>
+        <button class="dr-savelater" data-save-later>Save & finish later</button>
+        <input type="file" accept="image/*" capture="environment" id="drFileCam" hidden>
+        <input type="file" accept="image/*" id="drFileLib" hidden>
+        <input type="file" accept="application/pdf" id="drFilePdf" hidden>
+      </div>
+    </div>`;
+  }
+
+  function stageArt() {
+    const urls = clientPhotos(deal.id, st.docId);
+    const u = urls[st.page];
+    return u
+      ? `<img class="dr-photo" src="${esc(u)}" alt="Captured page" style="transform:scale(${st.zoom})">`
+      : `<div class="dr-photoart" style="transform:scale(${st.zoom})"></div>`;
+  }
+
+  function reviewScreen() {
+    const r = rec(st.docId) || {};
+    const pages = Math.max(1, (r.draftPages || 1));
+    st.page = Math.min(st.page, pages - 1);
+    return `<div class="dr-client">
+      <div class="dr-detailhead"><button class="dr-back" data-back-detail>‹</button><b>Review capture</b></div>
+      <div class="dr-clientbody">
+        <div class="dr-stage">${stageArt()}
+          <div class="dr-zoom"><button data-zoom="-">−</button><button data-zoom="+">＋</button></div></div>
+        <div class="dr-pagetools"><button data-page="-" ${st.page === 0 ? "disabled" : ""}>←</button><b>${st.page + 1} of ${pages}</b><button data-page="+" ${st.page >= pages - 1 ? "disabled" : ""}>→</button></div>
+        <div class="dr-reviewactions"><button data-retake>↻ Retake</button><button data-add-page>＋ Add page</button></div>
+        <button class="dr-savelater" data-del-page ${pages === 1 ? "disabled" : ""}>Delete this page</button>
+        <p class="hint" style="text-align:center">You can add and remove pages before committing them. The photos stay on this device and are never uploaded or kept.</p>
+        <button class="dr-clientcta" data-use>${pages > 1 ? `Done (${pages})` : "Use this"}</button>
+        <input type="file" accept="image/*" capture="environment" id="drFileMore" hidden>
+      </div>
+    </div>`;
+  }
+
+  function failureScreen() {
+    const block = (t, fix) => `<div class="dr-failcard"><b>${esc(t)}</b>
+      <div class="dr-compare"><span class="dr-comparebox dr-comparebox--bad"></span><span class="dr-comparebox dr-comparebox--good"></span></div>
+      <div class="dr-comparelabels"><span>Bad</span><span>Good</span></div><p>${esc(fix)}</p></div>`;
+    return `<div class="dr-client">
+      <div class="dr-detailhead"><button class="dr-back" data-back-detail>‹</button><b>Let's fix this photo</b></div>
+      <div class="dr-clientbody">
+        <p class="hint">We couldn't confidently read the document. Try one specific fix below — or use another capture method.</p>
+        ${block("Glare", "Tilt the card slightly up or down to kill the reflection.")}
+        ${block("Blur", "Move the document closer or further until it sharpens; hold steady.")}
+        ${block("Text unreadable / cropped", "Get all four corners in frame on a dark surface.")}
+        <div class="dr-escapegrid"><button data-manual>Capture manually instead</button><button data-email>Send by email instead</button></div>
+        <button class="dr-savelater" data-save-later>Save & finish later</button>
+      </div>
+    </div>`;
+  }
+
+  function receiptScreen() {
+    const sentIds = queueIds().filter(q => stateOf(q) !== "needed" && stateOf(q) !== "requested");
+    const missing = queueIds().filter(q => stateOf(q) === "needed" || stateOf(q) === "requested");
+    return `<div class="dr-client">
+      ${trustHeader(`<div class="dr-trustmeta"><b>Thanks${cst ? ", " + esc(cst.first) : ""}.</b> Files appear here the instant they land. "Accepted" appears only after review.</div>`)}
+      <div class="dr-clientbody">
+        <h1>What you've sent</h1>
+        <p class="dr-subhead">Your advisor can review documents while you finish the rest.</p>
+        ${sentIds.length ? sentIds.map(q => {
+          const s = stateOf(q); const r = rec(q) || {}; const d = docMeta(q);
+          const urls = clientPhotos(deal.id, q);
+          const tone = s === "accepted" ? "accepted" : s === "rejected" ? "rejected" : "received";
+          const label = s === "accepted" ? "Accepted" : s === "rejected" ? "Rejected — " + (r.rejectedReason || "") : "Sent — being reviewed";
+          return `<button type="button" class="dr-clientrow" ${s === "rejected" ? `data-detail="${esc(q)}"` : "disabled"}>
+            ${urls[0] ? `<img class="dr-rthumb" src="${esc(urls[0])}" alt="">` : `<span class="dr-rthumb"></span>`}
+            <span class="dr-itemcopy"><b>${esc(d.label)}</b><span class="dr-status dr-status--${tone}">${esc(label)} · ${esc(drStamp(r.receivedAt) || "just now")}</span>${s === "rejected" ? `<span class="dr-status">Tap to retake using this same link.</span>` : ""}</span>
+            <span class="dr-chev">${s === "rejected" ? "Retake ›" : "›"}</span></button>`;
+        }).join("") : `<div class="dr-needbox"><b>No files have been sent yet.</b></div>`}
+        ${missing.length
+          ? `<div class="dr-needbox"><b>${missing.length} still needed</b><span>${missing.map(q => esc(docMeta(q).label)).join(" · ")}</span></div>`
+          : `<div class="dr-success"><b>All requested items have been sent.</b><p>Some may still show “being reviewed” until your advisor accepts them.</p></div>`}
+        <button class="dr-savelater" data-back-landing>${missing.length ? "Back to upload" : "Back to status"}</button>
+      </div>
+    </div>`;
+  }
+
+  function addPages(files, replaceIdx) {
+    const urls = clientPhotos(deal.id, st.docId).slice();
+    Array.from(files).forEach(f => {
+      const u = URL.createObjectURL(f);
+      if (replaceIdx != null) { try { URL.revokeObjectURL(urls[replaceIdx]); } catch (e) {} urls[replaceIdx] = u; replaceIdx = null; }
+      else urls.push(u);
+    });
+    clientPhotosSet(deal.id, st.docId, urls);
+    const clw = jacketClientOf(deal);
+    if (!clw[st.docId]) clw[st.docId] = { state: "requested", requestedAt: new Date().toISOString() };
+    clw[st.docId].draftPages = Math.max(1, urls.length);
+    Store.save();
+  }
+
+  function wire() {
+    $$("[data-open-client]").forEach(a => a.onclick = (e) => { e.preventDefault(); st.screen = "landing"; render(); });
+    $$("[data-detail]").forEach(b => b.onclick = () => { st.docId = b.dataset.detail; st.badPhoto = false; st.zoom = 1; st.page = 0; st.screen = "detail"; render(); });
+    $$("[data-back-landing]").forEach(b => b.onclick = () => { st.screen = "landing"; render(); });
+    $$("[data-back-detail]").forEach(b => b.onclick = () => { st.screen = "detail"; render(); });
+    $$("[data-save-later]").forEach(b => b.onclick = () => toast("Saved. Reopen this same link to continue where you left off."));
+    $$("[data-example]").forEach(b => b.onclick = () => toast("Example: all corners visible, current dates, readable text."));
+    $$("[data-other-income]").forEach(b => b.onclick = () => toast("Other income type selected — your advisor can request the right alternative."));
+    $$("[data-receipt]").forEach(b => b.onclick = () => { st.screen = "receipt"; render(); });
+    const bad = $("#drBad");
+    if (bad) bad.onchange = () => { st.badPhoto = bad.checked; };
+    const capIds = { camera: "#drFileCam", library: "#drFileLib", pdf: "#drFilePdf" };
+    $$("[data-capture]").forEach(b => b.onclick = () => {
+      st.pendingSource = b.dataset.capture;
+      if (st.badPhoto) { st.screen = "failure"; render(); return; }
+      const inp = $(capIds[b.dataset.capture]);
+      if (inp) inp.click();
+    });
+    ["#drFileCam", "#drFileLib", "#drFilePdf"].forEach(sel => {
+      const inp = $(sel);
+      if (inp) inp.onchange = () => {
+        if (!inp.files || !inp.files.length) return;
+        clientPhotosClear(deal.id, st.docId);
+        addPages(inp.files);
+        st.page = 0; st.zoom = 1; st.screen = "review"; render();
+      };
+    });
+    const more = $("#drFileMore");
+    if (more) more.onchange = () => {
+      if (!more.files || !more.files.length) return;
+      if (more.dataset.replace === "1") { addPages(more.files, st.page); more.dataset.replace = ""; }
+      else { addPages(more.files); st.page = clientPhotos(deal.id, st.docId).length - 1; }
+      render();
+    };
+    $$("[data-zoom]").forEach(b => b.onclick = () => { st.zoom = b.dataset.zoom === "+" ? Math.min(1.7, st.zoom + .15) : Math.max(.75, st.zoom - .15); render(); });
+    $$("[data-page]").forEach(b => b.onclick = () => {
+      const r = rec(st.docId) || {}; const pages = Math.max(1, r.draftPages || 1);
+      st.page = b.dataset.page === "+" ? Math.min(pages - 1, st.page + 1) : Math.max(0, st.page - 1); render();
+    });
+    $$("[data-retake]").forEach(b => b.onclick = () => { const m2 = $("#drFileMore"); if (m2) { m2.dataset.replace = "1"; m2.click(); } });
+    $$("[data-add-page]").forEach(b => b.onclick = () => { const m2 = $("#drFileMore"); if (m2) { m2.dataset.replace = ""; m2.click(); } });
+    $$("[data-del-page]").forEach(b => b.onclick = () => {
+      clientPhotoDrop(deal.id, st.docId, st.page);
+      const clw = jacketClientOf(deal); const r = clw[st.docId];
+      if (r) { r.draftPages = Math.max(1, (r.draftPages || 1) - 1); Store.save(); }
+      st.page = Math.max(0, st.page - 1); render();
+    });
+    /* manual capture returns to the capture paths with the demo toggle off —
+       a document must never reach review without a page behind it */
+    $$("[data-manual]").forEach(b => b.onclick = () => { st.badPhoto = false; st.screen = "detail"; render(); toast("Simulated bad photo is off — capture normally now."); });
+    $$("[data-email]").forEach(b => b.onclick = () => { toast("Email option opened. Status stays Needed until the file lands."); st.screen = "landing"; render(); });
+    $$("[data-use]").forEach(b => b.onclick = () => {
+      const clw = jacketClientOf(deal);
+      const r = clw[st.docId] || (clw[st.docId] = {});
+      r.state = "received";
+      r.receivedAt = new Date().toISOString();
+      r.pages = Math.max(1, r.draftPages || clientPhotos(deal.id, st.docId).length || 1);
+      r.rejectedReason = null;
+      Store.save();
+      st.screen = "landing"; st.zoom = 1; render();
+      toast("Sent to your advisor");
+    });
+  }
+
+  render();
+}
+
+/* ---------------- advisor review of a landed client document ---------------- */
+
+route("docreview/:id/:docId", ({ id, docId }) => {
+  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const d = docMeta(docId); const m = clientMeta(docId);
+  if (!d || !m) return navigate("#/jacket/" + id);
+  const r = jacketClient(deal)[docId];
+  const st = { zoom: 1, page: 0, checks: new Set() };
+
+  renderChrome("Review — " + d.label, dealTitle(deal),
+    `<a class="btn btn--ghost btn--sm" href="#/jacket/${esc(deal.id)}">← Deal Jacket</a>`);
+  document.body.dataset.screen = "docreview";
+
+  function render() {
+    const urls = clientPhotos(deal.id, docId);
+    const pages = Math.max(1, (r && (r.pages || r.draftPages)) || urls.length || 1);
+    st.page = Math.min(st.page, pages - 1);
+    const u = urls[st.page];
+    view().innerHTML = `
+      <div class="dr-reviewwrap">
+        <div class="dr-reviewhead"><b>${esc(d.label)}</b>
+          <span>${r && r.state === "received" ? "Received " + esc(drStamp(r.receivedAt)) : "Current state: " + esc(r ? r.state : "—")} · ${pages} page${pages === 1 ? "" : "s"}</span></div>
+        <div class="dr-stage">${u ? `<img class="dr-photo" src="${esc(u)}" alt="Client page" style="transform:scale(${st.zoom})">` : `<div class="dr-photoart" style="transform:scale(${st.zoom})"></div>`}
+          <div class="dr-zoom"><button data-zoom="-">−</button><button data-zoom="+">＋</button></div></div>
+        <div class="dr-pagetools"><button data-page="-" ${st.page === 0 ? "disabled" : ""}>←</button><b>Page ${st.page + 1} of ${pages}</b><button data-page="+" ${st.page >= pages - 1 ? "disabled" : ""}>→</button></div>
+        ${u ? "" : `<p class="hint" style="text-align:center">The photo lived only in the session that captured it — the record is what the jacket keeps.</p>`}
+        <div class="dr-checklist">${m.checks.map((c, i) => `<label class="opt-row"><input type="checkbox" data-check="${i}" ${st.checks.has(i) ? "checked" : ""}><span class="opt-row__label">${esc(c)}</span></label>`).join("")}</div>
+        <div class="dr-advactions">
+          <button class="btn dr-rejectbtn" id="drAgain">Request again</button>
+          <button class="btn dr-acceptbtn" id="drAccept">Accept</button>
+        </div>
+      </div>`;
+    wire();
+  }
+
+  function wire() {
+    /* the ticks survive zoom and page renders */
+    $$("[data-check]").forEach(cb => cb.onchange = () => { const i = +cb.dataset.check; if (cb.checked) st.checks.add(i); else st.checks.delete(i); });
+    $$("[data-zoom]").forEach(b => b.onclick = () => { st.zoom = b.dataset.zoom === "+" ? Math.min(1.9, st.zoom + .15) : Math.max(.75, st.zoom - .15); render(); });
+    $$("[data-page]").forEach(b => b.onclick = () => {
+      const urls = clientPhotos(deal.id, docId);
+      const pages = Math.max(1, (r && (r.pages || r.draftPages)) || urls.length || 1);
+      st.page = b.dataset.page === "+" ? Math.min(pages - 1, st.page + 1) : Math.max(0, st.page - 1); render();
+    });
+    $("#drAccept").onclick = () => {
+      jacketReceive(deal, docId, "client");
+      const clw = jacketClientOf(deal);
+      if (clw[docId]) { clw[docId].state = "accepted"; clw[docId].acceptedAt = new Date().toISOString(); Store.save(); }
+      toast("Accepted. Compliance ledger advanced.");
+      navigate("#/jacket/" + deal.id);
+    };
+    $("#drAgain").onclick = () => {
+      modal("Why does the client need to redo it?",
+        `<div class="dr-reasongrid">${RIDE_PRICE_DATA.rejectReasons.map(x => `<button class="btn btn--ghost" data-reason="${esc(x)}">${esc(x)}</button>`).join("")}</div>`,
+        `<button class="btn btn--ghost" data-close>Cancel</button>`);
+      $$("[data-reason]").forEach(b => b.onclick = () => {
+        const clw = jacketClientOf(deal);
+        const rr = clw[docId] || (clw[docId] = {});
+        rr.state = "rejected";
+        rr.rejectedReason = b.dataset.reason;
+        rr.receivedAt = rr.receivedAt || new Date().toISOString();
+        Store.save();
+        closeModal();
+        toast("Client link updated with the rejection reason. No new SMS sent.");
+        navigate("#/jacket/" + deal.id);
+      });
+    };
+  }
+
+  render();
+});
+
 /* ============================================================
    VIEW: Print Center + printable deal documents
    ============================================================ */

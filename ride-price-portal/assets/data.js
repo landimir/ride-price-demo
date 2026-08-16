@@ -270,6 +270,37 @@ const RIDE_PRICE_DATA = {
     { id: "gapwaiver", label: "GAP Waiver / Addendum", group: "Financing Forms", code: 19 }
   ],
 
+  /* the three documents a client sends through the text-request link (the
+     2026-08-16 document-request flow, owner's v2 prototype). Keyed by the
+     dealForms id; requirements and checklists are the advisor's review
+     criteria, verbatim from the prototype with entities swapped to ours. */
+  clientDocs: {
+    insurance: {
+      icon: "🛡", short: "Insurance Card", plainReason: "Needed for delivery",
+      requirement: "Must show the vehicle by VIN or description, your name, the policy number, effective dates covering today, and comprehensive plus collision coverage. If the card runs to two pages, add both.",
+      multiNote: "May be multi-page. If your insurance card or binder has a second page, add both before you finish.",
+      minPages: 1,
+      checks: ["Vehicle matches or VIN matches", "Customer name and policy number are visible", "Effective dates include today", "Comprehensive and collision coverage are shown", "All pages are present if the card spans two pages"]
+    },
+    license: {
+      icon: "▦", short: "License", plainReason: "Needed for registration",
+      requirement: "Front and back, unexpired, name matching the credit application. Not a photo of a photo, not a screenshot, not a temporary paper permit unless you also add the expired card.",
+      multiNote: "Two sides required. Capture the front and back. You can add the second side from the review screen.",
+      minPages: 2,
+      checks: ["Front image is present and readable", "Back image is present and readable", "License is unexpired", "Name matches the credit application", "Image is an original capture, not a screenshot/photo of a photo"]
+    },
+    paystub: {
+      icon: "▤", short: "Paystub", plainReason: "Bank requirement",
+      requirement: "Your two most recent consecutive stubs, each showing employer name, pay period dates, and year-to-date gross. If you're self-employed, add “Other income type” instead.",
+      multiNote: "Two paystubs required. Add your two most recent consecutive stubs.",
+      minPages: 2,
+      checks: ["Two consecutive paystubs are present", "Employer name is visible", "Pay period dates are visible", "Year-to-date gross is visible", "Customer name matches the application"]
+    }
+  },
+
+  /* canned reasons an advisor can send a document back with */
+  rejectReasons: ["Blurred", "Expired", "Wrong document", "Missing page", "Wrong name"],
+
   /* the documents the portal itself prints — the only ones it can ever
      recognise coming back, because it is the one that marked them */
   printedDocs: [
