@@ -575,6 +575,13 @@ label.f .seg { display: flex; }
 .pd-sig .line { flex: 1; border-top: 1.5px solid #333; padding-top: 4px; font-size: 10.5px; color: #444; min-height: 40px; }
 .pd-sig .script { font-family: "Segoe Script", "Brush Script MT", cursive; font-size: 21px; color: var(--navy-2); }
 .pd-foot { margin-top: 26px; padding-top: 10px; border-top: 1px solid var(--line); text-align: center; font-size: 10px; color: #999; }
+/* deal-jacket marker: the strip that lets the portal recognise a page it
+   printed. Sized so a phone photo of the whole sheet still resolves it —
+   the narrowest module stays above 1mm on paper. */
+.pd-mark { display: block; margin-top: 8px; }
+.pd-mark__bars { display: block; width: min(130mm, 92%); height: 9mm; margin: 0 auto; }
+.pd-mark__cap { display: block; font-size: 8px; letter-spacing: .6px; text-transform: uppercase; color: #bbb; margin-top: 2px; }
+
 
 /* ---------- license scan flow ---------- */
 .scan-steps { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
@@ -704,6 +711,44 @@ label.f .seg { display: flex; }
 .prop-barcode { display: block; width: 78mm; height: 18mm; margin: 0 auto; }
 .prop-fine { font-size: 2mm; color: #777; padding: 1.6mm 4mm 0; line-height: 1.55; }
 
+
+/* ---------- deal jacket ----------
+   Desktop splits outstanding from collected, because "what is still missing"
+   is the only question this screen is ever opened to answer. On a phone the
+   same two sections stack, outstanding first — one DOM, CSS chooses. */
+.jk-bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin-bottom: 12px; }
+.jk-bar span { display: block; height: 100%; background: var(--green); border-radius: 99px; }
+.jk-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: start; margin-bottom: 18px; }
+.jk-col__head {
+  font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--navy);
+  margin: 0 0 10px; display: flex; align-items: center; gap: 8px;
+}
+.jk-col__head span {
+  background: var(--navy); color: #fff; border-radius: 99px; padding: 1px 9px; font-size: 11px;
+}
+.jk-row {
+  display: flex; gap: 12px; align-items: flex-start; background: #fff; border: 1px solid var(--line);
+  border-radius: var(--r); padding: 12px 14px; margin-bottom: 10px; box-shadow: var(--sh);
+}
+.jk-row--in { border-color: #cfe9da; background: #fbfefc; }
+.jk-row__mark {
+  flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%; margin-top: 2px;
+  border: 2px solid var(--line); display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 800; color: #fff;
+}
+.jk-row--in .jk-row__mark { background: var(--green); border-color: var(--green); }
+.jk-row__main { flex: 1 1 auto; min-width: 0; }
+.jk-row__main b { font-size: 14px; color: var(--ink); }
+.jk-row__why, .jk-row__state { display: block; font-size: 12px; margin-top: 3px; color: var(--ink); }
+.jk-row__state { font-weight: 700; color: var(--navy-2); }
+.jk-chip {
+  display: inline-block; margin-left: 7px; vertical-align: 2px; padding: 1px 8px; border-radius: 99px;
+  font-size: 10px; font-weight: 800; letter-spacing: .3px; text-transform: uppercase;
+  background: #fdf3e0; color: #8a5a12; border: 1px solid #f2dcb4;
+}
+.jk-chip--added { background: #eef2fb; color: var(--navy-2); border-color: #d7dff2; }
+.jk-row__act { flex: 0 0 auto; display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+
 /* on-screen document previews darken their metadata for sunlight readability;
    scoped to screen so the printed output stays byte-identical */
 @media screen {
@@ -729,6 +774,10 @@ label.f .seg { display: flex; }
   .prop-head { background: none; color: #1b1b33; border-bottom: 0.5mm solid #1b1b33; }
   .prop-head b { color: #1b1b33; }
   .prop-watermark { color: rgba(0, 0, 0, .06); }
+  /* the marker is the only thing on the page a camera has to read back */
+  .pd-mark { page-break-inside: avoid; break-inside: avoid; }
+  .pd-mark__bars { fill: #000; }
+  .pd-mark__cap { color: #999; }
 }
 @page { margin: 0.6in 0.7in; }
 
@@ -786,6 +835,10 @@ label.f .seg { display: flex; }
   .dd__btn { min-height: 44px; }
   .stepper .st { min-height: 40px; }
   .crumb-btn { padding: 11px 15px; font-size: 12px; }
+  .jk-cols { grid-template-columns: 1fr; gap: 4px; }
+  .jk-row { flex-wrap: wrap; }
+  .jk-row__act { flex: 1 1 100%; flex-direction: row; margin-top: 4px; }
+  .jk-row__act .btn { flex: 1 1 auto; }
   .ini-clear { padding: 8px 14px; }
   .mprod .mv { padding: 9px 12px; }
   .switch { width: 46px; height: 26px; }

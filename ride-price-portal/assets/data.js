@@ -243,23 +243,38 @@ const RIDE_PRICE_DATA = {
     "Additional authorized drivers are subject to all of the obligations and responsibilities as set forth in this Agreement."
   ],
 
+  /* `code` is the permanent wire number the deal-jacket marker prints on a
+     document the app generated. Never renumber one and never reuse a retired
+     code — old paper in a filing cabinet would start meaning something else. */
   dealForms: [
-    { id: "privacy", label: "Privacy Policy", group: "Delivery Forms" },
-    { id: "settings", label: "Personalized Setting Sheet", group: "Delivery Forms" },
-    { id: "accsheet", label: "Accessory Sell Sheet", group: "Delivery Forms" },
-    { id: "tqi", label: "TQI Checklist", group: "Delivery Forms" },
-    { id: "poa", label: "Power of Attorney Forms", group: "Motor Vehicle Forms" },
-    { id: "reg", label: "Registration & Title Application", group: "Motor Vehicle Forms" },
-    { id: "license", label: "Copy of License", group: "Motor Vehicle Forms" },
-    { id: "plates", label: "Transfer Plates Registration", group: "Motor Vehicle Forms" },
-    { id: "contracts", label: "Signed Contracts", group: "Financing Forms" },
-    { id: "creditmatch", label: "Signed Matching Credit App", group: "Financing Forms" },
-    { id: "fimenu", label: "F&I Menu Forms", group: "Financing Forms" },
-    { id: "riskdisc", label: "Risk-Based Disclosure", group: "Financing Forms" },
-    { id: "insurance", label: "Insurance Card / Binder", group: "Financing Forms" },
-    { id: "title", label: "Sign Title / Duplicate Title Form", group: "Trade-In Forms" },
-    { id: "lienrel", label: "Lien Release Letter", group: "Trade-In Forms" },
-    { id: "appraisal", label: "Appraisal Sheet", group: "Trade-In Forms" }
+    { id: "privacy", label: "Privacy Policy", group: "Delivery Forms", code: 1 },
+    { id: "settings", label: "Personalized Setting Sheet", group: "Delivery Forms", code: 2 },
+    { id: "accsheet", label: "Accessory Sell Sheet", group: "Delivery Forms", code: 3 },
+    { id: "tqi", label: "TQI Checklist", group: "Delivery Forms", code: 4 },
+    { id: "poa", label: "Power of Attorney Forms", group: "Motor Vehicle Forms", code: 5 },
+    { id: "reg", label: "Registration & Title Application", group: "Motor Vehicle Forms", code: 6 },
+    { id: "license", label: "Copy of License", group: "Motor Vehicle Forms", code: 7 },
+    { id: "plates", label: "Transfer Plates Registration", group: "Motor Vehicle Forms", code: 8 },
+    { id: "contracts", label: "Signed Contracts", group: "Financing Forms", code: 9 },
+    { id: "creditmatch", label: "Signed Matching Credit App", group: "Financing Forms", code: 10 },
+    { id: "fimenu", label: "F&I Menu Forms", group: "Financing Forms", code: 11 },
+    { id: "riskdisc", label: "Risk-Based Disclosure", group: "Financing Forms", code: 12 },
+    { id: "insurance", label: "Insurance Card / Binder", group: "Financing Forms", code: 13 },
+    { id: "title", label: "Sign Title / Duplicate Title Form", group: "Trade-In Forms", code: 14 },
+    { id: "lienrel", label: "Lien Release Letter", group: "Trade-In Forms", code: 15 },
+    { id: "appraisal", label: "Appraisal Sheet", group: "Trade-In Forms", code: 16 }
+  ],
+
+  /* the documents the portal itself prints — the only ones it can ever
+     recognise coming back, because it is the one that marked them */
+  printedDocs: [
+    { id: "cover", label: "Deal Cover Sheet", group: "Deal Packet", code: 41 },
+    { id: "agreement", label: "Base Payment Agreement", group: "Deal Packet", code: 42 },
+    { id: "repayment", label: "Repayment Options", group: "Deal Packet", code: 43 },
+    { id: "testdrive", label: "Test Drive Agreement", group: "Deal Packet", code: 44 },
+    { id: "delivery", label: "Delivery Checklist", group: "Deal Packet", code: 45 },
+    { id: "rebates", label: "Applied Rebates", group: "Deal Packet", code: 46 },
+    { id: "quote", label: "Saved Quote", group: "Deal Packet", code: 47 }
   ],
 
   seedCustomers: [

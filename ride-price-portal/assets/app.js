@@ -149,8 +149,10 @@ function dealTitle(deal) {
   const cb = deal.coBuyerId ? Store.customer(deal.coBuyerId) : null; /* missing record = no co-buyer */
   const v = Store.vehicle(deal.stock);
   const names = `${c ? esc(c.first + " " + c.last) : "—"}${cb ? " + " + esc(cb.first + " " + cb.last) : ""}`;
+  const jkc = jacketCounts(deal);
   return `${names} · ${v ? esc(v.year + " " + v.make + " " + v.model) : "no vehicle yet"}
-    <button class="crumb-btn" data-buyers="${esc(deal.id)}" title="Buyers on this deal">${cb ? "👥 Buyers" : "👤 Buyer"}</button>`;
+    <button class="crumb-btn" data-buyers="${esc(deal.id)}" title="Buyers on this deal">${cb ? "👥 Buyers" : "👤 Buyer"}</button>
+    <a class="crumb-btn" href="#/jacket/${esc(deal.id)}" title="Documents this deal needs">📁 Jacket${jkc.missing ? ` <i>${jkc.missing}</i>` : ""}</a>`;
 }
 
 /* ---------------- buyers on a deal (add / scan / swap / drop) ---------------- */
@@ -2421,7 +2423,12 @@ route("menu/:id", ({ id }) => {
             ? tradeOwnershipGaps(deal).map(g => ({ label: g, ok: false, req: false }))
             : [{ label: "Trade proof of ownership complete", ok: true, req: false }])
         : []),
-      { label: "Cover sheet printed for the deal folder", ok: true, req: false }
+      { label: "Cover sheet printed for the deal folder", ok: true, req: false },
+      /* the jacket reports what paperwork is still out — flagged, never blocking,
+         the same rule the trade ownership gaps settled on (owner, 2026-08-15) */
+      ...(jacketCounts(deal).missing
+        ? [{ label: `Deal jacket — ${jacketCounts(deal).missing} document(s) still outstanding`, ok: false, req: false }]
+        : [{ label: "Deal jacket complete — every document collected", ok: true, req: false }])
     ];
     const ready = checks.filter(x => x.req).every(x => x.ok);
     renderChrome("Manager Sign-Off", dealTitle(deal),
@@ -2769,7 +2776,7 @@ route("menu/:id", ({ id }) => {
           <div class="grid grid--2">
           ${Object.entries(groups).map(([g, forms]) => `
             <div><h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:0 0 8px">${g}</h3>
-            ${forms.map(f => { const locked = reqForms.includes(f.id); return `<label class="opt-row${locked ? " opt-row--locked" : ""}"><span class="switch"><input type="checkbox" data-form="${f.id}" ${deal.forms.selected.includes(f.id) ? "checked" : ""} ${locked ? "disabled" : ""}><span class="sl"></span></span><span class="opt-row__label">${f.label}${locked ? ` <b class="req-tag">required by the trade</b>` : ""}</span></label>`; }).join("")}</div>`).join("")}
+            ${forms.map(f => { const locked = reqForms.includes(f.id); return `<label class="opt-row${locked ? " opt-row--locked" : ""}"><span class="switch"><input type="checkbox" data-form="${f.id}" ${deal.forms.selected.includes(f.id) ? "checked" : ""} ${locked ? "disabled" : ""}><span class="sl"></span></span><span class="opt-row__label">${esc(f.label)}${locked ? ` <b class="req-tag">required by the trade</b>` : ""}</span></label>`; }).join("")}</div>`).join("")}
           </div>
           <p class="hint">Additional forms may be printed by your team lead or processing department.</p>
         </div>
@@ -2858,6 +2865,387 @@ route("menu/:id", ({ id }) => {
 });
 
 /* ============================================================
+   DEAL JACKET — the documents this deal needs, and what came back
+   ============================================================
+   The jacket keeps a RECORD, never a file: which document, who took
+   it in, when, and how it was established. Two states, and they are
+   never blurred together — "verified" means the app read a marker it
+   printed itself, "marked received" means a person said so. The app
+   can only ever recognise its own paper; a title, a bank letter or an
+   insurance card is unreadable by design (invariant 4).             */
+
+/* documents that arrive from outside the dealership — the app prints no
+   marker on these and can never identify one, so they are hand-recorded */
+const JACKET_OUTSIDE = ["license", "insurance", "title", "lienrel"];
+
+/* jacketOf() creates the record and is for the write paths only. Reading is
+   jacketRead(): dealTitle() calls it on every render of every deal screen, and
+   a display path that writes to state is how a reset stops coming back clean. */
+function jacketOf(deal) {
+  if (!deal.jacket) deal.jacket = { docs: {}, extra: [] };
+  if (!deal.jacket.docs) deal.jacket.docs = {};
+  if (!deal.jacket.extra) deal.jacket.extra = [];
+  return deal.jacket;
+}
+
+const EMPTY_JACKET = { docs: {}, extra: [] };
+function jacketRead(deal) {
+  const j = deal && deal.jacket;
+  if (!j) return EMPTY_JACKET;
+  return { docs: j.docs || {}, extra: j.extra || [] };
+}
+
+/* jacket document ids match the print route: a core printable is its own
+   key ("agreement"), a deal form is "form-" + its id ("form-title") */
+function docMeta(docId) {
+  if (!docId) return null;
+  if (docId.indexOf("form-") === 0) {
+    const f = RIDE_PRICE_DATA.dealForms.find(x => x.id === docId.slice(5));
+    return f ? { id: docId, label: f.label, group: f.group, code: f.code,
+      origin: JACKET_OUTSIDE.includes(f.id) ? "outside" : "app" } : null;
+  }
+  const p = RIDE_PRICE_DATA.printedDocs.find(x => x.id === docId);
+  return p ? { id: docId, label: p.label, group: p.group, code: p.code, origin: "app" } : null;
+}
+
+function docIdByCode(code) {
+  const f = RIDE_PRICE_DATA.dealForms.find(x => x.code === code);
+  if (f) return "form-" + f.id;
+  const p = RIDE_PRICE_DATA.printedDocs.find(x => x.code === code);
+  return p ? p.id : null;
+}
+
+/* What this particular deal needs, worked out from the deal itself. This is
+   the same idea as requiredTradeForms() widened to the whole packet — that
+   function stays the authority on the three forms it locks. */
+function jacketDocs(deal) {
+  const out = [];
+  const add = (id, why) => {
+    const m = docMeta(id);
+    if (!m || out.some(d => d.id === id)) return;
+    out.push(Object.assign({ why, added: false }, m));
+  };
+  const isCash = deal.dealType === "cash";
+  const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
+  const cb = deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
+
+  add("form-license", cb ? "Identity for both buyers on the deal" : "Identity for the buyer");
+  add("form-privacy", "Handed to every client at delivery");
+  add("form-reg", "Registers and titles the new vehicle in New York");
+  add("form-insurance", "Coverage has to be proven before the car leaves the lot");
+  if (deal.basePayment && deal.basePayment.signedAt) add("agreement", "The base terms the client signed");
+  if (!isCash) {
+    add("form-contracts", isLease ? "The lease agreement itself" : "The retail instalment contract itself");
+    add("form-creditmatch", "The signed application must match what went to the lender");
+    add("form-riskdisc", "Required whenever credit decides the rate");
+  }
+  if (deal.trade && deal.trade.has) {
+    add("form-appraisal", "What the trade was valued at, and why");
+    add("form-plates", "The client's plates move to the new vehicle");
+    /* the trade answers already select and lock these on the forms step */
+    requiredTradeForms(deal).forEach(fid => add("form-" + fid, "Required by the trade — locked on the deal forms step"));
+  }
+  if (deal.menu && deal.menu.selectedProgram && deal.menu.selectedProgram !== "none") {
+    add("form-fimenu", "The products the client initialed for");
+    add("repayment", "What was purchased and what was declined");
+  }
+  if (deal.testDrive && (deal.testDrive.signed || deal.testDrive.done)) add("testdrive", "Signed before the client drove the car");
+  add("form-tqi", "The delivery quality walk, done with the client");
+  add("form-settings", "Phone, seats and mirrors set before handover");
+  add("delivery", "The delivery checklist itself, signed off");
+
+  /* anything the advisor added by hand, or a scan brought in unprompted */
+  jacketRead(deal).extra.forEach(id => {
+    const m = docMeta(id);
+    if (m && !out.some(d => d.id === id)) out.push(Object.assign({ why: "Added to this deal by hand", added: true }, m));
+  });
+  return out;
+}
+
+function jacketState(deal, docId) { return jacketRead(deal).docs[docId] || null; }
+
+function jacketCounts(deal) {
+  const docs = jacketDocs(deal);
+  const inJacket = docs.filter(d => jacketState(deal, d.id));
+  return { total: docs.length, have: inJacket.length, missing: docs.length - inJacket.length };
+}
+
+/* outstanding documents, worded for a manager reading a checklist */
+function jacketGaps(deal) {
+  return jacketDocs(deal).filter(d => !jacketState(deal, d.id)).map(d => d.label + " — not in the deal jacket");
+}
+
+function jacketReceive(deal, docId, how, note) {
+  const j = jacketOf(deal);
+  if (!jacketDocs(deal).some(d => d.id === docId) && !j.extra.includes(docId)) j.extra.push(docId);
+  j.docs[docId] = { how, by: roleName(), at: new Date().toISOString() };
+  if (note) j.docs[docId].note = note;
+  Store.save();
+}
+
+function jacketRemove(deal, docId) {
+  const j = jacketOf(deal);
+  delete j.docs[docId];
+  Store.save();
+}
+
+/* remove a hand-added document from the deal entirely — computed ones stay */
+function jacketDrop(deal, docId) {
+  const j = jacketOf(deal);
+  j.extra = j.extra.filter(x => x !== docId);
+  delete j.docs[docId];
+  Store.save();
+}
+
+/* the marker token is device-local on purpose: it is minted here, by this
+   browser, the first time this device prints for the deal. A token from
+   another device means nothing here — which is exactly how the cross-device
+   case comes to fail out loud instead of quietly guessing. */
+function dealToken(deal) {
+  if (deal.docToken) return deal.docToken;
+  const used = new Set(Store.s.deals.map(d => d.docToken).filter(Boolean));
+  const max = RIDE_PRICE_DOCSCAN.MAX_TOKEN;
+  let t = 0;
+  for (let tries = 0; tries < 40 && !t; tries++) {
+    const cand = 1 + Math.floor(Math.random() * max);
+    if (!used.has(cand)) t = cand;
+  }
+  /* every token taken: mint nothing rather than duplicate one, or a scan
+     would confidently file a document against somebody else's deal */
+  if (!t) { for (let c = 1; c <= max && !t; c++) if (!used.has(c)) t = c; }
+  if (!t) return 0;
+  deal.docToken = t;
+  Store.save();
+  return t;
+}
+
+function dealByToken(token) { return Store.s.deals.find(d => d.docToken === token) || null; }
+
+/* the strip printed at the foot of every page the portal generates. It carries
+   an identifier and nothing else — a document-type code and this device's deal
+   token — so the paper never holds a field value a camera could read off it. */
+function docMarkerHtml(deal, docId) {
+  const m = docMeta(docId);
+  if (!m) return "";
+  const token = dealToken(deal);
+  if (!token) return ""; /* no token to be had — the page prints unmarked and is recorded by hand */
+  return `<span class="pd-mark">${RIDE_PRICE_DOCSCAN.markerSVG(m.code, token, "pd-mark__bars")}<span class="pd-mark__cap">deal jacket marker</span></span>`;
+}
+
+const jacketStamp = (iso) => {
+  const d = new Date(iso);
+  return isNaN(d) ? "" : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+};
+
+/* ---------------- the jacket screen ---------------- */
+
+route("jacket/:id", ({ id }) => {
+  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+
+  function render() {
+    const docs = jacketDocs(deal);
+    const n = jacketCounts(deal);
+    const outstanding = docs.filter(d => !jacketState(deal, d.id));
+    const received = docs.filter(d => jacketState(deal, d.id));
+
+    renderChrome("Deal Jacket", dealTitle(deal),
+      `<a class="btn btn--ghost btn--sm" href="#/forms/${deal.id}">🖨 Print Center</a>
+       <button class="btn btn--grad btn--sm" id="jkScan">📷 Scan a document</button>`);
+
+    const row = (d) => {
+      const st = jacketState(deal, d.id);
+      const verified = st && st.how === "scan";
+      return `<div class="jk-row${st ? " jk-row--in" : ""}">
+        <span class="jk-row__mark">${st ? "✓" : ""}</span>
+        <div class="jk-row__main">
+          <b>${esc(d.label)}</b>
+          ${d.origin === "outside" ? `<span class="jk-chip">arrives from outside</span>` : ""}
+          ${d.added ? `<span class="jk-chip jk-chip--added">added by hand</span>` : ""}
+          <span class="jk-row__why">${esc(d.why)}</span>
+          ${st ? `<span class="jk-row__state">${verified ? "Verified — the app read its own marker" : "Marked received by " + esc(st.by)} · ${esc(jacketStamp(st.at))}${st.note ? " · " + esc(st.note) : ""}</span>` : ""}
+        </div>
+        <div class="jk-row__act">
+          ${st
+            ? `<button class="btn btn--ghost btn--sm" data-undo="${esc(d.id)}">Take back out</button>`
+            : `<button class="btn btn--primary btn--sm" data-take="${esc(d.id)}">Mark received</button>
+               <button class="btn btn--ghost btn--sm" data-note="${esc(d.id)}">Received + note</button>
+               ${d.added ? `<button class="btn btn--ghost btn--sm" data-drop="${esc(d.id)}">Remove</button>` : ""}`}
+        </div>
+      </div>`;
+    };
+
+    view().innerHTML = `
+      <div class="panel panel--navyhead">
+        <div class="panel__head"><h2>What this deal needs</h2>
+          <div class="right"><span class="badge ${n.missing ? "badge--prog" : "badge--approved"}">${n.have} of ${n.total} in the jacket</span></div></div>
+        <div class="panel__body">
+          <div class="jk-bar"><span style="width:${n.total ? Math.round(n.have / n.total * 100) : 0}%"></span></div>
+          <p class="small">The list is worked out from this deal — the trade, the finance type, the co-buyer and the products all change it. Documents the portal printed can be scanned back in; anything from outside the dealership is recorded by hand, because the app can only read its own paper.</p>
+        </div>
+      </div>
+      <div class="jk-cols">
+        <section class="jk-col">
+          <h3 class="jk-col__head">Still outstanding${outstanding.length ? ` <span>${outstanding.length}</span>` : ""}</h3>
+          ${outstanding.length ? outstanding.map(row).join("") : `<p class="note">Nothing outstanding — every document this deal needs is in the jacket.</p>`}
+        </section>
+        <section class="jk-col">
+          <h3 class="jk-col__head">In the jacket${received.length ? ` <span>${received.length}</span>` : ""}</h3>
+          ${received.length ? received.map(row).join("") : `<p class="note">Nothing collected yet.</p>`}
+        </section>
+      </div>
+      <div class="panel">
+        <div class="panel__head"><h2>Add another document</h2></div>
+        <div class="panel__body">
+          <div class="fields">
+            <label class="f"><span class="lab">This deal also needs</span>
+              <select id="jkAdd" data-ui="dd" data-placeholder="Choose a document…">
+                <option value="" data-ph selected hidden>Choose a document…</option>
+                ${RIDE_PRICE_DATA.dealForms.filter(f => !docs.some(d => d.id === "form-" + f.id))
+                  .map(f => `<option value="form-${esc(f.id)}">${esc(f.label)} — ${esc(f.group)}</option>`).join("")}
+              </select></label>
+          </div>
+          <p class="hint">Only add what this deal genuinely needs — an item added here counts against the jacket until it comes in.</p>
+        </div>
+      </div>`;
+
+    $("#jkScan").onclick = () => openDocScanFlow(deal, render);
+    $$("[data-take]").forEach(b => b.onclick = () => {
+      jacketReceive(deal, b.dataset.take, "hand");
+      toast("Marked received by " + roleName());
+      render();
+    });
+    $$("[data-undo]").forEach(b => b.onclick = () => { jacketRemove(deal, b.dataset.undo); render(); });
+    /* only a hand-added document can leave the list; a computed one is needed
+       whether or not anybody wants it there */
+    $$("[data-drop]").forEach(b => b.onclick = () => { jacketDrop(deal, b.dataset.drop); render(); toast("Taken off this deal"); });
+    $$("[data-note]").forEach(b => b.onclick = () => {
+      const m = docMeta(b.dataset.note);
+      modal("Mark received — " + esc(m.label), `
+        <p class="small">Recorded against this deal as taken in by <b>${esc(roleName())}</b>. Nothing is uploaded — the jacket keeps the record, not the paper.</p>
+        <label class="f"><span class="lab">Note (optional)</span><input type="text" id="jkNoteIn" maxlength="80" placeholder="e.g. faxed by the credit union"></label>`,
+        `<button class="btn btn--ghost" data-close>Cancel</button>
+         <button class="btn btn--primary" id="jkNoteGo">Mark received</button>`);
+      $("#jkNoteGo").onclick = () => {
+        jacketReceive(deal, b.dataset.note, "hand", ($("#jkNoteIn").value || "").trim());
+        closeModal(); toast("Marked received"); render();
+      };
+    });
+    const addSel = $("#jkAdd");
+    if (addSel) addSel.onchange = () => {
+      const id = addSel.value; if (!id) return;
+      const j = jacketOf(deal);
+      if (!j.extra.includes(id)) { j.extra.push(id); Store.save(); }
+      render();
+      toast("Added to this deal's jacket");
+    };
+  }
+  render();
+});
+
+/* ---------------- scanning a document back into the jacket ---------------- */
+
+function openDocScanFlow(deal, onDone) {
+  modal("Scan a deal document", `<div id="dscanBody"></div>`);
+  const body = $("#dscanBody");
+  const st = {};
+
+  const backEl = $("#modalBack");
+  function cleanup() {
+    st.cancelled = true;
+    window.removeEventListener("hashchange", abandon);
+    backEl.removeEventListener("click", onDismiss);
+  }
+  function onDismiss(e) { if (e.target === backEl || e.target.hasAttribute("data-close")) cleanup(); }
+  function abandon() { cleanup(); closeModal(); }
+  backEl.addEventListener("click", onDismiss);
+  window.addEventListener("hashchange", abandon);
+  const finish = () => { cleanup(); closeModal(); if (onDone) onDone(); };
+  const live = () => !st.cancelled && document.contains(body);
+
+  function renderCapture() {
+    body.innerHTML = `
+      <div class="scan-stage">
+        <p class="scan-instruct">Photograph the <b>marker strip</b> at the foot of the page.</p>
+        <label class="scan-frame scan-frame--tap scan-cap">
+          <span class="scan-frame__icon">📷</span><span class="scan-frame__label">Tap to photograph the document</span>
+          <input type="file" accept="image/*" capture="environment" data-dcap>
+        </label>
+        <div class="scan-actions">
+          <label class="btn btn--ghost btn--sm scan-cap">Upload a photo<input type="file" accept="image/*" data-dcap></label>
+        </div>
+        <p class="hint" style="margin-top:12px">Only documents this portal printed carry a marker. A title, a bank letter or an insurance card has nothing to read — mark those received by hand.</p>
+      </div>`;
+    $$("[data-dcap]", body).forEach(inp => inp.onchange = () => {
+      const f = inp.files && inp.files[0];
+      if (f) renderProcessing(f);
+    });
+  }
+
+  function renderProcessing(file) {
+    body.innerHTML = `<div class="scan-stage"><div class="scan-spin"></div><p class="scan-instruct">Reading the marker…</p></div>`;
+    const t0 = Date.now();
+    RIDE_PRICE_DOCSCAN.readMarkerFile(file).then((res) => {
+      const wait = Math.max(0, 700 - (Date.now() - t0));
+      setTimeout(() => { if (live()) renderResult(res); }, wait);
+    });
+  }
+
+  function fail(title, msg, extra) {
+    body.innerHTML = `
+      <div class="scan-banner scan-banner--warn"><b>${title}</b><br>${msg}</div>
+      <div class="scan-actions">
+        <button class="btn btn--ghost btn--sm" id="dscanRetry">Try another photo</button>
+        ${extra || ""}
+        <button class="btn btn--primary btn--sm" data-close id="dscanClose">Close</button>
+      </div>`;
+    $("#dscanRetry").onclick = renderCapture;
+    $("#dscanClose").onclick = finish;
+  }
+
+  function renderResult(res) {
+    if (!res || !res.found) {
+      return fail("No Ride Price marker found",
+        "Nothing on that photo carries a marker this portal printed. If the document came from outside the dealership — a title, a lien release, an insurance card — the app cannot read it. Close this and mark it received by hand.");
+    }
+    const docId = docIdByCode(res.code);
+    const meta = docId ? docMeta(docId) : null;
+    if (!meta) {
+      return fail("Marker not recognised",
+        "That marker is not a document this version of the portal knows about.");
+    }
+    const owner = dealByToken(res.token);
+    /* the honest cross-device failure: we can always say WHAT the paper is,
+       and we refuse to guess which deal it belongs to (decision 19) */
+    if (!owner) {
+      return fail("This is a " + esc(meta.label) + " — but not from this device",
+        "The marker says which document this is, but the deal it was printed for is not on this device. Open the deal on the device that printed it, or mark the document received by hand here.");
+    }
+    if (owner.id !== deal.id) {
+      const oc = Store.customer(owner.customerId);
+      return fail("This is a " + esc(meta.label) + " — for a different deal",
+        "The marker points at <b>" + esc(oc ? oc.first + " " + oc.last : "another deal") + "</b>, not the deal you have open.",
+        `<a class="btn btn--ghost btn--sm" href="#/jacket/${esc(owner.id)}">Open that jacket</a>`);
+    }
+    const already = jacketState(deal, docId);
+    body.innerHTML = `
+      <div class="scan-banner scan-banner--found"><b>${esc(meta.label)}</b><br>
+        Verified — the portal read the marker it printed on this page.${already ? " It is already in the jacket; confirming updates the record." : ""}</div>
+      <label class="f"><span class="lab">Note (optional)</span><input type="text" id="dscanNote" maxlength="80" placeholder="e.g. both signatures collected"></label>
+      <div class="scan-actions">
+        <button class="btn btn--ghost btn--sm" id="dscanRetry2">Scan another</button>
+        <button class="btn btn--grad btn--sm" id="dscanSave">Put it in the jacket</button>
+      </div>`;
+    $("#dscanRetry2").onclick = renderCapture;
+    $("#dscanSave").onclick = () => {
+      jacketReceive(deal, docId, "scan", ($("#dscanNote").value || "").trim());
+      toast(meta.label + " — verified and filed");
+      finish();
+    };
+  }
+
+  renderCapture();
+}
+/* ============================================================
    VIEW: Print Center + printable deal documents
    ============================================================ */
 function printDocs(deal) {
@@ -2873,7 +3261,7 @@ function printDocs(deal) {
     <div class="line"><br>Date</div>
   </div>`;
 
-  function shell(title, body) {
+  function shell(title, body, docId) {
     return `<article class="print-doc">
       <header class="pd-head">
         <div class="brand"><span class="rideprice">Ride</span><span class="price">PRICE</span></div>
@@ -2886,7 +3274,8 @@ function printDocs(deal) {
         <span>${today()} · ${DEAL_TYPES[deal.dealType]} · Advisor: ${esc(Store.s.advisor)}</span>
       </div>
       ${body}
-      <footer class="pd-foot">${ds.name} — demo document for training use only · not a real contract</footer>
+      <footer class="pd-foot"><span>${ds.name} — demo document for training use only · not a real contract</span>
+        ${docMarkerHtml(deal, docId)}</footer>
     </article>`;
   }
 
@@ -2908,7 +3297,7 @@ function printDocs(deal) {
         .map(x => `<li><i></i>${x}</li>`).join("")}
     </ul>
     <p class="pd-note">This transition is a pivotal point — completed efficiently, it keeps the client experience on time.</p>
-    ${sig("", "Client Advisor")}`);
+    ${sig("", "Client Advisor")}`, "cover");
 
   docs.agreement = () => shell("Customer Acknowledgement of Basic Terms of Agreement", `
     <ul class="lines">
@@ -2931,7 +3320,7 @@ function printDocs(deal) {
     </ul>
     <p class="pd-note">I/We have agreed to an approximate base payment structure per the terms above, subject to lender approval. This is a ballpark structure, not a purchase.</p>
     ${sig(deal.basePayment && deal.basePayment.sigName, "Customer")}
-    ${sig(Store.s.advisor, "Client Advisor — " + ds.name)}`);
+    ${sig(Store.s.advisor, "Client Advisor — " + ds.name)}`, "agreement");
 
   docs.repayment = () => {
     const progSet = RIDE_PRICE_DATA.programs[isLease ? "lease" : isCash ? "cash" : "finance"];
@@ -2946,7 +3335,7 @@ function printDocs(deal) {
       <h3 class="pd-h3">Declined products</h3>
       <p class="pd-note">${declined.length ? declined.map(pid => RIDE_PRICE_CALC.productById(pid).name + " (" + RIDE_PRICE_CALC.productById(pid).detail + ")").join(" · ") : "None"}</p>
       <p class="pd-note">The benefits and protection option(s) available have been explained to me/us and I/we choose the option(s) initialed (${esc(deal.menu.initials || "—")}). I/We hold the Dealer harmless for my/our refusal of any optional benefit or protection.</p>
-      ${sig(deal.menu.ackSigned ? (deal.menu.ackName || c.first + " " + c.last) : "", "Customer")}`);
+      ${sig(deal.menu.ackSigned ? (deal.menu.ackName || c.first + " " + c.last) : "", "Customer")}`, "repayment");
   };
 
   docs.testdrive = () => shell("Test Drive Agreement", `
@@ -2961,15 +3350,15 @@ function printDocs(deal) {
     <h3 class="pd-h3">Terms &amp; conditions</h3>
     <ol class="pd-terms">${RIDE_PRICE_DATA.testDriveTerms.map(t => `<li>${esc(t)}</li>`).join("")}</ol>
     ${sig(deal.testDrive.signed ? (deal.testDrive.sigName || c.first + " " + c.last) : "", "Customer")}
-    ${sig(Store.s.advisor, "Client Advisor — " + ds.name)}`);
+    ${sig(Store.s.advisor, "Client Advisor — " + ds.name)}`, "testdrive");
 
   docs.delivery = () => {
     const groups = {};
     RIDE_PRICE_DATA.dealForms.forEach(f => { (groups[f.group] = groups[f.group] || []).push(f); });
     return shell("Delivery Checklist", Object.entries(groups).map(([g, forms]) => `
       <h3 class="pd-h3">${g}</h3>
-      <ul class="pd-checks">${forms.map(f => `<li><i>${deal.forms.selected.includes(f.id) ? "✓" : ""}</i>${f.label}</li>`).join("")}</ul>`).join("") +
-      `${sig("", "Client Advisor")}${sig("", "Delivery Coordinator")}`);
+      <ul class="pd-checks">${forms.map(f => `<li><i>${deal.forms.selected.includes(f.id) ? "✓" : ""}</i>${esc(f.label)}</li>`).join("")}</ul>`).join("") +
+      `${sig("", "Client Advisor")}${sig("", "Delivery Coordinator")}`, "delivery");
   };
 
   docs.rebates = () => shell("Applied Rebates", `
@@ -2984,11 +3373,11 @@ function printDocs(deal) {
       <li><i></i>Supporting documentation collected (if required)</li>
     </ul>
     ${sig(deal.basePayment && deal.basePayment.sigName, "Customer")}
-    ${sig(Store.s.advisor, "Client Advisor — " + ds.name)}`);
+    ${sig(Store.s.advisor, "Client Advisor — " + ds.name)}`, "rebates");
 
   docs.quote = () => {
     const q = (deal.quotes || [])[(deal.quotes || []).length - 1];
-    if (!q) return shell("Saved Quote", `<p class="pd-note">No saved quotes on this deal yet.</p>`);
+    if (!q) return shell("Saved Quote", `<p class="pd-note">No saved quotes on this deal yet.</p>`, "quote");
     const qv = Store.vehicle(q.stock) || v;
     return shell("Saved Quote", `
       <ul class="lines">
@@ -2996,21 +3385,21 @@ function printDocs(deal) {
         <li><span>Deal Type</span><b class="amt">${DEAL_TYPES[q.dealType]}</b></li>
         <li class="total"><span>${q.dealType === "cash" ? "Estimated Total Due" : q.dealType === "onepay" ? "Estimated One-Pay Total" : "Estimated Monthly Payment"}</span><b class="amt">${money(q.summary)}</b></li>
       </ul>
-      <p class="pd-note">Quick quote saved ${new Date(q.at).toLocaleString()} and emailed to ${esc(c.email)}. Quotes are for follow-up only — there is no option to purchase from a quote, and figures are estimates subject to credit approval.</p>`);
+      <p class="pd-note">Quick quote saved ${new Date(q.at).toLocaleString()} and emailed to ${esc(c.email)}. Quotes are for follow-up only — there is no option to purchase from a quote, and figures are estimates subject to credit approval.</p>`, "quote");
   };
 
   docs.generic = (formId) => {
     const f = RIDE_PRICE_DATA.dealForms.find(x => x.id === formId) || { label: formId, group: "Deal Forms" };
-    return shell(f.label, `
-      <p class="pd-note">This ${f.group.toLowerCase().replace(/s$/, "")} is part of the deal packet for the transaction referenced above.
-      The undersigned acknowledges the ${f.label} has been reviewed, completed, and accepted as part of this transaction.</p>
+    return shell(esc(f.label), `
+      <p class="pd-note">This ${esc(f.group.toLowerCase().replace(/s$/, ""))} is part of the deal packet for the transaction referenced above.
+      The undersigned acknowledges the ${esc(f.label)} has been reviewed, completed, and accepted as part of this transaction.</p>
       <ul class="pd-checks">
         <li><i></i>Reviewed with the client</li>
         <li><i></i>All required fields completed</li>
         <li><i></i>Copy provided to the client</li>
       </ul>
       ${sig("", "Customer")}
-      ${sig("", "Client Advisor — " + ds.name)}`);
+      ${sig("", "Client Advisor — " + ds.name)}`, "form-" + formId);
   };
 
   return docs;
@@ -3020,6 +3409,7 @@ route("forms/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
   renderChrome("Print Center", dealTitle(deal),
     `<a class="btn btn--ghost btn--sm" href="#/menu/${deal.id}">← Menu</a>
+     <a class="btn btn--ghost btn--sm" href="#/jacket/${deal.id}">📁 Deal Jacket</a>
      <a class="btn btn--grad btn--sm" href="#/print/${deal.id}/packet">🖨 Print full packet</a>`);
 
   const core = [
@@ -3042,7 +3432,7 @@ route("forms/:id", ({ id }) => {
     <h3 style="color:var(--navy);margin:26px 0 10px">Selected deal forms (from Disclosure Forms step)</h3>
     ${selected.length ? `<div class="grid grid--3">
       ${selected.map(f => `<a class="card card--link" href="#/print/${deal.id}/form-${f.id}">
-        <span class="icon">📄</span><h3>${f.label}</h3><p>${f.group}</p>
+        <span class="icon">📄</span><h3>${esc(f.label)}</h3><p>${esc(f.group)}</p>
         <span class="go">Preview &amp; print →</span></a>`).join("")}
     </div>` : `<p class="note">No forms selected yet — choose them on the menu's <a href="#/menu/${deal.id}">Disclosure Forms</a> step.</p>`}
     <p class="hint mt">The full packet prints every document with page breaks.</p>`;
