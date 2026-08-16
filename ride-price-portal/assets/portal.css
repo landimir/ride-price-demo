@@ -911,7 +911,9 @@ label.f .seg { display: flex; }
     border-top: 1px solid var(--line);
   }
   .jk-bottombar .btn { flex: 1; justify-content: center; }
-  body[data-screen="jacket"] #view { padding-bottom: 86px; }
+  /* reserve what the bar actually occupies — its height grows with the
+     home-indicator inset, so the reservation must grow with it too */
+  body[data-screen="jacket"] #view { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
   .ini-clear { padding: 8px 14px; }
   .mprod .mv { padding: 9px 12px; }
   .switch { width: 46px; height: 26px; }

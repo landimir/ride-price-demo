@@ -3280,10 +3280,26 @@ route("jacket/:id", ({ id }) => {
         <p class="demo-note">Demo — the message is simulated; nothing leaves this device.</p>`,
         `<button class="btn btn--ghost" data-close>Cancel</button>
          <button class="btn btn--grad" id="jkReqGo">✉ Send request</button>`);
+      /* same liveness guard as openDocScanFlow: navigating away or dismissing
+         during the send window must cancel it, or the timer closes whatever
+         modal is open by then and paints jacket markup over another screen */
+      const back = $("#modalBack");
+      const st = {};
+      function cleanup() {
+        st.cancelled = true;
+        window.removeEventListener("hashchange", abandon);
+        back.removeEventListener("click", onDismiss);
+      }
+      function onDismiss(e) { if (e.target === back || e.target.hasAttribute("data-close")) cleanup(); }
+      function abandon() { cleanup(); closeModal(); }
+      back.addEventListener("click", onDismiss);
+      window.addEventListener("hashchange", abandon);
       $("#jkReqGo").onclick = () => {
         $("#modalBack .modal__body").innerHTML = `<div class="scan-stage"><div class="scan-spin"></div><p class="scan-instruct">Sending the request…</p></div>`;
         const foot = $("#modalBack .modal__foot"); if (foot) foot.remove();
         setTimeout(() => {
+          if (st.cancelled || !document.contains(back)) return;
+          cleanup();
           jacketRequest(deal, metas.map(x => x.id));
           closeModal(); toast("Request sent" + (cst ? " to " + cst.first : "")); render();
         }, 900);
