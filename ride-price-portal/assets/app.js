@@ -152,7 +152,7 @@ function dealTitle(deal) {
   const jkc = jacketCounts(deal);
   return `${names} · ${v ? esc(v.year + " " + v.make + " " + v.model) : "no vehicle yet"}
     <button class="crumb-btn" data-buyers="${esc(deal.id)}" title="Buyers on this deal">${cb ? "👥 Buyers" : "👤 Buyer"}</button>
-    <a class="crumb-btn" href="#/jacket/${esc(deal.id)}" title="Documents this deal needs">📁 Jacket${jkc.missing ? ` <i>${jkc.missing}</i>` : ""}</a>`;
+    <a class="crumb-btn" href="#/jacket/${esc(deal.id)}" title="Documents this deal needs" aria-label="Deal jacket${jkc.missing ? ` — ${jkc.missing} document(s) still outstanding` : ""}">📁 Jacket${jkc.missing ? `<b class="crumb-btn__n">${jkc.missing}</b>` : ""}</a>`;
 }
 
 /* ---------------- buyers on a deal (add / scan / swap / drop) ---------------- */

@@ -66,7 +66,12 @@ const RIDE_PRICE_DOCSCAN = (function () {
       if (i % 2 === 0) rects += `<rect x="${x}" y="0" width="${w}" height="12"/>`;
       x += w;
     });
-    return `<svg class="${cls || ""}" viewBox="0 0 ${total} 12" preserveAspectRatio="none" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Document marker ${code}-${token}">${rects}</svg>`;
+    /* --mark-units hands the module count to the stylesheet, which sizes the
+       strip as units × a fixed millimetre width. Pinning the strip to one
+       width instead would make the narrowest bar float with the encoded
+       value — 1.17mm to 1.69mm across the token range — so one deal's paper
+       would be harder for a phone to read than another's. */
+    return `<svg class="${cls || ""}" style="--mark-units:${total}" viewBox="0 0 ${total} 12" preserveAspectRatio="none" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Document marker ${code}-${token}">${rects}</svg>`;
   }
 
   /* ---------- image loading ---------- */

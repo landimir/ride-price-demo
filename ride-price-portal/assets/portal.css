@@ -579,7 +579,12 @@ label.f .seg { display: flex; }
    printed. Sized so a phone photo of the whole sheet still resolves it —
    the narrowest module stays above 1mm on paper. */
 .pd-mark { display: block; margin-top: 8px; }
-.pd-mark__bars { display: block; width: min(130mm, 92%); height: 9mm; margin: 0 auto; }
+/* one module = 1.8mm on paper, the width the prop licences passed physical
+   acceptance at. The strip grows with the number of modules rather than
+   being pinned to a width, so a long marker never prints thinner bars than
+   a short one; the cap only bites on the very longest codes, and never
+   takes a module below 1.5mm on Letter. --mark-units comes from docscan.js. */
+.pd-mark__bars { display: block; width: min(calc(var(--mark-units, 93) * 1.8mm), 100%); height: 9mm; margin: 0 auto; }
 .pd-mark__cap { display: block; font-size: 8px; letter-spacing: .6px; text-transform: uppercase; color: #bbb; margin-top: 2px; }
 
 
@@ -646,6 +651,13 @@ label.f .seg { display: flex; }
   font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; vertical-align: middle;
 }
 .crumb-btn:hover { border-color: var(--navy); }
+/* a count in a crumb needs a container, or "Jacket 11" reads as a jacket
+   number rather than eleven documents still to come */
+.crumb-btn__n {
+  display: inline-block; margin-left: 6px; min-width: 17px; padding: 0 5px;
+  border-radius: 99px; background: var(--navy); color: #fff;
+  font-size: 10px; font-weight: 800; line-height: 17px; text-align: center;
+}
 
 /* ---------- training-props how-to (screen only — hidden by the print rules,
    so it never steals a sheet of paper from the cards) ---------- */
@@ -737,7 +749,11 @@ label.f .seg { display: flex; }
   font-size: 12px; font-weight: 800; color: #fff;
 }
 .jk-row--in .jk-row__mark { background: var(--green); border-color: var(--green); }
-.jk-row__main { flex: 1 1 auto; min-width: 0; }
+/* basis 0, not auto: with the row wrapping on phones the browser decides the
+   line break from the item's content width before it decides how much to
+   squeeze, so a long document name tipped the whole text block onto its own
+   line and left the tick stranded above it */
+.jk-row__main { flex: 1 1 0; min-width: 0; }
 .jk-row__main b { font-size: 14px; color: var(--ink); }
 .jk-row__why, .jk-row__state { display: block; font-size: 12px; margin-top: 3px; color: var(--ink); }
 .jk-row__state { font-weight: 700; color: var(--navy-2); }
@@ -837,8 +853,9 @@ label.f .seg { display: flex; }
   .crumb-btn { padding: 11px 15px; font-size: 12px; }
   .jk-cols { grid-template-columns: 1fr; gap: 4px; }
   .jk-row { flex-wrap: wrap; }
-  .jk-row__act { flex: 1 1 100%; flex-direction: row; margin-top: 4px; }
-  .jk-row__act .btn { flex: 1 1 auto; }
+  .jk-row__act { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; margin-top: 4px; }
+  /* two to a line at most — three abreast at 390px broke every label in half */
+  .jk-row__act .btn { flex: 1 1 auto; min-width: 46%; }
   .ini-clear { padding: 8px 14px; }
   .mprod .mv { padding: 9px 12px; }
   .switch { width: 46px; height: 26px; }
