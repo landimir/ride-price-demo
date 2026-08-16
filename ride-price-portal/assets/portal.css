@@ -769,12 +769,28 @@ label.f .seg { display: flex; }
   background: #fdf3e0; color: #8a5a12; border: 1px solid #f2dcb4;
 }
 .jk-chip--added { background: #eef2fb; color: var(--navy-2); border-color: #d7dff2; }
-.jk-row__act { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.jk-row__act, .jk-row__more { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+/* the disclosure is a real button so a keyboard can open the folded actions;
+   it dresses as the plain row text it replaced */
+.jk-row__disclose {
+  background: none; border: none; padding: 0; margin: 0; font: inherit;
+  color: inherit; text-align: left; display: block; width: 100%; cursor: pointer;
+}
+
+/* the counts are plain coloured text, not pills — override the head-span pill */
+.jk-col__head span.jk-count--miss { background: none; padding: 0; color: var(--crimson); font-size: 13px; }
+.jk-col__head span.jk-count--in { background: none; padding: 0; color: var(--green); font-size: 13px; }
+.advscript-card__col { flex: 1; display: flex; flex-direction: column; text-align: left; }
+.advscript-card__sub { font-size: 12px; color: var(--ink); font-weight: 400; }
 .jk-miss { font-style: normal; color: var(--crimson); font-weight: 800; }
+/* dual reason labels, same pattern as .pt-long/.pt-short: desktop reads the
+   long reason, the phone reads the short status tag */
+.jk-why-s { display: none; }
 .jk-row__req { display: block; font-size: 12px; margin-top: 3px; font-weight: 700; color: var(--navy-2); }
 
 /* banner, gate line, request-all, sign-off strip */
-.jk-banner__pct { text-align: right; font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.jk-banner__foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.jk-banner__pct { font-size: 12px; font-weight: 700; color: var(--ink); white-space: nowrap; }
 .jk-gate { margin: 0; font-size: 13px; font-weight: 700; }
 .jk-gate__warn { color: var(--crimson); }
 .jk-gate__ok { color: var(--green); }
@@ -879,9 +895,9 @@ label.f .seg { display: flex; }
   .dd__btn { min-height: 44px; }
   .stepper .st { min-height: 40px; }
   .crumb-btn { padding: 11px 15px; font-size: 12px; }
-  .jk-cols { grid-template-columns: 1fr; gap: 4px; }
+  .jk-cols { grid-template-columns: 1fr; gap: 12px; }
   /* two to a line at most — three abreast at 390px broke every label in half */
-  .jk-row__act .btn { flex: 1 1 auto; min-width: 46%; }
+  .jk-row__more .btn { flex: 1 1 auto; min-width: 46%; }
 
   /* ---- the jacket phone layout (owner mockup, 2026-08-16) ---- */
   /* the crumb line and page actions duplicate what the header card and the
@@ -893,24 +909,112 @@ label.f .seg { display: flex; }
     box-shadow: var(--sh); margin-bottom: 12px;
   }
   .jk-phonehead__ava {
-    width: 38px; height: 38px; border-radius: 50%; background: var(--bg);
-    display: flex; align-items: center; justify-content: center; font-size: 18px;
+    width: 32px; height: 32px; border-radius: 50%; background: var(--bg);
+    display: flex; align-items: center; justify-content: center; font-size: 16px;
   }
   .jk-phonehead__who { flex: 1; display: flex; flex-direction: column; min-width: 0; }
   .jk-phonehead__who b { font-size: 15px; color: var(--ink); }
   .jk-phonehead__who span { font-size: 12px; color: var(--ink); }
-  .jk-phonehead__no { font-size: 15px; color: var(--navy); }
-  body[data-screen="jacket"] .jk-scanwide { display: flex; width: 100%; justify-content: center; margin-bottom: 14px; }
+  .jk-phonehead__no { font-size: 14px; color: var(--ink); font-family: Consolas, monospace; font-weight: 700; }
+  /* the banner replicates the owner's reference component (2026-08-16): one
+     deep-navy card, docs count as plain light text, warning and percentage
+     sharing the foot row — warning amber, percentage muted */
+  body[data-screen="jacket"] .jk-banner .panel__head,
+  body[data-screen="jacket"] .jk-banner .panel__body { background: #0b1124; }
+  body[data-screen="jacket"] .jk-banner .panel__body { border-radius: 0 0 var(--r) var(--r); padding-top: 0; }
+  body[data-screen="jacket"] .jk-banner .badge {
+    background: none; border: none; padding: 0; color: #cbd3e1; font-weight: 600;
+  }
+  body[data-screen="jacket"] .jk-banner .jk-bar { background: #273049; }
+  body[data-screen="jacket"] .jk-banner__pct { color: #8f97ab; font-family: Consolas, monospace; font-size: 11px; }
+  body[data-screen="jacket"] .jk-gate { font-size: 12px; }
+  body[data-screen="jacket"] .jk-gate__warn { color: #f5b942; }
+  body[data-screen="jacket"] .jk-gate__ok { color: #7fe0a8; }
+  body[data-screen="jacket"] .jk-gate__ov { color: #f2c9ff; }
+  /* the CTA is the reference's blue gradient — owner overwrite of the
+     brand-gradient and blue-retired rules, this screen only */
+  body[data-screen="jacket"] .jk-scanwide {
+    display: flex; width: 100%; justify-content: center; margin-bottom: 14px;
+    background: linear-gradient(90deg, #2563eb, #3b82f6); color: #fff; border-color: transparent;
+  }
+  /* sections are grouped cards; rows sit inside them */
+  body[data-screen="jacket"] .jk-col {
+    background: #fff; border: 1px solid var(--line); border-radius: var(--r);
+    padding: 12px 12px 8px; box-shadow: var(--sh);
+  }
+  body[data-screen="jacket"] .jk-row { box-shadow: none; }
+  /* completed rows are bordered tinted rows like the missing ones, per the
+     reference component (slate tint, not hairline separators) */
+  body[data-screen="jacket"] .jk-row--in {
+    background: #f8fafc; border: 1px solid #eef0f5;
+    border-radius: 12px; margin-bottom: 10px; padding: 10px 12px;
+  }
+  body[data-screen="jacket"] .jk-row--miss { border-radius: 12px; padding: 10px 12px; }
+  /* the compression pass (owner, 2026-08-16): one status line per card — the
+     short reason replaces the long one, the origin chips go (the Upload vs
+     Scan button already says which paper the app can read), and the metrics
+     tighten so four to five cards fit a screen */
+  body[data-screen="jacket"] .jk-row { padding: 8px 10px; margin-bottom: 8px; column-gap: 10px; grid-template-columns: 26px 1fr auto; }
+  body[data-screen="jacket"] .jk-row .jk-chip { display: none; }
+  body[data-screen="jacket"] .jk-why-l { display: none; }
+  body[data-screen="jacket"] .jk-why-s { display: inline; }
+  body[data-screen="jacket"] .jk-row__main b { font-size: 13px; }
+  body[data-screen="jacket"] .jk-row__why { font-size: 11px; margin-top: 2px; }
+  body[data-screen="jacket"] .jk-row__state { font-size: 11px; }
+  body[data-screen="jacket"] .jk-row__req { font-size: 11px; }
+  /* the missing row's primary action is blue-outlined, per the reference */
+  body[data-screen="jacket"] .jk-row--miss .jk-row__act .btn--primary {
+    color: #2563eb; border-color: #2563eb;
+  }
+  /* one primary action pinned right, vertically centred, like the mockup;
+     the rest folds behind a tap on the row text */
+  body[data-screen="jacket"] .jk-row { grid-template-columns: 34px 1fr auto; }
+  body[data-screen="jacket"] .jk-row__act { grid-column: 3; grid-row: 1; align-self: center; margin-top: 0; }
+  body[data-screen="jacket"] .jk-row__act .btn { flex: none; min-width: 0; }
+  body[data-screen="jacket"] .jk-view { color: var(--blue); border-color: #c5d7f5; }
+  body[data-screen="jacket"] .jk-row__more { grid-column: 1 / -1; display: none; }
+  body[data-screen="jacket"] .jk-row--open .jk-row__more { display: flex; }
+  body[data-screen="jacket"] .jk-row__mark { width: 24px; height: 24px; font-size: 11px; }
+  /* the add-form control dresses as the reference's indigo button; its label
+     and hint are the dropdown's own furniture and the reference has neither */
+  body[data-screen="jacket"] .jk-addrow .lab,
+  body[data-screen="jacket"] .jk-addrow .hint { display: none; }
+  body[data-screen="jacket"] .jk-addrow .dd__btn {
+    background: #eef2ff; border-color: #c7d2fe; color: #4338ca;
+    font-weight: 800; justify-content: center; border-radius: 12px;
+  }
+  body[data-screen="jacket"] .jk-addrow .dd__btn i { color: #4338ca; }
+  /* advisor script: amber icon circle, rotating chevron, attached fold */
   body[data-screen="jacket"] .jk-adv { display: flex; }
-  body[data-screen="jacket"] .jk-script.jk-script--open { display: block; }
+  body[data-screen="jacket"] .jk-adv .advscript-card__ico {
+    background: #fdf1d8; color: #b47d10; border-radius: 50%;
+  }
+  body[data-screen="jacket"] .jk-adv .advscript-card__chev { transition: transform .2s; }
+  body[data-screen="jacket"] .jk-adv[aria-expanded="true"] .advscript-card__chev { transform: rotate(180deg); }
+  body[data-screen="jacket"] .jk-script.jk-script--open {
+    display: block; background: #f8fafc; border: 1px solid var(--line); border-top: none;
+    border-radius: 0 0 var(--r) var(--r); margin-top: -10px; padding: 14px 16px 10px;
+  }
   /* the sign-off strip's message lives in the banner line on a phone */
   body[data-screen="jacket"] .jk-signoff { display: none; }
+  /* the bottom dock is navy, per the reference: outlined Prev, translucent
+     Send SMS Link, brand-gradient Next Step at the reference's flex ratios */
   body[data-screen="jacket"] .jk-bottombar {
     display: flex; position: fixed; left: 0; right: 0; bottom: 0; gap: 8px; z-index: 40;
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: #fff;
-    border-top: 1px solid var(--line);
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: #0b1124;
+    border-top: 1px solid #273049;
   }
-  .jk-bottombar .btn { flex: 1; justify-content: center; }
+  .jk-bottombar .btn { flex: 1; justify-content: center; white-space: nowrap; padding-left: 8px; padding-right: 8px; font-size: 13px; }
+  .jk-bottombar .btn--ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.25); }
+  .jk-bottombar .btn--grad { flex: 1.7; }
+  /* the forward CTA dims while documents are missing — de-emphasised, not
+     locked: a jacket fills over days and the advisor keeps working the deal.
+     The hard lock stays at funding sign-off (owner's gate decision). */
+  .jk-cta--dim { opacity: .55; filter: saturate(.75); }
+  /* row action buttons are light and outlined, as the mockup draws them */
+  body[data-screen="jacket"] .jk-row__act .btn--primary {
+    background: #fff; color: var(--navy); border-color: #cfd4e6;
+  }
   /* reserve what the bar actually occupies — its height grows with the
      home-indicator inset, so the reservation must grow with it too */
   body[data-screen="jacket"] #view { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
