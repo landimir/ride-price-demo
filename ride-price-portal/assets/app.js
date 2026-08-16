@@ -1282,8 +1282,74 @@ route("testdrive/:id", ({ id }) => {
 /* ============================================================
    VIEW: Trade Evaluation
    ============================================================ */
+/* ---- trade proof of ownership (owner rules, 2026-08-15) ----
+   Every trade needs acceptable proof of ownership: the title, or a duplicate
+   title process under way; a lien release when the title shows a lien and the
+   vehicle is paid off, or a valid payoff when it is not; and authorization
+   when the person trading is not the titled owner.
+   Gaps never block the advisor — they surface to the manager at sign-off. */
+const ownOf = (deal) => (deal.trade && deal.trade.ownership) || {};
+
+function payoffExpired(iso) {
+  if (!iso) return false;
+  const t = new Date(); t.setHours(0, 0, 0, 0);
+  const d = new Date(iso + "T00:00:00");
+  return !isNaN(d.getTime()) && d < t;
+}
+
+function tradeOwnershipGaps(deal) {
+  if (!deal.trade || !deal.trade.has) return [];
+  const o = ownOf(deal), gaps = [];
+  /* every question is tri-state, follow-ups included: "confirmed absent" and
+     "never asked" are different statements to put in front of a manager */
+  if (o.titleInHand === false) {
+    if (o.duplicateStarted === true) gaps.push("Trade title not in hand — duplicate title process started, still outstanding");
+    else if (o.duplicateStarted === false) gaps.push("Trade title not in hand, and the duplicate title process has not been started");
+    else gaps.push("Trade title not in hand — not recorded whether the duplicate title process has been started");
+  } else if (o.titleInHand !== true) {
+    gaps.push("Not recorded whether the trade title is in hand");
+  }
+  if (o.lienOnTitle === true) {
+    if (o.paidOff === true) {
+      if (o.lienReleaseReceived === false) gaps.push("Lien on the title and the vehicle is paid off — no lien release on file");
+      else if (o.lienReleaseReceived !== true) gaps.push("Lien on the title and the vehicle is paid off — not recorded whether a lien release was received");
+    } else if (o.paidOff === false) {
+      if (o.payoffReceived === false) gaps.push("Lien on the title and the vehicle is not paid off — no valid payoff on file");
+      else if (o.payoffReceived !== true) gaps.push("Lien on the title and the vehicle is not paid off — not recorded whether a valid payoff was received");
+      else if (!o.payoffGoodThrough) gaps.push("Payoff on file with no good-through date");
+      else if (payoffExpired(o.payoffGoodThrough)) gaps.push("Payoff expired " + dateUS(o.payoffGoodThrough) + " — a fresh payoff is needed");
+    } else {
+      gaps.push("Lien on the title — not recorded whether the vehicle is paid off");
+    }
+  } else if (o.lienOnTitle !== false) {
+    gaps.push("Not recorded whether the title shows a lienholder");
+  }
+  if (o.isTitledOwner === false) {
+    if (o.authorizationReceived === false) gaps.push("The person trading is not the titled owner — no trade authorization or power of attorney on file");
+    else if (o.authorizationReceived !== true) gaps.push("The person trading is not the titled owner — not recorded whether trade authorization or power of attorney was received");
+  } else if (o.isTitledOwner !== true) {
+    gaps.push("Not recorded whether the person trading is the titled owner");
+  }
+  return gaps;
+}
+
+/* the answers above make these deal forms mandatory */
+function requiredTradeForms(deal) {
+  if (!deal.trade || !deal.trade.has) return [];
+  const o = ownOf(deal), req = [];
+  if (o.titleInHand === false) req.push("title");
+  if (o.lienOnTitle === true && o.paidOff === true) req.push("lienrel");
+  if (o.isTitledOwner === false) req.push("poa");
+  return req;
+}
+
 route("trade/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+
+  const o = ownOf(deal);
+  /* tri-state: unrecorded is a real answer here — "we never asked" is not
+     the same as "no", and both are gaps until proven otherwise */
+  const triSel = (id, val) => `<select id="${id}" data-ui="seg">    <option value="" ${val === true || val === false ? "" : "selected"}>—</option>    <option value="yes" ${val === true ? "selected" : ""}>Yes</option>    <option value="no" ${val === false ? "selected" : ""}>No</option></select>`;
 
   renderChrome("Trade-In Evaluation", dealTitle(deal),
     `<a class="btn btn--ghost btn--sm" href="#/desk/${deal.id}">Skip → Calculate Payment</a>`);
@@ -1305,7 +1371,68 @@ route("trade/:id", ({ id }) => {
         <div id="evalOut" class="mt"></div>
       </div>
     </div>
+    <div class="panel">
+      <div class="panel__head"><h2>Proof of Ownership</h2></div>
+      <div class="panel__body">
+        <p class="small">The dealership must hold acceptable proof of ownership before it can accept a trade. Anything missing is flagged to a manager at sign-off — it never stops you working the deal.</p>
+        <div class="fields">
+          <label class="f"><span class="lab">Title in hand?</span>${triSel("oTitle", o.titleInHand)}</label>
+          <label class="f" id="wDup"><span class="lab">Duplicate title process started?</span>${triSel("oDup", o.duplicateStarted)}</label>
+          <label class="f"><span class="lab">Does the title show a lienholder?</span>${triSel("oLien", o.lienOnTitle)}</label>
+          <label class="f" id="wPaid"><span class="lab">Is the vehicle paid off?</span>${triSel("oPaid", o.paidOff)}</label>
+          <label class="f" id="wRel"><span class="lab">Lien release received?</span>${triSel("oRel", o.lienReleaseReceived)}</label>
+          <label class="f" id="wPay"><span class="lab">Valid payoff received?</span>${triSel("oPay", o.payoffReceived)}</label>
+          <label class="f" id="wGood"><span class="lab">Payoff good through</span><input type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" id="oGood" value="${esc(dateUS(o.payoffGoodThrough || ""))}"></label>
+          <label class="f"><span class="lab">Is the person trading the titled owner?</span>${triSel("oOwner", o.isTitledOwner)}</label>
+          <label class="f" id="wAuth"><span class="lab">Trade authorization / power of attorney received?</span>${triSel("oAuth", o.authorizationReceived)}</label>
+        </div>
+        <div id="ownOut" class="mt"></div>
+      </div>
+    </div>
     <p class="note">Transparency wins: keep documents reflecting current market value and any reconditioning needed. Get your manager involved when questions arise.</p>`;
+
+  /* ---- proof of ownership ---- */
+  const triGet = (id) => { const v = $("#" + id).value; return v === "yes" ? true : v === "no" ? false : undefined; };
+  function syncOwnership() {
+    const own = deal.trade.ownership = deal.trade.ownership || {};
+    own.titleInHand = triGet("oTitle");
+    own.duplicateStarted = triGet("oDup");
+    own.lienOnTitle = triGet("oLien");
+    own.paidOff = triGet("oPaid");
+    own.lienReleaseReceived = triGet("oRel");
+    own.payoffReceived = triGet("oPay");
+    own.isTitledOwner = triGet("oOwner");
+    own.authorizationReceived = triGet("oAuth");
+    const gt = $("#oGood").value.trim();
+    own.payoffGoodThrough = gt ? dateISO(gt) : "";
+    Store.save();
+    /* only ask what the previous answer makes relevant */
+    const show = (wrap, on) => { const el = $("#" + wrap); if (el) el.style.display = on ? "" : "none"; };
+    show("wDup", own.titleInHand === false);
+    show("wPaid", own.lienOnTitle === true);
+    show("wRel", own.lienOnTitle === true && own.paidOff === true);
+    show("wPay", own.lienOnTitle === true && own.paidOff === false);
+    show("wGood", own.lienOnTitle === true && own.paidOff === false && own.payoffReceived === true);
+    show("wAuth", own.isTitledOwner === false);
+    renderOwnershipSummary();
+  }
+  function renderOwnershipSummary() {
+    const gaps = deal.trade.has ? tradeOwnershipGaps(deal) : [];
+    const forms = requiredTradeForms(deal);
+    const formNames = forms.map(fid => (RIDE_PRICE_DATA.dealForms.find(f => f.id === fid) || {}).label).filter(Boolean);
+    $("#ownOut").innerHTML = !deal.trade.has
+      ? `<p class="hint">Run the evaluation to record this trade, then these answers count towards sign-off.</p>`
+      : gaps.length
+        ? `<div class="note note--wt"><span class="lab">Flagged to a manager at sign-off</span><ul class="checks">${gaps.map(g => `<li class="bad">${esc(g)}</li>`).join("")}</ul>` +
+          (formNames.length ? `<p class="small" style="margin:10px 0 0">Required paperwork: <b>${formNames.map(esc).join(", ")}</b> — selected and locked on the deal forms step.</p>` : "") + `</div>`
+        : `<div class="note"><ul class="checks"><li>Proof of ownership complete — nothing to flag</li></ul>` +
+          (formNames.length ? `<p class="small" style="margin:10px 0 0">Required paperwork: <b>${formNames.map(esc).join(", ")}</b>.</p>` : "") + `</div>`;
+  }
+  ["oTitle", "oDup", "oLien", "oPaid", "oRel", "oPay", "oOwner", "oAuth"].forEach(id => {
+    const el = $("#" + id); if (el) el.onchange = syncOwnership;
+  });
+  $("#oGood").onchange = syncOwnership;
+  syncOwnership();
 
   $("#evalBtn").onclick = () => {
     const year = parseInt($("#tYear").value, 10) || 2018;
@@ -1320,6 +1447,7 @@ route("trade/:id", ({ id }) => {
       rebates: deal.trade.rebates || 0, applyTaxCredit: true
     });
     Store.save();
+    renderOwnershipSummary();
     const equity = value - payoff;
     $("#evalOut").innerHTML = `
       <div class="pay-hero" style="max-width:420px">
@@ -2286,6 +2414,13 @@ route("menu/:id", ({ id }) => {
       { label: "Credit application approved", ok: !!(deal.creditApp && deal.creditApp.approved), req: true },
       { label: "Test drive completed", ok: !!deal.testDrive.done, req: false },
       { label: "Trade documented" + (deal.trade.has ? ` — ${esc(deal.trade.desc || "")}` : " (no trade)"), ok: deal.trade.has ? deal.trade.value > 0 : true, req: false },
+      /* proof of ownership: operational gaps, surfaced to the manager and
+         never blocking (owner, 2026-08-15) */
+      ...(deal.trade.has
+        ? (tradeOwnershipGaps(deal).length
+            ? tradeOwnershipGaps(deal).map(g => ({ label: g, ok: false, req: false }))
+            : [{ label: "Trade proof of ownership complete", ok: true, req: false }])
+        : []),
       { label: "Cover sheet printed for the deal folder", ok: true, req: false }
     ];
     const ready = checks.filter(x => x.req).every(x => x.ok);
@@ -2611,6 +2746,11 @@ route("menu/:id", ({ id }) => {
 
   /* ---------- step 3: disclosure forms ---------- */
   function step3() {
+    /* the trade ownership answers make some forms mandatory — select them and
+       lock them, so paperwork the deal depends on cannot quietly go missing */
+    const reqForms = requiredTradeForms(deal);
+    reqForms.forEach(fid => { if (!deal.forms.selected.includes(fid)) deal.forms.selected.push(fid); });
+    if (reqForms.length) Store.save();
     const groups = {};
     RIDE_PRICE_DATA.dealForms.forEach(f => { (groups[f.group] = groups[f.group] || []).push(f); });
     view().innerHTML = `${menuStepperHtml(deal, M.step)}
@@ -2629,7 +2769,7 @@ route("menu/:id", ({ id }) => {
           <div class="grid grid--2">
           ${Object.entries(groups).map(([g, forms]) => `
             <div><h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:0 0 8px">${g}</h3>
-            ${forms.map(f => `<label class="opt-row"><span class="switch"><input type="checkbox" data-form="${f.id}" ${deal.forms.selected.includes(f.id) ? "checked" : ""}><span class="sl"></span></span><span class="opt-row__label">${f.label}</span></label>`).join("")}</div>`).join("")}
+            ${forms.map(f => { const locked = reqForms.includes(f.id); return `<label class="opt-row${locked ? " opt-row--locked" : ""}"><span class="switch"><input type="checkbox" data-form="${f.id}" ${deal.forms.selected.includes(f.id) ? "checked" : ""} ${locked ? "disabled" : ""}><span class="sl"></span></span><span class="opt-row__label">${f.label}${locked ? ` <b class="req-tag">required by the trade</b>` : ""}</span></label>`; }).join("")}</div>`).join("")}
           </div>
           <p class="hint">Additional forms may be printed by your team lead or processing department.</p>
         </div>
@@ -2639,7 +2779,10 @@ route("menu/:id", ({ id }) => {
     const ack = $("#ackSign");
     if (ack) ack.onclick = () => { M.ackSigned = true; M.ackName = c.first + " " + c.last; Store.save(); step3(); toast("Acknowledgement signed"); };
     $$("[data-form]").forEach(cb => cb.onchange = () => {
-      deal.forms.selected = $$("[data-form]").filter(x => x.checked).map(x => x.dataset.form);
+      const picked = $$("[data-form]").filter(x => x.checked).map(x => x.dataset.form);
+      /* locked forms are disabled inputs; keep them in the list regardless */
+      reqForms.forEach(fid => { if (!picked.includes(fid)) picked.push(fid); });
+      deal.forms.selected = picked;
       Store.save();
     });
     $("#backS2").onclick = () => { M.step = 3; M.maxStep = Math.max(M.maxStep || 1, 3); Store.save(); render(); };

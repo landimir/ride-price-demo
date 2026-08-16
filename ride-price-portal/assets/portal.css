@@ -1041,3 +1041,16 @@ label.f .seg { display: flex; }
   body[data-screen="menu3"] .advscript-item { display: none; }
   body[data-screen="menu3"].script-open .advscript-item { display: block; }
 }
+
+/* ============================================================
+   Trade proof of ownership (owner rules, 2026-08-15)
+   Forms the trade makes mandatory are selected and locked, so
+   paperwork the deal depends on cannot quietly go missing.
+   ============================================================ */
+.opt-row--locked { opacity: 1; }
+.opt-row--locked .switch { opacity: .55; cursor: not-allowed; }
+.req-tag {
+  display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 999px;
+  background: #fdf3f5; color: var(--crimson); font-size: 10.5px; font-weight: 800;
+  letter-spacing: .2px; white-space: nowrap;
+}
