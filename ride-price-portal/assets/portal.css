@@ -651,6 +651,7 @@ label.f .seg { display: flex; }
   font: inherit; font-size: 11px; font-weight: 700; cursor: pointer; vertical-align: middle;
 }
 .crumb-btn:hover { border-color: var(--navy); }
+.crumb-no { color: var(--navy); font-weight: 800; }
 /* a count in a crumb needs a container, or "Jacket 11" reads as a jacket
    number rather than eleven documents still to come */
 .crumb-btn__n {
@@ -738,17 +739,22 @@ label.f .seg { display: flex; }
 .jk-col__head span {
   background: var(--navy); color: #fff; border-radius: 99px; padding: 1px 9px; font-size: 11px;
 }
+/* a row is a grid — mark beside text, actions on their own line below, which
+   is the shape both of the owner's 2026-08-16 mockups draw */
 .jk-row {
-  display: flex; gap: 12px; align-items: flex-start; background: #fff; border: 1px solid var(--line);
+  display: grid; grid-template-columns: 22px 1fr; column-gap: 12px; align-items: start;
+  background: #fff; border: 1px solid var(--line);
   border-radius: var(--r); padding: 12px 14px; margin-bottom: 10px; box-shadow: var(--sh);
 }
 .jk-row--in { border-color: #cfe9da; background: #fbfefc; }
+.jk-row--miss { border-color: #f0d3d8; background: #fdf6f7; }
 .jk-row__mark {
-  flex: 0 0 22px; width: 22px; height: 22px; border-radius: 50%; margin-top: 2px;
+  width: 22px; height: 22px; border-radius: 50%; margin-top: 2px;
   border: 2px solid var(--line); display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 800; color: #fff;
 }
 .jk-row--in .jk-row__mark { background: var(--green); border-color: var(--green); }
+.jk-row__mark--miss { background: var(--crimson); border-color: var(--crimson); }
 /* basis 0, not auto: with the row wrapping on phones the browser decides the
    line break from the item's content width before it decides how much to
    squeeze, so a long document name tipped the whole text block onto its own
@@ -763,7 +769,29 @@ label.f .seg { display: flex; }
   background: #fdf3e0; color: #8a5a12; border: 1px solid #f2dcb4;
 }
 .jk-chip--added { background: #eef2fb; color: var(--navy-2); border-color: #d7dff2; }
-.jk-row__act { flex: 0 0 auto; display: flex; flex-direction: column; gap: 6px; align-items: stretch; }
+.jk-row__act { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.jk-miss { font-style: normal; color: var(--crimson); font-weight: 800; }
+.jk-row__req { display: block; font-size: 12px; margin-top: 3px; font-weight: 700; color: var(--navy-2); }
+
+/* banner, gate line, request-all, sign-off strip */
+.jk-banner__pct { text-align: right; font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+.jk-gate { margin: 0; font-size: 13px; font-weight: 700; }
+.jk-gate__warn { color: var(--crimson); }
+.jk-gate__ok { color: var(--green); }
+.jk-gate__ov { color: var(--navy-2); }
+.jk-reqall { width: 100%; justify-content: center; margin-bottom: 10px; }
+.jk-addrow { margin-top: 6px; }
+.jk-reqlist { margin: 0 0 10px; padding-left: 18px; font-size: 13px; color: var(--ink); }
+.jk-reqlist li { margin: 3px 0; }
+.jk-signoff {
+  display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line);
+  border-radius: var(--r); padding: 14px 16px; box-shadow: var(--sh); margin-bottom: 18px;
+}
+.jk-signoff__ico { font-size: 20px; }
+.jk-signoff p { flex: 1; margin: 0; font-size: 13px; color: var(--ink); }
+
+/* phone-only pieces, hidden above 720 */
+.jk-phonehead, .jk-scanwide, .jk-bottombar, .jk-adv, .jk-script { display: none; }
 
 /* on-screen document previews darken their metadata for sunlight readability;
    scoped to screen so the printed output stays byte-identical */
@@ -852,10 +880,38 @@ label.f .seg { display: flex; }
   .stepper .st { min-height: 40px; }
   .crumb-btn { padding: 11px 15px; font-size: 12px; }
   .jk-cols { grid-template-columns: 1fr; gap: 4px; }
-  .jk-row { flex-wrap: wrap; }
-  .jk-row__act { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; margin-top: 4px; }
   /* two to a line at most — three abreast at 390px broke every label in half */
   .jk-row__act .btn { flex: 1 1 auto; min-width: 46%; }
+
+  /* ---- the jacket phone layout (owner mockup, 2026-08-16) ---- */
+  /* the crumb line and page actions duplicate what the header card and the
+     wide scan button say; the phone shows the card, desktop keeps the bar */
+  body[data-screen="jacket"] .pagebar { display: none; }
+  body[data-screen="jacket"] .jk-phonehead {
+    display: flex; align-items: center; gap: 12px; background: #fff;
+    border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px;
+    box-shadow: var(--sh); margin-bottom: 12px;
+  }
+  .jk-phonehead__ava {
+    width: 38px; height: 38px; border-radius: 50%; background: var(--bg);
+    display: flex; align-items: center; justify-content: center; font-size: 18px;
+  }
+  .jk-phonehead__who { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .jk-phonehead__who b { font-size: 15px; color: var(--ink); }
+  .jk-phonehead__who span { font-size: 12px; color: var(--ink); }
+  .jk-phonehead__no { font-size: 15px; color: var(--navy); }
+  body[data-screen="jacket"] .jk-scanwide { display: flex; width: 100%; justify-content: center; margin-bottom: 14px; }
+  body[data-screen="jacket"] .jk-adv { display: flex; }
+  body[data-screen="jacket"] .jk-script.jk-script--open { display: block; }
+  /* the sign-off strip's message lives in the banner line on a phone */
+  body[data-screen="jacket"] .jk-signoff { display: none; }
+  body[data-screen="jacket"] .jk-bottombar {
+    display: flex; position: fixed; left: 0; right: 0; bottom: 0; gap: 8px; z-index: 40;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: #fff;
+    border-top: 1px solid var(--line);
+  }
+  .jk-bottombar .btn { flex: 1; justify-content: center; }
+  body[data-screen="jacket"] #view { padding-bottom: 86px; }
   .ini-clear { padding: 8px 14px; }
   .mprod .mv { padding: 9px 12px; }
   .switch { width: 46px; height: 26px; }

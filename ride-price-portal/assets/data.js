@@ -262,7 +262,12 @@ const RIDE_PRICE_DATA = {
     { id: "insurance", label: "Insurance Card / Binder", group: "Financing Forms", code: 13 },
     { id: "title", label: "Sign Title / Duplicate Title Form", group: "Trade-In Forms", code: 14 },
     { id: "lienrel", label: "Lien Release Letter", group: "Trade-In Forms", code: 15 },
-    { id: "appraisal", label: "Appraisal Sheet", group: "Trade-In Forms", code: 16 }
+    { id: "appraisal", label: "Appraisal Sheet", group: "Trade-In Forms", code: 16 },
+    /* added 2026-08-16 with the jacket redesign — codes are permanent wire
+       numbers, so new entries always take the next unused number */
+    { id: "paystub", label: "Proof of Income (Paystub)", group: "Financing Forms", code: 17 },
+    { id: "odometer", label: "Odometer Disclosure Statement", group: "Trade-In Forms", code: 18 },
+    { id: "gapwaiver", label: "GAP Waiver / Addendum", group: "Financing Forms", code: 19 }
   ],
 
   /* the documents the portal itself prints — the only ones it can ever

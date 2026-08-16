@@ -18,9 +18,17 @@ const Store = (function () {
     };
   }
 
+  /* the friendly number on the folder tab; ids stay the routing key */
+  function mintDealNo() {
+    let n;
+    do { n = 10000 + Math.floor(Math.random() * 90000); }
+    while (state && state.deals.some(d => d.dealNo === n));
+    return n;
+  }
+
   function seedDeal() {
     return {
-      id: "d-demo1", customerId: "c-demo1", stock: "7H21313", dealType: "finance",
+      id: "d-demo1", dealNo: 48201, customerId: "c-demo1", stock: "7H21313", dealType: "finance",
       stage: "desking", createdAt: "2026-07-14T17:20:00Z",
       discovery: { answers: { week: "Daily commute to Midtown, weekend trips upstate.", family: "Two kids, one dog." }, done: true },
       testDrive: { done: true, completedMiles: 12 },
@@ -39,13 +47,18 @@ const Store = (function () {
       state = raw ? JSON.parse(raw) : fresh();
     } catch (e) { state = fresh(); }
     if (!state.customers) state = fresh();
+    /* deals saved before deal numbers existed get one minted at load — a
+       migration write, not a display-path write */
+    let minted = false;
+    state.deals.forEach(d => { if (!d.dealNo) { d.dealNo = mintDealNo(); minted = true; } });
+    if (minted) save();
     return state;
   }
   function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
   function reset() { localStorage.removeItem(KEY); state = fresh(); save(); }
 
   return {
-    load, save, reset,
+    load, save, reset, mintDealNo,
     get s() { return state; },
     customer(id) { return state.customers.find(c => c.id === id); },
     deal(id) { return state.deals.find(d => d.id === id); },
@@ -150,7 +163,7 @@ function dealTitle(deal) {
   const v = Store.vehicle(deal.stock);
   const names = `${c ? esc(c.first + " " + c.last) : "—"}${cb ? " + " + esc(cb.first + " " + cb.last) : ""}`;
   const jkc = jacketCounts(deal);
-  return `${names} · ${v ? esc(v.year + " " + v.make + " " + v.model) : "no vehicle yet"}
+  return `${deal.dealNo ? `<b class="crumb-no">Deal #${esc(deal.dealNo)}</b> · ` : ""}${names} · ${v ? esc(v.year + " " + v.make + " " + v.model) : "no vehicle yet"}
     <button class="crumb-btn" data-buyers="${esc(deal.id)}" title="Buyers on this deal">${cb ? "👥 Buyers" : "👤 Buyer"}</button>
     <a class="crumb-btn" href="#/jacket/${esc(deal.id)}" title="Documents this deal needs" aria-label="Deal jacket${jkc.missing ? ` — ${jkc.missing} document(s) still outstanding` : ""}">📁 Jacket${jkc.missing ? `<b class="crumb-btn__n">${jkc.missing}</b>` : ""}</a>`;
 }
@@ -557,7 +570,7 @@ route("customers", () => {
 
   function startVisit(customerId) {
     const deal = {
-      id: uid("d"), customerId, stock: null, dealType: "finance", stage: "discovery",
+      id: uid("d"), dealNo: Store.mintDealNo(), customerId, stock: null, dealType: "finance", stage: "discovery",
       createdAt: new Date().toISOString(),
       discovery: { answers: {}, done: false },
       testDrive: { done: false },
@@ -2424,13 +2437,20 @@ route("menu/:id", ({ id }) => {
             : [{ label: "Trade proof of ownership complete", ok: true, req: false }])
         : []),
       { label: "Cover sheet printed for the deal folder", ok: true, req: false },
-      /* the jacket reports what paperwork is still out — flagged, never blocking,
-         the same rule the trade ownership gaps settled on (owner, 2026-08-15) */
-      ...(jacketCounts(deal).missing
-        ? [{ label: `Deal jacket — ${jacketCounts(deal).missing} document(s) still outstanding`, ok: false, req: false }]
-        : [{ label: "Deal jacket complete — every document collected", ok: true, req: false }])
+      /* the jacket LOCKS sign-off (owner, 2026-08-16 — supersedes flag-only for
+         the jacket specifically), but a Team Lead can override with a recorded
+         reason, so the exception still routes to a manager the way the trade
+         ownership gaps do. Those gaps themselves stay flag-never-block. */
+      ...(function () {
+        const jkc = jacketCounts(deal);
+        const jov = jacketRead(deal).override;
+        if (!jkc.missing) return [{ label: "Deal jacket complete — every document collected", ok: true, req: false }];
+        if (jov) return [{ label: `Deal jacket — ${jkc.missing} outstanding · override recorded by ${esc(jov.by)}: “${esc(jov.reason)}”`, ok: true, req: false }];
+        return [{ label: `Deal jacket — ${jkc.missing} document(s) still outstanding — funding locked`, ok: false, req: true, jacket: true }];
+      })()
     ];
     const ready = checks.filter(x => x.req).every(x => x.ok);
+    const jacketLocked = checks.some(x => x.jacket);
     renderChrome("Manager Sign-Off", dealTitle(deal),
       `<a class="btn btn--ghost btn--sm" href="#/credit/${deal.id}">← Lending Lane</a>`);
     view().innerHTML = `
@@ -2443,8 +2463,11 @@ route("menu/:id", ({ id }) => {
             ${checks.map(x => `<li class="${x.ok ? "ok" : "bad"}">${x.ok ? x.label : `${x.label}${x.req ? " — required" : ""}`} </li>`).join("")}
           </ul>
           ${isTeamLead()
-            ? `<div class="right mt"><button class="btn btn--grad" id="signoffBtn" ${ready ? "" : "disabled"}>✍ Manager Sign-Off — deliver to Processing</button></div>
-               `
+            ? `${jacketLocked ? `<div class="note note--red mt">Funding sign-off is locked while jacket documents are outstanding. If one is genuinely on its way — a lien release in the mail — the Team Lead can override; the override and its reason are recorded on the deal.</div>` : ""}
+               <div class="right mt">
+                 ${jacketLocked ? `<button class="btn btn--ghost" id="jkOverrideBtn">Override the jacket lock</button>` : ""}
+                 <button class="btn btn--grad" id="signoffBtn" ${ready ? "" : "disabled"}>✍ Manager Sign-Off — deliver to Processing</button>
+               </div>`
             : `<div class="note note--red mt">You are acting as <b>Client Advisor</b>. Get your Team Lead to the desk — switch to <b>Team Lead</b> to sign off as <b>${esc(RIDE_PRICE_DATA.dealership.teamLead)}</b>.</div>`}
         </div>
       </div>`;
@@ -2454,6 +2477,24 @@ route("menu/:id", ({ id }) => {
       Store.save();
       toast("Signed off by " + RIDE_PRICE_DATA.dealership.teamLead + " — delivered to Processing");
       router();
+    };
+    const ov = $("#jkOverrideBtn");
+    if (ov) ov.onclick = () => {
+      modal("Override the jacket lock", `
+        <p class="small">${jacketCounts(deal).missing} document(s) are still outstanding. The override is recorded on the deal with your name and reason — it does not mark anything received.</p>
+        <label class="f"><span class="lab">Reason <i class="req">*</i></span><input type="text" id="jkOvReason" maxlength="120" placeholder="e.g. lien release confirmed in the mail from the credit union"></label>`,
+        `<button class="btn btn--ghost" data-close>Cancel</button>
+         <button class="btn btn--primary" id="jkOvGo">Record override</button>`);
+      $("#jkOvGo").onclick = () => {
+        const reason = ($("#jkOvReason").value || "").trim();
+        if (!reason) { $("#jkOvReason").style.borderColor = "var(--crimson)"; return; }
+        const j = jacketOf(deal);
+        j.override = { by: RIDE_PRICE_DATA.dealership.teamLead, at: new Date().toISOString(), reason };
+        Store.save();
+        closeModal();
+        toast("Override recorded — sign-off unlocked");
+        router();
+      };
     };
     return;
   }
@@ -2876,7 +2917,7 @@ route("menu/:id", ({ id }) => {
 
 /* documents that arrive from outside the dealership — the app prints no
    marker on these and can never identify one, so they are hand-recorded */
-const JACKET_OUTSIDE = ["license", "insurance", "title", "lienrel"];
+const JACKET_OUTSIDE = ["license", "insurance", "title", "lienrel", "paystub"];
 
 /* jacketOf() creates the record and is for the write paths only. Reading is
    jacketRead(): dealTitle() calls it on every render of every deal screen, and
@@ -2888,11 +2929,11 @@ function jacketOf(deal) {
   return deal.jacket;
 }
 
-const EMPTY_JACKET = { docs: {}, extra: [] };
+const EMPTY_JACKET = { docs: {}, extra: [], req: {}, override: null };
 function jacketRead(deal) {
   const j = deal && deal.jacket;
   if (!j) return EMPTY_JACKET;
-  return { docs: j.docs || {}, extra: j.extra || [] };
+  return { docs: j.docs || {}, extra: j.extra || [], req: j.req || {}, override: j.override || null };
 }
 
 /* jacket document ids match the print route: a core printable is its own
@@ -2942,12 +2983,17 @@ function jacketDocs(deal) {
   if (deal.trade && deal.trade.has) {
     add("form-appraisal", "What the trade was valued at, and why");
     add("form-plates", "The client's plates move to the new vehicle");
+    add("form-odometer", "Federal odometer disclosure for the trade");
     /* the trade answers already select and lock these on the forms step */
     requiredTradeForms(deal).forEach(fid => add("form-" + fid, "Required by the trade — locked on the deal forms step"));
   }
+  /* a stip only exists once a lender has asked for it — an approved credit
+     app is the moment the lender enters the deal */
+  if (!isCash && deal.creditApp && deal.creditApp.approved) add("form-paystub", "Lender stipulation — proof of income");
   if (deal.menu && deal.menu.selectedProgram && deal.menu.selectedProgram !== "none") {
     add("form-fimenu", "The products the client initialed for");
     add("repayment", "What was purchased and what was declined");
+    if (menuChosenProducts(deal).includes("gap")) add("form-gapwaiver", "GAP was purchased — the waiver goes in the jacket");
   }
   if (deal.testDrive && (deal.testDrive.signed || deal.testDrive.done)) add("testdrive", "Signed before the client drove the car");
   add("form-tqi", "The delivery quality walk, done with the client");
@@ -2960,6 +3006,17 @@ function jacketDocs(deal) {
     if (m && !out.some(d => d.id === id)) out.push(Object.assign({ why: "Added to this deal by hand", added: true }, m));
   });
   return out;
+}
+
+/* the product ids the client actually chose, whichever column they chose from */
+function menuChosenProducts(deal) {
+  const M = deal.menu || {};
+  if (!M.selectedProgram || M.selectedProgram === "none") return [];
+  if (M.selectedProgram === "custom") return M.custom || [];
+  const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
+  const set = RIDE_PRICE_DATA.programs[isLease ? "lease" : deal.dealType === "cash" ? "cash" : "finance"];
+  const p = set && set[M.selectedProgram];
+  return (p && p.products) || [];
 }
 
 function jacketState(deal, docId) { return jacketRead(deal).docs[docId] || null; }
@@ -2986,6 +3043,15 @@ function jacketReceive(deal, docId, how, note) {
 function jacketRemove(deal, docId) {
   const j = jacketOf(deal);
   delete j.docs[docId];
+  Store.save();
+}
+
+/* the simulated client request — a stamp on the deal, nothing leaves the device */
+function jacketRequest(deal, docIds) {
+  const j = jacketOf(deal);
+  if (!j.req) j.req = {};
+  const at = new Date().toISOString();
+  docIds.forEach(id => { j.req[id] = at; });
   Store.save();
 }
 
@@ -3047,94 +3113,206 @@ route("jacket/:id", ({ id }) => {
     const n = jacketCounts(deal);
     const outstanding = docs.filter(d => !jacketState(deal, d.id));
     const received = docs.filter(d => jacketState(deal, d.id));
+    const jk = jacketRead(deal);
+    const cst = Store.customer(deal.customerId);
+    const veh = Store.vehicle(deal.stock);
+    const pct = n.total ? Math.round(n.have / n.total * 100) : 0;
+    const ov = jk.override;
+    const addable = RIDE_PRICE_DATA.dealForms.filter(f => !docs.some(d => d.id === "form-" + f.id));
 
     renderChrome("Deal Jacket", dealTitle(deal),
       `<a class="btn btn--ghost btn--sm" href="#/forms/${deal.id}">🖨 Print Center</a>
        <button class="btn btn--grad btn--sm" id="jkScan">📷 Scan a document</button>`);
+    document.body.dataset.screen = "jacket";
 
-    const row = (d) => {
+    /* what the banner says about the funding gate — the sign-off itself lives
+       on the Manager Sign-Off screen; this line mirrors its state */
+    const gateLine = deal.signoff
+      ? `<span class="jk-gate__ok">✓ Signed off by ${esc(deal.signoff.by)} · ${esc(jacketStamp(deal.signoff.at))}</span>`
+      : n.missing
+        ? (ov
+          ? `<span class="jk-gate__ov">Sign-off unlocked by override — ${esc(ov.by)}: “${esc(ov.reason)}”</span>`
+          : `<span class="jk-gate__warn">⚠ ${n.missing} document${n.missing === 1 ? "" : "s"} required before funding sign-off</span>`)
+        : `<span class="jk-gate__ok">✓ Jacket complete — ready for funding sign-off</span>`;
+
+    const missRow = (d) => `
+      <div class="jk-row jk-row--miss">
+        <span class="jk-row__mark jk-row__mark--miss">!</span>
+        <div class="jk-row__main">
+          <b>${esc(d.label)}</b>
+          ${d.origin === "outside" ? `<span class="jk-chip">arrives from outside</span>` : ""}
+          ${d.added ? `<span class="jk-chip jk-chip--added">added by hand</span>` : ""}
+          <span class="jk-row__why"><i class="jk-miss">Missing</i> · ${esc(d.why)}</span>
+          ${jk.req[d.id] ? `<span class="jk-row__req">✉ Requested from the client · ${esc(jacketStamp(jk.req[d.id]))}</span>` : ""}
+        </div>
+        <div class="jk-row__act">
+          ${d.origin !== "outside" ? `<button class="btn btn--primary btn--sm" data-scan>📷 Scan</button>` : ""}
+          <button class="btn ${d.origin === "outside" ? "btn--primary" : "btn--ghost"} btn--sm" data-take="${esc(d.id)}">Mark received</button>
+          <button class="btn btn--ghost btn--sm" data-req="${esc(d.id)}">✉ Request</button>
+          ${d.added ? `<button class="btn btn--ghost btn--sm" data-drop="${esc(d.id)}">Remove</button>` : ""}
+        </div>
+      </div>`;
+
+    /* View opens the app's own rendering of its own document; a document from
+       outside has no rendering to open, so its button says what it can show —
+       the record — and never pretends to show paper the app does not hold */
+    const inRow = (d) => {
       const st = jacketState(deal, d.id);
-      const verified = st && st.how === "scan";
-      return `<div class="jk-row${st ? " jk-row--in" : ""}">
-        <span class="jk-row__mark">${st ? "✓" : ""}</span>
+      const verified = st.how === "scan";
+      return `
+      <div class="jk-row jk-row--in">
+        <span class="jk-row__mark">✓</span>
         <div class="jk-row__main">
           <b>${esc(d.label)}</b>
           ${d.origin === "outside" ? `<span class="jk-chip">arrives from outside</span>` : ""}
           ${d.added ? `<span class="jk-chip jk-chip--added">added by hand</span>` : ""}
           <span class="jk-row__why">${esc(d.why)}</span>
-          ${st ? `<span class="jk-row__state">${verified ? "Verified — the app read its own marker" : "Marked received by " + esc(st.by)} · ${esc(jacketStamp(st.at))}${st.note ? " · " + esc(st.note) : ""}</span>` : ""}
+          <span class="jk-row__state">${verified ? "Verified — the app read its own marker" : "Marked received by " + esc(st.by)} · ${esc(jacketStamp(st.at))}${st.note ? " · " + esc(st.note) : ""}</span>
         </div>
         <div class="jk-row__act">
-          ${st
-            ? `<button class="btn btn--ghost btn--sm" data-undo="${esc(d.id)}">Take back out</button>`
-            : `<button class="btn btn--primary btn--sm" data-take="${esc(d.id)}">Mark received</button>
-               <button class="btn btn--ghost btn--sm" data-note="${esc(d.id)}">Received + note</button>
-               ${d.added ? `<button class="btn btn--ghost btn--sm" data-drop="${esc(d.id)}">Remove</button>` : ""}`}
+          ${d.origin !== "outside"
+            ? `<a class="btn btn--ghost btn--sm" href="#/print/${esc(deal.id)}/${esc(d.id)}">View</a>`
+            : `<button class="btn btn--ghost btn--sm" data-rec="${esc(d.id)}">Record</button>`}
+          <button class="btn btn--ghost btn--sm" data-undo="${esc(d.id)}">Take back out</button>
         </div>
       </div>`;
     };
 
     view().innerHTML = `
-      <div class="panel panel--navyhead">
-        <div class="panel__head"><h2>What this deal needs</h2>
-          <div class="right"><span class="badge ${n.missing ? "badge--prog" : "badge--approved"}">${n.have} of ${n.total} in the jacket</span></div></div>
+      <div class="jk-phonehead">
+        <span class="jk-phonehead__ava" aria-hidden="true">👤</span>
+        <div class="jk-phonehead__who"><b>${cst ? esc(cst.first + " " + cst.last) : "—"}</b><span>${veh ? esc(veh.year + " " + veh.make + " " + veh.model) : "no vehicle yet"}</span></div>
+        ${deal.dealNo ? `<b class="jk-phonehead__no">#${esc(deal.dealNo)}</b>` : ""}
+      </div>
+      <div class="panel panel--navyhead jk-banner">
+        <div class="panel__head"><h2>Compliance status</h2>
+          <div class="right"><span class="badge ${n.missing ? "badge--prog" : "badge--approved"}">${n.have} / ${n.total} docs</span></div></div>
         <div class="panel__body">
-          <div class="jk-bar"><span style="width:${n.total ? Math.round(n.have / n.total * 100) : 0}%"></span></div>
-          <p class="small">The list is worked out from this deal — the trade, the finance type, the co-buyer and the products all change it. Documents the portal printed can be scanned back in; anything from outside the dealership is recorded by hand, because the app can only read its own paper.</p>
+          <div class="jk-bar"><span style="width:${pct}%"></span></div>
+          <div class="jk-banner__pct">${pct}% complete</div>
+          <p class="jk-gate">${gateLine}</p>
         </div>
       </div>
+      <button class="btn btn--grad jk-scanwide" id="jkScanWide">📷 Scan a document</button>
       <div class="jk-cols">
-        <section class="jk-col">
-          <h3 class="jk-col__head">Still outstanding${outstanding.length ? ` <span>${outstanding.length}</span>` : ""}</h3>
-          ${outstanding.length ? outstanding.map(row).join("") : `<p class="note">Nothing outstanding — every document this deal needs is in the jacket.</p>`}
+        <section class="jk-col jk-col--miss">
+          <h3 class="jk-col__head">Required — still missing${outstanding.length ? ` <span>${outstanding.length}</span>` : ""}</h3>
+          ${outstanding.length ? `<button class="btn btn--ghost jk-reqall" id="jkReqAll">✉ Request all missing from the client</button>` : ""}
+          ${outstanding.length ? outstanding.map(missRow).join("") : `<p class="note">Nothing outstanding — every document this deal needs is in the jacket.</p>`}
         </section>
-        <section class="jk-col">
+        <section class="jk-col jk-col--in">
           <h3 class="jk-col__head">In the jacket${received.length ? ` <span>${received.length}</span>` : ""}</h3>
-          ${received.length ? received.map(row).join("") : `<p class="note">Nothing collected yet.</p>`}
+          ${received.length ? received.map(inRow).join("") : `<p class="note">Nothing collected yet.</p>`}
+          <div class="jk-addrow">
+            <label class="f"><span class="lab">This deal also needs</span>
+              <select id="jkAdd" data-ui="dd" data-placeholder="+ Add another form (${addable.length} available)">
+                <option value="" data-ph selected hidden>+ Add another form (${addable.length} available)</option>
+                ${addable.map(f => `<option value="form-${esc(f.id)}">${esc(f.label)} — ${esc(f.group)}</option>`).join("")}
+              </select></label>
+            <p class="hint">Only add what this deal genuinely needs — an item added here counts against the jacket until it comes in.</p>
+          </div>
         </section>
       </div>
-      <div class="panel">
-        <div class="panel__head"><h2>Add another document</h2></div>
-        <div class="panel__body">
-          <div class="fields">
-            <label class="f"><span class="lab">This deal also needs</span>
-              <select id="jkAdd" data-ui="dd" data-placeholder="Choose a document…">
-                <option value="" data-ph selected hidden>Choose a document…</option>
-                ${RIDE_PRICE_DATA.dealForms.filter(f => !docs.some(d => d.id === "form-" + f.id))
-                  .map(f => `<option value="form-${esc(f.id)}">${esc(f.label)} — ${esc(f.group)}</option>`).join("")}
-              </select></label>
-          </div>
-          <p class="hint">Only add what this deal genuinely needs — an item added here counts against the jacket until it comes in.</p>
-        </div>
+      <button type="button" class="advscript-card jk-adv" id="jkAdvToggle" aria-expanded="false">
+        <span class="advscript-card__ico" aria-hidden="true">💡</span>
+        <span class="advscript-card__lab">Advisor Script</span>
+        <span class="advscript-card__chev" aria-hidden="true">▾</span>
+      </button>
+      <div class="jk-script" id="jkScript">
+        <p class="hint">“Ask for the title while you're valuing the trade — it's in the glovebox today, not at delivery.”</p>
+        <p class="hint">“When the lender asks for stips, tell the client the same day — a paystub photo tonight beats a funding delay on Friday.”</p>
+        <p class="hint">“Walk the jacket before the delivery appointment — hunting paperwork with the client at the desk kills the celebration.”</p>
+      </div>
+      <div class="jk-signoff">
+        <span class="jk-signoff__ico" aria-hidden="true">${deal.signoff || !n.missing || ov ? "✓" : "🔒"}</span>
+        <p>${deal.signoff
+          ? `Deal signed off by <b>${esc(deal.signoff.by)}</b> · ${esc(jacketStamp(deal.signoff.at))}`
+          : n.missing && !ov
+            ? `Funding sign-off is <b>locked</b> until ${n.missing} outstanding document${n.missing === 1 ? " is" : "s are"} received. A Team Lead can override at sign-off, with a recorded reason.`
+            : n.missing && ov
+              ? `Sign-off unlocked by override — <b>${esc(ov.by)}</b>: “${esc(ov.reason)}”`
+              : `Every document is in. The deal is ready for Manager Sign-Off.`}</p>
+        ${deal.signoff ? "" : `<a class="btn ${n.missing && !ov ? "btn--ghost" : "btn--primary"} btn--sm" href="#/menu/${esc(deal.id)}">Go to Manager Sign-Off</a>`}
+      </div>
+      <div class="jk-bottombar">
+        <button class="btn btn--ghost" id="jkBack">← Back</button>
+        <button class="btn btn--ghost" id="jkReqAll2" ${outstanding.length ? "" : "disabled"}>✉ Request</button>
+        <a class="btn btn--grad" href="${STAGES[deal.stage] ? STAGES[deal.stage].route(deal) : "#/deals"}">Continue →</a>
       </div>`;
 
-    $("#jkScan").onclick = () => openDocScanFlow(deal, render);
-    $$("[data-take]").forEach(b => b.onclick = () => {
-      jacketReceive(deal, b.dataset.take, "hand");
-      toast("Marked received by " + roleName());
-      render();
-    });
-    $$("[data-undo]").forEach(b => b.onclick = () => { jacketRemove(deal, b.dataset.undo); render(); });
-    /* only a hand-added document can leave the list; a computed one is needed
-       whether or not anybody wants it there */
-    $$("[data-drop]").forEach(b => b.onclick = () => { jacketDrop(deal, b.dataset.drop); render(); toast("Taken off this deal"); });
-    $$("[data-note]").forEach(b => b.onclick = () => {
-      const m = docMeta(b.dataset.note);
+    /* one modal for marking received; the note is optional, the by-name
+       record is the point */
+    function takeModal(docId) {
+      const m = docMeta(docId);
       modal("Mark received — " + esc(m.label), `
         <p class="small">Recorded against this deal as taken in by <b>${esc(roleName())}</b>. Nothing is uploaded — the jacket keeps the record, not the paper.</p>
         <label class="f"><span class="lab">Note (optional)</span><input type="text" id="jkNoteIn" maxlength="80" placeholder="e.g. faxed by the credit union"></label>`,
         `<button class="btn btn--ghost" data-close>Cancel</button>
          <button class="btn btn--primary" id="jkNoteGo">Mark received</button>`);
       $("#jkNoteGo").onclick = () => {
-        jacketReceive(deal, b.dataset.note, "hand", ($("#jkNoteIn").value || "").trim());
-        closeModal(); toast("Marked received"); render();
+        jacketReceive(deal, docId, "hand", ($("#jkNoteIn").value || "").trim());
+        closeModal(); toast("Marked received by " + roleName()); render();
       };
-    });
+    }
+
+    /* an outside document has no paper here — show what the jacket holds */
+    function recordModal(docId) {
+      const m = docMeta(docId); const st = jacketState(deal, docId);
+      if (!m || !st) return;
+      modal("The record — " + esc(m.label), `
+        <p class="small">This document arrives from outside the dealership, so the jacket keeps the record, not the paper.</p>
+        <ul class="jk-reqlist">
+          <li>${st.how === "scan" ? "Verified — the app read its own marker" : "Marked received by <b>" + esc(st.by) + "</b>"}</li>
+          <li>Taken in ${esc(jacketStamp(st.at))}</li>
+          ${st.note ? `<li>Note: ${esc(st.note)}</li>` : ""}
+        </ul>`,
+        `<button class="btn btn--primary" data-close>Close</button>`);
+    }
+
+    /* the simulated client request — same theater as the credit pull: it
+       looks real, and nothing leaves the device */
+    function requestFlow(ids) {
+      const metas = ids.map(docMeta).filter(Boolean);
+      if (!metas.length) return;
+      modal("Request documents from the client", `
+        <p class="small">Sends <b>${cst ? esc(cst.first + " " + cst.last) : "the client"}</b> a secure link listing what the deal still needs${cst && cst.phone ? ` at <b>${esc(cst.phone)}</b>` : ""}.</p>
+        <ul class="jk-reqlist">${metas.map(x => `<li>${esc(x.label)}</li>`).join("")}</ul>
+        <p class="demo-note">Demo — the message is simulated; nothing leaves this device.</p>`,
+        `<button class="btn btn--ghost" data-close>Cancel</button>
+         <button class="btn btn--grad" id="jkReqGo">✉ Send request</button>`);
+      $("#jkReqGo").onclick = () => {
+        $("#modalBack .modal__body").innerHTML = `<div class="scan-stage"><div class="scan-spin"></div><p class="scan-instruct">Sending the request…</p></div>`;
+        const foot = $("#modalBack .modal__foot"); if (foot) foot.remove();
+        setTimeout(() => {
+          jacketRequest(deal, metas.map(x => x.id));
+          closeModal(); toast("Request sent" + (cst ? " to " + cst.first : "")); render();
+        }, 900);
+      };
+    }
+
+    const wireScan = (el) => { if (el) el.onclick = () => openDocScanFlow(deal, render); };
+    wireScan($("#jkScan")); wireScan($("#jkScanWide"));
+    $$("[data-scan]").forEach(b => b.onclick = () => openDocScanFlow(deal, render));
+    $$("[data-take]").forEach(b => b.onclick = () => takeModal(b.dataset.take));
+    $$("[data-undo]").forEach(b => b.onclick = () => { jacketRemove(deal, b.dataset.undo); render(); });
+    /* only a hand-added document can leave the list; a computed one is needed
+       whether or not anybody wants it there */
+    $$("[data-drop]").forEach(b => b.onclick = () => { jacketDrop(deal, b.dataset.drop); render(); toast("Taken off this deal"); });
+    $$("[data-rec]").forEach(b => b.onclick = () => recordModal(b.dataset.rec));
+    $$("[data-req]").forEach(b => b.onclick = () => requestFlow([b.dataset.req]));
+    const reqAll = () => requestFlow(outstanding.map(d => d.id));
+    if ($("#jkReqAll")) $("#jkReqAll").onclick = reqAll;
+    if ($("#jkReqAll2")) $("#jkReqAll2").onclick = reqAll;
+    $("#jkBack").onclick = () => history.back();
+    $("#jkAdvToggle").onclick = () => {
+      const open = $("#jkScript").classList.toggle("jk-script--open");
+      $("#jkAdvToggle").setAttribute("aria-expanded", String(open));
+    };
     const addSel = $("#jkAdd");
     if (addSel) addSel.onchange = () => {
-      const id = addSel.value; if (!id) return;
+      const aid = addSel.value; if (!aid) return;
       const j = jacketOf(deal);
-      if (!j.extra.includes(id)) { j.extra.push(id); Store.save(); }
+      if (!j.extra.includes(aid)) { j.extra.push(aid); Store.save(); }
       render();
       toast("Added to this deal's jacket");
     };
@@ -3356,7 +3534,7 @@ function printDocs(deal) {
     const groups = {};
     RIDE_PRICE_DATA.dealForms.forEach(f => { (groups[f.group] = groups[f.group] || []).push(f); });
     return shell("Delivery Checklist", Object.entries(groups).map(([g, forms]) => `
-      <h3 class="pd-h3">${g}</h3>
+      <h3 class="pd-h3">${esc(g)}</h3>
       <ul class="pd-checks">${forms.map(f => `<li><i>${deal.forms.selected.includes(f.id) ? "✓" : ""}</i>${esc(f.label)}</li>`).join("")}</ul>`).join("") +
       `${sig("", "Client Advisor")}${sig("", "Delivery Coordinator")}`, "delivery");
   };
