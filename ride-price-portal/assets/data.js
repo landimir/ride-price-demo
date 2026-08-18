@@ -253,13 +253,13 @@ const RIDE_PRICE_DATA = {
     { id: "tqi", label: "TQI Checklist", group: "Delivery Forms", code: 4 },
     { id: "poa", label: "Power of Attorney Forms", group: "Motor Vehicle Forms", code: 5 },
     { id: "reg", label: "Registration & Title Application", group: "Motor Vehicle Forms", code: 6 },
-    { id: "license", label: "Copy of License", group: "Motor Vehicle Forms", code: 7 },
+    { id: "license", label: "Driver's License", group: "Motor Vehicle Forms", code: 7 },
     { id: "plates", label: "Transfer Plates Registration", group: "Motor Vehicle Forms", code: 8 },
     { id: "contracts", label: "Signed Contracts", group: "Financing Forms", code: 9 },
     { id: "creditmatch", label: "Signed Matching Credit App", group: "Financing Forms", code: 10 },
     { id: "fimenu", label: "F&I Menu Forms", group: "Financing Forms", code: 11 },
     { id: "riskdisc", label: "Risk-Based Disclosure", group: "Financing Forms", code: 12 },
-    { id: "insurance", label: "Insurance Card / Binder", group: "Financing Forms", code: 13 },
+    { id: "insurance", label: "Auto Insurance Card (Binder)", group: "Financing Forms", code: 13 },
     { id: "title", label: "Sign Title / Duplicate Title Form", group: "Trade-In Forms", code: 14 },
     { id: "lienrel", label: "Lien Release Letter", group: "Trade-In Forms", code: 15 },
     { id: "appraisal", label: "Appraisal Sheet", group: "Trade-In Forms", code: 16 },
@@ -270,42 +270,42 @@ const RIDE_PRICE_DATA = {
     { id: "gapwaiver", label: "GAP Waiver / Addendum", group: "Financing Forms", code: 19 }
   ],
 
-  /* the three documents a client sends through the text-request link (the
-     2026-08-16 document-request flow, owner's v2 prototype). Keyed by the
-     dealForms id; requirements and checklists are the advisor's review
-     criteria, verbatim from the prototype with entities swapped to ours. */
+  /* the three documents a client sends through the text-request link (owner's
+     prototype, matched element-for-element 2026-08-18). Keyed by the dealForms
+     id. The scripted verification beats live here: missingPage fires while the
+     page count is under minPages, firstIssue fires once on the first complete
+     attempt (dates are computed at run time from the +days offsets). `checks`
+     are the prototype's per-document review criteria, kept as reference data
+     even though the current flow verifies instantly. */
   clientDocs: {
     insurance: {
       icon: "🛡", short: "Insurance Card", plainReason: "Needed for delivery",
       requirement: "Must show the vehicle by VIN or description, your name, the policy number, effective dates covering today, and comprehensive plus collision coverage. If the card runs to two pages, add both.",
-      multiNote: "May be multi-page. If your insurance card or binder has a second page, add both before you finish.",
       minPages: 1,
+      firstIssue: { title: "Expires within 45 days", days: 45, description: "Requires policy renewal or a binder showing active coverage beyond the temporary registration window." },
       checks: ["Vehicle matches or VIN matches", "Customer name and policy number are visible", "Effective dates include today", "Comprehensive and collision coverage are shown", "All pages are present if the card spans two pages"],
       sortDetail: "Active coverage",
       verifiedSummary: "VIN, customer name, and policy dates align with the active deal."
     },
     license: {
-      icon: "▦", short: "License", plainReason: "Needed for registration",
+      icon: "🪪", short: "License", plainReason: "Needed for registration",
       requirement: "Front and back, unexpired, name matching the credit application. Not a photo of a photo, not a screenshot, not a temporary paper permit unless you also add the expired card.",
-      multiNote: "Two sides required. Capture the front and back. You can add the second side from the review screen.",
       minPages: 2,
+      missingPage: { title: "Back of Driver's License is missing", description: "Please capture both the front and back before submitting again." },
       checks: ["Front image is present and readable", "Back image is present and readable", "License is unexpired", "Name matches the credit application", "Image is an original capture, not a screenshot/photo of a photo"],
       sortDetail: "License unexpired",
-      verifiedSummary: "Front and back are readable, the license is unexpired, and the name matches the credit application."
+      verifiedSummary: "Front and back are readable, the license is unexpired, and the customer name matches the credit application."
     },
     paystub: {
-      icon: "▤", short: "Paystub", plainReason: "Bank requirement",
+      icon: "📄", short: "Paystub", plainReason: "Bank requirement",
       requirement: "Your two most recent consecutive stubs, each showing employer name, pay period dates, and year-to-date gross. If you're self-employed, add “Other income type” instead.",
-      multiNote: "Two paystubs required. Add your two most recent consecutive stubs.",
       minPages: 2,
+      missingPage: { title: "Second paystub is missing", description: "Please upload your two most recent consecutive paystubs." },
       checks: ["Two consecutive paystubs are present", "Employer name is visible", "Pay period dates are visible", "Year-to-date gross is visible", "Customer name matches the application"],
       sortDetail: "Two consecutive stubs",
-      verifiedSummary: "Two consecutive paystubs with employer, pay dates, and year-to-date gross readable."
+      verifiedSummary: "Two consecutive paystubs were detected and the employer, pay dates, YTD gross, and customer name are readable."
     }
   },
-
-  /* canned reasons an advisor can send a document back with */
-  rejectReasons: ["Blurred", "Expired", "Wrong document", "Missing page", "Wrong name"],
 
   /* the documents the portal itself prints — the only ones it can ever
      recognise coming back, because it is the one that marked them */

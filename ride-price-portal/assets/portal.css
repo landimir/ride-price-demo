@@ -790,7 +790,6 @@ label.f .seg { display: flex; }
 
 /* banner, gate line, request-all, sign-off strip */
 .jk-banner__foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.jk-banner__pct { font-size: 12px; font-weight: 700; color: var(--ink); white-space: nowrap; }
 .jk-gate { margin: 0; font-size: 13px; font-weight: 700; }
 .jk-gate__warn { color: var(--crimson); }
 .jk-gate__ok { color: var(--green); }
@@ -809,21 +808,15 @@ label.f .seg { display: flex; }
 /* ---------- document request flow (owner's v2 prototype, 2026-08-16).
    The dr- palette is the prototype's own — deep navy, amber chips, emerald
    accept — scoped to these screens like the jacket's reference values. */
-.dr-counts { display: flex; gap: 12px; margin-bottom: 12px; }
-.dr-countbox { flex: 1; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); border-radius: 13px; padding: 10px; color: #fff; }
-.dr-countbox b { display: block; font-size: 16px; margin-top: 2px; }
-.dr-countlabel { font-size: 10px; color: #cbd5e1; text-transform: uppercase; letter-spacing: .5px; font-weight: 800; }
-.dr-countsub { display: block; font-size: 11px; color: #dbeafe; margin-top: 3px; }
-.dr-dualtrack { position: relative; height: 10px; }
-.dr-dualtrack span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; }
-.dr-fill-received { background: #83b4ff; opacity: .45; }
-.dr-fill-accepted { background: linear-gradient(90deg, #10b981, #22c55e); }
-.dr-legend { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink); margin: 6px 0 8px; }
+.dr-docscount { font-size: 15px; font-weight: 900; white-space: nowrap; }
+.dr-progress { position: relative; height: 12px; margin-bottom: 10px; overflow: hidden; }
+.dr-progress__fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 99px; background: linear-gradient(90deg, #10b981, #22c55e); transition: width .25s ease; }
 .dr-chip { display: inline-block; border-radius: 99px; padding: 4px 8px; font-size: 10px; font-weight: 900; white-space: nowrap; }
-.dr-chip--needed { background: #fee2e2; color: #b91c1c; }
-.dr-chip--requested { background: #fff7ed; color: #c2410c; }
-.dr-chip--received { background: #fef3c7; color: #a16207; }
-.dr-chip--rejected { background: #ffe4e6; color: #be123c; }
+.dr-chip--accepted { background: #d1fae5; color: #047857; }
+.dr-needed { font-size: 11px; font-weight: 900; color: #9a3412; white-space: nowrap; }
+.dr-needed--blocked { color: #be123c; }
+.dr-qrow--snap { cursor: pointer; }
+.dr-qrow--snap:hover { background: #fafcff; }
 .dr-qaction { margin-left: auto; }
 .dr-qaction .btn { white-space: nowrap; font-size: 11px; padding: 8px 10px; }
 .dr-sent { border: 1px solid #fed7aa; background: #fff7ed; color: #9a3412; border-radius: 10px; padding: 7px 9px; font-size: 11px; font-weight: 800; cursor: pointer; }
@@ -835,7 +828,6 @@ label.f .seg { display: flex; }
 .dr-qicon--amber { background: #fff7ed; color: #c2410c; }
 .dr-qicon--green { background: #ecfdf5; color: #07865f; }
 .dr-qrow { grid-template-columns: 38px 1fr auto; }
-.dr-review { background: #fff7ed; border-color: #fdba74; color: #9a3412; }
 .dr-funding { flex: 2; justify-content: center; background: linear-gradient(90deg, #059669, #10b981); color: #fff; border-color: transparent; white-space: nowrap; font-size: 12px; }
 
 /* composer sheet */
@@ -848,7 +840,6 @@ label.f .seg { display: flex; }
 .dr-person { padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
 .dr-person b { font-size: 16px; }
 .dr-person span { display: block; color: var(--ink); font-size: 13px; }
-.dr-summary { font-size: 13px; color: var(--ink); }
 .dr-items { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin: 10px 0; }
 .dr-item { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-top: 1px solid var(--line); }
 .dr-item:first-child { border-top: 0; }
@@ -856,13 +847,9 @@ label.f .seg { display: flex; }
 .dr-itemcopy b { display: block; font-size: 13px; }
 .dr-itemcopy span { display: block; font-size: 11px; color: var(--ink); margin-top: 2px; }
 .dr-itemcheck { width: 26px; height: 26px; border-radius: 50%; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; }
-.dr-smspreview { background: #eef2ff; border: 1px solid #c7d2fe; border-radius: 14px; padding: 12px; margin: 10px 0; }
-.dr-smspreview .dr-kicker { color: #4338ca; }
-.dr-smspreview p { margin: 0; font-size: 13px; color: var(--ink); }
-.dr-expiry { background: #ecfdf5; border: 1px solid #a7f3d0; color: #065f46; border-radius: 12px; padding: 9px 10px; font-size: 12px; font-weight: 700; }
 .dr-bigcta { width: 100%; justify-content: center; background: linear-gradient(90deg, #059669, #10b981); color: #fff; border-color: transparent; font-size: 15px; padding: 14px; margin-top: 10px; }
 .dr-bigcta[disabled] { opacity: .5; }
-.dr-cancel { display: inline-block; margin-top: 10px; color: var(--blue); font-weight: 800; background: none; border: none; cursor: pointer; text-decoration: none; font-size: 14px; }
+.dr-cancel { display: block; width: fit-content; margin: 10px auto 0; color: var(--muted); font-weight: 800; background: none; border: none; cursor: pointer; text-decoration: none; font-size: 12px; padding: 7px 14px; }
 
 /* the simulated client phone — a centred column that reads as the client's
    device on any screen width (my call for desktop: the client journey is a
@@ -874,9 +861,7 @@ label.f .seg { display: flex; }
 .dr-dealercopy { flex: 1; min-width: 0; }
 .dr-dealercopy b { display: block; font-size: 15px; }
 .dr-dealercopy span { display: block; font-size: 12px; color: var(--ink); }
-.dr-advlink { font-size: 11px; font-weight: 800; color: var(--blue); text-decoration: none; white-space: nowrap; }
 .dr-trustmeta { font-size: 13px; color: var(--ink); margin-top: 10px; }
-.dr-trustnote { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; border-radius: 12px; padding: 10px; font-size: 12px; margin-top: 10px; }
 .dr-clientbody { padding: 14px 14px 90px; background: var(--bg); }
 .dr-clientbody h1 { font-size: 24px; margin: 4px 0 4px; }
 .dr-subhead { font-size: 13px; color: var(--ink); margin: 0 0 10px; }
@@ -890,10 +875,16 @@ label.f .seg { display: flex; }
 }
 .dr-clientrow[disabled] { cursor: default; }
 .dr-status { display: block; font-size: 11px; font-weight: 800; margin-top: 3px; }
-.dr-status--needed { color: #b91c1c; }
 .dr-status--received { color: #a16207; }
 .dr-status--accepted { color: #047857; }
 .dr-status--rejected { color: #be123c; }
+.dr-blockhint { display: block; font-size: 11px; color: #9a3412; margin-top: 3px; }
+.dr-clientadd {
+  flex: 0 0 auto; min-height: 40px; border: 1px solid #bfdbfe; background: #eff6ff; color: #1d4ed8;
+  border-radius: 10px; padding: 8px 11px; font: inherit; font-size: 11px; font-weight: 900;
+  white-space: nowrap; cursor: pointer;
+}
+.dr-hiddeninput { display: none !important; }
 .dr-chev { color: var(--muted); font-weight: 800; white-space: nowrap; }
 .dr-savelater { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; font: inherit; font-weight: 800; color: var(--navy); margin-top: 4px; cursor: pointer; }
 .dr-savelater[disabled] { opacity: .45; }
@@ -901,18 +892,7 @@ label.f .seg { display: flex; }
 .dr-clientcta { width: 100%; border: 0; border-radius: 13px; padding: 14px; font: inherit; font-weight: 900; color: #fff; background: linear-gradient(90deg, var(--orange), var(--coral)); cursor: pointer; }
 .dr-clientcta[disabled] { opacity: .45; }
 .dr-clientcta--green { background: linear-gradient(90deg, #059669, #10b981); }
-.dr-detailhead { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--line); background: #fff; }
-.dr-detailhead b { font-size: 15px; }
-.dr-back { border: 1px solid var(--line); background: #fff; border-radius: 10px; width: 34px; height: 34px; font-size: 18px; cursor: pointer; }
-.dr-requirement { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; font-size: 13px; color: var(--ink); margin-bottom: 10px; }
-.dr-requirement b { display: block; margin-bottom: 4px; color: var(--navy); }
-.dr-example { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px; margin-bottom: 10px; }
-.dr-thumb { width: 44px; height: 32px; border-radius: 6px; background: repeating-linear-gradient(45deg, #e2e8f0, #e2e8f0 4px, #f1f5f9 4px, #f1f5f9 8px); flex: 0 0 auto; }
-.dr-multinote { background: #fffbeb; border: 1px solid #fde68a; border-radius: 12px; padding: 10px; font-size: 12px; color: #713f12; margin-bottom: 10px; }
-.dr-capturegrid { display: grid; gap: 8px; margin-bottom: 10px; }
-.dr-capture { border: 1px solid var(--line); background: #fff; border-radius: 13px; padding: 13px; font: inherit; font-weight: 800; color: var(--navy); cursor: pointer; }
-.dr-capture--primary { background: var(--navy); color: #fff; border-color: var(--navy); }
-.dr-badtoggle { margin-bottom: 8px; font-size: 12px; }
+.dr-clientcta--secondary { background: #fff; color: var(--navy); border: 1px solid var(--line); }
 .dr-stage { position: relative; background: #0f172a; border-radius: 14px; min-height: 220px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 8px; }
 .dr-photo { max-width: 100%; max-height: 300px; transition: transform .15s; }
 .dr-photoart { width: 78%; height: 170px; border-radius: 8px; background: repeating-linear-gradient(0deg, #e2e8f0, #e2e8f0 10px, #f8fafc 10px, #f8fafc 22px); transition: transform .15s; }
@@ -921,21 +901,6 @@ label.f .seg { display: flex; }
 .dr-pagetools { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 8px; }
 .dr-pagetools button { width: 38px; height: 34px; border-radius: 9px; border: 1px solid var(--line); background: #fff; cursor: pointer; }
 .dr-pagetools button[disabled] { opacity: .4; }
-.dr-reviewactions { display: flex; gap: 8px; margin-bottom: 8px; }
-.dr-reviewactions button { flex: 1; border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 11px; font: inherit; font-weight: 800; color: var(--navy); cursor: pointer; }
-.dr-reviewactions button[disabled] { opacity: .4; }
-.dr-failcard { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 10px; }
-.dr-compare { display: flex; gap: 10px; margin: 8px 0 2px; }
-.dr-comparebox { flex: 1; height: 56px; border-radius: 8px; }
-.dr-comparebox--bad { background: repeating-linear-gradient(45deg, #fecdd3, #fecdd3 6px, #ffe4e6 6px, #ffe4e6 12px); }
-.dr-comparebox--good { background: repeating-linear-gradient(0deg, #bbf7d0, #bbf7d0 8px, #dcfce7 8px, #dcfce7 16px); }
-.dr-comparelabels { display: flex; gap: 10px; font-size: 10px; font-weight: 900; }
-.dr-comparelabels span { flex: 1; text-align: center; }
-.dr-comparelabels span:first-child { color: #be123c; }
-.dr-comparelabels span:last-child { color: #047857; }
-.dr-failcard p { margin: 6px 0 0; font-size: 12px; color: var(--ink); }
-.dr-escapegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
-.dr-escapegrid button { border: 1px solid var(--line); background: #fff; border-radius: 12px; padding: 11px 8px; font: inherit; font-size: 12px; font-weight: 800; color: var(--navy); cursor: pointer; }
 .dr-rthumb { width: 44px; height: 44px; border-radius: 8px; background: repeating-linear-gradient(0deg, #e2e8f0, #e2e8f0 6px, #f8fafc 6px, #f8fafc 13px); object-fit: cover; flex: 0 0 auto; }
 .dr-success { background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 14px; padding: 12px; margin-bottom: 10px; }
 .dr-success b { color: #065f46; }
@@ -946,10 +911,8 @@ label.f .seg { display: flex; }
 .dr-smstop { display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: #fff; border-bottom: 1px solid var(--line); }
 .dr-smsback { font-size: 22px; color: var(--blue); }
 .dr-msgwrap { flex: 1; padding: 16px 14px; }
-.dr-brandedlabel { display: block; text-align: center; font-size: 10px; font-weight: 900; letter-spacing: .5px; text-transform: uppercase; color: #047857; margin-bottom: 8px; }
 .dr-bubble { background: #e2e8f0; border-radius: 18px 18px 18px 4px; padding: 12px 14px; font-size: 14px; max-width: 92%; }
 .dr-bubble a { color: var(--blue); font-weight: 800; }
-.dr-callback { display: block; font-size: 11px; color: var(--muted); margin-top: 8px; }
 .dr-smsfooter { display: flex; align-items: center; gap: 10px; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid var(--line); }
 .dr-msginput { flex: 1; border: 1px solid var(--line); border-radius: 99px; padding: 8px 14px; color: var(--muted); font-size: 13px; }
 .dr-smssend { color: #10b981; font-size: 22px; }
@@ -959,15 +922,33 @@ label.f .seg { display: flex; }
 .dr-reviewhead { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 10px; }
 .dr-reviewhead b { display: block; font-size: 15px; }
 .dr-reviewhead span { font-size: 12px; color: var(--ink); }
-.dr-checklist { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 6px 12px; margin: 10px 0; }
-.dr-advactions { display: flex; gap: 10px; }
-.dr-rejectbtn { flex: 1; justify-content: center; background: #fff1f2; border-color: #fecdd3; color: #be123c; font-weight: 900; }
-.dr-acceptbtn { flex: 1.4; justify-content: center; background: linear-gradient(90deg, #059669, #10b981); color: #fff; border-color: transparent; font-weight: 900; }
-.dr-reasongrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .dr-doneline { background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 14px; padding: 12px; margin: 10px 0; }
 .dr-doneline b { display: block; font-size: 13px; color: #047857; }
 .dr-doneline p { margin: 4px 0 0; font-size: 12px; color: var(--ink); }
+.dr-doneline--blocked { background: #fffbeb; border-color: #fde68a; }
+.dr-doneline--blocked b { color: #92400e; }
 .dr-donereturn { width: 100%; justify-content: center; }
+
+/* the prototype's DEBUG strip — counters + jumps between the two "devices" */
+.dr-debug {
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 8px; z-index: 99;
+  width: min(430px, calc(100% - 24px)); background: #111827; color: #e5e7eb;
+  border: 1px solid #334155; border-radius: 12px; padding: 8px 10px;
+  display: flex; align-items: center; gap: 8px; font-size: 10px;
+  box-shadow: 0 8px 30px rgba(15,23,42,.28);
+}
+.dr-debug b { color: #fff; }
+/* the strip floats over the page foot — the screens that carry it keep room */
+body[data-screen="clientlink"] #view,
+body[data-screen="docreq"] #view,
+body[data-screen="snapall"] #view,
+body[data-screen="docreview"] #view { padding-bottom: 56px; }
+body[data-screen="clientlink"] .dr-clientbottom { bottom: 48px; }
+.dr-debug__sp { flex: 1; }
+.dr-debug button {
+  border: 1px solid #475569; background: #1f2937; color: #fff; border-radius: 8px;
+  padding: 5px 7px; font: inherit; font-size: 9px; font-weight: 800; cursor: pointer;
+}
 
 /* ---- Snap All Documents — burst capture + simulated auto-sort ---- */
 /* the advisor launcher shares the jacket screen's recorded blue-CTA
@@ -1156,9 +1137,6 @@ label.f .seg { display: flex; }
   body[data-screen="docreq"] .pagebar,
   body[data-screen="clientlink"] .pagebar,
   body[data-screen="snapall"] .pagebar { display: none; }
-  /* the legend sits on the navy banner on phones */
-  body[data-screen="jacket"] .dr-legend { color: #dbeafe; }
-  body[data-screen="jacket"] .dr-legend span { color: #dbeafe; }
   /* the queue icon keeps its 38px column on phones — the generic jacket-row
      rule narrows the first column to 34px and would clip it */
   body[data-screen="jacket"] .jk-row.dr-qrow { grid-template-columns: 38px 1fr auto; }
@@ -1175,17 +1153,14 @@ label.f .seg { display: flex; }
   .jk-phonehead__who b { font-size: 15px; color: var(--ink); }
   .jk-phonehead__who span { font-size: 12px; color: var(--ink); }
   .jk-phonehead__no { font-size: 14px; color: var(--ink); font-family: Consolas, monospace; font-weight: 700; }
-  /* the banner replicates the owner's reference component (2026-08-16): one
-     deep-navy card, docs count as plain light text, warning and percentage
-     sharing the foot row — warning amber, percentage muted */
+  /* the banner replicates the owner's reference component (2026-08-16, single
+     progress bar per the 2026-08-18 prototype): one deep-navy card, docs count
+     as bold light text in the head, amber warning under the bar */
   body[data-screen="jacket"] .jk-banner .panel__head,
   body[data-screen="jacket"] .jk-banner .panel__body { background: #0b1124; }
   body[data-screen="jacket"] .jk-banner .panel__body { border-radius: 0 0 var(--r) var(--r); padding-top: 0; }
-  body[data-screen="jacket"] .jk-banner .badge {
-    background: none; border: none; padding: 0; color: #cbd3e1; font-weight: 600;
-  }
+  body[data-screen="jacket"] .jk-banner .dr-docscount { color: #fff; }
   body[data-screen="jacket"] .jk-banner .jk-bar { background: #273049; }
-  body[data-screen="jacket"] .jk-banner__pct { color: #8f97ab; font-family: Consolas, monospace; font-size: 11px; }
   body[data-screen="jacket"] .jk-gate { font-size: 12px; }
   body[data-screen="jacket"] .jk-gate__warn { color: #f5b942; }
   body[data-screen="jacket"] .jk-gate__ok { color: #7fe0a8; }
