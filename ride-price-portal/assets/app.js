@@ -3112,22 +3112,35 @@ function clientPhotosClear(dealId, docId) {
   clientPhotosSet(dealId, docId, []);
 }
 
-const drStamp = (iso) => iso ? jacketStamp(iso) : "";
+/* the prototype stamps these with a time, which reads right on the day and
+   says nothing a week later — so it is the time while it is still today,
+   and the date once it is not. One or the other, never both. */
+const drStamp = (iso) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (isNaN(d)) return "";
+  return d.toDateString() === new Date().toDateString()
+    ? d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+    : d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+};
 
 /* the simulated instant verification (owner's prototype, 2026-08-18): a
    missing page blocks until the count is met, the insurance card is flagged
    once on its first complete attempt, everything else verifies on the spot.
    Nothing reads a photo (invariant 4) — each document's beat sheet lives on
    its clientDocs entry, and the jacket record says the check was simulated. */
+/* the first-attempt beat's text, with its date computed at run time */
+function drFirstIssueText(m) {
+  const dte = new Date(); dte.setDate(dte.getDate() + m.firstIssue.days);
+  return m.firstIssue.title + " (" + dte.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ")";
+}
+
 function drIssueFor(deal, docId) {
   const m = clientMeta(docId);
   const r = jacketClient(deal)[docId] || {};
   const pages = clientPhotos(deal.id, docId).length || r.pages || 0;
   if (m.minPages && pages < m.minPages && m.missingPage) return m.missingPage.title;
-  if (m.firstIssue && !(r.tries > 0)) {
-    const dte = new Date(); dte.setDate(dte.getDate() + m.firstIssue.days);
-    return m.firstIssue.title + " (" + dte.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ")";
-  }
+  if (m.firstIssue && !(r.tries > 0)) return drFirstIssueText(m);
   return null;
 }
 
@@ -3380,7 +3393,7 @@ route("jacket/:id", ({ id }) => {
         <h3 class="jk-col__head jk-col__head--red">Customer documents <span class="jk-count--miss">(${queue.length})</span>
           <span class="dr-qaction">${reqSent
             ? `<button class="dr-sent" id="drResend">Requested ${esc(drStamp(jk.reqSentAt))} · Resend</button>`
-            : `<button class="btn btn--grad btn--sm" id="drCompose">Send Text Request</button>`}</span></h3>
+            : `<button class="btn btn--grad btn--sm" id="drCompose">✉ Send Text Request</button>`}</span></h3>
         <div class="jk-card">
           ${queue.length ? `<a class="btn jk-snapall" href="#/snapall/${esc(deal.id)}/advisor">📷 Snap All ${queue.length} Document${queue.length === 1 ? "" : "s"}</a>` : ""}
           ${queue.length ? queue.map(queueRow).join("") : `<p class="note">All customer documents are verified. ✓</p>`}
@@ -4178,18 +4191,10 @@ route("snapall/:id/:origin", ({ id, origin }) => {
 
   /* shots are session-only object URLs until Confirm hands them to a
      document's page set; leaving the screen releases whatever was not kept */
-  const st = { screen: "capture", shots: [], results: null, retaken: false, passes: 0, retakeTarget: null };
+  const st = { screen: "capture", shots: [], results: null, retakeNote: "", passes: 0, retakeTarget: null, beat: {} };
   const releaseShot = (s) => { try { URL.revokeObjectURL(s.url); } catch (e) {} };
   function cleanup() { st.shots.forEach(releaseShot); st.shots = []; window.removeEventListener("hashchange", cleanup); }
   window.addEventListener("hashchange", cleanup);
-
-  /* the scripted first-pass beat, from the owner's prototype: the insurance
-     card comes back flagged once, teaching the retake / accept-anyway
-     conversation, then verifies on the second pass */
-  function renewDate() {
-    const dte = new Date(); dte.setDate(dte.getDate() + 18);
-    return dte.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-  }
 
   function buildResults() {
     st.passes++;
@@ -4205,10 +4210,20 @@ route("snapall/:id/:origin", ({ id, origin }) => {
     return targets.map(tid => {
       const d = docMeta(tid); const m = clientMeta(tid);
       const shots = fed[tid] || [];
-      if (!shots.length) return { id: tid, status: "missing", icon: m.icon, title: d.label, shots };
-      if (tid === "form-insurance" && st.passes === 1)
-        return { id: tid, status: "attention", icon: m.icon, title: d.label, shots, issue: "Renews in 18 days (" + renewDate() + ")" };
-      return { id: tid, status: "verified", icon: m.icon, title: d.label, shots, detail: "Matched: " + (cst ? cst.first + " " + cst.last : "this deal") + " · " + m.sortDetail };
+      const base = { id: tid, icon: m.icon, title: d.label, shots };
+      if (!shots.length) return Object.assign(base, { status: "missing" });
+      /* the burst obeys the same rules the row path does: enough pages
+         first, then the document's own first-attempt beat. Without this a
+         two-sided document could pass here on a single shot while the same
+         photo is refused one screen away. */
+      const rec = jacketClient(deal)[tid] || {};
+      if (m.minPages && shots.length < m.minPages && m.missingPage)
+        return Object.assign(base, { status: "attention", kind: "pages", issue: m.missingPage.title });
+      if (m.firstIssue && !(rec.tries > 0) && !st.beat[tid]) {
+        st.beat[tid] = true;
+        return Object.assign(base, { status: "attention", kind: "issue", issue: drFirstIssueText(m) });
+      }
+      return Object.assign(base, { status: "verified", detail: "Matched: " + (cst ? cst.first + " " + cst.last : "this deal") + " · " + m.sortDetail });
     });
   }
 
@@ -4228,7 +4243,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       rec.tries = (rec.tries || 0) + 1; /* a burst pass counts as an attempt, so a later per-row retake is not re-flagged */
       if (r.status === "verified") {
         rec.state = "accepted"; rec.acceptedAt = at; rec.rejectedReason = null;
-        jacketReceive(deal, r.id, "sort", r.override ? "Accepted with renewal exception" : "");
+        jacketReceive(deal, r.id, "sort", r.override ? "Accepted with exception — " + r.issue : "");
       } else {
         /* an unresolved flag files as a rejection, so the existing redo loop
            carries it: the client link shows the reason, Review stays open */
@@ -4248,7 +4263,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
         <div class="sa-camtop"><button type="button" class="sa-x" id="saClose" aria-label="Close">×</button><b>Snap All Documents</b><span></span></div>
         <div class="sa-viewfinder"><b>Hold steady over any paper, card, or ID</b>
           <span>Take photos one after another. The system will identify and sort them automatically.</span></div>
-        ${st.retaken ? `<p class="sa-retakenote">Retake Auto Insurance Card — capture the renewed binder or current card.</p>` : ""}
+        ${st.retakeNote ? `<p class="sa-retakenote">${esc(st.retakeNote)}</p>` : ""}
         ${n ? `<div class="sa-thumbs">${st.shots.map((s, i) => `
           <span class="sa-thumb"><img src="${esc(s.url)}" alt="Captured photo ${i + 1}">
             <button type="button" class="sa-thumb__x" data-unshot="${esc(s.id)}" aria-label="Remove photo ${i + 1}">×</button></span>`).join("")}</div>` : ""}
@@ -4282,8 +4297,8 @@ route("snapall/:id/:origin", ({ id, origin }) => {
               <div class="sa-cardmain"><span class="sa-cardicon">${r.icon}</span>
                 <span class="sa-cardcopy"><b>${esc(r.title)}</b><span class="sa-issue">Issue: ${esc(r.issue)}</span></span></div>
               <div class="sa-attnact">
-                <button type="button" class="btn sa-retakebtn" id="saRetake">📷 Retake Card</button>
-                <button type="button" class="btn sa-overridebtn" id="saOverride">Accept Anyway</button>
+                <button type="button" class="btn sa-retakebtn" data-sa-retake="${esc(r.id)}">📷 ${r.kind === "pages" ? "Add the page" : "Retake Card"}</button>
+                <button type="button" class="btn sa-overridebtn" data-sa-accept="${esc(r.id)}">Accept Anyway</button>
               </div>
             </div>`).join("") : ""}
           ${missing.length ? `<p class="sa-grouplab">Still needed (${missing.length})</p>` + missing.map(r => `
@@ -4302,23 +4317,29 @@ route("snapall/:id/:origin", ({ id, origin }) => {
     drWireDebug(deal);
     if (st.screen === "results") {
       $("#saSave").onclick = commit;
-      if ($("#saRetake")) $("#saRetake").onclick = () => {
-        /* the flagged photos are what the retake replaces — drop them, and
-           aim the next captures at that document rather than the deal order */
-        const flagged = st.results.find(r => r.status === "attention");
-        if (flagged) {
+      $$("[data-sa-retake]").forEach(b => b.onclick = () => {
+        const flagged = st.results.find(r => r.id === b.dataset.saRetake);
+        if (!flagged) return;
+        /* a bad photo is replaced; a missing page is added to — the same
+           rule the row path follows, so the two never disagree */
+        if (flagged.kind !== "pages") {
           flagged.shots.forEach(releaseShot);
           st.shots = st.shots.filter(s => s.target !== flagged.id);
-          st.retakeTarget = flagged.id;
         }
-        st.retaken = true; st.screen = "capture"; render();
-      };
-      if ($("#saOverride")) $("#saOverride").onclick = () => {
-        st.results.forEach(r => {
-          if (r.status === "attention") { r.status = "verified"; r.detail = "Accepted with renewal exception"; r.override = true; }
-        });
+        st.retakeTarget = flagged.id;
+        st.retakeNote = flagged.kind === "pages"
+          ? "Add the missing page for " + flagged.title + " — the next shots go to it."
+          : "Retake " + flagged.title + " — capture the current document.";
+        st.screen = "capture"; render();
+      });
+      $$("[data-sa-accept]").forEach(b => b.onclick = () => {
+        const r = st.results.find(x => x.id === b.dataset.saAccept);
+        if (!r) return;
+        r.status = "verified";
+        r.detail = "Accepted with exception — " + r.issue;
+        r.override = true;
         render();
-      };
+      });
       return;
     }
     $("#saClose").onclick = () => navigate(backHash); /* the hashchange cleanup releases the shots */
