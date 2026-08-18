@@ -3153,6 +3153,37 @@ function drAutoVerify(deal, docId) {
   return { ok: true };
 }
 
+/* pinch-to-zoom on a photo stage (the prototype's gesture). Touch only —
+   the ± buttons stay the mouse and keyboard path. Scales the node directly
+   during the gesture so it tracks the fingers, then commits to state. */
+function drPinchZoom(stage, st, onEnd) {
+  if (!stage) return;
+  const art = () => stage.querySelector(".dr-photo, .dr-photoart");
+  const gap = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+  let start = 0, from = 1;
+  stage.addEventListener("touchstart", (e) => {
+    if (e.touches.length === 2) { start = gap(e.touches); from = st.zoom; }
+  }, { passive: true });
+  stage.addEventListener("touchmove", (e) => {
+    if (e.touches.length !== 2 || !start) return;
+    e.preventDefault();
+    st.zoom = Math.max(.75, Math.min(1.9, from * (gap(e.touches) / start)));
+    const el = art(); if (el) el.style.transform = `scale(${st.zoom})`;
+  }, { passive: false });
+  stage.addEventListener("touchend", () => {
+    if (!start) return;
+    start = 0;
+    if (onEnd) onEnd();
+  }, { passive: true });
+}
+
+/* a page with no drawable preview (a PDF — rendering one would need a
+   reader library, invariant 3) is kept as an empty entry: it still counts
+   as a page everywhere, and every stage falls through to the placeholder */
+function drPreviewUrl(file) {
+  return (file.type || "").indexOf("image/") === 0 ? URL.createObjectURL(file) : "";
+}
+
 /* an upload replaces the document's pages, except while the block is a
    missing page — then new shots append, so front + back can arrive one at
    a time (the prototype's preserving rule) */
@@ -3162,7 +3193,7 @@ function drAddShots(deal, docId, files) {
   const preserving = r && r.state === "rejected" && m.missingPage && r.rejectedReason === m.missingPage.title;
   if (!preserving) clientPhotosClear(deal.id, docId);
   const urls = clientPhotos(deal.id, docId).slice();
-  Array.from(files).forEach(f => urls.push(URL.createObjectURL(f)));
+  Array.from(files).forEach(f => urls.push(drPreviewUrl(f)));
   clientPhotosSet(deal.id, docId, urls);
 }
 
@@ -3774,7 +3805,7 @@ function drClientLink(id, startScreen) {
   const ds = RIDE_PRICE_DATA.dealership;
   const cst = Store.customer(deal.customerId);
   const v = Store.vehicle(deal.stock);
-  const st = { screen: startScreen === "sms" ? "sms" : "landing" };
+  const st = { screen: startScreen === "sms" ? "sms" : "landing", docId: null, badPhoto: false, zoom: 1, page: 0, source: "camera" };
 
   renderChrome("Client link", dealTitle(deal), "");
   document.body.dataset.screen = "clientlink";
@@ -3805,9 +3836,15 @@ function drClientLink(id, startScreen) {
     const action = s === "accepted"
       ? `<span class="dr-chip dr-chip--accepted">Verified</span>`
       : `<button type="button" class="dr-clientadd" data-trigger-upload="${esc(docId)}" aria-controls="drUpl-${esc(docId)}">📷 ${blocked ? "Retake Photo" : "Add Photo"}</button><input id="drUpl-${esc(docId)}" class="dr-hiddeninput" type="file" accept="image/*" capture="environment" data-upload-input="${esc(docId)}">`;
+    /* the row body opens the document's own screen — what we need, a good
+       example, the other capture methods and the multi-page review. The
+       Add Photo button beside it stays the one-tap path. */
     return `<div class="dr-clientrow">
       <span class="dr-qicon${s === "accepted" ? " dr-qicon--green" : ""}">${s === "accepted" ? "✓" : m.icon}</span>
-      <span class="dr-itemcopy"><b>${esc(d.label)}</b>${status ? `<span class="dr-status dr-status--${cls}">${esc(status)}</span>` : ""}${blocked ? `<span class="dr-blockhint">⚠ ${esc(r.rejectedReason || "")}</span>` : ""}</span>
+      <button type="button" class="dr-itemcopy dr-itemopen" ${s === "accepted" ? "disabled" : `data-detail="${esc(docId)}"`}>
+        <b>${esc(d.label)}</b>${status ? `<span class="dr-status dr-status--${cls}">${esc(status)}</span>` : ""}${blocked ? `<span class="dr-blockhint">⚠ ${esc(r.rejectedReason || "")}</span>` : ""}
+        ${s === "accepted" ? "" : `<span class="dr-openhint">What we need ›</span>`}
+      </button>
       ${action}
     </div>`;
   }
@@ -3816,10 +3853,88 @@ function drClientLink(id, startScreen) {
     const host = view();
     if (st.screen === "sms") host.innerHTML = smsScreen();
     else if (st.screen === "receipt") host.innerHTML = receiptScreen();
+    else if (st.screen === "detail") host.innerHTML = detailScreen();
+    else if (st.screen === "review") host.innerHTML = reviewScreen();
+    else if (st.screen === "failure") host.innerHTML = failureScreen();
     else host.innerHTML = landingScreen();
     host.insertAdjacentHTML("beforeend", drDebugStrip(deal));
     wire();
     drWireDebug(deal);
+    drPinchZoom($(".dr-stage"), st, render);
+  }
+
+  /* the document's own screen: what we need, a good example, the capture
+     methods, and the demo switch that exercises the failure coaching */
+  function detailScreen() {
+    const d = docMeta(st.docId); const m = clientMeta(st.docId);
+    const r = rec(st.docId);
+    const note = m.multiNote || "";
+    const noteHead = note.split(".")[0];
+    return `<div class="dr-client">
+      <div class="dr-detailhead"><button class="dr-back" data-back-landing aria-label="Back">‹</button><b>${esc(d.label)}</b></div>
+      <div class="dr-clientbody">
+        ${r && r.state === "rejected" ? `<div class="dr-multinote dr-multinote--warn"><b>⚠ ${esc(r.rejectedReason || "")}</b> ${esc((clientMeta(st.docId).missingPage && clientMeta(st.docId).missingPage.title === r.rejectedReason ? clientMeta(st.docId).missingPage.description : (m.firstIssue && m.firstIssue.description)) || "")}</div>` : ""}
+        <div class="dr-requirement"><b>What we need</b>${esc(m.requirement)}</div>
+        <div class="dr-example"><span class="dr-thumb" aria-hidden="true"></span>
+          <span class="dr-itemcopy"><b>See what a good example looks like</b><span>Clear, complete and current.</span></span>
+          <button type="button" class="btn btn--ghost btn--sm" data-example>See example</button></div>
+        ${note ? `<div class="dr-multinote"><b>${esc(noteHead)}.</b> ${esc(note.slice(noteHead.length + 1).trim())}
+          ${m.altIncome ? `<button type="button" class="dr-linkbtn" data-other-income>Other income type</button>` : ""}</div>` : ""}
+        <div class="dr-capturegrid">
+          <button type="button" class="dr-capture dr-capture--primary" data-capture="camera">📷 Take photo</button>
+          <button type="button" class="dr-capture" data-capture="library">▣ Choose from library</button>
+          <button type="button" class="dr-capture" data-capture="pdf">PDF Choose a PDF</button>
+        </div>
+        <label class="opt-row dr-badtoggle"><input type="checkbox" id="drBad" ${st.badPhoto ? "checked" : ""}><span class="opt-row__label">Demo only: simulate a bad photo to see the failure path.</span></label>
+        <button type="button" class="dr-savelater" data-save-later>Save &amp; finish later</button>
+        <input type="file" accept="image/*" capture="environment" id="drCapCam" hidden>
+        <input type="file" accept="image/*" multiple id="drCapLib" hidden>
+        <input type="file" accept="application/pdf" id="drCapPdf" hidden>
+      </div>
+    </div>`;
+  }
+
+  /* the multi-page review, before anything is committed */
+  function reviewScreen() {
+    const urls = clientPhotos(deal.id, st.docId);
+    const pages = Math.max(1, urls.length);
+    st.page = Math.min(st.page, pages - 1);
+    const u = urls[st.page];
+    return `<div class="dr-client">
+      <div class="dr-detailhead"><button class="dr-back" data-back-detail aria-label="Back">‹</button><b>Review capture</b></div>
+      <div class="dr-clientbody">
+        <div class="dr-stage">${u
+          ? `<img class="dr-photo" src="${esc(u)}" alt="Captured page ${st.page + 1}" style="transform:scale(${st.zoom})">`
+          : `<div class="dr-photoart" style="transform:scale(${st.zoom})"></div>`}
+          <div class="dr-zoom"><button type="button" data-zoom="-" aria-label="Zoom out">−</button><button type="button" data-zoom="+" aria-label="Zoom in">＋</button></div></div>
+        ${u ? "" : `<p class="hint" style="text-align:center">A PDF cannot be drawn without a reader library, so this page shows a placeholder — the record still counts it.</p>`}
+        <div class="dr-pagetools"><button type="button" data-page="-" ${st.page === 0 ? "disabled" : ""} aria-label="Previous page">←</button><b>${st.page + 1} of ${pages}</b><button type="button" data-page="+" ${st.page >= pages - 1 ? "disabled" : ""} aria-label="Next page">→</button></div>
+        <div class="dr-reviewactions"><button type="button" data-retake>↻ Retake</button><button type="button" data-add-page>＋ Add page</button></div>
+        <div class="dr-reviewactions"><button type="button" data-move="-" ${st.page === 0 ? "disabled" : ""}>Move earlier</button><button type="button" data-move="+" ${st.page >= pages - 1 ? "disabled" : ""}>Move later</button></div>
+        <button type="button" class="dr-savelater" data-del-page ${urls.length <= 1 ? "disabled" : ""}>Delete this page</button>
+        <p class="hint" style="text-align:center">Reorder or delete pages before you send them. The photos stay on this device and are never uploaded or kept.</p>
+        <button type="button" class="dr-clientcta" data-use>${pages > 1 ? `Done (${pages})` : "Use this"}</button>
+        <input type="file" accept="image/*" capture="environment" id="drCapMore" hidden>
+      </div>
+    </div>`;
+  }
+
+  /* the coaching screen the demo toggle reaches */
+  function failureScreen() {
+    const card = (t, fix) => `<div class="dr-failcard"><b>${esc(t)}</b>
+      <div class="dr-compare"><span class="dr-comparebox dr-comparebox--bad"></span><span class="dr-comparebox dr-comparebox--good"></span></div>
+      <div class="dr-comparelabels"><span>Bad</span><span>Good</span></div><p>${esc(fix)}</p></div>`;
+    return `<div class="dr-client">
+      <div class="dr-detailhead"><button class="dr-back" data-back-detail aria-label="Back">‹</button><b>Let's fix this photo</b></div>
+      <div class="dr-clientbody">
+        <p class="hint">We couldn't confidently read the document. Try one specific fix below — or use another capture method.</p>
+        ${card("Glare", "Tilt the card slightly up or down to kill the reflection.")}
+        ${card("Blur", "Move the document closer or further until it sharpens; hold steady.")}
+        ${card("Text unreadable / cropped", "Get all four corners in frame on a dark surface.")}
+        <div class="dr-escapegrid"><button type="button" data-manual>Capture manually instead</button><button type="button" data-email>Send by email instead</button></div>
+        <button type="button" class="dr-savelater" data-save-later>Save &amp; finish later</button>
+      </div>
+    </div>`;
   }
 
   function smsScreen() {
@@ -3876,12 +3991,28 @@ function drClientLink(id, startScreen) {
     </div>`;
   }
 
+  /* commit whatever the review holds, through the one verification engine */
+  function useCapture() {
+    const result = drAutoVerify(deal, st.docId);
+    toast(result.ok ? "✓ Verified instantly and added to the Deal Jacket." : "Upload blocked: " + result.issue);
+    st.screen = "landing"; st.zoom = 1; st.page = 0; render();
+  }
+
   function wire() {
     $$("[data-open-client]").forEach(a => a.onclick = (e) => { e.preventDefault(); st.screen = "landing"; render(); });
-    $$("[data-back-landing]").forEach(b => b.onclick = () => { st.screen = "landing"; render(); });
+    $$("[data-back-landing]").forEach(b => b.onclick = () => { st.screen = "landing"; st.zoom = 1; render(); });
+    $$("[data-back-detail]").forEach(b => b.onclick = () => { st.screen = "detail"; st.zoom = 1; render(); });
     $$("[data-save-later]").forEach(b => b.onclick = () => toast("Saved. Reopen this same link to continue where you left off."));
     $$("[data-receipt]").forEach(b => b.onclick = () => { st.screen = "receipt"; render(); });
     $$("[data-snapall]").forEach(b => b.onclick = () => navigate("#/snapall/" + deal.id + "/client"));
+    $$("[data-detail]").forEach(b => b.onclick = () => {
+      st.docId = b.dataset.detail; st.badPhoto = false; st.zoom = 1; st.page = 0; st.screen = "detail"; render();
+    });
+    $$("[data-example]").forEach(b => b.onclick = () => toast("A good photo: all four corners visible, current dates, readable text."));
+    $$("[data-other-income]").forEach(b => b.onclick = () => toast("Other income type noted — your advisor can request the right alternative."));
+    const bad = $("#drBad");
+    if (bad) bad.onchange = () => { st.badPhoto = bad.checked; };
+    /* the fast path: the row's own button, straight to the verdict */
     $$("[data-trigger-upload]").forEach(b => b.onclick = (e) => {
       e.preventDefault();
       const inp = $("#drUpl-" + b.dataset.triggerUpload);
@@ -3894,6 +4025,70 @@ function drClientLink(id, startScreen) {
       const result = drAutoVerify(deal, docId);
       toast(result.ok ? "✓ Verified instantly and added to the Deal Jacket." : "Upload blocked: " + result.issue);
       render();
+    });
+    /* the considered path: a capture method, then the review */
+    const capIds = { camera: "#drCapCam", library: "#drCapLib", pdf: "#drCapPdf" };
+    $$("[data-capture]").forEach(b => b.onclick = () => {
+      st.source = b.dataset.capture;
+      if (st.badPhoto) { st.screen = "failure"; render(); return; }
+      const inp = $(capIds[st.source]);
+      if (inp) { inp.value = ""; inp.click(); }
+    });
+    ["#drCapCam", "#drCapLib", "#drCapPdf"].forEach(sel => {
+      const inp = $(sel);
+      if (inp) inp.onchange = () => {
+        if (!inp.files || !inp.files.length) return;
+        /* a fresh capture replaces the working set, except while the block
+           is a missing page — then it adds to it (same rule as the fast path) */
+        drAddShots(deal, st.docId, inp.files);
+        st.page = Math.max(0, clientPhotos(deal.id, st.docId).length - 1);
+        st.zoom = 1; st.screen = "review"; render();
+      };
+    });
+    const more = $("#drCapMore");
+    if (more) more.onchange = () => {
+      if (!more.files || !more.files.length) return;
+      const urls = clientPhotos(deal.id, st.docId).slice();
+      const add = Array.from(more.files).map(drPreviewUrl);
+      if (more.dataset.replace === "1") {
+        try { URL.revokeObjectURL(urls[st.page]); } catch (e) {}
+        urls.splice(st.page, 1, ...add);
+      } else { urls.push(...add); st.page = urls.length - 1; }
+      more.dataset.replace = "";
+      clientPhotosSet(deal.id, st.docId, urls);
+      render();
+    };
+    $$("[data-retake]").forEach(b => b.onclick = () => { if (more) { more.dataset.replace = "1"; more.value = ""; more.click(); } });
+    $$("[data-add-page]").forEach(b => b.onclick = () => { if (more) { more.dataset.replace = ""; more.value = ""; more.click(); } });
+    $$("[data-del-page]").forEach(b => b.onclick = () => {
+      clientPhotoDrop(deal.id, st.docId, st.page);
+      st.page = Math.max(0, st.page - 1); render();
+    });
+    $$("[data-move]").forEach(b => b.onclick = () => {
+      const urls = clientPhotos(deal.id, st.docId).slice();
+      const to = b.dataset.move === "+" ? st.page + 1 : st.page - 1;
+      if (to < 0 || to >= urls.length) return;
+      [urls[st.page], urls[to]] = [urls[to], urls[st.page]];
+      clientPhotosSet(deal.id, st.docId, urls);
+      st.page = to; render();
+    });
+    $$("[data-zoom]").forEach(b => b.onclick = () => {
+      st.zoom = b.dataset.zoom === "+" ? Math.min(1.9, st.zoom + .15) : Math.max(.75, st.zoom - .15); render();
+    });
+    $$("[data-page]").forEach(b => b.onclick = () => {
+      const pages = Math.max(1, clientPhotos(deal.id, st.docId).length);
+      st.page = b.dataset.page === "+" ? Math.min(pages - 1, st.page + 1) : Math.max(0, st.page - 1);
+      st.zoom = 1; render();
+    });
+    $$("[data-use]").forEach(b => b.onclick = useCapture);
+    /* the failure screen's escapes: capture normally, or hand it off */
+    $$("[data-manual]").forEach(b => b.onclick = () => {
+      st.badPhoto = false; st.screen = "detail"; render();
+      toast("Simulated bad photo is off — capture normally now.");
+    });
+    $$("[data-email]").forEach(b => b.onclick = () => {
+      toast("Email option opened. The document stays needed until the file lands.");
+      st.screen = "landing"; render();
     });
   }
 
@@ -3943,6 +4138,7 @@ route("docreview/:id/:docId", ({ id, docId }) => {
     view().insertAdjacentHTML("beforeend", drDebugStrip(deal));
     wire();
     drWireDebug(deal);
+    drPinchZoom($(".dr-stage"), st, render);
   }
 
   function wire() {
