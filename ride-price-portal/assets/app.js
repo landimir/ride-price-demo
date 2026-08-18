@@ -3218,6 +3218,10 @@ const jacketStamp = (iso) => {
 
 route("jacket/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  /* the In-The-Jacket accordion starts open where there is room (desktop)
+     and folded on a phone, like the prototype — same query the stylesheet
+     uses, so 720px exactly is a phone on both sides */
+  let showJacket = !window.matchMedia("(max-width: 720px)").matches;
 
   function render() {
     const docs = jacketDocs(deal);
@@ -3324,31 +3328,32 @@ route("jacket/:id", ({ id }) => {
       </div>`;
     };
 
+    /* the compliance card, the queue card and the In-The-Jacket accordion
+       replicate the owner's prototype (2026-08-18, second match round) */
+    const gateTone = deal.signoff || !n.missing ? "ok" : ov ? "ov" : "warn";
     view().innerHTML = `
       <div class="jk-phonehead">
-        <span class="jk-phonehead__ava" aria-hidden="true">👤</span>
+        <span class="jk-phonehead__ava" aria-hidden="true">${cst ? esc(cst.first[0]) : "?"}</span>
         <div class="jk-phonehead__who"><b>${cst ? esc(cst.first + " " + cst.last) : "—"}</b><span>${veh ? esc(veh.year + " " + veh.make + " " + veh.model) : "no vehicle yet"}</span></div>
         ${deal.dealNo ? `<b class="jk-phonehead__no">#${esc(deal.dealNo)}</b>` : ""}
       </div>
-      <div class="panel panel--navyhead jk-banner">
-        <div class="panel__head"><h2>Deal Jacket Compliance</h2>
-          <div class="right"><span class="dr-docscount">${led.accepted} / ${led.total} Docs (${pct}%)</span></div></div>
-        <div class="panel__body">
-          <div class="jk-bar dr-progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Deal jacket compliance ${pct}% complete">
-            <span class="dr-progress__fill" style="width:${pct}%"></span>
-          </div>
-          <div class="jk-banner__foot"><p class="jk-gate">${gateLine}</p></div>
+      <div class="jk-comp">
+        <div class="jk-comp__top"><h2>Deal Jacket Compliance</h2><b class="jk-comp__count">${led.accepted} / ${led.total} Docs (${pct}%)</b></div>
+        <div class="jk-comp__track" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Deal jacket compliance ${pct}% complete">
+          <span class="jk-comp__fill" style="width:${pct}%"></span>
         </div>
+        <div class="jk-comp__warn jk-comp__warn--${gateTone}"><p class="jk-gate">${gateLine}</p></div>
       </div>
-      <button class="btn jk-scanwide" id="jkScanWide">📷 + Upload / Scan Document</button>
       ${queue.length || Object.keys(cl).length ? `
       <section class="jk-col dr-queue">
-        <h3 class="jk-col__head">Customer documents <span class="jk-count--miss">(${queue.length})</span>
+        <h3 class="jk-col__head jk-col__head--red">Customer documents <span class="jk-count--miss">(${queue.length})</span>
           <span class="dr-qaction">${reqSent
             ? `<button class="dr-sent" id="drResend">Requested ${esc(drStamp(jk.reqSentAt))} · Resend</button>`
             : `<button class="btn btn--grad btn--sm" id="drCompose">Send Text Request</button>`}</span></h3>
-        ${queue.length ? `<a class="btn jk-snapall" href="#/snapall/${esc(deal.id)}/advisor">📷 Snap All ${queue.length} Document${queue.length === 1 ? "" : "s"}</a>` : ""}
-        ${queue.length ? queue.map(queueRow).join("") : `<p class="note">All customer documents are verified. ✓</p>`}
+        <div class="jk-card">
+          ${queue.length ? `<a class="btn jk-snapall" href="#/snapall/${esc(deal.id)}/advisor">📷 Snap All ${queue.length} Document${queue.length === 1 ? "" : "s"}</a>` : ""}
+          ${queue.length ? queue.map(queueRow).join("") : `<p class="note">All customer documents are verified. ✓</p>`}
+        </div>
         ${queue.length ? `<input type="file" accept="image/*" capture="environment" id="jkSnapCam" hidden>` : ""}
       </section>` : ""}
       <div class="jk-cols">
@@ -3358,16 +3363,22 @@ route("jacket/:id", ({ id }) => {
           ${dealerMissing.length ? dealerMissing.map(missRow).join("") : `<p class="note">Nothing outstanding — every document this deal needs is in the jacket.</p>`}
         </section>
         <section class="jk-col jk-col--in">
-          <h3 class="jk-col__head">Accepted in the jacket${received.length ? ` <span class="jk-count--in">(${led.accepted}/${led.total})</span>` : ""}</h3>
-          ${received.length ? received.map(inRow).join("") : `<p class="note">Nothing collected yet.</p>`}
-          <div class="jk-addrow">
-            <label class="f"><span class="lab">This deal also needs</span>
-              <select id="jkAdd" data-ui="dd" data-placeholder="+ Add Custom Form (${addable.length} available)">
-                <option value="" data-ph selected hidden>+ Add Custom Form (${addable.length} available)</option>
-                ${addable.map(f => `<option value="form-${esc(f.id)}">${esc(f.label)} — ${esc(f.group)}</option>`).join("")}
-              </select></label>
-            <p class="hint">Only add what this deal genuinely needs — an item added here counts against the jacket until it comes in.</p>
-          </div>
+          <button type="button" class="jk-intoggle" id="jkInToggle" aria-expanded="${showJacket}">
+            <span class="jk-intoggle__left"><span class="jk-incheck" aria-hidden="true">✓</span><span class="jk-intitle">In The Jacket</span><span class="jk-incount">${led.accepted}/${led.total} Verified</span></span>
+            <span class="jk-intoggle__ctl">${showJacket ? "Hide" : "Show"} <span class="jk-inchev${showJacket ? " jk-inchev--open" : ""}" aria-hidden="true">▼</span></span>
+          </button>
+          ${showJacket ? `<div class="jk-incontent">
+            ${received.length ? received.map(inRow).join("") : `<p class="note">Nothing collected yet.</p>`}
+            <button type="button" class="jk-addopt" id="jkAddOpt" aria-expanded="false">＋ Add Optional / Custom Form</button>
+            <div class="jk-addrow" id="jkAddRow" hidden>
+              <label class="f"><span class="lab">This deal also needs</span>
+                <select id="jkAdd" data-ui="dd" data-placeholder="+ Add Custom Form (${addable.length} available)">
+                  <option value="" data-ph selected hidden>+ Add Custom Form (${addable.length} available)</option>
+                  ${addable.map(f => `<option value="form-${esc(f.id)}">${esc(f.label)} — ${esc(f.group)}</option>`).join("")}
+                </select></label>
+              <p class="hint">Only add what this deal genuinely needs — an item added here counts against the jacket until it comes in.</p>
+            </div>
+          </div>` : ""}
         </section>
       </div>
       <button type="button" class="advscript-card jk-adv" id="jkAdvToggle" aria-expanded="false">
@@ -3393,10 +3404,10 @@ route("jacket/:id", ({ id }) => {
         ${deal.signoff ? "" : `<a class="btn ${n.missing && !ov ? "btn--ghost" : "btn--primary"} btn--sm" href="#/menu/${esc(deal.id)}">Go to Manager Sign-Off</a>`}
       </div>
       <div class="jk-bottombar">
-        <button class="btn btn--ghost" id="jkBack">← Prev</button>
-        ${led.missing === 0 && !deal.signoff
+        <a class="btn btn--ghost" href="${esc(STAGES[deal.stage] ? STAGES[deal.stage].route(deal) : "#/deals")}">← Back to Deal</a>
+        ${led.missing === 0
           ? `<a class="btn dr-funding" href="#/menu/${esc(deal.id)}">Complete Deal &amp; Sign-off →</a>`
-          : `<a class="btn btn--grad${n.missing ? " jk-cta--dim" : ""}" href="${esc(STAGES[deal.stage] ? STAGES[deal.stage].route(deal) : "#/deals")}">Next Step →</a>`}
+          : `<button type="button" class="btn jk-dockinfo" disabled aria-disabled="true">${led.missing} doc${led.missing === 1 ? "" : "s"} needed</button>`}
       </div>`;
 
     /* one modal for marking received; the note is optional, the by-name
@@ -3501,7 +3512,7 @@ route("jacket/:id", ({ id }) => {
     }
 
     const wireScan = (el) => { if (el) el.onclick = () => openDocScanFlow(deal, render); };
-    wireScan($("#jkScan")); wireScan($("#jkScanWide"));
+    wireScan($("#jkScan"));
     /* a queue row is a camera trigger (owner's prototype): snap, then the
        same simulated check the client link runs. While a document is blocked
        on a missing page, another snap appends — front, then back. */
@@ -3541,7 +3552,14 @@ route("jacket/:id", ({ id }) => {
     if ($("#jkReqAll")) $("#jkReqAll").onclick = () => requestFlow(dealerMissing.map(d => d.id));
     if ($("#drCompose")) $("#drCompose").onclick = () => navigate("#/docreq/" + deal.id);
     if ($("#drResend")) $("#drResend").onclick = () => navigate("#/docreq/" + deal.id + "/resend");
-    $("#jkBack").onclick = () => history.back();
+    $("#jkInToggle").onclick = () => { showJacket = !showJacket; render(); };
+    const addOpt = $("#jkAddOpt");
+    if (addOpt) addOpt.onclick = () => {
+      const row = $("#jkAddRow");
+      const open = row.hidden;
+      row.hidden = !open;
+      addOpt.setAttribute("aria-expanded", String(open));
+    };
     $("#jkAdvToggle").onclick = () => {
       const open = $("#jkScript").classList.toggle("jk-script--open");
       $("#jkAdvToggle").setAttribute("aria-expanded", String(open));
