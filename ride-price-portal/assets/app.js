@@ -3273,12 +3273,14 @@ route("jacket/:id", ({ id }) => {
           ${d.origin === "outside" ? `<span class="jk-chip">arrives from outside</span>` : ""}
           ${d.added ? `<span class="jk-chip jk-chip--added">added by hand</span>` : ""}
           <span class="jk-row__why"><span class="jk-why-l">${esc(d.why)}</span><span class="jk-why-s">${esc(d.whyShort)}</span></span>
-          <span class="jk-row__state">Source: ${verified ? "Camera Scan · Verified" : st.how === "client" ? "Client Upload · Accepted" : "Manual Entry · Received by " + esc(st.by)} · ${esc(jacketStamp(st.at))}${st.note ? " · " + esc(st.note) : ""}</span>
+          <span class="jk-row__state">Source: ${verified ? "Camera Scan · Verified" : st.how === "client" ? "Client Upload · Accepted" : st.how === "sort" ? "Snap &amp; Sort · Auto-filed (demo)" : "Manual Entry · Received by " + esc(st.by)} · ${esc(jacketStamp(st.at))}${st.note ? " · " + esc(st.note) : ""}</span>
         </button>
         <div class="jk-row__act">
           ${d.origin !== "outside"
             ? `<a class="btn btn--ghost btn--sm jk-view" href="#/print/${esc(deal.id)}/${esc(d.id)}">View</a>`
-            : `<button class="btn btn--ghost btn--sm jk-view" data-rec="${esc(d.id)}">View</button>`}
+            : (st.how === "client" || st.how === "sort") && CLIENT_QUEUE_IDS.includes(d.id)
+              ? `<a class="btn btn--ghost btn--sm jk-view" href="#/docreview/${esc(deal.id)}/${esc(d.id)}">View</a>`
+              : `<button class="btn btn--ghost btn--sm jk-view" data-rec="${esc(d.id)}">View</button>`}
         </div>
         <div class="jk-row__more">
           <button class="btn btn--ghost btn--sm" data-undo="${esc(d.id)}">Take back out</button>
@@ -3315,6 +3317,7 @@ route("jacket/:id", ({ id }) => {
           <span class="dr-qaction">${reqSent
             ? `<button class="dr-sent" id="drResend">Requested ${esc(drStamp(jk.reqSentAt))} · Resend</button>`
             : `<button class="btn btn--grad btn--sm" id="drCompose">Send Text Request</button>`}</span></h3>
+        ${queue.length ? `<a class="btn jk-snapall" href="#/snapall/${esc(deal.id)}/advisor">📷 Snap All ${queue.length} Document${queue.length === 1 ? "" : "s"}</a>` : ""}
         ${queue.length ? queue.map(queueRow).join("") : `<p class="note">All requested customer documents are accepted. ✓</p>`}
       </section>` : ""}
       <div class="jk-cols">
@@ -3422,7 +3425,7 @@ route("jacket/:id", ({ id }) => {
       modal("The record — " + esc(m.label), `
         <p class="small">This document arrives from outside the dealership, so the jacket keeps the record, not the paper.</p>
         <ul class="jk-reqlist">
-          <li>${st.how === "scan" ? "Verified — the app read its own marker" : "Marked received by <b>" + esc(st.by) + "</b>"}</li>
+          <li>${st.how === "scan" ? "Verified — the app read its own marker" : st.how === "sort" ? "Auto-filed by Snap &amp; Sort (demo — simulated check)" : st.how === "client" ? "Accepted after advisor review" : "Marked received by <b>" + esc(st.by) + "</b>"}</li>
           <li>Taken in ${esc(jacketStamp(st.at))}</li>
           ${st.note ? `<li>Note: ${esc(st.note)}</li>` : ""}
         </ul>`,
@@ -3773,6 +3776,7 @@ function drClientLink(id, startScreen) {
         <h1>Upload your documents</h1>
         <p class="dr-subhead">No account or password needed. You can stop and return to this same link anytime.</p>
         <div class="dr-needbox"><b>You'll need</b><span>Photo ID · your insurance card · a recent pay stub.</span></div>
+        ${clientQueue(deal).length ? `<button class="dr-snapall" data-snapall>📷 Snap All Documents</button>` : ""}
         ${queueIds().map(clientRowHtml).join("")}
         <button class="dr-savelater" data-save-later>Save & finish later</button>
       </div>
@@ -3900,6 +3904,7 @@ function drClientLink(id, startScreen) {
     $$("[data-example]").forEach(b => b.onclick = () => toast("Example: all corners visible, current dates, readable text."));
     $$("[data-other-income]").forEach(b => b.onclick = () => toast("Other income type selected — your advisor can request the right alternative."));
     $$("[data-receipt]").forEach(b => b.onclick = () => { st.screen = "receipt"; render(); });
+    $$("[data-snapall]").forEach(b => b.onclick = () => navigate("#/snapall/" + deal.id + "/client"));
     const bad = $("#drBad");
     if (bad) bad.onchange = () => { st.badPhoto = bad.checked; };
     const capIds = { camera: "#drFileCam", library: "#drFileLib", pdf: "#drFilePdf" };
@@ -3976,24 +3981,34 @@ route("docreview/:id/:docId", ({ id, docId }) => {
     const pages = Math.max(1, (r && (r.pages || r.draftPages)) || urls.length || 1);
     st.page = Math.min(st.page, pages - 1);
     const u = urls[st.page];
+    /* a document already in the jacket opens read-only (the owner's
+       document-view screen): the photos and the record, no second Accept */
+    const done = jacketState(deal, docId);
+    const doneLine = done
+      ? done.how === "sort"
+        ? `<div class="dr-doneline"><b>✓ Simulated check (demo)</b><p>${esc(m.verifiedSummary || "")} Nothing was read from the photos — the demo scripts this result.</p></div>`
+        : `<div class="dr-doneline"><b>✓ Accepted${done.how === "client" ? " by " + esc(done.by) : ""}</b><p>In the jacket since ${esc(jacketStamp(done.at))}.${done.note ? " Note: " + esc(done.note) : ""}</p></div>`
+      : "";
     view().innerHTML = `
       <div class="dr-reviewwrap">
         <div class="dr-reviewhead"><b>${esc(d.label)}</b>
-          <span>${r && r.state === "received" ? "Received " + esc(drStamp(r.receivedAt)) : "Current state: " + esc(r ? r.state : "—")} · ${pages} page${pages === 1 ? "" : "s"}</span></div>
+          <span>${done ? "In the jacket · " + esc(jacketStamp(done.at)) : r && r.state === "received" ? "Received " + esc(drStamp(r.receivedAt)) : "Current state: " + esc(r ? r.state : "—")} · ${pages} page${pages === 1 ? "" : "s"}</span></div>
         <div class="dr-stage">${u ? `<img class="dr-photo" src="${esc(u)}" alt="Client page" style="transform:scale(${st.zoom})">` : `<div class="dr-photoart" style="transform:scale(${st.zoom})"></div>`}
           <div class="dr-zoom"><button data-zoom="-">−</button><button data-zoom="+">＋</button></div></div>
         <div class="dr-pagetools"><button data-page="-" ${st.page === 0 ? "disabled" : ""}>←</button><b>Page ${st.page + 1} of ${pages}</b><button data-page="+" ${st.page >= pages - 1 ? "disabled" : ""}>→</button></div>
         ${u ? "" : `<p class="hint" style="text-align:center">The photo lived only in the session that captured it — the record is what the jacket keeps.</p>`}
+        ${done ? `${doneLine}
+        <a class="btn btn--ghost dr-donereturn" href="#/jacket/${esc(deal.id)}">← Back to Deal Jacket</a>` : `
         <div class="dr-checklist">${m.checks.map((c, i) => `<label class="opt-row"><input type="checkbox" data-check="${i}" ${st.checks.has(i) ? "checked" : ""}><span class="opt-row__label">${esc(c)}</span></label>`).join("")}</div>
         <div class="dr-advactions">
           <button class="btn dr-rejectbtn" id="drAgain">Request again</button>
           <button class="btn dr-acceptbtn" id="drAccept">Accept</button>
-        </div>
+        </div>`}
       </div>`;
-    wire();
+    wire(!!done);
   }
 
-  function wire() {
+  function wire(readOnly) {
     /* the ticks survive zoom and page renders */
     $$("[data-check]").forEach(cb => cb.onchange = () => { const i = +cb.dataset.check; if (cb.checked) st.checks.add(i); else st.checks.delete(i); });
     $$("[data-zoom]").forEach(b => b.onclick = () => { st.zoom = b.dataset.zoom === "+" ? Math.min(1.9, st.zoom + .15) : Math.max(.75, st.zoom - .15); render(); });
@@ -4002,6 +4017,7 @@ route("docreview/:id/:docId", ({ id, docId }) => {
       const pages = Math.max(1, (r && (r.pages || r.draftPages)) || urls.length || 1);
       st.page = b.dataset.page === "+" ? Math.min(pages - 1, st.page + 1) : Math.max(0, st.page - 1); render();
     });
+    if (readOnly) return;
     $("#drAccept").onclick = () => {
       jacketReceive(deal, docId, "client");
       const clw = jacketClientOf(deal);
@@ -4025,6 +4041,190 @@ route("docreview/:id/:docId", ({ id, docId }) => {
         navigate("#/jacket/" + deal.id);
       });
     };
+  }
+
+  render();
+});
+
+/* ============================================================
+   VIEW: Snap All Documents — burst capture + simulated auto-sort
+   (owner's burst-capture prototype, 2026-08-18). One screen serves
+   both sides: the advisor opens it from the jacket queue, the
+   client from the landing page. The photos live in this session's
+   memory like every client capture, and the "identification" is
+   the same theater as the credit pull — nothing reads a photo
+   (invariant 4), so the sort deals the shots onto the documents
+   this deal still needs, in order, and the screen says so.
+   ============================================================ */
+
+route("snapall/:id/:origin", ({ id, origin }) => {
+  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const backHash = origin === "advisor" ? "#/jacket/" + deal.id : "#/clientlink/" + deal.id;
+  /* the sort's targets: the customer documents still outstanding */
+  const targets = clientQueue(deal);
+  if (!targets.length) return navigate(backHash);
+  const cst = Store.customer(deal.customerId);
+
+  renderChrome("Snap All Documents", dealTitle(deal), "");
+  document.body.dataset.screen = "snapall";
+
+  /* shots are session-only object URLs until Confirm hands them to a
+     document's page set; leaving the screen releases whatever was not kept */
+  const st = { screen: "capture", shots: [], results: null, retaken: false, passes: 0, retakeTarget: null };
+  const releaseShot = (s) => { try { URL.revokeObjectURL(s.url); } catch (e) {} };
+  function cleanup() { st.shots.forEach(releaseShot); st.shots = []; window.removeEventListener("hashchange", cleanup); }
+  window.addEventListener("hashchange", cleanup);
+
+  /* the scripted first-pass beat, from the owner's prototype: the insurance
+     card comes back flagged once, teaching the retake / accept-anyway
+     conversation, then verifies on the second pass */
+  function renewDate() {
+    const dte = new Date(); dte.setDate(dte.getDate() + 18);
+    return dte.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+  }
+
+  function buildResults() {
+    st.passes++;
+    /* deal the shots onto the outstanding documents in order — the demo's
+       honest version of "identify": it cannot read them, so it does not try.
+       A shot keeps its document once dealt (or aimed by a retake), so a
+       second pass cannot shuffle earlier shots onto different documents. */
+    const fed = {};
+    st.shots.forEach((s, i) => {
+      const tid = s.target || (s.target = targets[i % targets.length]);
+      (fed[tid] = fed[tid] || []).push(s);
+    });
+    return targets.map(tid => {
+      const d = docMeta(tid); const m = clientMeta(tid);
+      const shots = fed[tid] || [];
+      if (!shots.length) return { id: tid, status: "missing", icon: m.icon, title: d.label, shots };
+      if (tid === "form-insurance" && st.passes === 1)
+        return { id: tid, status: "attention", icon: m.icon, title: d.label, shots, issue: "Insurance renews in 18 days (" + renewDate() + ")" };
+      return { id: tid, status: "verified", icon: m.icon, title: d.label, shots, detail: "Matched: " + (cst ? cst.first + " " + cst.last : "this deal") + " · " + m.sortDetail };
+    });
+  }
+
+  function commit() {
+    const at = new Date().toISOString();
+    const clw = jacketClientOf(deal);
+    st.results.forEach(r => {
+      if (r.status === "missing") return;
+      /* the kept shots become this document's pages — the same session-only
+         home every client capture uses; the records are what persists */
+      clientPhotosClear(deal.id, r.id);
+      clientPhotosSet(deal.id, r.id, r.shots.map(s => s.url));
+      const rec = clw[r.id] || (clw[r.id] = {});
+      rec.pages = r.shots.length;
+      rec.draftPages = r.shots.length;
+      rec.receivedAt = at;
+      if (r.status === "verified") {
+        rec.state = "accepted"; rec.acceptedAt = at; rec.rejectedReason = null;
+        jacketReceive(deal, r.id, "sort", r.override ? "Accepted with renewal exception" : "");
+      } else {
+        /* an unresolved flag files as a rejection, so the existing redo loop
+           carries it: the client link shows the reason, Review stays open */
+        rec.state = "rejected"; rec.rejectedReason = r.issue;
+      }
+    });
+    Store.save();
+    st.shots = []; /* the kept URLs now belong to the documents */
+    toast("Sorted. Verified documents moved into the deal jacket.");
+    navigate(backHash);
+  }
+
+  function captureScreen() {
+    const n = st.shots.length;
+    return `<div class="sa-wrap">
+      <div class="sa-cam">
+        <div class="sa-camtop"><button type="button" class="sa-x" id="saClose" aria-label="Close">×</button><b>Snap All Documents</b><span></span></div>
+        <div class="sa-viewfinder"><b>Hold steady over any paper, card, or ID</b>
+          <span>Take photos one after another. The system will identify and sort them automatically.</span></div>
+        ${st.retaken ? `<p class="sa-retakenote">Retake the insurance card — capture the renewed binder or current card.</p>` : ""}
+        ${n ? `<div class="sa-thumbs">${st.shots.map((s, i) => `
+          <span class="sa-thumb"><img src="${esc(s.url)}" alt="Captured photo ${i + 1}">
+            <button type="button" class="sa-thumb__x" data-unshot="${esc(s.id)}" aria-label="Remove photo ${i + 1}">×</button></span>`).join("")}</div>` : ""}
+        <div class="sa-controls">
+          <button type="button" class="sa-gallery" id="saGallery"><span aria-hidden="true">🖼️</span>Gallery</button>
+          <button type="button" class="sa-shutter" id="saShutter" aria-label="Snap photo"><span></span></button>
+          <span></span>
+        </div>
+        <input type="file" accept="image/*" capture="environment" id="saCam" hidden>
+        <input type="file" accept="image/*" multiple id="saLib" hidden>
+        ${n ? `<button type="button" class="sa-process" id="saProcess">Process ${n} Photo${n === 1 ? "" : "s"} &amp; Auto-Sort →</button>` : ""}
+        <p class="demo-note">Demo — the sorting is simulated; nothing is read from your photos and they never leave this device.</p>
+      </div>
+    </div>`;
+  }
+
+  function resultsScreen() {
+    const ok = st.results.filter(r => r.status === "verified");
+    const attn = st.results.filter(r => r.status === "attention");
+    const missing = st.results.filter(r => r.status === "missing");
+    return `<div class="sa-wrap">
+      <div class="sa-results">
+        <div class="sa-reshead"><h2>Upload Results</h2><p>Deal #${esc(deal.dealNo || "")}${cst ? " · " + esc(cst.first + " " + cst.last) : ""}</p></div>
+        <div class="sa-resbody">
+          ${ok.length ? `<p class="sa-grouplab sa-grouplab--green">Auto-identified &amp; Verified (${ok.length})</p>` + ok.map(r => `
+            <div class="sa-card"><span class="sa-cardicon">${r.icon}</span>
+              <span class="sa-cardcopy"><b>${esc(r.title)}</b><span>${esc(r.detail)} · ${r.shots.length} page${r.shots.length === 1 ? "" : "s"}</span></span>
+              <span class="sa-verified">Verified ✓</span></div>`).join("") : ""}
+          ${attn.length ? `<p class="sa-grouplab sa-grouplab--amber">Needs Attention (${attn.length})</p>` + attn.map(r => `
+            <div class="sa-card sa-card--attn">
+              <div class="sa-cardmain"><span class="sa-cardicon">${r.icon}</span>
+                <span class="sa-cardcopy"><b>${esc(r.title)}</b><span class="sa-issue">Issue: ${esc(r.issue)}</span></span></div>
+              <div class="sa-attnact">
+                <button type="button" class="btn sa-retakebtn" id="saRetake">📷 Retake</button>
+                <button type="button" class="btn sa-overridebtn" id="saOverride">Accept Anyway</button>
+              </div>
+            </div>`).join("") : ""}
+          ${missing.length ? `<p class="sa-grouplab">Still needed (${missing.length})</p>` + missing.map(r => `
+            <div class="sa-card sa-card--missing"><span class="sa-cardicon">${r.icon}</span>
+              <span class="sa-cardcopy"><b>${esc(r.title)}</b><span>No photo landed on this one — snap it, or send it on its own.</span></span></div>`).join("") : ""}
+          <p class="demo-note">Demo — the sort and the checks are simulated on this device. Nothing is read from the photos (they are dealt onto the documents still needed, in order) and they never leave it.</p>
+        </div>
+        <button type="button" class="sa-save" id="saSave">Confirm &amp; Save to Deal Jacket →</button>
+      </div>
+    </div>`;
+  }
+
+  function render() {
+    view().innerHTML = st.screen === "results" ? resultsScreen() : captureScreen();
+    if (st.screen === "results") {
+      $("#saSave").onclick = commit;
+      if ($("#saRetake")) $("#saRetake").onclick = () => {
+        /* the flagged photos are what the retake replaces — drop them, and
+           aim the next captures at that document rather than the deal order */
+        const flagged = st.results.find(r => r.status === "attention");
+        if (flagged) {
+          flagged.shots.forEach(releaseShot);
+          st.shots = st.shots.filter(s => s.target !== flagged.id);
+          st.retakeTarget = flagged.id;
+        }
+        st.retaken = true; st.screen = "capture"; render();
+      };
+      if ($("#saOverride")) $("#saOverride").onclick = () => {
+        st.results.forEach(r => {
+          if (r.status === "attention") { r.status = "verified"; r.detail = "Accepted with renewal exception"; r.override = true; }
+        });
+        render();
+      };
+      return;
+    }
+    $("#saClose").onclick = () => navigate(backHash); /* the hashchange cleanup releases the shots */
+    $("#saShutter").onclick = () => { const inp = $("#saCam"); inp.value = ""; inp.click(); };
+    $("#saGallery").onclick = () => { const inp = $("#saLib"); inp.value = ""; inp.click(); };
+    [["#saCam", "camera"], ["#saLib", "gallery"]].forEach(([sel, source]) => {
+      const inp = $(sel);
+      inp.onchange = () => {
+        Array.from(inp.files || []).forEach(f => st.shots.push({ id: uid("s"), url: URL.createObjectURL(f), source, target: st.retakeTarget }));
+        render();
+      };
+    });
+    $$("[data-unshot]").forEach(b => b.onclick = () => {
+      const i = st.shots.findIndex(s => s.id === b.dataset.unshot);
+      if (i >= 0) { releaseShot(st.shots[i]); st.shots.splice(i, 1); render(); }
+    });
+    if ($("#saProcess")) $("#saProcess").onclick = () => { st.results = buildResults(); st.screen = "results"; render(); };
   }
 
   render();

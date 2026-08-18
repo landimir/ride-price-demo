@@ -964,6 +964,96 @@ label.f .seg { display: flex; }
 .dr-rejectbtn { flex: 1; justify-content: center; background: #fff1f2; border-color: #fecdd3; color: #be123c; font-weight: 900; }
 .dr-acceptbtn { flex: 1.4; justify-content: center; background: linear-gradient(90deg, #059669, #10b981); color: #fff; border-color: transparent; font-weight: 900; }
 .dr-reasongrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.dr-doneline { background: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 14px; padding: 12px; margin: 10px 0; }
+.dr-doneline b { display: block; font-size: 13px; color: #047857; }
+.dr-doneline p { margin: 4px 0 0; font-size: 12px; color: var(--ink); }
+.dr-donereturn { width: 100%; justify-content: center; }
+
+/* ---- Snap All Documents — burst capture + simulated auto-sort ---- */
+/* the advisor launcher shares the jacket screen's recorded blue-CTA
+   exception; the client launcher stays on the client-link's own gradient */
+.jk-snapall {
+  display: flex; width: 100%; justify-content: center; min-height: 48px; margin: 0 0 10px;
+  background: linear-gradient(90deg, #2563eb, #3b82f6); color: #fff; border-color: transparent; font-weight: 800;
+}
+.dr-snapall {
+  width: 100%; min-height: 48px; border: 0; border-radius: 13px; margin: 0 0 12px;
+  background: linear-gradient(90deg, var(--orange), var(--coral)); color: #fff;
+  font: inherit; font-weight: 900; cursor: pointer; box-shadow: 0 8px 18px rgba(229,80,78,.18);
+}
+.sa-wrap { max-width: 480px; margin: 0 auto; }
+/* the capture surface is camera chrome, not brand surface — its darks stay literal */
+.sa-cam {
+  min-height: min(calc(100vh - 140px), 760px); background: #05070b; color: #fff;
+  display: flex; flex-direction: column; padding: 14px 14px 18px; border-radius: var(--r);
+}
+.sa-camtop { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: 0 0 10px; }
+.sa-camtop b { text-align: center; font-size: 14px; }
+.sa-x { border: 0; background: transparent; color: #fff; font-size: 26px; min-height: 44px; cursor: pointer; }
+.sa-viewfinder {
+  min-height: 280px; border: 2px dashed rgba(255,255,255,.25); border-radius: 24px;
+  background: radial-gradient(circle at 50% 45%, #1e293b 0, #0f172a 50%, #020617 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 24px;
+}
+.sa-viewfinder b { font-size: 14px; }
+.sa-viewfinder span { font-size: 11px; color: #94a3b8; margin-top: 6px; line-height: 1.35; }
+.sa-retakenote {
+  margin: 10px 0 0; padding: 9px 11px; border-radius: 11px; background: #451a03;
+  border: 1px solid #92400e; color: #fde68a; font-size: 11px; font-weight: 700; text-align: center;
+}
+.sa-thumbs { display: flex; gap: 8px; overflow-x: auto; padding: 14px 2px 8px; }
+.sa-thumb {
+  width: 76px; height: 88px; border-radius: 12px; background: #1e293b;
+  border: 1px solid rgba(255,255,255,.18); position: relative; flex: 0 0 auto; overflow: hidden;
+}
+.sa-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; background: #0f172a; }
+.sa-thumb__x {
+  position: absolute; right: 4px; top: 4px; width: 24px; height: 24px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.35); background: rgba(15,23,42,.82); color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 16px; line-height: 1;
+  padding: 0; cursor: pointer;
+}
+.sa-controls { display: grid; grid-template-columns: 1fr 82px 1fr; align-items: center; gap: 10px; padding: 10px 8px 12px; margin-top: auto; }
+.sa-gallery {
+  justify-self: start; min-width: 92px; min-height: 48px; border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.09); color: #fff; border-radius: 999px; padding: 0 13px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  font: inherit; font-size: 12px; font-weight: 800; white-space: nowrap; cursor: pointer;
+}
+.sa-gallery span { font-size: 18px; line-height: 1; }
+.sa-shutter { justify-self: center; width: 70px; height: 70px; border-radius: 50%; border: 4px solid #fff; background: transparent; padding: 5px; cursor: pointer; }
+.sa-shutter span { display: block; width: 100%; height: 100%; background: #fff; border-radius: 50%; }
+.sa-process { width: 100%; min-height: 50px; border: 0; border-radius: 14px; background: var(--grad); color: #fff; font: inherit; font-weight: 900; font-size: 13px; cursor: pointer; }
+.sa-cam .demo-note { color: #94a3b8; text-align: center; margin: 10px 0 0; }
+
+/* the results sheet */
+.sa-results { background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; padding-bottom: 14px; }
+.sa-reshead { padding: 15px 16px; background: #fff; border-bottom: 1px solid var(--line); }
+.sa-reshead h2 { font-size: 18px; margin: 0; color: var(--navy); }
+.sa-reshead p { font-size: 11.5px; margin: 4px 0 0; color: var(--ink); }
+.sa-resbody { padding: 14px; }
+.sa-grouplab { font-size: 10.5px; font-weight: 900; text-transform: uppercase; letter-spacing: .65px; margin: 5px 2px 8px; color: var(--ink); }
+.sa-grouplab--green { color: #047857; }
+.sa-grouplab--amber { color: #a16207; }
+.sa-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 11px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+.sa-card--attn { display: block; background: #fffbeb; border-color: #fde68a; }
+.sa-cardmain { display: flex; align-items: center; gap: 10px; }
+.sa-cardicon { width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 18px; flex: 0 0 auto; }
+.sa-card--attn .sa-cardicon { background: #fef3c7; }
+.sa-cardcopy { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.sa-cardcopy b { font-size: 12.5px; color: var(--navy); }
+.sa-cardcopy span { font-size: 11px; color: var(--ink); margin-top: 3px; }
+.sa-issue { color: #92400e; font-weight: 700; }
+.sa-verified { font-size: 11px; font-weight: 900; color: #047857; white-space: nowrap; }
+.sa-attnact { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.sa-retakebtn { justify-content: center; background: #fff; border-color: var(--line); color: var(--navy); font-weight: 900; }
+.sa-overridebtn { justify-content: center; background: #0f172a; border-color: transparent; color: #fff; font-weight: 900; }
+.sa-save {
+  display: block; width: calc(100% - 28px); margin: 4px auto 0; min-height: 52px; border: 0;
+  border-radius: 14px; background: linear-gradient(90deg, #059669, #10b981); color: #fff;
+  font: inherit; font-weight: 900; cursor: pointer;
+}
 
 /* phone-only pieces, hidden above 720 */
 .jk-phonehead, .jk-scanwide, .jk-bottombar, .jk-adv, .jk-script { display: none; }
@@ -1064,7 +1154,8 @@ label.f .seg { display: flex; }
   body[data-screen="jacket"] .pagebar { display: none; }
   /* the composer and client screens carry their own headers on a phone */
   body[data-screen="docreq"] .pagebar,
-  body[data-screen="clientlink"] .pagebar { display: none; }
+  body[data-screen="clientlink"] .pagebar,
+  body[data-screen="snapall"] .pagebar { display: none; }
   /* the legend sits on the navy banner on phones */
   body[data-screen="jacket"] .dr-legend { color: #dbeafe; }
   body[data-screen="jacket"] .dr-legend span { color: #dbeafe; }

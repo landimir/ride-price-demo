@@ -280,21 +280,27 @@ const RIDE_PRICE_DATA = {
       requirement: "Must show the vehicle by VIN or description, your name, the policy number, effective dates covering today, and comprehensive plus collision coverage. If the card runs to two pages, add both.",
       multiNote: "May be multi-page. If your insurance card or binder has a second page, add both before you finish.",
       minPages: 1,
-      checks: ["Vehicle matches or VIN matches", "Customer name and policy number are visible", "Effective dates include today", "Comprehensive and collision coverage are shown", "All pages are present if the card spans two pages"]
+      checks: ["Vehicle matches or VIN matches", "Customer name and policy number are visible", "Effective dates include today", "Comprehensive and collision coverage are shown", "All pages are present if the card spans two pages"],
+      sortDetail: "Active coverage",
+      verifiedSummary: "VIN, customer name, and policy dates align with the active deal."
     },
     license: {
       icon: "▦", short: "License", plainReason: "Needed for registration",
       requirement: "Front and back, unexpired, name matching the credit application. Not a photo of a photo, not a screenshot, not a temporary paper permit unless you also add the expired card.",
       multiNote: "Two sides required. Capture the front and back. You can add the second side from the review screen.",
       minPages: 2,
-      checks: ["Front image is present and readable", "Back image is present and readable", "License is unexpired", "Name matches the credit application", "Image is an original capture, not a screenshot/photo of a photo"]
+      checks: ["Front image is present and readable", "Back image is present and readable", "License is unexpired", "Name matches the credit application", "Image is an original capture, not a screenshot/photo of a photo"],
+      sortDetail: "License unexpired",
+      verifiedSummary: "Front and back are readable, the license is unexpired, and the name matches the credit application."
     },
     paystub: {
       icon: "▤", short: "Paystub", plainReason: "Bank requirement",
       requirement: "Your two most recent consecutive stubs, each showing employer name, pay period dates, and year-to-date gross. If you're self-employed, add “Other income type” instead.",
       multiNote: "Two paystubs required. Add your two most recent consecutive stubs.",
       minPages: 2,
-      checks: ["Two consecutive paystubs are present", "Employer name is visible", "Pay period dates are visible", "Year-to-date gross is visible", "Customer name matches the application"]
+      checks: ["Two consecutive paystubs are present", "Employer name is visible", "Pay period dates are visible", "Year-to-date gross is visible", "Customer name matches the application"],
+      sortDetail: "Two consecutive stubs",
+      verifiedSummary: "Two consecutive paystubs with employer, pay dates, and year-to-date gross readable."
     }
   },
 
