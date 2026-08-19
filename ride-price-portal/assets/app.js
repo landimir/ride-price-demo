@@ -122,13 +122,16 @@ function toast(msg) {
   toastTimer = setTimeout(() => t.classList.remove("show"), 2100);
 }
 
+/* title is TEXT and is escaped here, once, at the boundary — callers pass a
+   plain string and must not pre-escape it. bodyHtml/footHtml are markup by
+   contract and stay raw; whatever builds them escapes its own values. */
 function modal(title, bodyHtml, footHtml) {
   closeModal();
   const back = document.createElement("div");
   back.className = "modal-back open";
   back.id = "modalBack";
   back.innerHTML = `<div class="modal">
-    <div class="modal__head"><h3>${title}</h3><button data-close>×</button></div>
+    <div class="modal__head"><h3>${esc(title)}</h3><button data-close>×</button></div>
     <div class="modal__body">${bodyHtml}</div>
     ${footHtml ? `<div class="modal__foot">${footHtml}</div>` : ""}
   </div>`;
@@ -443,7 +446,7 @@ route("deals", () => {
         ${deals.length ? deals.map(d => {
           const c = Store.customer(d.customerId), v = Store.vehicle(d.stock);
           const st = STAGES[d.stage] || STAGES.discovery;
-          return `<tr data-row="${d.id}" class="${d.stage === "complete" ? "tbl-row--done" : ""}">
+          return `<tr data-row="${esc(d.id)}" class="${d.stage === "complete" ? "tbl-row--done" : ""}">
             <td class="small" data-label="Date">${new Date(d.createdAt).toLocaleDateString()}</td>
             <td data-label="Customer"><b>${c ? esc(c.last + ", " + c.first) : "—"}</b></td>
             <td class="small" data-label="Vehicle">${v ? esc(v.year + " " + v.make + " " + v.model) + " : " + v.stock : "<span class='muted'>not selected</span>"}</td>
@@ -519,7 +522,7 @@ route("customers", () => {
     return `<tr><td data-label="Customer"><b>${esc(c.last)}, ${esc(c.first)}</b><div class="small">${esc(c.city)}, ${esc(c.state)} ${esc(c.zip)}</div></td>
       <td class="small" data-label="Contact">${esc(c.phone)}<br>${esc(c.email)}</td>
       <td class="small" data-label="Last Activity">${new Date(c.createdAt).toLocaleDateString()}</td>
-      <td class="right acts"><button class="btn btn--sm btn--grad" data-start="${c.id}">Start Visit →</button></td></tr>`;
+      <td class="right acts"><button class="btn btn--sm btn--grad" data-start="${esc(c.id)}">Start Visit →</button></td></tr>`;
   }
 
   function doSearch() {
@@ -1053,7 +1056,7 @@ route("vehicles/:id", ({ id }) => {
   if (id !== "browse" && !deal) return navigate("#/deals");
 
   renderChrome("Vehicle Search", deal ? dealTitle(deal) : "Browsing inventory",
-    deal ? `<a class="btn btn--ghost btn--sm" href="#/discovery/${deal.id}">← Discovery</a>` : "");
+    deal ? `<a class="btn btn--ghost btn--sm" href="#/discovery/${esc(deal.id)}">← Discovery</a>` : "");
 
   const makes = [...new Set(RIDE_PRICE_DATA.inventory.map(v => v.make))];
   const bodies = [...new Set(RIDE_PRICE_DATA.inventory.map(v => v.body))];
@@ -1088,18 +1091,18 @@ route("vehicles/:id", ({ id }) => {
           <span class="tag badge badge--type">${v.type}</span>${v.emoji}
         </div>
         <div class="vbody">
-          <h3>${v.year} ${esc(v.make)} ${esc(v.model)}<br><span style="font-size:12.5px;font-weight:400">${esc(v.trim)}</span></h3>
-          <div class="vmeta">Stock ${v.stock} · ${v.miles.toLocaleString()} mi · ${esc(v.ext)} · ${v.drive}</div>
+          <h3>${esc(v.year)} ${esc(v.make)} ${esc(v.model)}<br><span style="font-size:12.5px;font-weight:400">${esc(v.trim)}</span></h3>
+          <div class="vmeta">Stock ${esc(v.stock)} · ${esc(v.miles.toLocaleString())} mi · ${esc(v.ext)} · ${esc(v.drive)}</div>
           <div class="vprice"><b>${money0(v.selling)}</b>${v.msrp !== v.selling ? `<s>MSRP ${money0(v.msrp)}</s>` : ""}</div>
-          <div class="flex"><button class="btn btn--sm btn--ghost" data-detail="${v.stock}">Details</button></div>
+          <div class="flex"><button class="btn btn--sm btn--ghost" data-detail="${esc(v.stock)}">Details</button></div>
           <div class="journey">
-            <button class="btn btn--primary btn--sm" data-journey="${v.stock}">Your Journey ▾</button>
-            <div class="jmenu" id="jm-${v.stock}">
-              <button data-act="test" data-stock="${v.stock}">Test Drive</button>
-              <button data-act="trade" data-stock="${v.stock}">Trade Appraisal</button>
-              <button data-act="calc" data-stock="${v.stock}">Calculate Payment</button>
-              <button data-act="quote" data-stock="${v.stock}">Quote</button>
-              <button data-act="savequote" data-stock="${v.stock}">Save Quote</button>
+            <button class="btn btn--primary btn--sm" data-journey="${esc(v.stock)}">Your Journey ▾</button>
+            <div class="jmenu" id="jm-${esc(v.stock)}">
+              <button data-act="test" data-stock="${esc(v.stock)}">Test Drive</button>
+              <button data-act="trade" data-stock="${esc(v.stock)}">Trade Appraisal</button>
+              <button data-act="calc" data-stock="${esc(v.stock)}">Calculate Payment</button>
+              <button data-act="quote" data-stock="${esc(v.stock)}">Quote</button>
+              <button data-act="savequote" data-stock="${esc(v.stock)}">Save Quote</button>
             </div>
           </div>
         </div>
@@ -1121,7 +1124,7 @@ route("vehicles/:id", ({ id }) => {
           ${v.includedOptions ? `<li><span>Included Options</span><b class="amt">${money(v.includedOptions)}</b></li>` : ""}
         </ul>
         <p class="small mt">${esc(v.blurb)}</p>
-        <p class="small">VIN ${v.vin} · ${v.engine} · ${v.mpg} MPG · ${esc(v.int)} interior · ${v.miles.toLocaleString()} miles</p>`,
+        <p class="small">VIN ${esc(v.vin)} · ${esc(v.engine)} · ${esc(v.mpg)} MPG · ${esc(v.int)} interior · ${esc(v.miles.toLocaleString())} miles</p>`,
         `<button class="btn btn--ghost" data-close>Close</button>`);
     });
     $$(".jmenu button").forEach(btn => btn.onclick = () => {
@@ -1170,14 +1173,14 @@ route("testdrive/:id", ({ id }) => {
   const td = deal.testDrive;
 
   renderChrome("Test Drive Agreement", dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/vehicles/${deal.id}">← Vehicle Search</a>`);
+    `<a class="btn btn--ghost btn--sm" href="#/vehicles/${esc(deal.id)}">← Vehicle Search</a>`);
 
   function phaseAuth() {
     view().innerHTML = `
       <div class="panel panel--navyhead">
         <div class="panel__head"><h2>Authorization of Electronic Signature</h2></div>
         <div class="panel__body">
-          <p class="small">As part of the purchase/lease of this vehicle <b>${v.year} ${v.make} ${v.model} / ${v.vin} / ${v.stock}</b>, the documents checked below apply to this transaction.</p>
+          <p class="small">As part of the purchase/lease of this vehicle <b>${esc(v.year)} ${esc(v.make)} ${esc(v.model)} / ${esc(v.vin)} / ${esc(v.stock)}</b>, the documents checked below apply to this transaction.</p>
           <p class="flex"><span class="badge badge--approved">✓ Included</span> <b style="font-size:13.5px">Test Drive Agreement</b></p>
           <div class="note note--wt"><span class="lab">Word track</span>“You'll find many of the things we do here are different from traditional dealerships; and one of the ways we're different is by using electronic signatures. These are legally binding signatures just like ink signatures, and you're authorizing the use of your electronic signature.”</div>
           <div class="radio-row">
@@ -1274,8 +1277,8 @@ route("testdrive/:id", ({ id }) => {
         <div class="panel__head"><h2>Test Drive In Progress</h2><div class="right"><span class="badge badge--prog">🚗 out on the road</span></div></div>
         <div class="panel__body center" style="padding:44px 20px">
           <div style="font-size:64px">${v.emoji}</div>
-          <h3 style="color:var(--navy);margin:8px 0 2px">${v.year} ${v.make} ${v.model} ${esc(v.trim)}</h3>
-          <p class="small">Stock ${v.stock} · started odometer ${v.miles.toLocaleString()} mi</p>
+          <h3 style="color:var(--navy);margin:8px 0 2px">${esc(v.year)} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</h3>
+          <p class="small">Stock ${esc(v.stock)} · started odometer ${esc(v.miles.toLocaleString())} mi</p>
           <button class="btn btn--grad" id="endBtn" style="margin-top:14px">End Test Drive</button>
         </div>
       </div>`;
@@ -1295,11 +1298,11 @@ route("testdrive/:id", ({ id }) => {
       <div class="panel">
         <div class="panel__head"><h2>Test Drive Complete</h2><div class="right"><span class="badge badge--approved">✓ Completed</span></div></div>
         <div class="panel__body center" style="padding:36px 20px">
-          <p>How did they like the <b>${v.year} ${v.make} ${v.model}</b>?</p>
+          <p>How did they like the <b>${esc(v.year)} ${esc(v.make)} ${esc(v.model)}</b>?</p>
           <div class="note note--wt" style="text-align:left"><span class="lab">Next move</span>Give a proper introduction to your team lead. If there is a trade, run the trade evaluation — otherwise go straight to Calculate Payment.</div>
           <div class="flex" style="justify-content:center;margin-top:18px">
-            <a class="btn btn--primary" href="#/trade/${deal.id}">Trade Evaluation</a>
-            <a class="btn btn--grad" href="#/desk/${deal.id}" id="toDesk">Calculate Payment →</a>
+            <a class="btn btn--primary" href="#/trade/${esc(deal.id)}">Trade Evaluation</a>
+            <a class="btn btn--grad" href="#/desk/${esc(deal.id)}" id="toDesk">Calculate Payment →</a>
           </div>
         </div>
       </div>`;
@@ -1388,7 +1391,7 @@ route("trade/:id", ({ id }) => {
   const triSel = (id, val) => `<select id="${id}" data-ui="seg">    <option value="" ${val === true || val === false ? "" : "selected"}>—</option>    <option value="yes" ${val === true ? "selected" : ""}>Yes</option>    <option value="no" ${val === false ? "selected" : ""}>No</option></select>`;
 
   renderChrome("Trade-In Evaluation", dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/desk/${deal.id}">Skip → Calculate Payment</a>`);
+    `<a class="btn btn--ghost btn--sm" href="#/desk/${esc(deal.id)}">Skip → Calculate Payment</a>`);
 
   view().innerHTML = `
     <div class="panel panel--navyhead">
@@ -1491,7 +1494,7 @@ route("trade/:id", ({ id }) => {
         <div class="amt">${money0(value)}</div>
         <span class="sub">Payoff ${money0(payoff)} → ${equity >= 0 ? "positive equity " + money0(equity) : "negative equity " + money0(equity)}</span>
       </div>
-      <div class="flex mt"><a class="btn btn--grad" href="#/desk/${deal.id}" id="toDesk2">Calculate Payment →</a></div>`;
+      <div class="flex mt"><a class="btn btn--grad" href="#/desk/${esc(deal.id)}" id="toDesk2">Calculate Payment →</a></div>`;
     $("#toDesk2").onclick = () => { if (["vehicle", "testdrive"].includes(deal.stage)) { deal.stage = "desking"; Store.save(); } };
     toast("Trade value saved to the deal");
   };
@@ -1546,7 +1549,7 @@ route("desk/:id", ({ id }) => {
             </label>
             <label class="opt-row">
               <span class="switch"><input type="checkbox" id="hStock" ${h.inStock === false ? "" : "checked"}><span class="sl"></span></span>
-              <span class="opt-row__label">4 · Car in stock today — ${v.year} ${esc(v.make)} ${esc(v.model)} · ${v.stock}</span>
+              <span class="opt-row__label">4 · Car in stock today — ${esc(v.year)} ${esc(v.make)} ${esc(v.model)} · ${esc(v.stock)}</span>
             </label>
           </div>
 
@@ -1555,7 +1558,7 @@ route("desk/:id", ({ id }) => {
 
           <div class="note note--red">The Team Lead and Client Advisor will <b>“game plan”</b> the initial pencil together before any numbers are shown.</div>
           <div class="flex mt">
-            ${deal.trade.has || h.trade ? `<a class="btn btn--ghost btn--sm" href="#/trade/${deal.id}">Trade evaluation →</a>` : ""}
+            ${deal.trade.has || h.trade ? `<a class="btn btn--ghost btn--sm" href="#/trade/${esc(deal.id)}">Trade evaluation →</a>` : ""}
             <div class="push"></div>
             <button class="btn btn--grad" id="hConfirm">🤝 Game plan the pencil →</button>
           </div>
@@ -1590,7 +1593,7 @@ route("desk/:id", ({ id }) => {
   function render() {
     renderChrome("Calculate Payments", dealTitle(deal),
       `<button class="btn btn--ghost btn--sm" id="huddleBtn">🤝 Huddle</button>
-       <a class="btn btn--ghost btn--sm" href="#/compare/${deal.id}">More… Compare Payments</a>
+       <a class="btn btn--ghost btn--sm" href="#/compare/${esc(deal.id)}">More… Compare Payments</a>
        <button class="btn btn--grad btn--sm" id="deskContinue">Continue →</button>`);
     $("#huddleBtn").onclick = () => renderHuddle();
     const r = RIDE_PRICE_CALC.calc(deal, v);
@@ -1612,8 +1615,8 @@ route("desk/:id", ({ id }) => {
             <div class="flex">
               <div class="vimg" style="width:110px;height:74px;border-radius:10px;background:linear-gradient(140deg,hsl(${v.hue},42%,90%),hsl(${v.hue},38%,78%));display:grid;place-items:center;font-size:38px">${v.emoji}</div>
               <div>
-                <b style="color:var(--navy)">${v.year} ${v.make} ${v.model} | ${esc(v.trim)}</b>
-                <div class="small">Stock ${v.stock} · VIN ${v.vin}</div>
+                <b style="color:var(--navy)">${esc(v.year)} ${esc(v.make)} ${esc(v.model)} | ${esc(v.trim)}</b>
+                <div class="small">Stock ${esc(v.stock)} · VIN ${esc(v.vin)}</div>
               </div>
             </div>
             <ul class="lines mt">
@@ -1640,7 +1643,7 @@ route("desk/:id", ({ id }) => {
 
         <div class="panel">
           <div class="panel__head"><h2>Trade &amp; Rebate</h2>
-            <div class="right"><a class="btn btn--sm btn--ghost" href="#/trade/${deal.id}">Import Trade</a></div></div>
+            <div class="right"><a class="btn btn--sm btn--ghost" href="#/trade/${esc(deal.id)}">Import Trade</a></div></div>
           <div class="panel__body">
             <div class="fields fields--tight">
               <label class="f"><span class="lab">Trade Value</span><span class="minput"><input type="number" id="tradeVal" value="${esc(String(deal.trade.value || 0))}" step="100"></span></label>
@@ -1766,7 +1769,7 @@ route("compare/:id", ({ id }) => {
   const v = Store.vehicle(deal.stock);
 
   renderChrome("Payment Comparison", dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/desk/${deal.id}">← Calculate Payments</a>`);
+    `<a class="btn btn--ghost btn--sm" href="#/desk/${esc(deal.id)}">← Calculate Payments</a>`);
 
   const sides = [deal.dealType === "lease" ? "finance" : deal.dealType, deal.dealType === "lease" ? "lease" : "lease"];
 
@@ -1828,8 +1831,8 @@ route("agreement/:id", ({ id }) => {
   const signed = deal.basePayment && deal.basePayment.signedAt;
 
   renderChrome("Base Payment — Terms of Agreement", dealTitle(deal),
-    `<a class="btn btn--danger btn--sm" href="#/desk/${deal.id}" id="redesk">Redesk Payment</a>
-     ${signed ? `<a class="btn btn--grad btn--sm" href="#/credit/${deal.id}">Continue → Credit Application</a>` : ""}`);
+    `<a class="btn btn--danger btn--sm" href="#/desk/${esc(deal.id)}" id="redesk">Redesk Payment</a>
+     ${signed ? `<a class="btn btn--grad btn--sm" href="#/credit/${esc(deal.id)}">Continue → Credit Application</a>` : ""}`);
 
   view().innerHTML = `
     <div class="doc">
@@ -1869,8 +1872,8 @@ route("agreement/:id", ({ id }) => {
     </div>
     <div class="flex mt" style="max-width:760px;margin:16px auto 0">
       ${signed
-        ? `<a class="btn btn--ghost" href="#/print/${deal.id}/agreement">🖨 Print for deal folder</a>
-           <div class="push"></div><a class="btn btn--grad" href="#/credit/${deal.id}">Continue → Credit Application</a>`
+        ? `<a class="btn btn--ghost" href="#/print/${esc(deal.id)}/agreement">🖨 Print for deal folder</a>
+           <div class="push"></div><a class="btn btn--grad" href="#/credit/${esc(deal.id)}">Continue → Credit Application</a>`
         : `<div class="push"></div><button class="btn btn--grad" id="signBp">✍ Sign Base Payment Agreement</button>`}
     </div>
     ${signed ? `<p class="note" style="max-width:760px;margin:14px auto">Print this and put it in the deal folder. <b>Redesk Payment</b> voids this signed agreement and reopens the desking screen.</p>` : ""}`;
@@ -1908,7 +1911,7 @@ route("credit/:id", ({ id }) => {
   const app = deal.creditApp;
 
   renderChrome("Lending Lane — Credit Application", dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/agreement/${deal.id}">← Base Payment</a>`);
+    `<a class="btn btn--ghost btn--sm" href="#/agreement/${esc(deal.id)}">← Base Payment</a>`);
 
   if (app && app.approved) return renderApproved();
 
@@ -1991,10 +1994,10 @@ route("credit/:id", ({ id }) => {
 
     ${r ? `
     <div class="panel">
-      <div class="panel__head"><h2>Synced From Your Worksheet</h2><div class="right"><a class="btn btn--ghost btn--sm" href="#/desk/${deal.id}">Edit in desking</a></div></div>
+      <div class="panel__head"><h2>Synced From Your Worksheet</h2><div class="right"><a class="btn btn--ghost btn--sm" href="#/desk/${esc(deal.id)}">Edit in desking</a></div></div>
       <div class="panel__body">
         <ul class="lines small">
-          <li><span>Vehicle</span><b class="amt amt--wrap">${v.year} ${esc(v.make)} ${esc(v.model)} · ${esc(v.stock)}</b></li>
+          <li><span>Vehicle</span><b class="amt amt--wrap">${esc(v.year)} ${esc(v.make)} ${esc(v.model)} · ${esc(v.stock)}</b></li>
           <li><span>MSRP</span><b class="amt">${money(v.msrp)}</b></li>
           <li><span>Cash Price</span><b class="amt">${money(r.yourPrice)}</b></li>
           <li><span>Sales Tax</span><b class="amt">${money(r.taxes.total || 0)}</b></li>
@@ -2187,7 +2190,7 @@ route("credit/:id", ({ id }) => {
 
   function renderApproved(justNow) {
     const a = deal.creditApp;
-    renderChrome("Lending Lane — Credit Application", dealTitle(deal), `<a class="btn btn--grad btn--sm" href="#/menu/${deal.id}">Continue → Menu</a>`);
+    renderChrome("Lending Lane — Credit Application", dealTitle(deal), `<a class="btn btn--grad btn--sm" href="#/menu/${esc(deal.id)}">Continue → Menu</a>`);
     view().innerHTML = `
       <div class="panel">
         <div class="panel__head"><h2>Loan Status</h2><div class="right"><span class="badge badge--approved">✓ Approved</span></div></div>
@@ -2199,7 +2202,7 @@ route("credit/:id", ({ id }) => {
             <select id="assignLender" data-ui="dd">${RIDE_PRICE_DATA.lenders.map(l => `<option ${l === a.lender ? "selected" : ""}>${l}</option>`).join("")}</select>
           </label>
           <div class="note note--wt" style="text-align:left;max-width:560px;margin:18px auto"><span class="lab">While you waited</span>The Manufacturer Warranty Overview and Service Walk are complete and the Cover Sheet is printed. Next: the Team Lead signs off on the deal and delivers it to Processing — then the menu gets built.</div>
-          <a class="btn btn--grad" href="#/menu/${deal.id}">Continue → Manager Sign-Off</a>
+          <a class="btn btn--grad" href="#/menu/${esc(deal.id)}">Continue → Manager Sign-Off</a>
         </div>
       </div>`;
     $("#assignLender").onchange = (e) => {
@@ -2473,7 +2476,7 @@ route("menu/:id", ({ id }) => {
     const ready = checks.filter(x => x.req).every(x => x.ok);
     const jacketLocked = checks.some(x => x.jacket);
     renderChrome("Manager Sign-Off", dealTitle(deal),
-      `<a class="btn btn--ghost btn--sm" href="#/credit/${deal.id}">← Lending Lane</a>`);
+      `<a class="btn btn--ghost btn--sm" href="#/credit/${esc(deal.id)}">← Lending Lane</a>`);
     view().innerHTML = `
       <div class="panel panel--navyhead" style="max-width:720px;margin:0 auto">
         <div class="panel__head"><h2>Team Lead Sign-Off Required</h2>
@@ -2587,7 +2590,7 @@ route("menu/:id", ({ id }) => {
               <div class="bbody">${b.body}</div>
             </div>`).join("")}
           </div>
-          <div class="flex mt"><a class="btn btn--ghost" href="#/credit/${deal.id}">← Lending Lane</a><div class="push"></div><button class="btn btn--grad" id="s1next">Next →</button></div>
+          <div class="flex mt"><a class="btn btn--ghost" href="#/credit/${esc(deal.id)}">← Lending Lane</a><div class="push"></div><button class="btn btn--grad" id="s1next">Next →</button></div>
         </div>
       </div>`;
 
@@ -2650,7 +2653,7 @@ route("menu/:id", ({ id }) => {
     view().innerHTML = `${menuStepperHtml(deal, M.step)}
       <div class="flex" style="margin-bottom:14px">
         <p class="note note--wt advscript-item" style="flex:1;min-width:min(280px,100%);margin:0"><span class="lab">Take control — the 300% rule</span>${M.presented ? `Every product has been presented — now show the options and let the client choose.` : `Present every product before showing payments.`} When they push back: <i>“Which product do you see the least amount of value in?”</i></p>
-        <a class="btn advscript-item ${M.presented ? "btn--ghost" : "btn--grad"}" href="#/present/${deal.id}">🎤 ${M.presented ? "Re-present products" : `Present ${cols[0].label} →`}</a>
+        <a class="btn advscript-item ${M.presented ? "btn--ghost" : "btn--grad"}" href="#/present/${esc(deal.id)}">🎤 ${M.presented ? "Re-present products" : `Present ${cols[0].label} →`}</a>
       </div>
       <div class="mtabs" role="tablist">
         ${[...cols.map(c => ({ key: c.key, label: c.label })), { key: "custom", label: "Custom" }]
@@ -2880,7 +2883,7 @@ route("menu/:id", ({ id }) => {
         <h2>Repayment Options — ${RIDE_PRICE_DATA.dealership.name}</h2>
         <div class="two">
           <div><b>${esc(c.first)} ${esc(c.last)}</b><br>${esc(c.phone)}<br>${esc(c.address)}, ${esc(c.city)} ${esc(c.zip)}</div>
-          <div class="right"><b>${v.year} ${v.make} ${v.model}</b><br>VIN ${v.vin} · Stock ${v.stock}<br>${DEAL_TYPES[deal.dealType]}${colResult && colResult.term ? ` · ${colResult.term} mo${colResult.apr ? " @ " + colResult.apr.toFixed(2) + "%" : ""}` : ""}</div>
+          <div class="right"><b>${esc(v.year)} ${esc(v.make)} ${esc(v.model)}</b><br>VIN ${esc(v.vin)} · Stock ${esc(v.stock)}<br>${esc(DEAL_TYPES[deal.dealType])}${colResult && colResult.term ? ` · ${colResult.term} mo${colResult.apr ? " @ " + colResult.apr.toFixed(2) + "%" : ""}` : ""}</div>
         </div>
         <h3 style="font-size:13px;color:var(--navy);margin:10px 0 4px">Purchased Products</h3>
         <ul class="lines small">
@@ -2897,7 +2900,7 @@ route("menu/:id", ({ id }) => {
         <button class="btn btn--ghost" id="backS3">← Back</button>
         <a class="btn btn--ghost" href="#/deals">Return to Deals List</a>
         <button class="btn btn--primary" id="dmsPush">DMS Push</button>
-        <a class="btn btn--ghost" href="#/forms/${deal.id}">🖨 Print Center</a>
+        <a class="btn btn--ghost" href="#/forms/${esc(deal.id)}">🖨 Print Center</a>
         <div class="push"></div>
         ${done ? `<span class="badge badge--approved" style="padding:10px 18px">✓ Deal Finalized</span>` : `<button class="btn btn--grad" id="finalize">Finalize Deal</button>`}
       </div>
@@ -3309,7 +3312,7 @@ route("jacket/:id", ({ id }) => {
        it also sits in the page actions where desktop can reach it */
     renderChrome("Deal Jacket", dealTitle(deal),
       `<button class="btn btn--ghost btn--sm" id="jkScriptTop">💡 Script</button>
-       <a class="btn btn--ghost btn--sm" href="#/forms/${deal.id}">🖨 Print Center</a>
+       <a class="btn btn--ghost btn--sm" href="#/forms/${esc(deal.id)}">🖨 Print Center</a>
        <button class="btn btn--grad btn--sm" id="jkScan">📷 Scan a document</button>`);
     document.body.dataset.screen = "jacket";
 
@@ -3481,7 +3484,7 @@ route("jacket/:id", ({ id }) => {
        record is the point */
     function takeModal(docId) {
       const m = docMeta(docId);
-      modal("Mark received — " + esc(m.label), `
+      modal("Mark received — " + m.label, `
         <p class="small">Recorded against this deal as taken in by <b>${esc(roleName())}</b>. Nothing is uploaded — the jacket keeps the record, not the paper.</p>
         <label class="f"><span class="lab">Note (optional)</span><input type="text" id="jkNoteIn" maxlength="80" placeholder="e.g. faxed by the credit union"></label>`,
         `<button class="btn btn--ghost" data-close>Cancel</button>
@@ -3499,7 +3502,7 @@ route("jacket/:id", ({ id }) => {
     function uploadFlow(docId) {
       const m = docMeta(docId);
       if (!m) return;
-      modal("Upload — " + esc(m.label), `
+      modal("Upload — " + m.label, `
         <label class="scan-frame scan-frame--tap scan-cap">
           <span class="scan-frame__icon">📷</span><span class="scan-frame__label" id="jkUplLabel">Photograph the document</span>
           <input type="file" accept="image/*" capture="environment" id="jkUplFile">
@@ -3531,7 +3534,7 @@ route("jacket/:id", ({ id }) => {
     function recordModal(docId) {
       const m = docMeta(docId); const st = jacketState(deal, docId);
       if (!m || !st) return;
-      modal("The record — " + esc(m.label), `
+      modal("The record — " + m.label, `
         <p class="small">This document arrives from outside the dealership, so the jacket keeps the record, not the paper.</p>
         <ul class="jk-reqlist">
           <li>${st.how === "scan" ? "Verified — the app read its own marker" : st.how === "sort" ? "Auto-filed by Snap &amp; Sort (demo — simulated check)" : st.how === "client" ? "Accepted after advisor review" : "Marked received by <b>" + esc(st.by) + "</b>"}</li>
@@ -4417,7 +4420,7 @@ function printDocs(deal) {
       <h1 class="pd-title">${title}</h1>
       <div class="pd-meta">
         <span><b>${esc(c.first)} ${esc(c.last)}</b> · ${esc(c.phone)}</span>
-        <span>${v ? `${v.year} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)} · Stock ${v.stock} · VIN ${v.vin}` : "No vehicle selected"}</span>
+        <span>${v ? `${esc(v.year)} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)} · Stock ${esc(v.stock)} · VIN ${esc(v.vin)}` : "No vehicle selected"}</span>
         <span>${today()} · ${DEAL_TYPES[deal.dealType]} · Advisor: ${esc(Store.s.advisor)}</span>
       </div>
       ${body}
@@ -4555,9 +4558,9 @@ function printDocs(deal) {
 route("forms/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
   renderChrome("Print Center", dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/menu/${deal.id}">← Menu</a>
-     <a class="btn btn--ghost btn--sm" href="#/jacket/${deal.id}">📁 Deal Jacket</a>
-     <a class="btn btn--grad btn--sm" href="#/print/${deal.id}/packet">🖨 Print full packet</a>`);
+    `<a class="btn btn--ghost btn--sm" href="#/menu/${esc(deal.id)}">← Menu</a>
+     <a class="btn btn--ghost btn--sm" href="#/jacket/${esc(deal.id)}">📁 Deal Jacket</a>
+     <a class="btn btn--grad btn--sm" href="#/print/${esc(deal.id)}/packet">🖨 Print full packet</a>`);
 
   const core = [
     { key: "cover", icon: "📁", label: "Deal Cover Sheet", note: "Snapshot + required-documentation checklist" },
@@ -4572,16 +4575,16 @@ route("forms/:id", ({ id }) => {
 
   view().innerHTML = `
     <div class="grid grid--3">
-      ${core.map(d => `<a class="card card--link" href="#/print/${deal.id}/${d.key}">
-        <span class="icon">${d.icon}</span><h3>${d.label}</h3><p>${d.note}</p>
+      ${core.map(d => `<a class="card card--link" href="#/print/${esc(deal.id)}/${esc(d.key)}">
+        <span class="icon">${esc(d.icon)}</span><h3>${esc(d.label)}</h3><p>${esc(d.note)}</p>
         <span class="go">Preview &amp; print →</span></a>`).join("")}
     </div>
     <h3 style="color:var(--navy);margin:26px 0 10px">Selected deal forms (from Disclosure Forms step)</h3>
     ${selected.length ? `<div class="grid grid--3">
-      ${selected.map(f => `<a class="card card--link" href="#/print/${deal.id}/form-${f.id}">
+      ${selected.map(f => `<a class="card card--link" href="#/print/${esc(deal.id)}/form-${esc(f.id)}">
         <span class="icon">📄</span><h3>${esc(f.label)}</h3><p>${esc(f.group)}</p>
         <span class="go">Preview &amp; print →</span></a>`).join("")}
-    </div>` : `<p class="note">No forms selected yet — choose them on the menu's <a href="#/menu/${deal.id}">Disclosure Forms</a> step.</p>`}
+    </div>` : `<p class="note">No forms selected yet — choose them on the menu's <a href="#/menu/${esc(deal.id)}">Disclosure Forms</a> step.</p>`}
     <p class="hint mt">The full packet prints every document with page breaks.</p>`;
 });
 
@@ -4589,7 +4592,7 @@ route("print/:id/:doc", ({ id, doc }) => {
   const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
   const docs = printDocs(deal);
   renderChrome("Print Preview", dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/forms/${deal.id}">← Print Center</a>
+    `<a class="btn btn--ghost btn--sm" href="#/forms/${esc(deal.id)}">← Print Center</a>
      <button class="btn btn--grad btn--sm" id="printNow">🖨 Print / Save as PDF</button>`);
 
   let html = "";
