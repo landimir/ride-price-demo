@@ -3359,7 +3359,7 @@ route("jacket/:id", ({ id }) => {
           ${d.origin === "outside" ? `<span class="jk-chip">arrives from outside</span>` : ""}
           ${d.added ? `<span class="jk-chip jk-chip--added">added by hand</span>` : ""}
           <span class="jk-row__why"><i class="jk-miss">Missing</i> · <span class="jk-why-l">${esc(d.why)}</span><span class="jk-why-s">${esc(d.whyShort)}</span></span>
-          ${jk.req[d.id] ? `<span class="jk-row__req">✉ Requested from the client · ${esc(jacketStamp(jk.req[d.id]))}</span>` : ""}
+          ${jk.req[d.id] ? `<span class="jk-row__req">Requested from the client · ${esc(jacketStamp(jk.req[d.id]))}</span>` : ""}
         </button>
         <div class="jk-row__act">
           ${d.origin !== "outside"
