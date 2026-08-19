@@ -3288,8 +3288,10 @@ route("jacket/:id", ({ id }) => {
      sides. The missing list gets the same treatment as the jacket list so
      the screen opens as a summary and expands on demand (owner, 2026-08-18). */
   const roomy = !window.matchMedia("(max-width: 720px)").matches;
-  let showJacket = roomy;
-  let showMissing = roomy;
+  /* one section holds every dealer form and everything already collected
+     (owner declutter, 2026-08-18): the screen offers exactly two places to
+     look — what the customer still owes, and everything else */
+  let showForms = roomy;
 
   function render() {
     const docs = jacketDocs(deal);
@@ -3303,8 +3305,11 @@ route("jacket/:id", ({ id }) => {
     const ov = jk.override;
     const addable = RIDE_PRICE_DATA.dealForms.filter(f => !docs.some(d => d.id === "form-" + f.id));
 
+    /* the script button rides the phone header; desktop hides that card, so
+       it also sits in the page actions where desktop can reach it */
     renderChrome("Deal Jacket", dealTitle(deal),
-      `<a class="btn btn--ghost btn--sm" href="#/forms/${deal.id}">🖨 Print Center</a>
+      `<button class="btn btn--ghost btn--sm" id="jkScriptTop">💡 Script</button>
+       <a class="btn btn--ghost btn--sm" href="#/forms/${deal.id}">🖨 Print Center</a>
        <button class="btn btn--grad btn--sm" id="jkScan">📷 Scan a document</button>`);
     document.body.dataset.screen = "jacket";
 
@@ -3336,11 +3341,13 @@ route("jacket/:id", ({ id }) => {
       const d = docs.find(x => x.id === id);
       const m = clientMeta(id); const r = cl[id];
       const blocked = r && r.state === "rejected";
-      return `<div class="jk-row dr-qrow dr-qrow--snap" data-snaprow="${esc(id)}" role="button" tabindex="0" aria-label="Snap ${esc(d.label)}">
+      /* the row carries its own action, per the owner's wireframe — the
+         whole row stays tappable, and the button says what the tap does */
+      return `<div class="jk-row dr-qrow dr-qrow--snap" data-snaprow="${esc(id)}" role="button" tabindex="0" aria-label="Scan ${esc(d.label)}">
         <span class="dr-qicon">${m.icon}</span>
         <span class="jk-row__main"><b>${esc(d.label)}</b>
-          <span class="jk-row__why">${blocked ? `⚠ ${esc(r.rejectedReason || "")}` : esc(m.plainReason)}</span></span>
-        <span class="dr-needed${blocked ? " dr-needed--blocked" : ""}">${blocked ? "Needs new photo" : "Needed"}</span>
+          <span class="jk-row__why${blocked ? " jk-row__why--blocked" : ""}">${blocked ? `⚠ ${esc(r.rejectedReason || "")}` : esc(m.plainReason)}</span></span>
+        <button type="button" class="btn btn--sm jk-rowscan" data-snapbtn="${esc(id)}">📷 ${blocked ? "Retake" : "Scan"}</button>
       </div>`;
     };
 
@@ -3404,6 +3411,7 @@ route("jacket/:id", ({ id }) => {
         <span class="jk-phonehead__ava" aria-hidden="true">${cst ? esc(cst.first[0]) : "?"}</span>
         <div class="jk-phonehead__who"><b>${cst ? esc(cst.first + " " + cst.last) : "—"}</b><span>${veh ? esc(veh.year + " " + veh.make + " " + veh.model) : "no vehicle yet"}</span></div>
         ${deal.dealNo ? `<b class="jk-phonehead__no">#${esc(deal.dealNo)}</b>` : ""}
+        <button type="button" class="jk-scriptbtn" id="jkScriptBtn" aria-label="Advisor script">💡</button>
       </div>
       <div class="jk-comp">
         <div class="jk-comp__top"><h2>Deal Jacket Compliance</h2><b class="jk-comp__count">${led.accepted} / ${led.total} Docs (${pct}%)</b></div>
@@ -3416,60 +3424,41 @@ route("jacket/:id", ({ id }) => {
       <section class="jk-col dr-queue">
         <h3 class="jk-col__head jk-col__head--red">Customer documents <span class="jk-count--miss">(${queue.length})</span>
           <span class="dr-qaction">${reqSent
-            ? `<button class="dr-sent" id="drResend">Requested ${esc(drStamp(jk.reqSentAt))} · Resend</button>`
+            ? `<button class="btn btn--ghost btn--sm" id="drResend">✉ Resend Link</button>`
             : `<button class="btn btn--grad btn--sm" id="drCompose">✉ Send Text Request</button>`}</span></h3>
+        ${reqSent ? `<p class="jk-reqstamp">Requested ${esc(drStamp(jk.reqSentAt))}</p>` : ""}
         <div class="jk-card">
-          ${queue.length ? `<a class="btn jk-snapall" href="#/snapall/${esc(deal.id)}/advisor">📷 Snap All ${queue.length} Document${queue.length === 1 ? "" : "s"}</a>` : ""}
           ${queue.length ? queue.map(queueRow).join("") : `<p class="note">All customer documents are verified. ✓</p>`}
         </div>
+        ${queue.length > 1 ? `<a class="btn jk-snapall" href="#/snapall/${esc(deal.id)}/advisor">📷 Snap All ${queue.length} Documents</a>` : ""}
         ${queue.length ? `<input type="file" accept="image/*" capture="environment" id="jkSnapCam" hidden>` : ""}
       </section>` : ""}
-      <div class="jk-cols">
-        <section class="jk-col jk-col--miss">
-          ${dealerMissing.length ? `
-          <button type="button" class="jk-intoggle jk-intoggle--miss" id="jkMissToggle" aria-expanded="${showMissing}">
-            <span class="jk-intoggle__left"><span class="jk-incheck jk-incheck--miss" aria-hidden="true">!</span><span class="jk-intitle">Required for compliance</span><span class="jk-incount jk-incount--miss">${dealerMissing.length} missing</span></span>
-            <span class="jk-intoggle__ctl">${showMissing ? "Hide" : "View"} <span class="jk-inchev${showMissing ? " jk-inchev--open" : ""}" aria-hidden="true">▼</span></span>
-          </button>
-          ${showMissing ? `<div class="jk-incontent">
+      <section class="jk-col jk-col--forms">
+        <button type="button" class="jk-intoggle" id="jkFormsToggle" aria-expanded="${showForms}">
+          <span class="jk-intoggle__left"><span class="jk-incheck${dealerMissing.length ? " jk-incheck--miss" : ""}" aria-hidden="true">📁</span>
+            <span class="jk-intitle">Deal forms &amp; jacket</span>
+            <span class="jk-incount${dealerMissing.length ? " jk-incount--miss" : ""}">${dealerMissing.length ? dealerMissing.length + " missing" : led.accepted + "/" + led.total + " verified"}</span></span>
+          <span class="jk-intoggle__ctl">${showForms ? "Hide" : "Show"} <span class="jk-inchev${showForms ? " jk-inchev--open" : ""}" aria-hidden="true">▼</span></span>
+        </button>
+        ${showForms ? `<div class="jk-incontent">
+          ${dealerMissing.length ? `<p class="jk-grouplab jk-grouplab--miss">Still needed (${dealerMissing.length})</p>
             <button class="btn btn--ghost jk-reqall" id="jkReqAll">✉ Request all missing from the client</button>
-            ${dealerMissing.map(missRow).join("")}
-          </div>` : ""}`
-          : `<h3 class="jk-col__head">Required for compliance</h3>
-             <p class="note">${queue.length
-               ? "No dealer documents outstanding — the customer documents above are still to come."
-               : "Nothing outstanding — every document this deal needs is in the jacket."}</p>`}
-        </section>
-        <section class="jk-col jk-col--in">
-          <button type="button" class="jk-intoggle" id="jkInToggle" aria-expanded="${showJacket}">
-            <span class="jk-intoggle__left"><span class="jk-incheck" aria-hidden="true">✓</span><span class="jk-intitle">In The Jacket</span><span class="jk-incount">${led.accepted}/${led.total} Verified</span></span>
-            <span class="jk-intoggle__ctl">${showJacket ? "Hide" : "Show"} <span class="jk-inchev${showJacket ? " jk-inchev--open" : ""}" aria-hidden="true">▼</span></span>
-          </button>
-          ${showJacket ? `<div class="jk-incontent">
-            ${received.length ? received.map(inRow).join("") : `<p class="note">Nothing collected yet.</p>`}
-            <button type="button" class="jk-addopt" id="jkAddOpt" aria-expanded="false">＋ Add Optional / Custom Form</button>
-            <div class="jk-addrow" id="jkAddRow" hidden>
-              <label class="f"><span class="lab">This deal also needs</span>
-                <select id="jkAdd" data-ui="dd" data-placeholder="+ Add Custom Form (${addable.length} available)">
-                  <option value="" data-ph selected hidden>+ Add Custom Form (${addable.length} available)</option>
-                  ${addable.map(f => `<option value="form-${esc(f.id)}">${esc(f.label)} — ${esc(f.group)}</option>`).join("")}
-                </select></label>
-              <p class="hint">Only add what this deal genuinely needs — an item added here counts against the jacket until it comes in.</p>
-            </div>
-          </div>` : ""}
-        </section>
-      </div>
-      <button type="button" class="advscript-card jk-adv" id="jkAdvToggle" aria-expanded="false">
-        <span class="advscript-card__ico" aria-hidden="true">💡</span>
-        <span class="advscript-card__col"><span class="advscript-card__lab">Advisor Script</span>
-          <span class="advscript-card__sub">Tap to view talking points and guidance</span></span>
-        <span class="advscript-card__chev" aria-hidden="true">▾</span>
-      </button>
-      <div class="jk-script" id="jkScript">
-        <p class="hint">“Ask for the title while you're valuing the trade — it's in the glovebox today, not at delivery.”</p>
-        <p class="hint">“When the lender asks for stips, tell the client the same day — a paystub photo tonight beats a funding delay on Friday.”</p>
-        <p class="hint">“Walk the jacket before the delivery appointment — hunting paperwork with the client at the desk kills the celebration.”</p>
-      </div>
+            ${dealerMissing.map(missRow).join("")}`
+          : `<p class="note">${queue.length
+              ? "No dealer forms outstanding — the customer documents above are still to come."
+              : "Nothing outstanding — every document this deal needs is in the jacket."}</p>`}
+          ${received.length ? `<p class="jk-grouplab jk-grouplab--in">In the jacket (${led.accepted}/${led.total})</p>${received.map(inRow).join("")}` : ""}
+          <button type="button" class="jk-addopt" id="jkAddOpt" aria-expanded="false">＋ Add Optional / Custom Form</button>
+          <div class="jk-addrow" id="jkAddRow" hidden>
+            <label class="f"><span class="lab">This deal also needs</span>
+              <select id="jkAdd" data-ui="dd" data-placeholder="+ Add Custom Form (${addable.length} available)">
+                <option value="" data-ph selected hidden>+ Add Custom Form (${addable.length} available)</option>
+                ${addable.map(f => `<option value="form-${esc(f.id)}">${esc(f.label)} — ${esc(f.group)}</option>`).join("")}
+              </select></label>
+            <p class="hint">Only add what this deal genuinely needs — an item added here counts against the jacket until it comes in.</p>
+          </div>
+        </div>` : ""}
+      </section>
       <div class="jk-signoff">
         <span class="jk-signoff__ico" aria-hidden="true">${deal.signoff || !n.missing || ov ? "✓" : "🔒"}</span>
         <p>${deal.signoff
@@ -3595,11 +3584,14 @@ route("jacket/:id", ({ id }) => {
        same simulated check the client link runs. While a document is blocked
        on a missing page, another snap appends — front, then back. */
     let snapDoc = null;
+    const openCam = (id) => { snapDoc = id; const inp = $("#jkSnapCam"); if (inp) { inp.value = ""; inp.click(); } };
     $$("[data-snaprow]").forEach(row => {
-      const open = () => { snapDoc = row.dataset.snaprow; const inp = $("#jkSnapCam"); if (inp) { inp.value = ""; inp.click(); } };
-      row.onclick = open;
-      row.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); open(); } };
+      row.onclick = () => openCam(row.dataset.snaprow);
+      row.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCam(row.dataset.snaprow); } };
     });
+    /* the button and its row do the same thing — without stopping the
+       bubble the camera would open twice */
+    $$("[data-snapbtn]").forEach(b => b.onclick = (e) => { e.stopPropagation(); openCam(b.dataset.snapbtn); });
     const snapCam = $("#jkSnapCam");
     if (snapCam) snapCam.onchange = () => {
       if (!snapCam.files || !snapCam.files.length || !snapDoc) return;
@@ -3630,18 +3622,21 @@ route("jacket/:id", ({ id }) => {
     if ($("#jkReqAll")) $("#jkReqAll").onclick = () => requestFlow(dealerMissing.map(d => d.id));
     if ($("#drCompose")) $("#drCompose").onclick = () => navigate("#/docreq/" + deal.id);
     if ($("#drResend")) $("#drResend").onclick = () => navigate("#/docreq/" + deal.id + "/resend");
-    $("#jkInToggle").onclick = () => { showJacket = !showJacket; render(); };
-    if ($("#jkMissToggle")) $("#jkMissToggle").onclick = () => { showMissing = !showMissing; render(); };
+    $("#jkFormsToggle").onclick = () => { showForms = !showForms; render(); };
+    /* the script is a sheet off the header now, not a card in the flow */
+    const scriptSheet = () => modal("Advisor Script", `
+      <p class="hint">“Ask for the title while you're valuing the trade — it's in the glovebox today, not at delivery.”</p>
+      <p class="hint">“When the lender asks for stips, tell the client the same day — a paystub photo tonight beats a funding delay on Friday.”</p>
+      <p class="hint">“Walk the jacket before the delivery appointment — hunting paperwork with the client at the desk kills the celebration.”</p>`,
+      `<button class="btn btn--primary" data-close>Close</button>`);
+    $("#jkScriptBtn").onclick = scriptSheet;
+    if ($("#jkScriptTop")) $("#jkScriptTop").onclick = scriptSheet;
     const addOpt = $("#jkAddOpt");
     if (addOpt) addOpt.onclick = () => {
       const row = $("#jkAddRow");
       const open = row.hidden;
       row.hidden = !open;
       addOpt.setAttribute("aria-expanded", String(open));
-    };
-    $("#jkAdvToggle").onclick = () => {
-      const open = $("#jkScript").classList.toggle("jk-script--open");
-      $("#jkAdvToggle").setAttribute("aria-expanded", String(open));
     };
     const addSel = $("#jkAdd");
     if (addSel) addSel.onchange = () => {
