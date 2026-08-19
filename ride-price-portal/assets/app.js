@@ -37,8 +37,23 @@ const Store = (function () {
       desk: { term: 60, apr: 3.5, downPayment: 1000, leaseTerm: 36, milesPerYear: 12000, leaseFactor: 0.00117, dueAtSigning: 1000, accessories: ["mats", "tint"], daysToFirst: 45 },
       basePayment: null, creditApp: null,
       menu: { step: 1, barsDone: [], custom: [], customSource: null, selectedProgram: null, initials: "", ackSigned: false },
-      forms: { selected: [], finalized: false }
+      forms: { selected: [], finalized: false },
+      /* the demo deal is found mid-jacket — see RIDE_PRICE_DATA.seedJacket */
+      jacket: { docs: seedJacketDocs(), extra: [], req: {} }
     };
+  }
+
+  /* stamped this morning so the records read like today's work, and recorded
+     by hand — nothing in the seed was ever scanned or machine-checked */
+  function seedJacketDocs() {
+    const out = {};
+    const at = new Date(); at.setHours(9, 15, 0, 0);
+    (RIDE_PRICE_DATA.seedJacket || []).forEach((s, i) => {
+      const t = new Date(at.getTime() + i * 11 * 60000);
+      out[s.id] = { how: "hand", by: RIDE_PRICE_DATA.dealership.advisor || "Ashley Collins", at: t.toISOString() };
+      if (s.note) out[s.id].note = s.note;
+    });
+    return out;
   }
 
   function load() {
@@ -51,6 +66,12 @@ const Store = (function () {
        migration write, not a display-path write */
     let minted = false;
     state.deals.forEach(d => { if (!d.dealNo) { d.dealNo = mintDealNo(); minted = true; } });
+    /* the demo deal gained its mid-jacket seed after this browser may have
+       saved a blob without one. Only a deal that has NO jacket at all is
+       seeded: an existing jacket — even an emptied one — is somebody's work
+       and is left alone. */
+    const demo = state.deals.find(d => d.id === "d-demo1");
+    if (demo && !demo.jacket) { demo.jacket = { docs: seedJacketDocs(), extra: [], req: {} }; minted = true; }
     if (minted) save();
     return state;
   }
@@ -3262,10 +3283,13 @@ const jacketStamp = (iso) => {
 
 route("jacket/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
-  /* the In-The-Jacket accordion starts open where there is room (desktop)
-     and folded on a phone, like the prototype — same query the stylesheet
-     uses, so 720px exactly is a phone on both sides */
-  let showJacket = !window.matchMedia("(max-width: 720px)").matches;
+  /* both lists fold on a phone and open where there is room (desktop) —
+     same query the stylesheet uses, so 720px exactly is a phone on both
+     sides. The missing list gets the same treatment as the jacket list so
+     the screen opens as a summary and expands on demand (owner, 2026-08-18). */
+  const roomy = !window.matchMedia("(max-width: 720px)").matches;
+  let showJacket = roomy;
+  let showMissing = roomy;
 
   function render() {
     const docs = jacketDocs(deal);
@@ -3402,9 +3426,19 @@ route("jacket/:id", ({ id }) => {
       </section>` : ""}
       <div class="jk-cols">
         <section class="jk-col jk-col--miss">
-          <h3 class="jk-col__head">Required for compliance${dealerMissing.length ? ` <span class="jk-count--miss">(${dealerMissing.length} missing)</span>` : ""}</h3>
-          ${dealerMissing.length ? `<button class="btn btn--ghost jk-reqall" id="jkReqAll">✉ Request all missing from the client</button>` : ""}
-          ${dealerMissing.length ? dealerMissing.map(missRow).join("") : `<p class="note">Nothing outstanding — every document this deal needs is in the jacket.</p>`}
+          ${dealerMissing.length ? `
+          <button type="button" class="jk-intoggle jk-intoggle--miss" id="jkMissToggle" aria-expanded="${showMissing}">
+            <span class="jk-intoggle__left"><span class="jk-incheck jk-incheck--miss" aria-hidden="true">!</span><span class="jk-intitle">Required for compliance</span><span class="jk-incount jk-incount--miss">${dealerMissing.length} missing</span></span>
+            <span class="jk-intoggle__ctl">${showMissing ? "Hide" : "View"} <span class="jk-inchev${showMissing ? " jk-inchev--open" : ""}" aria-hidden="true">▼</span></span>
+          </button>
+          ${showMissing ? `<div class="jk-incontent">
+            <button class="btn btn--ghost jk-reqall" id="jkReqAll">✉ Request all missing from the client</button>
+            ${dealerMissing.map(missRow).join("")}
+          </div>` : ""}`
+          : `<h3 class="jk-col__head">Required for compliance</h3>
+             <p class="note">${queue.length
+               ? "No dealer documents outstanding — the customer documents above are still to come."
+               : "Nothing outstanding — every document this deal needs is in the jacket."}</p>`}
         </section>
         <section class="jk-col jk-col--in">
           <button type="button" class="jk-intoggle" id="jkInToggle" aria-expanded="${showJacket}">
@@ -3597,6 +3631,7 @@ route("jacket/:id", ({ id }) => {
     if ($("#drCompose")) $("#drCompose").onclick = () => navigate("#/docreq/" + deal.id);
     if ($("#drResend")) $("#drResend").onclick = () => navigate("#/docreq/" + deal.id + "/resend");
     $("#jkInToggle").onclick = () => { showJacket = !showJacket; render(); };
+    if ($("#jkMissToggle")) $("#jkMissToggle").onclick = () => { showMissing = !showMissing; render(); };
     const addOpt = $("#jkAddOpt");
     if (addOpt) addOpt.onclick = () => {
       const row = $("#jkAddRow");

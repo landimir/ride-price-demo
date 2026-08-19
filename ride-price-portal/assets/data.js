@@ -311,6 +311,18 @@ const RIDE_PRICE_DATA = {
     }
   },
 
+  /* The demo deal opens part-way through, the way a real jacket is found
+     mid-deal (owner, 2026-08-18). Only documents this deal has genuinely
+     produced are listed — the drive is done, the trade is appraised — and
+     each is recorded honestly as taken in by hand, never as a machine
+     check. Empty this array to have the demo start with nothing collected. */
+  seedJacket: [
+    { id: "testdrive", note: "signed before the drive" },
+    { id: "form-appraisal", note: "" },
+    { id: "form-odometer", note: "" },
+    { id: "form-plates", note: "plates come off the trade" }
+  ],
+
   /* the documents the portal itself prints — the only ones it can ever
      recognise coming back, because it is the one that marked them */
   printedDocs: [

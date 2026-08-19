@@ -6,6 +6,11 @@
   --navy: #262254;
   --navy-2: #322d6b;
   --navy-3: #1c1940;
+  /* app chrome — the bar, the drawer and the fixed docks. One definition so
+     every piece of chrome is the same blue (owner, 2026-08-18). The brand
+     navy above is unchanged and still owns buttons, panels and print. */
+  --chrome: #071b49;
+  --chrome-2: #0b255d;
   --ink: #34314e;
   --muted: #6f6c88;
   --crimson: #b3364b;
@@ -35,7 +40,7 @@ button { font-family: inherit; }
 /* ---------- app chrome ---------- */
 .appbar {
   position: sticky; top: 0; z-index: 60;
-  background: linear-gradient(120deg, var(--navy-3), var(--navy) 70%, var(--navy-2));
+  background: linear-gradient(90deg, var(--chrome), var(--chrome-2));
   color: #fff; display: flex; align-items: center; gap: 16px; padding: 10px 20px;
 }
 .hamburger {
@@ -53,7 +58,7 @@ button { font-family: inherit; }
 .drawer-overlay.open { opacity: 1; pointer-events: auto; }
 .drawer {
   position: fixed; top: 0; bottom: 0; left: 0; width: 300px; z-index: 85;
-  background: linear-gradient(160deg, var(--navy-3), var(--navy) 75%);
+  background: linear-gradient(160deg, var(--chrome), var(--chrome-2) 75%);
   color: #fff; transform: translateX(-100%); transition: transform .22s ease;
   display: flex; flex-direction: column; box-shadow: var(--shadow-lg);
 }
@@ -824,16 +829,22 @@ label.f .seg { display: flex; }
   font: inherit; text-align: left; cursor: pointer; border-radius: var(--r); box-shadow: var(--sh);
 }
 .jk-intoggle[aria-expanded="true"] { border-radius: var(--r) var(--r) 0 0; }
-.jk-intoggle__left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.jk-intoggle__left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; flex-wrap: wrap; }
 .jk-incheck {
   width: 22px; height: 22px; border-radius: 50%; background: #d1fae5; color: #047857;
   display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; flex: 0 0 auto;
 }
-.jk-intitle { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .35px; white-space: nowrap; }
+/* the title wraps rather than pushing the row wide — "Required for
+   compliance" is longer than "In The Jacket" and overflowed 320px */
+.jk-intitle { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .35px; min-width: 0; }
 .jk-incount {
   font-size: 11px; font-weight: 900; color: #047857; background: #ecfdf5;
   border: 1px solid #d1fae5; border-radius: 99px; padding: 3px 7px; white-space: nowrap;
 }
+/* the missing list wears the same control in the outstanding colour */
+.jk-incheck--miss { background: #fee2e2; color: var(--crimson); }
+.jk-incount--miss { color: var(--crimson); background: #fff5f6; border-color: #f6d3d9; }
+.jk-intoggle--miss + .jk-incontent .jk-row--miss:last-child { margin-bottom: 0; }
 .jk-intoggle__ctl { display: flex; align-items: center; gap: 6px; color: var(--ink); font-size: 11px; font-weight: 800; flex: 0 0 auto; }
 .jk-inchev { display: inline-block; font-size: 10px; transition: transform .16s; }
 .jk-inchev--open { transform: rotate(180deg); }
@@ -1323,8 +1334,9 @@ body[data-screen="clientlink"] .dr-clientbottom { bottom: 48px; }
      Send SMS Link, brand-gradient Next Step at the reference's flex ratios */
   body[data-screen="jacket"] .jk-bottombar {
     display: flex; position: fixed; left: 0; right: 0; bottom: 0; gap: 8px; z-index: 40;
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: #0b1124;
-    border-top: 1px solid #273049;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: linear-gradient(90deg, var(--chrome), var(--chrome-2));
+    border-top: 1px solid rgba(255,255,255,.08);
   }
   .jk-bottombar .btn { flex: 1; justify-content: center; white-space: nowrap; padding-left: 8px; padding-right: 8px; font-size: 13px; }
   .jk-bottombar .btn--ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.25); }
