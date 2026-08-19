@@ -3424,8 +3424,8 @@ route("jacket/:id", ({ id }) => {
       <section class="jk-col dr-queue">
         <h3 class="jk-col__head jk-col__head--red">Customer documents <span class="jk-count--miss">(${queue.length})</span>
           <span class="dr-qaction">${reqSent
-            ? `<button class="btn btn--ghost btn--sm" id="drResend">✉ Resend Link</button>`
-            : `<button class="btn btn--grad btn--sm" id="drCompose">✉ Send Text Request</button>`}</span></h3>
+            ? `<button class="btn btn--grad btn--sm" id="drResend">Resend Link</button>`
+            : `<button class="btn btn--grad btn--sm" id="drCompose">Send Text Request</button>`}</span></h3>
         ${reqSent ? `<p class="jk-reqstamp">Requested ${esc(drStamp(jk.reqSentAt))}</p>` : ""}
         <div class="jk-card">
           ${queue.length ? queue.map(queueRow).join("") : `<p class="note">All customer documents are verified. ✓</p>`}

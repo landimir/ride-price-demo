@@ -899,7 +899,11 @@ label.f .seg { display: flex; }
 .dr-needed--blocked { color: #be123c; }
 .dr-qrow--snap { cursor: pointer; }
 .dr-qrow--snap:hover { background: #fafcff; }
-.dr-qaction { margin-left: auto; }
+/* the action sits inside a section heading, and `.jk-col__head span` is the
+   navy count pill — without this reset that pill painted a dark rounded
+   slab behind the button, poking out at both ends (owner, 2026-08-19).
+   The element+class selector is deliberate: it must outrank that rule. */
+.jk-col__head span.dr-qaction { margin-left: auto; background: none; padding: 0; border-radius: 0; }
 .dr-qaction .btn { white-space: nowrap; font-size: 11px; padding: 8px 10px; }
 .dr-qicon {
   width: 38px; height: 38px; border-radius: 10px; flex: 0 0 auto;
