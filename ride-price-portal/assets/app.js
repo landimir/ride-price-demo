@@ -3368,7 +3368,7 @@ route("jacket/:id", ({ id }) => {
         </div>
         <div class="jk-row__more">
           <button class="btn btn--ghost btn--sm" data-take="${esc(d.id)}">Mark received</button>
-          <button class="btn btn--ghost btn--sm" data-req="${esc(d.id)}">✉ Request</button>
+          <button class="btn btn--ghost btn--sm" data-req="${esc(d.id)}">Request</button>
           ${d.added ? `<button class="btn btn--ghost btn--sm" data-drop="${esc(d.id)}">Remove</button>` : ""}
         </div>
       </div>`;
@@ -3442,7 +3442,7 @@ route("jacket/:id", ({ id }) => {
         </button>
         ${showForms ? `<div class="jk-incontent">
           ${dealerMissing.length ? `<p class="jk-grouplab jk-grouplab--miss">Still needed (${dealerMissing.length})</p>
-            <button class="btn btn--ghost jk-reqall" id="jkReqAll">✉ Request all missing from the client</button>
+            <button class="btn btn--ghost jk-reqall" id="jkReqAll">Request all missing from the client</button>
             ${dealerMissing.map(missRow).join("")}`
           : `<p class="note">${queue.length
               ? "No dealer forms outstanding — the customer documents above are still to come."
@@ -3551,7 +3551,7 @@ route("jacket/:id", ({ id }) => {
         <ul class="jk-reqlist">${metas.map(x => `<li>${esc(x.label)}</li>`).join("")}</ul>
         <p class="demo-note">Demo — the message is simulated; nothing leaves this device.</p>`,
         `<button class="btn btn--ghost" data-close>Cancel</button>
-         <button class="btn btn--grad" id="jkReqGo">✉ Send request</button>`);
+         <button class="btn btn--grad" id="jkReqGo">Send request</button>`);
       /* same liveness guard as openDocScanFlow: navigating away or dismissing
          during the send window must cancel it, or the timer closes whatever
          modal is open by then and paints jacket markup over another screen */
