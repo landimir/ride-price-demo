@@ -4539,6 +4539,74 @@ route("snapall/:id/:origin", ({ id, origin }) => {
 });
 
 /* ============================================================
+   DOCUMENT DATA — the shared layer every recreated form draws on
+   ============================================================
+   The owner's reusable structure (recorded 2026-08-16 with the MV-82 field
+   inventory): customer information → address → vehicle information →
+   lienholder → dealer/plate information. Built once, so the next recreated
+   form starts here instead of re-deriving.
+
+   The honesty contract: every value is either read from deal state or LEFT
+   ABSENT (null) — nothing is invented. A printed form renders an absent
+   value as an empty box to be completed by hand, the same statement the
+   tri-state ownership fields make on screen: "nobody was asked" is not an
+   answer the app may fabricate. */
+const MV_BODY_CODES = { SUV: "SUBN", Wagon: "SUBN", Sedan: "4DSD" };
+
+function docData(deal) {
+  const c = Store.customer(deal.customerId) || {};
+  /* the id is a pointer resolved through the store; a dangling coBuyerId
+     means "no co-buyer", never an error (the PR #12 lesson, kept) */
+  const co = deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
+  const v = Store.vehicle(deal.stock);
+  const zip = RIDE_PRICE_DATA.zipLookup[c.zip] || {};
+  const person = (r) => r ? {
+    name: [r.last, r.first, r.middle].filter(Boolean).join(", "),
+    dob: r.dob || null,
+    sex: null,                            /* never held on a customer record */
+    license: (r.license && r.license.number) || null,
+    licenseExpires: (r.license && r.license.expires) || null,
+    phone: r.phone || null,
+    mobile: null,                         /* never collected */
+    email: r.email || null
+  } : null;
+  return {
+    customer: person(c),
+    coRegistrant: person(co),
+    address: {
+      street: c.address || null,
+      apt: null,                          /* never collected */
+      city: c.city || null, state: c.state || null, zip: c.zip || null,
+      county: zip.county || null          /* the ZIP directory carries county
+                                             precisely because forms ask */
+    },
+    vehicle: v ? {
+      year: v.year, make: v.make, model: v.model,
+      bodyCode: MV_BODY_CODES[v.body] || null,
+      colorCode: v.colorCode || null,
+      vin: v.vin,
+      odometer: v.miles, mileageBrand: "ACTUAL",
+      weight: v.weight || null, seats: v.seats || null,
+      fuel: v.fuel || null, cyl: v.cyl || null
+    } : null,
+    /* a lien exists once financing is real: an approved application names
+       the lender. Cash is a true NONE; an unapproved financed deal is an
+       honest blank — the lender is not known yet. */
+    lienholder: deal.dealType === "cash" ? { none: true, name: null }
+      : (deal.creditApp && deal.creditApp.approved && deal.creditApp.lender)
+        ? { none: false, name: deal.creditApp.lender }
+        : { none: false, name: null },
+    dealerPlate: {
+      dealer: RIDE_PRICE_DATA.dealership.name,
+      dealerAddress: RIDE_PRICE_DATA.dealership.address,
+      stock: deal.stock || null, dealNo: deal.dealNo || null
+      /* plate transfer / new-plate choice is not recorded on a deal —
+         the Transfer Plates Registration is its own document (code 8) */
+    }
+  };
+}
+
+/* ============================================================
    VIEW: Print Center + printable deal documents
    ============================================================ */
 
@@ -4697,7 +4765,104 @@ function printDocs(deal) {
       <p class="pd-note">Quick quote saved ${new Date(q.at).toLocaleString()} and emailed to ${esc(c.email)}. Quotes are for follow-up only — there is no option to purchase from a quote, and figures are estimates subject to credit approval.</p>`, "quote");
   };
 
+  /* The MV-82 recreation (owner, 2026-08-20): the real form's field
+     inventory rendered from the shared docData() layer. A box the deal
+     cannot fill prints EMPTY for hand completion — the form never invents
+     a value; that is the whole point of the layer's honesty contract.
+     The GOV_FORMS training-sample treatment applies through shell(). */
+  docs.mv82 = () => {
+    const D = docData(deal);
+    const f = (label, value, cls) => `<div class="mv-f${cls ? " " + cls : ""}"><span>${label}</span><b>${value == null || value === "" ? "&nbsp;" : esc(String(value))}</b></div>`;
+    const ck = (on, label) => `<span class="mv-ck"><i>${on ? "✕" : ""}</i>${esc(label)}</span>`;
+    const personRow = (p2, blankAll) => `
+      ${f("NAME (LAST, FIRST, MIDDLE)", blankAll ? null : p2 && p2.name && p2.name.toUpperCase(), "mv-w3")}
+      ${f("DATE OF BIRTH", blankAll ? null : p2 && dateUS(p2.dob || ""))}
+      ${f("SEX", null)}
+      ${f("DRIVER LICENSE ID", blankAll ? null : p2 && p2.license)}
+      ${f("LICENSE EXPIRES", blankAll ? null : p2 && dateUS(p2.licenseExpires || ""))}
+      ${f("TELEPHONE", blankAll ? null : p2 && p2.phone)}
+      ${f("MOBILE PHONE", null)}
+      ${f("EMAIL", blankAll ? null : p2 && p2.email, "mv-w3")}`;
+    return shell("Registration & Title Application", `
+      <p class="mv-note">Recreates the New York vehicle registration / title application for
+      training. A box the portal cannot fill from the deal is printed empty for hand
+      completion — the app never invents a value.</p>
+
+      <div class="mv-sec">
+        <h4>1 · Registrant</h4>
+        <div class="mv-grid">${personRow(D.customer, false)}</div>
+        <div class="mv-cks"><b>REGISTRANT IS</b>
+          ${ck(true, "Individual")}${ck(false, "Business / Company")}
+          <b class="mv-gap">CHANGES</b>
+          ${ck(false, "Name change")}${ck(false, "Address change")}${ck(false, "No CID")}
+        </div>
+      </div>
+
+      <div class="mv-sec">
+        <h4>2 · Address</h4>
+        <div class="mv-grid">
+          ${f("STREET ADDRESS", D.address.street, "mv-w3")}
+          ${f("APT NO.", D.address.apt)}
+          ${f("CITY", D.address.city)}
+          ${f("STATE", D.address.state)}
+          ${f("ZIP", D.address.zip)}
+          ${f("COUNTY", D.address.county)}
+        </div>
+      </div>
+
+      <div class="mv-sec">
+        <h4>3 · Co-Registrant${D.coRegistrant ? "" : " — none on this deal"}</h4>
+        <div class="mv-grid">${personRow(D.coRegistrant, !D.coRegistrant)}</div>
+      </div>
+
+      <div class="mv-sec">
+        <h4>4 · Vehicle</h4>
+        <div class="mv-grid">
+          ${f("YEAR", D.vehicle && D.vehicle.year)}
+          ${f("MAKE", D.vehicle && D.vehicle.make && D.vehicle.make.toUpperCase())}
+          ${f("MODEL", D.vehicle && D.vehicle.model, "mv-w2")}
+          ${f("BODY TYPE", D.vehicle && D.vehicle.bodyCode)}
+          ${f("COLOR", D.vehicle && D.vehicle.colorCode)}
+          ${f("ODOMETER (MI)", D.vehicle && D.vehicle.odometer)}
+          ${f("MILEAGE BRAND", D.vehicle && D.vehicle.mileageBrand)}
+          ${f("VEHICLE IDENTIFICATION NUMBER", D.vehicle && D.vehicle.vin, "mv-w3")}
+          ${f("UNLADEN WEIGHT", D.vehicle && D.vehicle.weight)}
+          ${f("SEATS", D.vehicle && D.vehicle.seats)}
+          ${f("FUEL", D.vehicle && D.vehicle.fuel)}
+          ${f("CYLINDERS", D.vehicle && D.vehicle.cyl)}
+          ${f("OFFICE USE ONLY", null)}
+        </div>
+      </div>
+
+      <div class="mv-sec">
+        <h4>5 · Lienholder</h4>
+        <div class="mv-grid">
+          ${f("LIENHOLDER NAME — IF NONE, WRITE “NONE”", D.lienholder.none ? "NONE" : D.lienholder.name, "mv-w3")}
+          ${f("LIEN FILING CODE", null)}
+          ${f("LIENHOLDER MAILING ADDRESS", null, "mv-w4")}
+        </div>
+      </div>
+
+      <div class="mv-sec">
+        <h4>6 · Dealer / Plates</h4>
+        <div class="mv-grid">
+          ${f("SELLING DEALER", D.dealerPlate.dealer, "mv-w2")}
+          ${f("DEALER ADDRESS", D.dealerPlate.dealerAddress, "mv-w2")}
+          ${f("STOCK NO.", D.dealerPlate.stock)}
+          ${f("DEAL NO.", D.dealerPlate.dealNo)}
+          ${f("PLATE NUMBER (IF TRANSFER)", null, "mv-w2")}
+        </div>
+        <div class="mv-cks"><b>PLATES</b>
+          ${ck(false, "New plates")}${ck(false, "Transfer plates")}
+          <span class="mv-hint">— the Transfer Plates Registration is its own document</span>
+        </div>
+      </div>
+
+      ${sig("", "Registrant")}`, "form-reg");
+  };
+
   docs.generic = (formId) => {
+    if (formId === "reg") return docs.mv82();
     const f = RIDE_PRICE_DATA.dealForms.find(x => x.id === formId) || { label: formId, group: "Deal Forms" };
     return shell(esc(f.label), `
       <p class="pd-note">This ${esc(f.group.toLowerCase().replace(/s$/, ""))} is part of the deal packet for the transaction referenced above.

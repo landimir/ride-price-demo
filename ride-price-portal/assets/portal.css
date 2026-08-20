@@ -619,6 +619,43 @@ label.f .seg { display: flex; }
 .pd-mark__bars { display: block; width: min(calc(var(--mark-units, 93) * 1.8mm), 100%); height: 9mm; margin: 0 auto; }
 .pd-mark__cap { display: block; font-size: 8px; letter-spacing: .6px; text-transform: uppercase; color: #bbb; margin-top: 2px; }
 
+/* ---------- mv- : the MV-82 recreation (government-form boxes) ----------
+   Boxed sections with tiny uppercase labels, the government-form idiom. An
+   empty <b> still paints its box — a blank is a real space for handwriting,
+   which is the honesty contract of the docData() layer made visible. */
+.mv-note { font-size: 11px; color: #555; margin: 4px 0 10px; }
+.mv-sec { border: 1.5px solid #1b1b33; border-radius: 4px; margin-bottom: 10px; overflow: hidden; }
+.mv-sec h4 {
+  margin: 0; padding: 4px 10px; background: #eceaf4; color: #1b1b33;
+  font-size: 11px; letter-spacing: .8px; text-transform: uppercase;
+  border-bottom: 1px solid #1b1b33;
+}
+.mv-grid { display: grid; grid-template-columns: repeat(4, 1fr); }
+.mv-f { border-right: 1px solid #9c99bd; border-bottom: 1px solid #9c99bd; padding: 3px 8px 5px; min-height: 34px; }
+.mv-f span { display: block; font-size: 8px; font-weight: 700; letter-spacing: .4px; color: #55527a; }
+/* overflow-wrap: anywhere, not the deprecated word-break: break-word — and
+   "anywhere" participates in min-content sizing, so a 17-character VIN
+   cannot force a 1fr grid column wider on a phone */
+.mv-f b { display: block; font-size: 12.5px; font-weight: 600; min-height: 15px; overflow-wrap: anywhere; }
+.mv-w2 { grid-column: span 2; }
+.mv-w3 { grid-column: span 3; }
+.mv-w4 { grid-column: span 4; }
+.mv-cks { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 5px 10px 7px; font-size: 10.5px; }
+.mv-cks > b { font-size: 9px; letter-spacing: .6px; color: #55527a; }
+.mv-cks .mv-gap { margin-left: 14px; }
+.mv-ck { display: inline-flex; align-items: center; gap: 5px; }
+.mv-ck i {
+  width: 11px; height: 11px; border: 1.4px solid #1b1b33; border-radius: 2px;
+  font-style: normal; font-size: 9px; line-height: 9px; text-align: center; font-weight: 800;
+}
+.mv-hint { font-size: 9.5px; color: #777; }
+@media screen and (max-width: 720px) {
+  /* the form is Letter-shaped paper; on a phone the grid halves rather than
+     squeezing eight columns of boxes into 360px */
+  .mv-grid { grid-template-columns: repeat(2, 1fr); }
+  .mv-w3, .mv-w4 { grid-column: span 2; }
+}
+
 
 /* ---------- license scan flow ---------- */
 .scan-steps { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
@@ -1306,6 +1343,13 @@ body[data-screen="clientlink"] .dr-clientbottom { bottom: 48px; }
   .reg-overprint span { color: rgba(0, 0, 0, .22); }
   .reg-sampletag { border-color: #000; color: #000; }
   .reg-legend { color: #000; }
+  /* the MV-82 boxes print pure black; the section-head tint may be dropped
+     by the UA, so it never carries meaning — the border does */
+  .mv-sec { border-color: #000; }
+  .mv-sec h4 { background: none; border-bottom-color: #000; }
+  .mv-f { border-color: #666; }
+  .mv-f span { color: #333; }
+  .mv-ck i { border-color: #000; }
   /* print pure black on white: legible whether or not the UA keeps backgrounds */
   .prop-head { background: none; color: #1b1b33; border-bottom: 0.5mm solid #1b1b33; }
   .prop-head b { color: #1b1b33; }
