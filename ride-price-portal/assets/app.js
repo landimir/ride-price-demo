@@ -32,7 +32,7 @@ const Store = (function () {
       stage: "desking", createdAt: "2026-07-14T17:20:00Z",
       discovery: { answers: { week: "Daily commute to Midtown, weekend trips upstate.", family: "Two kids, one dog." }, done: true },
       testDrive: { done: true, completedMiles: 12 },
-      trade: { has: true, desc: "2018 Hyundai Tucson", miles: 61200, condition: "Good", value: 15500, payoff: 10750, rebates: 500, applyTaxCredit: true },
+      trade: { has: true, desc: "2018 Hyundai Tucson", vin: "KM8TRAININGSAMP06", miles: 61200, condition: "Good", value: 15500, payoff: 10750, rebates: 500, applyTaxCredit: true },
       huddle: { done: false },
       desk: { term: 60, apr: 3.5, downPayment: 1000, leaseTerm: 36, milesPerYear: 12000, leaseFactor: 0.00117, dueAtSigning: 1000, accessories: ["mats", "tint"], daysToFirst: 45 },
       basePayment: null, creditApp: null,
@@ -72,6 +72,19 @@ const Store = (function () {
        and is left alone. */
     const demo = state.deals.find(d => d.id === "d-demo1");
     if (demo && !demo.jacket) { demo.jacket = { docs: seedJacketDocs(), extra: [], req: {} }; minted = true; }
+    /* the seed trade gained a VIN after this browser may have saved a blob
+       without one. The predicate is VEHICLE IDENTITY — desc and mileage —
+       deliberately not whole-struct equality: condition, value and payoff
+       are appraisal details of the same fictional Tucson, and Run Evaluation
+       itself rewrites `value` on the untouched seed, so demanding full
+       equality would deny the migration to any browser that ever pressed
+       the demo's own button. A trade whose desc or mileage changed is the
+       user's own vehicle, and an absent VIN there means "never recorded",
+       which is the true state. */
+    if (demo && demo.trade && demo.trade.vin === undefined &&
+        demo.trade.desc === "2018 Hyundai Tucson" && demo.trade.miles === 61200) {
+      demo.trade.vin = "KM8TRAININGSAMP06"; minted = true;
+    }
     if (minted) save();
     return state;
   }
@@ -1514,6 +1527,7 @@ route("trade/:id", ({ id }) => {
         <div class="note note--wt"><span class="lab">Set the stage</span>“We will obtain your vehicle's VIN and the actual mileage. This allows our evaluator to access all book values, auction values, and most importantly, true market values of vehicles for sale just like yours. We invite you to join us for an interactive walk-around of your vehicle and a short drive — after all, who knows your car better than you?”</div>
         <div class="fields">
           <label class="f"><span class="lab">Trade vehicle (year make model)</span><input type="text" id="tDesc" value="${esc(deal.trade.desc || "")}" placeholder="2018 Hyundai Tucson"></label>
+          <label class="f"><span class="lab">VIN <span class="lab-note" id="tVinHint"></span></span><input type="text" id="tVin" value="${esc(deal.trade.vin || "")}" placeholder="KM8TRAININGSAMP06" maxlength="17" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
           <label class="f"><span class="lab">Model year</span><input type="number" id="tYear" value="${deal.trade.year || 2018}" min="1998" max="2026"></label>
           <label class="f"><span class="lab">Mileage</span><input type="number" id="tMiles" value="${deal.trade.miles || 60000}"></label>
           <label class="f"><span class="lab">Condition</span><select id="tCond" data-ui="seg">
@@ -1581,6 +1595,20 @@ route("trade/:id", ({ id }) => {
         : `<div class="note"><ul class="checks"><li>Proof of ownership complete — nothing to flag</li></ul>` +
           (formNames.length ? `<p class="small" style="margin:10px 0 0">Required paperwork: <b>${formNames.map(esc).join(", ")}</b>.</p>` : "") + `</div>`;
   }
+  /* the VIN is copied off paper — the title or the printed training
+     registration — so it cleans itself as typed: uppercase, punctuation
+     dropped, and a quiet count while the 17 characters go in. */
+  const vinHint = () => {
+    const n = $("#tVin").value.length;
+    $("#tVinHint").textContent = n === 0 || n === 17 ? "" : `(${n} of 17)`;
+  };
+  $("#tVin").oninput = () => {
+    const el = $("#tVin");
+    el.value = el.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+    vinHint();
+  };
+  vinHint();
+
   ["oTitle", "oDup", "oLien", "oPaid", "oRel", "oPay", "oOwner", "oAuth"].forEach(id => {
     const el = $("#" + id); if (el) el.onchange = syncOwnership;
   });
@@ -1596,7 +1624,7 @@ route("trade/:id", ({ id }) => {
     const value = Math.round(base * factor / 50) * 50;
     const payoff = parseFloat($("#tPayoff").value) || 0;
     deal.trade = Object.assign(deal.trade, {
-      has: true, desc: $("#tDesc").value, year, miles, condition: cond, value, payoff,
+      has: true, desc: $("#tDesc").value, vin: $("#tVin").value, year, miles, condition: cond, value, payoff,
       rebates: deal.trade.rebates || 0, applyTaxCredit: true
     });
     Store.save();

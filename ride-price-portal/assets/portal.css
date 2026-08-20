@@ -165,6 +165,9 @@ button { font-family: inherit; }
 label.f { display: block; font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 12px; }
 label.f .f-err { display: block; font-size: 11px; font-weight: 600; color: var(--crimson); margin-top: 3px; }
 label.f span.lab { display: block; margin-bottom: 4px; letter-spacing: .3px; }
+/* quiet inline counter beside a label — the VIN's "(n of 17)" while a value
+   is copied off paper. Muted is allowed here: it is progress, not load-bearing. */
+label.f .lab-note { display: inline; font-weight: 600; color: var(--muted); }
 label.f .req { color: var(--crimson); }
 input[type=text], input[type=email], input[type=tel], input[type=number], input[type=date], input[type=search], select, textarea {
   width: 100%; padding: 9px 12px; border: 1.5px solid var(--line); border-radius: 9px;
