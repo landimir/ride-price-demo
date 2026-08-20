@@ -15,15 +15,25 @@ const RIDE_PRICE_DATA = {
      all five boroughs, which is why the ZIP directory below is NYC-only:
      one table can only be correct for one jurisdiction. */
   taxes: [
-    { label: "State Tax", rate: 0.04 },
-    { label: "New York City Tax", rate: 0.045 },
-    { label: "Metropolitan Commuter Transportation District Tax", rate: 0.00375 }
+    /* Labels follow the owner's reference lease summary (2026-08-20), which
+       breaks the 8.875% out as "New York", "Queens County" and "Transit":
+       the 4.5% is the NYC local rate shown by county convention — correct
+       for every deal here because tax follows the dealership's locality
+       (Long Island City, Queens) — and the 0.375% is the MCTD. */
+    { label: "New York State Tax", rate: 0.04 },
+    { label: "Queens County Tax", rate: 0.045 },
+    { label: "Transit Tax", rate: 0.00375 }
   ],
   fees: [
-    /* New York caps dealer documentation fees at $175. */
+    /* The New York fee set from the owner's reference lease summary
+       (2026-08-20), replacing two Colorado-era leftovers. The four sum to
+       $432.50 — the sample's own "Estimated Up-Front Registration & Fees",
+       which is the cross-check. NY caps dealer documentation fees at $175;
+       the tire tax is the state's $2.50-per-tire waste fee × 5. */
     { label: "Documentation Fee", amount: 175.00 },
-    { label: "Registration Fee", amount: 7.20 },
-    { label: "Filing Fee", amount: 20.00 }
+    { label: "Inspection Fee", amount: 10.00 },
+    { label: "Registration Fee", amount: 235.00 },
+    { label: "Tire Tax", amount: 12.50 }
   ],
 
   financeTerms: [36, 48, 60, 72, 84],
@@ -33,7 +43,11 @@ const RIDE_PRICE_DATA = {
   /* residual % of MSRP by lease term */
   residuals: { 24: 0.68, 36: 0.64, 39: 0.61, 48: 0.54 },
 
-  leaseFees: { acquisition: 995.00, securityDeposit: 0 },
+  /* acquisition and disposition from the owner's reference lease summary
+     (2026-08-20) — the captive-lender numbers its quote carries. The
+     disposition fee is charged at lease END, so it never enters the payment
+     math; it is disclosed on the desking screen's lease terms. */
+  leaseFees: { acquisition: 595.00, securityDeposit: 0, disposition: 350.00 },
 
   /* credit tiers: agreed rate is presented at desking; qualified comes back from the "lender" */
   creditTiers: [

@@ -1811,6 +1811,7 @@ route("desk/:id", ({ id }) => {
                 <li><span>Lease Factor</span><b class="amt">${(deal.dealType === "onepay" ? Math.max(0.00001, deal.desk.leaseFactor - 0.0004) : deal.desk.leaseFactor).toFixed(5)}</b></li>
                 <li><span>Acquisition Fee</span><b class="amt">${money(RIDE_PRICE_DATA.leaseFees.acquisition)}</b></li>
                 <li><span>Security Deposit</span><b class="amt">$0.00</b></li>
+                <li><span>Disposition Fee (at lease end)</span><b class="amt">${money(RIDE_PRICE_DATA.leaseFees.disposition)}</b></li>
               </ul>` : `
               <div class="fields fields--tight">
                 <label class="f"><span class="lab">Term</span><select id="finTerm" data-ui="seg">${RIDE_PRICE_DATA.financeTerms.map(t => `<option ${deal.desk.term === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
