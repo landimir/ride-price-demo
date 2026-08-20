@@ -368,5 +368,60 @@ const RIDE_PRICE_DATA = {
       license: { number: "T-0000105", state: "NY", expires: "2031-01-27" },
       address: "77 Bay St", city: "Staten Island", state: "NY", zip: "10301",
       issued: "2026-01-27", cls: "D", sex: "F", eyes: "BRO", hgt: "5'-05\"" }
+  ],
+
+  /* Printable training registrations — the trade-in counterpart to the prop
+     licences, laid out like a New York State registration document so the
+     rehearsal looks like the real conversation.
+
+     The LAYOUT is taken from the owner's sample registrations (2026-08-19;
+     the second, higher-fidelity sample set the portrait template); none of
+     their DATA is. `prop` points at the licenceProp of the same number, so a
+     trainee handed prop 1's licence and prop 1's registration is holding one
+     consistent person — one registration per licence persona, all five.
+     Vehicles are trade-ins, deliberately older than anything in `inventory` —
+     a registration is something the customer brings in, not something the
+     dealership issues.
+
+     Everything here is fictional and self-evidently so: plates all start TSP
+     (training sample prop), document numbers all start TS, VINs spell it out,
+     office codes start TRN — and the printed card carries a SAMPLE overprint
+     plus the standing TRAINING SAMPLE / NOT A GOVERNMENT DOCUMENT marks. */
+  registrationProps: [
+    { prop: 1, cls: "PAS", plateType: "G", plate: "TSP1001",
+      year: 2016, make: "Toyota", body: "SUBN", color: "BK",
+      vin: "4T1TRAININGSAMP01", transferable: "TRANSFERABLE",
+      weight: "003820", fuel: "G", cyl: "4", docNo: "TS100001",
+      office: "TRN OGTS01",
+      issued: "2025-04-18", expires: "2027-04-18",
+      region: "NYMA", annualChg: "32.50", amtPaid: "146.75" },
+    { prop: 2, cls: "PAS", plateType: "G", plate: "TSP1002",
+      year: 2014, make: "Honda", body: "4DSD", color: "GY",
+      vin: "1HGTRAININGSAMP02", transferable: "TRANSFERABLE",
+      weight: "003115", fuel: "G", cyl: "4", docNo: "TS100002",
+      office: "TRN OGTS02",
+      issued: "2025-09-02", expires: "2027-09-02",
+      region: "NYMA", annualChg: "26.25", amtPaid: "118.50" },
+    { prop: 3, cls: "PAS", plateType: "G", plate: "TSP1003",
+      year: 2018, make: "Ford", body: "PICK", color: "WH",
+      vin: "1FTTRAININGSAMP03", transferable: "NONTRANSFERABLE",
+      weight: "005140", fuel: "G", cyl: "6", docNo: "TS100003",
+      office: "TRN OGTS03",
+      issued: "2026-01-11", expires: "2028-01-11",
+      region: "NYMA", annualChg: "44.00", amtPaid: "198.25" },
+    { prop: 4, cls: "PAS", plateType: "G", plate: "TSP1004",
+      year: 2015, make: "Nissan", body: "4DSD", color: "RD",
+      vin: "1N4TRAININGSAMP04", transferable: "TRANSFERABLE",
+      weight: "003210", fuel: "G", cyl: "4", docNo: "TS100004",
+      office: "TRN OGTS04",
+      issued: "2025-06-27", expires: "2027-06-27",
+      region: "NYMA", annualChg: "28.75", amtPaid: "131.00" },
+    { prop: 5, cls: "PAS", plateType: "G", plate: "TSP1005",
+      year: 2017, make: "Subaru", body: "SUBN", color: "BL",
+      vin: "JF2TRAININGSAMP05", transferable: "TRANSFERABLE",
+      weight: "003420", fuel: "G", cyl: "4", docNo: "TS100005",
+      office: "TRN OGTS05",
+      issued: "2026-03-05", expires: "2028-03-05",
+      region: "NYMA", annualChg: "30.00", amtPaid: "152.25" }
   ]
 };

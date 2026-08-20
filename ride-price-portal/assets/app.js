@@ -1006,6 +1006,120 @@ route("props", () => {
 });
 
 /* ============================================================
+   VIEW: Training Registrations (printable trade-in props)
+   ============================================================ */
+
+/* The strip along the bottom of a real registration is a dense 2D barcode.
+   Ours is a woven tile — every filled run exactly two modules wide, every gap
+   the same, each row phase-shifted — so it reads as machine print at arm's
+   length and can encode nothing. That is an invariant, not a shortcut: this
+   project runs two recognisers over photographs of paper, both require a
+   start guard at least three modules wide behind a quiet zone, and a pattern
+   whose longest run anywhere is two cannot contain one at any offset in
+   either direction. `harness/regprops.mjs` asserts the runs stay bounded. */
+const REG_FENCE = { rows: 9, runs: 52, unit: 2 };
+function regFenceSVG() {
+  const { rows, runs, unit } = REG_FENCE;
+  const runW = unit * 2, period = unit * 4, rowH = 5, rects = [];
+  for (let r = 0; r < rows; r++) {
+    const off = (r % 2) * runW;
+    for (let i = 0; i < runs; i++) {
+      rects.push(`<rect x="${off + i * period}" y="${r * rowH}" width="${runW}" height="${rowH - 1}"/>`);
+    }
+  }
+  return `<svg class="reg-fence" viewBox="0 0 ${runs * period + runW} ${rows * rowH - 1}" preserveAspectRatio="none"
+    role="img" aria-label="Decorative strip — not a working barcode">${rects.join("")}</svg>`;
+}
+
+/* DEC 12 2019 — the issue-date format the sample registrations print */
+const regIssued = (iso) => {
+  const d = new Date(iso + "T00:00:00");
+  if (isNaN(d)) return "";
+  return d.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }).replace(",", "").toUpperCase();
+};
+/* 12/11/21 — the two-digit expiry the samples print */
+const regExpires = (iso) => {
+  const d = new Date(iso + "T00:00:00");
+  if (isNaN(d)) return "";
+  const p = (n) => String(n).padStart(2, "0");
+  return `${p(d.getMonth() + 1)}/${p(d.getDate())}/${String(d.getFullYear()).slice(2)}`;
+};
+
+function regPropHtml(r) {
+  const p = RIDE_PRICE_DATA.licenseProps.find(x => x.prop === r.prop);
+  /* DUESBURY,AYANNA,M — the sample's comma-packed name format */
+  const name = p ? `${p.last},${p.first}${p.middle ? "," + p.middle : ""}`.toUpperCase() : "SAMPLE,VEHICLE";
+  const addr = p ? p.address.toUpperCase() : "1 SAMPLE STREET";
+  const city = p ? p.city.toUpperCase() : "ALBANY";
+  const zip = p ? p.zip : "12345";
+  return `<div class="reg-card">
+    <div class="reg-keep">Keep this document to show to the police and courts.</div>
+    <div class="reg-paper">
+      <div class="reg-head">
+        <span class="reg-form">TS-639TR (SAMPLE)</span>
+        <b>NEW YORK STATE REGISTRATION DOCUMENT</b>
+        <span class="reg-sampletag">TRAINING<br>SAMPLE</span>
+      </div>
+      <div class="reg-body">
+        <div class="reg-line">${esc(r.plateType)} ${esc(r.cls)}</div>
+        <div class="reg-line">${esc(r.plate)}</div>
+        <div class="reg-line"><span class="reg-c1">${esc(r.year)} ${esc(r.make.toUpperCase())}</span>${esc(r.transferable)}</div>
+        <div class="reg-line"><span class="reg-c1">${esc(r.body)} ${esc(r.color)}</span>${esc(r.vin)}</div>
+        <div class="reg-line"><span class="reg-c1">${esc(r.weight)} ${esc(r.fuel)} ${esc(r.cyl)}</span>${esc(r.docNo)} ${esc(regIssued(r.issued))}</div>
+        <div class="reg-line"><span class="reg-c1 reg-microlabels"><span>Wt/Seats</span><span>Fuel/Cyl</span></span>${esc(r.office)}</div>
+        <div class="reg-expires">Expires <b>${esc(regExpires(r.expires))}</b></div>
+        <div class="reg-ownerrow">
+          <div class="reg-owner">
+            <div>${esc(name)}</div>
+            <div>${esc(addr)}</div>
+            <div>${esc(city)}&nbsp;&nbsp;&nbsp;&nbsp;NY ${esc(zip)}</div>
+          </div>
+          <div class="reg-right">
+            <div>*${esc(r.region)}*</div>
+            <div>${esc(r.annualChg)}</div>
+          </div>
+        </div>
+        <div class="reg-chglabels"><b>ANNUAL CHG</b><span>AMT PAID (INCL ADD CHG)</span></div>
+        <div class="reg-foot">
+          <b>${esc(r.docNo)}</b>
+          <span>VOID IF ALTERED EXCEPT FOR ADDRESS</span>
+          <i>${esc(r.amtPaid)}</i>
+        </div>
+      </div>
+      <div class="reg-overprint" aria-hidden="true"><span>SAMPLE</span></div>
+    </div>
+    <div class="reg-legend">TRAINING SAMPLE — NOT A GOVERNMENT DOCUMENT · NOT VALID FOR ANY PURPOSE</div>
+    ${regFenceSVG()}
+  </div>`;
+}
+
+route("regprops", () => {
+  renderChrome("Training Registrations", "Print, cut out, and practise the trade-in conversation — every identity is fictional",
+    `<button class="btn btn--grad btn--sm" id="printRegProps">🖨 Print registrations</button>`);
+  view().innerHTML = `
+    <section class="props-guide">
+      <h2>How to use these</h2>
+      <ol class="props-steps">
+        <li><b>Print at 100% scale.</b> Turn <i>off</i> “Fit to page” or “Shrink to fit”, the same as the
+          training licences, so the card comes out the size a customer actually hands you.</li>
+        <li><b>Pair each one with its licence.</b> Registration 1 belongs to the same person as
+          <a href="#/props">training licence 1</a> — the names and addresses match, so a trainee can practise
+          checking one document against the other.</li>
+        <li><b>Use it on a trade.</b> Start a deal with a trade-in and work the
+          proof-of-ownership conversation from the paper in your hand.</li>
+      </ol>
+      <p class="props-guide__foot">Nothing here scans. These are for the conversation, not the camera —
+        the app has no way to read a registration, and the strip along the bottom is decorative.
+        The layout follows a real New York registration so the rehearsal looks right; every value on it
+        is invented.</p>
+    </section>
+    <div class="props-grid">
+      ${RIDE_PRICE_DATA.registrationProps.map(regPropHtml).join("")}
+    </div>`;
+  $("#printRegProps").onclick = () => window.print();
+});
+
+/* ============================================================
    VIEW: Discovery Session
    ============================================================ */
 route("discovery/:id", ({ id }) => {
@@ -4398,6 +4512,18 @@ route("snapall/:id/:origin", ({ id, origin }) => {
 /* ============================================================
    VIEW: Print Center + printable deal documents
    ============================================================ */
+
+/* Forms that recreate a real government document. They print with the same
+   TRAINING SAMPLE treatment as the prop licences — banner, watermark, footer —
+   because a filled lookalike sitting on a public demo must never be mistakable
+   for a real filing. Owner-approved 2026-08-19; the recommendation had been on
+   the table since 2026-08-16.
+   Like JACKET_OUTSIDE this is a derived list, not a stored field: classifying
+   another form is one edit here and no saved deal needs migrating. Ids are
+   dealForms ids, with or without the print route's "form-" prefix. */
+const GOV_FORMS = ["reg"];
+const isGovForm = (docId) => GOV_FORMS.includes(String(docId || "").replace(/^form-/, ""));
+
 function printDocs(deal) {
   const v = Store.vehicle(deal.stock);
   const c = Store.customer(deal.customerId);
@@ -4412,19 +4538,23 @@ function printDocs(deal) {
   </div>`;
 
   function shell(title, body, docId) {
+    /* the watermark wraps the body only, never the footer: the marker strip
+       lives down there and a camera has to read it off paper. */
+    const sample = isGovForm(docId);
     return `<article class="print-doc">
       <header class="pd-head">
         <div class="brand"><span class="rideprice">Ride</span><span class="price">PRICE</span></div>
         <div class="pd-store"><b>${ds.name}</b><br>${ds.address} · ${ds.phone}</div>
       </header>
+      ${sample ? `<div class="pd-sample">Training Sample — not a government document</div>` : ""}
       <h1 class="pd-title">${title}</h1>
       <div class="pd-meta">
         <span><b>${esc(c.first)} ${esc(c.last)}</b> · ${esc(c.phone)}</span>
         <span>${v ? `${esc(v.year)} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)} · Stock ${esc(v.stock)} · VIN ${esc(v.vin)}` : "No vehicle selected"}</span>
         <span>${today()} · ${DEAL_TYPES[deal.dealType]} · Advisor: ${esc(Store.s.advisor)}</span>
       </div>
-      ${body}
-      <footer class="pd-foot"><span>${ds.name} — demo document for training use only · not a real contract</span>
+      ${sample ? `<div class="pd-samplewrap"><div class="pd-watermark" aria-hidden="true"><span>TRAINING SAMPLE</span></div>${body}</div>` : body}
+      <footer class="pd-foot"><span>${ds.name} — demo document for training use only · ${sample ? "not a government document" : "not a real contract"}</span>
         ${docMarkerHtml(deal, docId)}</footer>
     </article>`;
   }

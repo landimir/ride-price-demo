@@ -567,6 +567,29 @@ label.f .seg { display: flex; }
   padding-bottom: 10px; border-bottom: 3px solid; border-image: var(--grad) 1;
 }
 .pd-meta { display: flex; flex-wrap: wrap; gap: 4px 22px; justify-content: center; font-size: 11.5px; color: var(--muted); margin-bottom: 18px; }
+/* Training-sample treatment for forms that recreate a real government document
+   (GOV_FORMS in app.js) — the same banner / watermark / footer the prop
+   licences carry. Crimson is the demo-warning colour; the print block below
+   forces black so the marks survive a black-and-white copy. */
+.pd-sample {
+  border: 2px solid var(--crimson); border-radius: 8px; color: var(--crimson);
+  text-align: center; text-transform: uppercase; letter-spacing: 1.2px;
+  font-size: 11.5px; font-weight: 800; padding: 7px 10px; margin-top: 14px;
+}
+/* wraps the body only, never the footer: the deal-jacket marker prints down
+   there and a phone camera has to read it off paper. */
+.pd-samplewrap { position: relative; }
+.pd-watermark {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  pointer-events: none; user-select: none;
+}
+/* only the text rotates. Rotating the full-height box would throw its corners
+   well past the page edge; a capped-width span cannot. */
+.pd-watermark span {
+  transform: rotate(-16deg); max-width: 84%; text-align: center; line-height: 1.15;
+  font-size: min(44px, 10vw); font-weight: 800; letter-spacing: 3px;
+  color: rgba(179, 54, 75, .09);
+}
 .pd-h3 { font-size: 13px; color: var(--navy); text-transform: uppercase; letter-spacing: .6px; margin: 18px 0 8px; }
 .pd-checks { list-style: none; padding: 0; margin: 8px 0; }
 .pd-checks li { display: flex; gap: 10px; align-items: center; padding: 5px 0; }
@@ -730,6 +753,83 @@ label.f .seg { display: flex; }
 .prop-barcode { display: block; width: 78mm; height: 18mm; margin: 0 auto; }
 .prop-fine { font-size: 2mm; color: #777; padding: 1.6mm 4mm 0; line-height: 1.55; }
 
+/* ---------- training registrations (printable trade-in props) ----------
+   Laid out like a New York registration document — the portrait card from the
+   owner's second sample batch: white frame, black keep-strip, yellow paper,
+   white barcode band. Sized in millimetres like the prop licences, because
+   the whole point is that it prints at a believable size — never scale these
+   with the phone layout, only allow them to stack. */
+.reg-card {
+  position: relative; width: 112mm; height: 140mm; box-sizing: border-box;
+  background: #fff; border: 1px dashed #a9a6c9; border-radius: 2.5mm;
+  padding: 2mm 2mm 0; overflow: hidden; color: #1b1b33; flex: 0 0 auto;
+  box-shadow: var(--shadow); display: flex; flex-direction: column;
+}
+.reg-keep {
+  background: #17171d; color: #fff; font-family: var(--font, inherit);
+  font-size: 3.4mm; font-weight: 700; font-style: italic; text-align: center;
+  padding: 1.2mm 0; border-radius: 0.8mm;
+}
+.reg-paper {
+  position: relative; flex: 1; margin-top: 1.5mm; border-radius: 0.8mm;
+  background: #fdf6d8; overflow: hidden; display: flex; flex-direction: column;
+  font-family: "Courier New", Courier, monospace;
+}
+/* the chevron security tint. A flat repeating gradient, not an image — there
+   are no binary assets in this project. */
+.reg-paper::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(135deg, #f2df84 0 1.2mm, #fdf6d8 1.2mm 2.6mm);
+  opacity: .45;
+}
+.reg-paper > * { position: relative; }
+.reg-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 2mm;
+  padding: 2.2mm 3mm 0; font-family: var(--font, inherit);
+}
+.reg-head b { font-size: 3.2mm; letter-spacing: .2px; text-align: center; }
+.reg-form { font-size: 1.9mm; font-weight: 700; color: #555; width: 13mm; flex: 0 0 auto; }
+/* the sample tag sits where the real card draws the state seal. No seal is
+   drawn anywhere on this card — reproducing a government emblem is the one
+   detail worth losing — so the warning takes its spot instead. */
+.reg-sampletag {
+  font-size: 2mm; font-weight: 800; line-height: 1.3; color: var(--crimson);
+  border: 0.45mm solid var(--crimson); border-radius: 0.8mm; padding: .8mm 1mm;
+  text-align: center; flex: 0 0 auto; font-family: var(--font, inherit);
+}
+.reg-body { flex: 1; display: flex; flex-direction: column; padding: 2.5mm 3mm 0; }
+.reg-line { font-size: 4mm; line-height: 1.45; letter-spacing: .2px; white-space: pre; }
+.reg-c1 { display: inline-block; width: 36mm; }
+.reg-microlabels { font-family: var(--font, inherit); font-size: 1.9mm; font-weight: 700; white-space: normal; }
+.reg-microlabels span { margin-right: 5mm; }
+.reg-expires { font-family: var(--font, inherit); font-size: 2.8mm; text-align: right; margin-top: 1mm; }
+.reg-expires b { font-family: "Courier New", Courier, monospace; font-size: 4.2mm; font-weight: 400; }
+.reg-ownerrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 3mm; margin-top: .6mm; }
+.reg-owner div { font-size: 4mm; line-height: 1.45; letter-spacing: .2px; }
+.reg-right { text-align: right; }
+.reg-right div { font-size: 4mm; line-height: 1.45; }
+.reg-chglabels { text-align: right; margin-top: auto; font-family: var(--font, inherit); }
+.reg-chglabels b { display: inline-block; font-size: 2.4mm; border-bottom: 0.3mm solid #1b1b33; padding-bottom: .2mm; }
+.reg-chglabels span { display: block; font-size: 1.9mm; font-weight: 700; margin-top: .4mm; }
+/* pinned to the bottom of the yellow paper by the column layout above */
+.reg-foot { display: flex; justify-content: space-between; align-items: baseline; gap: 2mm; margin-top: 1.5mm; padding: 0 0 2.2mm; }
+.reg-foot b { font-size: 5.4mm; letter-spacing: .4px; font-family: "Courier New", Courier, monospace; font-weight: 700; }
+.reg-foot span { font-family: var(--font, inherit); font-size: 2.4mm; font-weight: 800; }
+.reg-foot i { font-style: normal; font-size: 4.4mm; }
+.reg-legend {
+  font-family: var(--font, inherit); text-align: center; font-size: 2.2mm;
+  font-weight: 800; letter-spacing: .3px; color: var(--crimson); padding: 1.2mm 0 .8mm;
+}
+/* decorative only — see regFenceSVG() in app.js. Runs of two encode nothing. */
+.reg-fence { display: block; width: calc(100% - 2mm); height: 12mm; margin: 0 auto 2mm; fill: #17171d; }
+.reg-overprint {
+  position: absolute !important; inset: 0; display: flex; align-items: center; justify-content: center;
+  pointer-events: none; user-select: none;
+}
+.reg-overprint span {
+  transform: rotate(-24deg); font-family: var(--font, inherit);
+  font-size: 24mm; font-weight: 800; letter-spacing: 2mm; color: rgba(199, 62, 99, .32);
+}
 
 /* ---------- deal jacket ----------
    Desktop splits outstanding from collected, because "what is still missing"
@@ -1192,10 +1292,25 @@ body[data-screen="clientlink"] .dr-clientbottom { bottom: 48px; }
   /* block-level pairs so break-inside is honoured (it is unreliable on flex items) */
   .prop-pair { page-break-inside: avoid; break-inside: avoid; margin-bottom: 6mm; }
   .prop-card { box-shadow: none; border-color: #999; page-break-inside: avoid; break-inside: avoid; }
+  /* registrations print one per half-page, tint and all — the yellow hatch is
+     what makes the prop recognisable at a glance, so it is not stripped the
+     way the licence header is. The SAMPLE overprint darkens instead, because
+     a colour-managed print can wash a light tint out entirely. */
+  .reg-card {
+    box-shadow: none; border-color: #999;
+    page-break-inside: avoid; break-inside: avoid; margin-bottom: 8mm;
+  }
+  .reg-overprint span { color: rgba(0, 0, 0, .22); }
+  .reg-sampletag { border-color: #000; color: #000; }
+  .reg-legend { color: #000; }
   /* print pure black on white: legible whether or not the UA keeps backgrounds */
   .prop-head { background: none; color: #1b1b33; border-bottom: 0.5mm solid #1b1b33; }
   .prop-head b { color: #1b1b33; }
   .prop-watermark { color: rgba(0, 0, 0, .06); }
+  /* the training-sample marks print black too — they have to survive a
+     black-and-white copier, which is where a lookalike would do its damage */
+  .pd-sample { border-color: #000; color: #000; }
+  .pd-watermark span { color: rgba(0, 0, 0, .07); }
   /* the marker is the only thing on the page a camera has to read back */
   .pd-mark { page-break-inside: avoid; break-inside: avoid; }
   .pd-mark__bars { fill: #000; }
