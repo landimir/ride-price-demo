@@ -8,7 +8,7 @@ A working recreation of the Ride Price dealer software — the screens shown thr
 
 | Screen | What it does |
 |---|---|
-| **Deals** | Dashboard + deals list with stage badges. Finalized deals turn dark blue, just like the real system. |
+| **Deals** | The active floor queue: live counts, search (name/stock/VIN/deal #/phone) with a license-scanner button, Desking / F&I pipeline pills, and full-card tap targets whose status line is the deal's next action. Funded deals auto-archive into a folded list. |
 | **Find a Customer** | Search-first workflow, Create Customer modal with the binder's required-field rules. |
 | **Discovery Session** | The 7-question "week in the life of your vehicle" interview. |
 | **Vehicle Search** | Filterable demo inventory with the **Your Journey** menu (Test Drive / Trade Appraisal / Calculate Payment / Quote). |
@@ -30,6 +30,6 @@ A working recreation of the Ride Price dealer software — the screens shown thr
 ## Running it
 
 Static site, no build: double-click `index.html`, or serve with `npx http-server -p 8322`.
-**Reset demo data** (Deals page) restores the seeded customers/deal.
+**Reset demo data** (in the navigation drawer) restores the seeded customers/deal.
 
 Files: `index.html` (shell) · `assets/portal.css` (UI) · `assets/data.js` (inventory, products, programs, rates) · `assets/calc.js` (deal math) · `assets/app.js` (router + views).

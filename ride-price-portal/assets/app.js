@@ -431,65 +431,149 @@ function router() {
 const view = () => $("#view");
 
 /* ============================================================
-   VIEW: Deals dashboard
+   VIEW: Deals — the active floor queue
+   (owner mockup 2026-08-20: layout from the sample, every value live)
    ============================================================ */
-route("deals", () => {
-  const deals = Store.s.deals.slice().sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
-  const active = deals.filter(d => d.stage !== "complete").length;
-  const complete = deals.filter(d => d.stage === "complete").length;
 
-  renderChrome("Deals", `${RIDE_PRICE_DATA.dealership.name} · ${today()}`,
-    `<button class="btn btn--danger btn--sm" id="resetDemo">Reset demo data</button>
-     <a class="btn btn--grad" href="#/customers">＋ New customer visit</a>`);
+/* screen state at module level so typing and pill picks survive re-renders;
+   the brand logo resets both and re-pulls the queue (owner spec) */
+const dealsUI = { q: "", pipe: "all", arch: false };
+
+/* two pipeline buckets: before a signed base the deal is being desked; from
+   the signed base on, the work is F&I and documents. A complete deal is
+   funded and leaves the active queue. */
+const FNI_STAGES = ["signed", "credit", "menu", "forms"];
+const dealPipe = (d) => d.stage === "complete" ? "funded" : (FNI_STAGES.indexOf(d.stage) >= 0 ? "fni" : "desking");
+
+/* the card's status line — the deal's immediate next action, read from the
+   same state the screen behind the tap will show */
+function dealNextAction(d) {
+  switch (d.stage) {
+    case "discovery": return "Discovery Interview In Progress";
+    case "vehicle": return "Selecting a Vehicle";
+    case "testdrive": return "Test Drive In Progress";
+    case "desking":
+      if (d.trade && d.trade.has && !(Number(d.trade.value) > 0)) return "Pending Trade Appraisal";
+      if (!d.huddle || !d.huddle.done) return "Game Plan With the Team Lead";
+      return "Customer Reviewing Quote";
+    case "signed": return "Base Signed · Credit App Next";
+    case "credit": return "Credit Application In Progress";
+    case "complete": return "Funded";
+  }
+  /* menu / forms — the sign-off gate first, then the documents */
+  if (d.stage === "menu" && !d.signoff) return "Awaiting Team Lead Sign-Off";
+  const led = jacketLedgers(d);
+  if (led.missing > 0) {
+    const q = clientQueue(d);
+    const m = q.length ? docMeta(q[0]) : null;
+    return m ? "Missing " + m.label : led.accepted + "/" + led.total + " Docs Verified";
+  }
+  return led.accepted + "/" + led.total + " Docs Verified · Ready to Finalize";
+}
+
+route("deals", () => {
+  /* Advisor sees the deals assigned to them; Team Lead sees the whole floor.
+     A deal saved before deals carried an advisor belongs to the demo's one
+     advisor — that is who created it. */
+  const mine = Store.s.deals.filter(d => isTeamLead() || !d.advisor || d.advisor === Store.s.advisor);
+  const bySeen = (a, b) => (b.createdAt || "").localeCompare(a.createdAt || "");
+  const act = mine.filter(d => d.stage !== "complete").sort(bySeen);
+  const funded = mine.filter(d => d.stage === "complete").sort(bySeen);
+  const counts = {
+    all: act.length,
+    desking: act.filter(d => dealPipe(d) === "desking").length,
+    fni: act.filter(d => dealPipe(d) === "fni").length
+  };
+
+  renderChrome(`Active Deals (${act.length})`, "Funded contracts auto-archived",
+    `<a class="btn btn--grad" href="#/customers">＋ New Customer Visit</a>`);
+
+  function card(d) {
+    const c = Store.customer(d.customerId), v = Store.vehicle(d.stock);
+    const st = STAGES[d.stage] || STAGES.discovery;
+    const pipe = dealPipe(d);
+    const chip = pipe === "funded" ? `<span class="dl-chip dl-chip--funded">FUNDED</span>`
+      : pipe === "fni" ? `<span class="dl-chip dl-chip--fni">F&amp;I READY</span>`
+      : `<span class="dl-chip dl-chip--desk">DESKING</span>`;
+    const name = c ? c.first + " " + c.last : "—";
+    return `<div class="dl-card">
+      <a class="dl-card__main" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
+        <span class="dl-card__info">
+          <b class="dl-card__name">${esc(name)}</b>
+          <span class="dl-card__veh">${v ? esc(v.year + " " + v.make + " " + v.model) + " · Stk #" + esc(v.stock) : "No vehicle selected yet"}</span>
+          <span class="dl-card__next">${esc(dealNextAction(d))}</span>
+        </span>
+        ${chip}
+        <span class="dl-card__go" aria-hidden="true">›</span>
+      </a>
+      <button type="button" class="dl-card__del" data-del="${esc(d.id)}" aria-label="Delete ${esc(name)}'s deal" title="Delete deal">×</button>
+    </div>`;
+  }
 
   view().innerHTML = `
-    <div class="kpis">
-      <div class="kpi"><b>${deals.length}</b><span>Total deals</span></div>
-      <div class="kpi"><b>${active}</b><span>In progress</span></div>
-      <div class="kpi"><b>${complete}</b><span>Finalized</span></div>
-      <div class="kpi"><b>${Store.s.customers.length}</b><span>Customers</span></div>
+    <div class="dl-search">
+      <span class="dl-search__icon" aria-hidden="true">🔍</span>
+      <input type="search" id="dealSearch" placeholder="Search stock, customer, or VIN…" aria-label="Search deals by customer, stock number, VIN, or phone" value="${esc(dealsUI.q)}">
+      <button type="button" class="dl-search__cam" id="dealScanBtn" title="Scan a training license to start a visit" aria-label="Scan a driver's license to start a visit">📷</button>
     </div>
-    <div class="panel">
-      <div class="panel__head"><h2>Deals</h2>
-        <div class="right"><input type="text" id="dealSearch" placeholder="Customer, stock, or VIN…" style="width:230px;max-width:100%"></div>
-      </div>
-      <div class="tbl-scroll"><table class="tbl" id="dealsTbl">
-        <thead><tr><th>Date</th><th>Customer</th><th>Vehicle : Stock #</th><th>Deal Type</th><th>Stage</th><th></th></tr></thead>
-        <tbody>
-        ${deals.length ? deals.map(d => {
-          const c = Store.customer(d.customerId), v = Store.vehicle(d.stock);
-          const st = STAGES[d.stage] || STAGES.discovery;
-          return `<tr data-row="${esc(d.id)}" class="${d.stage === "complete" ? "tbl-row--done" : ""}">
-            <td class="small" data-label="Date">${new Date(d.createdAt).toLocaleDateString()}</td>
-            <td data-label="Customer"><b>${c ? esc(c.last + ", " + c.first) : "—"}</b></td>
-            <td class="small" data-label="Vehicle">${v ? esc(v.year + " " + v.make + " " + v.model) + " : " + v.stock : "<span class='muted'>not selected</span>"}</td>
-            <td data-label="Deal Type"><span class="badge badge--type">${DEAL_TYPES[d.dealType]}</span></td>
-            <td data-label="Stage"><span class="badge ${d.stage === "menu" && !d.signoff ? "badge--prog" : st.badge}">${d.stage === "menu" && !d.signoff ? "Awaiting Sign-Off" : st.label}</span></td>
-            <td class="right acts">
-              <a class="btn btn--sm ${d.stage === "complete" ? "btn--ghost" : "btn--primary"}" href="${esc(st.route(d))}">${d.stage === "complete" ? "Review" : "Continue"}</a>
-              ${d.stock ? `<a class="btn btn--sm btn--ghost" href="#/forms/${esc(d.id)}">Forms</a>` : ""}
-              <button class="btn btn--sm btn--danger" data-del="${esc(d.id)}">×</button>
-            </td></tr>`;
-        }).join("") : `<tr><td colspan="6" class="center muted" style="padding:34px">No deals yet — start a new customer visit.</td></tr>`}
-        </tbody></table></div>
-    </div>`;
+    <div class="dl-pills" role="group" aria-label="Filter deals by pipeline stage">
+      <button type="button" class="dl-pill" data-pipe="all">All (${counts.all})</button>
+      <button type="button" class="dl-pill" data-pipe="desking"><i class="dl-dot dl-dot--desk" aria-hidden="true"></i>Desking (${counts.desking})</button>
+      <button type="button" class="dl-pill" data-pipe="fni"><i class="dl-dot dl-dot--fni" aria-hidden="true"></i>F&amp;I / Docs (${counts.fni})</button>
+    </div>
+    <div class="dl-list" id="dealList"></div>
+    ${funded.length ? `
+    <details class="dl-archive"${dealsUI.arch ? " open" : ""}>
+      <summary>Archived — funded contracts (${funded.length})</summary>
+      <div class="dl-list">${funded.map(card).join("")}</div>
+    </details>` : ""}`;
 
-  $("#resetDemo").onclick = () => {
-    confirmModal("Reset demo data", "Reset all portal data back to the demo seed? Every deal and customer you created will be gone.", "Reset demo data",
-      () => { Store.reset(); router(); toast("Demo data reset"); });
-  };
-  $("#dealSearch").oninput = (e) => {
-    const q = e.target.value.toLowerCase();
-    $$("#dealsTbl tbody tr").forEach(tr => { tr.style.display = tr.textContent.toLowerCase().includes(q) ? "" : "none"; });
-  };
-  $$("[data-del]").forEach(b => b.onclick = () => {
-    const d = Store.s.deals.find(x => x.id === b.dataset.del);
-    const c = d && Store.customer(d.customerId);
-    confirmModal("Delete deal", `Delete ${c ? esc(c.first + " " + c.last) + "'s" : "this"} deal? This can't be undone.`, "Delete deal", () => {
-      Store.s.deals = Store.s.deals.filter(x => x.id !== b.dataset.del);
-      Store.save(); router();
+  /* a delete re-renders the screen — the archive must not snap shut */
+  const det = $(".dl-archive");
+  if (det) det.ontoggle = () => { dealsUI.arch = det.open; };
+
+  /* search matches name, vehicle, stock, VIN, deal #, or phone — punctuation
+     dropped on both sides so "(555) 12" finds the digits it contains */
+  function matches(d) {
+    const q = dealsUI.q.trim().toLowerCase();
+    if (!q) return true;
+    const c = Store.customer(d.customerId), v = Store.vehicle(d.stock);
+    const hay = [
+      c ? c.first + " " + c.last : "", c && c.phone ? c.phone : "",
+      v ? v.year + " " + v.make + " " + v.model : "", v ? v.stock : "", v && v.vin ? v.vin : "",
+      d.dealNo ? "#" + d.dealNo : "", d.trade && d.trade.vin ? d.trade.vin : ""
+    ].join(" ").toLowerCase();
+    return hay.indexOf(q) >= 0 ||
+      hay.replace(/[^a-z0-9]/g, "").indexOf(q.replace(/[^a-z0-9]/g, "")) >= 0;
+  }
+
+  function bindDel() {
+    $$("#view [data-del]").forEach(b => b.onclick = () => {
+      const d = Store.s.deals.find(x => x.id === b.dataset.del);
+      const c = d && Store.customer(d.customerId);
+      confirmModal("Delete deal", `Delete ${c ? esc(c.first + " " + c.last) + "'s" : "this"} deal? This can't be undone.`, "Delete deal", () => {
+        Store.s.deals = Store.s.deals.filter(x => x.id !== b.dataset.del);
+        Store.save(); router();
+      });
     });
-  });
+  }
+
+  function paint() {
+    $$(".dl-pill").forEach(p => {
+      const on = p.dataset.pipe === dealsUI.pipe;
+      p.classList.toggle("on", on);
+      p.setAttribute("aria-pressed", String(on));
+    });
+    const rows = act.filter(d => (dealsUI.pipe === "all" || dealPipe(d) === dealsUI.pipe) && matches(d));
+    $("#dealList").innerHTML = rows.length ? rows.map(card).join("")
+      : `<p class="dl-empty">${act.length ? "No deals match that filter." : "No active deals — start a new customer visit."}</p>`;
+    bindDel();
+  }
+
+  $("#dealSearch").oninput = (e) => { dealsUI.q = e.target.value; paint(); };
+  $$(".dl-pill").forEach(p => p.onclick = () => { dealsUI.pipe = p.dataset.pipe; paint(); });
+  $("#dealScanBtn").onclick = () => openScanFlow({ mode: "customer", onDone: (cust) => startVisit(cust.id) });
+  paint();
 });
 
 /* ============================================================
@@ -605,27 +689,35 @@ route("customers", () => {
     onDone: (cust) => startVisit(cust.id)
   });
 
-  function startVisit(customerId) {
-    const deal = {
-      id: uid("d"), dealNo: Store.mintDealNo(), customerId, stock: null, dealType: "finance", stage: "discovery",
-      createdAt: new Date().toISOString(),
-      discovery: { answers: {}, done: false },
-      testDrive: { done: false },
-      trade: { has: false, value: 0, payoff: 0, rebates: 0, applyTaxCredit: true },
-      huddle: { done: false },
-      desk: { term: 60, apr: 4.5, downPayment: 1000, leaseTerm: 36, milesPerYear: 12000, leaseFactor: 0.0015, dueAtSigning: 1000, accessories: [], daysToFirst: 45 },
-      basePayment: null, creditApp: null,
-      menu: { step: 1, barsDone: [], custom: [], customSource: null, selectedProgram: null, initials: "", ackSigned: false },
-      forms: { selected: [], finalized: false }
-    };
-    const cust = Store.customer(customerId);
-    const tier = RIDE_PRICE_CALC.creditTier(cust.creditScore || 700);
-    deal.desk.apr = tier.agreedApr;
-    deal.desk.leaseFactor = tier.leaseFactor;
-    Store.s.deals.push(deal); Store.save();
-    navigate(`#/discovery/${deal.id}`);
-  }
 });
+
+/* start a visit for a known customer — used by the Find-a-Customer screen
+   and the deals queue's scanner button. The advisor of record is stamped at
+   creation so the role switcher can scope the floor to "my deals".
+   Deliberately Store.s.advisor, not roleName(): the field is the salesperson
+   RESPONSIBLE for the deal, not who tapped the button. A visit the Team Lead
+   starts still belongs to the floor advisor — stamping the lead's name would
+   orphan the deal from every advisor's view with no reassignment UI. */
+function startVisit(customerId) {
+  const deal = {
+    id: uid("d"), dealNo: Store.mintDealNo(), customerId, stock: null, dealType: "finance", stage: "discovery",
+    createdAt: new Date().toISOString(), advisor: Store.s.advisor,
+    discovery: { answers: {}, done: false },
+    testDrive: { done: false },
+    trade: { has: false, value: 0, payoff: 0, rebates: 0, applyTaxCredit: true },
+    huddle: { done: false },
+    desk: { term: 60, apr: 4.5, downPayment: 1000, leaseTerm: 36, milesPerYear: 12000, leaseFactor: 0.0015, dueAtSigning: 1000, accessories: [], daysToFirst: 45 },
+    basePayment: null, creditApp: null,
+    menu: { step: 1, barsDone: [], custom: [], customSource: null, selectedProgram: null, initials: "", ackSigned: false },
+    forms: { selected: [], finalized: false }
+  };
+  const cust = Store.customer(customerId);
+  const tier = RIDE_PRICE_CALC.creditTier(cust.creditScore || 700);
+  deal.desk.apr = tier.agreedApr;
+  deal.desk.leaseFactor = tier.leaseFactor;
+  Store.s.deals.push(deal); Store.save();
+  navigate(`#/discovery/${deal.id}`);
+}
 
 /* ============================================================
    LICENSE SCAN — prop-license capture, match & verify (demo)
@@ -4940,7 +5032,9 @@ route("print/:id/:doc", ({ id, doc }) => {
 Store.load();
 window.addEventListener("hashchange", router);
 window.addEventListener("DOMContentLoaded", () => {
-  $("#brandHome").onclick = () => navigate("#/deals");
+  /* the logo hard-refreshes the floor queue: search and pipeline filter
+     cleared, list re-pulled (owner spec, 2026-08-20) */
+  $("#brandHome").onclick = () => { dealsUI.q = ""; dealsUI.pipe = "all"; dealsUI.arch = false; navigate("#/deals"); router(); };
   $$("[data-nav]").forEach(a => a.onclick = (e) => { e.preventDefault(); navigate(a.dataset.nav); });
 
   /* hamburger navigation drawer */
