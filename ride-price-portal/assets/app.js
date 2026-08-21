@@ -485,29 +485,29 @@ route("deals", () => {
     fni: act.filter(d => dealPipe(d) === "fni").length
   };
 
-  renderChrome(`Active Deals (${act.length})`, "Funded contracts auto-archived",
+  /* one baseline row: title + primary action, no stacked subtitle
+     (owner refinement, 2026-08-20) */
+  renderChrome(`Active Deals (${act.length})`, "",
     `<a class="btn btn--grad" href="#/customers">＋ New Customer Visit</a>`);
+  document.body.dataset.screen = "deals";
 
+  /* the whole card is the click target — no chevron, no per-card controls
+     (owner refinement, 2026-08-20); the chip is pinned to the corner */
   function card(d) {
     const c = Store.customer(d.customerId), v = Store.vehicle(d.stock);
     const st = STAGES[d.stage] || STAGES.discovery;
     const pipe = dealPipe(d);
-    const chip = pipe === "funded" ? `<span class="dl-chip dl-chip--funded">FUNDED</span>`
-      : pipe === "fni" ? `<span class="dl-chip dl-chip--fni">F&amp;I READY</span>`
-      : `<span class="dl-chip dl-chip--desk">DESKING</span>`;
+    /* the chip wears the app's shared status colours (badge--prog/new/done) */
+    const chip = pipe === "funded" ? `<span class="dl-chip badge--done">FUNDED</span>`
+      : pipe === "fni" ? `<span class="dl-chip badge--new">F&amp;I READY</span>`
+      : `<span class="dl-chip badge--prog">DESKING</span>`;
     const name = c ? c.first + " " + c.last : "—";
-    return `<div class="dl-card">
-      <a class="dl-card__main" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
-        <span class="dl-card__info">
-          <b class="dl-card__name">${esc(name)}</b>
-          <span class="dl-card__veh">${v ? esc(v.year + " " + v.make + " " + v.model) + " · Stk #" + esc(v.stock) : "No vehicle selected yet"}</span>
-          <span class="dl-card__next">${esc(dealNextAction(d))}</span>
-        </span>
-        ${chip}
-        <span class="dl-card__go" aria-hidden="true">›</span>
-      </a>
-      <button type="button" class="dl-card__del" data-del="${esc(d.id)}" aria-label="Delete ${esc(name)}'s deal" title="Delete deal">×</button>
-    </div>`;
+    return `<a class="dl-card" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
+      <b class="dl-card__name">${esc(name)}</b>
+      <span class="dl-card__veh">${v ? esc(v.year + " " + v.make + " " + v.model) + " · Stk #" + esc(v.stock) : "No vehicle selected yet"}</span>
+      <span class="dl-card__next">${esc(dealNextAction(d))}</span>
+      ${chip}
+    </a>`;
   }
 
   view().innerHTML = `
@@ -528,7 +528,7 @@ route("deals", () => {
       <div class="dl-list">${funded.map(card).join("")}</div>
     </details>` : ""}`;
 
-  /* a delete re-renders the screen — the archive must not snap shut */
+  /* any re-render (role switch, logo refresh) must not snap the archive shut */
   const det = $(".dl-archive");
   if (det) det.ontoggle = () => { dealsUI.arch = det.open; };
 
@@ -547,17 +547,6 @@ route("deals", () => {
       hay.replace(/[^a-z0-9]/g, "").indexOf(q.replace(/[^a-z0-9]/g, "")) >= 0;
   }
 
-  function bindDel() {
-    $$("#view [data-del]").forEach(b => b.onclick = () => {
-      const d = Store.s.deals.find(x => x.id === b.dataset.del);
-      const c = d && Store.customer(d.customerId);
-      confirmModal("Delete deal", `Delete ${c ? esc(c.first + " " + c.last) + "'s" : "this"} deal? This can't be undone.`, "Delete deal", () => {
-        Store.s.deals = Store.s.deals.filter(x => x.id !== b.dataset.del);
-        Store.save(); router();
-      });
-    });
-  }
-
   function paint() {
     $$(".dl-pill").forEach(p => {
       const on = p.dataset.pipe === dealsUI.pipe;
@@ -567,7 +556,6 @@ route("deals", () => {
     const rows = act.filter(d => (dealsUI.pipe === "all" || dealPipe(d) === dealsUI.pipe) && matches(d));
     $("#dealList").innerHTML = rows.length ? rows.map(card).join("")
       : `<p class="dl-empty">${act.length ? "No deals match that filter." : "No active deals — start a new customer visit."}</p>`;
-    bindDel();
   }
 
   $("#dealSearch").oninput = (e) => { dealsUI.q = e.target.value; paint(); };

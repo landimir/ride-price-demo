@@ -514,39 +514,46 @@ label.f .seg { display: flex; }
 .dl-dot--fni { background: var(--blue); }
 
 .dl-list { display: grid; gap: 12px; }
-.dl-card { position: relative; }
-.dl-card__main {
-  display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line);
-  border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 16px; text-decoration: none; color: inherit;
+/* the card IS the link — clean click target, nothing on the right margin;
+   the chip anchors to top/right so the whole list aligns (owner refinement) */
+.dl-card {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 3px; min-width: 0;
+  background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow);
+  padding: 14px 16px; text-decoration: none; color: inherit;
 }
-.dl-card__main:hover { border-color: var(--navy); }
-.dl-card__info { flex: 1 1 auto; min-width: 0; display: grid; gap: 3px; }
-.dl-card__name { font-size: 15.5px; font-weight: 800; color: var(--navy); }
+.dl-card:hover { border-color: var(--navy); }
+/* the name shares row one with the chip — the chip's own column sizes the
+   lane, so no reserved padding can ever fall short of a longer label; an
+   unbroken long name wraps instead of widening the card */
+.dl-card__name { grid-column: 1; font-size: 15.5px; font-weight: 800; color: var(--navy); min-width: 0; overflow-wrap: anywhere; }
 /* both lines are load-bearing on the lot — ink, never muted (ui-context) */
-.dl-card__veh, .dl-card__next { font-size: 12.5px; color: var(--ink); overflow-wrap: anywhere; }
+.dl-card__veh, .dl-card__next { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink); overflow-wrap: anywhere; }
+/* the chip sits in column two, row one, flush with the card's own 14/16
+   padding — i.e. exactly 14px from the top and 16px from the right edge, the
+   owner's anchor, without absolute positioning. Colours come from the shared
+   status badges (badge--prog / --new / --done) so the queue never drifts
+   from the rest of the app. */
 .dl-chip {
-  align-self: flex-start; font-size: 10.5px; font-weight: 800; letter-spacing: .4px;
-  padding: 4px 9px; border-radius: 7px; white-space: nowrap;
+  grid-column: 2; grid-row: 1; align-self: start; font-size: 10.5px; font-weight: 800;
+  letter-spacing: .4px; padding: 4px 9px; border-radius: 7px; white-space: nowrap;
 }
-.dl-chip--desk { background: #fdf3e6; color: #b46811; }
-.dl-chip--fni { background: #eef4fd; color: var(--blue); }
-.dl-chip--funded { background: var(--navy); color: #fff; }
-.dl-card__go { font-size: 22px; color: var(--muted); line-height: 1; }
-.dl-card__del {
-  position: absolute; right: 12px; bottom: 8px; width: 24px; height: 24px; border: 0; border-radius: 99px;
-  background: transparent; color: var(--muted); font-size: 15px; line-height: 1; cursor: pointer;
-}
-.dl-card__del:hover { background: #fdecec; color: var(--crimson); }
 .dl-empty { text-align: center; color: var(--muted); padding: 30px 0; margin: 0; }
 .dl-archive { margin-top: 18px; }
 .dl-archive summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
-/* the phone touch floor (ui-context: ≥44px at ≤720px, small variants ≥40px) —
-   the delete's hit area grows while its glyph stays quiet */
-@media (max-width: 720px) {
+/* the phone touch floor (ui-context: ≥44px at ≤720px, small variants ≥40px),
+   and the header stays ONE row — title left, action right — instead of the
+   generic full-width action stack (owner refinement). One row is enforced,
+   not hoped for: the bar may not wrap, the title box may shrink (and its
+   text wrap) and the action never does — so a two-digit count on a 320px
+   phone still keeps the button beside the title. */
+@media screen and (max-width: 720px) {
   .dl-pill { min-height: 44px; padding: 10px 16px; }
   .dl-search input { min-height: 48px; }
   .dl-search__cam { top: 4px; bottom: 4px; height: auto; transform: none; width: 44px; }
-  .dl-card__del { width: 40px; height: 40px; right: 4px; bottom: 2px; }
+  body[data-screen="deals"] .pagebar { flex-wrap: nowrap; align-items: center; gap: 10px; }
+  body[data-screen="deals"] .pagebar > div { min-width: 0; }
+  body[data-screen="deals"] .pagebar .actions { margin-left: auto; width: auto; flex: 0 0 auto; }
+  body[data-screen="deals"] .pagebar .actions .btn { white-space: nowrap; padding: 10px 12px; font-size: 13px; }
 }
 
 /* print-center document tiles */
