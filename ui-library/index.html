@@ -23,6 +23,9 @@ a{color:inherit}
 .sev{display:inline-block;border-radius:99px;padding:2px 9px;font-size:10.5px;font-weight:800;letter-spacing:.4px;color:#fff}.sev--Critical{background:var(--crit)}.sev--Major{background:var(--major)}.sev--Minor{background:var(--minor)}.sev--Observation{background:var(--obs)}
 .flow{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:24px;scroll-margin-top:70px}
 .flow header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}.flow h2{margin:0;font-size:17px;color:var(--navy);text-transform:uppercase;letter-spacing:.6px}.flow h2 small{color:var(--muted);font-weight:600;letter-spacing:0;text-transform:none;margin-left:8px}
+.dlwrap{position:relative;margin-left:auto}.dl{width:36px;height:36px;border-radius:99px;border:1.5px solid var(--line);background:#fff;color:var(--navy);font-size:16px;font-weight:800;cursor:pointer;line-height:1}.dl:hover,.dl[aria-expanded="true"]{border-color:var(--navy);background:var(--bg)}.dl:focus-visible{outline:3px solid #f7b733;outline-offset:2px}
+.dlmenu{position:absolute;right:0;top:42px;z-index:5;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(38,34,84,.18);padding:6px;min-width:220px;display:grid;gap:2px}.dlmenu button{text-align:left;border:0;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--navy);padding:9px 12px;border-radius:8px;cursor:pointer}.dlmenu button:hover,.dlmenu button:focus-visible{background:var(--bg);outline:none}.dlmenu .busy{color:var(--muted);font-size:12px;padding:6px 12px}
+.lbdl{position:absolute;right:18px;bottom:10px;color:#fff;font-weight:700;text-decoration:none;border:1.5px solid rgba(255,255,255,.7);border-radius:99px;padding:6px 12px;font-size:12.5px}.lbdl:hover{background:rgba(255,255,255,.15)}
 .flow .desc{margin:4px 0 10px;color:var(--ink)}.entry{font-size:12.5px;color:var(--muted);margin:0 0 12px}.entry a{color:var(--navy);font-weight:700}
 .strip{display:flex;gap:0;overflow-x:auto;padding:6px 2px 14px;align-items:flex-start}
 .scr{flex:0 0 auto;width:250px;scroll-margin-top:70px}.scr .frame{position:relative;border:1px solid var(--line);border-radius:18px;overflow:hidden;background:#111;box-shadow:0 8px 22px rgba(38,34,84,.12)}
@@ -63,7 +66,9 @@ a{color:inherit}
     <div class="map"><h2>How the product connects</h2><ol><li><a href="#home">Home — Deals Queue &amp; Navigation</a> <small>— 6 screens; entry point</small></li><li><a href="#onboarding">Customer Onboarding — Find a Customer</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 Active Deals (landing)</small></li><li><a href="#license-scan">Scan Driver&#39;s License</a> <small>— 8 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#training">Training Licenses &amp; Registrations</a> <small>— 2 screens; from Home — Deals Queue &amp; Navigation · 02 Navigation drawer</small></li><li><a href="#discovery">Discovery Session</a> <small>— 3 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#vehicles">Vehicle Selection</a> <small>— 7 screens; from Discovery Session · 03 Discovery — last question</small></li><li><a href="#test-drive">Test Drive Agreement</a> <small>— 7 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership</a> <small>— 4 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#desking">Desking — Calculate Payments</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 Active Deals (landing)</small></li><li><a href="#agreement">Base Payment Agreement</a> <small>— 3 screens; from Desking — Calculate Payments · 02 Calculate Payments — Finance</small></li><li><a href="#credit">Credit Application (Lending Lane)</a> <small>— 4 screens; from Base Payment Agreement · 02 Agreement — signed</small></li><li><a href="#buyers">Buyers on the Deal (Co-Buyer)</a> <small>— 4 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#presentation">F&amp;I Product Presentation</a> <small>— 4 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented</small></li><li><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts</a> <small>— 16 screens; from Credit Application (Lending Lane) · 04 Approved (simulated)</small></li><li><a href="#deal-jacket">Deal Jacket &amp; Compliance</a> <small>— 11 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#document-request">Send Text Request (advisor → client)</a> <small>— 3 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#client-upload">Client Document Upload (customer&#39;s phone)</a> <small>— 10 screens; from Send Text Request (advisor → client) · 01 Send Text Request — composer</small></li><li><a href="#snap-all">Snap All — burst capture</a> <small>— 4 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#doc-review">Document Review (advisor)</a> <small>— 1 screens; from Deal Jacket &amp; Compliance · 03 Deal forms &amp; jacket — opened</small></li><li><a href="#print-center">Print Center &amp; Printables</a> <small>— 3 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 15 Step 5 — Financial Contracts</small></li></ol></div>
     
 <section class="flow" id="home" data-flow>
-  <header><h2>Home — Deals Queue &amp; Navigation<small>6 screens</small></h2></header>
+  <header><h2>Home — Deals Queue &amp; Navigation<small>6 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The portal opens on the active floor queue. There is no login: a role switch in the app bar (Advisor / Team Lead) stands in for authentication, and the drawer holds global navigation and the demo reset.</p>
   
   <div class="strip"><article class="scr" id="home-deals-queue" data-search="home — deals queue &amp; navigation active deals (landing) title carries the live count; pills split the pipeline into desking and f&amp;i / docs; the seed deal&#39;s status line is derived from its real state. no authentication exists: the portal opens straight on the floor queue, with the advisor / team lead switch standing in for identity.">
@@ -147,7 +152,9 @@ a{color:inherit}
   </article><div class="arrow"><div class="line"></div><div class="act">Tap an archived deal<br><a href="#finance-menu-deal-finalized" style="font-weight:600">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 16 Deal finalized</a></div></div></div>
 </section>
 <section class="flow" id="onboarding" data-flow>
-  <header><h2>Customer Onboarding — Find a Customer<small>5 screens</small></h2></header>
+  <header><h2>Customer Onboarding — Find a Customer<small>5 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">Search-first: the CRM is checked before anything is created. Branches into the licence scanner, an existing customer&#39;s visit, or a manual Create Customer.</p>
   <p class="entry">↳ Reached from <a href="#home-deals-queue">Home — Deals Queue &amp; Navigation · 01 Active Deals (landing)</a> — <b>Tap ＋ New Customer Visit</b></p>
   <div class="strip"><article class="scr" id="onboarding-find-customer" data-search="customer onboarding — find a customer find a customer  ">
@@ -218,7 +225,9 @@ a{color:inherit}
   </article><div class="arrow"><div class="line"></div><div class="act">Cancel; Start Visit → on Cheri Bridwell<br><a href="#discovery-question-1" style="font-weight:600">Discovery Session · 01 Discovery — question 1</a></div></div></div>
 </section>
 <section class="flow" id="license-scan" data-flow>
-  <header><h2>Scan Driver&#39;s License<small>8 screens</small></h2></header>
+  <header><h2>Scan Driver&#39;s License<small>8 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The prop-licence scanner: front photo, back photo, barcode read, then verify. Only the five printed training props can ever be recognised; anything else is refused with a teaching message. Props 1–2 match the seed customers by name (ambiguous → confirm), 3–5 create new customers.</p>
   <p class="entry">↳ Reached from <a href="#onboarding-find-customer">Customer Onboarding — Find a Customer · 01 Find a Customer</a> — <b>Tap 🪪 Scan license</b></p>
   <div class="strip"><article class="scr" id="license-scan-scan-front" data-search="scan driver&#39;s license scan — front of licence  ">
@@ -328,7 +337,9 @@ a{color:inherit}
   </article><div class="arrow"><div class="line"></div><div class="act">Link to that record / Keep as new<br><a href="#discovery-question-1" style="font-weight:600">Discovery Session · 01 Discovery — question 1</a></div></div></div>
 </section>
 <section class="flow" id="training" data-flow>
-  <header><h2>Training Licenses &amp; Registrations<small>2 screens</small></h2></header>
+  <header><h2>Training Licenses &amp; Registrations<small>2 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">Printable props: five training driver&#39;s licences (the only things the scanner recognises) and five matching training registrations for the trade-in conversation. Millimetre-sized for print; on a phone they scroll inside their grid.</p>
   <p class="entry">↳ Reached from <a href="#home-navigation-drawer">Home — Deals Queue &amp; Navigation · 02 Navigation drawer</a> — <b>Training Licenses / Training Registrations</b></p>
   <div class="strip"><article class="scr" id="training-training-licenses" data-search="training licenses &amp; registrations training licenses  ">
@@ -362,7 +373,9 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
   </article></div>
 </section>
 <section class="flow" id="discovery" data-flow>
-  <header><h2>Discovery Session<small>3 screens</small></h2></header>
+  <header><h2>Discovery Session<small>3 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The week-in-the-life interview that opens every visit — one question per screen, answers autosaved, the last question hands off to vehicle selection.</p>
   <p class="entry">↳ Reached from <a href="#onboarding-find-customer">Customer Onboarding — Find a Customer · 01 Find a Customer</a> — <b>Start Visit → (creates the deal)</b></p>
   <div class="strip"><article class="scr" id="discovery-question-1" data-search="discovery session discovery — question 1  the deal crumb controls (buyer, jacket, and the screen&#39;s back/forward link) wrap into three rows on a phone, pushing the working area ~120px down. the same row appears on every deal screen (discovery, vehicles, test drive, trade, desking, agreement, credit, menu, print).">
@@ -407,7 +420,9 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
   </article><div class="arrow"><div class="line"></div><div class="act">Tap Pick Vehicle →<br><a href="#vehicles-inventory" style="font-weight:600">Vehicle Selection · 01 Vehicle Search — inventory</a></div></div></div>
 </section>
 <section class="flow" id="vehicles" data-flow>
-  <header><h2>Vehicle Selection<small>7 screens</small></h2></header>
+  <header><h2>Vehicle Selection<small>7 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">Filterable demo inventory. Each vehicle card carries a Details modal and the Your Journey menu that branches into Test Drive, Trade Appraisal, Calculate Payment and Quote.</p>
   <p class="entry">↳ Reached from <a href="#discovery-question-last">Discovery Session · 03 Discovery — last question</a> — <b>Tap Pick Vehicle →</b></p>
   <div class="strip"><article class="scr" id="vehicles-inventory" data-search="vehicle selection vehicle search — inventory  the inventory is one long page (the 12-vehicle demo already exceeds 3,200px on a phone) with the filter panel taking the whole first screen.">
@@ -504,7 +519,9 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
   </article></div>
 </section>
 <section class="flow" id="test-drive" data-flow>
-  <header><h2>Test Drive Agreement<small>7 screens</small></h2></header>
+  <header><h2>Test Drive Agreement<small>7 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">E-signature authorisation → licence and terms → drive in progress → end-of-drive odometer. A licence scan can prefill the licence fields.</p>
   <p class="entry">↳ Reached from <a href="#vehicles-your-journey-menu">Vehicle Selection · 05 Your Journey menu</a> — <b>Tap Test Drive</b></p>
   <div class="strip"><article class="scr" id="test-drive-authorization" data-search="test drive agreement e-signature authorization  ">
@@ -601,7 +618,9 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
   </article><div class="arrow"><div class="line"></div><div class="act">Tap Calculate Payment →<br><a href="#desking-huddle-gate" style="font-weight:600">Desking — Calculate Payments · 01 Base Payment Huddle</a></div></div></div>
 </section>
 <section class="flow" id="trade" data-flow>
-  <header><h2>Trade-In Evaluation &amp; Proof of Ownership<small>4 screens</small></h2></header>
+  <header><h2>Trade-In Evaluation &amp; Proof of Ownership<small>4 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The appraisal fields (with the VIN copied off the registration) plus the tri-state proof-of-ownership questions; gaps flag to the manager at sign-off rather than blocking the advisor.</p>
   <p class="entry">↳ Reached from <a href="#vehicles-your-journey-menu">Vehicle Selection · 05 Your Journey menu</a> — <b>Tap Trade Appraisal</b></p>
   <div class="strip"><article class="scr" id="trade-trade-evaluation" data-search="trade-in evaluation &amp; proof of ownership trade-in evaluation seed trade: 2018 hyundai tucson, vin filled, ownership questions unanswered. ">
@@ -659,7 +678,9 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
   </article><div class="arrow"><div class="line"></div><div class="act">Tap Calculate Payment →<br><a href="#desking-huddle-gate" style="font-weight:600">Desking — Calculate Payments · 01 Base Payment Huddle</a></div></div></div>
 </section>
 <section class="flow" id="desking" data-flow>
-  <header><h2>Desking — Calculate Payments<small>5 screens</small></h2></header>
+  <header><h2>Desking — Calculate Payments<small>5 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The Team Lead huddle gates the first pencil; then the desking screen with deal type, accessories, trade and rebate, credit tier slider, live word track and payment comparison.</p>
   <p class="entry">↳ Reached from <a href="#home-deals-queue">Home — Deals Queue &amp; Navigation · 01 Active Deals (landing)</a> — <b>Tap the deal card (Continue)</b></p>
   <div class="strip"><article class="scr" id="desking-huddle-gate" data-search="desking — calculate payments base payment huddle  ">
@@ -730,7 +751,9 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
   </article><div class="arrow"><div class="line"></div><div class="act">Save — select this deal type; Continue →<br><a href="#agreement-agreement-unsigned" style="font-weight:600">Base Payment Agreement · 01 Agreement — ready to sign</a></div></div></div>
 </section>
 <section class="flow" id="agreement" data-flow>
-  <header><h2>Base Payment Agreement<small>3 screens</small></h2></header>
+  <header><h2>Base Payment Agreement<small>3 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The signed acknowledgement of the base terms. Redesk voids a signature behind a confirm; a signed agreement unlocks the credit application.</p>
   <p class="entry">↳ Reached from <a href="#desking-pencil-finance">Desking — Calculate Payments · 02 Calculate Payments — Finance</a> — <b>Tap Continue →</b></p>
   <div class="strip"><article class="scr" id="agreement-agreement-unsigned" data-search="base payment agreement agreement — ready to sign  ">
@@ -775,7 +798,9 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
   </article><div class="arrow"><div class="line"></div><div class="act">Cancel → Continue to Credit Application<br><a href="#credit-application" style="font-weight:600">Credit Application (Lending Lane) · 01 Credit application — Individual</a></div></div></div>
 </section>
 <section class="flow" id="credit" data-flow>
-  <header><h2>Credit Application (Lending Lane)<small>4 screens</small></h2></header>
+  <header><h2>Credit Application (Lending Lane)<small>4 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The lender-form credit application — Individual or Joint (Reg B), residence, employment, disclosures, consent — with a simulated instant approval. The SSN field accepts only 000-00-0000.</p>
   <p class="entry">↳ Reached from <a href="#agreement-agreement-signed">Base Payment Agreement · 02 Agreement — signed</a> — <b>Continue → Credit Application</b></p>
   <div class="strip"><article class="scr" id="credit-application" data-search="credit application (lending lane) credit application — individual  the credit application is one uninterrupted form longer than 3,200px on a phone, with no section navigation or progress indication; the submit button and the validation summary are at the far end.">
@@ -833,7 +858,9 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
   </article><div class="arrow"><div class="line"></div><div class="act">Continue → Manager Sign-Off<br><a href="#finance-menu-signoff-gate-advisor" style="font-weight:600">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 01 Team Lead sign-off required — Advisor view</a></div></div></div>
 </section>
 <section class="flow" id="buyers" data-flow>
-  <header><h2>Buyers on the Deal (Co-Buyer)<small>4 screens</small></h2></header>
+  <header><h2>Buyers on the Deal (Co-Buyer)<small>4 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">From the crumb on any deal screen: the primary buyer&#39;s card, adding a co-buyer by scan or CRM search, swap (Team Lead) and remove.</p>
   <p class="entry">↳ Reached from <a href="#discovery-question-1">Discovery Session · 01 Discovery — question 1</a> — <b>Tap 👤 Buyer in the crumbs</b></p>
   <div class="strip"><article class="scr" id="buyers-buyers-modal" data-search="buyers on the deal (co-buyer) buyers on this deal  ">
@@ -891,7 +918,9 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
   </article></div>
 </section>
 <section class="flow" id="presentation" data-flow>
-  <header><h2>F&amp;I Product Presentation<small>4 screens</small></h2></header>
+  <header><h2>F&amp;I Product Presentation<small>4 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">Step 2 of the menu: a horizontal rail of product tiles with a detail panel, the advisor script sheet, monthly-budget impact and the service-contract mileage slider.</p>
   <p class="entry">↳ Reached from <a href="#finance-menu-purchase-terms-presented">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented</a> — <b>Tap Next →</b></p>
   <div class="strip"><article class="scr" id="presentation-product-rail" data-search="f&amp;i product presentation product presentation — rate  ">
@@ -952,7 +981,9 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
   </article><div class="arrow"><div class="line"></div><div class="act">Continue to Repayment Options →<br><a href="#finance-menu-repayment-options" style="font-weight:600">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 07 Step 3 — Repayment Options (Preferred)</a></div></div></div>
 </section>
 <section class="flow" id="finance-menu" data-flow>
-  <header><h2>Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts<small>16 screens</small></h2></header>
+  <header><h2>Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts<small>16 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The Team Lead sign-off gate, then the four-step menu: Purchase Terms disclosure bars, Repayment Options (Preferred / Standard / Budget / Custom with initials), Disclosure Forms acknowledgement, and Financial Contracts with DMS push and Finalize.</p>
   <p class="entry">↳ Reached from <a href="#credit-approved">Credit Application (Lending Lane) · 04 Approved (simulated)</a> — <b>Continue → Manager Sign-Off</b></p>
   <div class="strip"><article class="scr" id="finance-menu-signoff-gate-advisor" data-search="finance menu — sign-off, terms, repayment options, forms, contracts team lead sign-off required — advisor view the advisor sees the checklist and is told to get the team lead — no sign-off control. the advisor&#39;s dead end here is intentional (the note says to switch to team lead), but the role switch it refers to is the unlabelled segmented control in the app bar.">
@@ -1166,7 +1197,9 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
   </article><div class="arrow"><div class="line"></div><div class="act">Return to Deals List<br><a href="#home-funded-archive" style="font-weight:600">Home — Deals Queue &amp; Navigation · 06 Funded contracts auto-archived</a></div></div></div>
 </section>
 <section class="flow" id="deal-jacket" data-flow>
-  <header><h2>Deal Jacket &amp; Compliance<small>11 screens</small></h2></header>
+  <header><h2>Deal Jacket &amp; Compliance<small>11 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">Every document the deal needs, worked out from the deal itself: compliance progress, the customer-document queue with per-row scan / mark received / request, the folded Deal forms &amp; jacket list, and the bottom dock to sign-off.</p>
   <p class="entry">↳ Reached from <a href="#discovery-question-1">Discovery Session · 01 Discovery — question 1</a> — <b>Tap 📁 Jacket in the crumbs</b></p>
   <div class="strip"><article class="scr" id="deal-jacket-jacket-overview" data-search="deal jacket &amp; compliance deal jacket — overview  ">
@@ -1315,7 +1348,9 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
   </article><div class="arrow"><div class="line"></div><div class="act">Tap Complete Deal &amp; Sign-off →<br><a href="#finance-menu-signoff-gate-advisor" style="font-weight:600">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 01 Team Lead sign-off required — Advisor view</a></div></div></div>
 </section>
 <section class="flow" id="document-request" data-flow>
-  <header><h2>Send Text Request (advisor → client)<small>3 screens</small></h2></header>
+  <header><h2>Send Text Request (advisor → client)<small>3 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The advisor composes the document request; sending marks the queue requested, stamps the jacket, and opens the client&#39;s phone view.</p>
   <p class="entry">↳ Reached from <a href="#deal-jacket-jacket-overview">Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</a> — <b>Tap Send Text Request</b></p>
   <div class="strip"><article class="scr" id="document-request-composer" data-search="send text request (advisor → client) send text request — composer  ">
@@ -1360,7 +1395,9 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
   </article></div>
 </section>
 <section class="flow" id="client-upload" data-flow>
-  <header><h2>Client Document Upload (customer&#39;s phone)<small>10 screens</small></h2></header>
+  <header><h2>Client Document Upload (customer&#39;s phone)<small>10 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">What the customer sees from the text link: no account, one row per document, instant simulated verification with scripted beats (licence needs both sides, insurance flags once, two paystubs), the considered capture path with review and failure coaching, and the receipt.</p>
   <p class="entry">↳ Reached from <a href="#document-request-composer">Send Text Request (advisor → client) · 01 Send Text Request — composer</a> — <b>Send Text Request</b></p>
   <div class="strip"><article class="scr" id="client-upload-sms" data-search="client document upload (customer&#39;s phone) text message with the link  ">
@@ -1496,7 +1533,9 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
   </article></div>
 </section>
 <section class="flow" id="snap-all" data-flow>
-  <header><h2>Snap All — burst capture<small>4 screens</small></h2></header>
+  <header><h2>Snap All — burst capture<small>4 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">Shoot every outstanding document in one go; the simulated sorter deals the shots onto the queue and shows what verified, what needs attention, and what is still missing.</p>
   <p class="entry">↳ Reached from <a href="#deal-jacket-jacket-overview">Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</a> — <b>Tap 📷 Snap All</b></p>
   <div class="strip"><article class="scr" id="snap-all-capture" data-search="snap all — burst capture snap all — camera  ">
@@ -1554,7 +1593,9 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
   </article><div class="arrow"><div class="line"></div><div class="act">Confirm &amp; Save to Deal Jacket →<br><a href="#deal-jacket-jacket-overview" style="font-weight:600">Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</a></div></div></div>
 </section>
 <section class="flow" id="doc-review" data-flow>
-  <header><h2>Document Review (advisor)<small>1 screens</small></h2></header>
+  <header><h2>Document Review (advisor)<small>1 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">Read-only page review of a document the client captured — pages, zoom, the verification status line.</p>
   <p class="entry">↳ Reached from <a href="#deal-jacket-forms-and-jacket">Deal Jacket &amp; Compliance · 03 Deal forms &amp; jacket — opened</a> — <b>Tap View on a received client document</b></p>
   <div class="strip"><article class="scr" id="doc-review-page-review" data-search="document review (advisor) review — driver&#39;s license, page 1 of 2  ">
@@ -1573,7 +1614,9 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
   </article><div class="arrow"><div class="line"></div><div class="act">← Deal Jacket<br><a href="#deal-jacket-jacket-overview" style="font-weight:600">Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</a></div></div></div>
 </section>
 <section class="flow" id="print-center" data-flow>
-  <header><h2>Print Center &amp; Printables<small>3 screens</small></h2></header>
+  <header><h2>Print Center &amp; Printables<small>3 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The deal&#39;s printable documents as tiles, and the print preview (the MV-82 recreation carries the TRAINING SAMPLE treatment). Phone-reachable; built for paper.</p>
   <p class="entry">↳ Reached from <a href="#finance-menu-financial-contracts">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 15 Step 5 — Financial Contracts</a> — <b>Tap 🖨 Print Center</b></p>
   <div class="strip"><article class="scr" id="print-center-print-center" data-search="print center &amp; printables print center  ">
@@ -1619,13 +1662,145 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
 </section>
   </main>
 </div>
-<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Enlarged screenshot" tabindex="-1"><img id="lbImg" alt=""><div class="cap" id="lbCap"></div></div>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Enlarged screenshot" tabindex="-1"><img id="lbImg" alt=""><div class="cap"><span id="lbCap"></span><a id="lbDl" class="lbdl" href="#" download>⬇ Save this screen</a></div></div>
 <script>
   /* lightbox: opened from a real button (keyboard-operable), dialog semantics,
      focus moves in on open and back to the trigger on close, Escape closes */
   const lb = document.getElementById("lb"), lbImg = document.getElementById("lbImg"), lbCap = document.getElementById("lbCap");
   let lbOpener = null;
-  const openLb = (btn) => { const img = btn.querySelector("img"); lbImg.src = img.src; lbImg.alt = img.alt; lbCap.textContent = btn.dataset.cap; lbOpener = btn; lb.classList.add("open"); lb.focus(); };
+  const lbDl = document.getElementById("lbDl");
+  const openLb = (btn) => { const img = btn.querySelector("img"); lbImg.src = img.src; lbImg.alt = img.alt; lbCap.textContent = btn.dataset.cap;
+    lbDl.href = img.src; lbDl.setAttribute("download", img.src.split("/").slice(-2).join("-")); lbOpener = btn; lb.classList.add("open"); lb.focus(); };
+  lbDl.addEventListener("click", (e) => e.stopPropagation());
+
+  /* ---- per-flow downloads: the flow as one composed image, or its screenshots as a ZIP.
+     Both read the screenshots the page already shows; they need the page served from a
+     web address (the browser blocks reading images from a file:// page). ---- */
+  const saveBlob = (blob, name) => { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000); };
+  const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+  /* everything the page says about a screen travels with the download: the
+     route, the notes, the branch lines and every finding with its severity */
+  const flowScreens = (sec) => [...sec.querySelectorAll(".scr")].map(scr => {
+    const img = scr.querySelector("img"); let act = ""; let n = scr.nextElementSibling;
+    if (n && n.classList.contains("arrow")) { const a = n.querySelector(".act"); act = a ? a.textContent.trim() : ""; }
+    const txt = (el) => el ? el.textContent.replace(/[ \t\r\n]+/g, " ").trim() : "";
+    const hashEl = scr.querySelector(".hash"); const hash = hashEl ? txt(hashEl).split(" · ")[0] : "";
+    return { src: img.src, file: img.src.split("/").pop(), n: scr.querySelector(".n").textContent, name: txt(scr.querySelector("h3")).replace(/capture-failed$/, "").trim(), act,
+      hash, notes: txt(scr.querySelector(".notes")),
+      branches: [...scr.querySelectorAll(".branches li")].map(li => "↳ " + txt(li)),
+      issues: [...scr.querySelectorAll(".issue")].map(is => ({ sev: txt(is.querySelector(".sev")), id: txt(is.querySelector("b")).replace(txt(is.querySelector(".sev")), "").trim(), text: [...is.querySelectorAll("p")].map(p => txt(p)) })) };
+  });
+  const flowMeta = (sec) => ({ title: sec.querySelector("h2").childNodes[0].textContent.trim(), desc: (sec.querySelector(".desc") || {}).textContent || "", entry: (sec.querySelector(".entry") || {}).textContent || "" });
+  const SEVC = { Critical: "#c62828", Major: "#e65100", Minor: "#b46811", Observation: "#1e5aa8" };
+  const loadImg = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error("could not load " + src)); i.src = src; });
+  const wrap = (ctx, text, max) => { const words = text.split(/\s+/), lines = []; let line = ""; for (const w of words) { const t = line ? line + " " + w : w; if (ctx.measureText(t).width > max && line) { lines.push(line); line = w; } else line = t; } if (line) lines.push(line); return lines; };
+  /* the text block under a screen: name, route, notes, branches, findings.
+     Drawn through one routine so the pre-pass (measure) and the paint pass
+     lay out identically; returns the height used. */
+  function caption(ctx, s, x, y, W, paint) {
+    const F = "Poppins, system-ui, sans-serif"; let yy = y;
+    const para = (text, font, color, lh, indent) => { if (!text) return; ctx.font = font; const lines = wrap(ctx, text, W - (indent || 0)); for (const ln of lines) { yy += lh; if (paint) { ctx.fillStyle = color; ctx.fillText(ln, x + (indent || 0), yy); } } };
+    para(s.n + "  " + s.name, "700 15px " + F, "#262254", 20);
+    if (s.hash) { yy += 2; para(s.hash, "500 11px ui-monospace, Consolas, monospace", "#6f6c88", 15); }
+    if (s.notes) { yy += 6; para(s.notes, "400 12.5px " + F, "#34314e", 17); }
+    if (s.branches.length) { yy += 6; for (const b of s.branches) para(b, "600 12px " + F, "#262254", 16); }
+    for (const is of s.issues) {
+      yy += 10;
+      if (paint) { ctx.fillStyle = SEVC[is.sev] || "#6f6c88"; ctx.beginPath(); ctx.roundRect(x, yy, 3, 18 + is.text.length * 0, 2); ctx.fill(); }
+      const top = yy;
+      ctx.font = "800 11px " + F; const pillW = ctx.measureText(is.sev.toUpperCase()).width + 16;
+      if (paint) { ctx.fillStyle = SEVC[is.sev] || "#6f6c88"; ctx.beginPath(); ctx.roundRect(x + 10, yy + 2, pillW, 18, 9); ctx.fill(); ctx.fillStyle = "#fff"; ctx.fillText(is.sev.toUpperCase(), x + 18, yy + 15); ctx.fillStyle = "#262254"; ctx.font = "700 12px " + F; ctx.fillText(is.id, x + 10 + pillW + 8, yy + 15); }
+      yy += 22;
+      is.text.forEach((t, k) => para(t, (k === 0 ? "500 12px " : "italic 400 12px ") + F, k === 0 ? "#34314e" : "#6f6c88", 16, 10));
+      if (paint) { ctx.fillStyle = SEVC[is.sev] || "#6f6c88"; ctx.fillRect(x, top, 3, yy - top + 4); }
+    }
+    return yy - y;
+  }
+  async function flowPng(sec) {
+    const { title } = flowMeta(sec);
+    const shots = flowScreens(sec);
+    const imgs = await Promise.all(shots.map(s => loadImg(s.src)));
+    const W = 390, GAP = 150, PAD = 40, TOP = 110, MAXH = 1500;
+    const scale = (im) => Math.min(1, MAXH / im.naturalHeight);
+    const hs = imgs.map(im => Math.round(im.naturalHeight * scale(im)));
+    const maxH = Math.max(...hs);
+    const measure = document.createElement("canvas").getContext("2d");
+    const capH = Math.max(...shots.map(s => caption(measure, s, 0, 0, W, false))) + 40;
+    const c = document.createElement("canvas"); c.width = PAD * 2 + shots.length * W + (shots.length - 1) * GAP; c.height = TOP + maxH + capH + PAD;
+    const ctx = c.getContext("2d");
+    ctx.fillStyle = "#f2f2f8"; ctx.fillRect(0, 0, c.width, c.height);
+    ctx.fillStyle = "#262254"; ctx.font = "800 28px Poppins, system-ui, sans-serif"; ctx.fillText(title.toUpperCase(), PAD, 56);
+    ctx.fillStyle = "#6f6c88"; ctx.font = "600 14px Poppins, system-ui, sans-serif"; ctx.fillText(document.title + " · " + shots.length + " screens", PAD, 82);
+    shots.forEach((s, i) => {
+      const x = PAD + i * (W + GAP), im = imgs[i], h = hs[i];
+      ctx.fillStyle = "#fff"; ctx.shadowColor = "rgba(38,34,84,.18)"; ctx.shadowBlur = 18; ctx.shadowOffsetY = 8; ctx.fillRect(x, TOP, W, h); ctx.shadowColor = "transparent";
+      ctx.drawImage(im, 0, 0, im.naturalWidth, Math.round(h / scale(im)), x, TOP, W, h);
+      ctx.strokeStyle = "#e3e1ef"; ctx.lineWidth = 1; ctx.strokeRect(x + .5, TOP + .5, W - 1, h - 1);
+      ctx.fillStyle = "#262254"; ctx.beginPath(); ctx.roundRect(x + 10, TOP + 10, 34, 22, 11); ctx.fill();
+      ctx.fillStyle = "#fff"; ctx.font = "800 12px Poppins, system-ui, sans-serif"; ctx.fillText(s.n, x + 18, TOP + 26);
+      caption(ctx, s, x, TOP + maxH + 12, W, true);
+    });
+    /* arrows and action labels in a second pass, so no card paints over them */
+    shots.forEach((s, i) => {
+      if (i >= shots.length - 1) return;
+      const x = PAD + i * (W + GAP), ax = x + W + 14, ay = TOP + Math.min(maxH, 844) / 2, lineW = GAP - 28;
+      ctx.strokeStyle = "#262254"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax + lineW, ay); ctx.stroke();
+      ctx.fillStyle = "#262254"; ctx.beginPath(); ctx.moveTo(ax + lineW, ay - 6); ctx.lineTo(ax + lineW + 10, ay); ctx.lineTo(ax + lineW, ay + 6); ctx.fill();
+      ctx.font = "700 12px Poppins, system-ui, sans-serif"; ctx.textAlign = "center";
+      wrap(ctx, s.act || "", GAP - 24).slice(0, 5).forEach((ln, k) => ctx.fillText(ln, ax + lineW / 2, ay + 22 + k * 16));
+      ctx.textAlign = "left";
+    });
+    const blob = await new Promise(res => c.toBlob(res, "image/png"));
+    if (!blob) throw new Error("no image");
+    saveBlob(blob, "ride-price-" + slug(title) + ".png");
+  }
+  /* a store-only ZIP (no compression — PNGs are already compressed), written by hand */
+  const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  const crc32 = (u8) => { let c = 0xffffffff; for (let i = 0; i < u8.length; i++) c = CRC[(c ^ u8[i]) & 0xff] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+  function zip(files) {
+    const enc = new TextEncoder(), parts = [], central = []; let off = 0;
+    const u16 = (n) => [n & 255, (n >> 8) & 255], u32 = (n) => [n & 255, (n >> 8) & 255, (n >> 16) & 255, (n >>> 24) & 255];
+    for (const f of files) {
+      const name = enc.encode(f.name), crc = crc32(f.data), sz = f.data.length;
+      const head = new Uint8Array([0x50, 0x4b, 3, 4, ...u16(20), ...u16(0x800), ...u16(0), ...u16(0), ...u16(0), ...u32(crc), ...u32(sz), ...u32(sz), ...u16(name.length), ...u16(0)]);
+      parts.push(head, name, f.data);
+      central.push(new Uint8Array([0x50, 0x4b, 1, 2, ...u16(20), ...u16(20), ...u16(0x800), ...u16(0), ...u16(0), ...u16(0), ...u32(crc), ...u32(sz), ...u32(sz), ...u16(name.length), ...u16(0), ...u16(0), ...u16(0), ...u16(0), ...u32(0), ...u32(off)]), name);
+      off += head.length + name.length + sz;
+    }
+    const cdSize = central.reduce((n, p) => n + p.length, 0);
+    const end = new Uint8Array([0x50, 0x4b, 5, 6, ...u16(0), ...u16(0), ...u16(files.length), ...u16(files.length), ...u32(cdSize), ...u32(off), ...u16(0)]);
+    return new Blob([...parts, ...central, end], { type: "application/zip" });
+  }
+  async function flowZip(sec) {
+    const { title, desc, entry } = flowMeta(sec);
+    const shots = flowScreens(sec);
+    const files = [];
+    for (const s of shots) { const r = await fetch(s.src); if (!r.ok) throw new Error("could not fetch " + s.src); files.push({ name: slug(title) + "/" + s.file, data: new Uint8Array(await r.arrayBuffer()) }); }
+    /* the comments travel with the screenshots */
+    const md = ["# " + title, "", document.title, "", desc.trim(), entry.trim(), ""];
+    shots.forEach((s, i) => {
+      md.push("## " + s.n + " " + s.name, "", "- Screenshot: " + s.file, s.hash ? "- Route: " + s.hash : "", s.act && i < shots.length - 1 ? "- Action to next: " + s.act : "");
+      if (s.notes) md.push("- Notes: " + s.notes);
+      for (const b of s.branches) md.push("- " + b);
+      for (const is of s.issues) { md.push("- **" + is.sev + " " + is.id + "**: " + is.text[0]); for (const t of is.text.slice(1)) md.push("  - " + t); }
+      md.push("");
+    });
+    files.push({ name: slug(title) + "/README.md", data: new TextEncoder().encode(md.filter(l => l !== null).join("\n")) });
+    saveBlob(zip(files), "ride-price-" + slug(title) + ".zip");
+  }
+  document.addEventListener("click", async (e) => {
+    const tog = e.target.closest(".dl");
+    if (tog) { const m = tog.nextElementSibling; const open = m.hidden; document.querySelectorAll(".dlmenu").forEach(x => { x.hidden = true; x.previousElementSibling.setAttribute("aria-expanded", "false"); }); m.hidden = !open; tog.setAttribute("aria-expanded", String(open)); return; }
+    const item = e.target.closest(".dlmenu [data-dl]");
+    if (item) {
+      const menu = item.closest(".dlmenu"), sec = item.closest(".flow"), kind = item.dataset.dl;
+      const busy = document.createElement("div"); busy.className = "busy"; busy.textContent = "Preparing…"; menu.appendChild(busy);
+      try { await (kind === "png" ? flowPng(sec) : flowZip(sec)); menu.hidden = true; menu.previousElementSibling.setAttribute("aria-expanded", "false"); }
+      catch (err) { busy.textContent = location.protocol === "file:" ? "Downloads need the page served from a web address (the public link) — a file opened directly cannot read its own images." : "Could not prepare the download: " + err.message; return; }
+      busy.remove(); return;
+    }
+    if (!e.target.closest(".dlmenu")) document.querySelectorAll(".dlmenu").forEach(x => { x.hidden = true; x.previousElementSibling.setAttribute("aria-expanded", "false"); });
+  });
   const closeLb = () => { if (!lb.classList.contains("open")) return; lb.classList.remove("open"); if (lbOpener) { lbOpener.focus(); lbOpener = null; } };
   document.addEventListener("click", (e) => {
     const btn = e.target.closest(".scr .zoom"); if (btn) { openLb(btn); return; }
