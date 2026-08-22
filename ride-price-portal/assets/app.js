@@ -130,6 +130,12 @@ function toast(msg) {
   let t = $("#toast");
   if (!t) { t = document.createElement("div"); t.id = "toast"; document.body.appendChild(t); }
   t.textContent = msg;
+  /* a dialog's footer pinned to the bottom of a phone is where the user just
+     tapped — a toast there would cover the button. Measured, not assumed: a
+     footer-less dialog, or one sitting short of the bottom, keeps the default. */
+  const foot = $("#modalBack .modal__foot");
+  const fr = foot && foot.getBoundingClientRect();
+  t.style.bottom = fr && fr.bottom > window.innerHeight - 80 ? Math.round(window.innerHeight - fr.top + 12) + "px" : "";
   t.classList.add("show");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 2100);
@@ -153,6 +159,48 @@ function modal(title, bodyHtml, footHtml) {
   return back;
 }
 function closeModal() { const m = $("#modalBack"); if (m) m.remove(); }
+
+/* a multi-step dialog swaps its footer per step — the buttons live in the
+   pinned .modal__foot, never at the end of the scrolling body, so they are
+   always on screen; html "" removes the footer for steps that have none */
+function setModalFoot(html) {
+  const m = $("#modalBack .modal"); if (!m) return;
+  let f = $(".modal__foot", m);
+  if (!html) { if (f) f.remove(); return; }
+  if (!f) { f = document.createElement("div"); f.className = "modal__foot"; m.appendChild(f); }
+  f.innerHTML = html;
+}
+
+/* required-field marks, shared by every form that validates on submit: clear
+   the previous round inside root, paint each miss on its own field with the
+   reason under it, scroll the first one to the centre and focus it. bad is
+   [{ el, msg }]; returns how many, so a caller can `if (markMissing(...)) return`. */
+function markMissing(root, bad) {
+  $$(".f-err", root).forEach(el => el.remove());
+  $$("input, textarea, select", root).forEach(el => { el.style.borderColor = ""; });
+  bad.forEach(({ el, msg }) => {
+    el.style.borderColor = "var(--crimson)";
+    el.insertAdjacentHTML("afterend", `<span class="f-err">${esc(msg)}</span>`);
+  });
+  if (bad.length) {
+    bad[0].el.scrollIntoView({ block: "center", behavior: "smooth" });
+    bad[0].el.focus({ preventScroll: true });
+  }
+  return bad.length;
+}
+
+/* the customer record's required set — ONE place for Create Customer and the
+   license-scan verify form: first & last name, email OR phone (both fields
+   carry the mark, filling either clears both), address & ZIP. Field ids are
+   prefix + First/Last/Email/Phone/Addr/Zip, looked up inside root. */
+function customerMissing(vals, prefix, root) {
+  const bad = [], need = (suffix, okv, msg) => { if (!okv) bad.push({ el: $("#" + prefix + suffix, root), msg }); };
+  const contact = vals.email || vals.phone;
+  need("First", vals.first, "Required"); need("Last", vals.last, "Required");
+  need("Email", contact, "Email or phone is required"); need("Phone", contact, "Email or phone is required");
+  need("Addr", vals.address, "Required"); need("Zip", vals.zip, "Required");
+  return bad;
+}
 
 /* branded replacement for confirm(): destructive actions get a real dialog */
 function confirmModal(title, bodyHtml, confirmLabel, onConfirm) {
@@ -611,22 +659,36 @@ route("customers", () => {
   }
 
   function doSearch() {
-    $("#resultsPanel").hidden = false;
+    const rp = $("#resultsPanel"); rp.hidden = false;
     const ph = $("#qPhone").value.replace(/\D/g, "");
     const em = $("#qEmail").value.trim().toLowerCase();
     const ln = $("#qLast").value.trim().toLowerCase();
     const fn = $("#qFirst").value.trim().toLowerCase();
-    if (!ph && !em && !ln && !fn) { $("#results").innerHTML = `<p class="center muted" style="padding:26px 0">Enter at least one field to search.</p>`; return; }
-    const hits = Store.s.customers.filter(c =>
-      (ph && c.phone.replace(/\D/g, "").includes(ph)) ||
-      (em && c.email.toLowerCase().includes(em)) ||
-      (ln && c.last.toLowerCase().includes(ln)) ||
-      (fn && c.first.toLowerCase().includes(fn)));
-    $("#results").innerHTML = hits.length
-      ? `<div class="tbl-scroll"><table class="tbl"><tbody>${hits.map(c => customerRow(c)).join("")}</tbody></table></div>`
-      : `<p class="center muted" style="padding:20px 0">No matches found. <br><button class="btn btn--primary btn--sm mt" id="createBtn2">👤＋ Create Customer</button></p>`;
-    bindStart();
-    const c2 = $("#createBtn2"); if (c2) c2.onclick = openCreate;
+    if (!ph && !em && !ln && !fn) {
+      $("#results").innerHTML = `<p class="center muted" style="padding:26px 0">Enter at least one field to search.</p>`;
+    } else {
+      const hits = Store.s.customers.filter(c =>
+        (ph && c.phone.replace(/\D/g, "").includes(ph)) ||
+        (em && c.email.toLowerCase().includes(em)) ||
+        (ln && c.last.toLowerCase().includes(ln)) ||
+        (fn && c.first.toLowerCase().includes(fn)));
+      $("#results").innerHTML = hits.length
+        ? `<div class="tbl-scroll"><table class="tbl"><tbody>${hits.map(c => customerRow(c)).join("")}</tbody></table></div>`
+        : `<p class="center muted" style="padding:20px 0">No matches found. <br><button class="btn btn--primary btn--sm mt" id="createBtn2">👤＋ Create Customer</button></p>`;
+      bindStart();
+      const c2 = $("#createBtn2"); if (c2) c2.onclick = openCreate;
+    }
+    /* on a phone the Results panel stacks under the whole search form, so a
+       tap on Search rendered ≈700px below the fold and looked like nothing
+       happened (RP-UI-004) — every outcome, the empty-fields message included,
+       now brings the panel into view. "nearest" is a no-op when it is already
+       visible (the desktop side column). A result list taller than the screen
+       aligns its top edge, so the margin is measured from whatever bars are
+       sticky at this width (the app bar; the page bar too above 720px) and
+       the Results heading stays out from under them. */
+    const stickyH = $$(".appbar, .pagebar").filter(el => getComputedStyle(el).position === "sticky").reduce((s, el) => s + el.offsetHeight, 0);
+    rp.style.scrollMarginTop = (stickyH + 8) + "px";
+    rp.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
   $("#searchBtn").onclick = doSearch;
   /* property assignment, not addEventListener: #view outlives the render, so a
@@ -653,7 +715,7 @@ route("customers", () => {
         <label class="f"><span class="lab">State</span><input id="nState" type="text" value="NY"></label>
       </div>
       <p class="hint">Required: first &amp; last name, either email or phone, address and zip code. <span class="demo-note">Demo tool — use sample data only.</span></p>`,
-      `<button class="btn btn--ghost" data-close>Cancel</button><button class="btn btn--primary" id="saveCust">Save</button>`);
+      `<button class="btn btn--ghost" data-close>Cancel</button><button class="btn btn--primary" id="saveCust">Save &amp; Start Visit →</button>`);
     $("#saveCust").onclick = () => {
       const c = {
         id: uid("c"), first: $("#nFirst").value.trim(), middle: $("#nMiddle").value.trim(), last: $("#nLast").value.trim(),
@@ -662,9 +724,11 @@ route("customers", () => {
         address: $("#nAddr").value.trim(), zip: $("#nZip").value.trim(),
         city: $("#nCity").value.trim(), state: $("#nState").value.trim(), createdAt: new Date().toISOString()
       };
-      if (!c.first || !c.last) return toast("First and last name are required");
-      if (!c.email && !c.phone) return toast("Provide an email or a phone number");
-      if (!c.address || !c.zip) return toast("Address and zip code are required");
+      /* every miss is marked on its own field at once and the first one is
+         scrolled to inside the dialog, so the message does not depend on a
+         toast landing somewhere the user happens to be looking (RP-UI-003);
+         the toast only points at the marks */
+      if (markMissing($("#modalBack"), customerMissing(c, "n", $("#modalBack")))) return toast("Fill in the fields marked in red");
       Store.s.customers.push(c); Store.save();
       closeModal(); toast("Customer created");
       startVisit(c.id);
@@ -935,11 +999,11 @@ function openScanFlow(opts) {
         <label class="f"><span class="lab">Phone <i class="req">*</i></span><input id="svPhone" type="tel" value="${esc(ex ? ex.phone : "")}" placeholder="(718) 555-5555"></label>
         ${ex ? "" : `<label class="f"><span class="lab">Est. Credit Score</span><input id="svScore" type="number" min="400" max="850" value="700"></label>`}
       </div>
-      <p class="hint">Required: first &amp; last name, either email or phone, address and zip code. <span class="demo-note">Demo tool — sample data only.</span></p>
-      <div class="flex mt" style="justify-content:flex-end;gap:10px">
-        <button class="btn btn--ghost" data-close>Cancel</button>
-        <button class="btn btn--primary" id="svSave">${o.mode === "cobuyer" ? "Add as Co-Buyer" : ex ? "Update Customer" : "Create Customer"} →</button>
-      </div>`;
+      <p class="hint">Required: first &amp; last name, either email or phone, address and zip code. <span class="demo-note">Demo tool — sample data only.</span></p>`;
+    /* the buttons sit in the pinned footer, not at the end of the scrolling
+       form — on a phone the form is taller than the screen (RP-UI-003) */
+    setModalFoot(`<button class="btn btn--ghost" data-close>Cancel</button>
+        <button class="btn btn--primary" id="svSave">${o.mode === "cobuyer" ? "Add as Co-Buyer" : ex ? "Update Customer" : "Create Customer"} →</button>`);
 
     const normPhone = (s) => String(s || "").replace(/\D/g, "");
 
@@ -953,14 +1017,13 @@ function openScanFlow(opts) {
       if (o.onDone) o.onDone(cust, p, m);
     }
 
-    $("#svSave", body).onclick = () => {
+    $("#svSave").onclick = () => {
       const val = (id) => $("#" + id, body).value.trim();
       /* blank optional dates are fine; a typed-but-invalid one must never
          silently erase a stored date on an existing record */
       const dobText = val("svDob"), expText = val("svDlExp");
       const dob = dobText ? dateISO(dobText) : "";
       const expires = expText ? dateISO(expText) : "";
-      if ((dobText && !dob) || (expText && !expires)) return toast("Enter valid dates (MM/DD/YYYY)");
       const vals = {
         first: val("svFirst"), middle: val("svMiddle"), last: val("svLast"),
         dob, address: val("svAddr"), city: val("svCity"),
@@ -968,9 +1031,12 @@ function openScanFlow(opts) {
         email: val("svEmail"), phone: val("svPhone"),
         license: { number: val("svDl"), state: val("svDlState"), expires }
       };
-      if (!vals.first || !vals.last) return toast("First and last name are required");
-      if (!vals.email && !vals.phone) return toast("Provide an email or a phone number");
-      if (!vals.address || !vals.zip) return toast("Address and zip code are required");
+      /* the same required set and the same marks as Create Customer; a typed
+         but invalid date is marked on its field the same way */
+      const bad = customerMissing(vals, "sv", body);
+      if (dobText && !dob) bad.push({ el: $("#svDob", body), msg: "Enter MM/DD/YYYY" });
+      if (expText && !expires) bad.push({ el: $("#svDlExp", body), msg: "Enter MM/DD/YYYY" });
+      if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
       /* read the score now — the phone-conflict screen replaces the form, taking #svScore with it */
       const scoreEl = $("#svScore", body);
       const score = (scoreEl && parseInt(scoreEl.value, 10)) || 700;
@@ -998,6 +1064,7 @@ function openScanFlow(opts) {
 
     /* the typed phone matches an existing record — link instead of duplicating, or keep as new */
     function renderPhoneConflict(dup, vals, mkNew) {
+      setModalFoot("");
       const isPrimary = o.mode === "cobuyer" && dup.id === o.deal.customerId;
       body.innerHTML = `${dots("verify")}
         <div class="scan-banner scan-banner--warn">That phone number is on file for <b>${esc(dup.first + " " + dup.last)}</b>.</div>
@@ -1025,17 +1092,20 @@ function openScanFlow(opts) {
         <label class="f"><span class="lab">Expires</span><input id="svDlExp" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.license.expires))}"></label>
         <label class="f"><span class="lab">Date of Birth</span><input id="svDob" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.dob))}"></label>
       </div>
-      <div class="flex mt" style="justify-content:flex-end;gap:10px">
-        <button class="btn btn--ghost" data-close>Cancel</button>
-        <button class="btn btn--primary" id="svSave">Use These Details →</button>
-      </div>`;
-    $("#svSave", body).onclick = () => {
+`;
+    setModalFoot(`<button class="btn btn--ghost" data-close>Cancel</button>
+        <button class="btn btn--primary" id="svSave">Use These Details →</button>`);
+    $("#svSave").onclick = () => {
       const expText = $("#svDlExp", body).value.trim(), dobText = $("#svDob", body).value.trim();
       const expires = expText ? dateISO(expText) : "";
       const dob = dobText ? dateISO(dobText) : "";
-      if ((expText && !expires) || (dobText && !dob)) return toast("Enter valid dates (MM/DD/YYYY)");
       const lic = { number: $("#svDl", body).value.trim(), state: $("#svDlState", body).value.trim(), expires };
-      if (!lic.number) return toast("License number is required");
+      /* the same marks as every other form: the miss is shown on its field */
+      const bad = [];
+      if (!lic.number) bad.push({ el: $("#svDl", body), msg: "Required" });
+      if (expText && !expires) bad.push({ el: $("#svDlExp", body), msg: "Enter MM/DD/YYYY" });
+      if (dobText && !dob) bad.push({ el: $("#svDob", body), msg: "Enter MM/DD/YYYY" });
+      if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
       /* on a name mismatch the card may belong to someone else — fill the agreement
          but never write that identity onto this customer's record */
       if (c && !mismatch) { c.dob = dob || c.dob; c.license = lic; Store.save(); }
@@ -2350,8 +2420,6 @@ route("credit/:id", ({ id }) => {
 
   $("#caSubmit").onclick = () => {
     if ($("#atypeJoint").checked && !cbRec()) return toast("Add a co-buyer or select Individually");
-    $$("[data-req]").forEach(el => { el.style.borderColor = ""; });
-    $$(".f-err", view()).forEach(el => el.remove());
     const bad = [];
     $$("[data-req]").forEach(el => {
       if (!el.value.trim()) bad.push({ el, msg: "Required" });
@@ -2359,15 +2427,7 @@ route("credit/:id", ({ id }) => {
       else if (el.id === "caSsn" && el.value.replace(/\D/g, "") !== "000000000") bad.push({ el, msg: "Demo tool — the SSN is always 000-00-0000" });
       else if (el.hasAttribute("data-date") && !dateISO(el.value)) bad.push({ el, msg: "Enter MM/DD/YYYY" });
     });
-    if (bad.length) {
-      bad.forEach(({ el, msg }) => {
-        el.style.borderColor = "var(--crimson)";
-        el.insertAdjacentHTML("afterend", `<span class="f-err">${msg}</span>`);
-      });
-      bad[0].el.scrollIntoView({ block: "center", behavior: "smooth" });
-      bad[0].el.focus({ preventScroll: true });
-      return toast("Missing: " + bad.map(b => b.el.dataset.req).join(", "));
-    }
+    if (markMissing(view(), bad)) return toast("Missing: " + bad.map(b => b.el.dataset.req).join(", "));
     if (!$("#caConsent").checked) {
       $("#caConsent").scrollIntoView({ block: "center", behavior: "smooth" });
       return toast("The applicant must check the electronic-signature consent box");

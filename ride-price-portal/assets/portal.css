@@ -572,7 +572,14 @@ label.f .seg { display: flex; }
 /* modal */
 .modal-back { position: fixed; inset: 0; background: rgba(20, 17, 50, .78); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); z-index: 90; display: none; align-items: flex-start; justify-content: center; padding: 6vh 16px; overflow: auto; }
 .modal-back.open { display: flex; }
-.modal { background: #fff; border-radius: 16px; box-shadow: var(--shadow-lg); width: min(720px, 100%); overflow: hidden; }
+/* the dialog is capped at the backdrop's content box — the fixed, inset-0
+   backdrop IS the visible viewport minus its padding, on any browser — and
+   lays out as a column: head and foot never scroll away, the body scrolls.
+   Before this a tall form — Create Customer on a phone — pushed Save and
+   Cancel below the fold with no hint that they existed (RP-UI-003). */
+.modal { background: #fff; border-radius: 16px; box-shadow: var(--shadow-lg); width: min(720px, 100%); overflow: hidden; display: flex; flex-direction: column; max-height: 100%; }
+.modal__head, .modal__foot { flex-shrink: 0; }
+.modal__body { overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
 .modal__head { background: var(--navy); color: #fff; padding: 14px 22px; display: flex; align-items: center; }
 .modal__head h3 { margin: 0; font-size: 16px; }
 .modal__head button {
@@ -585,8 +592,11 @@ label.f .seg { display: flex; }
 .modal__foot { padding: 14px 22px; border-top: 1px solid var(--line); display: flex; justify-content: flex-end; gap: 10px; }
 
 /* toast */
+/* width: max-content — anchored at left: 50% with no width, the pill could
+   never grow past half the screen and wrapped short messages onto two lines
+   on a phone; max-content lets it take its natural width up to the max */
 #toast {
-  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px);
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%) translateY(20px); width: max-content; max-width: calc(100vw - 32px);
   background: var(--navy); color: #fff; border-radius: 999px; padding: 10px 24px; font-size: 14px;
   opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 200; box-shadow: var(--shadow-lg);
 }
@@ -1454,7 +1464,6 @@ body[data-screen="clientlink"] .dr-clientbottom { bottom: 48px; }
   .pagebar .actions { margin-left: 0; width: 100%; }
   .view { padding: 16px 14px 60px; }
   .drawer { width: min(300px, 86vw); }
-  #toast { max-width: calc(100vw - 32px); }
 
   /* ---- containers that could not shrink ---- */
   .grid { gap: 14px; }
