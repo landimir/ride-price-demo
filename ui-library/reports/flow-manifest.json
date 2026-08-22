@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-08-21T20:17:06.880Z",
-  "appCommit": "d80aa7bc9420468e16f43d7c2c8b01ff3135336b",
+  "capturedAt": "2026-08-22T01:22:40.090Z",
+  "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
   "flows": [
     {
       "id": "home",
@@ -10,6 +10,8 @@
       "title": "Home — Deals Queue & Navigation",
       "description": "The portal opens on the active floor queue. There is no login: a role switch in the app bar (Advisor / Team Lead) stands in for authentication, and the drawer holds global navigation and the demo reset.",
       "entry": null,
+      "capturedAt": "2026-08-22T01:22:40.100Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -234,6 +236,8 @@
         "from": "home/deals-queue",
         "action": "Tap ＋ New Customer Visit"
       },
+      "capturedAt": "2026-08-22T01:43:43.298Z",
+      "appCommit": "e42dddf38070aa2ebfeafc945429d18b6a0d71c9",
       "screens": [
         {
           "step": 1,
@@ -285,7 +289,7 @@
           "action": "Search for a name not on file",
           "next": "search-no-match",
           "branches": [],
-          "notes": "",
+          "notes": "After Search the page scrolls the Results panel into view on a phone (every outcome — hit, miss, empty fields); the full-length capture shows the whole page, so the scroll itself is not visible here.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -302,15 +306,7 @@
             "pageHeight": 1635
           },
           "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-004",
-              "severity": "Minor",
-              "issue": "After tapping Search, the Results panel renders below the search form (≈700px down) and the page does not scroll to it — on a phone nothing appears to happen.",
-              "observation": "A scroll-into-view on search, or results above the form on phones, would close the gap.",
-              "area": "customers route doSearch() / #resultsPanel"
-            }
-          ]
+          "issues": []
         },
         {
           "step": 3,
@@ -346,10 +342,10 @@
           "screen": "Create Customer",
           "screenshot": "current/02-customer-onboarding/04-create-customer.png",
           "hash": "#/customers",
-          "action": "Tap Save with nothing filled",
+          "action": "Tap Save & Start Visit with nothing filled",
           "next": "create-customer-validation",
           "branches": [],
-          "notes": "",
+          "notes": "The dialog is capped to the screen: Cancel and Save & Start Visit stay in the pinned footer, the form scrolls inside.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -366,15 +362,7 @@
             "pageHeight": 1552
           },
           "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-003",
-              "severity": "Minor",
-              "issue": "The Create Customer modal is taller than the phone viewport: Save and Cancel are below the fold and only reachable by scrolling inside the modal.",
-              "observation": "The form works, but a first-time user sees no way to save; the validation toast also lands over the State field.",
-              "area": "modal sizing at ≤720px (.modal max-height / sticky .modal__foot)"
-            }
-          ]
+          "issues": []
         },
         {
           "step": 5,
@@ -385,7 +373,7 @@
           "action": "Cancel; Start Visit → on Cheri Bridwell",
           "next": "discovery/question-1",
           "branches": [],
-          "notes": "Required-field rule surfaces as a toast (first and last name).",
+          "notes": "Every missing field is marked in red with the reason under it (first & last name, email or phone, address, ZIP); the first miss is scrolled to and focused; one short toast points at the marks, lifted clear of the footer.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -415,6 +403,8 @@
         "from": "onboarding/find-customer",
         "action": "Tap 🪪 Scan license"
       },
+      "capturedAt": "2026-08-22T01:44:08.782Z",
+      "appCommit": "e42dddf38070aa2ebfeafc945429d18b6a0d71c9",
       "screens": [
         {
           "step": 1,
@@ -677,6 +667,8 @@
         "from": "home/navigation-drawer",
         "action": "Training Licenses / Training Registrations"
       },
+      "capturedAt": "2026-08-22T01:23:23.945Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -784,13 +776,15 @@
         "from": "onboarding/find-customer",
         "action": "Start Visit → (creates the deal)"
       },
+      "capturedAt": "2026-08-22T01:23:30.988Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-66hn0l3",
+          "hash": "#/discovery/d-9tmf3gc",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -835,7 +829,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-66hn0l3",
+          "hash": "#/discovery/d-9tmf3gc",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -863,7 +857,7 @@
           "key": "question-last",
           "screen": "Discovery — last question",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-66hn0l3",
+          "hash": "#/discovery/d-9tmf3gc",
           "action": "Tap Pick Vehicle →",
           "next": "vehicles/inventory",
           "branches": [],
@@ -897,13 +891,15 @@
         "from": "discovery/question-last",
         "action": "Tap Pick Vehicle →"
       },
+      "capturedAt": "2026-08-22T01:23:38.473Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
           "screen": "Vehicle Search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-jeawrlp",
+          "hash": "#/vehicles/d-bz9zk4g",
           "action": "Filter: Used",
           "next": "inventory-filtered",
           "branches": [],
@@ -939,7 +935,7 @@
           "key": "inventory-filtered",
           "screen": "Inventory — filter applied",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-jeawrlp",
+          "hash": "#/vehicles/d-bz9zk4g",
           "action": "Max price $1,000",
           "next": "inventory-no-match",
           "branches": [],
@@ -967,7 +963,7 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-jeawrlp",
+          "hash": "#/vehicles/d-bz9zk4g",
           "action": "Reset filters; tap Details",
           "next": "vehicle-details",
           "branches": [],
@@ -995,7 +991,7 @@
           "key": "vehicle-details",
           "screen": "Vehicle details",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-jeawrlp",
+          "hash": "#/vehicles/d-bz9zk4g",
           "action": "Close; tap Your Journey ▾",
           "next": "your-journey-menu",
           "branches": [],
@@ -1023,7 +1019,7 @@
           "key": "your-journey-menu",
           "screen": "Your Journey menu",
           "screenshot": "current/06-vehicle-selection/05-your-journey-menu.png",
-          "hash": "#/vehicles/d-jeawrlp",
+          "hash": "#/vehicles/d-bz9zk4g",
           "action": "Tap Test Drive",
           "next": "test-drive/authorization",
           "branches": [
@@ -1081,7 +1077,7 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-jeawrlp",
+          "hash": "#/vehicles/d-bz9zk4g",
           "action": null,
           "next": null,
           "branches": [],
@@ -1151,6 +1147,8 @@
         "from": "vehicles/your-journey-menu",
         "action": "Tap Test Drive"
       },
+      "capturedAt": "2026-08-22T01:23:51.077Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -1381,6 +1379,8 @@
         "from": "vehicles/your-journey-menu",
         "action": "Tap Trade Appraisal"
       },
+      "capturedAt": "2026-08-22T01:23:59.477Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -1505,6 +1505,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
+      "capturedAt": "2026-08-22T01:24:06.770Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -1692,6 +1694,8 @@
         "from": "desking/pencil-finance",
         "action": "Tap Continue →"
       },
+      "capturedAt": "2026-08-22T01:24:13.259Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -1797,6 +1801,8 @@
         "from": "agreement/agreement-signed",
         "action": "Continue → Credit Application"
       },
+      "capturedAt": "2026-08-22T01:24:18.264Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -1954,6 +1960,8 @@
         "from": "discovery/question-1",
         "action": "Tap 👤 Buyer in the crumbs"
       },
+      "capturedAt": "2026-08-22T01:24:26.555Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -2092,6 +2100,8 @@
         "from": "finance-menu/purchase-terms-presented",
         "action": "Tap Next →"
       },
+      "capturedAt": "2026-08-22T01:45:16.107Z",
+      "appCommit": "e42dddf38070aa2ebfeafc945429d18b6a0d71c9",
       "screens": [
         {
           "step": 1,
@@ -2141,7 +2151,6 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".pt-icon 📊 <> .pt-check ✓",
               " Rental and roadside benefits <> #prevTile.btn.btn--ghost ← Prev",
               " Rental and roadside benefits <> #nextTile.btn.btn--grad Next product →",
               " Cancelable anytime for a pro <> #prevTile.btn.btn--ghost ← Prev",
@@ -2177,14 +2186,14 @@
             ],
             "clipped": [],
             "overlaps": [
-              "#hamburgerBtn.hamburger ☰ <>  Your manufacturer's comprehe",
               "#hamburgerBtn.hamburger ☰ <>  Benefits:",
-              ".rideprice Ride <>  Your manufacturer's comprehe",
-              ".price PRICE <>  Your manufacturer's comprehe",
-              ".chip DEMO <>  Your manufacturer's comprehe",
-              "#appbarUser.user Welcome Ashley Collins Advis <>  Your manufacturer's comprehe",
+              "#hamburgerBtn.hamburger ☰ <>  10 years / 120,000 miles of ",
+              ".rideprice Ride <>  Benefits:",
+              ".rideprice Ride <>  10 years / 120,000 miles of ",
+              ".chip DEMO <>  Benefits:",
               "#appbarUser.user Welcome Ashley Collins Advis <>  Benefits:",
-              ".seg__opt.on Advisor <>  Your manufacturer's comprehe"
+              "#appbarUser.user Welcome Ashley Collins Advis <>  10 years / 120,000 miles of ",
+              ".seg__opt.on Advisor <>  Benefits:"
             ]
           },
           "error": null,
@@ -2254,6 +2263,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager Sign-Off"
       },
+      "capturedAt": "2026-08-22T01:24:41.091Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -2772,6 +2783,8 @@
         "from": "discovery/question-1",
         "action": "Tap 📁 Jacket in the crumbs"
       },
+      "capturedAt": "2026-08-22T01:44:43.105Z",
+      "appCommit": "e42dddf38070aa2ebfeafc945429d18b6a0d71c9",
       "screens": [
         {
           "step": 1,
@@ -3033,12 +3046,12 @@
             "overlaps": [
               "#hamburgerBtn.hamburger ☰ <> .jk-row__mark.jk-row__mark--miss !",
               ".rideprice Ride <>  Signed Contracts",
-              ".price PRICE <>  Signed Contracts",
               "#appbarUser.user Welcome Ashley Collins Advis <> .btn.btn--primary 📷 Scan",
               ".seg__opt.on Advisor <> .btn.btn--primary 📷 Scan",
               ".seg__opt Team Lead <> .btn.btn--primary 📷 Scan",
               ".jk-row__mark ✓ <> .btn.btn--ghost ← Back to Deal",
-              " Test Drive Agreement <> .btn.btn--ghost ← Back to Deal"
+              " Test Drive Agreement <> .btn.btn--ghost ← Back to Deal",
+              " Test Drive Agreement <> .btn.jk-dockinfo 11 docs needed"
             ]
           },
           "error": null,
@@ -3145,6 +3158,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Send Text Request"
       },
+      "capturedAt": "2026-08-22T01:25:24.097Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -3247,6 +3262,8 @@
         "from": "document-request/composer",
         "action": "Send Text Request"
       },
+      "capturedAt": "2026-08-22T01:25:31.135Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -3582,6 +3599,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap 📷 Snap All"
       },
+      "capturedAt": "2026-08-22T01:25:48.735Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -3718,6 +3737,8 @@
         "from": "deal-jacket/forms-and-jacket",
         "action": "Tap View on a received client document"
       },
+      "capturedAt": "2026-08-22T01:25:54.676Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,
@@ -3763,6 +3784,8 @@
         "from": "finance-menu/financial-contracts",
         "action": "Tap 🖨 Print Center"
       },
+      "capturedAt": "2026-08-22T01:25:58.402Z",
+      "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa",
       "screens": [
         {
           "step": 1,

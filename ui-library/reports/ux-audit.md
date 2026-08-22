@@ -1,12 +1,12 @@
-# Ride Price Mobile UI — UX Audit (v002)
+# Ride Price Mobile UI — UX Audit (v003)
 
-Captured 2026-08-21T20:17:06.880Z · viewport 390×844 · app d80aa7bc9420468e16f43d7c2c8b01ff3135336b
+Captured 2026-08-22T01:22:40.090Z · viewport 390×844 · app d2e1c8b0565cb8c610a2ba4c800417be735208aa
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 2 |
-| Minor | 15 |
+| Minor | 13 |
 | Observation | 6 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
@@ -31,21 +31,7 @@ _None recorded._
 - **Observation:** Every field is labelled and required fields are marked, so it can be completed — but on a phone it reads as an endless scroll. Grouping into Applicant / Residence / Employment steps (or collapsible sections) would fit the phone floor better.
 - **Suggested area to investigate:** credit route form layout (.fields, section headings)
 
-## Minor (15)
-
-### RP-UI-003 — Customer Onboarding — Find a Customer · Create Customer
-
-- **Screenshot:** `current/02-customer-onboarding/04-create-customer.png`
-- **Issue:** The Create Customer modal is taller than the phone viewport: Save and Cancel are below the fold and only reachable by scrolling inside the modal.
-- **Observation:** The form works, but a first-time user sees no way to save; the validation toast also lands over the State field.
-- **Suggested area to investigate:** modal sizing at ≤720px (.modal max-height / sticky .modal__foot)
-
-### RP-UI-004 — Customer Onboarding — Find a Customer · Search results — match found
-
-- **Screenshot:** `current/02-customer-onboarding/02-search-results.png`
-- **Issue:** After tapping Search, the Results panel renders below the search form (≈700px down) and the page does not scroll to it — on a phone nothing appears to happen.
-- **Observation:** A scroll-into-view on search, or results above the form on phones, would close the gap.
-- **Suggested area to investigate:** customers route doSearch() / #resultsPanel
+## Minor (13)
 
 ### RP-UI-005 — Discovery Session · Discovery — question 1
 
@@ -184,4 +170,4 @@ _None recorded._
 
 ## Automated checks per screen
 
-The capture run measures each screen for horizontal overflow, elements beyond the viewport, clipped text, text overlap and small touch targets (<36px). These are hints that were reviewed by eye; the findings above are the reviewed result. Raw values live in `flow-manifest.json` under each screen's `checks`.
+The capture run measures each screen for horizontal overflow, elements beyond the viewport, clipped text, text overlap and small touch targets (<36px — the automated hint threshold, set a little under the 40px floor the audit holds small variants to, so a finding below 40px comes from the eye, not the script). These are hints that were reviewed by eye; the findings above are the reviewed result. Raw values live in `flow-manifest.json` under each screen's `checks`.

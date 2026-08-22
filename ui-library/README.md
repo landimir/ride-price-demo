@@ -36,7 +36,7 @@ node ride-price-ui-library/tools/update.mjs     # preserve previous version, rec
 ```
 
 then read the added/changed screenshots, edit `reports/issues.json`, and run
-`node ride-price-ui-library/tools/build.mjs` again. Individual flows: `node ride-price-ui-library/tools/capture.mjs <flowId>`.
+`node ride-price-ui-library/tools/build.mjs` again. Individual flows: `node ride-price-ui-library/tools/capture.mjs <flowId>` (each flow is stamped with the repo commit at capture time — `RP_COMMIT` from update.mjs, else `git rev-parse HEAD`). After touching the automated checks in `lib.mjs`, run `node ride-price-ui-library/tools/selfcheck.mjs`: it drives the overlap check over `tools/fixtures/overlap.html`, where text scrolled under a pinned dialog footer must NOT count and two texts drawn on top of each other must.
 
 ## How the tools work
 `tools/flows.mjs` is the source of truth — a list of flows, each a list of steps with a `do(session)`
