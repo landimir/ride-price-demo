@@ -557,11 +557,14 @@ label.f .seg { display: flex; }
 /* the chevron spans every row and centres on the card — the owner's "row is
    tappable" cue (2026-08-23) */
 .dl-card__chev { grid-column: 3; grid-row: 1 / span 4; align-self: center; justify-self: end; font-size: 22px; line-height: 1; color: var(--muted); }
-/* Team Lead density: tighter card, no guidance line — more of the floor per screen */
-.dl-card--dense { padding: 11px 14px 11px 16px; row-gap: 2px; }
-.dl-card--dense .dl-card__name { font-size: 15px; }
-.dl-empty { text-align: center; color: var(--muted); padding: 30px 0 0; margin: 0; }
-.dl-empty--act { padding: 10px 0 30px; }
+/* Team Lead classic card — unchanged from the original queue (owner,
+   2026-08-23): two columns, no chevron, the status line in plain ink */
+.dl-card--classic { grid-template-columns: minmax(0, 1fr) auto; padding: 14px 16px; }
+.dl-card--classic .dl-card__veh { grid-column: 1 / -1; }
+.dl-card__status { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink); overflow-wrap: anywhere; }
+.dl-empty { text-align: center; color: var(--muted); padding: 30px 0; margin: 0; }
+.dl-archive { margin-top: 18px; }
+.dl-archive summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
 /* the phone touch floor (ui-context: ≥44px at ≤720px, small variants ≥40px),
    and the header stays ONE row — title left, action right — instead of the
    generic full-width action stack (owner refinement). One row is enforced,

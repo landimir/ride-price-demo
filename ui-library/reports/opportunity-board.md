@@ -36,6 +36,6 @@ Updated 2026-08-23 · 1 of 20 product areas reviewed · 7 recommendations so far
 
 ## Where to start
 
-1. RP-IMP-007 — the role-aware rows (name · VIN + stock · vehicle · stage badge) and the five pills with counts; it absorbs RP-IMP-002 and RP-IMP-003.
-2. RP-IMP-005 — the filtered empty-state copy, while in the same code.
-3. RP-IMP-001 — where + New Customer Visit lives on phones, once the owner decides between a bottom bar and his one-row sample (and whether a bottom tab bar comes at all).
+1. Home is BUILT (2026-08-23): advisor guided rows + Team Lead original queue, on branch ui-improvement-system.
+2. Next area: Customer Onboarding — Find a Customer.
+3. Still open from Home: RP-IMP-001 (where + New Customer Visit lives on phones) and the Archived row's 20px touch target for the Team Lead (RP-UI-017 minimum fix).

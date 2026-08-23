@@ -485,12 +485,24 @@ const view = () => $("#view");
 
 /* screen state at module level so typing and pill picks survive re-renders;
    the brand logo resets both and re-pulls the queue (owner spec) */
-const dealsUI = { q: "", pipe: "all" };
+const dealsUI = { q: "", pipe: "all", arch: false };
 
-/* five pipeline buckets, read from the deal's stage so every deal sits in
-   exactly one and the pill counts add up (owner direction, 2026-08-23 —
-   role-aware queue). A complete deal is DONE: its own pill, not an archive
-   fold. Each bucket wears one of the app's existing status badges. */
+/* Two queues, one route (owner, 2026-08-23): the Team Lead's floor view is
+   UNCHANGED from the original — All / Desking / F&I-Docs pills, the classic
+   cards, funded contracts folded under Archived — because a team leader reads
+   two lanes: what is being desked and what is allocated to finance. The
+   advisor gets the guided view: no filter dashboard, rows carrying the four
+   identifiers (name, VIN, stock, stage) with a Next line, funded deals at the
+   end of the same list. */
+
+/* the Team Lead's two pipeline lanes: before a signed base the deal is being
+   desked; from the signed base on, the work is F&I and documents. A complete
+   deal is funded and leaves the active queue into the archive fold. */
+const FNI_STAGES = ["signed", "credit", "menu", "forms"];
+const dealPipe = (d) => d.stage === "complete" ? "funded" : (FNI_STAGES.indexOf(d.stage) >= 0 ? "fni" : "desking");
+
+/* the advisor's five stage chips, read from the deal's stage so every deal
+   wears exactly one. Each is one of the app's existing status badges. */
 const DEAL_BUCKETS = [
   { id: "desking", label: "Desking", chip: "DESKING", badge: "badge--prog", stages: ["discovery", "vehicle", "testdrive", "desking"] },
   { id: "credit", label: "Credit", chip: "CREDIT", badge: "badge--menu", stages: ["signed", "credit"] },
@@ -499,7 +511,6 @@ const DEAL_BUCKETS = [
   { id: "done", label: "Done", chip: "DONE", badge: "badge--done", stages: ["complete"] }
 ];
 const dealBucket = (d) => DEAL_BUCKETS.find(b => b.stages.indexOf(d.stage) >= 0) || DEAL_BUCKETS[0];
-const dealPipe = (d) => dealBucket(d).id;
 
 /* the card's status line — the deal's immediate next action, read from the
    same state the screen behind the tap will show */
@@ -534,10 +545,13 @@ route("deals", () => {
   const lead = isTeamLead();
   const mine = Store.s.deals.filter(d => lead || !d.advisor || d.advisor === Store.s.advisor);
   const bySeen = (a, b) => (b.createdAt || "").localeCompare(a.createdAt || "");
-  const all = mine.slice().sort(bySeen);
-  const act = all.filter(d => d.stage !== "complete");
-  const counts = { all: act.length };
-  DEAL_BUCKETS.forEach(b => { counts[b.id] = all.filter(d => dealPipe(d) === b.id).length; });
+  const act = mine.filter(d => d.stage !== "complete").sort(bySeen);
+  const funded = mine.filter(d => d.stage === "complete").sort(bySeen);
+  const counts = {
+    all: act.length,
+    desking: act.filter(d => dealPipe(d) === "desking").length,
+    fni: act.filter(d => dealPipe(d) === "fni").length
+  };
 
   /* one baseline row: title + primary action, no stacked subtitle
      (owner refinement, 2026-08-20). The Team Lead reads the floor, the
@@ -546,22 +560,40 @@ route("deals", () => {
     `<a class="btn btn--grad" href="#/customers">＋ New Customer Visit</a>`);
   document.body.dataset.screen = "deals";
 
-  /* Role-aware row (owner direction, 2026-08-23): the same four identifiers
-     for everyone — name, VIN, stock, stage — in the same positions, the whole
-     row the tap, a chevron as the tappable cue. The Team Lead gets the dense
-     row to sweep the floor; the advisor gets the same row plus a Next line
-     saying what to do on this deal. */
-  function card(d) {
+  /* Team Lead card — unchanged classic: the whole card is the click target,
+     no chevron, no per-card controls (owner refinement, 2026-08-20; kept on
+     the owner's instruction 2026-08-23); the chip is pinned to the corner */
+  function leadCard(d) {
+    const c = Store.customer(d.customerId), v = Store.vehicle(d.stock);
+    const st = STAGES[d.stage] || STAGES.discovery;
+    const pipe = dealPipe(d);
+    const chip = pipe === "funded" ? `<span class="dl-chip badge--done">FUNDED</span>`
+      : pipe === "fni" ? `<span class="dl-chip badge--new">F&amp;I READY</span>`
+      : `<span class="dl-chip badge--prog">DESKING</span>`;
+    const name = c ? c.first + " " + c.last : "—";
+    return `<a class="dl-card dl-card--classic" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
+      <b class="dl-card__name">${esc(name)}</b>
+      <span class="dl-card__veh">${v ? esc(v.year + " " + v.make + " " + v.model) + " · Stk #" + esc(v.stock) : "No vehicle selected yet"}</span>
+      <span class="dl-card__status">${esc(dealNextAction(d))}</span>
+      ${chip}
+    </a>`;
+  }
+
+  /* Advisor row (owner direction, 2026-08-23): the four identifiers — name,
+     VIN, stock, stage — the whole row the tap, a chevron as the cue, and a
+     Next line saying what to do on this deal. Funded rows drop the Next line;
+     the DONE chip already says it. */
+  function advisorCard(d) {
     const c = Store.customer(d.customerId), v = Store.vehicle(d.stock);
     const st = STAGES[d.stage] || STAGES.discovery;
     const b = dealBucket(d);
     const name = c ? c.first + " " + c.last : "—";
-    return `<a class="dl-card${lead ? " dl-card--dense" : ""}" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
+    return `<a class="dl-card" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
       <b class="dl-card__name">${esc(name)}</b>
       <span class="dl-chip ${esc(b.badge)}">${esc(b.chip)}</span>
       <span class="dl-card__ids">${v ? `<span>VIN <b>${esc(v.vin)}</b></span><span>STK <b>${esc(v.stock)}</b></span>` : "<span>No vehicle selected yet</span>"}</span>
       ${v ? `<span class="dl-card__veh">${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}
-      ${lead || b.id === "done" ? "" : `<span class="dl-card__next dl-card__next--${esc(b.id)}">Next: ${esc(dealNextAction(d))} →</span>`}
+      ${b.id === "done" ? "" : `<span class="dl-card__next dl-card__next--${esc(b.id)}">Next: ${esc(dealNextAction(d))} →</span>`}
       <span class="dl-card__chev" aria-hidden="true">›</span>
     </a>`;
   }
@@ -573,10 +605,20 @@ route("deals", () => {
       <button type="button" class="dl-search__cam" id="dealScanBtn" title="Scan a training license to start a visit" aria-label="Scan a driver's license to start a visit">📷</button>
     </div>
     ${lead ? `<div class="dl-pills" role="group" aria-label="Filter deals by pipeline stage">
-      <button type="button" class="dl-pill" data-pipe="all">All <span class="dl-pill__n">${counts.all}</span></button>
-      ${DEAL_BUCKETS.map(b => `<button type="button" class="dl-pill" data-pipe="${esc(b.id)}"><i class="dl-dot dl-dot--${esc(b.id)}" aria-hidden="true"></i>${esc(b.label)} <span class="dl-pill__n">${counts[b.id]}</span></button>`).join("")}
+      <button type="button" class="dl-pill" data-pipe="all">All (${counts.all})</button>
+      <button type="button" class="dl-pill" data-pipe="desking"><i class="dl-dot dl-dot--desking" aria-hidden="true"></i>Desking (${counts.desking})</button>
+      <button type="button" class="dl-pill" data-pipe="fni"><i class="dl-dot dl-dot--fni" aria-hidden="true"></i>F&amp;I / Docs (${counts.fni})</button>
     </div>` : ""}
-    <div class="dl-list" id="dealList"></div>`;
+    <div class="dl-list" id="dealList"></div>
+    ${lead && funded.length ? `
+    <details class="dl-archive"${dealsUI.arch ? " open" : ""}>
+      <summary>Archived — funded contracts (${funded.length})</summary>
+      <div class="dl-list">${funded.map(leadCard).join("")}</div>
+    </details>` : ""}`;
+
+  /* any re-render (role switch, logo refresh) must not snap the archive shut */
+  const det = $(".dl-archive");
+  if (det) det.ontoggle = () => { dealsUI.arch = det.open; };
 
   /* search matches name, vehicle, stock, VIN, deal #, or phone — punctuation
      dropped on both sides so "(555) 12" finds the digits it contains */
@@ -593,12 +635,6 @@ route("deals", () => {
       hay.replace(/[^a-z0-9]/g, "").indexOf(q.replace(/[^a-z0-9]/g, "")) >= 0;
   }
 
-  /* Team Lead: All = the four active buckets; Done is its own pill, so a
-     finished deal is one tap away instead of folded under a caption
-     (RP-UI-017). Advisor: no filter dashboard at all (owner, 2026-08-23 —
-     a good advisor's ten deals scroll fine); their funded deals follow the
-     active ones at the end of the one list, wearing the DONE chip, and
-     search covers everything they own. */
   function paint() {
     if (!lead) dealsUI.pipe = "all";
     $$(".dl-pill").forEach(p => {
@@ -606,27 +642,14 @@ route("deals", () => {
       p.classList.toggle("on", on);
       p.setAttribute("aria-pressed", String(on));
     });
-    const done = all.filter(d => d.stage === "complete");
-    const pool = !lead ? act.concat(done)
-      : dealsUI.pipe === "all" ? act : all.filter(d => dealPipe(d) === dealsUI.pipe);
+    /* Team Lead: the active floor through the lane filter, archive below.
+       Advisor: active deals then their funded ones, one list, search over all. */
+    const pool = lead
+      ? act.filter(d => dealsUI.pipe === "all" || dealPipe(d) === dealsUI.pipe)
+      : act.concat(funded);
     const rows = pool.filter(matches);
-    let empty = "";
-    if (!rows.length) {
-      if (!pool.length && !dealsUI.q.trim()) empty = `<p class="dl-empty">No active deals — start a new customer visit.</p>`;
-      else {
-        /* a filtered empty state names the filter and offers the way back, so
-           the title count and the list never disagree in silence */
-        const b = lead ? DEAL_BUCKETS.find(x => x.id === dealsUI.pipe) : null;
-        const searching = !!dealsUI.q.trim();
-        const where = b ? DEAL_BUCKETS.filter(x => x.id !== dealsUI.pipe && counts[x.id] > 0).map(x => counts[x.id] + " in " + x.label) : [];
-        const why = searching ? "No deals match that search" : (b ? "No deals in " + b.label : "No deals match that filter");
-        empty = `<p class="dl-empty">${esc(why)}${where.length && !searching ? " — " + esc(where.join(", ")) : ""}.</p>
-          <p class="dl-empty dl-empty--act"><button type="button" class="btn btn--ghost btn--sm" id="dealShowAll">${searching ? "Clear search" : "Show all"}</button></p>`;
-      }
-    }
-    $("#dealList").innerHTML = rows.length ? rows.map(card).join("") : empty;
-    const sa = $("#dealShowAll");
-    if (sa) sa.onclick = () => { dealsUI.pipe = "all"; dealsUI.q = ""; $("#dealSearch").value = ""; paint(); };
+    $("#dealList").innerHTML = rows.length ? rows.map(lead ? leadCard : advisorCard).join("")
+      : `<p class="dl-empty">${pool.length || (lead && act.length) ? (lead ? "No deals match that filter." : "No deals match that search.") : "No active deals — start a new customer visit."}</p>`;
   }
 
   $("#dealSearch").oninput = (e) => { dealsUI.q = e.target.value; paint(); };
@@ -5105,7 +5128,7 @@ window.addEventListener("hashchange", router);
 window.addEventListener("DOMContentLoaded", () => {
   /* the logo hard-refreshes the floor queue: search and pipeline filter
      cleared, list re-pulled (owner spec, 2026-08-20) */
-  $("#brandHome").onclick = () => { dealsUI.q = ""; dealsUI.pipe = "all"; navigate("#/deals"); router(); };
+  $("#brandHome").onclick = () => { dealsUI.q = ""; dealsUI.pipe = "all"; dealsUI.arch = false; navigate("#/deals"); router(); };
   $$("[data-nav]").forEach(a => a.onclick = (e) => { e.preventDefault(); navigate(a.dataset.nav); });
 
   /* hamburger navigation drawer */
