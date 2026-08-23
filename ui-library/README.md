@@ -11,6 +11,9 @@ that causes each transition, the branches, and the UX findings attached to the e
 | `current/<area>/NN-name.png` | The current capture, one numbered screenshot per meaningful step, grouped by product area |
 | `master-flow/index.html` | The master visual flow — all flows left-to-right with actions, branches, issues, lightbox |
 | `reports/flow-manifest.json` | Machine-readable flows: every screen with its screenshot, hash, action → next, branches, issues, automated checks |
+| `master-flow/improvement-view.html` | The improvement system's companion page: per area, the original screenshots + existing comment cards + the deepened diagnosis, Mobbin reference direction, and the Ride Price adaptation |
+| `reports/screen-improvement-matrix.json` | Hand-maintained source of truth for the improvement system — one area at a time; recommendations, owner directions/decisions, Mobbin patterns |
+| `reports/ui-improvement-report.md` · `reports/opportunity-board.md` · `reports/mobbin-reference-summary.md` | Generated from the matrix by `tools/build-improvements.mjs` |
 | `reports/ux-audit.md` | Findings by severity (Critical / Major / Minor / Observation) with screen and area to investigate |
 | `reports/issues.json` | The audited findings (hand-maintained source for the audit and the master page) |
 | `reports/changelog.md` | Per-version added / changed / removed flows and screens, new / resolved issues |
@@ -36,7 +39,14 @@ node ride-price-ui-library/tools/update.mjs     # preserve previous version, rec
 ```
 
 then read the added/changed screenshots, edit `reports/issues.json`, and run
-`node ride-price-ui-library/tools/build.mjs` again. Individual flows: `node ride-price-ui-library/tools/capture.mjs <flowId>` (each flow is stamped with the repo commit at capture time — `RP_COMMIT` from update.mjs, else `git rev-parse HEAD`). After touching the automated checks in `lib.mjs`, run `node ride-price-ui-library/tools/selfcheck.mjs`: it drives the overlap check over `tools/fixtures/overlap.html`, where text scrolled under a pinned dialog footer must NOT count and two texts drawn on top of each other must.
+`node ride-price-ui-library/tools/build.mjs` again.
+
+**The improvement system** (2026-08-23) sits beside the library: edit
+`reports/screen-improvement-matrix.json` (one product area per review round,
+owner decisions recorded as they land), then
+`node ride-price-ui-library/tools/build-improvements.mjs` regenerates the
+improvement view and its three reports. `tools/preview-improvements.mjs`
+renders it headless for a visual check. Individual flows: `node ride-price-ui-library/tools/capture.mjs <flowId>` (each flow is stamped with the repo commit at capture time — `RP_COMMIT` from update.mjs, else `git rev-parse HEAD`). After touching the automated checks in `lib.mjs`, run `node ride-price-ui-library/tools/selfcheck.mjs`: it drives the overlap check over `tools/fixtures/overlap.html`, where text scrolled under a pinned dialog footer must NOT count and two texts drawn on top of each other must.
 
 ## How the tools work
 `tools/flows.mjs` is the source of truth — a list of flows, each a list of steps with a `do(session)`

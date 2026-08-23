@@ -1,6 +1,6 @@
-# Ride Price Mobile UI — UX Audit (v003)
+# Ride Price Mobile UI — UX Audit (v004)
 
-Captured 2026-08-22T01:22:40.090Z · viewport 390×844 · app d2e1c8b0565cb8c610a2ba4c800417be735208aa
+Captured 2026-08-23T23:15:41.447Z · viewport 390×844 · app da321ece41d7c8062c7b1ccc96ffdc1aad508f87
 
 | Severity | Count |
 |---|---|
@@ -110,7 +110,7 @@ _None recorded._
 - **Observation:** Also 34px zoom / page buttons on the client review screen and the advisor document review.
 - **Suggested area to investigate:** .sa-thumb__x, .dr-zoom button, .dr-pagetools button sizing at ≤720px
 
-### RP-UI-016 — Desking — Calculate Payments · Calculate Payments — Finance
+### RP-UI-016 — Desking — Calculate Payments · Calculate Payments — Lease
 
 - **Screenshot:** `current/09-desking/03-pencil-lease.png`
 - **Issue:** The estimated-credit-score slider is a 16px-tall native range input — a small target on a phone for the control that changes the rate tier.
@@ -121,7 +121,7 @@ _None recorded._
 
 - **Screenshot:** `current/01-home-and-navigation/06-funded-archive.png`
 - **Issue:** The 'Archived — funded contracts' disclosure is a 20px-tall text row — the only way to reach finished deals, under the touch floor.
-- **Observation:** The per-card chevron and × delete seen in v001 were removed in PR #39 (v002 shows the clean cards); the archive disclosure row itself is unchanged.
+- **Observation:** Still true after the 2026-08-23 role-aware queue: the Team Lead deliberately keeps the original view including this fold (owner decision), so the disclosure row remains the only way a manager reaches finished deals; the minimum fix is restyling the row to the 44px floor. The Advisor no longer has the fold at all — their funded deals sit at the end of the one list under a DONE chip.
 - **Suggested area to investigate:** .dl-archive summary sizing
 
 ## Observation (6)
@@ -161,7 +161,7 @@ _None recorded._
 - **Observation:** A trainee who has not used the app bar switch may not connect the instruction to the control.
 - **Suggested area to investigate:** sign-off gate note copy / role switch affordance
 
-### RP-UI-023 — Home — Deals Queue & Navigation · Active Deals (landing)
+### RP-UI-023 — Home — Deals Queue & Navigation · My Deals (landing — Advisor)
 
 - **Screenshot:** `current/01-home-and-navigation/01-deals-queue.png`
 - **Issue:** No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead switch standing in for identity.

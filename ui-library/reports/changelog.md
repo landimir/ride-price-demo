@@ -1,5 +1,59 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v004 — 2026-08-23
+
+App commit: da321ec · 20 flows · 111 screens · previous: v003
+
+**What actually changed:** the Home flow — the role-aware queue from PR #44. The landing is now the Advisor's guided view (My Deals, no pills, the VIN + STK line, a Next line, a chevron); the Team Lead screens show the original floor view with the VIN line and chevron added; a new seventh screen documents the Advisor's funded-deal tail (no archive fold for that role). Every other "changed" entry is live values — clock times, computed dates, minted deal numbers — not design; the desking, agreement, presentation and printable layouts are unchanged (the MV-82's 8 recorded overlaps persist as before). RP-UI-017's note now records that the archive fold is Team Lead-only by decision.
+
+### Added
+- Home — Deals Queue & Navigation · Advisor — funded deal ends the list
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Deals Queue & Navigation · My Deals (landing — Advisor)
+- Home — Deals Queue & Navigation · Navigation drawer
+- Home — Deals Queue & Navigation · Reset demo data — confirm
+- Home — Deals Queue & Navigation · Role switched to Team Lead
+- Home — Deals Queue & Navigation · Pipeline filter — no match
+- Home — Deals Queue & Navigation · Funded contracts auto-archived
+- Scan Driver's License · Reading barcode…
+- Discovery Session · Discovery — question 1
+- Discovery Session · Discovery — mid-interview
+- Discovery Session · Discovery — last question
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — filter applied
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · Your Journey menu
+- Vehicle Selection · Quote — follow-up only
+- Test Drive Agreement · End Test Drive — odometer
+- Desking — Calculate Payments · Calculate Payments — Cash
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Agreement — signed
+- Base Payment Agreement · Redesk — void & redesk confirm
+- F&I Product Presentation · Advisor script open
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Custom package — products moved, payment toggled
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Acknowledgement signed, forms selected
+- Deal Jacket & Compliance · Add Optional / Custom Form
+- Send Text Request (advisor → client) · Jacket after sending — Resend Link
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Print Center & Printables · Print preview — Base Payment Agreement
+- Print Center & Printables · Print preview — MV-82 (training sample)
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v003 — 2026-08-22
 
 App commit: d2e1c8b · 20 flows · 110 screens · previous: v002

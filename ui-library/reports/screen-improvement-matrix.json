@@ -13,7 +13,7 @@
       "flow": "Home — Deals Queue & Navigation",
       "status": "reviewed",
       "reviewedOn": "2026-08-23",
-      "whatWorks": "The landing screen is genuinely calm: one title carrying the live count, one gradient action, one search field, three pills with counts and a clean whole-card deal tile with its status chip pinned to the corner — nothing competes, which is exactly what the best work-queue screens do. The role switch is a visible segmented control and its toast names the acting person, so the no-login decision reads as deliberate rather than missing. The drawer orients a first-time user well (dealership, advisor name and role, WORKFLOW vs RESOURCES) and keeps the destructive reset at the very bottom behind a branded confirm whose red button is the only danger-styled control in the flow. Empty states speak instead of going blank.",
+      "whatWorks": "The queue is genuinely calm in both of its views (as reviewed, and still after the build): one title carrying the live count, one gradient action, one search field, and clean whole-row tap targets with the status chip pinned to the corner — nothing competes, which is exactly what the best work-queue screens do. The pill dashboard with live counts lives on the Team Lead screen (the Advisor landing deliberately has none). The role switch is a visible segmented control and its toast names the acting person, so the no-login decision reads as deliberate rather than missing. The drawer orients a first-time user well (dealership, advisor name and role, WORKFLOW vs RESOURCES) and keeps the destructive reset at the very bottom behind a branded confirm whose red button is the only danger-styled control in the flow. Empty states speak instead of going blank.",
       "strongest": [
         "Put the one forward action where the thumb is: on a phone, anchor + New Customer Visit in a thin bottom bar (or full-width under the pills) instead of the top-right corner — and use the same page-bar rule on Find a Customer and the Training pages, which put their actions at the top the same way.",
         "Give finished deals a real control: a fourth pill 'Funded (n)' in the existing pill row, or at minimum a 48px ink-coloured section row with a chevron, instead of the 20px grey 'Archived — funded contracts' text (RP-UI-017).",
@@ -27,8 +27,8 @@
           "screenKey": "deals-queue",
           "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
           "alsoOn": [
-            "current/01-home-and-navigation/04-pipeline-filter-empty.png",
-            "current/01-home-and-navigation/05-role-switch-team-lead.png",
+            "current/01-home-and-navigation/05-pipeline-filter-empty.png",
+            "current/01-home-and-navigation/04-role-switch-team-lead.png",
             "current/01-home-and-navigation/06-funded-archive.png",
             "current/02-customer-onboarding/01-find-customer.png",
             "current/04-training-materials/01-training-licenses.png",
@@ -122,8 +122,8 @@
           "screenKey": "deals-queue",
           "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
           "alsoOn": [
-            "current/01-home-and-navigation/05-role-switch-team-lead.png",
-            "current/01-home-and-navigation/04-pipeline-filter-empty.png",
+            "current/01-home-and-navigation/04-role-switch-team-lead.png",
+            "current/01-home-and-navigation/05-pipeline-filter-empty.png",
             "current/01-home-and-navigation/06-funded-archive.png"
           ],
           "existingComment": null,
@@ -214,7 +214,7 @@
           "id": "RP-IMP-005",
           "title": "A filter with no matches contradicts the title and offers no way back",
           "screenKey": "pipeline-filter-empty",
-          "screenshot": "current/01-home-and-navigation/04-pipeline-filter-empty.png",
+          "screenshot": "current/01-home-and-navigation/05-pipeline-filter-empty.png",
           "alsoOn": [],
           "existingComment": null,
           "commentAssessment": null,
@@ -225,7 +225,7 @@
           "issueSummary": "With F&I / Docs (0) selected the list says only 'No deals match that filter.' while the title still reads ACTIVE DEALS (1); the sentence does not say where the one deal is and offers no one-tap way back to All.",
           "whyItMatters": "A trainee sees '1' in the title and 'no deals' in the list at the same moment — a tiny contradiction that costs a second of doubt; closing the loop in the sentence removes it.",
           "mobbinPatternNeeded": "filtered-list empty state that names the filter and offers a clear-filters action",
-          "referenceInsight": "Every strong filtered empty state does two things: says the filter is the reason, and gives a button out. Google Drive, Wise, Quizlet and Tabby all pair 'no results with these filters' with a single 'Clear filters' / 'Clear all' button directly under the sentence.",
+          "referenceInsight": "Every strong filtered empty state does two things: says the filter is the reason, and gives a button out. Google Drive, Wise and Quizlet all pair 'no results with these filters' with a single 'Clear filters' / 'Clear all' button directly under the sentence.",
           "references": [
             {
               "app": "Google Drive",
@@ -257,7 +257,7 @@
           "screenKey": "deals-queue",
           "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
           "alsoOn": [
-            "current/01-home-and-navigation/05-role-switch-team-lead.png"
+            "current/01-home-and-navigation/04-role-switch-team-lead.png"
           ],
           "existingComment": "RP-UI-023",
           "commentAssessment": "accurate — it records a decision and stays an Observation; incomplete only in that it does not note where the identity cue lives: the acting person is named only in the drawer header ('Ashley Collins · Client Advisor') and, after a switch, in a 4-second toast ('Now acting as Team Lead — Jordan Reyes'); the app bar shows the role but never the name.",
@@ -295,7 +295,7 @@
           "screenKey": "deals-queue",
           "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
           "alsoOn": [
-            "current/01-home-and-navigation/05-role-switch-team-lead.png",
+            "current/01-home-and-navigation/04-role-switch-team-lead.png",
             "current/01-home-and-navigation/06-funded-archive.png"
           ],
           "existingComment": null,
@@ -334,7 +334,7 @@
             "M3",
             "M5"
           ],
-          "ridePriceRecommendation": "Adopt the owner's role-aware hybrid on the existing light surface (decided 2026-08-23): every row shows name (700), then VIN and stock on one mono line, then the vehicle, with the stage badge pinned right and a chevron at the far right; the whole row is the tap. Team Lead (all deals): rows only, ~80px, five pills with counts (All · Desking · Credit · F&I · Docs · Done) mapped from the deal stage as recorded in the decisions. Advisor (my deals): the same rows plus a 'Next: …' line in the stage colour from dealNextAction(). + New Customer Visit stays as the one gradient action (RP-IMP-001 decides where on phones), the DEMO chip and the role switch stay in the app bar, the drawer stays the navigation (no bottom tab bar). Built 2026-08-23 and corrected on the owner's screenshot: the pill dashboard is Team Lead-only; the advisor list is search + rows + funded at the end. Final shape after the owner's two corrections: Team Lead = the original queue untouched (two lanes + archive); Advisor = the guided rows. The five-bucket dashboard was tried and withdrawn.",
+          "ridePriceRecommendation": "FINAL (after the owner's corrections on built screenshots): every row, both roles, shows name (700), the mono VIN + STK line (an unstocked unit shows 'STK Pending stock-in'; a missing value 'Pending', never invented; blank during discovery), the vehicle, the stage chip, and a chevron — the whole row is the tap. Advisor ('My Deals'): no filter pills, the five stage chips, a 'Next: …' line in the stage colour per active deal, funded deals at the end of the one list, Clear search on an empty search. Team Lead ('Active Deals'): the original floor view — All / Desking / F&I-Docs pills with live counts, classic cards with a plain status line and DESKING / F&I READY / FUNDED chips, the Archived fold. + New Customer Visit stays the one gradient action; DEMO chip, role switch and drawer unchanged; light surface. The five-pill Team Lead dashboard was tried and withdrawn — see direction.superseded.",
           "whatStays": "Light surface and white cards; navy / chrome blue; gradient only on + New Customer Visit; DEMO chip; the Advisor / Team Lead switch; the search field; the drawer. Chevrons return by decision.",
           "fixSize": "medium",
           "implementationNote": "route('deals') card template and paint() (the 'mine' filter at app.js ~526 already splits the roles); .dl-card / .dl-pills in portal.css; dealNextAction() for the advisor line; the five-way bucket needs a stage→bucket map beside dealBucket()."
@@ -344,11 +344,9 @@
         "title": "Role-aware queue (owner concept, 2026-08-23)",
         "summary": "The owner answered the Home module with a concept of his own: the Team Lead and the advisor do not use the queue the same way, so the amount of guidance and the density change by role while the core deal information stays identical. Both roles see the same four identifiers in the same positions; the manager gets compact rows to sweep 40–50 deals fast, the advisor gets the same rows plus a next-step line because they hold fewer deals and need to know what to do next.",
         "principles": [
-          "Information priority, a hard rule: 1 customer full name · 2 full VIN · 3 stock number · 4 deal stage. Always visible on every deal row, never hidden or demoted by a later redesign; the vehicle description sits under them.",
-          "Team Lead view = high-density queue: compact rows, stage badge aligned right, the whole row is the tap (navigation), no repeated buttons, no progress bars, no tall cards. Goal: scan the whole floor.",
-          "Advisor view = guided queue: same rows and positions, plus one 'Next: …' line per deal naming the workflow action (Calculate payments, Upload insurance binder, Complete credit application, Review F&I products). Goal: know what to do next.",
+          "Information priority, a hard rule: 1 customer full name · 2 full VIN · 3 stock number · 4 deal stage — on every deal row, BOTH roles, ONCE A VEHICLE IS ON THE DEAL. Two stated exceptions: during discovery the identifier line is absent by decision (blank while rapport is built, auto-populated on vehicle selection), and a value the app does not know renders an honest 'Pending' / 'Pending stock-in' — never an invention. No later redesign may hide or demote the identifiers; the vehicle description sits under them. (Reaffirmed on the built screens: the Team Lead card gained the VIN line on the owner's correction.)",
+          "FINAL role split: the Team Lead keeps the original two-lane floor view (All / Desking / F&I-Docs pills with counts, classic cards with a plain status line, funded contracts in the Archived fold) plus the VIN line and the chevron. The advisor gets the guided view: no filter pills, rows with a 'Next: …' line per active deal, funded deals at the end of the one list.",
           "Navigation and action are different things: tapping a row opens the deal; the Next line is the work. Nothing on the queue should look like a primary button that is only navigation.",
-          "Filters are an operational dashboard: Active Deals (n), then All / Desking / F&I / Docs / Done with counts — the count pattern borrowed from the references, the look staying Ride Price.",
           "One design language for both roles; only density and guidance change. Ride Price identity preserved: navy, the gradient for meaningful emphasis, rounded containers, stage colours."
         ],
         "converges": [
@@ -371,11 +369,15 @@
           "No bottom tab bar — the drawer stays the app's navigation (owner, 2026-08-23).",
           "Row chevrons come back as the 'row is tappable' cue on the queue (owner, 2026-08-23 — reverses the 2026-08-21 removal for this design).",
           "App bar keeps its original style for now — DEMO chip and the Advisor / Team Lead segmented switch (owner, 2026-08-23).",
-          "Stage vocabulary — recommended mapping (owner asked for help, 2026-08-23): five buckets derived from the deal stage, one deal in exactly one bucket so the counts add up: DESKING = discovery · vehicle · test drive · desking · signed (orange, badge--prog) · CREDIT = credit (purple, badge--menu — the app already owns this colour) · F&I = menu (blue, badge--new) · DOCS = forms (navy-tinted, badge--type) · DONE = complete (navy filled, badge--done — Ride Price's funded chip, not the concept's green). 'All' counts the active four; DONE is its own pill and the grey 'Archived' fold goes away (RP-IMP-002). A deal that still owes documents while in F&I stays in F&I — the advisor's Next line says 'Missing insurance card', the pill says where the deal is. All five colours already exist in portal.css; nothing new is introduced.",
+          "Stage vocabulary — recommended mapping (owner asked for help, 2026-08-23): five buckets derived from the deal stage, one deal in exactly one bucket so the counts add up: DESKING = discovery · vehicle · test drive · desking · signed (orange, badge--prog) · CREDIT = credit (purple, badge--menu — the app already owns this colour) · F&I = menu (blue, badge--new) · DOCS = forms (navy-tinted, badge--type) · DONE = complete (navy filled, badge--done — Ride Price's funded chip, not the concept's green). 'All' counts the active four; DONE is its own pill. (In the five-pill concept this replaced the grey 'Archived' fold — that applies to the ADVISOR only in the final state: their funded deals sit at the end of the one list with no fold. The Team Lead's original view, kept by the later decision, retains the Archived fold; RP-UI-017's minimum row-styling fix stays open for it.) A deal that still owes documents while in F&I stays in F&I — the advisor's Next line says 'Missing insurance card', the pill says where the deal is. All five colours already exist in portal.css; nothing new is introduced.",
           "Advisor view carries NO filter pills (owner, 2026-08-23, on the built screenshot): a good advisor does ten deals a day and scrolls them fine — the count dashboard is the Team Lead's tool. The advisor gets search, the rows with their Next lines, and their funded deals at the end of the same list under the DONE chip; search covers everything they own. The five pills with counts stay on the Team Lead view only.",
           "Team Lead view stays UNCHANGED from the original queue (owner, 2026-08-23, final): All / Desking / F&I-Docs pills with counts, the classic cards (name, vehicle · Stk, status line, DESKING / F&I READY / FUNDED chips), funded contracts in the Archived fold — with ONE addition (owner, 2026-08-23, after testing on his phone): the VIN + STK mono line under the name, because the four-identifier hard rule holds for every role. A team leader reads two lanes — what is being desked and what is allocated to finance — so the five-bucket dashboard and the dense VIN rows were dropped for that role. The role-aware split lands entirely on the advisor: no pills, rows with name · VIN · stock · stage chip · chevron, a Next line per active deal, funded deals at the end of the one list.",
           "Universal VIN visibility on the advisor queue (owner requirement, 2026-08-23): once a vehicle is on a deal, the VIN renders on the advisor row whether or not the unit is stocked in. Built as a vehicle-identity snapshot on the deal itself (deal.vehicle = { vin, stock }) — stamped the moment a vehicle is attached, migrated in load() for saved deals, so the VIN survives an unstocked/in-transit unit or a later catalog change. Display: both known → VIN + STK in bold mono; VIN only → 'STK Pending stock-in'; VIN unknown → 'Pending' (the app never invents a value); no vehicle → 'No vehicle selected yet'. A snapshot that disagrees with the deal's current stock is ignored and the row re-resolves fresh (a swapped vehicle can never show the old unit's VIN). Search also matches the deal-carried VIN/stock. The Team Lead's classic card only gains the honest fallback line ('VIN x · Stock pending stock-in') for a unit the catalog cannot name; its layout is untouched. Sync is by construction: every render reads the one Store.",
           "Discovery blank state (owner, 2026-08-23): while the advisor is logging the customer in and building rapport, the card shows only the name, the stage line and the badge — no vehicle placeholder text. The identifier line auto-populates (VIN + STK) the moment a vehicle lands on the deal or a quote starts. Both roles."
+        ],
+        "superseded": [
+          "Original concept, withdrawn during the build (owner, 2026-08-23): a high-density five-pill dashboard for the Team Lead (All / Desking / Credit / F&I / Docs / Done with counts, dense ~80px rows). Tried on screen; the owner kept the original two-lane queue — a team leader reads what is being desked and what is allocated to finance. Do not re-propose.",
+          "Original concept, narrowed during the build: the five-bucket stage vocabulary (DESKING · CREDIT · F&I · DOCS · DONE) survives only as the ADVISOR's row chips; the Team Lead pills and chips stayed the original three-lane set."
         ]
       }
     }
@@ -519,7 +521,7 @@
   ],
   "board": {
     "biggestGains": [
-      "The role-aware queue (RP-IMP-007): same four identifiers for everyone, density for the Team Lead, a Next line for the advisor — the owner's own direction, and the principle every later list screen inherits.",
+      "The role-aware queue (RP-IMP-007, BUILT): the four identifiers on every row for both roles; the advisor gains the guided Next line without pills; the Team Lead keeps his two-lane floor view. The four-identifier rule is the principle every later list screen inherits.",
       "One fixed home for the forward action on phones (a bottom bar) — it fixes Home's thumb reach now and is the same change the desking, credit-application and finance-menu Majors will need later.",
       "'Done' as a first-class filter and 'Next ·' on the card — two small changes that make the home screen answer a manager's and an advisor's first questions without a tap."
     ],

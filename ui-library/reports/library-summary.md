@@ -1,12 +1,12 @@
 # Ride Price Mobile UI Library
 
-Version: v003
-Captured: 2026-08-22T01:22:40.090Z
-App commit: d2e1c8b0565cb8c610a2ba4c800417be735208aa
+Version: v004
+Captured: 2026-08-23T23:15:41.447Z
+App commit: da321ece41d7c8062c7b1ccc96ffdc1aad508f87
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 110
+Screens documented: 111
 Branches documented: 63
 
 UX Audit:
@@ -19,15 +19,15 @@ UX Audit:
 
 | # | Flow | Screens | Entry |
 |---|---|---|---|
-| 1 | Home — Deals Queue & Navigation | 6 | entry point |
-| 2 | Customer Onboarding — Find a Customer | 5 | Home — Deals Queue & Navigation · 01 Active Deals (landing) — Tap ＋ New Customer Visit |
+| 1 | Home — Deals Queue & Navigation | 7 | entry point |
+| 2 | Customer Onboarding — Find a Customer | 5 | Home — Deals Queue & Navigation · 01 My Deals (landing — Advisor) — Tap ＋ New Customer Visit |
 | 3 | Scan Driver's License | 8 | Customer Onboarding — Find a Customer · 01 Find a Customer — Tap 🪪 Scan license |
 | 4 | Training Licenses & Registrations | 2 | Home — Deals Queue & Navigation · 02 Navigation drawer — Training Licenses / Training Registrations |
 | 5 | Discovery Session | 3 | Customer Onboarding — Find a Customer · 01 Find a Customer — Start Visit → (creates the deal) |
 | 6 | Vehicle Selection | 7 | Discovery Session · 03 Discovery — last question — Tap Pick Vehicle → |
 | 7 | Test Drive Agreement | 7 | Vehicle Selection · 05 Your Journey menu — Tap Test Drive |
 | 8 | Trade-In Evaluation & Proof of Ownership | 4 | Vehicle Selection · 05 Your Journey menu — Tap Trade Appraisal |
-| 9 | Desking — Calculate Payments | 5 | Home — Deals Queue & Navigation · 01 Active Deals (landing) — Tap the deal card (Continue) |
+| 9 | Desking — Calculate Payments | 5 | Home — Deals Queue & Navigation · 01 My Deals (landing — Advisor) — Tap the deal card (Continue) |
 | 10 | Base Payment Agreement | 3 | Desking — Calculate Payments · 02 Calculate Payments — Finance — Tap Continue → |
 | 11 | Credit Application (Lending Lane) | 4 | Base Payment Agreement · 02 Agreement — signed — Continue → Credit Application |
 | 12 | Buyers on the Deal (Co-Buyer) | 4 | Discovery Session · 01 Discovery — question 1 — Tap 👤 Buyer in the crumbs |

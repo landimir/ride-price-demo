@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ride Price Mobile UI Flow Library — v003</title>
+<title>Ride Price Mobile UI Flow Library — v004</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--chrome:#071b49;--chrome-2:#0b255d;--navy:#262254;--ink:#34314e;--muted:#6f6c88;--bg:#f2f2f8;--line:#e3e1ef;--card:#fff;--radius:14px;
@@ -52,34 +52,34 @@ a{color:inherit}
 <body>
 <header class="appbar"><div class="brand"><i>Ride</i><span>PRICE</span></div><span class="chip">UI LIBRARY</span>
   <input id="q" type="search" placeholder="Filter screens, flows, issues…" aria-label="Filter">
-  <span class="ver">v003 · captured 2026-08-22 01:22 · viewport 390×844 · app d2e1c8b</span></header>
+  <span class="ver">v004 · captured 2026-08-23 23:15 · viewport 390×844 · app da321ec</span></header>
 <div class="layout">
-  <nav class="side"><h4>Product areas</h4><a href="#home">Home — Deals Queue &amp; Navigation<small>6</small></a><a href="#onboarding">Customer Onboarding — Find a Customer<small>5</small></a><a href="#license-scan">Scan Driver&#39;s License<small>8</small></a><a href="#training">Training Licenses &amp; Registrations<small>2</small></a><a href="#discovery">Discovery Session<small>3</small></a><a href="#vehicles">Vehicle Selection<small>7</small></a><a href="#test-drive">Test Drive Agreement<small>7</small></a><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership<small>4</small></a><a href="#desking">Desking — Calculate Payments<small>5</small></a><a href="#agreement">Base Payment Agreement<small>3</small></a><a href="#credit">Credit Application (Lending Lane)<small>4</small></a><a href="#buyers">Buyers on the Deal (Co-Buyer)<small>4</small></a><a href="#presentation">F&amp;I Product Presentation<small>4</small></a><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts<small>16</small></a><a href="#deal-jacket">Deal Jacket &amp; Compliance<small>11</small></a><a href="#document-request">Send Text Request (advisor → client)<small>3</small></a><a href="#client-upload">Client Document Upload (customer&#39;s phone)<small>10</small></a><a href="#snap-all">Snap All — burst capture<small>4</small></a><a href="#doc-review">Document Review (advisor)<small>1</small></a><a href="#print-center">Print Center &amp; Printables<small>3</small></a><h4>Reports</h4><a href="reports/ux-audit.md">UX audit</a><a href="reports/flow-manifest.json">Flow manifest</a><a href="reports/changelog.md">Changelog</a><a href="reports/library-summary.md">Summary</a></nav>
+  <nav class="side"><h4>Product areas</h4><a href="#home">Home — Deals Queue &amp; Navigation<small>7</small></a><a href="#onboarding">Customer Onboarding — Find a Customer<small>5</small></a><a href="#license-scan">Scan Driver&#39;s License<small>8</small></a><a href="#training">Training Licenses &amp; Registrations<small>2</small></a><a href="#discovery">Discovery Session<small>3</small></a><a href="#vehicles">Vehicle Selection<small>7</small></a><a href="#test-drive">Test Drive Agreement<small>7</small></a><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership<small>4</small></a><a href="#desking">Desking — Calculate Payments<small>5</small></a><a href="#agreement">Base Payment Agreement<small>3</small></a><a href="#credit">Credit Application (Lending Lane)<small>4</small></a><a href="#buyers">Buyers on the Deal (Co-Buyer)<small>4</small></a><a href="#presentation">F&amp;I Product Presentation<small>4</small></a><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts<small>16</small></a><a href="#deal-jacket">Deal Jacket &amp; Compliance<small>11</small></a><a href="#document-request">Send Text Request (advisor → client)<small>3</small></a><a href="#client-upload">Client Document Upload (customer&#39;s phone)<small>10</small></a><a href="#snap-all">Snap All — burst capture<small>4</small></a><a href="#doc-review">Document Review (advisor)<small>1</small></a><a href="#print-center">Print Center &amp; Printables<small>3</small></a><h4>Reports</h4><a href="reports/ux-audit.md">UX audit</a><a href="reports/flow-manifest.json">Flow manifest</a><a href="reports/changelog.md">Changelog</a><a href="reports/library-summary.md">Summary</a></nav>
   <main class="main">
     <section class="hero">
       <div><h1>Ride Price Mobile UI Flow Library</h1>
         <p>Every mobile flow of the working Ride Price portal, captured as a user sees it at 390 × 844, organised as sequential journeys. Read left to right: each arrow names the action that caused the next screen; branches list where else a screen can go; flagged screens carry their UX findings.</p>
         <p>The screenshots are untouched captures of the real application. Nothing here was redesigned — problems are documented, not fixed.</p></div>
-      <div class="stats"><div class="stat"><b>20</b><span>flows</span></div><div class="stat"><b>110</b><span>screens</span></div><div class="stat"><b>63</b><span>branches</span></div>
+      <div class="stats"><div class="stat"><b>20</b><span>flows</span></div><div class="stat"><b>111</b><span>screens</span></div><div class="stat"><b>63</b><span>branches</span></div>
         <div class="stat"><b>0</b><span><span class="sev sev--Critical">Critical</span></span></div><div class="stat"><b>2</b><span><span class="sev sev--Major">Major</span></span></div><div class="stat"><b>13 / 6</b><span><span class="sev sev--Minor">Minor</span> <span class="sev sev--Observation">Observation</span></span></div></div>
     </section>
-    <div class="map"><h2>How the product connects</h2><ol><li><a href="#home">Home — Deals Queue &amp; Navigation</a> <small>— 6 screens; entry point</small></li><li><a href="#onboarding">Customer Onboarding — Find a Customer</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 Active Deals (landing)</small></li><li><a href="#license-scan">Scan Driver&#39;s License</a> <small>— 8 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#training">Training Licenses &amp; Registrations</a> <small>— 2 screens; from Home — Deals Queue &amp; Navigation · 02 Navigation drawer</small></li><li><a href="#discovery">Discovery Session</a> <small>— 3 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#vehicles">Vehicle Selection</a> <small>— 7 screens; from Discovery Session · 03 Discovery — last question</small></li><li><a href="#test-drive">Test Drive Agreement</a> <small>— 7 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership</a> <small>— 4 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#desking">Desking — Calculate Payments</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 Active Deals (landing)</small></li><li><a href="#agreement">Base Payment Agreement</a> <small>— 3 screens; from Desking — Calculate Payments · 02 Calculate Payments — Finance</small></li><li><a href="#credit">Credit Application (Lending Lane)</a> <small>— 4 screens; from Base Payment Agreement · 02 Agreement — signed</small></li><li><a href="#buyers">Buyers on the Deal (Co-Buyer)</a> <small>— 4 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#presentation">F&amp;I Product Presentation</a> <small>— 4 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented</small></li><li><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts</a> <small>— 16 screens; from Credit Application (Lending Lane) · 04 Approved (simulated)</small></li><li><a href="#deal-jacket">Deal Jacket &amp; Compliance</a> <small>— 11 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#document-request">Send Text Request (advisor → client)</a> <small>— 3 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#client-upload">Client Document Upload (customer&#39;s phone)</a> <small>— 10 screens; from Send Text Request (advisor → client) · 01 Send Text Request — composer</small></li><li><a href="#snap-all">Snap All — burst capture</a> <small>— 4 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#doc-review">Document Review (advisor)</a> <small>— 1 screens; from Deal Jacket &amp; Compliance · 03 Deal forms &amp; jacket — opened</small></li><li><a href="#print-center">Print Center &amp; Printables</a> <small>— 3 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 15 Step 5 — Financial Contracts</small></li></ol></div>
+    <div class="map"><h2>How the product connects</h2><ol><li><a href="#home">Home — Deals Queue &amp; Navigation</a> <small>— 7 screens; entry point</small></li><li><a href="#onboarding">Customer Onboarding — Find a Customer</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</small></li><li><a href="#license-scan">Scan Driver&#39;s License</a> <small>— 8 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#training">Training Licenses &amp; Registrations</a> <small>— 2 screens; from Home — Deals Queue &amp; Navigation · 02 Navigation drawer</small></li><li><a href="#discovery">Discovery Session</a> <small>— 3 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#vehicles">Vehicle Selection</a> <small>— 7 screens; from Discovery Session · 03 Discovery — last question</small></li><li><a href="#test-drive">Test Drive Agreement</a> <small>— 7 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership</a> <small>— 4 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#desking">Desking — Calculate Payments</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</small></li><li><a href="#agreement">Base Payment Agreement</a> <small>— 3 screens; from Desking — Calculate Payments · 02 Calculate Payments — Finance</small></li><li><a href="#credit">Credit Application (Lending Lane)</a> <small>— 4 screens; from Base Payment Agreement · 02 Agreement — signed</small></li><li><a href="#buyers">Buyers on the Deal (Co-Buyer)</a> <small>— 4 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#presentation">F&amp;I Product Presentation</a> <small>— 4 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented</small></li><li><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts</a> <small>— 16 screens; from Credit Application (Lending Lane) · 04 Approved (simulated)</small></li><li><a href="#deal-jacket">Deal Jacket &amp; Compliance</a> <small>— 11 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#document-request">Send Text Request (advisor → client)</a> <small>— 3 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#client-upload">Client Document Upload (customer&#39;s phone)</a> <small>— 10 screens; from Send Text Request (advisor → client) · 01 Send Text Request — composer</small></li><li><a href="#snap-all">Snap All — burst capture</a> <small>— 4 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#doc-review">Document Review (advisor)</a> <small>— 1 screens; from Deal Jacket &amp; Compliance · 03 Deal forms &amp; jacket — opened</small></li><li><a href="#print-center">Print Center &amp; Printables</a> <small>— 3 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 15 Step 5 — Financial Contracts</small></li></ol></div>
     
 <section class="flow" id="home" data-flow>
-  <header><h2>Home — Deals Queue &amp; Navigation<small>6 screens</small></h2>
+  <header><h2>Home — Deals Queue &amp; Navigation<small>7 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">The portal opens on the active floor queue. There is no login: a role switch in the app bar (Advisor / Team Lead) stands in for authentication, and the drawer holds global navigation and the demo reset.</p>
+  <p class="desc">The portal opens on the queue, which is role-aware (2026-08-23): the Advisor gets a guided list (no filter pills, a Next line per deal), the Team Lead the original two-lane floor view (pills + archive). Both roles see the four identifiers on every row — name, VIN, stock, stage — with a chevron as the tap cue. There is no login: the app-bar role switch stands in for authentication, and the drawer holds global navigation and the demo reset.</p>
   
-  <div class="strip"><article class="scr" id="home-deals-queue" data-search="home — deals queue &amp; navigation active deals (landing) title carries the live count; pills split the pipeline into desking and f&amp;i / docs; the seed deal&#39;s status line is derived from its real state. no authentication exists: the portal opens straight on the floor queue, with the advisor / team lead switch standing in for identity.">
+  <div class="strip"><article class="scr" id="home-deals-queue" data-search="home — deals queue &amp; navigation my deals (landing — advisor) the advisor&#39;s guided view: no filter pills (the dashboard is the team lead&#39;s tool), the mono vin + stk line under the name, the vehicle, and a &#39;next: …&#39; line in the stage colour from real deal state. a discovery deal would show no vehicle line at all until one is selected. no authentication exists: the portal opens straight on the floor queue, with the advisor / team lead switch standing in for identity.">
     <div class="frame">
       <span class="n">01</span>
       <span class="flags"><span class="sev sev--Observation">Observation</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Active Deals (landing)" data-cap="Home — Deals Queue &amp; Navigation · 01 Active Deals (landing) · #/deals"><img loading="lazy" src="current/01-home-and-navigation/01-deals-queue.png" alt="Active Deals (landing)"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: My Deals (landing — Advisor)" data-cap="Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor) · #/deals"><img loading="lazy" src="current/01-home-and-navigation/01-deals-queue.png" alt="My Deals (landing — Advisor)"></button>
     </div>
-    <h3>Active Deals (landing)</h3>
+    <h3>My Deals (landing — Advisor)</h3>
     <div class="hash">#/deals</div>
-    <p class="notes">Title carries the live count; pills split the pipeline into Desking and F&amp;I / Docs; the seed deal&#39;s status line is derived from its real state.</p>
+    <p class="notes">The Advisor&#39;s guided view: no filter pills (the dashboard is the Team Lead&#39;s tool), the mono VIN + STK line under the name, the vehicle, and a &#39;Next: …&#39; line in the stage colour from real deal state. A discovery deal would show no vehicle line at all until one is selected.</p>
     <ul class="branches"><li>Tap a deal card → <a href="#desking-huddle-gate">Desking — Calculate Payments · 01 Base Payment Huddle</a></li><li>Tap ＋ New Customer Visit → <a href="#onboarding-find-customer">Customer Onboarding — Find a Customer · 01 Find a Customer</a></li><li>Tap 📷 in the search bar → <a href="#license-scan-scan-front">Scan Driver&#39;s License · 01 Scan — front of licence</a></li></ul>
     <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-023</b><p>No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead switch standing in for identity.</p><p><em>By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.</em></p></div></details>
     
@@ -110,33 +110,33 @@ a{color:inherit}
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Cancel</div></div><article class="scr" id="home-pipeline-filter-empty" data-search="home — deals queue &amp; navigation pipeline filter — no match the f&amp;i / docs pill on the seed floor is empty — the list says so instead of going blank. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Cancel, tap Advisor | Team Lead</div></div><article class="scr" id="home-role-switch-team-lead" data-search="home — deals queue &amp; navigation role switched to team lead the team lead keeps the original floor view (owner decision 2026-08-23): active deals title, all / desking / f&amp;i-docs pills with live counts, classic cards — now with the vin line and chevron. toast confirms the acting role. ">
     <div class="frame">
       <span class="n">04</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Pipeline filter — no match" data-cap="Home — Deals Queue &amp; Navigation · 04 Pipeline filter — no match · #/deals"><img loading="lazy" src="current/01-home-and-navigation/04-pipeline-filter-empty.png" alt="Pipeline filter — no match"></button>
-    </div>
-    <h3>Pipeline filter — no match</h3>
-    <div class="hash">#/deals</div>
-    <p class="notes">The F&amp;I / Docs pill on the seed floor is empty — the list says so instead of going blank.</p>
-    
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Advisor | Team Lead</div></div><article class="scr" id="home-role-switch-team-lead" data-search="home — deals queue &amp; navigation role switched to team lead toast confirms the acting role; team lead sees the whole floor and unlocks sign-off / dms push later. ">
-    <div class="frame">
-      <span class="n">05</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Role switched to Team Lead" data-cap="Home — Deals Queue &amp; Navigation · 05 Role switched to Team Lead · #/deals"><img loading="lazy" src="current/01-home-and-navigation/05-role-switch-team-lead.png" alt="Role switched to Team Lead"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Role switched to Team Lead" data-cap="Home — Deals Queue &amp; Navigation · 04 Role switched to Team Lead · #/deals"><img loading="lazy" src="current/01-home-and-navigation/04-role-switch-team-lead.png" alt="Role switched to Team Lead"></button>
     </div>
     <h3>Role switched to Team Lead</h3>
     <div class="hash">#/deals</div>
-    <p class="notes">Toast confirms the acting role; Team Lead sees the whole floor and unlocks sign-off / DMS push later.</p>
+    <p class="notes">The Team Lead keeps the original floor view (owner decision 2026-08-23): Active Deals title, All / Desking / F&amp;I-Docs pills with live counts, classic cards — now with the VIN line and chevron. Toast confirms the acting role.</p>
     
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">A deal is finalized</div></div><article class="scr" id="home-funded-archive" data-search="home — deals queue &amp; navigation funded contracts auto-archived a completed deal leaves the active list into a folded archive (shown opened here). the &#39;archived — funded contracts&#39; disclosure is a 20px-tall text row — the only way to reach finished deals, under the touch floor.">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap the F&amp;I / Docs pill</div></div><article class="scr" id="home-pipeline-filter-empty" data-search="home — deals queue &amp; navigation pipeline filter — no match the f&amp;i / docs pill on the seed floor is empty — the list says so instead of going blank. (team lead only; the advisor view has no pills.) ">
+    <div class="frame">
+      <span class="n">05</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Pipeline filter — no match" data-cap="Home — Deals Queue &amp; Navigation · 05 Pipeline filter — no match · #/deals"><img loading="lazy" src="current/01-home-and-navigation/05-pipeline-filter-empty.png" alt="Pipeline filter — no match"></button>
+    </div>
+    <h3>Pipeline filter — no match</h3>
+    <div class="hash">#/deals</div>
+    <p class="notes">The F&amp;I / Docs pill on the seed floor is empty — the list says so instead of going blank. (Team Lead only; the Advisor view has no pills.)</p>
+    
+    
+    
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">A deal is finalized</div></div><article class="scr" id="home-funded-archive" data-search="home — deals queue &amp; navigation funded contracts auto-archived for the team lead a completed deal leaves the active list into the folded archive (shown opened here). the &#39;archived — funded contracts&#39; disclosure is a 20px-tall text row — the only way to reach finished deals, under the touch floor.">
     <div class="frame">
       <span class="n">06</span>
       <span class="flags"><span class="sev sev--Minor">Minor</span></span>
@@ -144,19 +144,32 @@ a{color:inherit}
     </div>
     <h3>Funded contracts auto-archived</h3>
     <div class="hash">#/deals</div>
-    <p class="notes">A completed deal leaves the active list into a folded archive (shown opened here).</p>
+    <p class="notes">For the Team Lead a completed deal leaves the active list into the folded archive (shown opened here).</p>
     
-    <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-017</b><p>The &#39;Archived — funded contracts&#39; disclosure is a 20px-tall text row — the only way to reach finished deals, under the touch floor.</p><p><em>The per-card chevron and × delete seen in v001 were removed in PR #39 (v002 shows the clean cards); the archive disclosure row itself is unchanged.</em></p></div></details>
+    <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-017</b><p>The &#39;Archived — funded contracts&#39; disclosure is a 20px-tall text row — the only way to reach finished deals, under the touch floor.</p><p><em>Still true after the 2026-08-23 role-aware queue: the Team Lead deliberately keeps the original view including this fold (owner decision), so the disclosure row remains the only way a manager reaches finished deals; the minimum fix is restyling the row to the 44px floor. The Advisor no longer has the fold at all — their funded deals sit at the end of the one list under a DONE chip.</em></p></div></details>
     <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (1):  Archived — funded contracts  362x20</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap an archived deal<br><a href="#finance-menu-deal-finalized" style="font-weight:600">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 16 Deal finalized</a></div></div></div>
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Advisor | Team Lead</div></div><article class="scr" id="home-advisor-funded-tail" data-search="home — deals queue &amp; navigation advisor — funded deal ends the list the advisor has no archive fold: their funded deals sit at the end of the one list under the done chip, with no next line — search still finds them. ">
+    <div class="frame">
+      <span class="n">07</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Advisor — funded deal ends the list" data-cap="Home — Deals Queue &amp; Navigation · 07 Advisor — funded deal ends the list · #/deals"><img loading="lazy" src="current/01-home-and-navigation/07-advisor-funded-tail.png" alt="Advisor — funded deal ends the list"></button>
+    </div>
+    <h3>Advisor — funded deal ends the list</h3>
+    <div class="hash">#/deals</div>
+    <p class="notes">The Advisor has no archive fold: their funded deals sit at the end of the one list under the DONE chip, with no Next line — search still finds them.</p>
+    
+    
+    
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap the funded deal<br><a href="#finance-menu-deal-finalized" style="font-weight:600">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 16 Deal finalized</a></div></div></div>
 </section>
 <section class="flow" id="onboarding" data-flow>
   <header><h2>Customer Onboarding — Find a Customer<small>5 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">Search-first: the CRM is checked before anything is created. Branches into the licence scanner, an existing customer&#39;s visit, or a manual Create Customer.</p>
-  <p class="entry">↳ Reached from <a href="#home-deals-queue">Home — Deals Queue &amp; Navigation · 01 Active Deals (landing)</a> — <b>Tap ＋ New Customer Visit</b></p>
+  <p class="entry">↳ Reached from <a href="#home-deals-queue">Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</a> — <b>Tap ＋ New Customer Visit</b></p>
   <div class="strip"><article class="scr" id="onboarding-find-customer" data-search="customer onboarding — find a customer find a customer  ">
     <div class="frame tall">
       <span class="n">01</span>
@@ -382,10 +395,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">01</span>
       <span class="flags"><span class="sev sev--Minor">Minor</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — question 1" data-cap="Discovery Session · 01 Discovery — question 1 · #/discovery/d-9tmf3gc"><img loading="lazy" src="current/05-discovery/01-question-1.png" alt="Discovery — question 1"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — question 1" data-cap="Discovery Session · 01 Discovery — question 1 · #/discovery/d-4qm5e0q"><img loading="lazy" src="current/05-discovery/01-question-1.png" alt="Discovery — question 1"></button>
     </div>
     <h3>Discovery — question 1</h3>
-    <div class="hash">#/discovery/d-9tmf3gc</div>
+    <div class="hash">#/discovery/d-4qm5e0q</div>
     
     <ul class="branches"><li>Tap 👤 Buyer in the crumbs → <a href="#buyers-buyers-modal">Buyers on the Deal (Co-Buyer) · 01 Buyers on this deal</a></li><li>Tap 📁 Jacket in the crumbs → <a href="#deal-jacket-jacket-overview">Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</a></li></ul>
     <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-005</b><p>The deal crumb controls (Buyer, Jacket, and the screen&#39;s back/forward link) wrap into three rows on a phone, pushing the working area ~120px down. The same row appears on every deal screen (discovery, vehicles, test drive, trade, desking, agreement, credit, menu, print).</p><p><em>Consistent, but it costs a sixth of the phone screen before the content starts. A single compact row (icon buttons, or the back link folded into the title) would recover it.</em></p></div></details>
@@ -395,10 +408,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — mid-interview" data-cap="Discovery Session · 02 Discovery — mid-interview · #/discovery/d-9tmf3gc"><img loading="lazy" src="current/05-discovery/02-question-mid.png" alt="Discovery — mid-interview"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — mid-interview" data-cap="Discovery Session · 02 Discovery — mid-interview · #/discovery/d-4qm5e0q"><img loading="lazy" src="current/05-discovery/02-question-mid.png" alt="Discovery — mid-interview"></button>
     </div>
     <h3>Discovery — mid-interview</h3>
-    <div class="hash">#/discovery/d-9tmf3gc</div>
+    <div class="hash">#/discovery/d-4qm5e0q</div>
     
     
     
@@ -408,10 +421,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — last question" data-cap="Discovery Session · 03 Discovery — last question · #/discovery/d-9tmf3gc"><img loading="lazy" src="current/05-discovery/03-question-last.png" alt="Discovery — last question"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — last question" data-cap="Discovery Session · 03 Discovery — last question · #/discovery/d-4qm5e0q"><img loading="lazy" src="current/05-discovery/03-question-last.png" alt="Discovery — last question"></button>
     </div>
     <h3>Discovery — last question</h3>
-    <div class="hash">#/discovery/d-9tmf3gc</div>
+    <div class="hash">#/discovery/d-4qm5e0q</div>
     
     
     
@@ -429,10 +442,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">01</span>
       <span class="flags"><span class="sev sev--Observation">Observation</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle Search — inventory" data-cap="Vehicle Selection · 01 Vehicle Search — inventory · #/vehicles/d-bz9zk4g"><img loading="lazy" src="current/06-vehicle-selection/01-inventory.png" alt="Vehicle Search — inventory"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle Search — inventory" data-cap="Vehicle Selection · 01 Vehicle Search — inventory · #/vehicles/d-y0zel1h"><img loading="lazy" src="current/06-vehicle-selection/01-inventory.png" alt="Vehicle Search — inventory"></button>
     </div>
     <h3>Vehicle Search — inventory</h3>
-    <div class="hash">#/vehicles/d-bz9zk4g</div>
+    <div class="hash">#/vehicles/d-y0zel1h</div>
     
     
     <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-021</b><p>The inventory is one long page (the 12-vehicle demo already exceeds 3,200px on a phone) with the filter panel taking the whole first screen.</p><p><em>Fine at demo size; a collapsed filter bar on phones would bring the first vehicle above the fold.</em></p></div></details>
@@ -442,10 +455,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — filter applied" data-cap="Vehicle Selection · 02 Inventory — filter applied · #/vehicles/d-bz9zk4g"><img loading="lazy" src="current/06-vehicle-selection/02-inventory-filtered.png" alt="Inventory — filter applied"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — filter applied" data-cap="Vehicle Selection · 02 Inventory — filter applied · #/vehicles/d-y0zel1h"><img loading="lazy" src="current/06-vehicle-selection/02-inventory-filtered.png" alt="Inventory — filter applied"></button>
     </div>
     <h3>Inventory — filter applied</h3>
-    <div class="hash">#/vehicles/d-bz9zk4g</div>
+    <div class="hash">#/vehicles/d-y0zel1h</div>
     
     
     
@@ -455,10 +468,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — no vehicles match" data-cap="Vehicle Selection · 03 Inventory — no vehicles match · #/vehicles/d-bz9zk4g"><img loading="lazy" src="current/06-vehicle-selection/03-inventory-no-match.png" alt="Inventory — no vehicles match"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — no vehicles match" data-cap="Vehicle Selection · 03 Inventory — no vehicles match · #/vehicles/d-y0zel1h"><img loading="lazy" src="current/06-vehicle-selection/03-inventory-no-match.png" alt="Inventory — no vehicles match"></button>
     </div>
     <h3>Inventory — no vehicles match</h3>
-    <div class="hash">#/vehicles/d-bz9zk4g</div>
+    <div class="hash">#/vehicles/d-y0zel1h</div>
     
     
     
@@ -468,10 +481,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">04</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle details" data-cap="Vehicle Selection · 04 Vehicle details · #/vehicles/d-bz9zk4g"><img loading="lazy" src="current/06-vehicle-selection/04-vehicle-details.png" alt="Vehicle details"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle details" data-cap="Vehicle Selection · 04 Vehicle details · #/vehicles/d-y0zel1h"><img loading="lazy" src="current/06-vehicle-selection/04-vehicle-details.png" alt="Vehicle details"></button>
     </div>
     <h3>Vehicle details</h3>
-    <div class="hash">#/vehicles/d-bz9zk4g</div>
+    <div class="hash">#/vehicles/d-y0zel1h</div>
     
     
     
@@ -481,10 +494,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">05</span>
       <span class="flags"><span class="sev sev--Minor">Minor</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Your Journey menu" data-cap="Vehicle Selection · 05 Your Journey menu · #/vehicles/d-bz9zk4g"><img loading="lazy" src="current/06-vehicle-selection/05-your-journey-menu.png" alt="Your Journey menu"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Your Journey menu" data-cap="Vehicle Selection · 05 Your Journey menu · #/vehicles/d-y0zel1h"><img loading="lazy" src="current/06-vehicle-selection/05-your-journey-menu.png" alt="Your Journey menu"></button>
     </div>
     <h3>Your Journey menu</h3>
-    <div class="hash">#/vehicles/d-bz9zk4g</div>
+    <div class="hash">#/vehicles/d-y0zel1h</div>
     
     <ul class="branches"><li>Trade Appraisal → <a href="#trade-trade-evaluation">Trade-In Evaluation &amp; Proof of Ownership · 01 Trade-In Evaluation</a></li><li>Calculate Payment → <a href="#desking-huddle-gate">Desking — Calculate Payments · 01 Base Payment Huddle</a></li><li>Quote → <a href="#vehicles-quote-blocked">Vehicle Selection · 06 Quote — follow-up only</a></li></ul>
     <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-013</b><p>The Your Journey popover opens over the vehicle card&#39;s own title, stock and price, hiding what the advisor is choosing for.</p><p><em>Five plain-text items; opening below the button (or as a bottom sheet on phones) would keep the vehicle visible.</em></p></div></details>
@@ -494,10 +507,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">06</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Quote — follow-up only" data-cap="Vehicle Selection · 06 Quote — follow-up only · #/vehicles/d-bz9zk4g"><img loading="lazy" src="current/06-vehicle-selection/06-quote-blocked.png" alt="Quote — follow-up only"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Quote — follow-up only" data-cap="Vehicle Selection · 06 Quote — follow-up only · #/vehicles/d-y0zel1h"><img loading="lazy" src="current/06-vehicle-selection/06-quote-blocked.png" alt="Quote — follow-up only"></button>
     </div>
     <h3>Quote — follow-up only</h3>
-    <div class="hash">#/vehicles/d-bz9zk4g</div>
+    <div class="hash">#/vehicles/d-y0zel1h</div>
     <p class="notes">Quick Quote is refused during the visit (toast); Save Quote records the structure for follow-up.</p>
     
     
@@ -548,7 +561,7 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     
     <ul class="branches"><li>Sign &amp; Accept Terms — Driver One → <a href="#test-drive-terms-signed">Test Drive Agreement · 04 Terms signed — Driver One</a></li></ul>
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (4):  I have personally inspected  &lt;&gt; #printTd.btn.btn--ghost 🖨 Print for extended drive;  I have personally inspected  &lt;&gt; #tdNext.btn.btn--grad Next →;  If I am in breach of this Ag &lt;&gt; .note Verify client information ag;  Additional authorized driver &lt;&gt; .note Verify client information ag</div></details>
+    
     
   </article><div class="arrow"><div class="line"></div><div class="act">Tap 🪪 Scan license</div></div><article class="scr" id="test-drive-scan-license-modal" data-search="test drive agreement scan licence (test-drive mode) same scanner; in this mode only the licence number, state, expiry and dob are taken. ">
     <div class="frame">
@@ -574,7 +587,7 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (4):  I have personally inspected  &lt;&gt; #printTd.btn.btn--ghost 🖨 Print for extended drive;  I have personally inspected  &lt;&gt; #tdNext.btn.btn--grad Next →;  If I am in breach of this Ag &lt;&gt; .note Verify client information ag;  Additional authorized driver &lt;&gt; .note Verify client information ag</div></details>
+    
     
   </article><div class="arrow"><div class="line"></div><div class="act">Tap Next →</div></div><article class="scr" id="test-drive-in-progress" data-search="test drive agreement test drive in progress  ">
     <div class="frame">
@@ -682,7 +695,7 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The Team Lead huddle gates the first pencil; then the desking screen with deal type, accessories, trade and rebate, credit tier slider, live word track and payment comparison.</p>
-  <p class="entry">↳ Reached from <a href="#home-deals-queue">Home — Deals Queue &amp; Navigation · 01 Active Deals (landing)</a> — <b>Tap the deal card (Continue)</b></p>
+  <p class="entry">↳ Reached from <a href="#home-deals-queue">Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</a> — <b>Tap the deal card (Continue)</b></p>
   <div class="strip"><article class="scr" id="desking-huddle-gate" data-search="desking — calculate payments base payment huddle  ">
     <div class="frame tall">
       <span class="n">01</span>
@@ -961,7 +974,7 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
     
     <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-019</b><p>Tapping 💬 Advisor Script (and M/D Budget) opens content below the fold of the fixed Prev/Next bar; at the top of the page nothing visibly changes.</p><p><em>The library had to scroll to show the change; a user may think the tap did nothing.</em></p></div></details>
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt;  Benefits:; #hamburgerBtn.hamburger ☰ &lt;&gt;  10 years / 120,000 miles of ; .rideprice Ride &lt;&gt;  Benefits:; .rideprice Ride &lt;&gt;  10 years / 120,000 miles of ; .chip DEMO &lt;&gt;  Benefits:; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Benefits:; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  10 years / 120,000 miles of ; .seg__opt.on Advisor &lt;&gt;  Benefits:
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt;  Your manufacturer&#39;s comprehe; .rideprice Ride &lt;&gt;  Your manufacturer&#39;s comprehe; .price PRICE &lt;&gt;  Your manufacturer&#39;s comprehe; .chip DEMO &lt;&gt;  Your manufacturer&#39;s comprehe; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Your manufacturer&#39;s comprehe; .seg__opt.on Advisor &lt;&gt;  Your manufacturer&#39;s comprehe; .seg__opt Team Lead &lt;&gt;  Your manufacturer&#39;s comprehe; #prevTile.btn.btn--ghost ← Prev &lt;&gt; .note.note--wt The 300% rulePresent every p
 small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Tap M/D Budget</div></div><article class="scr" id="presentation-budget-impact" data-search="f&amp;i product presentation monthly/daily budget impact  ">
