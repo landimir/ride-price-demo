@@ -17,7 +17,7 @@ Updated 2026-08-23. One entry per reference family used by the improvement revie
 
 **Should influence:** Home — Deals Queue; any future list screen (vehicles, customers).
 
-Used by: RP-IMP-001, RP-IMP-002, RP-IMP-003
+Used by: RP-IMP-001, RP-IMP-002, RP-IMP-003, RP-IMP-007
 
 ## M5 · Status rows and 'what happens next' lines
 
@@ -34,7 +34,7 @@ Used by: RP-IMP-001, RP-IMP-002, RP-IMP-003
 
 **Should influence:** Home deal card; Deal Jacket rows; Client Document Upload rows.
 
-Used by: RP-IMP-003
+Used by: RP-IMP-003, RP-IMP-007
 
 ## M17 · Navigation drawer and identity header
 

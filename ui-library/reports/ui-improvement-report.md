@@ -8,15 +8,15 @@ This report takes each product area of the Ride Price mobile experience, starts 
 
 | | Count |
 |---|---|
-| Recommendations | 6 |
+| Recommendations | 7 |
 | Existing Comment Expanded | 2 |
 | Newly Detected UI Issue | 3 |
-| Pattern Opportunity | 1 |
-| High priority | 2 |
+| Pattern Opportunity | 2 |
+| High priority | 3 |
 | Medium priority | 1 |
 | Low priority | 3 |
 | Severity Critical | 0 |
-| Severity Major | 1 |
+| Severity Major | 2 |
 | Severity Minor | 3 |
 | Severity Observation | 2 |
 
@@ -24,11 +24,34 @@ Finding types: **Existing Comment Expanded** — the library already flagged it 
 
 ## Home — Deals Queue & Navigation
 
-6 screens · reviewed 2026-08-23 · 6 recommendations
+6 screens · reviewed 2026-08-23 · 7 recommendations
 
 **Screens:** 01 Active Deals (landing) · 02 Navigation drawer · 03 Reset demo data — confirm · 04 Pipeline filter — no match · 05 Role switched to Team Lead · 06 Funded contracts auto-archived
 
 **Documented issues before this review:** RP-UI-023 (Observation) on 01 Active Deals (landing); RP-UI-017 (Minor) on 06 Funded contracts auto-archived
+
+### Owner direction — Role-aware queue (owner concept, 2026-08-23)
+
+The owner answered the Home module with a concept of his own: the Team Lead and the advisor do not use the queue the same way, so the amount of guidance and the density change by role while the core deal information stays identical. Both roles see the same four identifiers in the same positions; the manager gets compact rows to sweep 40–50 deals fast, the advisor gets the same rows plus a next-step line because they hold fewer deals and need to know what to do next.
+
+**Principles:**
+1. Information priority, a hard rule: 1 customer full name · 2 full VIN · 3 stock number · 4 deal stage. Always visible on every deal row, never hidden or demoted by a later redesign; the vehicle description sits under them.
+2. Team Lead view = high-density queue: compact rows, stage badge aligned right, the whole row is the tap (navigation), no repeated buttons, no progress bars, no tall cards. Goal: scan the whole floor.
+3. Advisor view = guided queue: same rows and positions, plus one 'Next: …' line per deal naming the workflow action (Calculate payments, Upload insurance binder, Complete credit application, Review F&I products). Goal: know what to do next.
+4. Navigation and action are different things: tapping a row opens the deal; the Next line is the work. Nothing on the queue should look like a primary button that is only navigation.
+5. Filters are an operational dashboard: Active Deals (n), then All / Desking / F&I / Docs / Done with counts — the count pattern borrowed from the references, the look staying Ride Price.
+6. One design language for both roles; only density and guidance change. Ride Price identity preserved: navy, the gradient for meaningful emphasis, rounded containers, stage colours.
+
+**Open choices before building:**
+- Light, not dark: the concept is drawn as a dark interface; the real phone surface is light (#f2f2f8) with white cards, and the app's rule is that a concept shows where things go, not what the colours are. Adopted as layout and hierarchy on the existing light surface unless the owner decides otherwise.
+- + New Customer Visit is missing from the concept — it is the queue's one forward action and the way a visit starts. It must keep a home (bottom bar, or under the pills — RP-IMP-001).
+- The concept's bottom tab bar (Deals · Search · Customers · Menu) is app-wide chrome, not a queue change — the app uses the hamburger drawer everywhere. Adopting tabs is a separate decision that touches every screen (the same call the owner made on the jacket mockups' chrome).
+- Row chevrons: the owner removed per-card chevrons from this screen on 2026-08-21 ("stray characters"); the concept brings them back as the 'row is tappable' cue. One or the other.
+- The DEMO chip and the Advisor / Team Lead switch are standing rules (visible demo marker; the switch stands in for identity). The concept's DEALS chip and AB avatar would replace them; the avatar could open the role switch, the DEMO chip stays.
+- Stage vocabulary: the app has three buckets (Desking, F&I / Docs, Funded) and chips DESKING / F&I READY / FUNDED; the concept has five (Desking, Credit, F&I, Docs, Done). Five maps cleanly onto the deal stages (credit · menu · forms/jacket · complete) and is the better dashboard — adopting it means the chips and pills change together.
+- Already true in the data: deals carry an advisor, and the list is already 'mine' for an advisor and 'all' for a Team Lead — so 'My Deals (n)' vs 'Active Deals (n)' costs only the title. VINs are on the catalog for every vehicle.
+
+Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the owner concept confirms it); RP-IMP-003 (the advisor row carries an explicit Next line — confirmed; the concept drops it from the Team Lead view on purpose); RP-IMP-001 (the concept moves navigation to a bottom bar — the thumb-zone point, answered differently; see the open choices)
 
 **What already works:** The landing screen is genuinely calm: one title carrying the live count, one gradient action, one search field, three pills with counts and a clean whole-card deal tile with its status chip pinned to the corner — nothing competes, which is exactly what the best work-queue screens do. The role switch is a visible segmented control and its toast names the acting person, so the no-login decision reads as deliberate rather than missing. The drawer orients a first-time user well (dealership, advisor name and role, WORKFLOW vs RESOURCES) and keeps the destructive reset at the very bottom behind a branded confirm whose red button is the only danger-styled control in the flow. Empty states speak instead of going blank.
 
@@ -71,7 +94,7 @@ Finding types: **Existing Comment Expanded** — the library already flagged it 
 - [monday.com](https://mobbin.com/screens/9407b31a-f185-4f13-bf49-15daa73b3b21) — 'Hide done items' as a visible, tappable chip at the top of the queue
 - [Microsoft Outlook](https://mobbin.com/screens/5516b226-0b53-45f0-abf7-a4c9e69fbf86) — Archive as a full-height drawer row with a count badge, same size as Inbox
 
-**D. Ride Price adaptation.** Preferred: add 'Funded (n)' as a fourth pill in the existing pill row — same 44px pill component, navy when active, green dot like the FUNDED chip — so finished deals are one tap away and the pills stay the only filter mechanism. Minimum: restyle the disclosure as a full-width 48px row in ink (navy 700) with the count in a navy pill on the right and a chevron that rotates on open, separated from the empty-state sentence by a hairline. **Stays:** The card itself (FUNDED chip, whole-card tap), the empty-state sentence, the no-per-card-delete rule.
+**D. Ride Price adaptation.** Preferred: add 'Funded (n)' as a fourth pill in the existing pill row — same 44px pill component, navy when active, green dot like the FUNDED chip — so finished deals are one tap away and the pills stay the only filter mechanism. Minimum: restyle the disclosure as a full-width 48px row in ink (navy 700) with the count in a navy pill on the right and a chevron that rotates on open, separated from the empty-state sentence by a hairline. Owner concept 2026-08-23: Done becomes a pill with its count in the same row — the preferred option above, confirmed. **Stays:** The card itself (FUNDED chip, whole-card tap), the empty-state sentence, the no-per-card-delete rule.
 
 *Implementation note:* .dl-archive summary in assets/portal.css and the <details class="dl-archive"> block in route('deals'); the pill row is .dl-pills / dealsUI.pipe.
 
@@ -90,7 +113,7 @@ Finding types: **Existing Comment Expanded** — the library already flagged it 
 - [Grab Driver](https://mobbin.com/screens/094b300e-f89e-480f-a72a-762788d331f9) — The active step carries a one-line 'what happens next' under it
 - [Under Armour](https://mobbin.com/screens/21d5125b-35f1-4b55-a69f-fe55b6e9fe11) — A scan icon inside a product search field scans a product barcode — the icon matches what the field searches
 
-**D. Ride Price adaptation.** Keep the search field and the whole-card tap. Prefix the card's third line with 'Next ·' in the chip's stage colour (orange for Desking, blue for F&I, green for Funded) — a status cue, so no glyph is needed. For the camera: either drop the in-field button (the gradient New Customer Visit and Find a Customer's Scan license already own that entry) or move it out of the field as a small navy-outlined 'Scan license' chip to the right of the search — one of the two, not both. **Stays:** Card structure (name, vehicle · stock, status line, chip); the search field; the scanner itself.
+**D. Ride Price adaptation.** Keep the search field and the whole-card tap. Prefix the card's third line with 'Next ·' in the chip's stage colour (orange for Desking, blue for F&I, green for Funded) — a status cue, so no glyph is needed. For the camera: either drop the in-field button (the gradient New Customer Visit and Find a Customer's Scan license already own that entry) or move it out of the field as a small navy-outlined 'Scan license' chip to the right of the search — one of the two, not both. Owner concept 2026-08-23: the advisor view carries 'Next: Calculate payments →' as a line of its own under the identifiers; the Team Lead view omits it for density. **Stays:** Card structure (name, vehicle · stock, status line, chip); the search field; the scanner itself.
 
 *Implementation note:* #dealScanBtn (.dl-search__cam) and .dl-card__next in route('deals'); dealNextAction() supplies the line.
 
@@ -146,6 +169,25 @@ Finding types: **Existing Comment Expanded** — the library already flagged it 
 **D. Ride Price adaptation.** Keep the segmented Advisor / Team Lead switch exactly as it is. Make sure the drawer header follows the switch (name and role of the acting person), and on wider phones consider a one-line name under the app-bar switch ('Jordan Reyes'). No login, no avatar, nothing heavier. **Stays:** No authentication; the app-bar segmented switch; the toast.
 
 *Implementation note:* roleName() and the app-bar switch / drawer header in renderChrome(), app.js.
+
+### RP-IMP-007 — Role-aware queue: same four identifiers for everyone, dense rows for the Team Lead, a Next line for the advisor
+
+- **Screen:** 01 Active Deals (landing) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Deals Queue & Navigation · 05 Role switched to Team Lead; Home — Deals Queue & Navigation · 06 Funded contracts auto-archived
+- **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Major · **Priority:** High · **Fix size:** medium
+
+**A. Current Ride Price screen.** The queue shows the same card to both roles: name, vehicle · stock, a status line and a chip. It carries no VIN (the identifier a manager and a lender both use), the three buckets lump Credit, F&I and Docs into one pill, and a Team Lead with a full floor would scroll ~110px cards one at a time. The role switch changes who is acting but not what the screen is for.
+
+**B. Why it is a problem.** A Team Lead sweeps 40–50 deals many times a day and needs to see where the floor stands without opening anything; an advisor holds a handful and needs to know what to do next on each. One layout serves neither well: too tall for the manager, too quiet for the advisor.
+
+**C. Mobbin reference direction — dense operational list with right-aligned status and count filters (manager); the same list with a per-row next-step line (individual contributor).** Queue and inbox screens on Mobbin that serve volume use compact rows with a right-aligned status and tabs that carry counts (ClickUp, monday.com); screens that serve one person's work add a one-line 'what next' under the active item (Careem, Grab Driver). The lesson is not either layout — it is that density and guidance are the variables, and the core identifiers are not.
+- [ClickUp](https://mobbin.com/screens/3e06d063-e0a2-497e-8880-167964137670) — Tabs with counts, compact rows, one status sentence per row
+- [monday.com](https://mobbin.com/screens/9407b31a-f185-4f13-bf49-15daa73b3b21) — Bucket counts above a single dense list
+- [Careem](https://mobbin.com/screens/160656d3-ef01-4163-87bc-ca4c2abd7551) — 'Next step: …' stated in plain words above the list
+- [Grab Driver](https://mobbin.com/screens/094b300e-f89e-480f-a72a-762788d331f9) — One 'what happens next' line under the active step
+
+**D. Ride Price adaptation.** Adopt the owner's role-aware hybrid on the existing light surface: every row shows name (700), then VIN and stock on one mono line, then the vehicle, with the stage badge pinned right in the existing badge colours; the whole row is the tap. Team Lead (all deals): rows only, ~80px, five pills with counts (All · Desking · Credit · F&I · Docs · Done). Advisor (my deals): the same rows plus a 'Next: …' line in the stage colour from dealNextAction(). Keep + New Customer Visit as the one gradient action (RP-IMP-001 decides where), the DEMO chip and the role switch in the app bar, the drawer as navigation until a bottom tab bar is decided app-wide, and the no-chevron rule unless the owner reverses it. **Stays:** Light surface and white cards; navy / chrome blue; gradient only on + New Customer Visit; DEMO chip; the Advisor / Team Lead switch; the search field; the drawer.
+
+*Implementation note:* route('deals') card template and paint() (the 'mine' filter at app.js ~526 already splits the roles); .dl-card / .dl-pills in portal.css; dealNextAction() for the advisor line; the five-way bucket needs a stage→bucket map beside dealBucket().
 
 ## Not yet reviewed — next in line
 
