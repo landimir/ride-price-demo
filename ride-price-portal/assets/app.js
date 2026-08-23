@@ -602,13 +602,15 @@ route("deals", () => {
     const name = c ? c.first + " " + c.last : "—";
     /* the four identifiers hold for the Team Lead too (owner hard rule,
        2026-08-23): name, VIN, stock, stage — same mono line as the advisor's,
-       the rest of the classic card unchanged */
+       the rest of the classic card unchanged. During discovery the line is
+       simply absent (owner, 2026-08-23): a blank while rapport is being
+       built, auto-populated the moment a vehicle lands on the deal. */
     const ids = vin || stock
-      ? `<span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span><span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span>`
-      : "<span>No vehicle selected yet</span>";
+      ? `<span class="dl-card__ids"><span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span><span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span></span>`
+      : "";
     return `<a class="dl-card dl-card--classic" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
       <b class="dl-card__name">${esc(name)}</b>
-      <span class="dl-card__ids">${ids}</span>
+      ${ids}
       ${v ? `<span class="dl-card__veh">${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}
       <span class="dl-card__status">${esc(dealNextAction(d))}</span>
       ${chip}
@@ -626,15 +628,17 @@ route("deals", () => {
     const name = c ? c.first + " " + c.last : "—";
     /* universal VIN visibility (owner, 2026-08-23): once a vehicle is on the
        deal, the VIN renders whether or not the unit is stocked in — a known
-       value in bold, a missing one as an honest Pending, never invented */
+       value in bold, a missing one as an honest Pending, never invented.
+       During discovery the line is simply absent (owner, 2026-08-23): blank
+       while rapport is built, auto-populated on vehicle selection. */
     const { v, vin, stock } = vehicleIds(d);
     const ids = vin || stock
-      ? `<span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span><span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span>`
-      : "<span>No vehicle selected yet</span>";
+      ? `<span class="dl-card__ids"><span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span><span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span></span>`
+      : "";
     return `<a class="dl-card" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
       <b class="dl-card__name">${esc(name)}</b>
       <span class="dl-chip ${esc(b.badge)}">${esc(b.chip)}</span>
-      <span class="dl-card__ids">${ids}</span>
+      ${ids}
       ${v ? `<span class="dl-card__veh">${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}
       ${b.id === "done" ? "" : `<span class="dl-card__next dl-card__next--${esc(b.id)}">Next: ${esc(dealNextAction(d))} →</span>`}
       <span class="dl-card__chev" aria-hidden="true">›</span>
