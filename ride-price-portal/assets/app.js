@@ -85,6 +85,18 @@ const Store = (function () {
         demo.trade.desc === "2018 Hyundai Tucson" && demo.trade.miles === 61200) {
       demo.trade.vin = "KM8TRAININGSAMP06"; minted = true;
     }
+    /* deals gained a vehicle-identity snapshot (vin + stock) on 2026-08-23 so
+       the advisor queue shows the VIN even when the unit is not stocked in or
+       the catalog entry later changes (owner requirement: universal VIN
+       visibility once a vehicle reaches desking). Saved deals whose stock
+       still resolves are stamped once; a deal whose stock no longer resolves
+       keeps what it has — the app never invents a value. */
+    state.deals.forEach(d => {
+      if (!d.vehicle && d.stock) {
+        const v = RIDE_PRICE_DATA.inventory.find(x => x.stock === d.stock);
+        if (v) { d.vehicle = { vin: v.vin, stock: v.stock }; minted = true; }
+      }
+    });
     if (minted) save();
     return state;
   }
@@ -560,11 +572,28 @@ route("deals", () => {
     `<a class="btn btn--grad" href="#/customers">＋ New Customer Visit</a>`);
   document.body.dataset.screen = "deals";
 
+  /* one resolver for the vehicle identity a row may show: the deal's own
+     snapshot first (survives unstocked units and catalog changes), the
+     catalog as fallback for blobs saved before the snapshot existed */
+  function vehicleIds(d) {
+    const v = Store.vehicle(d.stock);
+    /* the snapshot speaks only while it agrees with the deal's current stock
+       (or the deal has none — the unstocked case). A swapped vehicle whose
+       snapshot went stale re-resolves fresh from the catalog instead of
+       showing the old unit's VIN. */
+    const snap = d.vehicle && (!d.stock || !d.vehicle.stock || d.vehicle.stock === d.stock) ? d.vehicle : null;
+    return {
+      v,
+      vin: (v && v.vin) || (snap && snap.vin) || null,
+      stock: d.stock || (snap && snap.stock) || null
+    };
+  }
+
   /* Team Lead card — unchanged classic: the whole card is the click target,
      no chevron, no per-card controls (owner refinement, 2026-08-20; kept on
      the owner's instruction 2026-08-23); the chip is pinned to the corner */
   function leadCard(d) {
-    const c = Store.customer(d.customerId), v = Store.vehicle(d.stock);
+    const c = Store.customer(d.customerId), { v, vin } = vehicleIds(d);
     const st = STAGES[d.stage] || STAGES.discovery;
     const pipe = dealPipe(d);
     const chip = pipe === "funded" ? `<span class="dl-chip badge--done">FUNDED</span>`
@@ -573,7 +602,8 @@ route("deals", () => {
     const name = c ? c.first + " " + c.last : "—";
     return `<a class="dl-card dl-card--classic" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
       <b class="dl-card__name">${esc(name)}</b>
-      <span class="dl-card__veh">${v ? esc(v.year + " " + v.make + " " + v.model) + " · Stk #" + esc(v.stock) : "No vehicle selected yet"}</span>
+      <span class="dl-card__veh">${v ? esc(v.year + " " + v.make + " " + v.model) + " · Stk #" + esc(v.stock)
+        : (vin ? "VIN " + esc(vin) + " · Stock pending stock-in" : "No vehicle selected yet")}</span>
       <span class="dl-card__status">${esc(dealNextAction(d))}</span>
       ${chip}
     </a>`;
@@ -584,14 +614,21 @@ route("deals", () => {
      Next line saying what to do on this deal. Funded rows drop the Next line;
      the DONE chip already says it. */
   function advisorCard(d) {
-    const c = Store.customer(d.customerId), v = Store.vehicle(d.stock);
+    const c = Store.customer(d.customerId);
     const st = STAGES[d.stage] || STAGES.discovery;
     const b = dealBucket(d);
     const name = c ? c.first + " " + c.last : "—";
+    /* universal VIN visibility (owner, 2026-08-23): once a vehicle is on the
+       deal, the VIN renders whether or not the unit is stocked in — a known
+       value in bold, a missing one as an honest Pending, never invented */
+    const { v, vin, stock } = vehicleIds(d);
+    const ids = vin || stock
+      ? `<span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span><span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span>`
+      : "<span>No vehicle selected yet</span>";
     return `<a class="dl-card" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
       <b class="dl-card__name">${esc(name)}</b>
       <span class="dl-chip ${esc(b.badge)}">${esc(b.chip)}</span>
-      <span class="dl-card__ids">${v ? `<span>VIN <b>${esc(v.vin)}</b></span><span>STK <b>${esc(v.stock)}</b></span>` : "<span>No vehicle selected yet</span>"}</span>
+      <span class="dl-card__ids">${ids}</span>
       ${v ? `<span class="dl-card__veh">${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}
       ${b.id === "done" ? "" : `<span class="dl-card__next dl-card__next--${esc(b.id)}">Next: ${esc(dealNextAction(d))} →</span>`}
       <span class="dl-card__chev" aria-hidden="true">›</span>
@@ -629,6 +666,7 @@ route("deals", () => {
     const hay = [
       c ? c.first + " " + c.last : "", c && c.phone ? c.phone : "",
       v ? v.year + " " + v.make + " " + v.model : "", v ? v.stock : "", v && v.vin ? v.vin : "",
+      d.vehicle ? (d.vehicle.vin || "") + " " + (d.vehicle.stock || "") : "",
       d.dealNo ? "#" + d.dealNo : "", d.trade && d.trade.vin ? d.trade.vin : ""
     ].join(" ").toLowerCase();
     return hay.indexOf(q) >= 0 ||
@@ -1454,6 +1492,10 @@ route("vehicles/:id", ({ id }) => {
       const stock = btn.dataset.stock, act = btn.dataset.act;
       if (!deal) return toast("Start a customer visit first (Customers → Start Visit)");
       deal.stock = stock;
+      /* the deal keeps its own vehicle identity from the moment of attachment,
+         so the queue's VIN survives an unstocked unit or a catalog change */
+      const vsel = Store.vehicle(stock);
+      deal.vehicle = vsel ? { vin: vsel.vin, stock: vsel.stock } : { vin: null, stock };
       if (deal.stage === "vehicle") deal.stage = act === "test" ? "testdrive" : act === "calc" ? "desking" : deal.stage;
       Store.save();
       if (act === "test") { deal.stage = "testdrive"; Store.save(); navigate(`#/testdrive/${deal.id}`); }
