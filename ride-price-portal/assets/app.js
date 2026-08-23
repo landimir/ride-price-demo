@@ -577,11 +577,13 @@ route("deals", () => {
      catalog as fallback for blobs saved before the snapshot existed */
   function vehicleIds(d) {
     const v = Store.vehicle(d.stock);
-    /* the snapshot speaks only while it agrees with the deal's current stock
-       (or the deal has none — the unstocked case). A swapped vehicle whose
-       snapshot went stale re-resolves fresh from the catalog instead of
-       showing the old unit's VIN. */
-    const snap = d.vehicle && (!d.stock || !d.vehicle.stock || d.vehicle.stock === d.stock) ? d.vehicle : null;
+    /* the snapshot speaks only while it agrees with the deal's current stock:
+       exact match, or the deal has no stock at all (the unstocked case). A
+       snapshot without a stock is NOT accepted against a stocked deal — if
+       that stock stops resolving, the row would pair the old unstocked VIN
+       with the new stock number (review, PR #44). A stale snapshot
+       re-resolves fresh from the catalog instead of showing the old unit. */
+    const snap = d.vehicle && (d.stock ? d.vehicle.stock === d.stock : true) ? d.vehicle : null;
     return {
       v,
       vin: (v && v.vin) || (snap && snap.vin) || null,
@@ -606,7 +608,7 @@ route("deals", () => {
        simply absent (owner, 2026-08-23): a blank while rapport is being
        built, auto-populated the moment a vehicle lands on the deal. */
     const ids = vin || stock
-      ? `<span class="dl-card__ids"><span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span><span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span></span>`
+      ? `<span class="dl-card__ids"><span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span> <span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span></span>`
       : "";
     return `<a class="dl-card dl-card--classic" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
       <b class="dl-card__name">${esc(name)}</b>
@@ -634,7 +636,7 @@ route("deals", () => {
        while rapport is built, auto-populated on vehicle selection. */
     const { v, vin, stock } = vehicleIds(d);
     const ids = vin || stock
-      ? `<span class="dl-card__ids"><span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span><span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span></span>`
+      ? `<span class="dl-card__ids"><span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span> <span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span></span>`
       : "";
     return `<a class="dl-card" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
       <b class="dl-card__name">${esc(name)}</b>
@@ -697,8 +699,16 @@ route("deals", () => {
       ? act.filter(d => dealsUI.pipe === "all" || dealPipe(d) === dealsUI.pipe)
       : act.concat(funded);
     const rows = pool.filter(matches);
-    $("#dealList").innerHTML = rows.length ? rows.map(lead ? leadCard : advisorCard).join("")
-      : `<p class="dl-empty">${pool.length || (lead && act.length) ? (lead ? "No deals match that filter." : "No deals match that search.") : "No active deals — start a new customer visit."}</p>`;
+    /* the Team Lead's empty states are the original queue's; the advisor's
+       empty search names the search and offers the way back */
+    const searching = !!dealsUI.q.trim();
+    const empty = pool.length || (lead && act.length)
+      ? `<p class="dl-empty">${lead ? "No deals match that filter." : "No deals match that search."}</p>` +
+        (!lead && searching ? `<p class="dl-empty dl-empty--act"><button type="button" class="btn btn--ghost btn--sm" id="dealShowAll">Clear search</button></p>` : "")
+      : `<p class="dl-empty">No active deals — start a new customer visit.</p>`;
+    $("#dealList").innerHTML = rows.length ? rows.map(lead ? leadCard : advisorCard).join("") : empty;
+    const sa = $("#dealShowAll");
+    if (sa) sa.onclick = () => { dealsUI.q = ""; $("#dealSearch").value = ""; paint(); };
   }
 
   $("#dealSearch").oninput = (e) => { dealsUI.q = e.target.value; paint(); };

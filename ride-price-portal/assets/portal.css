@@ -509,20 +509,17 @@ label.f .seg { display: flex; }
   background: #fff; padding: 8px 13px; font-family: inherit; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer;
 }
 .dl-pill.on { background: var(--navy); border-color: var(--navy); color: #fff; }
-/* the count reads as a figure, not part of the word (owner concept: "Desking 18") */
-.dl-pill__n { font-weight: 800; font-variant-numeric: tabular-nums; opacity: .85; }
+
 .dl-dot { width: 8px; height: 8px; border-radius: 99px; }
-/* one dot per bucket, the same family as its badge */
+/* the Team Lead lanes, same family as their chips */
 .dl-dot--desking { background: var(--orange); }
-.dl-dot--credit { background: #6b3fa0; }
 .dl-dot--fni { background: var(--blue); }
-.dl-dot--docs { background: var(--navy-2); }
-.dl-dot--done { background: var(--navy); }
 
 .dl-list { display: grid; gap: 10px; }
-/* Role-aware row (owner direction 2026-08-23): the row IS the link. Three
-   columns — the text, the stage chip, a chevron that says "tap me" — and the
-   same four identifiers in the same places for every role: name, then VIN and
+/* Role-aware row (owner direction 2026-08-23): the row IS the link. Two grid
+   columns — the text and the stage chip — plus an absolutely centred chevron
+   that says "tap me" (the right padding reserves its lane). The same four
+   identifiers sit in the same places for every role: name, then VIN and
    stock on one mono line, then the vehicle, the chip pinned to the first row. */
 .dl-card {
   display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; row-gap: 3px; min-width: 0;
@@ -547,7 +544,7 @@ label.f .seg { display: flex; }
 .dl-card__next--credit { color: #6b3fa0; }
 .dl-card__next--fni { color: var(--blue); }
 .dl-card__next--docs { color: var(--navy-2); }
-.dl-card__next--done { color: var(--green); }
+
 /* the chip sits in column two, row one, flush with the card's own padding.
    Colours come from the shared status badges so the queue never drifts from
    the rest of the app. */
@@ -564,6 +561,7 @@ label.f .seg { display: flex; }
 .dl-card--classic .dl-card__veh { grid-column: 1 / -1; }
 .dl-card__status { grid-column: 1 / -1; font-size: 12.5px; color: var(--ink); overflow-wrap: anywhere; }
 .dl-empty { text-align: center; color: var(--muted); padding: 30px 0; margin: 0; }
+.dl-empty--act { padding: 0 0 30px; margin-top: -18px; }
 .dl-archive { margin-top: 18px; }
 .dl-archive summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
 /* the phone touch floor (ui-context: ≥44px at ≤720px, small variants ≥40px),
@@ -752,7 +750,6 @@ label.f .seg { display: flex; }
   .mv-grid { grid-template-columns: repeat(2, 1fr); }
   .mv-w3, .mv-w4 { grid-column: span 2; }
 }
-
 
 /* ---------- license scan flow ---------- */
 .scan-steps { display: flex; gap: 6px; justify-content: center; margin-bottom: 14px; flex-wrap: wrap; }
@@ -1696,7 +1693,6 @@ body[data-screen="clientlink"] .dr-clientbottom { bottom: 48px; }
   .prop-pair { flex-wrap: wrap; gap: 4mm; margin-bottom: 8mm; }
 }
 
-
 /* ============================================================
    Product presentation — phone layout (owner mockup, 2026-08-15)
    Desktop is deliberately untouched: everything visual below sits
@@ -1769,7 +1765,6 @@ body[data-screen="clientlink"] .dr-clientbottom { bottom: 48px; }
   body[data-screen="present"] .pnav .btn[disabled] { opacity: .45; }
   body[data-screen="present"] .view { padding-bottom: 104px; }
 }
-
 
 /* ============================================================
    Repayment Options — phone layout (owner mockup, 2026-08-15)
