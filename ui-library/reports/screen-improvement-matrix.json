@@ -1,0 +1,443 @@
+{
+  "library": "Ride Price Mobile UI Improvement System",
+  "version": "v001",
+  "basedOn": {
+    "libraryVersion": "v003",
+    "appCommit": "d2e1c8b0565cb8c610a2ba4c800417be735208aa"
+  },
+  "updated": "2026-08-23",
+  "method": "One product area at a time, in the order the flow library lists them. For each area: read the existing comment cards, look at every screenshot, deepen each card into a diagnosis, add what the screenshots show, look the needed pattern up on Mobbin, and translate the lesson back into Ride Price's own vocabulary. Severity keeps the audit scale (Critical / Major / Minor / Observation); priority is the order to fix in (High / Medium / Low). findingType: Existing Comment Expanded · Newly Detected UI Issue · Pattern Opportunity.",
+  "areas": [
+    {
+      "flowId": "home",
+      "flow": "Home — Deals Queue & Navigation",
+      "status": "reviewed",
+      "reviewedOn": "2026-08-23",
+      "whatWorks": "The landing screen is genuinely calm: one title carrying the live count, one gradient action, one search field, three pills with counts and a clean whole-card deal tile with its status chip pinned to the corner — nothing competes, which is exactly what the best work-queue screens do. The role switch is a visible segmented control and its toast names the acting person, so the no-login decision reads as deliberate rather than missing. The drawer orients a first-time user well (dealership, advisor name and role, WORKFLOW vs RESOURCES) and keeps the destructive reset at the very bottom behind a branded confirm whose red button is the only danger-styled control in the flow. Empty states speak instead of going blank.",
+      "strongest": [
+        "Put the one forward action where the thumb is: on a phone, anchor + New Customer Visit in a thin bottom bar (or full-width under the pills) instead of the top-right corner — and use the same page-bar rule on Find a Customer and the Training pages, which put their actions at the top the same way.",
+        "Give finished deals a real control: a fourth pill 'Funded (n)' in the existing pill row, or at minimum a 48px ink-coloured section row with a chevron, instead of the 20px grey 'Archived — funded contracts' text (RP-UI-017).",
+        "Make the deal card say what comes next ('Next · Game Plan With the Team Lead' in the stage colour) and stop the camera inside a VIN search field promising a VIN scan when it opens the licence scanner.",
+        "Keep the gradient rare: the drawer's active item should be a tint with an indicator bar, not a second gradient while the page's gradient CTA is still visible behind it."
+      ],
+      "recommendations": [
+        {
+          "id": "RP-IMP-001",
+          "title": "The only forward action sits in the hardest thumb zone while 60% of the screen is empty",
+          "screenKey": "deals-queue",
+          "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
+          "alsoOn": [
+            "current/01-home-and-navigation/04-pipeline-filter-empty.png",
+            "current/01-home-and-navigation/05-role-switch-team-lead.png",
+            "current/01-home-and-navigation/06-funded-archive.png",
+            "current/02-customer-onboarding/01-find-customer.png",
+            "current/04-training-materials/01-training-licenses.png",
+            "current/04-training-materials/02-training-registrations.png"
+          ],
+          "existingComment": null,
+          "commentAssessment": null,
+          "findingType": "Pattern Opportunity",
+          "category": "interaction",
+          "severity": "Major",
+          "priority": "High",
+          "issueSummary": "The screen's one gradient action, + New Customer Visit (163×44 at the top-right, y≈75–117), sits in the hardest one-handed reach zone while everything below y≈370 is empty. The same page-top placement repeats on Find a Customer (Scan license / Create Customer at y≈140–180) and on both Training pages (Print at y≈140–195), and the page-bar layout differs between them — home puts the action on the title row, the other pages stack it under the subtitle.",
+          "whyItMatters": "An advisor uses this outdoors, one-handed, many times a day; the most frequent action belongs where the thumb rests. A first-time trainee also reads top-left to bottom-right and meets the search field and pills before the 'start here' control. Three slightly different page-bar layouts make each page feel different without a reason.",
+          "mobbinPatternNeeded": "bottom-anchored primary action on a list / queue screen; one page-header rule (title + one primary action)",
+          "referenceInsight": "Work-queue and checkout screens keep the list at the top and the single forward action in a bottom bar or floating button: monday.com's My Work uses one FAB, ClickUp puts Create in the centre of the bottom bar, Careem's add-ons screen pins 'Total | Next' in a bottom bar with a 'Next step' line above it, Booking.com pins the total and Next below a long list. The list stays clean; the action is always under the thumb.",
+          "references": [
+            {
+              "app": "monday.com",
+              "url": "https://mobbin.com/screens/9407b31a-f185-4f13-bf49-15daa73b3b21",
+              "shows": "My Work queue — bucket tiles with counts, one list, a single floating + action bottom-right"
+            },
+            {
+              "app": "ClickUp",
+              "url": "https://mobbin.com/screens/3e06d063-e0a2-497e-8880-167964137670",
+              "shows": "Inbox — search, tabs with counts, filter chips, and Create as the centre action of the bottom bar"
+            },
+            {
+              "app": "Careem",
+              "url": "https://mobbin.com/screens/160656d3-ef01-4163-87bc-ca4c2abd7551",
+              "shows": "Add-ons — list above, a pinned bottom bar carrying the running total and Next, with 'Next step: Date & time' stated above the list"
+            },
+            {
+              "app": "Booking.com",
+              "url": "https://mobbin.com/screens/4866022b-0da2-40c5-9a0d-0f32c50bf4b5",
+              "shows": "Choose your cover — options list, total and Next pinned at the bottom"
+            }
+          ],
+          "patterns": [
+            "M3",
+            "M19"
+          ],
+          "ridePriceRecommendation": "Keep the gradient for exactly this one action and keep the title-with-count, search field and pills as they are. On a phone, anchor + New Customer Visit as a full-width gradient button in a thin white bottom bar (top hairline, the shared 16px button radius, ≥48px tall) — or as a full-width gradient button directly under the pills when the list is short. Desktop keeps the title-row placement. Then apply one page-bar rule across home, Find a Customer and the Training pages (title + subtitle, then the action) so the eye learns one layout. Note: the current one-row title + action layout is the owner's own 2026-08-20 sample, so this is a proposal against his layout, not a defect — his call.",
+          "whatStays": "Gradient = this one action; the title with live count; the search field; the pill row with counts; the whole-card tap; desktop layout unchanged.",
+          "fixSize": "medium",
+          "implementationNote": "route('deals') and renderChrome() page-bar markup in ride-price-portal/assets/app.js; .pagebar / .btn--grad / a new phone-only bottom bar rule in assets/portal.css (inside @media screen and (max-width: 720px))."
+        },
+        {
+          "id": "RP-IMP-002",
+          "title": "Finished deals hide behind a 20px grey caption",
+          "screenKey": "funded-archive",
+          "screenshot": "current/01-home-and-navigation/06-funded-archive.png",
+          "alsoOn": [],
+          "existingComment": "RP-UI-017",
+          "commentAssessment": "accurate but incomplete — beyond the 20px height, the row is muted grey text on the page background (load-bearing text should be ink), its only affordance is a 10px ▼, and it is visually indistinguishable from the empty-state sentence 40px above it; it is also the only way a manager reaches a finished deal once the title reads ACTIVE DEALS (0).",
+          "findingType": "Existing Comment Expanded",
+          "category": "interaction",
+          "severity": "Minor",
+          "priority": "High",
+          "issueSummary": "'▼ Archived — funded contracts (1)' (362×20 at y≈378) is a muted 13px text row under the 44px touch floor, styled like a caption, sitting directly under an equally muted empty-state sentence. A Team Lead whose deal just funded sees a (0) title, a grey sentence and a grey row — no obvious control to reach the contract.",
+          "whyItMatters": "Finished deals are what a manager checks most (sign-off, DMS push, funding). Hiding them behind a caption-sized disclosure costs a mis-tap or a moment of 'where did it go' — exactly the hesitation a manager should never have on the home screen.",
+          "mobbinPatternNeeded": "segmented filter with a completed / archived segment; collapsible section row with count and trailing chevron",
+          "referenceInsight": "Queue apps make 'done' a first-class place: ClickUp's inbox has a Cleared tab beside Important and Snoozed, monday.com shows a 'Hide done items' chip so done items are a visible toggle, Outlook's drawer lists Archive as a full-height row with its count. Done is a filter, not a footnote.",
+          "references": [
+            {
+              "app": "ClickUp",
+              "url": "https://mobbin.com/screens/3e06d063-e0a2-497e-8880-167964137670",
+              "shows": "Important · Other 1 · Snoozed · Cleared — finished items are a tab with the same weight as the others"
+            },
+            {
+              "app": "monday.com",
+              "url": "https://mobbin.com/screens/9407b31a-f185-4f13-bf49-15daa73b3b21",
+              "shows": "'Hide done items' as a visible, tappable chip at the top of the queue"
+            },
+            {
+              "app": "Microsoft Outlook",
+              "url": "https://mobbin.com/screens/5516b226-0b53-45f0-abf7-a4c9e69fbf86",
+              "shows": "Archive as a full-height drawer row with a count badge, same size as Inbox"
+            }
+          ],
+          "patterns": [
+            "M3"
+          ],
+          "ridePriceRecommendation": "Preferred: add 'Funded (n)' as a fourth pill in the existing pill row — same 44px pill component, navy when active, green dot like the FUNDED chip — so finished deals are one tap away and the pills stay the only filter mechanism. Minimum: restyle the disclosure as a full-width 48px row in ink (navy 700) with the count in a navy pill on the right and a chevron that rotates on open, separated from the empty-state sentence by a hairline.",
+          "whatStays": "The card itself (FUNDED chip, whole-card tap), the empty-state sentence, the no-per-card-delete rule.",
+          "fixSize": "small",
+          "implementationNote": ".dl-archive summary in assets/portal.css and the <details class=\"dl-archive\"> block in route('deals'); the pill row is .dl-pills / dealsUI.pipe."
+        },
+        {
+          "id": "RP-IMP-003",
+          "title": "The card does not say what comes next, and the search-field camera promises the wrong scan",
+          "screenKey": "deals-queue",
+          "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
+          "alsoOn": [
+            "current/01-home-and-navigation/05-role-switch-team-lead.png",
+            "current/01-home-and-navigation/04-pipeline-filter-empty.png",
+            "current/01-home-and-navigation/06-funded-archive.png"
+          ],
+          "existingComment": null,
+          "commentAssessment": null,
+          "findingType": "Newly Detected UI Issue",
+          "category": "informational",
+          "severity": "Minor",
+          "priority": "Medium",
+          "issueSummary": "The deal card's third line 'Game Plan With the Team Lead' is the next action but carries no 'Next' marker, so it reads as a status or a note. Separately, the camera button inside 'Search stock, customer, or VIN…' (right end of the field, y≈172) opens the licence scanner — but a camera inside a VIN search field universally reads as 'scan a VIN', and on a phone there is no tooltip to correct that.",
+          "whyItMatters": "Two small ambiguities on the first screen a trainee sees: the card does not tell the advisor what to do when they open the deal — the one piece of orientation a queue card should give — and the camera promises inventory lookup and delivers a licence flow (surprise, then back-out).",
+          "mobbinPatternNeeded": "list card with an explicit next-step line; icon-only action with unambiguous meaning or a labelled entry point",
+          "referenceInsight": "Good queue rows carry a one-line status that says what is next or what is wrong: ClickUp rows read 'Task is overdue. Due date was…', Careem states 'Next step: Date & time' under the progress bar, Grab Driver puts the what-happens-next line under the active timeline node. Icon-only actions inside a search field are reserved for searching the same thing (Under Armour's barcode icon in a product search searches products).",
+          "references": [
+            {
+              "app": "ClickUp",
+              "url": "https://mobbin.com/screens/3e06d063-e0a2-497e-8880-167964137670",
+              "shows": "Each row's second line is an explicit status sentence"
+            },
+            {
+              "app": "Careem",
+              "url": "https://mobbin.com/screens/160656d3-ef01-4163-87bc-ca4c2abd7551",
+              "shows": "'Next step: Date & time' named in plain words under the progress bar"
+            },
+            {
+              "app": "Grab Driver",
+              "url": "https://mobbin.com/screens/094b300e-f89e-480f-a72a-762788d331f9",
+              "shows": "The active step carries a one-line 'what happens next' under it"
+            },
+            {
+              "app": "Under Armour",
+              "url": "https://mobbin.com/screens/21d5125b-35f1-4b55-a69f-fe55b6e9fe11",
+              "shows": "A scan icon inside a product search field scans a product barcode — the icon matches what the field searches"
+            }
+          ],
+          "patterns": [
+            "M3",
+            "M5"
+          ],
+          "ridePriceRecommendation": "Keep the search field and the whole-card tap. Prefix the card's third line with 'Next ·' in the chip's stage colour (orange for Desking, blue for F&I, green for Funded) — a status cue, so no glyph is needed. For the camera: either drop the in-field button (the gradient New Customer Visit and Find a Customer's Scan license already own that entry) or move it out of the field as a small navy-outlined 'Scan license' chip to the right of the search — one of the two, not both.",
+          "whatStays": "Card structure (name, vehicle · stock, status line, chip); the search field; the scanner itself.",
+          "fixSize": "small",
+          "implementationNote": "#dealScanBtn (.dl-search__cam) and .dl-card__next in route('deals'); dealNextAction() supplies the line."
+        },
+        {
+          "id": "RP-IMP-004",
+          "title": "The drawer spends the brand gradient on a selected state",
+          "screenKey": "navigation-drawer",
+          "screenshot": "current/01-home-and-navigation/02-navigation-drawer.png",
+          "alsoOn": [
+            "current/01-home-and-navigation/03-reset-demo-confirm.png"
+          ],
+          "existingComment": null,
+          "commentAssessment": null,
+          "findingType": "Newly Detected UI Issue",
+          "category": "visual",
+          "severity": "Minor",
+          "priority": "Low",
+          "issueSummary": "The drawer paints the active item 'Deals List' with the orange→pink brand gradient (278×40 at y≈175–213) while the gradient + New Customer Visit button is still visible on the page behind it; the drawer's own 'New Customer Visit' is a dashed gold outline. The gradient is defined in the UI rules as 'the single main forward action on a screen', and here it marks a selection instead.",
+          "whyItMatters": "The gradient earns its meaning by being rare; using it as a selection highlight in global navigation dilutes the one visual rule the app relies on to say 'press this to move forward'. Small, but it is on a surface every user opens.",
+          "mobbinPatternNeeded": "navigation drawer with an active-item highlight (tint or indicator bar) distinct from the primary action",
+          "referenceInsight": "Drawers mark the current place quietly and save colour for actions: Outlook tints the active folder row in the brand blue with a count badge, Spotify and X keep rows plain with the identity header doing the orienting, Nextdoor lists a second identity as an ordinary row. None paint the selected row in the app's CTA colour.",
+          "references": [
+            {
+              "app": "Microsoft Outlook",
+              "url": "https://mobbin.com/screens/5516b226-0b53-45f0-abf7-a4c9e69fbf86",
+              "shows": "Active folder = tinted row + count badge; favourites first; help/settings pinned at the bottom"
+            },
+            {
+              "app": "Spotify",
+              "url": "https://mobbin.com/screens/5867a8ca-fcc6-4749-b59e-ceccfa7493ff",
+              "shows": "Identity header, plain rows, one section label — colour reserved for badges"
+            },
+            {
+              "app": "X",
+              "url": "https://mobbin.com/screens/296ece73-7630-4846-a67b-8d4772ef70a0",
+              "shows": "Profile header with an account switcher; menu rows plain; settings at the bottom"
+            }
+          ],
+          "patterns": [
+            "M17"
+          ],
+          "ridePriceRecommendation": "Keep the drawer structure, the gold WORKFLOW / RESOURCES labels and the dashed gold 'New Customer Visit' row. Mark the active item with a translucent white tint plus a 3px gold (or orange) left indicator bar, white 700 text — so the dashed gold row is the only accent in the list. The reset confirm dialog is right as it is (red outline = destructive only).",
+          "whatStays": "Drawer chrome blue, identity header, section labels, the dashed New Customer Visit item, the bottom-pinned reset.",
+          "fixSize": "small",
+          "implementationNote": "The active nav item class in the drawer markup (renderChrome / drawer builder, app.js) and its rule in assets/portal.css (.drawer)."
+        },
+        {
+          "id": "RP-IMP-005",
+          "title": "A filter with no matches contradicts the title and offers no way back",
+          "screenKey": "pipeline-filter-empty",
+          "screenshot": "current/01-home-and-navigation/04-pipeline-filter-empty.png",
+          "alsoOn": [],
+          "existingComment": null,
+          "commentAssessment": null,
+          "findingType": "Newly Detected UI Issue",
+          "category": "informational",
+          "severity": "Observation",
+          "priority": "Low",
+          "issueSummary": "With F&I / Docs (0) selected the list says only 'No deals match that filter.' while the title still reads ACTIVE DEALS (1); the sentence does not say where the one deal is and offers no one-tap way back to All.",
+          "whyItMatters": "A trainee sees '1' in the title and 'no deals' in the list at the same moment — a tiny contradiction that costs a second of doubt; closing the loop in the sentence removes it.",
+          "mobbinPatternNeeded": "filtered-list empty state that names the filter and offers a clear-filters action",
+          "referenceInsight": "Every strong filtered empty state does two things: says the filter is the reason, and gives a button out. Google Drive, Wise, Quizlet and Tabby all pair 'no results with these filters' with a single 'Clear filters' / 'Clear all' button directly under the sentence.",
+          "references": [
+            {
+              "app": "Google Drive",
+              "url": "https://mobbin.com/screens/f9f86637-40e2-4126-a850-5106dc9cf02a",
+              "shows": "'No matching results' + a Clear filters button; the active filter chips stay visible above"
+            },
+            {
+              "app": "Wise",
+              "url": "https://mobbin.com/screens/0cdba498-dc6c-40a0-97fb-9acb9b7a417f",
+              "shows": "'Your filters have returned no results' + Clear filters pill"
+            },
+            {
+              "app": "Quizlet",
+              "url": "https://mobbin.com/screens/0230bbe1-bbd9-4605-96b2-0810ffd26bd4",
+              "shows": "Sentence names the filters; one Clear filters button"
+            }
+          ],
+          "patterns": [
+            "M18"
+          ],
+          "ridePriceRecommendation": "Keep the pills. Change the sentence to name the state ('No deals in F&I / Docs — 1 in Desking') and add a ghost 'Show all' button under it that selects the All pill. Same muted sentence / ink button styling as the other empty state.",
+          "whatStays": "The pill row, the counts, the existing empty-state styling.",
+          "fixSize": "small",
+          "implementationNote": "paint() in route('deals'), the empty-list branch."
+        },
+        {
+          "id": "RP-IMP-006",
+          "title": "No login by design — keep the 'who am I' cue consistent",
+          "screenKey": "deals-queue",
+          "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
+          "alsoOn": [
+            "current/01-home-and-navigation/05-role-switch-team-lead.png"
+          ],
+          "existingComment": "RP-UI-023",
+          "commentAssessment": "accurate — it records a decision and stays an Observation; incomplete only in that it does not note where the identity cue lives: the acting person is named only in the drawer header ('Ashley Collins · Client Advisor') and, after a switch, in a 4-second toast ('Now acting as Team Lead — Jordan Reyes'); the app bar shows the role but never the name.",
+          "findingType": "Existing Comment Expanded",
+          "category": "informational",
+          "severity": "Observation",
+          "priority": "Low",
+          "issueSummary": "No login is by design; the only persistent 'who am I' cue is inside the drawer, and the role switch confirms itself with a toast while nothing else on the page changes (same list, same CTA).",
+          "whyItMatters": "For a demo/training tool this is acceptable; the only risk is a trainee forgetting they are in Team Lead mode and later meeting (or missing) role-gated steps without knowing why. Not a bug — a cue to keep consistent.",
+          "mobbinPatternNeeded": "role / persona switcher with a persistent indicator",
+          "referenceInsight": "Apps with two identities keep the current one visible where the switch is: X shows the account avatar beside the switcher, Nextdoor lists the second identity as a named row under the profile header, Spotify's drawer header names the account with 'Add account' directly under it. The switch and the name live together.",
+          "references": [
+            {
+              "app": "X",
+              "url": "https://mobbin.com/screens/296ece73-7630-4846-a67b-8d4772ef70a0",
+              "shows": "Account switcher avatar beside the profile header — the current identity is always visible"
+            },
+            {
+              "app": "Nextdoor",
+              "url": "https://mobbin.com/screens/4e6ef4c3-a9b5-4a54-a33b-1c68a091a873",
+              "shows": "Name + place header, then the second identity as a named row"
+            }
+          ],
+          "patterns": [
+            "M17"
+          ],
+          "ridePriceRecommendation": "Keep the segmented Advisor / Team Lead switch exactly as it is. Make sure the drawer header follows the switch (name and role of the acting person), and on wider phones consider a one-line name under the app-bar switch ('Jordan Reyes'). No login, no avatar, nothing heavier.",
+          "whatStays": "No authentication; the app-bar segmented switch; the toast.",
+          "fixSize": "small",
+          "implementationNote": "roleName() and the app-bar switch / drawer header in renderChrome(), app.js."
+        }
+      ]
+    }
+  ],
+  "patterns": [
+    {
+      "id": "M3",
+      "name": "Work queue / home with one dominant action",
+      "problem": "Home — Deals Queue: is the first screen oriented, and does it make finished deals reachable?",
+      "references": [
+        {
+          "app": "monday.com",
+          "url": "https://mobbin.com/screens/9407b31a-f185-4f13-bf49-15daa73b3b21",
+          "shows": "My Work — bucket tiles with counts, one list, one floating + action"
+        },
+        {
+          "app": "ClickUp",
+          "url": "https://mobbin.com/screens/3e06d063-e0a2-497e-8880-167964137670",
+          "shows": "Inbox — search, tabs with counts (including Cleared), filter chips, rows with a status sentence"
+        },
+        {
+          "app": "Matter",
+          "url": "https://mobbin.com/screens/cf05d193-c232-4bd5-87f6-3f1d21db6603",
+          "shows": "Queue — the active filter as a removable chip under the title"
+        }
+      ],
+      "commonPattern": "Title with a count, segmented filters with counts, a clean card/row list where each row's second line is a plain status sentence, one create action, and 'done' as a first-class filter.",
+      "lesson": "Ride Price's queue already has the right bones. The gains are the card's next-step line, a real place for finished deals, and the single action under the thumb.",
+      "influence": "Home — Deals Queue; any future list screen (vehicles, customers)."
+    },
+    {
+      "id": "M5",
+      "name": "Status rows and 'what happens next' lines",
+      "problem": "Rows and cards that should tell the user the next step or the current state in one line.",
+      "references": [
+        {
+          "app": "Grab Driver",
+          "url": "https://mobbin.com/screens/094b300e-f89e-480f-a72a-762788d331f9",
+          "shows": "Vertical timeline with a one-line 'what happens next' under the active node"
+        },
+        {
+          "app": "Speechify",
+          "url": "https://mobbin.com/screens/fc68b660-9afc-44d0-ba6b-2f31894a6e05",
+          "shows": "Checklist card — done items struck through, the next item bold"
+        },
+        {
+          "app": "MoonPay",
+          "url": "https://mobbin.com/screens/7b8e43b3-ed3a-473a-b921-7a60c914ee02",
+          "shows": "Each requirement a row with a green check or pending icon"
+        }
+      ],
+      "commonPattern": "Status is a row-level icon plus a short word; done items recede; the next thing is the boldest thing; one sentence under the active item says what happens next.",
+      "lesson": "Say 'Next ·' on the deal card; later areas (jacket, client upload) use the same rule for document rows.",
+      "influence": "Home deal card; Deal Jacket rows; Client Document Upload rows."
+    },
+    {
+      "id": "M17",
+      "name": "Navigation drawer and identity header",
+      "problem": "Home — the drawer's active state and the role switch's 'who am I' cue.",
+      "references": [
+        {
+          "app": "Microsoft Outlook",
+          "url": "https://mobbin.com/screens/5516b226-0b53-45f0-abf7-a4c9e69fbf86",
+          "shows": "Account header, favourites first with count badges, secondary folders, help/settings pinned bottom; active row tinted"
+        },
+        {
+          "app": "Spotify",
+          "url": "https://mobbin.com/screens/5867a8ca-fcc6-4749-b59e-ceccfa7493ff",
+          "shows": "Profile header with 'Add account' under it, plain rows, one section label"
+        },
+        {
+          "app": "X",
+          "url": "https://mobbin.com/screens/296ece73-7630-4846-a67b-8d4772ef70a0",
+          "shows": "Profile header, account-switcher avatar, plain rows, settings at the bottom"
+        },
+        {
+          "app": "Nextdoor",
+          "url": "https://mobbin.com/screens/4e6ef4c3-a9b5-4a54-a33b-1c68a091a873",
+          "shows": "Name + place header, a second identity as a named row"
+        }
+      ],
+      "commonPattern": "Identity at the top (name, role/place, a switcher beside it), grouped plain rows, the active place marked with a tint or bar, counts as badges, destructive/settings pinned at the bottom.",
+      "lesson": "Ride Price's drawer already has this shape; spend the gradient only on the forward action, mark 'you are here' with a tint + bar, and keep the acting person's name where the role switch is.",
+      "influence": "Home drawer and app bar."
+    },
+    {
+      "id": "M18",
+      "name": "Filtered empty state with a way out",
+      "problem": "Home — the pipeline filter with zero matches.",
+      "references": [
+        {
+          "app": "Google Drive",
+          "url": "https://mobbin.com/screens/f9f86637-40e2-4126-a850-5106dc9cf02a",
+          "shows": "'No matching results' + Clear filters; chips stay visible"
+        },
+        {
+          "app": "Wise",
+          "url": "https://mobbin.com/screens/0cdba498-dc6c-40a0-97fb-9acb9b7a417f",
+          "shows": "'Your filters have returned no results' + Clear filters pill"
+        },
+        {
+          "app": "Quizlet",
+          "url": "https://mobbin.com/screens/0230bbe1-bbd9-4605-96b2-0810ffd26bd4",
+          "shows": "Names the filters, one Clear filters button"
+        }
+      ],
+      "commonPattern": "The sentence blames the filter, not the data, and one button clears it.",
+      "lesson": "Name the state and give a 'Show all' — the title count and the list should never disagree without the sentence explaining why.",
+      "influence": "Home pipeline pills; vehicle search 'no match'; customer search 'no match'."
+    },
+    {
+      "id": "M19",
+      "name": "Bottom-anchored primary action on a list or long screen",
+      "problem": "Home (and Find a Customer, Training) — the page's one forward action sits at the top of the screen.",
+      "references": [
+        {
+          "app": "Careem",
+          "url": "https://mobbin.com/screens/160656d3-ef01-4163-87bc-ca4c2abd7551",
+          "shows": "List above, 'Total | Next' pinned in a bottom bar"
+        },
+        {
+          "app": "Booking.com",
+          "url": "https://mobbin.com/screens/4866022b-0da2-40c5-9a0d-0f32c50bf4b5",
+          "shows": "Options list, total + Next pinned at the bottom"
+        },
+        {
+          "app": "ANZ Plus",
+          "url": "https://mobbin.com/screens/a8cd9bc8-1a4d-44b2-86fa-986c67c11185",
+          "shows": "Continue then a pinned summary card — the result and the next step travel together at the bottom"
+        },
+        {
+          "app": "Zillow",
+          "url": "https://mobbin.com/screens/b41cd10a-f8dc-4a53-9f87-5f8c7980394d",
+          "shows": "Hero number at the top, collapsible sections, pinned CTA row at the bottom"
+        }
+      ],
+      "commonPattern": "The forward action lives in a thin bottom bar (white, hairline, one strong button, sometimes a summary value beside it); the page content scrolls under it; the header orients but does not act.",
+      "lesson": "Give the gradient action a fixed home at the bottom on phones — the same home on every screen — and let the page bar carry the title, count and context only.",
+      "influence": "Home, Find a Customer, Training pages now; Desking, Credit Application and the Finance Menu later (same rule, bigger gain)."
+    }
+  ],
+  "board": {
+    "biggestGains": [
+      "One fixed home for the forward action on phones (a bottom bar) — it fixes Home's thumb reach now and is the same change the desking, credit-application and finance-menu Majors will need later.",
+      "'Done' as a first-class filter and 'Next ·' on the card — two small changes that make the home screen answer a manager's and an advisor's first questions without a tap."
+    ],
+    "whereToStart": [
+      "RP-IMP-002 (Funded pill / 48px archive row) — small, closes RP-UI-017, no layout decision needed.",
+      "RP-IMP-003 and RP-IMP-005 — copy-level changes on the landing card and the empty state.",
+      "RP-IMP-001 — the bottom action bar, once the owner has decided against his one-row title + action sample on phones."
+    ]
+  }
+}
