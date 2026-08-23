@@ -593,17 +593,23 @@ route("deals", () => {
      no chevron, no per-card controls (owner refinement, 2026-08-20; kept on
      the owner's instruction 2026-08-23); the chip is pinned to the corner */
   function leadCard(d) {
-    const c = Store.customer(d.customerId), { v, vin } = vehicleIds(d);
+    const c = Store.customer(d.customerId), { v, vin, stock } = vehicleIds(d);
     const st = STAGES[d.stage] || STAGES.discovery;
     const pipe = dealPipe(d);
     const chip = pipe === "funded" ? `<span class="dl-chip badge--done">FUNDED</span>`
       : pipe === "fni" ? `<span class="dl-chip badge--new">F&amp;I READY</span>`
       : `<span class="dl-chip badge--prog">DESKING</span>`;
     const name = c ? c.first + " " + c.last : "—";
+    /* the four identifiers hold for the Team Lead too (owner hard rule,
+       2026-08-23): name, VIN, stock, stage — same mono line as the advisor's,
+       the rest of the classic card unchanged */
+    const ids = vin || stock
+      ? `<span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span><span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span>`
+      : "<span>No vehicle selected yet</span>";
     return `<a class="dl-card dl-card--classic" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
       <b class="dl-card__name">${esc(name)}</b>
-      <span class="dl-card__veh">${v ? esc(v.year + " " + v.make + " " + v.model) + " · Stk #" + esc(v.stock)
-        : (vin ? "VIN " + esc(vin) + " · Stock pending stock-in" : "No vehicle selected yet")}</span>
+      <span class="dl-card__ids">${ids}</span>
+      ${v ? `<span class="dl-card__veh">${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}
       <span class="dl-card__status">${esc(dealNextAction(d))}</span>
       ${chip}
     </a>`;
