@@ -614,6 +614,7 @@ route("deals", () => {
       ${v ? `<span class="dl-card__veh">${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}
       <span class="dl-card__status">${esc(dealNextAction(d))}</span>
       ${chip}
+      <span class="dl-card__chev" aria-hidden="true">›</span>
     </a>`;
   }
 
