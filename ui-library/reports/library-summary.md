@@ -1,12 +1,12 @@
 # Ride Price Mobile UI Library
 
-Version: v004
-Captured: 2026-08-23T23:15:41.447Z
-App commit: da321ece41d7c8062c7b1ccc96ffdc1aad508f87
+Version: v005
+Captured: 2026-08-24T23:11:54.782Z
+App commit: 89f260a4e4360018e05ca1455215f4b10f09de53
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 111
+Screens documented: 114
 Branches documented: 63
 
 UX Audit:
@@ -21,7 +21,7 @@ UX Audit:
 |---|---|---|---|
 | 1 | Home — Deals Queue & Navigation | 7 | entry point |
 | 2 | Customer Onboarding — Find a Customer | 5 | Home — Deals Queue & Navigation · 01 My Deals (landing — Advisor) — Tap ＋ New Customer Visit |
-| 3 | Scan Driver's License | 8 | Customer Onboarding — Find a Customer · 01 Find a Customer — Tap 🪪 Scan license |
+| 3 | Scan Driver's License | 11 | Customer Onboarding — Find a Customer · 01 Find a Customer — Tap 🪪 Scan license |
 | 4 | Training Licenses & Registrations | 2 | Home — Deals Queue & Navigation · 02 Navigation drawer — Training Licenses / Training Registrations |
 | 5 | Discovery Session | 3 | Customer Onboarding — Find a Customer · 01 Find a Customer — Start Visit → (creates the deal) |
 | 6 | Vehicle Selection | 7 | Discovery Session · 03 Discovery — last question — Tap Pick Vehicle → |

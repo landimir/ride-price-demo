@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-08-23T23:15:41.447Z",
-  "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+  "capturedAt": "2026-08-24T23:11:54.782Z",
+  "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Deals Queue & Navigation",
       "description": "The portal opens on the queue, which is role-aware (2026-08-23): the Advisor gets a guided list (no filter pills, a Next line per deal), the Team Lead the original two-lane floor view (pills + archive). Both roles see the four identifiers on every row — name, VIN, stock, stage — with a chevron as the tap cue. There is no login: the app-bar role switch stands in for authentication, and the drawer holds global navigation and the demo reset.",
       "entry": null,
-      "capturedAt": "2026-08-23T23:15:41.451Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:11:54.790Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -264,8 +264,8 @@
         "from": "home/deals-queue",
         "action": "Tap ＋ New Customer Visit"
       },
-      "capturedAt": "2026-08-23T23:15:53.459Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:12:05.848Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -426,39 +426,34 @@
       "id": "license-scan",
       "area": "03-license-scan",
       "title": "Scan Driver's License",
-      "description": "The prop-licence scanner: front photo, back photo, barcode read, then verify. Only the five printed training props can ever be recognised; anything else is refused with a teaching message. Props 1–2 match the seed customers by name (ambiguous → confirm), 3–5 create new customers.",
+      "description": "The prop-licence scanner as the v2 journey (owner prototype, 2026-08-23): intro with the advisor word track, front/back capture with framing guidance, an honest processing checklist, evidence-rich match and conflict screens, summary-first review, completion. Only the five printed training props can ever be recognised; anything else is refused with a teaching message. Props 1–2 match the seed customers by name (ambiguous → confirm), 3–5 create new customers. Phone AND email are both required on every customer record.",
       "entry": {
         "from": "onboarding/find-customer",
         "action": "Tap 🪪 Scan license"
       },
-      "capturedAt": "2026-08-23T23:16:02.620Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:12:14.090Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
-          "key": "scan-front",
-          "screen": "Scan — front of licence",
-          "screenshot": "current/03-license-scan/01-scan-front.png",
+          "key": "scan-intro",
+          "screen": "Intro — identity check",
+          "screenshot": "current/03-license-scan/01-scan-intro.png",
           "hash": "#/customers",
-          "action": "Take / upload the front photo",
-          "next": "scan-back",
-          "branches": [
-            {
-              "action": "Tap 'training licenses' link",
-              "to": "training/training-licenses"
-            }
-          ],
-          "notes": "",
+          "action": "Tap Start Scan",
+          "next": "scan-front",
+          "branches": [],
+          "notes": "The journey owns the phone screen: ← / brand / ? row, gradient progress, TRAINING chip. The advisor word track sits where production apps put consent legalese; the honest demo line closes the page.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              " training license 84x29"
-            ],
+            "tinyTargets": [],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".scan-idcard__state NEW YORK <> .scan-idcard__demo TRAINING SAMPLE"
+            ]
           },
           "error": null,
           "size": {
@@ -471,25 +466,24 @@
         },
         {
           "step": 2,
-          "key": "scan-back",
-          "screen": "Scan — back of licence",
-          "screenshot": "current/03-license-scan/02-scan-back.png",
+          "key": "scan-front",
+          "screen": "Capture — front of licence",
+          "screenshot": "current/03-license-scan/02-scan-front.png",
           "hash": "#/customers",
-          "action": "Take / upload the back photo",
-          "next": "scan-reading",
+          "action": "Tap ? (training-license help)",
+          "next": "scan-help",
           "branches": [],
-          "notes": "Front thumbnail with a retake link; the barcode side is what gets read.",
+          "notes": "Dark camera illustration with framing guide and scanline — the native camera opens on tap (no live viewfinder). Upload fallback beneath; Capture Front pinned as the gradient step action.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              " training license 84x29",
-              " retake front 66x29"
-            ],
+            "tinyTargets": [],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".scan-idcard__state NEW YORK <> .scan-idcard__demo TRAINING SAMPLE"
+            ]
           },
           "error": null,
           "size": {
@@ -502,14 +496,49 @@
         },
         {
           "step": 3,
-          "key": "scan-reading",
-          "screen": "Reading barcode…",
-          "screenshot": "current/03-license-scan/03-scan-reading.png",
+          "key": "scan-help",
+          "screen": "Training-license help (in-journey peek)",
+          "screenshot": "current/03-license-scan/03-scan-help.png",
           "hash": "#/customers",
-          "action": "Barcode not recognised",
-          "next": "scan-not-recognized",
+          "action": "Tap Back to scanning",
+          "next": "scan-back",
+          "branches": [
+            {
+              "action": "Open Training Licenses — leaves the scan",
+              "to": "training/training-licenses"
+            }
+          ],
+          "notes": "The old help links navigated to the props page and tore the scan down mid-flow; the peek keeps the journey alive. 'Open Training Licenses' states that it leaves the scan.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": [
+              ".scan-idcard__state NEW YORK <> .scan-idcard__demo TRAINING SAMPLE"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1305
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 4,
+          "key": "scan-back",
+          "screen": "Capture — back of licence",
+          "screenshot": "current/03-license-scan/04-scan-back.png",
+          "hash": "#/customers",
+          "action": "Take / upload the back photo",
+          "next": "scan-reading",
           "branches": [],
-          "notes": "Processing state (about one second).",
+          "notes": "Barcode silhouette in the frame, glare hint, 'Front captured' with a Retake front button.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -529,59 +558,15 @@
           "issues": []
         },
         {
-          "step": 4,
-          "key": "scan-not-recognized",
-          "screen": "Not recognized",
-          "screenshot": "current/03-license-scan/04-scan-not-recognized.png",
-          "hash": "#/customers",
-          "action": "Tap Retake photo / Enter manually",
-          "next": "scan-possible-match",
-          "branches": [
-            {
-              "action": "Enter manually",
-              "to": "onboarding/create-customer"
-            },
-            {
-              "action": "Retake photo",
-              "to": "license-scan/scan-back"
-            }
-          ],
-          "notes": "The scanner refuses any image that is not a training prop — there is no code path that reads a real ID.",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [
-              " sample training license 151x20"
-            ],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 1305
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
           "step": 5,
-          "key": "scan-possible-match",
-          "screen": "Potential match found (prop 1)",
-          "screenshot": "current/03-license-scan/05-scan-possible-match.png",
+          "key": "scan-reading",
+          "screen": "Checking the license",
+          "screenshot": "current/03-license-scan/05-scan-reading.png",
           "hash": "#/customers",
-          "action": "Tap 'Yes — link to that record'",
-          "next": "scan-verify-existing",
-          "branches": [
-            {
-              "action": "'No — create a new customer'",
-              "to": "license-scan/scan-verify-new"
-            }
-          ],
-          "notes": "Prop 1 is John Smith; the seed CRM has a John Smith without a DOB on file, so the app asks rather than assuming.",
+          "action": "Barcode not recognised",
+          "next": "scan-not-recognized",
+          "branches": [],
+          "notes": "Spinner plus a checklist that claims only what is true: front captured, barcode captured, checking CRM records (the match cascade).",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -602,14 +587,23 @@
         },
         {
           "step": 6,
-          "key": "scan-verify-existing",
-          "screen": "Verify — existing customer found",
-          "screenshot": "current/03-license-scan/06-scan-verify-existing.png",
+          "key": "scan-not-recognized",
+          "screen": "Not recognized",
+          "screenshot": "current/03-license-scan/06-scan-not-recognized.png",
           "hash": "#/customers",
-          "action": "Tap Update Customer →",
-          "next": "discovery/question-1",
-          "branches": [],
-          "notes": "Fields prefilled from the prop; saving updates the record and starts the visit.",
+          "action": "Tap Retake photo / Enter manually",
+          "next": "scan-possible-match",
+          "branches": [
+            {
+              "action": "Enter manually",
+              "to": "onboarding/create-customer"
+            },
+            {
+              "action": "Retake photo",
+              "to": "license-scan/scan-back"
+            }
+          ],
+          "notes": "One idea per line: the demo limit, then the capture fix. No cause diagnosis — the recognizer finds a prop marker or refuses; there is no code path that reads a real ID.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -630,14 +624,19 @@
         },
         {
           "step": 7,
-          "key": "scan-verify-new",
-          "screen": "Verify — new customer (prop 3)",
-          "screenshot": "current/03-license-scan/07-scan-verify-new.png",
+          "key": "scan-possible-match",
+          "screen": "Possible match (prop 1)",
+          "screenshot": "current/03-license-scan/07-scan-possible-match.png",
           "hash": "#/customers",
-          "action": "Type a phone already on file, tap Create Customer →",
-          "next": "scan-phone-conflict",
-          "branches": [],
-          "notes": "Prop 3 (Marcus Alvarez) is not in the CRM: a new-customer banner and an estimated credit score field.",
+          "action": "Tap 'Yes, use this customer'",
+          "next": "scan-verify-existing",
+          "branches": [
+            {
+              "action": "'No, create a new customer'",
+              "to": "license-scan/scan-verify-new"
+            }
+          ],
+          "notes": "Two evidence cards — the on-file record (computed 'Customer since • visits', absent values as —) against the scanned licence. The badge states the real match basis (NAME MATCH), never an invented confidence score.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -658,14 +657,98 @@
         },
         {
           "step": 8,
-          "key": "scan-phone-conflict",
-          "screen": "Phone number already on file",
-          "screenshot": "current/03-license-scan/08-scan-phone-conflict.png",
+          "key": "scan-verify-existing",
+          "screen": "Customer confirmed — changed fields",
+          "screenshot": "current/03-license-scan/08-scan-verify-existing.png",
           "hash": "#/customers",
-          "action": "Link to that record / Keep as new",
+          "action": "Tap Update & Continue",
+          "next": "scan-complete",
+          "branches": [],
+          "notes": "Summary-first (decision 11 reversed by the owner): each changed field as an open input with its previous value beneath, the rest in an Already-on-file card, 'n fields will be updated' by the pinned action.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1305
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 9,
+          "key": "scan-complete",
+          "screen": "Complete — customer is ready",
+          "screenshot": "current/03-license-scan/09-scan-complete.png",
+          "hash": "#/customers",
+          "action": "Tap Continue to the Visit",
           "next": "discovery/question-1",
           "branches": [],
-          "notes": "Duplicate guard: the typed phone belongs to John Smith.",
+          "notes": "A real completion screen, not a toast: what happened, the person card, one CTA that names the next step.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1305
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 10,
+          "key": "scan-verify-new",
+          "screen": "New customer — licence details ready (prop 3)",
+          "screenshot": "current/03-license-scan/10-scan-verify-new.png",
+          "hash": "#/customers",
+          "action": "Type a phone already on file, tap Create Customer",
+          "next": "scan-phone-conflict",
+          "branches": [],
+          "notes": "Read-first licence rows with per-row Edit (dates stay masked); the ask-the-guest card holds phone, email and estimated credit score — phone AND email both required.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1305
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 11,
+          "key": "scan-phone-conflict",
+          "screen": "Phone number conflict",
+          "screenshot": "current/03-license-scan/11-scan-phone-conflict.png",
+          "hash": "#/customers",
+          "action": "Link / keep as new / back — fix the number",
+          "next": "discovery/question-1",
+          "branches": [],
+          "notes": "The colliding number is named, each action states its consequence, and 'Back — fix the number' returns to the review with the phone field focused. Duplicate guard: the typed phone belongs to John Smith.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -695,8 +778,8 @@
         "from": "home/navigation-drawer",
         "action": "Training Licenses / Training Registrations"
       },
-      "capturedAt": "2026-08-23T23:16:22.954Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:12:38.311Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -804,15 +887,15 @@
         "from": "onboarding/find-customer",
         "action": "Start Visit → (creates the deal)"
       },
-      "capturedAt": "2026-08-23T23:16:29.366Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:12:44.471Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-4qm5e0q",
+          "hash": "#/discovery/d-pv8vl7d",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -857,7 +940,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-4qm5e0q",
+          "hash": "#/discovery/d-pv8vl7d",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -885,7 +968,7 @@
           "key": "question-last",
           "screen": "Discovery — last question",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-4qm5e0q",
+          "hash": "#/discovery/d-pv8vl7d",
           "action": "Tap Pick Vehicle →",
           "next": "vehicles/inventory",
           "branches": [],
@@ -919,15 +1002,15 @@
         "from": "discovery/question-last",
         "action": "Tap Pick Vehicle →"
       },
-      "capturedAt": "2026-08-23T23:16:36.812Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:12:51.587Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
           "screen": "Vehicle Search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-y0zel1h",
+          "hash": "#/vehicles/d-lx9rkom",
           "action": "Filter: Used",
           "next": "inventory-filtered",
           "branches": [],
@@ -963,7 +1046,7 @@
           "key": "inventory-filtered",
           "screen": "Inventory — filter applied",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-y0zel1h",
+          "hash": "#/vehicles/d-lx9rkom",
           "action": "Max price $1,000",
           "next": "inventory-no-match",
           "branches": [],
@@ -991,7 +1074,7 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-y0zel1h",
+          "hash": "#/vehicles/d-lx9rkom",
           "action": "Reset filters; tap Details",
           "next": "vehicle-details",
           "branches": [],
@@ -1019,7 +1102,7 @@
           "key": "vehicle-details",
           "screen": "Vehicle details",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-y0zel1h",
+          "hash": "#/vehicles/d-lx9rkom",
           "action": "Close; tap Your Journey ▾",
           "next": "your-journey-menu",
           "branches": [],
@@ -1047,7 +1130,7 @@
           "key": "your-journey-menu",
           "screen": "Your Journey menu",
           "screenshot": "current/06-vehicle-selection/05-your-journey-menu.png",
-          "hash": "#/vehicles/d-y0zel1h",
+          "hash": "#/vehicles/d-lx9rkom",
           "action": "Tap Test Drive",
           "next": "test-drive/authorization",
           "branches": [
@@ -1105,7 +1188,7 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-y0zel1h",
+          "hash": "#/vehicles/d-lx9rkom",
           "action": null,
           "next": null,
           "branches": [],
@@ -1175,8 +1258,8 @@
         "from": "vehicles/your-journey-menu",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-08-23T23:16:49.270Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:13:03.159Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -1254,11 +1337,11 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              " training license 84x29"
-            ],
+            "tinyTargets": [],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".scan-idcard__state NEW YORK <> .scan-idcard__demo TRAINING SAMPLE"
+            ]
           },
           "error": null,
           "size": {
@@ -1397,8 +1480,8 @@
         "from": "vehicles/your-journey-menu",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-08-23T23:16:57.821Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:13:11.058Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -1523,8 +1606,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-08-23T23:17:05.144Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:13:18.026Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -1712,8 +1795,8 @@
         "from": "desking/pencil-finance",
         "action": "Tap Continue →"
       },
-      "capturedAt": "2026-08-23T23:17:11.633Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:13:23.830Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -1819,8 +1902,8 @@
         "from": "agreement/agreement-signed",
         "action": "Continue → Credit Application"
       },
-      "capturedAt": "2026-08-23T23:17:16.631Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:13:28.651Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -1890,7 +1973,7 @@
           "size": {
             "width": 390,
             "height": 3200,
-            "pageHeight": 3833
+            "pageHeight": 3802
           },
           "scrollShot": null,
           "issues": []
@@ -1978,8 +2061,8 @@
         "from": "discovery/question-1",
         "action": "Tap 👤 Buyer in the crumbs"
       },
-      "capturedAt": "2026-08-23T23:17:25.280Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:13:36.521Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -2118,8 +2201,8 @@
         "from": "finance-menu/purchase-terms-presented",
         "action": "Tap Next →"
       },
-      "capturedAt": "2026-08-23T23:17:30.774Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:13:41.811Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -2205,13 +2288,13 @@
             "clipped": [],
             "overlaps": [
               "#hamburgerBtn.hamburger ☰ <>  Your manufacturer's comprehe",
+              "#hamburgerBtn.hamburger ☰ <>  Benefits:",
               ".rideprice Ride <>  Your manufacturer's comprehe",
-              ".price PRICE <>  Your manufacturer's comprehe",
-              ".chip DEMO <>  Your manufacturer's comprehe",
+              ".rideprice Ride <>  Benefits:",
+              ".price PRICE <>  Benefits:",
+              ".chip DEMO <>  Benefits:",
               "#appbarUser.user Welcome Ashley Collins Advis <>  Your manufacturer's comprehe",
-              ".seg__opt.on Advisor <>  Your manufacturer's comprehe",
-              ".seg__opt Team Lead <>  Your manufacturer's comprehe",
-              "#prevTile.btn.btn--ghost ← Prev <> .note.note--wt The 300% rulePresent every p"
+              "#appbarUser.user Welcome Ashley Collins Advis <>  Benefits:"
             ]
           },
           "error": null,
@@ -2281,8 +2364,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager Sign-Off"
       },
-      "capturedAt": "2026-08-23T23:17:36.978Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:13:47.433Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -2801,8 +2884,8 @@
         "from": "discovery/question-1",
         "action": "Tap 📁 Jacket in the crumbs"
       },
-      "capturedAt": "2026-08-23T23:18:03.555Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:14:12.378Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -3176,8 +3259,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Send Text Request"
       },
-      "capturedAt": "2026-08-23T23:18:20.545Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:14:27.802Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -3280,8 +3363,8 @@
         "from": "document-request/composer",
         "action": "Send Text Request"
       },
-      "capturedAt": "2026-08-23T23:18:27.902Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:14:34.641Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -3617,8 +3700,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap 📷 Snap All"
       },
-      "capturedAt": "2026-08-23T23:18:45.366Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:14:51.157Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -3755,8 +3838,8 @@
         "from": "deal-jacket/forms-and-jacket",
         "action": "Tap View on a received client document"
       },
-      "capturedAt": "2026-08-23T23:18:51.243Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:14:56.724Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,
@@ -3802,8 +3885,8 @@
         "from": "finance-menu/financial-contracts",
         "action": "Tap 🖨 Print Center"
       },
-      "capturedAt": "2026-08-23T23:18:55.046Z",
-      "appCommit": "da321ece41d7c8062c7b1ccc96ffdc1aad508f87",
+      "capturedAt": "2026-08-24T23:15:00.309Z",
+      "appCommit": "89f260a4e4360018e05ca1455215f4b10f09de53",
       "screens": [
         {
           "step": 1,

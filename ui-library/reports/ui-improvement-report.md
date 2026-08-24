@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Improvement Report
 
-Improvement view v001 · built on flow library v004 (app da321ec) · updated 2026-08-23
+Improvement view v001 · built on flow library v005 (app 89f260a) · updated 2026-08-23
 
 This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.
 
@@ -205,9 +205,9 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ## Scan Driver's License
 
-8 screens · reviewed 2026-08-23 · 14 recommendations
+11 screens · reviewed 2026-08-23 · 14 recommendations
 
-**Screens:** 01 Scan — front of licence · 02 Scan — back of licence · 03 Reading barcode… · 04 Not recognized · 05 Potential match found (prop 1) · 06 Verify — existing customer found · 07 Verify — new customer (prop 3) · 08 Phone number already on file
+**Screens:** 01 Intro — identity check · 02 Capture — front of licence · 03 Training-license help (in-journey peek) · 04 Capture — back of licence · 05 Checking the license · 06 Not recognized · 07 Possible match (prop 1) · 08 Customer confirmed — changed fields · 09 Complete — customer is ready · 10 New customer — licence details ready (prop 3) · 11 Phone number conflict
 
 **Documented issues before this review:** none
 
@@ -241,7 +241,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-008 — The training-license help links tear down the scan, and the demo guidance whispers
 
-- **Screen:** 01 Scan — front of licence (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 02 Scan — back of licence; Scan Driver's License · 04 Not recognized
+- **Screen:** 02 Capture — front of licence (`current/03-license-scan/02-scan-front.png`) — also on Scan Driver's License · 04 Capture — back of licence; Scan Driver's License · 06 Not recognized
 - **Type:** Newly Detected UI Issue · **Category:** interaction · **Severity:** Major · **Priority:** High · **Fix size:** small
 
 **A. Current Ride Price screen.** The 'training license' links in the hints (84×29 and 151×20 — under the small-target floor) navigate to #/props, and the hash change closes the scan dialog mid-flow (verified in openScanFlow) — help costs the user their captured front. Meanwhile the one sentence that prevents the most predictable failure ('Real IDs cannot be read — use a printed training license') is small muted text.
@@ -259,7 +259,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-009 — Where the scan journey lives: full screen, bottom sheets, or the current modal (owner question Q2)
 
-- **Screen:** 01 Scan — front of licence (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 05 Potential match found (prop 1); Scan Driver's License · 08 Phone number already on file
+- **Screen:** 02 Capture — front of licence (`current/03-license-scan/02-scan-front.png`) — also on Scan Driver's License · 07 Possible match (prop 1); Scan Driver's License · 11 Phone number conflict
 - **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Major · **Priority:** Medium · **Fix size:** major
 
 **A. Current Ride Price screen.** The centred modal carries the whole journey: capture, processing, refusal, matching, and the long verify forms. Short steps end high on the screen (the possible-match and phone-conflict buttons sit at y≈240–340), so the highest-stakes taps live at the top of a 844px viewport; the external draft reads the shell itself as too small for what the flow became.
@@ -277,7 +277,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-010 — Summary-first verify — both reviewers propose it; it reverses decision 11 (owner question Q1)
 
-- **Screen:** 07 Verify — new customer (prop 3) (`current/03-license-scan/07-scan-verify-new.png`) — also on Scan Driver's License · 06 Verify — existing customer found
+- **Screen:** 10 New customer — licence details ready (prop 3) (`current/03-license-scan/10-scan-verify-new.png`) — also on Scan Driver's License · 08 Customer confirmed — changed fields
 - **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Major · **Priority:** High · **Fix size:** medium
 
 **A. Current Ride Price screen.** The verify step renders every scanned value as a large editable input, so the screen says 'fill out a form' although the scan already did the work; the instruction says 'check every field, then ask the guest for their contact details', but the ask-the-guest fields sit below the fold behind seven license fields the advisor only needs to read.
@@ -296,7 +296,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-011 — The verify CTAs understate what they do — they also start the visit
 
-- **Screen:** 06 Verify — existing customer found (`current/03-license-scan/06-scan-verify-existing.png`) — also on Scan Driver's License · 07 Verify — new customer (prop 3)
+- **Screen:** 08 Customer confirmed — changed fields (`current/03-license-scan/08-scan-verify-existing.png`) — also on Scan Driver's License · 10 New customer — licence details ready (prop 3)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Minor · **Priority:** High · **Fix size:** small
 
 **A. Current Ride Price screen.** 'Update Customer →' and 'Create Customer →' also start the visit and land on Discovery, but only the manual path's dialog says so ('Save & Start Visit →'). The same outcome wears two names depending on the door the advisor came through.
@@ -313,7 +313,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-012 — The possible-match screen asks a high-stakes question with a one-line clue
 
-- **Screen:** 05 Potential match found (prop 1) (`current/03-license-scan/05-scan-possible-match.png`)
+- **Screen:** 07 Possible match (prop 1) (`current/03-license-scan/07-scan-possible-match.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Major · **Priority:** High · **Fix size:** small
 
 **A. Current Ride Price screen.** 'License reads: John Smith · DOB 1987-03-14 · T-0000101' is one 13px muted line — with the date in ISO against the app's own MM/DD/YYYY rule — and the on-file record is described only by name. The advisor decides link-vs-create without seeing what the CRM actually holds, and the external draft filed this as its top identity risk (recalibrated Critical → Major: the flow completes).
@@ -330,7 +330,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-013 — The phone-conflict screen hides the number it is warning about
 
-- **Screen:** 08 Phone number already on file (`current/03-license-scan/08-scan-phone-conflict.png`)
+- **Screen:** 11 Phone number conflict (`current/03-license-scan/11-scan-phone-conflict.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Major · **Priority:** High · **Fix size:** small
 
 **A. Current Ride Price screen.** 'That phone number is on file for John Smith.' — without showing the number, who the scanned person is, or what 'Link to that record' will actually do; and there is no way back to simply fix a mistyped digit, though a typo is the likeliest cause. (External draft filed Critical; recalibrated — the flow completes.)
@@ -347,7 +347,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-014 — The refusal explains four things in one small paragraph
 
-- **Screen:** 04 Not recognized (`current/03-license-scan/04-scan-not-recognized.png`)
+- **Screen:** 06 Not recognized (`current/03-license-scan/06-scan-not-recognized.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
 
 **A. Current Ride Price screen.** The not-recognized copy mixes the demo limitation, real-system behaviour, damaged-barcode advice and the manual fallback into one small block. The external draft wanted cause-specific diagnosis on top — killed: the recognizer cannot know why an image failed (it finds a prop marker or refuses; invariant 4) — but the copy structure critique stands.
@@ -364,7 +364,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-015 — The processing state sets no time expectation
 
-- **Screen:** 03 Reading barcode… (`current/03-license-scan/03-scan-reading.png`)
+- **Screen:** 05 Checking the license (`current/03-license-scan/05-scan-reading.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
 **A. Current Ride Price screen.** 'Reading barcode…' says what is happening but not how long it should take (about one second in the demo).
@@ -380,7 +380,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-016 — The dialog height jumps twice around the one-second spinner
 
-- **Screen:** 03 Reading barcode… (`current/03-license-scan/03-scan-reading.png`)
+- **Screen:** 05 Checking the license (`current/03-license-scan/05-scan-reading.png`)
 - **Type:** Newly Detected UI Issue · **Category:** visual · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
 **A. Current Ride Price screen.** The sheet collapses from ~470px to ~260px for the spinner and re-expands for the result — two height jumps in two seconds. The external draft additionally wanted the stepper to indicate the transition toward verify; the analysts keep '2 · Back' highlighted (processing belongs to the capture step) — the analysts' reading is recorded as the truer one.
@@ -396,7 +396,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-017 — The back step could show what the barcode side should look like
 
-- **Screen:** 02 Scan — back of licence (`current/03-license-scan/02-scan-back.png`)
+- **Screen:** 04 Capture — back of licence (`current/03-license-scan/04-scan-back.png`)
 - **Type:** Pattern Opportunity · **Category:** visual · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
 
 **A. Current Ride Price screen.** Step 2 says 'BACK — barcode side' in words, but the frame is the same empty dashed box as the front step; nothing shows where the wide strip sits or warns about glare — the two failure causes a paper prop actually has.
@@ -413,7 +413,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-018 — Small capture-step polish: the photo action as a visible button, the status attached, Retake labelled
 
-- **Screen:** 01 Scan — front of licence (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 02 Scan — back of licence
+- **Screen:** 02 Capture — front of licence (`current/03-license-scan/02-scan-front.png`) — also on Scan Driver's License · 04 Capture — back of licence
 - **Type:** Newly Detected UI Issue · **Category:** visual · **Severity:** Minor · **Priority:** Low · **Fix size:** small
 
 **A. Current Ride Price screen.** Three small things pull the same way: the primary photo action lives implicitly in the dashed frame while 'Upload a photo' looks like the only button; 'Front captured ✓' renders as a detached footer status; and retaking the front is a small text link after the thumbnail.
@@ -430,7 +430,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-019 — Closing mid-scan discards captured work silently
 
-- **Screen:** 06 Verify — existing customer found (`current/03-license-scan/06-scan-verify-existing.png`) — also on Scan Driver's License · 02 Scan — back of licence
+- **Screen:** 08 Customer confirmed — changed fields (`current/03-license-scan/08-scan-verify-existing.png`) — also on Scan Driver's License · 04 Capture — back of licence
 - **Type:** Newly Detected UI Issue · **Category:** interaction · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
 
 **A. Current Ride Price screen.** The X and Cancel close the whole journey at any step without saying the captured front/back and parsed data are gone; nothing distinguishes 'leave the scan' from 'go back a step'.
@@ -446,7 +446,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-020 — The step chips: strong orientation, at a vertical price — recorded disagreement
 
-- **Screen:** 01 Scan — front of licence (`current/03-license-scan/01-scan-front.png`)
+- **Screen:** 02 Capture — front of licence (`current/03-license-scan/02-scan-front.png`)
 - **Type:** Pattern Opportunity · **Category:** visual · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
 **A. Current Ride Price screen.** The external draft reads the three step pills as heavy (they look like segmented controls and spend scarce modal height); the session analysts praised the same chips as the flow's best orientation device. Recorded as a disagreement, not a defect.
@@ -462,7 +462,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-021 — Step 0 — the how-it-works intro with the advisor word track
 
-- **Screen:** 01 Scan — front of licence (`current/03-license-scan/01-scan-front.png`)
+- **Screen:** 01 Intro — identity check (`current/03-license-scan/01-scan-intro.png`)
 - **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Minor · **Priority:** High · **Fix size:** small
 
 **A. Current Ride Price screen.** The journey opened straight on the camera: nothing oriented the guest, nothing rehearsed the advisor's ask, and the honest demo constraint arrived as a footnote on the capture step.

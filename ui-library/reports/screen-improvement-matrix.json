@@ -427,10 +427,10 @@
           "id": "RP-IMP-008",
           "title": "The training-license help links tear down the scan, and the demo guidance whispers",
           "screenKey": "scan-front",
-          "screenshot": "current/03-license-scan/01-scan-front.png",
+          "screenshot": "current/03-license-scan/02-scan-front.png",
           "alsoOn": [
-            "current/03-license-scan/02-scan-back.png",
-            "current/03-license-scan/04-scan-not-recognized.png"
+            "current/03-license-scan/04-scan-back.png",
+            "current/03-license-scan/06-scan-not-recognized.png"
           ],
           "existingComment": null,
           "commentAssessment": null,
@@ -472,10 +472,10 @@
           "id": "RP-IMP-009",
           "title": "Where the scan journey lives: full screen, bottom sheets, or the current modal (owner question Q2)",
           "screenKey": "scan-front",
-          "screenshot": "current/03-license-scan/01-scan-front.png",
+          "screenshot": "current/03-license-scan/02-scan-front.png",
           "alsoOn": [
-            "current/03-license-scan/05-scan-possible-match.png",
-            "current/03-license-scan/08-scan-phone-conflict.png"
+            "current/03-license-scan/07-scan-possible-match.png",
+            "current/03-license-scan/11-scan-phone-conflict.png"
           ],
           "existingComment": null,
           "commentAssessment": null,
@@ -517,9 +517,9 @@
           "id": "RP-IMP-010",
           "title": "Summary-first verify — both reviewers propose it; it reverses decision 11 (owner question Q1)",
           "screenKey": "scan-verify-new",
-          "screenshot": "current/03-license-scan/07-scan-verify-new.png",
+          "screenshot": "current/03-license-scan/10-scan-verify-new.png",
           "alsoOn": [
-            "current/03-license-scan/06-scan-verify-existing.png"
+            "current/03-license-scan/08-scan-verify-existing.png"
           ],
           "existingComment": null,
           "commentAssessment": null,
@@ -566,9 +566,9 @@
           "id": "RP-IMP-011",
           "title": "The verify CTAs understate what they do — they also start the visit",
           "screenKey": "scan-verify-existing",
-          "screenshot": "current/03-license-scan/06-scan-verify-existing.png",
+          "screenshot": "current/03-license-scan/08-scan-verify-existing.png",
           "alsoOn": [
-            "current/03-license-scan/07-scan-verify-new.png"
+            "current/03-license-scan/10-scan-verify-new.png"
           ],
           "existingComment": null,
           "commentAssessment": null,
@@ -605,7 +605,7 @@
           "id": "RP-IMP-012",
           "title": "The possible-match screen asks a high-stakes question with a one-line clue",
           "screenKey": "scan-possible-match",
-          "screenshot": "current/03-license-scan/05-scan-possible-match.png",
+          "screenshot": "current/03-license-scan/07-scan-possible-match.png",
           "alsoOn": [],
           "existingComment": null,
           "commentAssessment": null,
@@ -642,7 +642,7 @@
           "id": "RP-IMP-013",
           "title": "The phone-conflict screen hides the number it is warning about",
           "screenKey": "scan-phone-conflict",
-          "screenshot": "current/03-license-scan/08-scan-phone-conflict.png",
+          "screenshot": "current/03-license-scan/11-scan-phone-conflict.png",
           "alsoOn": [],
           "existingComment": null,
           "commentAssessment": null,
@@ -679,7 +679,7 @@
           "id": "RP-IMP-014",
           "title": "The refusal explains four things in one small paragraph",
           "screenKey": "scan-not-recognized",
-          "screenshot": "current/03-license-scan/04-scan-not-recognized.png",
+          "screenshot": "current/03-license-scan/06-scan-not-recognized.png",
           "alsoOn": [],
           "existingComment": null,
           "commentAssessment": null,
@@ -716,7 +716,7 @@
           "id": "RP-IMP-015",
           "title": "The processing state sets no time expectation",
           "screenKey": "scan-reading",
-          "screenshot": "current/03-license-scan/03-scan-reading.png",
+          "screenshot": "current/03-license-scan/05-scan-reading.png",
           "alsoOn": [],
           "existingComment": null,
           "commentAssessment": null,
@@ -748,7 +748,7 @@
           "id": "RP-IMP-016",
           "title": "The dialog height jumps twice around the one-second spinner",
           "screenKey": "scan-reading",
-          "screenshot": "current/03-license-scan/03-scan-reading.png",
+          "screenshot": "current/03-license-scan/05-scan-reading.png",
           "alsoOn": [],
           "existingComment": null,
           "commentAssessment": null,
@@ -780,7 +780,7 @@
           "id": "RP-IMP-017",
           "title": "The back step could show what the barcode side should look like",
           "screenKey": "scan-back",
-          "screenshot": "current/03-license-scan/02-scan-back.png",
+          "screenshot": "current/03-license-scan/04-scan-back.png",
           "alsoOn": [],
           "existingComment": null,
           "commentAssessment": null,
@@ -817,9 +817,9 @@
           "id": "RP-IMP-018",
           "title": "Small capture-step polish: the photo action as a visible button, the status attached, Retake labelled",
           "screenKey": "scan-front",
-          "screenshot": "current/03-license-scan/01-scan-front.png",
+          "screenshot": "current/03-license-scan/02-scan-front.png",
           "alsoOn": [
-            "current/03-license-scan/02-scan-back.png"
+            "current/03-license-scan/04-scan-back.png"
           ],
           "existingComment": null,
           "commentAssessment": null,
@@ -856,9 +856,9 @@
           "id": "RP-IMP-019",
           "title": "Closing mid-scan discards captured work silently",
           "screenKey": "scan-verify-existing",
-          "screenshot": "current/03-license-scan/06-scan-verify-existing.png",
+          "screenshot": "current/03-license-scan/08-scan-verify-existing.png",
           "alsoOn": [
-            "current/03-license-scan/02-scan-back.png"
+            "current/03-license-scan/04-scan-back.png"
           ],
           "existingComment": null,
           "commentAssessment": null,
@@ -890,7 +890,7 @@
           "id": "RP-IMP-020",
           "title": "The step chips: strong orientation, at a vertical price — recorded disagreement",
           "screenKey": "scan-front",
-          "screenshot": "current/03-license-scan/01-scan-front.png",
+          "screenshot": "current/03-license-scan/02-scan-front.png",
           "alsoOn": [],
           "existingComment": null,
           "commentAssessment": null,
@@ -921,8 +921,8 @@
         {
           "id": "RP-IMP-021",
           "title": "Step 0 — the how-it-works intro with the advisor word track",
-          "screenKey": "scan-front",
-          "screenshot": "current/03-license-scan/01-scan-front.png",
+          "screenKey": "scan-intro",
+          "screenshot": "current/03-license-scan/01-scan-intro.png",
           "alsoOn": [],
           "existingComment": null,
           "commentAssessment": null,
@@ -1272,7 +1272,7 @@
       "'Done' as a first-class filter and 'Next ·' on the card — two small changes that make the home screen answer a manager's and an advisor's first questions without a tap."
     ],
     "whereToStart": [
-      "Scan Driver's License is REVIEWED (area 2 of 20 in review order) via the first external-draft intake: 13 recommendations, two owner questions (Q1 summary-first verify vs decision 11; Q2 the scanner's shell), four external items killed on invariants/decisions — see the area's intake record.",
+      "Scan Driver's License is REVIEWED (area 2 of 20 in review order) via the first external-draft intake: 14 recommendations, two owner questions answered (Q1 summary-first verify vs decision 11; Q2 the scanner's shell), four external items killed on invariants/decisions — see the area's intake record.",
       "Build order once the owner answers: RP-IMP-012 + 013 (the identity screens), RP-IMP-008 (the tear-down bug + guidance), RP-IMP-011 (CTA outcomes), then the Q1/Q2-dependent work.",
       "Still open from Home: where + New Customer Visit lives on phones (RP-IMP-001); the Team Lead Archived row's touch target (RP-UI-017)."
     ]
