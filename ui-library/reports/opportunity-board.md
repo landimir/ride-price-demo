@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Opportunity Board
 
-Updated 2026-08-23 · 1 of 20 product areas reviewed · 7 recommendations so far. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.
+Updated 2026-08-23 · 2 of 20 product areas reviewed · 20 recommendations so far. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.
 
 ## Top opportunities (by priority, then severity, then how widely they repeat)
 
@@ -8,16 +8,20 @@ Updated 2026-08-23 · 1 of 20 product areas reviewed · 7 recommendations so far
 |---|---|---|---|---|---|---|
 | 1 | RP-IMP-001 | Home — Deals Queue & Navigation | The only forward action sits in the hardest thumb zone while 60% of the screen is empty | High | Major | medium |
 | 2 | RP-IMP-007 | Home — Deals Queue & Navigation | Role-aware queue: same four identifiers for everyone, dense rows for the Team Lead, a Next line for the advisor | High | Major | medium |
-| 3 | RP-IMP-002 | Home — Deals Queue & Navigation | Finished deals hide behind a 20px grey caption | High | Minor | small |
-| 4 | RP-IMP-003 | Home — Deals Queue & Navigation | The card does not say what comes next, and the search-field camera promises the wrong scan | Medium | Minor | small |
-| 5 | RP-IMP-004 | Home — Deals Queue & Navigation | The drawer spends the brand gradient on a selected state | Low | Minor | small |
-| 6 | RP-IMP-006 | Home — Deals Queue & Navigation | No login by design — keep the 'who am I' cue consistent | Low | Observation | small |
-| 7 | RP-IMP-005 | Home — Deals Queue & Navigation | A filter with no matches contradicts the title and offers no way back | Low | Observation | small |
+| 3 | RP-IMP-008 | Scan Driver's License | The training-license help links tear down the scan, and the demo guidance whispers | High | Major | small |
+| 4 | RP-IMP-010 | Scan Driver's License | Summary-first verify — both reviewers propose it; it reverses decision 11 (owner question Q1) | High | Major | medium |
+| 5 | RP-IMP-012 | Scan Driver's License | The possible-match screen asks a high-stakes question with a one-line clue | High | Major | small |
+| 6 | RP-IMP-013 | Scan Driver's License | The phone-conflict screen hides the number it is warning about | High | Major | small |
+| 7 | RP-IMP-011 | Scan Driver's License | The verify CTAs understate what they do — they also start the visit | High | Minor | small |
+| 8 | RP-IMP-002 | Home — Deals Queue & Navigation | Finished deals hide behind a 20px grey caption | High | Minor | small |
+| 9 | RP-IMP-009 | Scan Driver's License | Where the scan journey lives: full screen, bottom sheets, or the current modal (owner question Q2) | Medium | Major | major |
+| 10 | RP-IMP-003 | Home — Deals Queue & Navigation | The card does not say what comes next, and the search-field camera promises the wrong scan | Medium | Minor | small |
 
 ## Which areas need the most attention
 
 | Area | Recommendations | High priority |
 |---|---|---|
+| Scan Driver's License | 13 | 5 |
 | Home — Deals Queue & Navigation | 7 | 3 |
 
 ## Issues that repeat across screens
@@ -27,6 +31,12 @@ Updated 2026-08-23 · 1 of 20 product areas reviewed · 7 recommendations so far
 - **RP-IMP-004** — The drawer spends the brand gradient on a selected state — on 2 screens (Home — Deals Queue & Navigation)
 - **RP-IMP-006** — No login by design — keep the 'who am I' cue consistent — on 2 screens (Home — Deals Queue & Navigation)
 - **RP-IMP-007** — Role-aware queue: same four identifiers for everyone, dense rows for the Team Lead, a Next line for the advisor — on 3 screens (Home — Deals Queue & Navigation)
+- **RP-IMP-008** — The training-license help links tear down the scan, and the demo guidance whispers — on 3 screens (Scan Driver's License)
+- **RP-IMP-009** — Where the scan journey lives: full screen, bottom sheets, or the current modal (owner question Q2) — on 3 screens (Scan Driver's License)
+- **RP-IMP-010** — Summary-first verify — both reviewers propose it; it reverses decision 11 (owner question Q1) — on 2 screens (Scan Driver's License)
+- **RP-IMP-011** — The verify CTAs understate what they do — they also start the visit — on 2 screens (Scan Driver's License)
+- **RP-IMP-018** — Small capture-step polish: the photo action as a visible button, the status attached, Retake labelled — on 2 screens (Scan Driver's License)
+- **RP-IMP-019** — Closing mid-scan discards captured work silently — on 2 screens (Scan Driver's License)
 
 ## Biggest overall gains
 
@@ -36,6 +46,6 @@ Updated 2026-08-23 · 1 of 20 product areas reviewed · 7 recommendations so far
 
 ## Where to start
 
-1. Home is BUILT (2026-08-23): advisor guided rows + Team Lead original queue, on branch ui-improvement-system.
-2. Next area: Customer Onboarding — Find a Customer.
-3. Still open from Home: RP-IMP-001 (where + New Customer Visit lives on phones) and the Archived row's 20px touch target for the Team Lead (RP-UI-017 minimum fix).
+1. Scan Driver's License is REVIEWED (area 2 of 20 in review order) via the first external-draft intake: 13 recommendations, two owner questions (Q1 summary-first verify vs decision 11; Q2 the scanner's shell), four external items killed on invariants/decisions — see the area's intake record.
+2. Build order once the owner answers: RP-IMP-012 + 013 (the identity screens), RP-IMP-008 (the tear-down bug + guidance), RP-IMP-011 (CTA outcomes), then the Q1/Q2-dependent work.
+3. Still open from Home: where + New Customer Visit lives on phones (RP-IMP-001); the Team Lead Archived row's touch target (RP-UI-017).

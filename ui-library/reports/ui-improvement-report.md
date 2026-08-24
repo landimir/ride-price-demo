@@ -4,21 +4,21 @@ Improvement view v001 · built on flow library v004 (app da321ec) · updated 202
 
 This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.
 
-**Areas are reviewed one at a time.** 1 of 20 so far; the rest are listed at the end in the order they will be taken.
+**Areas are reviewed one at a time.** 2 of 20 so far; the rest are listed at the end in the order they will be taken.
 
 | | Count |
 |---|---|
-| Recommendations | 7 |
+| Recommendations | 20 |
 | Existing Comment Expanded | 2 |
-| Newly Detected UI Issue | 3 |
-| Pattern Opportunity | 2 |
-| High priority | 3 |
-| Medium priority | 1 |
-| Low priority | 3 |
+| Newly Detected UI Issue | 12 |
+| Pattern Opportunity | 6 |
+| High priority | 8 |
+| Medium priority | 5 |
+| Low priority | 7 |
 | Severity Critical | 0 |
-| Severity Major | 2 |
-| Severity Minor | 3 |
-| Severity Observation | 2 |
+| Severity Major | 7 |
+| Severity Minor | 8 |
+| Severity Observation | 5 |
 
 Finding types: **Existing Comment Expanded** — the library already flagged it and this deepens it · **Newly Detected UI Issue** — found by looking at the screenshot · **Pattern Opportunity** — nothing is broken, a better structure exists. Severity keeps the audit's scale; priority is the order to fix in, and a Minor that repeats across screens can be High.
 
@@ -203,24 +203,277 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 *Implementation note:* route('deals') card template and paint() (the 'mine' filter at app.js ~526 already splits the roles); .dl-card / .dl-pills in portal.css; dealNextAction() for the advisor line; the five-way bucket needs a stage→bucket map beside dealBucket().
 
+## Scan Driver's License
+
+8 screens · reviewed 2026-08-23 · 13 recommendations
+
+**Screens:** 01 Scan — front of licence · 02 Scan — back of licence · 03 Reading barcode… · 04 Not recognized · 05 Potential match found (prop 1) · 06 Verify — existing customer found · 07 Verify — new customer (prop 3) · 08 Phone number already on file
+
+**Documented issues before this review:** none
+
+### Owner direction — Intake of the external draft (owner's new working method, 2026-08-23)
+
+First run of the best-of-both loop: the owner exported this flow's ZIP from the library, an outside AI produced a 25-recommendation package in the system's format, and this area is the verified merge of that draft with the session analysts' independent findings. Every Mobbin link in the package was checked (all 14 resolve; a fabricated control 404s). Severities were recalibrated to the audit scale, collisions with the decision record were killed or turned into explicit owner questions, and each keeper is anchored in the code.
+
+**Principles:**
+1. External packages are drafts, not decisions: anything that contradicts a recorded decision or invariant is surfaced to the owner with the recorded reason — never silently adopted, never silently dropped.
+2. References must resolve and lessons must be pattern-level; the adaptation is always re-expressed in Ride Price's own components and rules.
+3. Where the two reviewers disagree, the disagreement is recorded on the recommendation instead of being averaged away.
+
+**Open choices before building:**
+- Q1 — Summary-first verify (RP-IMP-010): both the external draft and the session analysts independently propose replacing the fully-editable verify form with a read-first summary ('From the license' card, old → new markers on changed fields, per-field Edit). This REVERSES decision 11 (2026-08-11: review-and-confirm, fully editable — the ritual is the checkpoint). It cannot be adopted without the owner explicitly reversing that decision.
+- Q2 — The scanner's shell (RP-IMP-009): the external draft wants the whole journey out of the modal into a full-screen flow (its strongest structural idea; large change touching the shared modal() contract hardened in PR #42); the session analysts propose the smaller move — short dialogs anchor as bottom sheets so the buttons land in the thumb zone, tall verify steps stay as they are. Or leave the shell untouched. Owner's pick.
+
+**Superseded during the build:**
+
+**Decided:**
+
+**What already works:** The staged ritual reads clearly: the three-step chips (1 · Front, 2 · Back, 3 · Verify) with green-done / navy-current states say exactly where the user is, the instruction names the side in caps, the capture frame is itself the control with 'Upload a photo' as an honest fallback, and the refusal screen teaches instead of scolding. The hint is straight about the demo ('Real IDs cannot be read'). The match cascade surfaces ambiguity instead of guessing — the possible-match and phone-conflict interstitials exist precisely so the app never links records silently. Both the external draft and the session analysts called this a strong foundation.
+
+**Strongest recommendations:**
+1. Make the match and conflict screens evidence-rich: show the scanned facts against the on-file record as one comparison (dates in MM/DD/YYYY), name the colliding phone number, and offer 'Back — fix the number' — the identity decisions are the highest-stakes taps in the flow and currently carry the least context.
+2. Say what the button does: 'Save & Start Visit →' / 'Create & Start Visit →' — the verify CTAs also start the visit, and the manual path already says so.
+3. Fix the real bug both reviewers circled from different angles: the 'training license' help links tear down the scan mid-flow (hash navigation closes the dialog); an in-dialog prop peek keeps the flow alive and makes the training guidance prominent without inventing a 'Training Mode'.
+4. Decide the two structural questions recorded below: summary-first verify (it reverses your 2026-08-11 fully-editable decision — both reviewers independently proposed it) and the dialog shell (full-screen journey vs bottom-sheet short dialogs vs as-is).
+
+### RP-IMP-008 — The training-license help links tear down the scan, and the demo guidance whispers
+
+- **Screen:** 01 Scan — front of licence (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 02 Scan — back of licence; Scan Driver's License · 04 Not recognized
+- **Type:** Newly Detected UI Issue · **Category:** interaction · **Severity:** Major · **Priority:** High · **Fix size:** small
+
+**A. Current Ride Price screen.** The 'training license' links in the hints (84×29 and 151×20 — under the small-target floor) navigate to #/props, and the hash change closes the scan dialog mid-flow (verified in openScanFlow) — help costs the user their captured front. Meanwhile the one sentence that prevents the most predictable failure ('Real IDs cannot be read — use a printed training license') is small muted text.
+
+**B. Why it is a problem.** A trainee who taps 'what licenses?' loses the scan and starts over; a trainee who misses the hint scans a real ID and meets a refusal they could have been spared. The most useful guidance in the flow is the least visible thing on it.
+
+**C. Mobbin reference direction — ID capture with prominent accepted-document guidance and in-context help.** Capture flows keep guidance inside the journey: N26 shows a 'get your document ready' sheet with make-sure bullets before the camera; Wise names the side and what must be visible; State Farm keeps 'Enter ID details manually' as a full-width in-flow fallback. None of them navigate away from the capture to explain it.
+- [N26](https://mobbin.com/screens/43382779-a524-44ae-a418-b6bf7eb93cf0) — 'Get your document ready' — make-sure bullets in a sheet before the camera, inside the flow
+- [Wise](https://mobbin.com/screens/1aa66a67-7fdf-4bcc-9ded-0a1ddbb826f0) — The side named, the requirement stated, nothing leaves the journey
+- [State Farm](https://mobbin.com/screens/f99f346c-71a7-4828-838d-75bec29d1fd9) — Manual entry as an in-flow, full-width fallback
+
+**D. Ride Price adaptation.** Keep the dialog, stepper, capture frame and hint copy. Promote the demo line to one bold ink sentence under the instruction ('Demo — only the 5 printed training licenses can be read'), and replace the tear-down links with a ≥40px ghost button 'See a training license' that opens an in-dialog peek (one prop's front and back thumbnails, Close returns to the step with the captured front intact). No 'Training Mode' concept — decision 5 stands; this is visibility, not a mode. **Stays:** The dialog ritual, the stepper, the frame-as-control, the Upload fallback, the neutral refusal voice, decision 5 (no mode).
+
+*Implementation note:* openScanFlow() in app.js (the hashchange teardown and the hint markup on steps 1/2 and the refusal); the peek reuses the modal body swap, not a second modal.
+
+### RP-IMP-009 — Where the scan journey lives: full screen, bottom sheets, or the current modal (owner question Q2)
+
+- **Screen:** 01 Scan — front of licence (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 05 Potential match found (prop 1); Scan Driver's License · 08 Phone number already on file
+- **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Major · **Priority:** Medium · **Fix size:** major
+
+**A. Current Ride Price screen.** The centred modal carries the whole journey: capture, processing, refusal, matching, and the long verify forms. Short steps end high on the screen (the possible-match and phone-conflict buttons sit at y≈240–340), so the highest-stakes taps live at the top of a 844px viewport; the external draft reads the shell itself as too small for what the flow became.
+
+**B. Why it is a problem.** One-handed use puts the decision buttons in the hardest reach zone on exactly the screens where a wrong tap links or forks a customer record; and a shell that keeps changing height reads as jumpy.
+
+**C. Mobbin reference direction — focused identity-scan journey owning the mobile screen.** The identity flows reviewed (DoorDash Dasher, Turo, Chime, State Farm) treat ID capture as a task that owns the screen: lightweight progress up top, one task per screen, fallbacks secondary. The external draft's lesson is the full-screen journey; the session analysts' smaller lesson is that short decision dialogs should anchor to the bottom edge so the buttons land in the thumb zone.
+- [Turo](https://mobbin.com/flows/ae6568f6-f71e-4a64-a158-eb80d867d9ce) — Scanning a driver's license as a focused full-screen flow
+- [DoorDash Dasher](https://mobbin.com/flows/cfb0e2cd-ecb5-42f1-bca1-c41d7a454ec9) — Identity verification journey — one task per screen, light progress
+- [Chime](https://mobbin.com/flows/9d0a1507-23f6-4dce-8beb-785ebcc3cdff) — Verify-identity flow with capture, coaching and review as siblings
+
+**D. Ride Price adaptation.** Owner's pick, recorded as Q2: (a) full-screen scan route — the external draft's direction, the largest change, touches the shared modal()/setModalFoot contract hardened in PR #42; (b) the analysts' middle path — short dialogs (possible match, phone conflict, refusal) anchor as bottom sheets so their buttons land at y≈700–800, tall verify steps unchanged, one CSS-level change to the shared dialog; or (c) leave the shell as is and take only the content fixes. The area's other recommendations work under any of the three. **Stays:** The staged ritual (front → back → verify), the stepper, every invariant; under (b) the dialog component and its pinned-footer behaviour.
+
+*Implementation note:* (a) a new route + chrome; (b) .modal placement variant at ≤720px in portal.css (the backdrop flex alignment), no handler changes; (c) nothing.
+
+### RP-IMP-010 — Summary-first verify — both reviewers propose it; it reverses decision 11 (owner question Q1)
+
+- **Screen:** 07 Verify — new customer (prop 3) (`current/03-license-scan/07-scan-verify-new.png`) — also on Scan Driver's License · 06 Verify — existing customer found
+- **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Major · **Priority:** High · **Fix size:** medium
+
+**A. Current Ride Price screen.** The verify step renders every scanned value as a large editable input, so the screen says 'fill out a form' although the scan already did the work; the instruction says 'check every field, then ask the guest for their contact details', but the ask-the-guest fields sit below the fold behind seven license fields the advisor only needs to read.
+
+**B. Why it is a problem.** The advisor's real tasks are two: confirm what the license said, and collect what it could not say. A wall of inputs makes the fast path feel slow, buries the only fields that need typing, and hides which values changed on an existing customer.
+
+**C. Mobbin reference direction — summary-first review of extracted data with per-field edit.** Review screens for extracted data show values as read-first rows with an explicit Edit affordance and group them logically: Cash App's confirm screen (rows + Edit), Stake's about-you review, Kit's grouped identity/address cards, Greenlight's confirm-your-information card. Editing is one tap away but not the default posture.
+- [Cash App](https://mobbin.com/screens/5b7cf0d7-41d9-4290-ad82-62bbd2f744ba) — Confirm information — compact summary rows with per-item Edit
+- [Stake](https://mobbin.com/screens/04d0d056-6ab7-404b-bc57-3a022a3cb6ce) — Review extracted personal details with edit affordances
+- [Kit](https://mobbin.com/screens/43319bae-45cf-48bf-a583-f5caf25aeeeb) — Grouped identity / address review cards with edit icons
+- [Greenlight](https://mobbin.com/screens/2ab995a3-438e-4e02-b68b-1aa1af233715) — 'Confirm your information' summary card with one Edit path
+
+**D. Ride Price adaptation.** DECISION REQUIRED — this reverses decision 11 (2026-08-11: the verify screen is review-and-confirm, FULLY editable; the ritual is the teaching checkpoint). The proposal both reviewers reached independently: step 3 becomes a read-first 'From the license' card (name, DOB, licence, state, expires, address — ink, two columns), an existing customer's changed fields marked 'old → new', a ghost Edit expanding any group back to inputs, and the ask-the-guest contact fields (email, phone) as the only open inputs, above the pinned footer. If the owner keeps decision 11, the surviving slice is: group the form into 'From the license' / 'Ask the guest' sections with the contact fields first, and mark changed values — fully editable throughout. **Stays:** Scans always parse clean (no fake-error theater); the pinned footer; markMissing/customerMissing on save; the match-outcome banner.
+
+*Implementation note:* The verify-step body in openScanFlow() (shared with the credit app's marking helpers — flagged as shared-code); grouping is markup inside the existing modal body.
+
+### RP-IMP-011 — The verify CTAs understate what they do — they also start the visit
+
+- **Screen:** 06 Verify — existing customer found (`current/03-license-scan/06-scan-verify-existing.png`) — also on Scan Driver's License · 07 Verify — new customer (prop 3)
+- **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Minor · **Priority:** High · **Fix size:** small
+
+**A. Current Ride Price screen.** 'Update Customer →' and 'Create Customer →' also start the visit and land on Discovery, but only the manual path's dialog says so ('Save & Start Visit →'). The same outcome wears two names depending on the door the advisor came through.
+
+**B. Why it is a problem.** A button that does more than it says costs trust the first time it surprises; and the inconsistency with the manual path makes the app feel like two apps.
+
+**C. Mobbin reference direction — CTAs that state the real outcome.** Confirmation CTAs across the reviewed flows name the whole outcome, not the database verb — 'Agree and reserve', 'Confirm updates', 'Activate your plan'. The winning pattern is the outcome the user cares about, with a quiet line above it summarising the side effect ('3 fields will be updated').
+- [Cash App](https://mobbin.com/screens/42e423db-c08c-449c-98b6-178c52d5ac69) — The CTA names the produced outcome (Create form), edits stay per-row
+- [Beli](https://mobbin.com/screens/d4de8ae9-dde3-4f42-bc98-ea19f3a1216b) — 'Agree and reserve' — one CTA carrying both effects by name
+
+**D. Ride Price adaptation.** Label both verify CTAs with the outcome — 'Save & Start Visit →' (existing) and 'Create & Start Visit →' (new) — matching the Create Customer dialog word for word; on an existing customer add the quiet caption above the footer: 'n fields will be updated from the license.' Navy filled stays the modal confirm. **Stays:** Button roles and colours; the pinned footer; the navigation target (Discovery).
+
+*Implementation note:* setModalFoot markup for the two verify steps in openScanFlow(); the caption derives from the same diff RP-IMP-010 computes.
+
+### RP-IMP-012 — The possible-match screen asks a high-stakes question with a one-line clue
+
+- **Screen:** 05 Potential match found (prop 1) (`current/03-license-scan/05-scan-possible-match.png`)
+- **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Major · **Priority:** High · **Fix size:** small
+
+**A. Current Ride Price screen.** 'License reads: John Smith · DOB 1987-03-14 · T-0000101' is one 13px muted line — with the date in ISO against the app's own MM/DD/YYYY rule — and the on-file record is described only by name. The advisor decides link-vs-create without seeing what the CRM actually holds, and the external draft filed this as its top identity risk (recalibrated Critical → Major: the flow completes).
+
+**B. Why it is a problem.** Linking the wrong record contaminates a customer file; creating a duplicate splits one. This is the most consequential tap in the flow and it currently carries less context than a deal card.
+
+**C. Mobbin reference direction — duplicate-account decision with identity evidence ('Is this you?').** Duplicate-account prompts show the evidence as one decision object: Uber's 'Is this you?' presents the matched account's identifying facts with confirm/deny as the only actions; LINE confirms a known account by showing what it knows. The pattern is a comparison the user can actually judge, not an assertion to trust.
+- [Uber](https://mobbin.com/screens/e29b477a-32d4-4615-96d7-1d27213b54f2) — Existing-account match — the evidence and the decision as one object
+- [LINE](https://mobbin.com/screens/22683c13-9c12-47e4-9c20-8b3a44f665ee) — Known-account match — simple identity confirmation with the known facts shown
+
+**D. Ride Price adaptation.** Keep the crimson banner and the two-choice cascade (decision 8: both outcomes stay one tap away). Replace the muted line with an ink two-column comparison card — 'License: John Smith · DOB 03/14/1987 · T-0000101' against 'On file: John Smith · Astoria, NY · DOB —' (absent values shown as —, never invented; dates in MM/DD/YYYY per the app rule). 'Yes — use this record' stays navy primary; 'No — create a new customer' becomes ghost with a one-line caution ('creates a second John Smith'). **Stays:** The cascade order and both outcomes (decision 8); the banner; the neutral voice; tri-state honesty for absent fields.
+
+*Implementation note:* The possible-match step markup in openScanFlow(); the on-file column reads the matched customer record; dateUS() for the DOB.
+
+### RP-IMP-013 — The phone-conflict screen hides the number it is warning about
+
+- **Screen:** 08 Phone number already on file (`current/03-license-scan/08-scan-phone-conflict.png`)
+- **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Major · **Priority:** High · **Fix size:** small
+
+**A. Current Ride Price screen.** 'That phone number is on file for John Smith.' — without showing the number, who the scanned person is, or what 'Link to that record' will actually do; and there is no way back to simply fix a mistyped digit, though a typo is the likeliest cause. (External draft filed Critical; recalibrated — the flow completes.)
+
+**B. Why it is a problem.** The advisor must choose between linking two people and forking a record, blind to the one fact in question. The cheapest correct outcome — fix the number — is not on the screen at all.
+
+**C. Mobbin reference direction — conflict resolution showing the evidence and the consequence of each action.** The reviewed conflict and failure screens win by naming the thing and the consequence: Chase UK's scan failure explains and offers the recovery most likely to fix it; Uber's match screen shows the colliding identity before asking. The lesson: evidence, consequence, and the fix-it path on one card.
+- [Uber](https://mobbin.com/screens/e29b477a-32d4-4615-96d7-1d27213b54f2) — The colliding account shown before the decision
+- [Chase UK](https://mobbin.com/screens/36260299-2210-4fe6-8f64-83b025e12e25) — Failure explained + the recovery action most likely to fix the diagnosed problem
+
+**D. Ride Price adaptation.** Show the evidence in the banner — '(718) 555-0134 is on file for John Smith' — and under it one line per action saying its consequence ('Link: this scan updates John Smith's record' / 'Keep as new: two customers will share this number'). Add a third quiet ghost action 'Back — fix the number' returning to the verify form with the phone field focused. Buttons keep their roles; the crimson banner stays. **Stays:** The guard itself, both original outcomes, the banner, the neutral voice.
+
+*Implementation note:* The phone-conflict step in openScanFlow(); 'Back' re-renders the verify step with state intact (the captured data is already in route state).
+
+### RP-IMP-014 — The refusal explains four things in one small paragraph
+
+- **Screen:** 04 Not recognized (`current/03-license-scan/04-scan-not-recognized.png`)
+- **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
+
+**A. Current Ride Price screen.** The not-recognized copy mixes the demo limitation, real-system behaviour, damaged-barcode advice and the manual fallback into one small block. The external draft wanted cause-specific diagnosis on top — killed: the recognizer cannot know why an image failed (it finds a prop marker or refuses; invariant 4) — but the copy structure critique stands.
+
+**B. Why it is a problem.** A trainee mid-refusal needs one thing at a time: why this can happen, and what to do next. Four ideas in one paragraph means none lands.
+
+**C. Mobbin reference direction — scan-failure coaching, one message and one recovery at a time.** Chime's scan-issues screen coaches capture problems as short scannable bullets (glare, blur, framing); Chase UK pairs one explanation with the one recovery. Neither writes a paragraph.
+- [Chime](https://mobbin.com/screens/b5f8b32b-2309-426f-9dbc-5007eaf680ef) — Common scan issues as short coaching bullets
+- [Chase UK](https://mobbin.com/screens/36260299-2210-4fe6-8f64-83b025e12e25) — One explanation, one matched recovery action
+
+**D. Ride Price adaptation.** Restructure the copy only: the headline stays; then two short lines — 'In this demo, only the 5 printed training licenses can be read.' and 'Blurry or shadowed photo? Retake usually fixes it.' — then the two actions as today (Retake primary per decision 13, Enter manually secondary). No diagnosis is claimed the app cannot make. **Stays:** Retake-then-manual order (decision 13); the neutral teaching voice; no cause classification (invariant 4).
+
+*Implementation note:* The refusal step's copy block in openScanFlow(); pairs with RP-IMP-008's prop peek.
+
+### RP-IMP-015 — The processing state sets no time expectation
+
+- **Screen:** 03 Reading barcode… (`current/03-license-scan/03-scan-reading.png`)
+- **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Observation · **Priority:** Low · **Fix size:** small
+
+**A. Current Ride Price screen.** 'Reading barcode…' says what is happening but not how long it should take (about one second in the demo).
+
+**B. Why it is a problem.** Tiny, but a stated expectation is what makes a wait feel handled rather than stuck — and it teaches the trainee what the real system's wait feels like.
+
+**C. Mobbin reference direction — processing state with a time expectation.** Kraken's ID-processing state names the wait and sets the expectation, revealing recovery only if the wait turns abnormal.
+- [Kraken](https://mobbin.com/screens/d2516872-142d-4210-a85c-c2f8c1771036) — Processing ID — clear status plus a time expectation
+
+**D. Ride Price adaptation.** Add one muted line under the spinner: 'This usually takes a few seconds.' Nothing else. **Stays:** The one-second simulated beat; the stepper state.
+
+*Implementation note:* The processing step copy in openScanFlow().
+
+### RP-IMP-016 — The dialog height jumps twice around the one-second spinner
+
+- **Screen:** 03 Reading barcode… (`current/03-license-scan/03-scan-reading.png`)
+- **Type:** Newly Detected UI Issue · **Category:** visual · **Severity:** Observation · **Priority:** Low · **Fix size:** small
+
+**A. Current Ride Price screen.** The sheet collapses from ~470px to ~260px for the spinner and re-expands for the result — two height jumps in two seconds. The external draft additionally wanted the stepper to indicate the transition toward verify; the analysts keep '2 · Back' highlighted (processing belongs to the capture step) — the analysts' reading is recorded as the truer one.
+
+**B. Why it is a problem.** A sheet that pulses reads as instability exactly at the moment the app is doing its one piece of magic.
+
+**C. Mobbin reference direction — stable-footprint processing state.** Kraken processes inside the same visual footprint the capture used — the surface holds still while the state changes.
+- [Kraken](https://mobbin.com/screens/d2516872-142d-4210-a85c-c2f8c1771036) — Processing without the surface changing size
+
+**D. Ride Price adaptation.** Render the spinner inside the capture frame's own footprint (the 248×155 box, dashed becomes solid), Upload disabled, so the dialog height holds through capture → reading → result. The stepper stays on '2 · Back'. **Stays:** The spinner, the copy (plus RP-IMP-015's line), the stepper logic.
+
+*Implementation note:* The processing step markup in openScanFlow() reuses the frame container instead of replacing it.
+
+### RP-IMP-017 — The back step could show what the barcode side should look like
+
+- **Screen:** 02 Scan — back of licence (`current/03-license-scan/02-scan-back.png`)
+- **Type:** Pattern Opportunity · **Category:** visual · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
+
+**A. Current Ride Price screen.** Step 2 says 'BACK — barcode side' in words, but the frame is the same empty dashed box as the front step; nothing shows where the wide strip sits or warns about glare — the two failure causes a paper prop actually has.
+
+**B. Why it is a problem.** The physical test is paper under indoor light; a one-glance silhouette of the strip plus a glare hint prevents the most common retakes before they happen.
+
+**C. Mobbin reference direction — capture frame matching the shape being captured.** Uber's back-of-license capture draws a barcode-shaped guide; Wise tells the user the whole document must fit and details must be clear. The frame teaches, not just crops.
+- [Uber](https://mobbin.com/screens/177128f6-fb23-43a2-86a3-a3bb6030297b) — A barcode-shaped guide for the back side
+- [Wise](https://mobbin.com/screens/1aa66a67-7fdf-4bcc-9ded-0a1ddbb826f0) — 'Make sure all details are clear and the whole ID fits'
+
+**D. Ride Price adaptation.** Inside step 2's frame, draw a faint wide-strip silhouette (CSS bars, no asset) where the marker sits on the props, and add one hint line: 'Lay it flat — avoid glare on the stripe.' No live viewfinder (invariant 5); this is the pre-capture illustration. **Stays:** The frame-as-control, the file-input capture path, the front-thumbnail-with-retake.
+
+*Implementation note:* Step 2 frame markup in openScanFlow() + a small CSS block; the silhouette echoes .pd-mark__bars styling at reduced opacity.
+
+### RP-IMP-018 — Small capture-step polish: the photo action as a visible button, the status attached, Retake labelled
+
+- **Screen:** 01 Scan — front of licence (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 02 Scan — back of licence
+- **Type:** Newly Detected UI Issue · **Category:** visual · **Severity:** Minor · **Priority:** Low · **Fix size:** small
+
+**A. Current Ride Price screen.** Three small things pull the same way: the primary photo action lives implicitly in the dashed frame while 'Upload a photo' looks like the only button; 'Front captured ✓' renders as a detached footer status; and retaking the front is a small text link after the thumbnail.
+
+**B. Why it is a problem.** First-time users press what looks pressable. The fallback outdressing the primary is backwards, and unlabelled micro-controls fail the outdoor thumb.
+
+**C. Mobbin reference direction — capture screen with an explicit primary shutter action and labelled secondary controls.** DoorDash's capture step leads with an explicit primary start action and keeps upload secondary; Careem shows the step count and the fallback as clearly ranked choices.
+- [DoorDash Dasher](https://mobbin.com/screens/ba16f42f-4618-4073-bac9-e2ed76770bed) — ID photo scan — explicit primary action, ranked fallback
+- [Careem](https://mobbin.com/screens/f2ca14ce-db32-4bb0-8f4f-36fe2d75055c) — ID capture — step count + upload fallback, clearly secondary
+
+**D. Ride Price adaptation.** Put a navy '📷 Take photo' pill inside the frame (the frame stays tappable — the pill names what the tap does; on phones it opens the camera as today), demote 'Upload a photo' to ghost, attach 'Front captured ✓' to the stepper chip as its done-state detail, and give retake a ≥40px labelled ghost control ('Retake front'). No glyph rule exception needed — 📷 already marks the camera control on the deals search by precedent… keep the label text-first if the rule is read strictly. **Stays:** The file-input capture path, frame-as-control, thumbnail.
+
+*Implementation note:* Steps 1–2 markup in openScanFlow(); mind the no-glyph-on-buttons rule — 'Take photo' text with the camera as a status glyph beside the frame satisfies it.
+
+### RP-IMP-019 — Closing mid-scan discards captured work silently
+
+- **Screen:** 06 Verify — existing customer found (`current/03-license-scan/06-scan-verify-existing.png`) — also on Scan Driver's License · 02 Scan — back of licence
+- **Type:** Newly Detected UI Issue · **Category:** interaction · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
+
+**A. Current Ride Price screen.** The X and Cancel close the whole journey at any step without saying the captured front/back and parsed data are gone; nothing distinguishes 'leave the scan' from 'go back a step'.
+
+**B. Why it is a problem.** Losing two captures and a parse to a mis-tap is a restart the advisor feels; a two-second confirm is cheaper than one re-scan.
+
+**C. Mobbin reference direction — in-flow back vs leave-journey exit semantics.** The reviewed identity flows separate back (within the journey) from exit (abandon), and the exit from a part-done capture asks once.
+- [Chime](https://mobbin.com/flows/9d0a1507-23f6-4dce-8beb-785ebcc3cdff) — Back within the flow; leaving a part-done verification asks
+
+**D. Ride Price adaptation.** Once a capture exists, X/Cancel go through confirmModal ('Leave the scan? The captured photos and details will be discarded.' — Leave / Keep scanning). Before any capture, close stays instant. Verify against the code first: if a discard confirm already exists on some steps, unify it. **Stays:** confirmModal (never native confirm); instant close on the empty first step.
+
+*Implementation note:* openScanFlow()'s close/[data-close] handling, gated on captured state.
+
+### RP-IMP-020 — The step chips: strong orientation, at a vertical price — recorded disagreement
+
+- **Screen:** 01 Scan — front of licence (`current/03-license-scan/01-scan-front.png`)
+- **Type:** Pattern Opportunity · **Category:** visual · **Severity:** Observation · **Priority:** Low · **Fix size:** small
+
+**A. Current Ride Price screen.** The external draft reads the three step pills as heavy (they look like segmented controls and spend scarce modal height); the session analysts praised the same chips as the flow's best orientation device. Recorded as a disagreement, not a defect.
+
+**B. Why it is a problem.** Only worth touching if Q2 moves the shell — a full-screen journey would want the lighter '1 of 3' + thin bar treatment; the current modal wears the chips fine.
+
+**C. Mobbin reference direction — lightweight scan progress.** DoorDash and Careem use a step count plus thin progress and let the capture instruction dominate.
+- [Careem](https://mobbin.com/screens/f2ca14ce-db32-4bb0-8f4f-36fe2d75055c) — Step count + thin progress, instruction dominant
+
+**D. Ride Price adaptation.** No change on its own. If Q2 chooses the full-screen shell, revisit with the lighter treatment ('Scan license · 1 of 3' + thin gradient progress). **Stays:** The chips, today.
+
+*Implementation note:* Only alongside RP-IMP-009 option (a).
+
 ## Not yet reviewed — next in line
 
 1. Customer Onboarding — Find a Customer (5 screens)
-2. Scan Driver's License (8 screens)
-3. Training Licenses & Registrations (2 screens)
-4. Discovery Session (3 screens)
-5. Vehicle Selection (7 screens)
-6. Test Drive Agreement (7 screens)
-7. Trade-In Evaluation & Proof of Ownership (4 screens)
-8. Desking — Calculate Payments (5 screens)
-9. Base Payment Agreement (3 screens)
-10. Credit Application (Lending Lane) (4 screens)
-11. Buyers on the Deal (Co-Buyer) (4 screens)
-12. F&I Product Presentation (4 screens)
-13. Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts (16 screens)
-14. Deal Jacket & Compliance (11 screens)
-15. Send Text Request (advisor → client) (3 screens)
-16. Client Document Upload (customer's phone) (10 screens)
-17. Snap All — burst capture (4 screens)
-18. Document Review (advisor) (1 screens)
-19. Print Center & Printables (3 screens)
+2. Training Licenses & Registrations (2 screens)
+3. Discovery Session (3 screens)
+4. Vehicle Selection (7 screens)
+5. Test Drive Agreement (7 screens)
+6. Trade-In Evaluation & Proof of Ownership (4 screens)
+7. Desking — Calculate Payments (5 screens)
+8. Base Payment Agreement (3 screens)
+9. Credit Application (Lending Lane) (4 screens)
+10. Buyers on the Deal (Co-Buyer) (4 screens)
+11. F&I Product Presentation (4 screens)
+12. Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts (16 screens)
+13. Deal Jacket & Compliance (11 screens)
+14. Send Text Request (advisor → client) (3 screens)
+15. Client Document Upload (customer's phone) (10 screens)
+16. Snap All — burst capture (4 screens)
+17. Document Review (advisor) (1 screens)
+18. Print Center & Printables (3 screens)
