@@ -202,8 +202,8 @@ function markMissing(root, bad) {
 }
 
 /* the customer record's required set — ONE place for Create Customer and the
-   license-scan verify form: first & last name, email AND phone (owner rule
-   carry the mark, filling either clears both), address & ZIP. Field ids are
+   license-scan verify form: first & last name, email AND phone (both
+   required — owner rule 2026-08-23), address & ZIP. Field ids are
    prefix + First/Last/Email/Phone/Addr/Zip, looked up inside root. */
 function customerMissing(vals, prefix, root) {
   const bad = [], need = (suffix, okv, msg) => { if (!okv) bad.push({ el: $("#" + prefix + suffix, root), msg }); };
