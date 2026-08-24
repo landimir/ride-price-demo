@@ -202,14 +202,15 @@ function markMissing(root, bad) {
 }
 
 /* the customer record's required set — ONE place for Create Customer and the
-   license-scan verify form: first & last name, email OR phone (both fields
+   license-scan verify form: first & last name, email AND phone (owner rule
    carry the mark, filling either clears both), address & ZIP. Field ids are
    prefix + First/Last/Email/Phone/Addr/Zip, looked up inside root. */
 function customerMissing(vals, prefix, root) {
   const bad = [], need = (suffix, okv, msg) => { if (!okv) bad.push({ el: $("#" + prefix + suffix, root), msg }); };
-  const contact = vals.email || vals.phone;
   need("First", vals.first, "Required"); need("Last", vals.last, "Required");
-  need("Email", contact, "Email or phone is required"); need("Phone", contact, "Email or phone is required");
+  /* both contact channels are required (owner rule, 2026-08-23 — supersedes
+     the earlier either/or): every customer record carries phone AND email */
+  need("Email", vals.email, "Required"); need("Phone", vals.phone, "Required");
   need("Addr", vals.address, "Required"); need("Zip", vals.zip, "Required");
   return bad;
 }
@@ -819,7 +820,7 @@ route("customers", () => {
         <label class="f"><span class="lab">City</span><input id="nCity" type="text" value="Astoria"></label>
         <label class="f"><span class="lab">State</span><input id="nState" type="text" value="NY"></label>
       </div>
-      <p class="hint">Required: first &amp; last name, either email or phone, address and zip code. <span class="demo-note">Demo tool — use sample data only.</span></p>`,
+      <p class="hint">Required: first &amp; last name, phone and email, address and zip code. <span class="demo-note">Demo tool — use sample data only.</span></p>`,
       `<button class="btn btn--ghost" data-close>Cancel</button><button class="btn btn--primary" id="saveCust">Save &amp; Start Visit →</button>`);
     $("#saveCust").onclick = () => {
       const c = {
@@ -1318,7 +1319,7 @@ function openScanFlow(opts) {
       ex.phone ? ["Phone", ex.phone] : null,
       ex.email ? ["Email", ex.email] : null
     ].filter(Boolean);
-    const needContact = !ex.phone && !ex.email;
+    const needContact = !ex.phone || !ex.email; /* both channels required (owner rule) */
     foot(`${chg.length ? `<p class="scan-foot-hint" style="margin:0 0 8px">${chg.length} field${chg.length === 1 ? "" : "s"} will be updated from the license</p>` : ""}
       <button type="button" class="btn btn--grad scan-cta" data-save>Update &amp; Continue</button>`);
     body.innerHTML = `${top(100, st.asked ? () => renderAskMatch(st.asked) : () => renderBack())}
@@ -1337,9 +1338,9 @@ function openScanFlow(opts) {
             : `<input data-val type="text" value="${esc(c.key === "license" ? sv.license.number : sv.address)}">`}
         ${c.oldV ? `<div class="scan-subtle">Previous: ${esc(c.input === "date" ? dateUS(c.oldV) : c.oldV)}</div>` : `<div class="scan-subtle">Not on file before this scan.</div>`}
       </div>`).join("")}
-      ${needContact ? `<div class="scan-changecard"><label>PHONE OR EMAIL <i class="req">*</i></label>
-        <input id="svPhone" type="tel" placeholder="(718) 555-5555"><input id="svEmail" type="email" placeholder="name@testing.com" style="margin-top:8px">
-        <div class="scan-subtle">At least one way to reach the guest.</div></div>` : ""}
+      ${needContact ? `<div class="scan-changecard"><label>CONTACT DETAILS <i class="req">*</i></label>
+        <input id="svPhone" type="tel" placeholder="(718) 555-5555" value="${esc(sv.phone)}"><input id="svEmail" type="email" placeholder="name@testing.com" style="margin-top:8px" value="${esc(sv.email)}">
+        <div class="scan-subtle">Both phone and email are required on every customer record.</div></div>` : ""}
       <div class="scan-matchcard">
         <div class="scan-matchcard__head"><h3>Already on file</h3><span class="scan-badge">CONFIRMED</span></div>
         <div class="scan-datarows">${same.map(r => dataRow(r[0], r[1])).join("")}</div>
@@ -1363,7 +1364,10 @@ function openScanFlow(opts) {
         const inp = $("[data-val]", card);
         if (inp && inp.hasAttribute("data-date") && inp.value.trim() && !dateISO(inp.value.trim())) bad.push({ el: inp, msg: "Enter MM/DD/YYYY" });
       });
-      if (needContact && !sv.phone && !sv.email) bad.push({ el: $("#svPhone", body), msg: "Phone or email — at least one" });
+      if (needContact) {
+        if (!sv.phone) bad.push({ el: $("#svPhone", body), msg: "Required" });
+        if (!sv.email) bad.push({ el: $("#svEmail", body), msg: "Required" });
+      }
       if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
       saveFrom(svVals(), ex);
     };
@@ -1402,7 +1406,7 @@ function openScanFlow(opts) {
         <input id="svEmail" type="email" autocomplete="off" placeholder="name@testing.com" value="${esc(sv.email)}">
         <label style="margin-top:14px">EST. CREDIT SCORE</label>
         <input id="svScore" type="number" min="400" max="850" value="${esc(String(sv.score || 700))}">
-        <div class="scan-subtle">Phone or email — at least one is required. <span class="demo-note">Demo tool — sample data only.</span></div>
+        <div class="scan-subtle">Both phone and email are required. <span class="demo-note">Demo tool — sample data only.</span></div>
       </div>`;
     /* per-row edit: the row expands to its real granular inputs (dates stay
        masked MM/DD/YYYY — never a native picker) and Save folds it back */
