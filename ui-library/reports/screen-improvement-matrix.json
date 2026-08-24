@@ -406,7 +406,10 @@
           "Q1 — Summary-first verify (RP-IMP-010): both the external draft and the session analysts independently propose replacing the fully-editable verify form with a read-first summary ('From the license' card, old → new markers on changed fields, per-field Edit). This REVERSES decision 11 (2026-08-11: review-and-confirm, fully editable — the ritual is the checkpoint). It cannot be adopted without the owner explicitly reversing that decision.",
           "Q2 — The scanner's shell (RP-IMP-009): the external draft wants the whole journey out of the modal into a full-screen flow (its strongest structural idea; large change touching the shared modal() contract hardened in PR #42); the session analysts propose the smaller move — short dialogs anchor as bottom sheets so the buttons land in the thumb zone, tall verify steps stay as they are. Or leave the shell untouched. Owner's pick."
         ],
-        "decisions": [],
+        "decisions": [
+          "Q1 and Q2 answered (owner, 2026-08-23): follow the external draft — summary-first verify ADOPTED (decision 11 of 2026-08-11 explicitly reversed by the owner) and the full-screen journey shell ADOPTED (phone only; desktop keeps the wide dialog). 'We're going to handle real ID, so we need to start prepping' — recorded with its boundary: everything built is the production-shaped SHELL; the recognizer stays props-only, and an actual real-ID reader remains a separate owner decision that collides with four standing rules (no real-ID code path, no real PII on the public demo, no dependencies, secure-context bucket).",
+          "Intro step added (owner, 2026-08-23, from the DoorDash Dasher and Chime references — he sent both screens and chose by iteration): step 0 teaches the ritual as a numbered how-it-works list (Chime's structure), carries the ADVISOR WORD TRACK where production apps put the consent disclosure, and states the honest demo line (photos read on-device, five props only, discarded). The demo never fakes a consent text; that slot is where a real one would live."
+        ],
         "intake": {
           "source": "inspiration/ui-improvement-system-zip (gitignored) — 25 recommendations DL-01…DL-25 over 8 screens; session analysts' 7 findings A-scan-01…07 merged in.",
           "killed": [
@@ -913,6 +916,43 @@
           "whatStays": "The chips, today.",
           "fixSize": "small",
           "implementationNote": "Only alongside RP-IMP-009 option (a)."
+        },
+        {
+          "id": "RP-IMP-021",
+          "title": "Step 0 — the how-it-works intro with the advisor word track",
+          "screenKey": "scan-front",
+          "screenshot": "current/03-license-scan/01-scan-front.png",
+          "alsoOn": [],
+          "existingComment": null,
+          "commentAssessment": null,
+          "findingType": "Pattern Opportunity",
+          "category": "structural",
+          "severity": "Minor",
+          "priority": "High",
+          "source": "owner + Mobbin references",
+          "issueSummary": "The journey opened straight on the camera: nothing oriented the guest, nothing rehearsed the advisor's ask, and the honest demo constraint arrived as a footnote on the capture step.",
+          "whyItMatters": "The ask-for-the-license moment is a sales ritual the playbook teaches; an intro page rehearses it, sets the guest's expectation, and is the production slot where a real consent disclosure will live when real-ID handling ever arrives.",
+          "mobbinPatternNeeded": "identity-verification intro: illustration, how-it-works steps, one continue",
+          "referenceInsight": "DoorDash Dasher fronts its scan with purpose + disclosure + one Continue; Chime teaches the process as a numbered 1-2-3 before the camera. The Chime structure fits a training tool best — it teaches the ritual before it starts.",
+          "references": [
+            {
+              "app": "Chime",
+              "url": "https://mobbin.com/flows/9d0a1507-23f6-4dce-8beb-785ebcc3cdff",
+              "shows": "Verify your identity — how-it-works 1-2-3, consent text, one Next"
+            },
+            {
+              "app": "DoorDash Dasher",
+              "url": "https://mobbin.com/flows/cfb0e2cd-ecb5-42f1-bca1-c41d7a454ec9",
+              "shows": "Scan your driver's license — purpose line, disclosure, single Continue"
+            }
+          ],
+          "patterns": [
+            "M20"
+          ],
+          "ridePriceRecommendation": "BUILT: step 0 renders a CSS license-card illustration, 'Scan the guest's license', the numbered ritual (front / back / verify-and-start), the ADVISOR WORD TRACK card in the exact slot production apps use for consent legalese (the demo never fakes one — a mimicked biometric disclosure would be a lookalike legal instrument), Continue, the prop peek, and the honest demo line. The progress bar shows the journey at its start; nothing captured means closing is instant.",
+          "whatStays": "The recognizer (props only); the capture ritual; every honesty rule.",
+          "fixSize": "small",
+          "implementationNote": "renderIntro() in openScanFlow(); .scan-intro-card / .scan-how in portal.css."
         }
       ]
     }

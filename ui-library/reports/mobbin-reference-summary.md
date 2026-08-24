@@ -105,7 +105,7 @@ Used by: RP-IMP-001
 
 **Should influence:** Scan Driver's License; the test-drive licence scan reuses whatever is decided.
 
-Used by: RP-IMP-009, RP-IMP-019, RP-IMP-020
+Used by: RP-IMP-009, RP-IMP-019, RP-IMP-020, RP-IMP-021
 
 ## M21 · Scan-failure coaching and processing states
 

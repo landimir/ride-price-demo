@@ -8,16 +8,16 @@ This report takes each product area of the Ride Price mobile experience, starts 
 
 | | Count |
 |---|---|
-| Recommendations | 20 |
+| Recommendations | 21 |
 | Existing Comment Expanded | 2 |
 | Newly Detected UI Issue | 12 |
-| Pattern Opportunity | 6 |
-| High priority | 8 |
+| Pattern Opportunity | 7 |
+| High priority | 9 |
 | Medium priority | 5 |
 | Low priority | 7 |
 | Severity Critical | 0 |
 | Severity Major | 7 |
-| Severity Minor | 8 |
+| Severity Minor | 9 |
 | Severity Observation | 5 |
 
 Finding types: **Existing Comment Expanded** — the library already flagged it and this deepens it · **Newly Detected UI Issue** — found by looking at the screenshot · **Pattern Opportunity** — nothing is broken, a better structure exists. Severity keeps the audit's scale; priority is the order to fix in, and a Minor that repeats across screens can be High.
@@ -205,7 +205,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ## Scan Driver's License
 
-8 screens · reviewed 2026-08-23 · 13 recommendations
+8 screens · reviewed 2026-08-23 · 14 recommendations
 
 **Screens:** 01 Scan — front of licence · 02 Scan — back of licence · 03 Reading barcode… · 04 Not recognized · 05 Potential match found (prop 1) · 06 Verify — existing customer found · 07 Verify — new customer (prop 3) · 08 Phone number already on file
 
@@ -227,6 +227,8 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 **Superseded during the build:**
 
 **Decided:**
+1. Q1 and Q2 answered (owner, 2026-08-23): follow the external draft — summary-first verify ADOPTED (decision 11 of 2026-08-11 explicitly reversed by the owner) and the full-screen journey shell ADOPTED (phone only; desktop keeps the wide dialog). 'We're going to handle real ID, so we need to start prepping' — recorded with its boundary: everything built is the production-shaped SHELL; the recognizer stays props-only, and an actual real-ID reader remains a separate owner decision that collides with four standing rules (no real-ID code path, no real PII on the public demo, no dependencies, secure-context bucket).
+2. Intro step added (owner, 2026-08-23, from the DoorDash Dasher and Chime references — he sent both screens and chose by iteration): step 0 teaches the ritual as a numbered how-it-works list (Chime's structure), carries the ADVISOR WORD TRACK where production apps put the consent disclosure, and states the honest demo line (photos read on-device, five props only, discarded). The demo never fakes a consent text; that slot is where a real one would live.
 
 **What already works:** The staged ritual reads clearly: the three-step chips (1 · Front, 2 · Back, 3 · Verify) with green-done / navy-current states say exactly where the user is, the instruction names the side in caps, the capture frame is itself the control with 'Upload a photo' as an honest fallback, and the refusal screen teaches instead of scolding. The hint is straight about the demo ('Real IDs cannot be read'). The match cascade surfaces ambiguity instead of guessing — the possible-match and phone-conflict interstitials exist precisely so the app never links records silently. Both the external draft and the session analysts called this a strong foundation.
 
@@ -456,6 +458,23 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 **D. Ride Price adaptation.** No change on its own. If Q2 chooses the full-screen shell, revisit with the lighter treatment ('Scan license · 1 of 3' + thin gradient progress). **Stays:** The chips, today.
 
 *Implementation note:* Only alongside RP-IMP-009 option (a).
+
+### RP-IMP-021 — Step 0 — the how-it-works intro with the advisor word track
+
+- **Screen:** 01 Scan — front of licence (`current/03-license-scan/01-scan-front.png`)
+- **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Minor · **Priority:** High · **Fix size:** small
+
+**A. Current Ride Price screen.** The journey opened straight on the camera: nothing oriented the guest, nothing rehearsed the advisor's ask, and the honest demo constraint arrived as a footnote on the capture step.
+
+**B. Why it is a problem.** The ask-for-the-license moment is a sales ritual the playbook teaches; an intro page rehearses it, sets the guest's expectation, and is the production slot where a real consent disclosure will live when real-ID handling ever arrives.
+
+**C. Mobbin reference direction — identity-verification intro: illustration, how-it-works steps, one continue.** DoorDash Dasher fronts its scan with purpose + disclosure + one Continue; Chime teaches the process as a numbered 1-2-3 before the camera. The Chime structure fits a training tool best — it teaches the ritual before it starts.
+- [Chime](https://mobbin.com/flows/9d0a1507-23f6-4dce-8beb-785ebcc3cdff) — Verify your identity — how-it-works 1-2-3, consent text, one Next
+- [DoorDash Dasher](https://mobbin.com/flows/cfb0e2cd-ecb5-42f1-bca1-c41d7a454ec9) — Scan your driver's license — purpose line, disclosure, single Continue
+
+**D. Ride Price adaptation.** BUILT: step 0 renders a CSS license-card illustration, 'Scan the guest's license', the numbered ritual (front / back / verify-and-start), the ADVISOR WORD TRACK card in the exact slot production apps use for consent legalese (the demo never fakes one — a mimicked biometric disclosure would be a lookalike legal instrument), Continue, the prop peek, and the honest demo line. The progress bar shows the journey at its start; nothing captured means closing is instant. **Stays:** The recognizer (props only); the capture ritual; every honesty rule.
+
+*Implementation note:* renderIntro() in openScanFlow(); .scan-intro-card / .scan-how in portal.css.
 
 ## Not yet reviewed — next in line
 

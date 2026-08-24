@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Opportunity Board
 
-Updated 2026-08-23 · 2 of 20 product areas reviewed · 20 recommendations so far. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.
+Updated 2026-08-23 · 2 of 20 product areas reviewed · 21 recommendations so far. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.
 
 ## Top opportunities (by priority, then severity, then how widely they repeat)
 
@@ -14,14 +14,14 @@ Updated 2026-08-23 · 2 of 20 product areas reviewed · 20 recommendations so fa
 | 6 | RP-IMP-013 | Scan Driver's License | The phone-conflict screen hides the number it is warning about | High | Major | small |
 | 7 | RP-IMP-011 | Scan Driver's License | The verify CTAs understate what they do — they also start the visit | High | Minor | small |
 | 8 | RP-IMP-002 | Home — Deals Queue & Navigation | Finished deals hide behind a 20px grey caption | High | Minor | small |
-| 9 | RP-IMP-009 | Scan Driver's License | Where the scan journey lives: full screen, bottom sheets, or the current modal (owner question Q2) | Medium | Major | major |
-| 10 | RP-IMP-003 | Home — Deals Queue & Navigation | The card does not say what comes next, and the search-field camera promises the wrong scan | Medium | Minor | small |
+| 9 | RP-IMP-021 | Scan Driver's License | Step 0 — the how-it-works intro with the advisor word track | High | Minor | small |
+| 10 | RP-IMP-009 | Scan Driver's License | Where the scan journey lives: full screen, bottom sheets, or the current modal (owner question Q2) | Medium | Major | major |
 
 ## Which areas need the most attention
 
 | Area | Recommendations | High priority |
 |---|---|---|
-| Scan Driver's License | 13 | 5 |
+| Scan Driver's License | 14 | 6 |
 | Home — Deals Queue & Navigation | 7 | 3 |
 
 ## Issues that repeat across screens

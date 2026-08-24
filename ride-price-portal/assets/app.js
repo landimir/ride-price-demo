@@ -931,7 +931,7 @@ function openScanFlow(opts) {
   function leaveGuard(e) {
     if (st.cancelled || !document.contains(backEl)) return;
     if (!(e.target === backEl || (backEl.contains(e.target) && e.target.hasAttribute("data-close")))) return;
-    if (!st.frontUrl && st.stage === "front") return; /* nothing to lose yet */
+    if (!st.frontUrl && (st.stage === "intro" || st.stage === "front")) return; /* nothing to lose yet */
     e.preventDefault(); e.stopImmediatePropagation();
     renderLeaveConfirm();
   }
@@ -944,12 +944,12 @@ function openScanFlow(opts) {
   /* light progress + the persistent training status (a label, never a mode
      toggle — decision 5): step count, thin gradient bar, TRAINING chip */
   function prog(step) {
-    const n = step === "front" ? 1 : step === "back" ? 2 : 3;
-    const name = step === "front" ? "Front" : step === "back" ? "Back" : "Verify";
+    const n = step === "intro" ? 0 : step === "front" ? 1 : step === "back" ? 2 : 3;
+    const name = step === "intro" ? "How it works" : step === "front" ? "Front" : step === "back" ? "Back" : "Verify";
     return `<div class="scan-prog">
-      <div class="scan-prog__row"><span class="scan-prog__label">Scan license · ${esc(name)} — step ${n} of 3</span>
+      <div class="scan-prog__row"><span class="scan-prog__label">Scan license · ${esc(name)}${n ? ` — step ${n} of 3` : ""}</span>
         <span class="chip--demo scan-prog__chip">TRAINING · PROPS ONLY</span></div>
-      <div class="scan-prog__bar"><i style="width:${Math.round(n / 3 * 100)}%"></i></div>
+      <div class="scan-prog__bar"><i style="width:${n ? Math.round(n / 3 * 100) : 6}%"></i></div>
     </div>`;
   }
 
@@ -1017,6 +1017,36 @@ function openScanFlow(opts) {
       </div>`;
     $("[data-keep]", body).onclick = () => resume ? resume() : renderFront();
     $("[data-leave]", body).onclick = () => done();
+  }
+
+  /* step 0 — the intro (owner, 2026-08-23; Chime's how-it-works structure,
+     DoorDash's single-continue shape): teach the ritual before it starts,
+     rehearse the advisor's ask, and say honestly what the demo does with the
+     photos. In production this page is where a real consent disclosure would
+     live; the demo never fakes one. */
+  function renderIntro() {
+    st.stage = "intro";
+    setModalFoot("");
+    body.innerHTML = `${prog("intro")}
+      <div class="scan-stage">
+        <div class="scan-intro-card" aria-hidden="true"><span class="scan-intro-card__ph"></span>
+          <span class="scan-intro-card__lines"><i></i><i></i><i></i></span></div>
+        <h3 class="scan-h" style="font-size:22px;margin-top:2px">Scan the guest's license</h3>
+        <ol class="scan-how">
+          <li><i>1</i><span>Photograph the <b>front</b> — the identity side.</span></li>
+          <li><i>2</i><span>Photograph the <b>back</b> — the barcode side is what gets read.</span></li>
+          <li><i>3</i><span>Verify together, and the visit starts — customer record, test drive and credit application prefilled.</span></li>
+        </ol>
+        <div class="note note--wt" style="text-align:left;margin:14px 0"><span class="lab">Advisor word track</span>
+          “May I take two quick photos of your license? It fills in your paperwork automatically and saves you the forms.”</div>
+        <div class="scan-actions">
+          <button type="button" class="btn btn--primary" data-begin>Continue</button>
+          ${peekBtn}
+        </div>
+        <p class="hint" style="margin-top:12px">In this demo nothing leaves the phone: photos are read on the device, only the 5 printed training licenses can be recognized, and the photos are discarded when the scan ends.</p>
+      </div>`;
+    $("[data-begin]", body).onclick = () => renderFront();
+    wireCommon(renderIntro);
   }
 
   function renderFront() {
@@ -1403,7 +1433,7 @@ function openScanFlow(opts) {
     };
   }
 
-  renderFront();
+  renderIntro();
 }
 
 /* ============================================================
