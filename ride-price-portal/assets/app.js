@@ -904,13 +904,13 @@ function findLicenseMatch(p) {
 
 function openScanFlow(opts) {
   const o = Object.assign({ mode: "customer" }, opts);
-  const st = { frontUrl: null, persona: null, match: null, render: null };
+  const st = { frontUrl: null, persona: null, match: null, render: null, asked: null, saved: false };
   modal("Scan Driver's License", `<div id="scanBody"></div>`);
   const body = $("#scanBody");
-  /* the scan is a focused journey, not a small dialog (owner, 2026-08-23,
-     adopting the external draft's shell): on a phone it owns the screen;
-     desktop keeps a wide centred dialog. Production-shaped UI — recognition
-     itself still only ever reads the five printed props (invariant 4). */
+  /* the scan is a focused journey (owner's v2 prototype, 2026-08-23): it owns
+     the phone screen with its own top row, hero headers, camera visuals and a
+     pinned gradient step action. Production-shaped UI — recognition itself
+     still only ever reads the five printed props (invariant 4). */
   const backEl = $("#modalBack");
   backEl.classList.add("modal-back--journey");
   $(".modal", backEl).classList.add("modal--journey");
@@ -927,11 +927,12 @@ function openScanFlow(opts) {
   function abandon() { cleanup(); closeModal(); } /* navigating away abandons the scan */
   /* leaving a part-done scan asks once (captured photos and parsed details
      would be discarded). Capture-phase on document so it runs before the
-     modal's own close handler; an untouched first step still closes instantly. */
+     modal's own close handler; nothing captured — or already saved — closes
+     instantly. */
   function leaveGuard(e) {
-    if (st.cancelled || !document.contains(backEl)) return;
+    if (st.cancelled || st.saved || !document.contains(backEl)) return;
     if (!(e.target === backEl || (backEl.contains(e.target) && e.target.hasAttribute("data-close")))) return;
-    if (!st.frontUrl && (st.stage === "intro" || st.stage === "front")) return; /* nothing to lose yet */
+    if (!st.frontUrl) return; /* nothing to lose yet */
     e.preventDefault(); e.stopImmediatePropagation();
     renderLeaveConfirm();
   }
@@ -941,122 +942,138 @@ function openScanFlow(opts) {
   const done = () => { cleanup(); closeModal(); };
   const live = () => !st.cancelled && document.contains(body);
 
-  /* light progress + the persistent training status (a label, never a mode
-     toggle — decision 5): step count, thin gradient bar, TRAINING chip */
-  function prog(step) {
-    const n = step === "intro" ? 0 : step === "front" ? 1 : step === "back" ? 2 : 3;
-    const name = step === "intro" ? "How it works" : step === "front" ? "Front" : step === "back" ? "Back" : "Verify";
-    return `<div class="scan-prog">
-      <div class="scan-prog__row"><span class="scan-prog__label">Scan license · ${esc(name)}${n ? ` — step ${n} of 3` : ""}</span>
-        <span class="chip--demo scan-prog__chip">TRAINING · PROPS ONLY</span></div>
-      <div class="scan-prog__bar"><i style="width:${n ? Math.round(n / 3 * 100) : 6}%"></i></div>
-    </div>`;
-  }
-
-  const demoLine = `<p class="scan-demo-line">Demo — only the 5 printed training licenses can be read.</p>`;
-  const peekBtn = `<button type="button" class="btn btn--ghost btn--sm" data-peek>See a training license</button>`;
-
-  function captureInputs(frameLabel, side) {
-    /* the frame IS the capture control; the shutter pill names what the tap
-       does so the primary action outdresses the fallback */
-    return `<label class="scan-frame scan-frame--tap scan-cap">
-      <span class="scan-frame__icon" aria-hidden="true">📷</span>
-      ${side === "back" ? `<span class="scan-strip" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>` : ""}
-      <span class="scan-shutter">${esc(frameLabel)}</span>
-      <input type="file" accept="image/*" capture="environment" data-cap>
-    </label>
-    ${side === "back" ? `<p class="hint" style="margin:6px 0 0">Lay the card flat — avoid glare on the barcode stripe.</p>` : ""}
-    <div class="scan-actions" style="margin-top:10px">
-      <label class="btn btn--ghost btn--sm scan-cap">Upload a photo<input type="file" accept="image/*" data-cap></label>
-      ${peekBtn}
+  /* the journey chrome (owner v2): back circle · brand · help circle, then
+     the thin gradient progress bar. Help opens the training-license peek. */
+  function top(pct, backTo, noHelp) {
+    /* ← inside the journey, × at its ends (intro / complete) */
+    const atEnd = st.stage === "intro" || st.saved;
+    return `<div class="scan-top">
+      ${st.saved ? `<button type="button" class="scan-top__btn" data-close aria-label="Close">×</button>` : `<button type="button" class="scan-top__btn" data-nav-back aria-label="${atEnd ? "Close" : "Back"}">${atEnd ? "×" : "←"}</button>`}
+      <div class="scan-brand"><i>Ride</i><small>PRICE</small></div>
+      ${noHelp ? `<span class="scan-top__spacer"></span>` : `<button type="button" class="scan-top__btn scan-top__btn--help" data-peek aria-label="About the training licenses">?</button>`}
     </div>
-    ${demoLine}`;
+    <div class="scan-progressbar"><span style="width:${pct}%"></span></div>`;
   }
+  const eyebrow = (text) => `<div class="scan-eyebrow"><span>${esc(text)}</span><span class="chip--demo">TRAINING · PROPS ONLY</span></div>`;
+  const foot = (html) => setModalFoot(html ? `<div class="scan-foot">${html}</div>` : "");
 
-  function wireCommon(renderFn) {
+  function wire(renderFn, navBack) {
     st.render = renderFn;
     $$("[data-cap]", body).forEach(inp => inp.onchange = () => {
       const f = inp.files && inp.files[0];
       if (f && st.onCapture) st.onCapture(f);
     });
     $$("[data-peek]", body).forEach(b => b.onclick = () => renderPeek(renderFn));
+    const nb = $("[data-nav-back]", body);
+    if (nb) nb.onclick = () => {
+      if (navBack) return navBack();
+      /* at the journey's first screen ← leaves; a part-done scan asks once */
+      if (st.frontUrl) renderLeaveConfirm(); else done();
+    };
   }
 
   /* in-journey help: what the props are and which side scans — the old links
      navigated to #/props and the hash change tore the scan down mid-flow */
   function renderPeek(returnTo) {
-    setModalFoot("");
-    body.innerHTML = `${prog(st.stage === "front" ? "front" : "back")}
-      <div class="scan-stage">
-        <h3 class="scan-h">The training licenses</h3>
-        <p class="scan-instruct" style="font-size:13.5px">Print them from <b>Training Licenses</b> (menu ☰). Every identity is fictional.
-          The <b>back</b> — the side with the thick barcode stripe — is the side that scans:</p>
-        <div class="scan-peekcard" aria-hidden="true"><span class="scan-peekcard__tag">TRAINING SAMPLE</span>
-          <span class="scan-strip scan-strip--peek"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span></div>
-        <div class="scan-actions">
-          <button type="button" class="btn btn--primary" data-back-to-scan>Back to scanning</button>
-          <button type="button" class="btn btn--ghost btn--sm" data-goto-props>Open Training Licenses — leaves the scan</button>
+    foot(`<button type="button" class="btn btn--grad scan-cta" data-back-to-scan>Back to scanning</button>
+      <button type="button" class="btn btn--ghost scan-cta scan-cta--ghost" data-goto-props>Open Training Licenses — leaves the scan</button>`);
+    body.innerHTML = `${top(st.pct || 25)}
+      <div class="scan-hero">
+        ${eyebrow("Help")}
+        <h1>The training licenses</h1>
+        <p>Print them from <b>Training Licenses</b> (menu ☰). Every identity is fictional. The <b>back</b> — the side with the thick barcode stripe — is the side that scans.</p>
+      </div>
+      <div class="scan-visualbox">
+        <div class="scan-idcard" aria-hidden="true">
+          <div class="scan-idcard__state">NEW YORK</div><div class="scan-idcard__demo">TRAINING SAMPLE</div>
+          <div class="scan-idcard__body"><span class="scan-idcard__photo"></span>
+            <span class="scan-idcard__lines"><i></i><i></i><i></i><i></i></span></div>
+          <span class="scan-strip scan-strip--peek"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
         </div>
       </div>`;
-    $("[data-back-to-scan]", body).onclick = () => returnTo();
-    $("[data-goto-props]", body).onclick = () => { done(); navigate("#/props"); };
+    $("[data-back-to-scan]").onclick = () => returnTo();
+    $("[data-goto-props]").onclick = () => { done(); navigate("#/props"); };
+    const nb = $("[data-nav-back]", body); if (nb) nb.onclick = () => returnTo();
   }
 
   /* leaving a part-done scan asks once; Keep scanning restores the exact step */
   function renderLeaveConfirm() {
     const resume = st.render;
-    setModalFoot("");
-    body.innerHTML = `${prog(st.stage === "front" ? "front" : st.stage === "back" || st.stage === "processing" ? "back" : "verify")}
-      <div class="scan-stage">
-        <h3 class="scan-h">Leave the scan?</h3>
-        <p class="scan-instruct"><span class="hint">The captured photos and parsed details will be discarded.</span></p>
-        <div class="scan-actions">
-          <button type="button" class="btn btn--primary" data-keep>Keep scanning</button>
-          <button type="button" class="btn btn--ghost" data-leave>Leave — discard the scan</button>
-        </div>
+    foot(`<button type="button" class="btn btn--grad scan-cta" data-keep>Keep scanning</button>
+      <button type="button" class="btn btn--ghost scan-cta scan-cta--ghost" data-leave>Leave — discard the scan</button>`);
+    body.innerHTML = `${top(st.pct || 25, null, true)}
+      <div class="scan-hero">
+        ${eyebrow("Leave?")}
+        <h1>Leave the scan?</h1>
+        <p>The captured photos and parsed details will be discarded.</p>
       </div>`;
-    $("[data-keep]", body).onclick = () => resume ? resume() : renderFront();
-    $("[data-leave]", body).onclick = () => done();
+    $("[data-keep]").onclick = () => resume ? resume() : renderIntro();
+    $("[data-leave]").onclick = () => done();
+    const nb = $("[data-nav-back]", body); if (nb) nb.onclick = () => resume ? resume() : renderIntro();
   }
 
-  /* step 0 — the intro (owner, 2026-08-23; Chime's how-it-works structure,
-     DoorDash's single-continue shape): teach the ritual before it starts,
-     rehearse the advisor's ask, and say honestly what the demo does with the
-     photos. In production this page is where a real consent disclosure would
-     live; the demo never fakes one. */
+  /* step 0 — the intro (owner v2): purpose, the card visual, the get-ready
+     tip and the advisor's ask. In production this page is where a real
+     consent disclosure would live; the demo never fakes one. */
   function renderIntro() {
-    st.stage = "intro";
-    setModalFoot("");
-    body.innerHTML = `${prog("intro")}
-      <div class="scan-stage">
-        <div class="scan-intro-card" aria-hidden="true"><span class="scan-intro-card__ph"></span>
-          <span class="scan-intro-card__lines"><i></i><i></i><i></i></span></div>
-        <h3 class="scan-h" style="font-size:22px;margin-top:2px">Scan the guest's license</h3>
-        <ol class="scan-how">
-          <li><i>1</i><span>Photograph the <b>front</b> — the identity side.</span></li>
-          <li><i>2</i><span>Photograph the <b>back</b> — the barcode side is what gets read.</span></li>
-          <li><i>3</i><span>Verify together, and the visit starts — customer record, test drive and credit application prefilled.</span></li>
-        </ol>
-        <div class="note note--wt" style="text-align:left;margin:14px 0"><span class="lab">Advisor word track</span>
-          “May I take two quick photos of your license? It fills in your paperwork automatically and saves you the forms.”</div>
-        <div class="scan-actions">
-          <button type="button" class="btn btn--primary" data-begin>Continue</button>
-          ${peekBtn}
+    st.stage = "intro"; st.pct = 25;
+    foot(`<button type="button" class="btn btn--grad scan-cta" data-begin>Start Scan</button>`);
+    body.innerHTML = `${top(25)}
+      <div class="scan-hero">
+        ${eyebrow("Identity check")}
+        <h1>Let&rsquo;s scan the driver&rsquo;s license</h1>
+        <p>The license fills the customer profile and checks for an existing CRM record — no retyping, no spelling mistakes.</p>
+      </div>
+      <div class="scan-visualbox">
+        <div class="scan-idcard scan-idcard--tilt" aria-hidden="true">
+          <div class="scan-idcard__state">NEW YORK</div><div class="scan-idcard__demo">TRAINING SAMPLE</div>
+          <div class="scan-idcard__body"><span class="scan-idcard__photo"></span>
+            <span class="scan-idcard__lines"><i></i><i></i><i></i><i></i></span></div>
         </div>
-        <p class="hint" style="margin-top:12px">In this demo nothing leaves the phone: photos are read on the device, only the 5 printed training licenses can be recognized, and the photos are discarded when the scan ends.</p>
-      </div>`;
-    $("[data-begin]", body).onclick = () => renderFront();
-    wireCommon(renderIntro);
+      </div>
+      <div class="scan-tip"><span class="scan-tip__icon" aria-hidden="true">✦</span>
+        <span><strong>Have the physical license ready</strong>Good lighting and a flat surface help Ride Price read it faster.</span></div>
+      <div class="scan-tip"><span class="scan-tip__icon scan-tip__icon--wt" aria-hidden="true">💬</span>
+        <span><strong>Advisor word track</strong>&ldquo;May I take two quick photos of your license? It fills in your paperwork automatically and saves you the forms.&rdquo;</span></div>
+      <p class="scan-demo-hint">In this demo nothing leaves the phone: photos are read on the device, only the 5 printed training licenses can be recognized, and the photos are discarded when the scan ends.</p>`;
+    $("[data-begin]").onclick = () => renderFront();
+    wire(renderIntro);
+  }
+
+  /* the capture screens (owner v2): a hero instruction over a dark camera
+     visual with the framing guide — an illustration, not a viewfinder
+     (invariant 5: the camera itself opens natively on tap) */
+  function capture(side) {
+    const front = side === "front";
+    return `<div class="scan-visualbox scan-visualbox--tight">
+      <label class="scan-cam scan-cap">
+        <span class="scan-cam__frame">
+          ${front
+            ? `<span class="scan-idcard scan-idcard--infield" aria-hidden="true">
+                <span class="scan-idcard__state">NEW YORK</span><span class="scan-idcard__demo">TRAINING SAMPLE</span>
+                <span class="scan-idcard__body"><span class="scan-idcard__photo"></span>
+                <span class="scan-idcard__lines"><i></i><i></i><i></i><i></i></span></span></span>`
+            : `<span class="scan-backcard" aria-hidden="true"><span class="scan-backcard__lab">BACK OF LICENSE</span>
+                <span class="scan-backcard__bars"></span><span class="scan-backcard__line"></span></span>`}
+          <span class="scan-scanline" aria-hidden="true"></span>
+        </span>
+        <span class="scan-cam__hint">${front ? "Avoid glare • Keep the card flat" : "Keep the barcode sharp and fully visible"}</span>
+        <input type="file" accept="image/*" capture="environment" data-cap>
+      </label>
+    </div>
+    <p class="scan-upload"><label class="scan-cap"><u>or upload a photo</u><input type="file" accept="image/*" data-cap></label></p>`;
   }
 
   function renderFront() {
-    st.stage = "front";
-    setModalFoot("");
-    body.innerHTML = `${prog("front")}
-      <div class="scan-stage">
-        <p class="scan-instruct">Photograph the <b>FRONT</b> of the guest's license.</p>
-        ${captureInputs("Take photo — front", "front")}
-      </div>`;
+    st.stage = "front"; st.pct = 50;
+    foot(`<button type="button" class="btn btn--grad scan-cta" data-shoot>Capture Front</button>`);
+    body.innerHTML = `${top(50)}
+      <div class="scan-hero scan-hero--tight">
+        ${eyebrow("Front of license")}
+        <h1>Center the license</h1>
+        <p>Fit all four corners inside the frame and hold the phone steady.</p>
+      </div>
+      ${capture("front")}`;
     st.onCapture = (file) => {
       if (st.frontUrl) { try { URL.revokeObjectURL(st.frontUrl); } catch (e) { /* noop */ } }
       st.frontUrl = URL.createObjectURL(file);
@@ -1072,67 +1089,73 @@ function openScanFlow(opts) {
         }
       }).catch(() => { /* front photo without a barcode is the normal case */ });
     };
-    wireCommon(renderFront);
+    $("[data-shoot]").onclick = () => { const i = $("input[data-cap]", body); if (i) i.click(); };
+    wire(renderFront, () => renderIntro());
   }
 
   function renderBack() {
-    st.stage = "back";
-    setModalFoot("");
-    body.innerHTML = `${prog("back")}
-      <div class="scan-stage">
-        <p class="scan-instruct">Now photograph the <b>BACK</b> — the barcode side.</p>
-        ${captureInputs("Take photo — back", "back")}
-        <div class="scan-captured">Front captured
-          ${st.frontUrl ? `<img class="scan-thumb" src="${st.frontUrl}" alt="front of license">` : "✓"}
-          <button type="button" class="btn btn--ghost btn--sm" data-retake>Retake front</button></div>
-      </div>`;
+    st.stage = "back"; st.pct = 75;
+    foot(`<button type="button" class="btn btn--grad scan-cta" data-shoot>Capture Back</button>`);
+    body.innerHTML = `${top(75)}
+      <div class="scan-hero scan-hero--tight">
+        ${eyebrow("Back of license")}
+        <h1>Now scan the barcode</h1>
+        <p>This is the side Ride Price uses to read the license data.</p>
+      </div>
+      ${capture("back")}
+      <div class="scan-captured">Front captured
+        ${st.frontUrl ? `<img class="scan-thumb" src="${st.frontUrl}" alt="front of license">` : "✓"}
+        <button type="button" class="btn btn--ghost btn--sm" data-retake>Retake front</button></div>`;
     st.onCapture = (file) => renderProcessing(file);
-    wireCommon(renderBack);
+    $("[data-shoot]").onclick = () => { const i = $("input[data-cap]", body); if (i) i.click(); };
     $("[data-retake]", body).onclick = () => renderFront();
+    wire(renderBack, () => renderFront());
   }
 
+  /* processing (owner v2): the spinner, and a checklist that only claims what
+     is true — both captures exist, and the match cascade IS the CRM check */
   function renderProcessing(file) {
-    st.stage = "processing";
-    setModalFoot("");
-    /* the spinner lives in the capture frame's own footprint, so the sheet
-       holds its height through capture → reading → result */
-    body.innerHTML = `${prog("back")}
-      <div class="scan-stage">
-        <p class="scan-instruct">Reading barcode…</p>
-        <div class="scan-frame scan-frame--hold"><div class="scan-spin"></div></div>
-        <p class="hint" style="margin-top:10px">This usually takes a few seconds.</p>
+    st.stage = "processing"; st.pct = 90;
+    foot("");
+    body.innerHTML = `${top(90, null, true)}
+      <div class="scan-hero scan-hero--tight" style="text-align:center">
+        <div class="scan-spin" aria-hidden="true"></div>
+        <h1>Checking the license</h1>
+        <p>Ride Price is reading the barcode and comparing the identity with customer records. This usually takes a few seconds.</p>
+      </div>
+      <div class="scan-checks">
+        <div class="scan-checkrow"><span class="scan-tick">✓</span> Front captured</div>
+        <div class="scan-checkrow"><span class="scan-tick">✓</span> Barcode captured</div>
+        <div class="scan-checkrow"><span class="scan-tick scan-tick--wait" id="scanCrmTick">…</span> Checking CRM records</div>
       </div>`;
     st.render = null; /* nothing to resume into — the read finishes on its own */
+    setTimeout(() => { const t = $("#scanCrmTick"); if (t && live()) { t.textContent = "✓"; t.classList.remove("scan-tick--wait"); } }, 800);
     const t0 = Date.now();
     RIDE_PRICE_SCAN.recognizeFile(file).then((res) => {
       setTimeout(() => {
         if (!live()) return; /* dismissed or navigated away mid-scan */
         if (res && res.ok && res.persona) { st.persona = res.persona; afterRecognize(); }
         else renderReject();
-      }, Math.max(0, 1100 - (Date.now() - t0)));
+      }, Math.max(0, 1400 - (Date.now() - t0)));
     }).catch(() => { if (live()) renderReject(); });
   }
 
   function renderReject() {
-    st.stage = "back";
-    setModalFoot("");
+    st.stage = "back"; st.pct = 75;
+    foot(`<button type="button" class="btn btn--grad scan-cta" data-retry>Retake photo</button>
+      <button type="button" class="btn btn--ghost scan-cta scan-cta--ghost" data-manual>Enter manually</button>`);
     /* one idea per line: the demo limit, then the capture fix. No cause is
        diagnosed — the recognizer finds a prop marker or refuses (invariant 4). */
-    body.innerHTML = `${prog("back")}
-      <div class="scan-stage">
-        <div style="font-size:44px">🚫</div>
-        <h3 class="scan-h">Not recognized</h3>
-        <p class="scan-instruct"><span class="scan-demo-line" style="margin:0">In this demo, only the 5 printed training licenses can be read.</span><br>
-          <span class="hint">Blurry or shadowed photo? Retake usually fixes it. In the real system a damaged barcode means the same thing: fall back to manual entry.</span></p>
-        <div class="scan-actions">
-          <button class="btn btn--primary" data-retry>Retake photo</button>
-          <button class="btn btn--ghost btn--sm" data-manual>Enter manually</button>
-          ${peekBtn}
-        </div>
+    body.innerHTML = `${top(75, () => renderBack())}
+      <div class="scan-hero">
+        ${eyebrow("Not recognized")}
+        <h1>That didn&rsquo;t read</h1>
+        <p><b>In this demo, only the 5 printed training licenses can be read.</b></p>
+        <p>Blurry or shadowed photo? Retake usually fixes it. In the real system a damaged barcode means the same thing: fall back to manual entry.</p>
       </div>`;
-    $("[data-retry]", body).onclick = () => renderBack();
-    $("[data-manual]", body).onclick = () => { done(); if (o.onManual) o.onManual(); };
-    wireCommon(renderReject);
+    $("[data-retry]").onclick = () => renderBack();
+    $("[data-manual]").onclick = () => { done(); if (o.onManual) o.onManual(); };
+    wire(renderReject, () => renderBack());
   }
 
   /* recognition succeeded — route to the right screen. Certain matches go straight
@@ -1146,274 +1169,370 @@ function openScanFlow(opts) {
       if (m.customer.id === o.deal.customerId) return renderBlock();
       if (m.customer.id === o.deal.coBuyerId) return renderBlock("already");
     }
-    if (m.ask) return renderAskMatch(m);
+    if (m.ask) { st.asked = m; return renderAskMatch(m); }
     st.match = m;
-    renderVerify();
+    m.customer ? renderVerifyExisting() : renderVerifyNew();
   }
 
   /* hard block, no override: the scan resolved to a person already on this deal */
   function renderBlock(kind) {
-    st.stage = "verify";
-    setModalFoot("");
-    body.innerHTML = `${prog("verify")}
-      <div class="scan-stage">
-        <div style="font-size:44px">🚫</div>
-        <h3 class="scan-h">${kind === "already" ? "Already the co-buyer" : "That's the primary buyer on this deal."}</h3>
-        <p class="scan-instruct"><span class="hint">${kind === "already"
+    st.stage = "verify"; st.pct = 100;
+    foot(`<button type="button" class="btn btn--grad scan-cta" data-rescan>Scan a different license</button>
+      <button type="button" class="btn btn--ghost scan-cta scan-cta--ghost" data-close>Cancel</button>`);
+    body.innerHTML = `${top(100, () => renderBack())}
+      <div class="scan-hero">
+        ${eyebrow("Cannot use this license")}
+        <h1>${kind === "already" ? "Already the co-buyer" : "That&rsquo;s the primary buyer"}</h1>
+        <p>${kind === "already"
           ? "This license resolves to the person already attached as the co-buyer."
-          : "A person can't co-sign their own loan — the co-buyer must be a different guest."}</span></p>
-        <div class="scan-actions">
-          <button class="btn btn--primary" data-rescan>Scan a different license</button>
-          <button class="btn btn--ghost btn--sm" data-close>Cancel</button>
+          : "A person can&rsquo;t co-sign their own loan — the co-buyer must be a different guest."}</p>
+      </div>`;
+    $("[data-rescan]").onclick = () => renderFront();
+    wire(() => renderBlock(kind), () => renderBack());
+  }
+
+  /* the identity facts a card can honestly show; absent values render as — */
+  const custHistory = (ex) => {
+    const visits = Store.s.deals.filter(d => d.customerId === ex.id || d.coBuyerId === ex.id).length;
+    const since = ex.createdAt ? new Date(ex.createdAt).getFullYear() : null;
+    return `${since ? "Customer since " + since : "In your CRM"} • ${visits ? visits + " visit" + (visits === 1 ? "" : "s") : "no visits yet"}`;
+  };
+  const initials = (first, last) => esc(((first || " ")[0] + (last || " ")[0]).toUpperCase().trim() || "?");
+  const dataRow = (k, v) => `<div><span>${esc(k)}</span><strong>${v ? esc(v) : "—"}</strong></div>`;
+
+  /* ambiguous match (owner v2): the on-file record and the scanned license as
+     two cards the trainee can actually compare. The badge states the REAL
+     match basis — never an invented confidence percentage. */
+  function renderAskMatch(m) {
+    st.stage = "verify"; st.pct = 100;
+    const p = st.persona, ex = m.customer;
+    const basis = m.ask === "dob" ? "SAME DOB" : m.type === "license" ? "LICENSE MATCH" : "NAME MATCH";
+    foot(`<button type="button" class="btn btn--grad scan-cta" data-link>${m.ask === "dob" ? "Same person — update their record" : "Yes, use this customer"}</button>
+      <button type="button" class="btn btn--ghost scan-cta scan-cta--ghost" data-new>${m.ask === "dob" ? "Different guest — create new" : "No, create a new customer"}</button>
+      <p class="scan-foot-hint">Creating new adds a second ${esc(p.first + " " + p.last)} to the CRM.</p>`);
+    body.innerHTML = `${top(100, () => renderBack())}
+      <div class="scan-hero scan-hero--tight">
+        ${eyebrow("Possible match")}
+        <h1>Is this the same customer?</h1>
+        <p>${m.ask === "dob" ? "Same birthday as a customer on file — same person with a new name, or a different guest?" : "The license matches an existing CRM profile. Confirm before attaching the scan."}</p>
+      </div>
+      <div class="scan-matchcard">
+        <div class="scan-matchcard__head"><h3>Existing CRM customer</h3><span class="scan-badge">${esc(basis)}</span></div>
+        <div class="scan-person"><span class="scan-avatar">${initials(ex.first, ex.last)}</span>
+          <span><b>${esc(ex.first + " " + ex.last)}</b><small>${custHistory(ex)}</small></span></div>
+        <div class="scan-datarows">
+          ${dataRow("Date of birth", ex.dob ? dateUS(ex.dob) : null)}
+          ${dataRow("License", ex.license && ex.license.number ? ex.license.number : null)}
+          ${dataRow("Phone", ex.phone)}
+          ${dataRow("City", ex.city ? ex.city + ", " + (ex.state || "") : null)}
+        </div>
+      </div>
+      <div class="scan-matchcard">
+        <div class="scan-matchcard__head"><h3>Scanned license</h3><span class="scan-badge scan-badge--new">NEW SCAN</span></div>
+        <div class="scan-person"><span class="scan-avatar">${initials(p.first, p.last)}</span>
+          <span><b>${esc(p.first + " " + p.last)}</b><small>${esc(p.license.state)} license · ${esc(p.license.number)}</small></span></div>
+        <div class="scan-datarows">
+          ${dataRow("Date of birth", dateUS(p.dob))}
+          ${dataRow("Address", p.address + ", " + p.city)}
         </div>
       </div>`;
-    $("[data-rescan]", body).onclick = () => renderFront();
-    st.render = () => renderBlock(kind);
+    $("[data-link]").onclick = () => { st.match = { type: m.type, customer: m.customer }; renderVerifyExisting(); };
+    $("[data-new]").onclick = () => { st.match = { type: null, customer: null }; renderVerifyNew(); };
+    wire(() => renderAskMatch(m), () => renderBack());
   }
 
-  /* ambiguous match — the trainee decides on evidence, nothing applied silently:
-     the scanned facts and the on-file record side by side (absent values as —,
-     never invented; dates in MM/DD/YYYY) */
-  function renderAskMatch(m) {
-    st.stage = "verify";
-    setModalFoot("");
-    const p = st.persona, ex = m.customer;
-    const msg = m.ask === "dob"
-      ? `<b>Same birthday as ${esc(ex.first + " " + ex.last)}.</b> Same person with a new name, or a different guest?`
-      : `<b>${esc(ex.first + " " + ex.last)}</b> is already in your CRM. Is this them?`;
-    body.innerHTML = `${prog("verify")}
-      <div class="scan-banner scan-banner--warn"><b>Potential match found.</b><br>${msg}</div>
-      <div class="scan-compare">
-        <div><h4>License reads</h4>
-          <p>${esc(p.first + " " + p.last)}</p>
-          <p>DOB ${esc(dateUS(p.dob))}</p>
-          <p>${esc(p.license.number)}</p>
-          <p>${esc(p.city + ", " + p.state)}</p></div>
-        <div><h4>On file</h4>
-          <p>${esc(ex.first + " " + ex.last)}</p>
-          <p>DOB ${ex.dob ? esc(dateUS(ex.dob)) : "—"}</p>
-          <p>${ex.license && ex.license.number ? esc(ex.license.number) : "—"}</p>
-          <p>${ex.city ? esc(ex.city + ", " + (ex.state || "")) : "—"}</p></div>
-      </div>
-      <div class="scan-actions">
-        <button class="btn btn--primary" data-link>${m.ask === "dob" ? "Same person — update their record" : "Yes — link to that record"}</button>
-        <button class="btn btn--ghost" data-new>${m.ask === "dob" ? "Different guest — create new" : "No — create a new customer"}</button>
-        <p class="hint" style="margin:0">"${m.ask === "dob" ? "Different guest" : "No"}" creates a second ${esc(p.first + " " + p.last)} in the CRM.</p>
-      </div>`;
-    $("[data-link]", body).onclick = () => {
-      st.match = { type: m.type, customer: m.customer };
-      renderVerify();
-    };
-    $("[data-new]", body).onclick = () => {
-      st.match = { type: null, customer: null };
-      renderVerify();
-    };
-    st.render = () => renderAskMatch(m);
-  }
-
-  /* Verify — summary-first (owner, 2026-08-23, reversing the 2026-08-11
-     fully-editable decision): scanned values render read-first with old → new
-     markers; Edit opens the full form; the only open inputs are what the
-     license could not say. Scans still always parse clean — no fake theater. */
-  function renderVerify(prefill, focusPhone) {
-    st.stage = "verify";
+  /* the working values (ISO dates); the review screens edit into this */
+  function seedSv(ex) {
     const p = st.persona;
-    const m = st.match, ex = m.customer;
-    const nameChanged = ex && (ex.first.toLowerCase() !== p.first.toLowerCase() || ex.last.toLowerCase() !== p.last.toLowerCase());
-    const asCo = o.mode === "cobuyer" ? " They'll be attached to this deal as the co-buyer." : "";
-    /* sv holds the working values (ISO dates); Edit writes back into it */
-    const sv = st.sv = prefill || st.sv || {
+    return st.sv = st.sv || {
       first: p.first, middle: p.middle || "", last: p.last,
       dob: p.dob || "", address: p.address, city: p.city, state: p.state, zip: p.zip,
       email: ex ? ex.email : "", phone: ex ? ex.phone : "",
       license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
     };
-    /* which stored values change if this saves — the caption and the row marks */
-    const was = (label, oldV, newV) => newV && (!oldV || String(oldV) !== String(newV)) ? { label, oldV: oldV || null } : null;
-    const changes = ex ? [
-      was("Name", (ex.first + " " + ex.last), (sv.first + " " + sv.last)),
-      was("DOB", ex.dob, sv.dob),
-      was("License #", ex.license && ex.license.number, sv.license.number),
-      was("Expires", ex.license && ex.license.expires, sv.license.expires),
-      was("Address", ex.address, sv.address)
-    ].filter(Boolean) : [];
-    const mark = (label) => { const c = changes.find(x => x.label === label); return c ? ` <span class="scan-sum__chg">${c.oldV ? "updated" : "new"}</span>` : ""; };
-    const wasLine = (label, fmt) => { const c = changes.find(x => x.label === label); return c && c.oldV ? `<span class="scan-sum__was">was ${esc(fmt ? fmt(c.oldV) : c.oldV)}</span>` : ""; };
+  }
+  const normPhone = (s) => String(s || "").replace(/\D/g, "");
 
-    body.innerHTML = `${prog("verify")}
-      ${ex
-        ? `<div class="scan-banner scan-banner--found"><b>Existing customer found</b> — ${esc(ex.first + " " + ex.last)} (matched by ${esc(m.type)}). Saving updates their record.${asCo}${nameChanged ? `<br>Name on file will update to <b>${esc(sv.first + " " + sv.last)}</b>.` : ""}</div>`
-        : `<div class="scan-banner scan-banner--new"><b>New customer.</b> Confirm the license details below, then ask the guest for their contact details.${asCo}</div>`}
-      <div class="scan-sum">
-        <div class="scan-sum__head"><h4>From the license</h4><button type="button" class="btn btn--ghost btn--sm" data-editlic>Edit</button></div>
-        <div class="scan-sum__grid">
-          <div><span class="lab">Name${mark("Name")}</span><b>${esc([sv.first, sv.middle, sv.last].filter(Boolean).join(" "))}</b>${wasLine("Name")}</div>
-          <div><span class="lab">Date of Birth${mark("DOB")}</span><b>${sv.dob ? esc(dateUS(sv.dob)) : "—"}</b>${wasLine("DOB", dateUS)}</div>
-          <div><span class="lab">License #${mark("License #")}</span><b>${esc(sv.license.number)} · ${esc(sv.license.state)}</b>${wasLine("License #")}</div>
-          <div><span class="lab">Expires${mark("Expires")}</span><b>${sv.license.expires ? esc(dateUS(sv.license.expires)) : "—"}</b>${wasLine("Expires", dateUS)}</div>
-          <div class="scan-sum__wide"><span class="lab">Address${mark("Address")}</span><b>${esc(sv.address + ", " + sv.city + ", " + sv.state + " " + sv.zip)}</b>${wasLine("Address")}</div>
-        </div>
-      </div>
-      <div class="scan-ask">
-        <h4>Ask the guest</h4>
-        <div class="fields">
-          <label class="f"><span class="lab">Email <i class="req">*</i></span><input id="svEmail" type="email" value="${esc(sv.email)}"></label>
-          <label class="f"><span class="lab">Phone <i class="req">*</i></span><input id="svPhone" type="tel" value="${esc(sv.phone)}" placeholder="(718) 555-5555"></label>
-          ${ex ? "" : `<label class="f"><span class="lab">Est. Credit Score</span><input id="svScore" type="number" min="400" max="850" value="${esc(String(sv.score || 700))}"></label>`}
-        </div>
-        <p class="hint">Required: either email or phone. <span class="demo-note">Demo tool — sample data only.</span></p>
-      </div>`;
-    /* the buttons sit in the pinned footer, not at the end of the scrolling
-       form (RP-UI-003); the CTA names the whole outcome — it also starts the
-       visit — and says how many stored fields it updates */
-    setModalFoot(`${ex && changes.length ? `<span class="scan-foot__note">${changes.length} field${changes.length === 1 ? "" : "s"} will be updated from the license</span>` : ""}
-        <button class="btn btn--ghost" data-close>Cancel</button>
-        <button class="btn btn--primary" id="svSave">${o.mode === "cobuyer" ? "Add as Co-Buyer" : ex ? "Save & Start Visit" : "Create & Start Visit"} →</button>`);
-    st.render = () => renderVerify();
-    $("[data-editlic]", body).onclick = () => renderVerifyForm();
-    if (focusPhone) { const ph = $("#svPhone", body); if (ph) { ph.scrollIntoView({ block: "center" }); ph.focus(); } }
-
-    const normPhone = (s) => String(s || "").replace(/\D/g, "");
-
-    /* single save tail for every path (direct, phone-link, phone-keep) */
-    function finishSave(cust, wasExisting, warnMsg) {
-      if (o.mode === "cobuyer") o.deal.coBuyerId = cust.id;
-      Store.save(); done();
-      toast(warnMsg || (o.mode === "cobuyer"
-        ? "Co-buyer added — " + cust.first + " " + cust.last
-        : wasExisting ? "Customer record updated from license" : "Customer created from license"));
-      if (o.onDone) o.onDone(cust, p, m);
+  /* single save tail for every path (direct, phone-link, phone-keep): write
+     the store, then the completion screen — the visit starts from there */
+  function finishSave(cust, wasExisting, warnMsg) {
+    if (o.mode === "cobuyer") o.deal.coBuyerId = cust.id;
+    Store.save();
+    if (o.mode === "cobuyer") {
+      done(); toast(warnMsg || "Co-buyer added — " + cust.first + " " + cust.last);
+      if (o.onDone) o.onDone(cust, st.persona, st.match);
+      return;
     }
+    st.saved = true;
+    if (warnMsg) toast(warnMsg);
+    renderComplete(cust, wasExisting);
+  }
 
-    $("#svSave").onclick = () => {
-      sv.email = $("#svEmail", body).value.trim();
-      sv.phone = $("#svPhone", body).value.trim();
-      const scoreEl = $("#svScore", body);
-      if (scoreEl) sv.score = parseInt(scoreEl.value, 10) || 700;
-      const vals = {
-        first: sv.first, middle: sv.middle, last: sv.last,
-        dob: sv.dob, address: sv.address, city: sv.city,
-        state: sv.state, zip: sv.zip,
-        email: sv.email, phone: sv.phone,
-        license: { number: sv.license.number, state: sv.license.state, expires: sv.license.expires }
-      };
-      /* the same required set and the same marks as Create Customer; in
-         summary mode the license values are complete by construction (scans
-         parse clean), so the marks land on the contact inputs */
-      const bad = customerMissing(vals, "sv", body);
-      if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
-      /* compare on DIGITS, not the raw field: a digitless entry ("n/a") normalizes to
-         "" and would otherwise match every customer who has no phone on file */
-      const phoneDigits = normPhone(vals.phone);
-      const mkNew = () => {
-        const cust = Object.assign({ id: uid("c"), creditScore: sv.score || 700, createdAt: new Date().toISOString() }, vals);
-        Store.s.customers.push(cust);
-        return cust;
-      };
-      if (ex) {
-        /* matched already — a typed phone belonging to someone ELSE is likelier a typo
-           or a shared phone than a wrong match: warn, don't switch */
-        const other = phoneDigits && Store.s.customers.find(x => x.id !== ex.id && normPhone(x.phone) === phoneDigits);
-        Object.assign(ex, vals);
-        finishSave(ex, true, other ? "Saved — heads up: that phone number is also on file for " + other.first + " " + other.last : null);
-      } else {
-        /* about to create — the typed phone is the last chance to catch a duplicate */
-        const dup = phoneDigits && Store.s.customers.find(x => normPhone(x.phone) === phoneDigits);
-        if (dup) return renderPhoneConflict(dup, vals, mkNew);
-        finishSave(mkNew(), false);
-      }
+  function saveFrom(vals, ex) {
+    const phoneDigits = normPhone(vals.phone);
+    const mkNew = () => {
+      const cust = Object.assign({ id: uid("c"), creditScore: st.sv.score || 700, createdAt: new Date().toISOString() }, vals);
+      Store.s.customers.push(cust);
+      return cust;
     };
-
-    /* Edit — the full form, prefilled from the working values; Save returns
-       to the summary with the edits applied (the fallback posture the
-       2026-08-11 decision was, now one tap away instead of the default) */
-    function renderVerifyForm() {
-      st.stage = "verify";
-      setModalFoot("");
-      body.innerHTML = `${prog("verify")}
-        <div class="scan-sum__head" style="margin-bottom:8px"><h4>Edit the license details</h4></div>
-        <div class="fields">
-          <label class="f"><span class="lab">First Name <i class="req">*</i></span><input id="feFirst" type="text" value="${esc(sv.first)}"></label>
-          <label class="f"><span class="lab">Middle Name</span><input id="feMiddle" type="text" value="${esc(sv.middle)}"></label>
-          <label class="f"><span class="lab">Last Name <i class="req">*</i></span><input id="feLast" type="text" value="${esc(sv.last)}"></label>
-          <label class="f"><span class="lab">Date of Birth</span><input id="feDob" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(sv.dob ? dateUS(sv.dob) : "")}"></label>
-          <label class="f"><span class="lab">License #</span><input id="feDl" type="text" value="${esc(sv.license.number)}"></label>
-          <label class="f"><span class="lab">Issuing State</span><input id="feDlState" type="text" value="${esc(sv.license.state)}"></label>
-          <label class="f"><span class="lab">Expires</span><input id="feDlExp" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(sv.license.expires ? dateUS(sv.license.expires) : "")}"></label>
-          <label class="f"><span class="lab">Address <i class="req">*</i></span><input id="feAddr" type="text" value="${esc(sv.address)}"></label>
-          <label class="f"><span class="lab">City</span><input id="feCity" type="text" value="${esc(sv.city)}"></label>
-          <label class="f"><span class="lab">State</span><input id="feState" type="text" value="${esc(sv.state)}"></label>
-          <label class="f"><span class="lab">ZIP Code <i class="req">*</i></span><input id="feZip" type="text" value="${esc(sv.zip)}"></label>
-        </div>`;
-      setModalFoot(`<button class="btn btn--ghost" data-back-to-sum>Back</button>
-          <button class="btn btn--primary" id="feApply">Apply edits</button>`);
-      st.render = renderVerifyForm;
-      $("[data-back-to-sum]").onclick = () => renderVerify();
-      $("#feApply").onclick = () => {
-        const val = (id) => $("#" + id, body).value.trim();
-        const dobText = val("feDob"), expText = val("feDlExp");
-        const dob = dobText ? dateISO(dobText) : "";
-        const expires = expText ? dateISO(expText) : "";
-        const bad = [];
-        if (!val("feFirst")) bad.push({ el: $("#feFirst", body), msg: "Required" });
-        if (!val("feLast")) bad.push({ el: $("#feLast", body), msg: "Required" });
-        if (!val("feAddr")) bad.push({ el: $("#feAddr", body), msg: "Required" });
-        if (!val("feZip")) bad.push({ el: $("#feZip", body), msg: "Required" });
-        if (dobText && !dob) bad.push({ el: $("#feDob", body), msg: "Enter MM/DD/YYYY" });
-        if (expText && !expires) bad.push({ el: $("#feDlExp", body), msg: "Enter MM/DD/YYYY" });
-        if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
-        Object.assign(sv, {
-          first: val("feFirst"), middle: val("feMiddle"), last: val("feLast"),
-          dob, address: val("feAddr"), city: val("feCity"), state: val("feState"), zip: val("feZip"),
-          license: { number: val("feDl"), state: val("feDlState"), expires }
-        });
-        renderVerify();
-      };
-    }
-
-    /* the typed phone matches an existing record — the evidence, what each
-       action does, and the cheap typo fix, all on one card */
-    function renderPhoneConflict(dup, vals, mkNew) {
-      setModalFoot("");
-      const isPrimary = o.mode === "cobuyer" && dup.id === o.deal.customerId;
-      body.innerHTML = `${prog("verify")}
-        <div class="scan-banner scan-banner--warn"><b>${esc(vals.phone)}</b> is on file for <b>${esc(dup.first + " " + dup.last)}</b>.</div>
-        <div class="scan-conseq">
-          ${isPrimary ? "" : `<p><b>Link:</b> the scanned details save onto ${esc(dup.first + " " + dup.last)}'s record — no duplicate is created.</p>`}
-          <p><b>Keep as new:</b> two customers will share this phone number.</p>
-          ${isPrimary ? `<p><b>That's the primary buyer on this deal</b> — they can't also be the co-buyer, so linking isn't available here.</p>` : ""}
-        </div>
-        <div class="scan-actions">
-          ${isPrimary ? "" : `<button class="btn btn--primary" data-plink>Link to that record</button>`}
-          <button class="btn btn--ghost" data-pnew>Keep as a new customer</button>
-          <button class="btn btn--ghost btn--sm" data-pfix>Back — fix the number</button>
-        </div>`;
-      st.render = () => renderPhoneConflict(dup, vals, mkNew);
-      const link = $("[data-plink]", body);
-      if (link) link.onclick = () => { Object.assign(dup, vals); finishSave(dup, true); };
-      $("[data-pnew]", body).onclick = () => finishSave(mkNew(), false);
-      $("[data-pfix]", body).onclick = () => renderVerify(sv, true);
+    if (ex) {
+      /* matched already — a typed phone belonging to someone ELSE is likelier a typo
+         or a shared phone than a wrong match: warn, don't switch */
+      const other = phoneDigits && Store.s.customers.find(x => x.id !== ex.id && normPhone(x.phone) === phoneDigits);
+      Object.assign(ex, vals);
+      finishSave(ex, true, other ? "Saved — heads up: that phone number is also on file for " + other.first + " " + other.last : null);
+    } else {
+      /* about to create — the typed phone is the last chance to catch a duplicate */
+      const dup = phoneDigits && Store.s.customers.find(x => normPhone(x.phone) === phoneDigits);
+      if (dup) return renderPhoneConflict(dup, vals, mkNew);
+      finishSave(mkNew(), false);
     }
   }
 
+  const svVals = () => ({
+    first: st.sv.first, middle: st.sv.middle, last: st.sv.last,
+    dob: st.sv.dob, address: st.sv.address, city: st.sv.city,
+    state: st.sv.state, zip: st.sv.zip,
+    email: st.sv.email, phone: st.sv.phone,
+    license: { number: st.sv.license.number, state: st.sv.license.state, expires: st.sv.license.expires }
+  });
+
+  /* existing customer (owner v2 s6): what CHANGED from the license as open
+     inputs with the previous value under each; everything already matching
+     in a confirmed card. Saving updates the record and moves to completion. */
+  function renderVerifyExisting() {
+    st.stage = "verify"; st.pct = 100;
+    const p = st.persona, m = st.match, ex = m.customer;
+    const sv = seedSv(ex);
+    const chg = [];
+    const push = (key, label, oldV, newV, input) => { if (newV && (!oldV || String(oldV) !== String(newV))) chg.push({ key, label, oldV: oldV || null, input }); };
+    push("name", "Name", (ex.first + " " + ex.last), (sv.first + " " + sv.last), "name");
+    push("dob", "Date of birth", ex.dob, sv.dob, "date");
+    push("license", "License #", ex.license && ex.license.number, sv.license.number, "text");
+    push("expires", "License expires", ex.license && ex.license.expires, sv.license.expires, "date");
+    push("address", "Address", ex.address, sv.address, "text");
+    const same = [
+      !chg.some(c => c.key === "name") ? ["Name", sv.first + " " + sv.last] : null,
+      !chg.some(c => c.key === "dob") && sv.dob ? ["DOB", dateUS(sv.dob)] : null,
+      !chg.some(c => c.key === "license") ? ["License", sv.license.number] : null,
+      ex.phone ? ["Phone", ex.phone] : null,
+      ex.email ? ["Email", ex.email] : null
+    ].filter(Boolean);
+    const needContact = !ex.phone && !ex.email;
+    foot(`${chg.length ? `<p class="scan-foot-hint" style="margin:0 0 8px">${chg.length} field${chg.length === 1 ? "" : "s"} will be updated from the license</p>` : ""}
+      <button type="button" class="btn btn--grad scan-cta" data-save>Update &amp; Continue</button>`);
+    body.innerHTML = `${top(100, st.asked ? () => renderAskMatch(st.asked) : () => renderBack())}
+      <div class="scan-hero scan-hero--tight" style="text-align:center">
+        <div class="scan-success" aria-hidden="true">✓</div>
+        ${eyebrow("Existing customer")}
+        <h1>Customer confirmed</h1>
+        <p>${esc(ex.first + " " + ex.last)} (matched by ${esc(m.type)}). ${chg.length ? (chg.length === 1 ? "Only one field changed from the CRM record." : chg.length + " fields changed from the CRM record.") : "Everything matches the CRM record."}${o.mode === "cobuyer" ? " They&rsquo;ll be attached as the co-buyer." : ""}</p>
+      </div>
+      ${chg.map(c => `<div class="scan-changecard" data-chg="${esc(c.key)}">
+        <label>${esc(c.label.toUpperCase())} FROM LICENSE</label>
+        ${c.key === "name"
+          ? `<input data-first type="text" value="${esc(sv.first)}" aria-label="First name"><input data-last type="text" value="${esc(sv.last)}" style="margin-top:8px" aria-label="Last name">`
+          : c.input === "date"
+            ? `<input data-val type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(c.key === "dob" ? sv.dob : sv.license.expires))}">`
+            : `<input data-val type="text" value="${esc(c.key === "license" ? sv.license.number : sv.address)}">`}
+        ${c.oldV ? `<div class="scan-subtle">Previous: ${esc(c.input === "date" ? dateUS(c.oldV) : c.oldV)}</div>` : `<div class="scan-subtle">Not on file before this scan.</div>`}
+      </div>`).join("")}
+      ${needContact ? `<div class="scan-changecard"><label>PHONE OR EMAIL <i class="req">*</i></label>
+        <input id="svPhone" type="tel" placeholder="(718) 555-5555"><input id="svEmail" type="email" placeholder="name@testing.com" style="margin-top:8px">
+        <div class="scan-subtle">At least one way to reach the guest.</div></div>` : ""}
+      <div class="scan-matchcard">
+        <div class="scan-matchcard__head"><h3>Already on file</h3><span class="scan-badge">CONFIRMED</span></div>
+        <div class="scan-datarows">${same.map(r => dataRow(r[0], r[1])).join("")}</div>
+      </div>
+      <p class="scan-demo-hint">Demo tool — sample data only.</p>`;
+    $("[data-save]").onclick = () => {
+      /* read the change inputs back into the working values */
+      $$("[data-chg]", body).forEach(card => {
+        const key = card.dataset.chg;
+        if (key === "name") { sv.first = $("[data-first]", card).value.trim() || sv.first; sv.last = $("[data-last]", card).value.trim() || sv.last; return; }
+        const v = $("[data-val]", card).value.trim();
+        if (key === "dob") sv.dob = v ? (dateISO(v) || sv.dob) : "";
+        else if (key === "expires") sv.license.expires = v ? (dateISO(v) || sv.license.expires) : "";
+        else if (key === "license") sv.license.number = v || sv.license.number;
+        else if (key === "address") sv.address = v || sv.address;
+      });
+      if (needContact) { sv.phone = $("#svPhone", body).value.trim(); sv.email = $("#svEmail", body).value.trim(); }
+      const bad = [];
+      /* a typed-but-invalid date must never silently erase a stored one */
+      $$("[data-chg]", body).forEach(card => {
+        const inp = $("[data-val]", card);
+        if (inp && inp.hasAttribute("data-date") && inp.value.trim() && !dateISO(inp.value.trim())) bad.push({ el: inp, msg: "Enter MM/DD/YYYY" });
+      });
+      if (needContact && !sv.phone && !sv.email) bad.push({ el: $("#svPhone", body), msg: "Phone or email — at least one" });
+      if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
+      saveFrom(svVals(), ex);
+    };
+    wire(renderVerifyExisting, st.asked ? () => renderAskMatch(st.asked) : () => renderBack());
+  }
+
+  /* new customer (owner v2 s7): the license details as read-first rows with
+     per-row Edit; the only typing asked for is what the license cannot say */
+  function renderVerifyNew() {
+    st.stage = "verify"; st.pct = 100;
+    const p = st.persona;
+    const sv = seedSv(null);
+    foot(`<button type="button" class="btn btn--grad scan-cta" data-save>${o.mode === "cobuyer" ? "Add as Co-Buyer" : "Create Customer"}</button>`);
+    const row = (key, label, val) => `<div class="scan-editrow" data-field="${esc(key)}">
+      <div class="scan-editrow__copy"><span>${esc(label)}</span><strong data-show>${esc(val)}</strong></div>
+      <button type="button" class="scan-editpill" data-edit>Edit</button>
+    </div><div class="scan-editrow__form" data-form="${esc(key)}" hidden></div>`;
+    body.innerHTML = `${top(100, st.asked ? () => renderAskMatch(st.asked) : () => renderBack())}
+      <div class="scan-hero scan-hero--left">
+        ${eyebrow("New customer")}
+        <h1>License details are ready</h1>
+        <p>We filled what we could. Confirm the license details, then add the guest&rsquo;s contact details.${o.mode === "cobuyer" ? " They&rsquo;ll be attached as the co-buyer." : ""}</p>
+      </div>
+      <div class="scan-seclab">FROM DRIVER&rsquo;S LICENSE</div>
+      <div class="scan-matchcard scan-matchcard--rows">
+        ${row("name", "Name", [sv.first, sv.middle, sv.last].filter(Boolean).join(" "))}
+        ${row("license", "License", sv.license.number + " · " + sv.license.state + (sv.license.expires ? " · exp " + dateUS(sv.license.expires) : ""))}
+        ${row("dob", "Date of birth", sv.dob ? dateUS(sv.dob) : "—")}
+        ${row("address", "Address", sv.address + ", " + sv.city + ", " + sv.state + " " + sv.zip)}
+      </div>
+      <div class="scan-seclab">ASK THE GUEST</div>
+      <div class="scan-changecard">
+        <label>MOBILE PHONE</label>
+        <input id="svPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="(718) 555-5555" value="${esc(sv.phone)}">
+        <label style="margin-top:14px">EMAIL</label>
+        <input id="svEmail" type="email" autocomplete="off" placeholder="name@testing.com" value="${esc(sv.email)}">
+        <label style="margin-top:14px">EST. CREDIT SCORE</label>
+        <input id="svScore" type="number" min="400" max="850" value="${esc(String(sv.score || 700))}">
+        <div class="scan-subtle">Phone or email — at least one is required. <span class="demo-note">Demo tool — sample data only.</span></div>
+      </div>`;
+    /* per-row edit: the row expands to its real granular inputs (dates stay
+       masked MM/DD/YYYY — never a native picker) and Save folds it back */
+    const forms = {
+      name: () => `<input data-f="first" type="text" value="${esc(sv.first)}" placeholder="First" aria-label="First name">
+        <input data-f="middle" type="text" value="${esc(sv.middle)}" placeholder="Middle" aria-label="Middle name">
+        <input data-f="last" type="text" value="${esc(sv.last)}" placeholder="Last" aria-label="Last name">`,
+      license: () => `<input data-f="lnum" type="text" value="${esc(sv.license.number)}" placeholder="License #" aria-label="License number">
+        <input data-f="lstate" type="text" value="${esc(sv.license.state)}" placeholder="State" aria-label="Issuing state">
+        <input data-f="lexp" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(sv.license.expires ? dateUS(sv.license.expires) : "")}" aria-label="Expires">`,
+      dob: () => `<input data-f="dob" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(sv.dob ? dateUS(sv.dob) : "")}" aria-label="Date of birth">`,
+      address: () => `<input data-f="address" type="text" value="${esc(sv.address)}" placeholder="Street" aria-label="Street">
+        <input data-f="city" type="text" value="${esc(sv.city)}" placeholder="City" aria-label="City">
+        <input data-f="state" type="text" value="${esc(sv.state)}" placeholder="State" aria-label="State">
+        <input data-f="zip" type="text" value="${esc(sv.zip)}" placeholder="ZIP" aria-label="ZIP">`
+    };
+    const shows = {
+      name: () => [sv.first, sv.middle, sv.last].filter(Boolean).join(" "),
+      license: () => sv.license.number + " · " + sv.license.state + (sv.license.expires ? " · exp " + dateUS(sv.license.expires) : ""),
+      dob: () => sv.dob ? dateUS(sv.dob) : "—",
+      address: () => sv.address + ", " + sv.city + ", " + sv.state + " " + sv.zip
+    };
+    $$("[data-edit]", body).forEach(btn => btn.onclick = () => {
+      const rowEl = btn.closest(".scan-editrow"), key = rowEl.dataset.field;
+      const formEl = $(`[data-form="${key}"]`, body);
+      if (formEl.hidden) {
+        formEl.innerHTML = forms[key]() + `<button type="button" class="btn btn--primary btn--sm" data-apply>Save</button>`;
+        formEl.hidden = false; btn.textContent = "Close";
+        const first = $("input", formEl); if (first) first.focus();
+        $("[data-apply]", formEl).onclick = () => {
+          const get = (f) => { const i = $(`[data-f="${f}"]`, formEl); return i ? i.value.trim() : null; };
+          const bad = [];
+          const dateOf = (f, cur) => { const t = get(f); if (t && !dateISO(t)) { bad.push({ el: $(`[data-f="${f}"]`, formEl), msg: "Enter MM/DD/YYYY" }); return cur; } return t ? dateISO(t) : ""; };
+          if (key === "name") {
+            if (!get("first")) bad.push({ el: $(`[data-f="first"]`, formEl), msg: "Required" });
+            if (!get("last")) bad.push({ el: $(`[data-f="last"]`, formEl), msg: "Required" });
+          }
+          if (key === "address") {
+            if (!get("address")) bad.push({ el: $(`[data-f="address"]`, formEl), msg: "Required" });
+            if (!get("zip")) bad.push({ el: $(`[data-f="zip"]`, formEl), msg: "Required" });
+          }
+          const dobV = key === "dob" ? dateOf("dob", sv.dob) : null;
+          const expV = key === "license" ? dateOf("lexp", sv.license.expires) : null;
+          if (markMissing(formEl, bad)) return;
+          if (key === "name") { sv.first = get("first"); sv.middle = get("middle"); sv.last = get("last"); }
+          if (key === "license") { sv.license.number = get("lnum") || sv.license.number; sv.license.state = get("lstate") || sv.license.state; sv.license.expires = expV; }
+          if (key === "dob") sv.dob = dobV;
+          if (key === "address") { sv.address = get("address"); sv.city = get("city"); sv.state = get("state"); sv.zip = get("zip"); }
+          $("[data-show]", rowEl).textContent = shows[key]();
+          formEl.hidden = true; formEl.innerHTML = ""; btn.textContent = "Edit";
+        };
+      } else { formEl.hidden = true; formEl.innerHTML = ""; btn.textContent = "Edit"; }
+    });
+    $("[data-save]").onclick = () => {
+      sv.email = $("#svEmail", body).value.trim();
+      sv.phone = $("#svPhone", body).value.trim();
+      sv.score = parseInt($("#svScore", body).value, 10) || 700;
+      /* the same required set and the same marks as Create Customer */
+      const bad = customerMissing(svVals(), "sv", body);
+      if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
+      saveFrom(svVals(), null);
+    };
+    wire(renderVerifyNew, st.asked ? () => renderAskMatch(st.asked) : () => renderBack());
+  }
+
+  /* the typed phone matches an existing record — the evidence, what each
+     action does, and the cheap typo fix, all on one card */
+  function renderPhoneConflict(dup, vals, mkNew) {
+    st.stage = "verify"; st.pct = 100;
+    const isPrimary = o.mode === "cobuyer" && dup.id === o.deal.customerId;
+    foot(`${isPrimary ? "" : `<button type="button" class="btn btn--grad scan-cta" data-plink>Link to that record</button>`}
+      <button type="button" class="btn btn--ghost scan-cta scan-cta--ghost" data-pnew>Keep as a new customer</button>
+      <button type="button" class="btn btn--ghost btn--sm scan-cta scan-cta--ghost" data-pfix>Back — fix the number</button>`);
+    body.innerHTML = `${top(100, () => renderVerifyNew())}
+      <div class="scan-hero scan-hero--tight">
+        ${eyebrow("Phone number conflict")}
+        <h1>That number is on file</h1>
+        <p><b>${esc(vals.phone)}</b> belongs to <b>${esc(dup.first + " " + dup.last)}</b> in your CRM.</p>
+      </div>
+      <div class="scan-conseq">
+        ${isPrimary ? "" : `<p><b>Link:</b> the scanned details save onto ${esc(dup.first + " " + dup.last)}'s record — no duplicate is created.</p>`}
+        <p><b>Keep as new:</b> two customers will share this phone number.</p>
+        ${isPrimary ? `<p><b>That's the primary buyer on this deal</b> — they can't also be the co-buyer, so linking isn't available here.</p>` : ""}
+      </div>`;
+    const link = $("[data-plink]");
+    if (link) link.onclick = () => { Object.assign(dup, vals); finishSave(dup, true); };
+    $("[data-pnew]").onclick = () => finishSave(mkNew(), false);
+    $("[data-pfix]").onclick = () => { st.sv.phone = ""; renderVerifyNew(); setTimeout(() => { const ph = $("#svPhone", body); if (ph) { ph.scrollIntoView({ block: "center" }); ph.focus(); } }, 50); };
+    wire(() => renderPhoneConflict(dup, vals, mkNew), () => renderVerifyNew());
+  }
+
+  /* completion (owner v2 s8): a real ending, then the visit */
+  function renderComplete(cust, wasExisting) {
+    st.stage = "complete"; st.pct = 100;
+    foot(`<button type="button" class="btn btn--grad scan-cta" data-go>Continue to the Visit</button>`);
+    body.innerHTML = `${top(100, null, true)}
+      <div class="scan-hero" style="text-align:center;padding-top:46px">
+        <div class="scan-success scan-success--big" aria-hidden="true">✓</div>
+        ${eyebrow("Complete")}
+        <h1>${wasExisting ? "Customer is ready" : "Customer created"}</h1>
+        <p>${wasExisting ? "The record was updated from the license and the profile is ready for the deal." : "The profile was created from the license and is ready for the deal."}</p>
+      </div>
+      <div class="scan-matchcard">
+        <div class="scan-person"><span class="scan-avatar">${initials(cust.first, cust.last)}</span>
+          <span><b>${esc(cust.first + " " + cust.last)}</b><small>Profile ${wasExisting ? "updated" : "created"} from license scan</small></span></div>
+      </div>`;
+    $("[data-go]").onclick = () => { done(); if (o.onDone) o.onDone(cust, st.persona, st.match); };
+    st.render = () => renderComplete(cust, wasExisting);
+    $$("[data-peek]", body).forEach(b => b.onclick = () => renderPeek(st.render));
+  }
+
   function renderVerifyTd(p) {
-    st.stage = "verify";
+    st.stage = "verify"; st.pct = 100;
     const c = o.deal ? Store.customer(o.deal.customerId) : null;
     const mismatch = c && (c.first.toLowerCase() !== p.first.toLowerCase() || c.last.toLowerCase() !== p.last.toLowerCase());
-    body.innerHTML = `${prog("verify")}
-      ${mismatch
-        ? `<div class="scan-banner scan-banner--warn"><b>Heads up:</b> the license reads <b>${esc(p.first + " " + p.last)}</b>, but this deal's customer is <b>${esc(c.first + " " + c.last)}</b>. Double-check you have the right guest — the name on file won't be changed here.</div>`
-        : `<div class="scan-banner scan-banner--found"><b>License read${c ? " for " + esc(c.first + " " + c.last) : ""}.</b> Verify each field against the card before continuing.</div>`}
-      <div class="fields">
+    foot(`<button type="button" class="btn btn--grad scan-cta" id="svSave">Use These Details</button>`);
+    body.innerHTML = `${top(100, () => renderBack())}
+      <div class="scan-hero scan-hero--tight">
+        ${eyebrow("Test drive")}
+        <h1>${mismatch ? "Check the name" : "License read"}</h1>
+        <p>${mismatch
+          ? `The license reads <b>${esc(p.first + " " + p.last)}</b>, but this deal's customer is <b>${esc(c.first + " " + c.last)}</b>. Double-check you have the right guest — the name on file won't be changed here.`
+          : `${c ? "For " + esc(c.first + " " + c.last) + ". " : ""}Verify each field against the card before continuing.`}</p>
+      </div>
+      <div class="fields" style="padding:0 26px">
         <label class="f"><span class="lab">License # <i class="req">*</i></span><input id="svDl" type="text" value="${esc(p.license.number)}"></label>
         <label class="f"><span class="lab">Issuing State</span><input id="svDlState" type="text" value="${esc(p.license.state)}"></label>
         <label class="f"><span class="lab">Expires</span><input id="svDlExp" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.license.expires))}"></label>
         <label class="f"><span class="lab">Date of Birth</span><input id="svDob" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.dob))}"></label>
-      </div>
-`;
-    setModalFoot(`<button class="btn btn--ghost" data-close>Cancel</button>
-        <button class="btn btn--primary" id="svSave">Use These Details →</button>`);
-    st.render = () => renderVerifyTd(p);
+      </div>`;
     $("#svSave").onclick = () => {
       const expText = $("#svDlExp", body).value.trim(), dobText = $("#svDob", body).value.trim();
       const expires = expText ? dateISO(expText) : "";
@@ -1431,6 +1550,7 @@ function openScanFlow(opts) {
       done();
       if (o.onDone) o.onDone(c, Object.assign({}, p, { license: lic }));
     };
+    wire(() => renderVerifyTd(p), () => renderBack());
   }
 
   renderIntro();
