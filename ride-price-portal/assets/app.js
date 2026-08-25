@@ -1738,8 +1738,36 @@ function openScanFlow(opts) {
         <p><b>Keep as a new customer</b> means two customers will share this phone number.</p>
         ${isPrimary ? `<p><b>That&rsquo;s the primary buyer on this deal</b> — they can&rsquo;t also be the co-buyer, so linking isn&rsquo;t available here.</p>` : ""}
       </div>`;
+    /* linking overwrites someone's existing record off a TYPED number, so it
+       is gated behind a code verification (owner, 2026-08-25): the guest
+       reads back the code sent to that number, proving the number is theirs
+       before anything merges. In production the code goes out by text; this
+       demo has no network path (invariant), so the sheet says so and shows
+       the code the guest "received" — the rehearsal stays the real one. */
     const link = $("[data-plink]");
-    if (link) link.onclick = () => { Object.assign(dup, vals); finishSave(dup, true); };
+    if (link) link.onclick = () => {
+      const code = String(Math.floor(100000 + Math.random() * 900000));
+      openSheet("Verify the number", `
+        <p class="scan-conseq" style="margin:0 0 4px"><b>A 6-digit code was sent to ${esc(vals.phone)}.</b> Ask the guest to read it back — it proves the number is theirs before the records link.</p>
+        <div class="scan-form">
+          <label for="svLinkCode">Verification code</label>
+          <input id="svLinkCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code">
+        </div>
+        <p class="scan-subtle">Demo: nothing leaves this device, so no text was really sent — the code on the guest&rsquo;s phone would read <b>${esc(code)}</b>.</p>
+        <div class="scan-sheet__acts">
+          <button type="button" class="btn btn--primary scan-cta" data-verify>Verify &amp; Link</button>
+          <button type="button" class="btn scan-cta scan-cta--text" data-cancel-sheet>Cancel</button>
+        </div>`, (sheet, close) => {
+        $("[data-cancel-sheet]", sheet).onclick = close;
+        const inp = $("#svLinkCode", sheet); inp.focus();
+        $("[data-verify]", sheet).onclick = () => {
+          const typed = inp.value.trim();
+          if (typed !== code) return markMissing(sheet, [{ el: inp, msg: typed ? "Code doesn't match" : "Required" }]);
+          close();
+          Object.assign(dup, vals); finishSave(dup, true);
+        };
+      });
+    };
     $("[data-pnew]").onclick = () => finishSave(mkNew(), false);
     $("[data-pfix]").onclick = () => { st.sv.phone = ""; renderVerifyNew(); setTimeout(() => { const ph = $("#svPhone", body); if (ph) { ph.scrollIntoView({ block: "center" }); ph.focus(); } }, 50); };
     wire(() => renderPhoneConflict(dup, vals, mkNew), () => renderVerifyNew());
