@@ -25,8 +25,10 @@ a{color:inherit}
 .flow header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}.flow h2{margin:0;font-size:17px;color:var(--navy);text-transform:uppercase;letter-spacing:.6px}.flow h2 small{color:var(--muted);font-weight:600;letter-spacing:0;text-transform:none;margin-left:8px}
 .dlwrap{position:relative;margin-left:auto}.dl{width:36px;height:36px;border-radius:99px;border:1.5px solid var(--line);background:#fff;color:var(--navy);font-size:16px;font-weight:800;cursor:pointer;line-height:1}.dl:hover,.dl[aria-expanded="true"]{border-color:var(--navy);background:var(--bg)}.dl:focus-visible{outline:3px solid #f7b733;outline-offset:2px}
 .dl,.dlmenu button{touch-action:manipulation}
-.dlwrap{display:flex;align-items:center;gap:8px}
-.dlwrap .dl{order:2}.dlwrap .dlmenu,.dlwrap .dlnote{order:1} /* pills grow leftward; the arrow never moves */
+.dlwrap{display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end;max-width:100%;min-width:0}
+.dlwrap .dl{order:2;flex:none}.dlwrap .dlmenu,.dlwrap .dlnote{order:1;min-width:0} /* pills grow leftward; the arrow never moves */
+.dlmenu{flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:560px){.dlwrap{width:100%}.dlmenu button{flex:1 1 0}} /* narrow: the pills take their own line, never overflowing the header */
 .dlmenu{display:flex;gap:6px;align-items:center}.dlmenu[hidden]{display:none}
 .dlmenu button{border:1px solid var(--line);background:#fff;font:inherit;font-size:12.5px;font-weight:700;color:var(--navy);padding:8px 13px;border-radius:99px;cursor:pointer;white-space:nowrap}
 .dlmenu button:hover,.dlmenu button:focus-visible{border-color:var(--navy);background:var(--bg);outline:none}.dlnote{color:var(--muted);font-size:12px;padding:6px 4px;white-space:nowrap}
