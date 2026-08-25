@@ -25,8 +25,11 @@ a{color:inherit}
 .flow header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}.flow h2{margin:0;font-size:17px;color:var(--navy);text-transform:uppercase;letter-spacing:.6px}.flow h2 small{color:var(--muted);font-weight:600;letter-spacing:0;text-transform:none;margin-left:8px}
 .dlwrap{position:relative;margin-left:auto}.dl{width:36px;height:36px;border-radius:99px;border:1.5px solid var(--line);background:#fff;color:var(--navy);font-size:16px;font-weight:800;cursor:pointer;line-height:1}.dl:hover,.dl[aria-expanded="true"]{border-color:var(--navy);background:var(--bg)}.dl:focus-visible{outline:3px solid #f7b733;outline-offset:2px}
 .dl,.dlmenu button{touch-action:manipulation}
-.dlmenu{position:absolute;right:0;top:42px;z-index:5;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(38,34,84,.18);padding:6px;min-width:220px;display:grid;gap:2px}.dlmenu button{text-align:left;border:0;background:none;font:inherit;font-size:13px;font-weight:600;color:var(--navy);padding:9px 12px;border-radius:8px;cursor:pointer}.dlmenu button:hover,.dlmenu button:focus-visible{background:var(--bg);outline:none}.dlmenu .busy,.dlnote{color:var(--muted);font-size:12px;padding:6px 12px}
-.dlnote{position:absolute;right:0;top:42px;z-index:5;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 10px 30px rgba(38,34,84,.18);min-width:220px}
+.dlwrap{display:flex;align-items:center;gap:8px}
+.dlwrap .dl{order:2}.dlwrap .dlmenu,.dlwrap .dlnote{order:1} /* pills grow leftward; the arrow never moves */
+.dlmenu{display:flex;gap:6px;align-items:center}.dlmenu[hidden]{display:none}
+.dlmenu button{border:1px solid var(--line);background:#fff;font:inherit;font-size:12.5px;font-weight:700;color:var(--navy);padding:8px 13px;border-radius:99px;cursor:pointer;white-space:nowrap}
+.dlmenu button:hover,.dlmenu button:focus-visible{border-color:var(--navy);background:var(--bg);outline:none}.dlnote{color:var(--muted);font-size:12px;padding:6px 4px;white-space:nowrap}
 .lbdl{position:absolute;right:18px;bottom:10px;color:#fff;font-weight:700;text-decoration:none;border:1.5px solid rgba(255,255,255,.7);border-radius:99px;padding:6px 12px;font-size:12.5px}.lbdl:hover{background:rgba(255,255,255,.15)}
 .flow .desc{margin:4px 0 10px;color:var(--ink)}.entry{font-size:12.5px;color:var(--muted);margin:0 0 12px}.entry a{color:var(--navy);font-weight:700}
 .strip{display:flex;gap:0;overflow-x:auto;padding:6px 2px 14px;align-items:flex-start}
@@ -1887,7 +1890,13 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
      pointerdown, not click: mobile browsers do not reliably deliver document-
      level clicks from taps on non-interactive page content. */
   const closeMenus = () => { document.querySelectorAll(".dlmenu").forEach(x => { x.hidden = true; x.previousElementSibling.setAttribute("aria-expanded", "false"); }); document.querySelectorAll(".dlnote").forEach(x => { if (x.textContent !== "Preparing…") x.remove(); }); };
-  document.addEventListener("pointerdown", (e) => { if (!e.target.closest(".dlwrap")) closeMenus(); }, true);
+  document.addEventListener("pointerdown", (e) => {
+    /* a touch tap on these controls activates on pointerup below — cancel the
+       compatibility click at the source so it cannot ghost-activate whatever
+       sits at those coordinates after the layout settles */
+    if (e.pointerType !== "mouse" && e.target.closest(".dl, .dlmenu [data-dl]")) e.preventDefault();
+    if (!e.target.closest(".dlwrap")) closeMenus();
+  }, true);
   document.addEventListener("keydown", (e) => {
     if (e.key !== "Escape") return;
     const open = [...document.querySelectorAll(".dlmenu")].find(m => !m.hidden);
