@@ -763,36 +763,29 @@ label.f .seg { display: flex; }
 /* journey chrome: back circle · brand · help circle, thin gradient progress.
    The modal's own navy head is hidden for the journey — this row replaces it. */
 .modal--journey .modal__head { display: none; }
-.scan-top { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 8px; }
+/* the journey's own typography (owner mockup, 2026-08-25 round 2): serif
+   display titles over the sans UI, Ride Price colors only */
+.modal--journey { --scan-serif: "Source Serif 4", Georgia, "Times New Roman", serif; background: var(--bg); }
+/* minimalist chrome: one row — a bare nav glyph, the progress pills inline,
+   the demo chip. No wordmark, no boxed icons, no help circle (mockup r2). */
+.scan-top { display: flex; align-items: center; gap: 14px; padding: 14px 18px 10px; }
 .scan-top__btn {
-  width: 42px; height: 42px; border: 0; border-radius: 50%; background: #fff; color: var(--navy);
-  box-shadow: 0 4px 14px rgba(38, 34, 84, .12); font-size: 18px; font-weight: 800; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; margin-left: -12px; border: 0; border-radius: 50%; background: none; color: var(--navy);
+  font-size: 20px; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; flex: none;
 }
-.scan-top__btn--help { font-size: 15px; }
-.scan-top__spacer { width: 42px; }
-.scan-brand { font-weight: 800; font-size: 18px; }
-.scan-brand i { font-style: italic; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.scan-brand small { color: var(--navy); font-size: 10px; font-weight: 700; letter-spacing: 1.2px; margin-left: 3px; }
-.scan-progressbar { height: 4px; background: #e1e3eb; margin: 6px 18px 0; border-radius: 999px; overflow: hidden; }
-.scan-progressbar span { display: block; height: 100%; background: var(--grad); border-radius: 999px; transition: width .25s ease; }
+.scan-top__btn:hover { background: rgba(38, 34, 84, .07); }
+.scan-top .chip--demo { flex: none; }
 /* hero header per step: eyebrow + TRAINING chip, headline, one sentence */
-.scan-hero { text-align: center; padding: 26px 26px 18px; }
-.scan-hero--tight { padding-bottom: 10px; }
+.scan-hero { text-align: left; padding: 22px 26px 14px; }
+.scan-hero--tight { padding-bottom: 8px; }
 .scan-hero--left { text-align: left; padding-bottom: 8px; }
-.scan-eyebrow { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
-.scan-hero--left .scan-eyebrow { justify-content: flex-start; }
-.scan-eyebrow > span:first-child { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.6px; color: var(--muted); }
-.scan-hero h1 { font-size: 26px; line-height: 1.12; margin: 10px 0 10px; color: var(--navy); letter-spacing: -.4px; }
-.scan-hero p { margin: 0 auto 6px; max-width: 330px; color: var(--ink); font-size: 13.5px; line-height: 1.55; }
-.scan-hero--left p { margin-left: 0; max-width: none; }
-.scan-success { width: 74px; height: 74px; border-radius: 50%; margin: 0 auto 16px; background: #e9f7ef; color: var(--green); font-size: 34px; font-weight: 800; display: flex; align-items: center; justify-content: center; }
-.scan-success--big { width: 94px; height: 94px; font-size: 42px; }
+.scan-hero h1 { font-family: var(--scan-serif); font-size: 28px; font-weight: 700; line-height: 1.14; margin: 0 0 10px; color: var(--navy); letter-spacing: -.2px; }
+.scan-hero p { margin: 0 0 6px; max-width: 340px; color: var(--muted); font-size: 14px; line-height: 1.55; }
 /* the white visual panel and the illustrated license card */
 .scan-visualbox { margin: 8px 26px 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: center; padding: 24px; }
 .scan-visualbox--tight { padding: 14px; }
 .scan-idcard { width: 250px; max-width: 100%; aspect-ratio: 1.58; border-radius: 14px; background: linear-gradient(145deg, #fefefe, #eef2f7); border: 1px solid #d8dce5; box-shadow: 0 14px 26px rgba(7, 27, 73, .14); padding: 14px; position: relative; display: block; }
-.scan-idcard--tilt { transform: rotate(-3deg); }
 .scan-idcard__state { font-size: 11px; font-weight: 800; color: #1b4f8d; display: block; }
 .scan-idcard__demo { position: absolute; top: 14px; right: 14px; font-size: 8px; color: var(--crimson); font-weight: 800; letter-spacing: 1.1px; }
 .scan-idcard__body { display: flex; gap: 12px; margin-top: 12px; }
@@ -803,14 +796,12 @@ label.f .seg { display: flex; }
 .scan-idcard__lines i:nth-child(2) { width: 74%; }
 .scan-idcard__lines i:nth-child(3) { width: 58%; }
 .scan-idcard__lines i:nth-child(4) { width: 82%; }
-.scan-idcard .scan-strip { position: absolute; left: 14px; right: 14px; bottom: 12px; }
 /* the dark camera visual — an illustration with a framing guide; the native
    camera opens on tap (no live viewfinder, invariant 5) */
 .scan-cam { display: block; position: relative; width: 100%; max-width: 320px; margin: 0 auto; border-radius: 18px; background: linear-gradient(145deg, #132b53, #081632 70%); overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); padding: 26px 22px 46px; cursor: pointer; }
 .scan-cam::before { content: ""; position: absolute; inset: 0; background: radial-gradient(circle at 50% 20%, rgba(82, 120, 180, .3), transparent 34%), linear-gradient(rgba(255, 255, 255, .025) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .025) 1px, transparent 1px); background-size: auto, 28px 28px, 28px 28px; pointer-events: none; }
 .scan-cam__frame { display: block; position: relative; border: 2px solid #fff; border-radius: 16px; padding: 16px; }
 .scan-cam__frame .scan-idcard { width: 100%; box-shadow: none; }
-.scan-cam__hint { position: absolute; bottom: 16px; left: 20px; right: 20px; text-align: center; color: #d7e1f2; font-size: 12px; }
 .scan-backcard { display: block; background: #f4f5f7; border-radius: 12px; padding: 14px; }
 .scan-backcard__lab { display: block; font-size: 9px; color: #7d7a8b; font-weight: 800; letter-spacing: .6px; }
 .scan-backcard__bars { display: block; height: 72px; margin-top: 14px; background: repeating-linear-gradient(90deg, #20242d 0 3px, #fff 3px 5px, #20242d 5px 7px, #fff 7px 10px); }
@@ -825,34 +816,19 @@ label.f .seg { display: flex; }
 /* the intro tip rows */
 .scan-tip { margin: 12px 26px 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 13px 14px; display: flex; gap: 12px; align-items: flex-start; text-align: left; }
 .scan-tip__icon { width: 34px; height: 34px; border-radius: 10px; background: #fff1e6; color: #c95d00; display: flex; align-items: center; justify-content: center; flex: none; }
-.scan-tip__icon--wt { background: #fdf9f3; }
+.scan-tip__icon--sun { background: #fdf6e8; color: #b5830a; }
 .scan-tip strong { font-size: 13px; display: block; margin-bottom: 3px; color: var(--navy); }
 .scan-tip span:last-child { font-size: 12px; color: var(--muted); line-height: 1.45; display: block; }
 .scan-demo-hint { margin: 14px 26px 0; font-size: 11.5px; color: var(--muted); text-align: center; line-height: 1.5; }
 /* processing checklist — only claims that are true */
 .scan-spin { width: 64px; height: 64px; border-radius: 50%; margin: 6px auto 20px; border: 6px solid #e3e5ee; border-top-color: var(--coral); animation: scanspin .9s linear infinite; }
 @keyframes scanspin { to { transform: rotate(360deg); } }
-.scan-checks { margin: 20px 26px 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 4px 16px; }
-.scan-checkrow { display: flex; align-items: center; gap: 12px; padding: 13px 2px; border-bottom: 1px solid #efeff4; font-size: 13px; font-weight: 700; color: var(--ink); }
-.scan-checkrow:last-child { border-bottom: 0; }
-.scan-tick { width: 28px; height: 28px; border-radius: 50%; background: #edf9f2; color: var(--green); display: flex; align-items: center; justify-content: center; font-weight: 800; flex: none; }
-.scan-tick--wait { background: #fff4e6; color: #cf6600; }
 /* the match cards: on-file vs scanned, honest badges, real history */
 .scan-matchcard { margin: 14px 26px 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; box-shadow: var(--shadow); text-align: left; }
 .scan-matchcard--rows { padding: 2px 16px; }
-.scan-matchcard__head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
-.scan-matchcard__head h3 { font-size: 14px; margin: 0; color: var(--navy); }
 .scan-badge { padding: 5px 8px; border-radius: 999px; font-size: 10px; font-weight: 800; letter-spacing: .4px; background: #edf9f2; color: var(--green); white-space: nowrap; }
-.scan-badge--new { background: #fff1e6; color: #c95d00; }
-.scan-person { margin-top: 13px; display: grid; grid-template-columns: 50px 1fr; gap: 12px; align-items: center; }
-.scan-matchcard .scan-person:first-child { margin-top: 4px; }
-.scan-avatar { width: 50px; height: 50px; border-radius: 15px; background: linear-gradient(145deg, #dce3ed, #b9c5d5); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--navy); }
-.scan-person b { font-size: 14.5px; color: var(--navy); }
-.scan-person small { display: block; color: var(--muted); margin-top: 2px; font-size: 11.5px; }
-.scan-datarows { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 8px; }
-.scan-datarows div { display: flex; justify-content: space-between; gap: 12px; font-size: 12.5px; padding: 4px 0; }
-.scan-datarows span { color: var(--muted); }
-.scan-datarows strong { text-align: right; color: var(--ink); overflow-wrap: anywhere; }
+.scan-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(145deg, #dce3ed, #b9c5d5); display: flex; align-items: center; justify-content: center; font-weight: 800; color: var(--navy); flex: none; }
+.scan-idhead .scan-avatar { width: 44px; height: 44px; font-size: 14px; }
 /* changed-field cards (existing customer) */
 .scan-changecard { margin: 14px 26px 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 15px; text-align: left; }
 .scan-changecard label { display: block; font-size: 11px; font-weight: 800; letter-spacing: .8px; color: var(--muted); margin-bottom: 7px; }
@@ -860,26 +836,150 @@ label.f .seg { display: flex; }
 .scan-subtle { margin-top: 8px; font-size: 11px; color: var(--muted); line-height: 1.4; }
 .scan-seclab { margin: 20px 26px 0; font-size: 11px; font-weight: 800; letter-spacing: 1.4px; color: var(--muted); text-align: left; }
 /* read-first rows with per-row Edit (new customer) */
-.scan-editrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
+/* the label/value table of the owner's s6B, with Edit still on every row */
+.scan-editrow { display: grid; grid-template-columns: 74px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 0; border-bottom: 1px solid var(--line); }
 .scan-editrow:last-of-type { border-bottom: 0; }
-.scan-editrow__copy span { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
-.scan-editrow__copy strong { display: block; font-size: 13.5px; line-height: 1.35; color: var(--ink); overflow-wrap: anywhere; }
-.scan-editpill { min-width: 62px; min-height: 42px; border: 0; border-radius: var(--btn-r); background: #f0eef8; color: var(--navy); font-weight: 800; font-family: inherit; font-size: 13px; padding: 0 14px; cursor: pointer; }
+.scan-editrow__lab { font-size: 11.5px; color: var(--muted); align-self: start; padding-top: 2px; }
+.scan-editrow__val { font-size: 13.5px; line-height: 1.35; color: var(--ink); overflow-wrap: anywhere; }
+@media screen and (max-width: 360px) {
+  .scan-editrow { grid-template-columns: minmax(0, 1fr) auto; }
+  .scan-editrow__lab { grid-column: 1 / -1; padding-top: 0; margin-bottom: -6px; }
+}
+.scan-editpill { min-width: 54px; min-height: 44px; border: 0; border-radius: var(--btn-r); background: #f0eef8; color: var(--navy); font-weight: 800; font-family: inherit; font-size: 13px; padding: 0 11px; cursor: pointer; }
 .scan-editrow__form { padding: 0 0 14px; border-bottom: 1px solid var(--line); display: grid; gap: 8px; }
 .scan-editrow__form input { width: 100%; min-height: 46px; border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; font-size: 16px; color: var(--ink); font-family: inherit; }
 .scan-conseq { text-align: left; margin: 14px 26px 0; }
 .scan-conseq p { margin: 5px 0; font-size: 12.5px; color: var(--ink); }
-/* the barcode-strip illustration (peek + card) */
-.scan-strip { display: flex; gap: 2px; height: 16px; align-items: stretch; opacity: .8; }
-.scan-strip i { display: block; width: 3px; background: #20242d; }
-.scan-strip i:nth-child(3n) { width: 6px; }
-.scan-strip--peek { height: 20px; }
 /* the pinned journey footer: one gradient step action, full width */
-.scan-foot { width: 100%; display: grid; gap: 9px; }
-.scan-cta { width: 100%; min-height: 52px; justify-content: center; font-size: 15px; }
-.scan-cta--ghost { min-height: 46px; }
+.scan-foot { width: 100%; display: grid; gap: 8px; }
+/* flat solid CTAs (mockup r2): navy stands in for the mockup's black — no
+   gradient, no glow. A recorded exception to the gradient-CTA hierarchy rule,
+   scoped to the journey. */
+.scan-cta { width: 100%; min-height: 54px; justify-content: center; font-size: 15px; border-radius: var(--btn-r); box-shadow: none; }
+.scan-cta--ghost { min-height: 48px; }
+/* the mockup's quiet second action: a plain text button, no box at all */
+.scan-cta--text { min-height: 44px; background: none; border-color: transparent; color: var(--navy); font-weight: 700; }
+.scan-cta--text:hover { background: rgba(38, 34, 84, .06); border-color: transparent; }
 .scan-foot-hint { margin: 0; font-size: 11.5px; color: var(--muted); text-align: center; line-height: 1.4; }
-.modal--journey .modal__foot { border-top: 0; background: linear-gradient(180deg, rgba(255, 255, 255, 0), #fff 30%); }
+.modal--journey .modal__foot { border-top: 0; background: linear-gradient(180deg, rgba(242, 242, 248, 0), var(--bg) 30%); }
+
+/* ---------- scan journey v3 (owner's License Scanner Flow mockup, 2026-08-25)
+   The mockup's geometry, in Ride Price's own tokens: segmented progress, a
+   bracketed camera frame with a real shutter, sequential processing rows,
+   icon-led detail rows and the match / duplicate / conflict / manual cards.
+   Every label states something the app actually does — no confidence scores,
+   no flash toggle, no auto-detect claim. ---------- */
+
+/* segmented progress: five steps, the walked ones carry the brand gradient */
+/* slim spaced pills, inline in the top row (mockup r2): walked steps in navy,
+   the current one carrying the gradient, the rest quiet */
+.scan-steps { display: flex; gap: 8px; flex: 1; min-width: 0; }
+.scan-steps i { flex: 1; height: 4px; border-radius: 999px; background: #dddbe9; transition: background-color .25s ease; }
+.scan-steps i.done { background: var(--navy); }
+.scan-steps i.now { background: var(--grad); }
+
+/* the camera panel: corner brackets, not a closed frame, and a shutter that
+   is the real capture control (tapping it opens the phone's own camera) */
+.scan-cam__brackets { position: absolute; inset: 0; pointer-events: none; }
+.scan-cam__brackets i { position: absolute; width: 26px; height: 26px; border: 2px solid rgba(255, 255, 255, .85); }
+.scan-cam__brackets i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; border-radius: 8px 0 0 0; }
+.scan-cam__brackets i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; border-radius: 0 8px 0 0; }
+.scan-cam__brackets i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 8px; }
+.scan-cam__brackets i:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; border-radius: 0 0 8px 0; }
+/* the viewfinder owns the middle of the screen (mockup r2): no outer white
+   card, generous height, the framed card floating in the upper half */
+.scan-cam--v3 { max-width: none; margin: 8px 18px 0; padding: 46px 26px 120px; min-height: 420px; border-radius: 22px; }
+.scan-cam--v3 .scan-cam__frame { border: 0; padding: 12px; }
+.scan-shutter {
+  position: absolute; left: 50%; bottom: 46px; transform: translateX(-50%);
+  width: 66px; height: 66px; border-radius: 50%; background: #f4f4f2;
+  border: 3px solid rgba(255, 255, 255, .55); box-shadow: 0 0 0 3px rgba(0, 0, 0, .22);
+  display: grid; place-items: center; pointer-events: none;
+}
+/* the flash bolt is part of the camera illustration, like the shutter — the
+   whole panel is the one control (a tap opens the phone's own camera) */
+.scan-flash {
+  position: absolute; left: 24px; bottom: 54px; width: 50px; height: 50px; border-radius: 50%;
+  background: rgba(255, 255, 255, .1); color: #fff; font-size: 19px;
+  display: grid; place-items: center; pointer-events: none;
+}
+.scan-camtip { position: absolute; left: 16px; right: 16px; bottom: 14px; text-align: center; color: #d7e1f2; font-size: 12.5px; }
+
+/* processing: the ring, then rows whose trailing marker states each stage */
+.scan-ring { width: 150px; height: 150px; margin: 26px auto 30px; border-radius: 50%; border: 7px solid #e6efe8; border-top-color: var(--green); animation: scanspin 1.1s linear infinite; }
+.scan-proc { margin: 4px 26px 0; text-align: left; }
+.scan-procrow { display: flex; align-items: center; gap: 12px; padding: 15px 2px; border-bottom: 1px solid var(--line); font-size: 13.5px; color: var(--muted); }
+.scan-procrow:last-child { border-bottom: 0; }
+.scan-procrow span { flex: 1; }
+.scan-procrow i {
+  width: 24px; height: 24px; border-radius: 50%; flex: none;
+  border: 2px solid #e1e3eb; display: grid; place-items: center;
+  font-size: 12px; font-weight: 800; font-style: normal; color: transparent;
+}
+.scan-procrow.is-now { color: var(--ink); font-weight: 700; }
+.scan-procrow.is-now i { border-color: var(--green); animation: scanpulse 1.1s ease-in-out infinite; }
+.scan-procrow.is-done { color: var(--ink); }
+.scan-procrow.is-done i { border-color: var(--green); background: var(--green); color: #fff; }
+@keyframes scanpulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+
+/* the person header band that opens a review / result card */
+.scan-idhead { display: flex; align-items: center; gap: 12px; padding: 15px 16px; background: #f7f6fc; border-bottom: 1px solid var(--line); }
+.scan-idhead b { display: block; font-size: 15px; color: var(--navy); }
+.scan-idhead small { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+.scan-matchcard--flush { padding: 0; overflow: hidden; }
+
+/* icon-led detail rows (mockup 5 / 6A / 8) */
+.scan-detrows { padding: 4px 16px; }
+.scan-detrow { display: grid; grid-template-columns: 26px 1fr; gap: 13px; align-items: start; padding: 12px 0; border-bottom: 1px solid #efeff4; }
+.scan-detrow:last-child { border-bottom: 0; }
+.scan-detrow__ico { width: 26px; height: 26px; display: grid; place-items: center; color: var(--muted); }
+.scan-detrow__ico svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.scan-detrow span { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 2px; }
+.scan-detrow strong { display: block; font-size: 14px; color: var(--ink); line-height: 1.35; overflow-wrap: anywhere; }
+.scan-detrow--chg strong { color: var(--navy); }
+
+/* the duplicate list (mockup 6C): each candidate is the whole row */
+.scan-piks { margin: 14px 26px 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.scan-pik {
+  width: 100%; display: grid; grid-template-columns: 46px 1fr auto; gap: 13px; align-items: center;
+  padding: 14px 16px; border: 0; border-bottom: 1px solid #efeff4; background: #fff;
+  font: inherit; text-align: left; cursor: pointer; min-height: 68px;
+}
+.scan-pik:last-child { border-bottom: 0; }
+.scan-pik:hover { background: #f7f6fc; }
+.scan-pik b { display: block; font-size: 14px; color: var(--navy); }
+.scan-pik small { display: block; margin-top: 2px; font-size: 12px; color: var(--muted); }
+.scan-pik__go { color: var(--muted); font-size: 19px; line-height: 1; }
+.scan-pik .scan-avatar { width: 46px; height: 46px; border-radius: 50%; font-size: 14px; }
+
+/* the conflict card (mockup 6D): the two values, side by side in time */
+.scan-vs { margin: 14px 26px 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); text-align: left; overflow: hidden; }
+.scan-vs__row { display: grid; grid-template-columns: 26px 1fr; gap: 13px; padding: 15px 16px; border-bottom: 1px solid #efeff4; }
+.scan-vs__row:last-child { border-bottom: 0; }
+.scan-vs__row span { display: block; font-size: 11.5px; color: var(--muted); margin-bottom: 3px; }
+.scan-vs__row strong { display: block; font-size: 17px; color: var(--navy); overflow-wrap: anywhere; }
+.scan-vs__warn { color: var(--orange); font-size: 16px; line-height: 1.4; text-align: center; }
+.scan-ask { margin: 16px 26px 0; text-align: left; font-size: 13.5px; font-weight: 700; color: var(--ink); }
+
+/* manual entry (mockup 7): dashed, because nothing was scanned to fill it */
+.scan-manual { margin: 14px 26px 0; border: 1px dashed #c9c6db; border-radius: var(--radius); padding: 16px; text-align: left; background: #fff; }
+.scan-manual label { display: block; font-size: 11px; font-weight: 800; letter-spacing: .8px; color: var(--muted); margin-bottom: 7px; }
+.scan-manual input, .scan-manual select {
+  width: 100%; min-height: 50px; border: 1px solid var(--line); border-radius: 12px;
+  padding: 0 13px; font-size: 16px; color: var(--ink); font-family: inherit; background: #fff;
+}
+.scan-manual__wrap { position: relative; }
+.scan-manual__clear {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px; border: 0; background: none; border-radius: 50%;
+  color: var(--muted); font-size: 19px; line-height: 1; cursor: pointer;
+}
+.scan-manual__clear:hover { color: var(--navy); }
+
+/* completion (mockup 9): the ring is drawn, not a filled disc */
+.scan-done { width: 104px; height: 104px; border-radius: 50%; margin: 0 auto 20px; border: 5px solid var(--green); color: var(--green); display: grid; place-items: center; }
+.scan-done svg { width: 52px; height: 52px; fill: none; stroke: currentColor; stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.scan-donename { font-family: var(--scan-serif); font-size: 24px; font-weight: 700; color: var(--navy); margin: 0 0 4px; }
 
 /* ---------- buyers on a deal (co-buyer modal + crumb control) ---------- */
 .buyer-card {

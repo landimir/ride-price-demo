@@ -358,7 +358,13 @@ const RIDE_PRICE_DATA = {
   seedCustomers: [
     { id: "c-demo1", first: "John", last: "Smith", middle: "", email: "jsmithtest@testing.com", phone: "(718) 555-0134",
       address: "31-14 Broadway", city: "Astoria", state: "NY", zip: "11106", creditScore: 740, createdAt: "2026-07-10T16:00:00Z" },
+    /* Cheri carries the licence from prop 2 — a customer scanned on an earlier
+       visit. She is what the manual licence-number search and a confident
+       LICENSE MATCH have to find; John deliberately has neither licence nor
+       date of birth, so a prop-1 scan still exercises the weaker name match
+       and its side-by-side comparison. */
     { id: "c-demo2", first: "Cheri", last: "Bridwell", middle: "", email: "cbridwell@testing.com", phone: "(347) 555-1212",
+      dob: "1990-11-02", license: { number: "T-0000102", state: "NY", expires: "2028-11-02" },
       address: "88 Garfield Pl", city: "Brooklyn", state: "NY", zip: "11215", creditScore: 705, createdAt: "2026-07-08T19:30:00Z" }
   ],
 
