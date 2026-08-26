@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ride Price Mobile UI Flow Library — v005</title>
+<title>Ride Price Mobile UI Flow Library — v006</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--chrome:#071b49;--chrome-2:#0b255d;--navy:#262254;--ink:#34314e;--muted:#6f6c88;--bg:#f2f2f8;--line:#e3e1ef;--card:#fff;--radius:14px;
@@ -59,18 +59,18 @@ a{color:inherit}
 <body>
 <header class="appbar"><div class="brand"><i>Ride</i><span>PRICE</span></div><span class="chip">UI LIBRARY</span>
   <input id="q" type="search" placeholder="Filter screens, flows, issues…" aria-label="Filter">
-  <span class="ver">v005 · captured 2026-08-24 23:11 · viewport 390×844 · app 89f260a</span></header>
+  <span class="ver">v006 · captured 2026-08-26 22:31 · viewport 390×844 · app 2a29a56</span></header>
 <div class="layout">
-  <nav class="side"><h4>Product areas</h4><a href="#home">Home — Deals Queue &amp; Navigation<small>7</small></a><a href="#onboarding">Customer Onboarding — Find a Customer<small>5</small></a><a href="#license-scan">Scan Driver&#39;s License<small>11</small></a><a href="#training">Training Licenses &amp; Registrations<small>2</small></a><a href="#discovery">Discovery Session<small>3</small></a><a href="#vehicles">Vehicle Selection<small>7</small></a><a href="#test-drive">Test Drive Agreement<small>7</small></a><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership<small>4</small></a><a href="#desking">Desking — Calculate Payments<small>5</small></a><a href="#agreement">Base Payment Agreement<small>3</small></a><a href="#credit">Credit Application (Lending Lane)<small>4</small></a><a href="#buyers">Buyers on the Deal (Co-Buyer)<small>4</small></a><a href="#presentation">F&amp;I Product Presentation<small>4</small></a><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts<small>16</small></a><a href="#deal-jacket">Deal Jacket &amp; Compliance<small>11</small></a><a href="#document-request">Send Text Request (advisor → client)<small>3</small></a><a href="#client-upload">Client Document Upload (customer&#39;s phone)<small>10</small></a><a href="#snap-all">Snap All — burst capture<small>4</small></a><a href="#doc-review">Document Review (advisor)<small>1</small></a><a href="#print-center">Print Center &amp; Printables<small>3</small></a><h4>Reports</h4><a href="reports/ux-audit.md">UX audit</a><a href="reports/flow-manifest.json">Flow manifest</a><a href="reports/changelog.md">Changelog</a><a href="reports/library-summary.md">Summary</a></nav>
+  <nav class="side"><h4>Product areas</h4><a href="#home">Home — Deals Queue &amp; Navigation<small>7</small></a><a href="#onboarding">Customer Onboarding — Find a Customer<small>5</small></a><a href="#license-scan">Scan Driver&#39;s License<small>14</small></a><a href="#training">Training Licenses &amp; Registrations<small>2</small></a><a href="#discovery">Discovery Session<small>3</small></a><a href="#vehicles">Vehicle Selection<small>7</small></a><a href="#test-drive">Test Drive Agreement<small>7</small></a><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership<small>4</small></a><a href="#desking">Desking — Calculate Payments<small>5</small></a><a href="#agreement">Base Payment Agreement<small>3</small></a><a href="#credit">Credit Application (Lending Lane)<small>4</small></a><a href="#buyers">Buyers on the Deal (Co-Buyer)<small>4</small></a><a href="#presentation">F&amp;I Product Presentation<small>4</small></a><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts<small>16</small></a><a href="#deal-jacket">Deal Jacket &amp; Compliance<small>11</small></a><a href="#document-request">Send Text Request (advisor → client)<small>3</small></a><a href="#client-upload">Client Document Upload (customer&#39;s phone)<small>10</small></a><a href="#snap-all">Snap All — burst capture<small>4</small></a><a href="#doc-review">Document Review (advisor)<small>1</small></a><a href="#print-center">Print Center &amp; Printables<small>3</small></a><h4>Reports</h4><a href="reports/ux-audit.md">UX audit</a><a href="reports/flow-manifest.json">Flow manifest</a><a href="reports/changelog.md">Changelog</a><a href="reports/library-summary.md">Summary</a></nav>
   <main class="main">
     <section class="hero">
       <div><h1>Ride Price Mobile UI Flow Library</h1>
         <p>Every mobile flow of the working Ride Price portal, captured as a user sees it at 390 × 844, organised as sequential journeys. Read left to right: each arrow names the action that caused the next screen; branches list where else a screen can go; flagged screens carry their UX findings.</p>
         <p>The screenshots are untouched captures of the real application. Nothing here was redesigned — problems are documented, not fixed.</p></div>
-      <div class="stats"><div class="stat"><b>20</b><span>flows</span></div><div class="stat"><b>114</b><span>screens</span></div><div class="stat"><b>63</b><span>branches</span></div>
+      <div class="stats"><div class="stat"><b>20</b><span>flows</span></div><div class="stat"><b>117</b><span>screens</span></div><div class="stat"><b>65</b><span>branches</span></div>
         <div class="stat"><b>0</b><span><span class="sev sev--Critical">Critical</span></span></div><div class="stat"><b>2</b><span><span class="sev sev--Major">Major</span></span></div><div class="stat"><b>13 / 6</b><span><span class="sev sev--Minor">Minor</span> <span class="sev sev--Observation">Observation</span></span></div></div>
     </section>
-    <div class="map"><h2>How the product connects</h2><ol><li><a href="#home">Home — Deals Queue &amp; Navigation</a> <small>— 7 screens; entry point</small></li><li><a href="#onboarding">Customer Onboarding — Find a Customer</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</small></li><li><a href="#license-scan">Scan Driver&#39;s License</a> <small>— 11 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#training">Training Licenses &amp; Registrations</a> <small>— 2 screens; from Home — Deals Queue &amp; Navigation · 02 Navigation drawer</small></li><li><a href="#discovery">Discovery Session</a> <small>— 3 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#vehicles">Vehicle Selection</a> <small>— 7 screens; from Discovery Session · 03 Discovery — last question</small></li><li><a href="#test-drive">Test Drive Agreement</a> <small>— 7 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership</a> <small>— 4 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#desking">Desking — Calculate Payments</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</small></li><li><a href="#agreement">Base Payment Agreement</a> <small>— 3 screens; from Desking — Calculate Payments · 02 Calculate Payments — Finance</small></li><li><a href="#credit">Credit Application (Lending Lane)</a> <small>— 4 screens; from Base Payment Agreement · 02 Agreement — signed</small></li><li><a href="#buyers">Buyers on the Deal (Co-Buyer)</a> <small>— 4 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#presentation">F&amp;I Product Presentation</a> <small>— 4 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented</small></li><li><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts</a> <small>— 16 screens; from Credit Application (Lending Lane) · 04 Approved (simulated)</small></li><li><a href="#deal-jacket">Deal Jacket &amp; Compliance</a> <small>— 11 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#document-request">Send Text Request (advisor → client)</a> <small>— 3 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#client-upload">Client Document Upload (customer&#39;s phone)</a> <small>— 10 screens; from Send Text Request (advisor → client) · 01 Send Text Request — composer</small></li><li><a href="#snap-all">Snap All — burst capture</a> <small>— 4 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#doc-review">Document Review (advisor)</a> <small>— 1 screens; from Deal Jacket &amp; Compliance · 03 Deal forms &amp; jacket — opened</small></li><li><a href="#print-center">Print Center &amp; Printables</a> <small>— 3 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 15 Step 5 — Financial Contracts</small></li></ol></div>
+    <div class="map"><h2>How the product connects</h2><ol><li><a href="#home">Home — Deals Queue &amp; Navigation</a> <small>— 7 screens; entry point</small></li><li><a href="#onboarding">Customer Onboarding — Find a Customer</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</small></li><li><a href="#license-scan">Scan Driver&#39;s License</a> <small>— 14 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#training">Training Licenses &amp; Registrations</a> <small>— 2 screens; from Home — Deals Queue &amp; Navigation · 02 Navigation drawer</small></li><li><a href="#discovery">Discovery Session</a> <small>— 3 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#vehicles">Vehicle Selection</a> <small>— 7 screens; from Discovery Session · 03 Discovery — last question</small></li><li><a href="#test-drive">Test Drive Agreement</a> <small>— 7 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership</a> <small>— 4 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#desking">Desking — Calculate Payments</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</small></li><li><a href="#agreement">Base Payment Agreement</a> <small>— 3 screens; from Desking — Calculate Payments · 02 Calculate Payments — Finance</small></li><li><a href="#credit">Credit Application (Lending Lane)</a> <small>— 4 screens; from Base Payment Agreement · 02 Agreement — signed</small></li><li><a href="#buyers">Buyers on the Deal (Co-Buyer)</a> <small>— 4 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#presentation">F&amp;I Product Presentation</a> <small>— 4 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented</small></li><li><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts</a> <small>— 16 screens; from Credit Application (Lending Lane) · 04 Approved (simulated)</small></li><li><a href="#deal-jacket">Deal Jacket &amp; Compliance</a> <small>— 11 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#document-request">Send Text Request (advisor → client)</a> <small>— 3 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#client-upload">Client Document Upload (customer&#39;s phone)</a> <small>— 10 screens; from Send Text Request (advisor → client) · 01 Send Text Request — composer</small></li><li><a href="#snap-all">Snap All — burst capture</a> <small>— 4 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#doc-review">Document Review (advisor)</a> <small>— 1 screens; from Deal Jacket &amp; Compliance · 03 Deal forms &amp; jacket — opened</small></li><li><a href="#print-center">Print Center &amp; Printables</a> <small>— 3 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 15 Step 5 — Financial Contracts</small></li></ol></div>
     
 <section class="flow" id="home" data-flow>
   <header><h2>Home — Deals Queue &amp; Navigation<small>7 screens</small></h2>
@@ -87,7 +87,7 @@ a{color:inherit}
     <h3>My Deals (landing — Advisor)</h3>
     <div class="hash">#/deals</div>
     <p class="notes">The Advisor&#39;s guided view: no filter pills (the dashboard is the Team Lead&#39;s tool), the mono VIN + STK line under the name, the vehicle, and a &#39;Next: …&#39; line in the stage colour from real deal state. A discovery deal would show no vehicle line at all until one is selected.</p>
-    <ul class="branches"><li>Tap a deal card → <a href="#desking-huddle-gate">Desking — Calculate Payments · 01 Base Payment Huddle</a></li><li>Tap ＋ New Customer Visit → <a href="#onboarding-find-customer">Customer Onboarding — Find a Customer · 01 Find a Customer</a></li><li>Tap 📷 in the search bar → <a href="#license-scan-scan-front">Scan Driver&#39;s License · 02 Capture — front of licence</a></li></ul>
+    <ul class="branches"><li>Tap a deal card → <a href="#desking-huddle-gate">Desking — Calculate Payments · 01 Base Payment Huddle</a></li><li>Tap ＋ New Customer Visit → <a href="#onboarding-find-customer">Customer Onboarding — Find a Customer · 01 Find a Customer</a></li><li>Tap 📷 in the search bar → <a href="#license-scan-scan-intro">Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence</a></li></ul>
     <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-023</b><p>No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead switch standing in for identity.</p><p><em>By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.</em></p></div></details>
     
     
@@ -186,7 +186,7 @@ a{color:inherit}
     <h3>Find a Customer</h3>
     <div class="hash">#/customers</div>
     
-    <ul class="branches"><li>Tap 🪪 Scan license → <a href="#license-scan-scan-front">Scan Driver&#39;s License · 02 Capture — front of licence</a></li><li>Tap 👤＋ Create Customer → <a href="#onboarding-create-customer">Customer Onboarding — Find a Customer · 04 Create Customer</a></li><li>Start Visit → on a recent customer → <a href="#discovery-question-1">Discovery Session · 01 Discovery — question 1</a></li></ul>
+    <ul class="branches"><li>Tap 🪪 Scan license → <a href="#license-scan-scan-intro">Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence</a></li><li>Tap 👤＋ Create Customer → <a href="#onboarding-create-customer">Customer Onboarding — Find a Customer · 04 Create Customer</a></li><li>Start Visit → on a recent customer → <a href="#discovery-question-1">Discovery Session · 01 Discovery — question 1</a></li></ul>
     
     
     
@@ -245,25 +245,25 @@ a{color:inherit}
   </article><div class="arrow"><div class="line"></div><div class="act">Cancel; Start Visit → on Cheri Bridwell<br><a href="#discovery-question-1" style="font-weight:600">Discovery Session · 01 Discovery — question 1</a></div></div></div>
 </section>
 <section class="flow" id="license-scan" data-flow>
-  <header><h2>Scan Driver&#39;s License<small>11 screens</small></h2>
+  <header><h2>Scan Driver&#39;s License<small>14 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">The prop-licence scanner as the v2 journey (owner prototype, 2026-08-23): intro with the advisor word track, front/back capture with framing guidance, an honest processing checklist, evidence-rich match and conflict screens, summary-first review, completion. Only the five printed training props can ever be recognised; anything else is refused with a teaching message. Props 1–2 match the seed customers by name (ambiguous → confirm), 3–5 create new customers. Phone AND email are both required on every customer record.</p>
+  <p class="desc">The prop-licence scanner as the Granola-discipline journey (owner&#39;s flow mockup + 34-section design prompt, 2026-08-25): a quiet dot header, serif headings, one soft document surface per group, read-mode-first reviews with editing in bottom sheets, and one dominant action per screen. Only the five printed training props can ever be recognised; anything else is refused with a teaching message. Prop 1 matches a seed customer by name (ambiguous → compare), prop 2 carries a licence on file (confident match), 3–5 create new customers. Phone AND email are both required on every customer record; the scan asks for no credit score.</p>
   <p class="entry">↳ Reached from <a href="#onboarding-find-customer">Customer Onboarding — Find a Customer · 01 Find a Customer</a> — <b>Tap 🪪 Scan license</b></p>
-  <div class="strip"><article class="scr" id="license-scan-scan-intro" data-search="scan driver&#39;s license intro — identity check the journey owns the phone screen: ← / brand / ? row, gradient progress, training chip. the advisor word track sits where production apps put consent legalese; the honest demo line closes the page. ">
+  <div class="strip"><article class="scr" id="license-scan-scan-intro" data-search="scan driver&#39;s license intro — scan a driver&#39;s licence the journey owns the phone screen. one quiet header row: a bare ← / ×, five step dots, and the gold training · props only chip — no wordmark, no boxed icons, no help control. serif page heading, one supporting sentence, two benefit rows sitting on the page rather than in cards. ">
     <div class="frame">
       <span class="n">01</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Intro — identity check" data-cap="Scan Driver&#39;s License · 01 Intro — identity check · #/customers"><img loading="lazy" src="current/03-license-scan/01-scan-intro.png" alt="Intro — identity check"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Intro — scan a driver&#39;s licence" data-cap="Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence · #/customers"><img loading="lazy" src="current/03-license-scan/01-scan-intro.png" alt="Intro — scan a driver&#39;s licence"></button>
     </div>
-    <h3>Intro — identity check</h3>
+    <h3>Intro — scan a driver&#39;s licence</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">The journey owns the phone screen: ← / brand / ? row, gradient progress, TRAINING chip. The advisor word track sits where production apps put consent legalese; the honest demo line closes the page.</p>
+    <p class="notes">The journey owns the phone screen. One quiet header row: a bare ← / ×, five step dots, and the gold TRAINING · PROPS ONLY chip — no wordmark, no boxed icons, no help control. Serif page heading, one supporting sentence, two benefit rows sitting on the page rather than in cards.</p>
     
     
     <details><summary>automated checks (1)</summary><div class="auto">overlap (1): .scan-idcard__state NEW YORK &lt;&gt; .scan-idcard__demo TRAINING SAMPLE</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Start Scan</div></div><article class="scr" id="license-scan-scan-front" data-search="scan driver&#39;s license capture — front of licence dark camera illustration with framing guide and scanline — the native camera opens on tap (no live viewfinder). upload fallback beneath; capture front pinned as the gradient step action. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Begin Scanning</div></div><article class="scr" id="license-scan-scan-front" data-search="scan driver&#39;s license capture — front of licence the camera is the one dark surface and owns the middle of the screen: corner brackets, flash bolt and shutter drawn as illustration, one instruction line. the phone&#39;s own camera opens on tap — there is no live viewfinder (invariant 5), so none of the three is its own control. upload fallback beneath. ">
     <div class="frame">
       <span class="n">02</span>
       
@@ -271,129 +271,168 @@ a{color:inherit}
     </div>
     <h3>Capture — front of licence</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">Dark camera illustration with framing guide and scanline — the native camera opens on tap (no live viewfinder). Upload fallback beneath; Capture Front pinned as the gradient step action.</p>
+    <p class="notes">The camera is the one dark surface and owns the middle of the screen: corner brackets, flash bolt and shutter drawn as illustration, one instruction line. The phone&#39;s own camera opens on tap — there is no live viewfinder (invariant 5), so none of the three is its own control. Upload fallback beneath.</p>
     
     
     <details><summary>automated checks (1)</summary><div class="auto">overlap (1): .scan-idcard__state NEW YORK &lt;&gt; .scan-idcard__demo TRAINING SAMPLE</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap ? (training-license help)</div></div><article class="scr" id="license-scan-scan-help" data-search="scan driver&#39;s license training-license help (in-journey peek) the old help links navigated to the props page and tore the scan down mid-flow; the peek keeps the journey alive. &#39;open training licenses&#39; states that it leaves the scan. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Take / upload the front photo</div></div><article class="scr" id="license-scan-scan-back" data-search="scan driver&#39;s license capture — back of licence barcode silhouette in the frame, and &#39;front captured&#39; with a retake front control. this is the side the recognizer actually reads. ">
     <div class="frame">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Training-license help (in-journey peek)" data-cap="Scan Driver&#39;s License · 03 Training-license help (in-journey peek) · #/customers"><img loading="lazy" src="current/03-license-scan/03-scan-help.png" alt="Training-license help (in-journey peek)"></button>
-    </div>
-    <h3>Training-license help (in-journey peek)</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">The old help links navigated to the props page and tore the scan down mid-flow; the peek keeps the journey alive. &#39;Open Training Licenses&#39; states that it leaves the scan.</p>
-    <ul class="branches"><li>Open Training Licenses — leaves the scan → <a href="#training-training-licenses">Training Licenses &amp; Registrations · 01 Training Licenses</a></li></ul>
-    
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (1): .scan-idcard__state NEW YORK &lt;&gt; .scan-idcard__demo TRAINING SAMPLE</div></details>
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Back to scanning</div></div><article class="scr" id="license-scan-scan-back" data-search="scan driver&#39;s license capture — back of licence barcode silhouette in the frame, glare hint, &#39;front captured&#39; with a retake front button. ">
-    <div class="frame">
-      <span class="n">04</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Capture — back of licence" data-cap="Scan Driver&#39;s License · 04 Capture — back of licence · #/customers"><img loading="lazy" src="current/03-license-scan/04-scan-back.png" alt="Capture — back of licence"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Capture — back of licence" data-cap="Scan Driver&#39;s License · 03 Capture — back of licence · #/customers"><img loading="lazy" src="current/03-license-scan/03-scan-back.png" alt="Capture — back of licence"></button>
     </div>
     <h3>Capture — back of licence</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">Barcode silhouette in the frame, glare hint, &#39;Front captured&#39; with a Retake front button.</p>
+    <p class="notes">Barcode silhouette in the frame, and &#39;Front captured&#39; with a Retake front control. This is the side the recognizer actually reads.</p>
     
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Take / upload the back photo</div></div><article class="scr" id="license-scan-scan-reading" data-search="scan driver&#39;s license checking the license spinner plus a checklist that claims only what is true: front captured, barcode captured, checking crm records (the match cascade). ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Take / upload the back photo</div></div><article class="scr" id="license-scan-scan-reading" data-search="scan driver&#39;s license processing your scan whitespace, a modest green ring, and three rows that tick only as each step really finishes: reading licence, finding customer, verifying details. a stranded read cannot paint over a later screen — the run carries a generation token. ">
+    <div class="frame">
+      <span class="n">04</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Processing your scan" data-cap="Scan Driver&#39;s License · 04 Processing your scan · #/customers"><img loading="lazy" src="current/03-license-scan/04-scan-reading.png" alt="Processing your scan"></button>
+    </div>
+    <h3>Processing your scan</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">Whitespace, a modest green ring, and three rows that tick only as each step really finishes: reading licence, finding customer, verifying details. A stranded read cannot paint over a later screen — the run carries a generation token.</p>
+    
+    
+    
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Barcode not recognised</div></div><article class="scr" id="license-scan-scan-not-recognized" data-search="scan driver&#39;s license that didn&#39;t read recovery, not punishment: what to fix, then the demo limit in a quiet line. no cause diagnosis — the recognizer finds a prop marker or refuses; there is no code path that reads a real id. ">
     <div class="frame">
       <span class="n">05</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Checking the license" data-cap="Scan Driver&#39;s License · 05 Checking the license · #/customers"><img loading="lazy" src="current/03-license-scan/05-scan-reading.png" alt="Checking the license"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: That didn&#39;t read" data-cap="Scan Driver&#39;s License · 05 That didn&#39;t read · #/customers"><img loading="lazy" src="current/03-license-scan/05-scan-not-recognized.png" alt="That didn&#39;t read"></button>
     </div>
-    <h3>Checking the license</h3>
+    <h3>That didn&#39;t read</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">Spinner plus a checklist that claims only what is true: front captured, barcode captured, checking CRM records (the match cascade).</p>
+    <p class="notes">Recovery, not punishment: what to fix, then the demo limit in a quiet line. No cause diagnosis — the recognizer finds a prop marker or refuses; there is no code path that reads a real ID.</p>
+    <ul class="branches"><li>Retake photo → <a href="#license-scan-scan-back">Scan Driver&#39;s License · 03 Capture — back of licence</a></li></ul>
     
     
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Barcode not recognised</div></div><article class="scr" id="license-scan-scan-not-recognized" data-search="scan driver&#39;s license not recognized one idea per line: the demo limit, then the capture fix. no cause diagnosis — the recognizer finds a prop marker or refuses; there is no code path that reads a real id. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Retake photo / Enter license manually</div></div><article class="scr" id="license-scan-scan-manual" data-search="scan driver&#39;s license enter license manually a crm search by licence number and state — never a card read. nothing typed here is treated as licence data recovered from the card, so its &#39;create&#39; hands off to the full create customer form. ">
     <div class="frame">
       <span class="n">06</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Not recognized" data-cap="Scan Driver&#39;s License · 06 Not recognized · #/customers"><img loading="lazy" src="current/03-license-scan/06-scan-not-recognized.png" alt="Not recognized"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Enter license manually" data-cap="Scan Driver&#39;s License · 06 Enter license manually · #/customers"><img loading="lazy" src="current/03-license-scan/06-scan-manual.png" alt="Enter license manually"></button>
     </div>
-    <h3>Not recognized</h3>
+    <h3>Enter license manually</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">One idea per line: the demo limit, then the capture fix. No cause diagnosis — the recognizer finds a prop marker or refuses; there is no code path that reads a real ID.</p>
-    <ul class="branches"><li>Enter manually → <a href="#onboarding-create-customer">Customer Onboarding — Find a Customer · 04 Create Customer</a></li><li>Retake photo → <a href="#license-scan-scan-back">Scan Driver&#39;s License · 04 Capture — back of licence</a></li></ul>
+    <p class="notes">A CRM SEARCH by licence number and state — never a card read. Nothing typed here is treated as licence data recovered from the card, so its &#39;create&#39; hands off to the full Create Customer form.</p>
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Retake photo / Enter manually</div></div><article class="scr" id="license-scan-scan-possible-match" data-search="scan driver&#39;s license possible match (prop 1) two evidence cards — the on-file record (computed &#39;customer since • visits&#39;, absent values as —) against the scanned licence. the badge states the real match basis (name match), never an invented confidence score. ">
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Type a licence number, tap Search</div></div><article class="scr" id="license-scan-scan-manual-results" data-search="scan driver&#39;s license search results the found customer on one document surface with a quiet &#39;license match&#39; pill. a miss says plainly that nothing in the records carries that number. ">
     <div class="frame">
       <span class="n">07</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Possible match (prop 1)" data-cap="Scan Driver&#39;s License · 07 Possible match (prop 1) · #/customers"><img loading="lazy" src="current/03-license-scan/07-scan-possible-match.png" alt="Possible match (prop 1)"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Search results" data-cap="Scan Driver&#39;s License · 07 Search results · #/customers"><img loading="lazy" src="current/03-license-scan/07-scan-manual-results.png" alt="Search results"></button>
     </div>
-    <h3>Possible match (prop 1)</h3>
+    <h3>Search results</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">Two evidence cards — the on-file record (computed &#39;Customer since • visits&#39;, absent values as —) against the scanned licence. The badge states the real match basis (NAME MATCH), never an invented confidence score.</p>
-    <ul class="branches"><li>&#39;No, create a new customer&#39; → <a href="#license-scan-scan-verify-new">Scan Driver&#39;s License · 10 New customer — licence details ready (prop 3)</a></li></ul>
+    <p class="notes">The found customer on one document surface with a quiet &#39;License match&#39; pill. A miss says plainly that nothing in the records carries that number.</p>
+    <ul class="branches"><li>No match, create new → <a href="#onboarding-create-customer">Customer Onboarding — Find a Customer · 04 Create Customer</a></li></ul>
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap &#39;Yes, use this customer&#39;</div></div><article class="scr" id="license-scan-scan-verify-existing" data-search="scan driver&#39;s license customer confirmed — changed fields summary-first (decision 11 reversed by the owner): each changed field as an open input with its previous value beneath, the rest in an already-on-file card, &#39;n fields will be updated&#39; by the pinned action. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Review Customer</div></div><article class="scr" id="license-scan-scan-match-found" data-search="scan driver&#39;s license we found a matching customer (prop 1) shown for every match now, not only ambiguous ones — the advisor sees who the scan resolved to before anything attaches. trimmed to identity facts; no crm metadata. the pill states the real basis (license match / name and birthday match / name match / same birthday), never an invented confidence. when the match is only a guess the scanned licence is shown beneath, so the two can be compared. ">
     <div class="frame">
       <span class="n">08</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Customer confirmed — changed fields" data-cap="Scan Driver&#39;s License · 08 Customer confirmed — changed fields · #/customers"><img loading="lazy" src="current/03-license-scan/08-scan-verify-existing.png" alt="Customer confirmed — changed fields"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: We found a matching customer (prop 1)" data-cap="Scan Driver&#39;s License · 08 We found a matching customer (prop 1) · #/customers"><img loading="lazy" src="current/03-license-scan/08-scan-match-found.png" alt="We found a matching customer (prop 1)"></button>
     </div>
-    <h3>Customer confirmed — changed fields</h3>
+    <h3>We found a matching customer (prop 1)</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">Summary-first (decision 11 reversed by the owner): each changed field as an open input with its previous value beneath, the rest in an Already-on-file card, &#39;n fields will be updated&#39; by the pinned action.</p>
+    <p class="notes">Shown for EVERY match now, not only ambiguous ones — the advisor sees who the scan resolved to before anything attaches. Trimmed to identity facts; no CRM metadata. The pill states the REAL basis (License match / Name and birthday match / Name match / Same birthday), never an invented confidence. When the match is only a guess the scanned licence is shown beneath, so the two can be compared.</p>
+    <ul class="branches"><li>&#39;No, create a new customer&#39; → <a href="#license-scan-scan-verify-new">Scan Driver&#39;s License · 11 Create new customer (prop 3)</a></li></ul>
     
     
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Update &amp; Continue</div></div><article class="scr" id="license-scan-scan-complete" data-search="scan driver&#39;s license complete — customer is ready a real completion screen, not a toast: what happened, the person card, one cta that names the next step. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Review Customer</div></div><article class="scr" id="license-scan-scan-verify-existing" data-search="scan driver&#39;s license review customer — read-first document summary-first (decision 11, reversed by the owner) and read-mode-first: values render as text on one document surface, with a quiet gold &#39;updated from license · was …&#39; line on each field the licence changed, and &#39;n fields will be updated&#39; by the pinned action. ">
     <div class="frame">
       <span class="n">09</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Complete — customer is ready" data-cap="Scan Driver&#39;s License · 09 Complete — customer is ready · #/customers"><img loading="lazy" src="current/03-license-scan/09-scan-complete.png" alt="Complete — customer is ready"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Review customer — read-first document" data-cap="Scan Driver&#39;s License · 09 Review customer — read-first document · #/customers"><img loading="lazy" src="current/03-license-scan/09-scan-verify-existing.png" alt="Review customer — read-first document"></button>
     </div>
-    <h3>Complete — customer is ready</h3>
+    <h3>Review customer — read-first document</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">A real completion screen, not a toast: what happened, the person card, one CTA that names the next step.</p>
+    <p class="notes">Summary-first (decision 11, reversed by the owner) and read-mode-first: values render as text on one document surface, with a quiet gold &#39;Updated from license · was …&#39; line on each field the licence changed, and &#39;n fields will be updated&#39; by the pinned action.</p>
     
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Continue to the Visit</div></div><article class="scr" id="license-scan-scan-verify-new" data-search="scan driver&#39;s license new customer — licence details ready (prop 3) read-first licence rows with per-row edit (dates stay masked); the ask-the-guest card holds phone, email and estimated credit score — phone and email both required. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Use This Customer</div></div><article class="scr" id="license-scan-scan-edit-sheet" data-search="scan driver&#39;s license edit sheet (bottom sheet) edit is a word, not a pill, and it opens a focused bottom sheet — handle, serif title, the granular inputs, one save. never a modal inside a modal; outside tap and escape both close it. every field in a sheet is required to save (owner, 2026-08-25); the one exception is the middle name, which a guest may not have. ">
     <div class="frame">
       <span class="n">10</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: New customer — licence details ready (prop 3)" data-cap="Scan Driver&#39;s License · 10 New customer — licence details ready (prop 3) · #/customers"><img loading="lazy" src="current/03-license-scan/10-scan-verify-new.png" alt="New customer — licence details ready (prop 3)"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Edit sheet (bottom sheet)" data-cap="Scan Driver&#39;s License · 10 Edit sheet (bottom sheet) · #/customers"><img loading="lazy" src="current/03-license-scan/10-scan-edit-sheet.png" alt="Edit sheet (bottom sheet)"></button>
     </div>
-    <h3>New customer — licence details ready (prop 3)</h3>
+    <h3>Edit sheet (bottom sheet)</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">Read-first licence rows with per-row Edit (dates stay masked); the ask-the-guest card holds phone, email and estimated credit score — phone AND email both required.</p>
+    <p class="notes">Edit is a word, not a pill, and it opens a focused bottom sheet — handle, serif title, the granular inputs, one Save. Never a modal inside a modal; outside tap and Escape both close it. EVERY field in a sheet is required to save (owner, 2026-08-25); the one exception is the middle name, which a guest may not have.</p>
     
     
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (5): .scan-row__val T-0000103 · NY · exp 06/21/2 &lt;&gt;  Edit address; .scan-act Edit &lt;&gt;  Edit address; .scan-h2 Contact &lt;&gt; .btn.btn--primary Save;  Mobile phone &lt;&gt; .btn.btn--primary Save; .btn.btn--primary Create Customer &lt;&gt; .btn.scan-cta Cancel</div></details>
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Type a phone already on file, tap Create Customer</div></div><article class="scr" id="license-scan-scan-phone-conflict" data-search="scan driver&#39;s license phone number conflict the colliding number is named, each action states its consequence, and &#39;back — fix the number&#39; returns to the review with the phone field focused. duplicate guard: the typed phone belongs to john smith. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Fill every field, tap Save</div></div><article class="scr" id="license-scan-scan-verify-new" data-search="scan driver&#39;s license create new customer (prop 3) the licence already filled these in, so they are read-first rows; the only typing asked for is what the licence cannot say. contact is phone and email — both required, and no credit score is asked for at the door. ">
     <div class="frame">
       <span class="n">11</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Phone number conflict" data-cap="Scan Driver&#39;s License · 11 Phone number conflict · #/customers"><img loading="lazy" src="current/03-license-scan/11-scan-phone-conflict.png" alt="Phone number conflict"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Create new customer (prop 3)" data-cap="Scan Driver&#39;s License · 11 Create new customer (prop 3) · #/customers"><img loading="lazy" src="current/03-license-scan/11-scan-verify-new.png" alt="Create new customer (prop 3)"></button>
     </div>
-    <h3>Phone number conflict</h3>
+    <h3>Create new customer (prop 3)</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">The colliding number is named, each action states its consequence, and &#39;Back — fix the number&#39; returns to the review with the phone field focused. Duplicate guard: the typed phone belongs to John Smith.</p>
+    <p class="notes">The licence already filled these in, so they are read-first rows; the only typing asked for is what the licence cannot say. Contact is phone and email — both required, and no credit score is asked for at the door.</p>
     
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Link / keep as new / back — fix the number<br><a href="#discovery-question-1" style="font-weight:600">Discovery Session · 01 Discovery — question 1</a></div></div></div>
+  </article><div class="arrow"><div class="line"></div><div class="act">Type a phone already on file, tap Create Customer</div></div><article class="scr" id="license-scan-scan-conflict" data-search="scan driver&#39;s license information conflict the page stays calm — crimson touches only the conflicting number itself. no licence carries a phone number, so this compares the number just typed against the record already holding it, and states what each action does. ">
+    <div class="frame">
+      <span class="n">12</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Information conflict" data-cap="Scan Driver&#39;s License · 12 Information conflict · #/customers"><img loading="lazy" src="current/03-license-scan/12-scan-conflict.png" alt="Information conflict"></button>
+    </div>
+    <h3>Information conflict</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">The page stays calm — crimson touches only the conflicting number itself. No licence carries a phone number, so this compares the number just TYPED against the record already holding it, and states what each action does.</p>
+    <ul class="branches"><li>Keep as a new customer → <a href="#discovery-question-1">Discovery Session · 01 Discovery — question 1</a></li><li>Back — fix the number → <a href="#license-scan-scan-verify-new">Scan Driver&#39;s License · 11 Create new customer (prop 3)</a></li></ul>
+    
+    
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Link to that record</div></div><article class="scr" id="license-scan-scan-verify-code" data-search="scan driver&#39;s license verify the number (bottom sheet) linking overwrites someone&#39;s existing record off a typed number, so it is gated (owner, 2026-08-25): a 6-digit code goes to that number and the guest reads it back. a wrong code marks the field and merges nothing. the demo has no network path, so the sheet says plainly that no text was really sent and shows the code the guest would have received. ">
+    <div class="frame">
+      <span class="n">13</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Verify the number (bottom sheet)" data-cap="Scan Driver&#39;s License · 13 Verify the number (bottom sheet) · #/customers"><img loading="lazy" src="current/03-license-scan/13-scan-verify-code.png" alt="Verify the number (bottom sheet)"></button>
+    </div>
+    <h3>Verify the number (bottom sheet)</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">Linking overwrites someone&#39;s existing record off a typed number, so it is gated (owner, 2026-08-25): a 6-digit code goes to that number and the guest reads it back. A wrong code marks the field and merges nothing. The demo has no network path, so the sheet says plainly that no text was really sent and shows the code the guest would have received.</p>
+    
+    
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): .scan-ask Is this the same person? &lt;&gt;  Verify the number;  Link to that record saves th &lt;&gt; .scan-conseq A 6-digit code was sent to (;  Link to that record saves th &lt;&gt;  A 6-digit code was sent to (;  Keep as a new customer means &lt;&gt; .scan-conseq A 6-digit code was sent to (;  Keep as a new customer &lt;&gt; .scan-conseq A 6-digit code was sent to (; .btn.btn--ghost Keep as a new customer &lt;&gt; .scan-subtle Demo: nothing leaves this de; .btn.btn--ghost Keep as a new customer &lt;&gt;  861769; .btn.scan-cta Back — fix the number &lt;&gt; .btn.btn--primary Verify &amp; Link</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Read the code back, tap Verify &amp; Link</div></div><article class="scr" id="license-scan-scan-complete" data-search="scan driver&#39;s license customer added / updated quiet success: a modest green ring, the name, one line. scan another license resets the captured photo, persona and working values and restarts the journey in place — the advisor with two guests at the desk never leaves. ">
+    <div class="frame">
+      <span class="n">14</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Customer added / updated" data-cap="Scan Driver&#39;s License · 14 Customer added / updated · #/customers"><img loading="lazy" src="current/03-license-scan/14-scan-complete.png" alt="Customer added / updated"></button>
+    </div>
+    <h3>Customer added / updated</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">Quiet success: a modest green ring, the name, one line. Scan Another License resets the captured photo, persona and working values and restarts the journey in place — the advisor with two guests at the desk never leaves.</p>
+    <ul class="branches"><li>Scan Another License → <a href="#license-scan-scan-intro">Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence</a></li></ul>
+    
+    
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Continue to Visit<br><a href="#discovery-question-1" style="font-weight:600">Discovery Session · 01 Discovery — question 1</a></div></div></div>
 </section>
 <section class="flow" id="training" data-flow>
   <header><h2>Training Licenses &amp; Registrations<small>2 screens</small></h2>
@@ -441,10 +480,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">01</span>
       <span class="flags"><span class="sev sev--Minor">Minor</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — question 1" data-cap="Discovery Session · 01 Discovery — question 1 · #/discovery/d-pv8vl7d"><img loading="lazy" src="current/05-discovery/01-question-1.png" alt="Discovery — question 1"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — question 1" data-cap="Discovery Session · 01 Discovery — question 1 · #/discovery/d-adxtsuv"><img loading="lazy" src="current/05-discovery/01-question-1.png" alt="Discovery — question 1"></button>
     </div>
     <h3>Discovery — question 1</h3>
-    <div class="hash">#/discovery/d-pv8vl7d</div>
+    <div class="hash">#/discovery/d-adxtsuv</div>
     
     <ul class="branches"><li>Tap 👤 Buyer in the crumbs → <a href="#buyers-buyers-modal">Buyers on the Deal (Co-Buyer) · 01 Buyers on this deal</a></li><li>Tap 📁 Jacket in the crumbs → <a href="#deal-jacket-jacket-overview">Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</a></li></ul>
     <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-005</b><p>The deal crumb controls (Buyer, Jacket, and the screen&#39;s back/forward link) wrap into three rows on a phone, pushing the working area ~120px down. The same row appears on every deal screen (discovery, vehicles, test drive, trade, desking, agreement, credit, menu, print).</p><p><em>Consistent, but it costs a sixth of the phone screen before the content starts. A single compact row (icon buttons, or the back link folded into the title) would recover it.</em></p></div></details>
@@ -454,10 +493,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — mid-interview" data-cap="Discovery Session · 02 Discovery — mid-interview · #/discovery/d-pv8vl7d"><img loading="lazy" src="current/05-discovery/02-question-mid.png" alt="Discovery — mid-interview"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — mid-interview" data-cap="Discovery Session · 02 Discovery — mid-interview · #/discovery/d-adxtsuv"><img loading="lazy" src="current/05-discovery/02-question-mid.png" alt="Discovery — mid-interview"></button>
     </div>
     <h3>Discovery — mid-interview</h3>
-    <div class="hash">#/discovery/d-pv8vl7d</div>
+    <div class="hash">#/discovery/d-adxtsuv</div>
     
     
     
@@ -467,10 +506,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — last question" data-cap="Discovery Session · 03 Discovery — last question · #/discovery/d-pv8vl7d"><img loading="lazy" src="current/05-discovery/03-question-last.png" alt="Discovery — last question"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — last question" data-cap="Discovery Session · 03 Discovery — last question · #/discovery/d-adxtsuv"><img loading="lazy" src="current/05-discovery/03-question-last.png" alt="Discovery — last question"></button>
     </div>
     <h3>Discovery — last question</h3>
-    <div class="hash">#/discovery/d-pv8vl7d</div>
+    <div class="hash">#/discovery/d-adxtsuv</div>
     
     
     
@@ -488,10 +527,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">01</span>
       <span class="flags"><span class="sev sev--Observation">Observation</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle Search — inventory" data-cap="Vehicle Selection · 01 Vehicle Search — inventory · #/vehicles/d-lx9rkom"><img loading="lazy" src="current/06-vehicle-selection/01-inventory.png" alt="Vehicle Search — inventory"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle Search — inventory" data-cap="Vehicle Selection · 01 Vehicle Search — inventory · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/01-inventory.png" alt="Vehicle Search — inventory"></button>
     </div>
     <h3>Vehicle Search — inventory</h3>
-    <div class="hash">#/vehicles/d-lx9rkom</div>
+    <div class="hash">#/vehicles/d-e12j4mx</div>
     
     
     <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-021</b><p>The inventory is one long page (the 12-vehicle demo already exceeds 3,200px on a phone) with the filter panel taking the whole first screen.</p><p><em>Fine at demo size; a collapsed filter bar on phones would bring the first vehicle above the fold.</em></p></div></details>
@@ -501,10 +540,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — filter applied" data-cap="Vehicle Selection · 02 Inventory — filter applied · #/vehicles/d-lx9rkom"><img loading="lazy" src="current/06-vehicle-selection/02-inventory-filtered.png" alt="Inventory — filter applied"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — filter applied" data-cap="Vehicle Selection · 02 Inventory — filter applied · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/02-inventory-filtered.png" alt="Inventory — filter applied"></button>
     </div>
     <h3>Inventory — filter applied</h3>
-    <div class="hash">#/vehicles/d-lx9rkom</div>
+    <div class="hash">#/vehicles/d-e12j4mx</div>
     
     
     
@@ -514,10 +553,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — no vehicles match" data-cap="Vehicle Selection · 03 Inventory — no vehicles match · #/vehicles/d-lx9rkom"><img loading="lazy" src="current/06-vehicle-selection/03-inventory-no-match.png" alt="Inventory — no vehicles match"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — no vehicles match" data-cap="Vehicle Selection · 03 Inventory — no vehicles match · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/03-inventory-no-match.png" alt="Inventory — no vehicles match"></button>
     </div>
     <h3>Inventory — no vehicles match</h3>
-    <div class="hash">#/vehicles/d-lx9rkom</div>
+    <div class="hash">#/vehicles/d-e12j4mx</div>
     
     
     
@@ -527,10 +566,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">04</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle details" data-cap="Vehicle Selection · 04 Vehicle details · #/vehicles/d-lx9rkom"><img loading="lazy" src="current/06-vehicle-selection/04-vehicle-details.png" alt="Vehicle details"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle details" data-cap="Vehicle Selection · 04 Vehicle details · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/04-vehicle-details.png" alt="Vehicle details"></button>
     </div>
     <h3>Vehicle details</h3>
-    <div class="hash">#/vehicles/d-lx9rkom</div>
+    <div class="hash">#/vehicles/d-e12j4mx</div>
     
     
     
@@ -540,10 +579,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">05</span>
       <span class="flags"><span class="sev sev--Minor">Minor</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Your Journey menu" data-cap="Vehicle Selection · 05 Your Journey menu · #/vehicles/d-lx9rkom"><img loading="lazy" src="current/06-vehicle-selection/05-your-journey-menu.png" alt="Your Journey menu"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Your Journey menu" data-cap="Vehicle Selection · 05 Your Journey menu · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/05-your-journey-menu.png" alt="Your Journey menu"></button>
     </div>
     <h3>Your Journey menu</h3>
-    <div class="hash">#/vehicles/d-lx9rkom</div>
+    <div class="hash">#/vehicles/d-e12j4mx</div>
     
     <ul class="branches"><li>Trade Appraisal → <a href="#trade-trade-evaluation">Trade-In Evaluation &amp; Proof of Ownership · 01 Trade-In Evaluation</a></li><li>Calculate Payment → <a href="#desking-huddle-gate">Desking — Calculate Payments · 01 Base Payment Huddle</a></li><li>Quote → <a href="#vehicles-quote-blocked">Vehicle Selection · 06 Quote — follow-up only</a></li></ul>
     <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-013</b><p>The Your Journey popover opens over the vehicle card&#39;s own title, stock and price, hiding what the advisor is choosing for.</p><p><em>Five plain-text items; opening below the button (or as a bottom sheet on phones) would keep the vehicle visible.</em></p></div></details>
@@ -553,10 +592,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">06</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Quote — follow-up only" data-cap="Vehicle Selection · 06 Quote — follow-up only · #/vehicles/d-lx9rkom"><img loading="lazy" src="current/06-vehicle-selection/06-quote-blocked.png" alt="Quote — follow-up only"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Quote — follow-up only" data-cap="Vehicle Selection · 06 Quote — follow-up only · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/06-quote-blocked.png" alt="Quote — follow-up only"></button>
     </div>
     <h3>Quote — follow-up only</h3>
-    <div class="hash">#/vehicles/d-lx9rkom</div>
+    <div class="hash">#/vehicles/d-e12j4mx</div>
     <p class="notes">Quick Quote is refused during the visit (toast); Save Quote records the structure for follow-up.</p>
     
     
@@ -884,7 +923,7 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <h3>Joint application — no co-buyer yet</h3>
     <div class="hash">#/credit/d-demo1</div>
     
-    <ul class="branches"><li>🪪 Scan co-buyer license → <a href="#license-scan-scan-front">Scan Driver&#39;s License · 02 Capture — front of licence</a></li><li>Choose existing customer → <a href="#buyers-buyers-modal">Buyers on the Deal (Co-Buyer) · 01 Buyers on this deal</a></li></ul>
+    <ul class="branches"><li>🪪 Scan co-buyer license → <a href="#license-scan-scan-intro">Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence</a></li><li>Choose existing customer → <a href="#buyers-buyers-modal">Buyers on the Deal (Co-Buyer) · 01 Buyers on this deal</a></li></ul>
     
     
     
@@ -931,7 +970,7 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <h3>Buyers on this deal</h3>
     <div class="hash">#/desk/d-demo1</div>
     
-    <ul class="branches"><li>🪪 Scan Driver&#39;s License → <a href="#license-scan-scan-front">Scan Driver&#39;s License · 02 Capture — front of licence</a></li><li>Tap the primary&#39;s card → <a href="#credit-application">Credit Application (Lending Lane) · 01 Credit application — Individual</a></li></ul>
+    <ul class="branches"><li>🪪 Scan Driver&#39;s License → <a href="#license-scan-scan-intro">Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence</a></li><li>Tap the primary&#39;s card → <a href="#credit-application">Credit Application (Lending Lane) · 01 Credit application — Individual</a></li></ul>
     
     
     
@@ -1020,7 +1059,7 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
     
     <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-019</b><p>Tapping 💬 Advisor Script (and M/D Budget) opens content below the fold of the fixed Prev/Next bar; at the top of the page nothing visibly changes.</p><p><em>The library had to scroll to show the change; a user may think the tap did nothing.</em></p></div></details>
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt;  Your manufacturer&#39;s comprehe; #hamburgerBtn.hamburger ☰ &lt;&gt;  Benefits:; .rideprice Ride &lt;&gt;  Your manufacturer&#39;s comprehe; .rideprice Ride &lt;&gt;  Benefits:; .price PRICE &lt;&gt;  Benefits:; .chip DEMO &lt;&gt;  Benefits:; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Your manufacturer&#39;s comprehe; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Benefits:
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt;  Your manufacturer&#39;s comprehe; #hamburgerBtn.hamburger ☰ &lt;&gt;  Benefits:; .rideprice Ride &lt;&gt;  Your manufacturer&#39;s comprehe; .price PRICE &lt;&gt;  Your manufacturer&#39;s comprehe; .chip DEMO &lt;&gt;  Your manufacturer&#39;s comprehe; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Your manufacturer&#39;s comprehe; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Benefits:; .seg__opt.on Advisor &lt;&gt;  Your manufacturer&#39;s comprehe
 small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Tap M/D Budget</div></div><article class="scr" id="presentation-budget-impact" data-search="f&amp;i product presentation monthly/daily budget impact  ">
@@ -1363,7 +1402,7 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt; .jk-row__mark.jk-row__mark--miss !; .rideprice Ride &lt;&gt;  Signed Contracts; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt; .btn.btn--primary 📷 Scan; .seg__opt.on Advisor &lt;&gt; .btn.btn--primary 📷 Scan; .seg__opt Team Lead &lt;&gt; .btn.btn--primary 📷 Scan; .jk-row__mark ✓ &lt;&gt; .btn.btn--ghost ← Back to Deal;  Test Drive Agreement &lt;&gt; .btn.btn--ghost ← Back to Deal;  Test Drive Agreement &lt;&gt; .btn.jk-dockinfo 11 docs needed</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt; .jk-row__mark.jk-row__mark--miss !; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt; .jk-row__why Missing · Registers and titl; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt; .btn.btn--primary 📷 Scan; .seg__opt.on Advisor &lt;&gt; .jk-row__why Missing · Registers and titl; .seg__opt.on Advisor &lt;&gt; .btn.btn--primary 📷 Scan; .seg__opt Team Lead &lt;&gt; .btn.btn--primary 📷 Scan; .jk-row__mark ✓ &lt;&gt; .btn.btn--ghost ← Back to Deal;  Test Drive Agreement &lt;&gt; .btn.btn--ghost ← Back to Deal</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Tap 📷 Scan on the Driver&#39;s License row</div></div><article class="scr" id="deal-jacket-queue-row-blocked" data-search="deal jacket &amp; compliance queue row — scan blocked (back missing) the simulated check insists on both sides of a licence. ">
     <div class="frame">
