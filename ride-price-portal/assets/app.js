@@ -1411,7 +1411,11 @@ function openScanFlow(opts) {
   function saveFrom(vals, ex) {
     const phoneDigits = normPhone(vals.phone);
     const mkNew = () => {
-      const cust = Object.assign({ id: uid("c"), creditScore: st.sv.score || 700, createdAt: new Date().toISOString() }, vals);
+      /* the scan never asks for a credit score (owner, 2026-08-25 — it is not
+         on the license and not the advisor's guess to make at the door): the
+         record starts at the neutral default and is set later on the desk,
+         where the tier is actually worked. */
+      const cust = Object.assign({ id: uid("c"), creditScore: 700, createdAt: new Date().toISOString() }, vals);
       Store.s.customers.push(cust);
       return cust;
     };
@@ -1637,8 +1641,6 @@ function openScanFlow(opts) {
         <input id="svPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="(718) 555-5555" value="${esc(sv.phone)}">
         <label for="svEmail">Email</label>
         <input id="svEmail" type="email" autocomplete="off" placeholder="name@testing.com" value="${esc(sv.email)}">
-        <label for="svScore">Est. credit score</label>
-        <input id="svScore" type="number" min="400" max="850" value="${esc(String(sv.score || 700))}">
         <div class="scan-subtle">Both phone and email are required. <span class="demo-note">Demo tool — sample data only.</span></div>
       </div>`;
     /* per-row edit opens a focused bottom sheet with the real granular
@@ -1667,7 +1669,6 @@ function openScanFlow(opts) {
       const rowEl = btn.closest(".scan-row"), key = rowEl.dataset.field;
       /* typed contact must survive the sheet round-trip */
       sv.phone = $("#svPhone", body).value.trim(); sv.email = $("#svEmail", body).value.trim();
-      sv.score = parseInt($("#svScore", body).value, 10) || sv.score;
       openSheet(sheetTitles[key], `<div class="scan-form" data-form="${esc(key)}">${forms[key]()}</div>
         <div class="scan-sheet__acts">
           <button type="button" class="btn btn--primary scan-cta" data-apply>Save</button>
@@ -1703,7 +1704,6 @@ function openScanFlow(opts) {
     $("[data-save]").onclick = () => {
       sv.email = $("#svEmail", body).value.trim();
       sv.phone = $("#svPhone", body).value.trim();
-      sv.score = parseInt($("#svScore", body).value, 10) || 700;
       /* the same required set and the same marks as Create Customer */
       const bad = customerMissing(svVals(), "sv", body);
       if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
