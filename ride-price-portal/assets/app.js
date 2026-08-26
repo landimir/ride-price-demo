@@ -1569,16 +1569,24 @@ function openScanFlow(opts) {
         $("[data-apply]", sheet).onclick = () => {
           const get = (f) => { const i = $(`[data-f="${f}"]`, sheet); return i ? i.value.trim() : null; };
           const bad = [];
-          /* a typed-but-invalid date must never silently erase a stored one */
+          /* every field in the sheet is required to save (owner, 2026-08-25):
+             an emptied field marks — it never silently keeps the old value */
+          const need = (f) => { if (get(f) === "") bad.push({ el: $(`[data-f="${f}"]`, sheet), msg: "Required" }); };
+          /* and a typed-but-invalid date never erases a stored one */
           const dateOf = (f, cur) => { const t = get(f); if (t && !dateISO(t)) { bad.push({ el: $(`[data-f="${f}"]`, sheet), msg: "Enter MM/DD/YYYY" }); return cur; } return t ? dateISO(t) : ""; };
+          if (key === "name") { need("first"); need("last"); }
+          else if (key === "dob") need("dob");
+          else if (key === "expires") need("expires");
+          else if (key === "license") need("lnum");
+          else if (key === "address") need("address");
           const dobV = key === "dob" ? dateOf("dob", sv.dob) : null;
           const expV = key === "expires" ? dateOf("expires", sv.license.expires) : null;
           if (markMissing(sheet, bad)) return;
-          if (key === "name") { sv.first = get("first") || sv.first; sv.last = get("last") || sv.last; }
+          if (key === "name") { sv.first = get("first"); sv.last = get("last"); }
           else if (key === "dob") sv.dob = dobV;
           else if (key === "expires") sv.license.expires = expV;
-          else if (key === "license") sv.license.number = get("lnum") || sv.license.number;
-          else if (key === "address") sv.address = get("address") || sv.address;
+          else if (key === "license") sv.license.number = get("lnum");
+          else if (key === "address") sv.address = get("address");
           close(); renderVerifyExisting();
         };
         const first = $("input", sheet); if (first) first.focus();
@@ -1671,20 +1679,20 @@ function openScanFlow(opts) {
         $("[data-apply]", sheet).onclick = () => {
           const get = (f) => { const i = $(`[data-f="${f}"]`, formEl); return i ? i.value.trim() : null; };
           const bad = [];
+          /* every field in the sheet is required to save (owner, 2026-08-25).
+             The one exception is the middle name — a guest may simply not
+             have one, so an empty middle is a fact, not a miss. */
+          const need = (f) => { if (!get(f)) bad.push({ el: $(`[data-f="${f}"]`, formEl), msg: "Required" }); };
           const dateOf = (f, cur) => { const t = get(f); if (t && !dateISO(t)) { bad.push({ el: $(`[data-f="${f}"]`, formEl), msg: "Enter MM/DD/YYYY" }); return cur; } return t ? dateISO(t) : ""; };
-          if (key === "name") {
-            if (!get("first")) bad.push({ el: $(`[data-f="first"]`, formEl), msg: "Required" });
-            if (!get("last")) bad.push({ el: $(`[data-f="last"]`, formEl), msg: "Required" });
-          }
-          if (key === "address") {
-            if (!get("address")) bad.push({ el: $(`[data-f="address"]`, formEl), msg: "Required" });
-            if (!get("zip")) bad.push({ el: $(`[data-f="zip"]`, formEl), msg: "Required" });
-          }
+          if (key === "name") { need("first"); need("last"); }
+          if (key === "license") { need("lnum"); need("lstate"); need("lexp"); }
+          if (key === "dob") need("dob");
+          if (key === "address") { need("address"); need("city"); need("state"); need("zip"); }
           const dobV = key === "dob" ? dateOf("dob", sv.dob) : null;
           const expV = key === "license" ? dateOf("lexp", sv.license.expires) : null;
           if (markMissing(formEl, bad)) return;
           if (key === "name") { sv.first = get("first"); sv.middle = get("middle"); sv.last = get("last"); }
-          if (key === "license") { sv.license.number = get("lnum") || sv.license.number; sv.license.state = get("lstate") || sv.license.state; sv.license.expires = expV; }
+          if (key === "license") { sv.license.number = get("lnum"); sv.license.state = get("lstate"); sv.license.expires = expV; }
           if (key === "dob") sv.dob = dobV;
           if (key === "address") { sv.address = get("address"); sv.city = get("city"); sv.state = get("state"); sv.zip = get("zip"); }
           $("[data-show]", rowEl).textContent = shows[key]();
