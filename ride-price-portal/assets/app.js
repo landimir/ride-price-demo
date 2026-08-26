@@ -478,6 +478,9 @@ function renderChrome(title, crumbs, actionsHtml) {
 }
 
 /* ---------------- router ---------------- */
+/* a scan that ends in "create new" from an entry point with no create
+   callback sets this; the customers route consumes it once on arrival */
+let scanWantsCreate = false;
 const routes = [];
 function route(pattern, fn) { routes.push({ pattern, fn }); }
 function navigate(hash) { location.hash = hash; }
@@ -851,6 +854,8 @@ route("customers", () => {
     };
   }
   $("#createBtn").onclick = openCreate;
+  /* consumed once — a later visit to this screen must not reopen the dialog */
+  if (scanWantsCreate) { scanWantsCreate = false; openCreate(); }
   $("#scanBtn").onclick = () => openScanFlow({
     mode: "customer",
     onManual: openCreate,
@@ -1138,10 +1143,16 @@ function openScanFlow(opts) {
         ${procRow("match", "Finding customer")}
         ${procRow("prep", "Verifying details")}
       </div>`;
-    st.render = null; /* nothing to resume into — the read finishes on its own */
-    /* mark step `key` done and light the next one; a torn-down body is a no-op */
+    /* A recognition already in flight must not paint over a screen the user
+       has since moved to — `live()` alone cannot tell, because the journey
+       body is still in the document after a back or a leave-and-resume
+       (review lesson 5). Every entry takes a generation; navigating away
+       bumps it and strands the older callback. */
+    const gen = st.procGen = (st.procGen || 0) + 1;
+    const mine = () => live() && st.procGen === gen;
+    /* mark step `key` done and light the next one; a stale run is a no-op */
     const step = (key, next) => {
-      if (!live()) return;
+      if (!mine()) return;
       const el = $(`[data-proc="${key}"]`, body);
       if (el) { el.classList.remove("is-now"); el.classList.add("is-done"); }
       const nx = next && $(`[data-proc="${next}"]`, body);
@@ -1156,14 +1167,18 @@ function openScanFlow(opts) {
         setTimeout(() => {
           step("match", "prep");
           setTimeout(() => {
-            if (!live()) return; /* dismissed or navigated away mid-scan */
+            if (!mine()) return; /* dismissed, or navigated away mid-scan */
             step("prep", null);
             if (res && res.ok && res.persona) { st.persona = res.persona; afterRecognize(); }
             else renderReject();
           }, 420);
         }, 420);
       }, Math.max(0, 700 - (Date.now() - t0)));
-    }).catch(() => { if (live()) renderReject(); });
+    }).catch(() => { if (mine()) renderReject(); });
+    /* the back arrow is a real control here: it strands this read and returns
+       to the capture step. Resuming a part-done scan re-enters processing
+       (and re-reads the same photo) rather than dropping to the intro. */
+    wire(() => renderProcessing(file), () => { st.procGen++; renderBack(); });
   }
 
   function renderReject() {
@@ -1250,8 +1265,16 @@ function openScanFlow(opts) {
     if (hit) $("[data-use]").onclick = () => { done(); if (o.onDone) o.onDone(hit, null, { type: "license number", customer: hit }); };
     const again = $("[data-again]"); if (again) again.onclick = () => renderManual();
     /* nothing was read, so there is no persona to pre-fill from: manual
-       "create" hands off to the full Create Customer form */
-    $("[data-new]").onclick = () => { done(); if (o.onManual) o.onManual(); };
+       "create" hands off to the full Create Customer form. Not every
+       customer-mode caller supplies one (the deals-queue camera does not), so
+       the fallback lands on Find a Customer with that dialog already open —
+       never a button that just closes the journey and does nothing. */
+    $("[data-new]").onclick = () => {
+      done();
+      if (o.onManual) return o.onManual();
+      scanWantsCreate = true;
+      if (location.hash === "#/customers") router(); else navigate("#/customers");
+    };
     wire(() => renderManualResults(num, state), () => renderManual());
   }
 
@@ -1326,13 +1349,18 @@ function openScanFlow(opts) {
     const old = $(".scan-sheet-back", backEl); if (old) old.remove();
     const sb = document.createElement("div");
     sb.className = "scan-sheet-back";
-    sb.innerHTML = `<div class="scan-sheet" role="dialog" aria-label="${esc(title)}">
+    sb.innerHTML = `<div class="scan-sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
       <span class="scan-sheet__handle" aria-hidden="true"></span>
       <h2>${esc(title)}</h2>
       <div class="scan-sheet__body">${contentHTML}</div>
     </div>`;
     $(".modal", backEl).appendChild(sb);
-    const close = () => sb.remove();
+    /* the journey renders as a dialog on desktop too, so the sheet has to be
+       dismissible from the keyboard — and the listener has to come off with
+       it, or a later Escape would reach a sheet that no longer exists */
+    const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); close(); } };
+    const close = () => { document.removeEventListener("keydown", onKey, true); sb.remove(); };
+    document.addEventListener("keydown", onKey, true);
     sb.addEventListener("click", (e) => { if (e.target === sb) close(); });
     if (onMount) onMount(sb, close);
     return close;
@@ -1350,7 +1378,16 @@ function openScanFlow(opts) {
     st.stage = "verify"; st.pct = 100;
     const p = st.persona, ex = m.customer;
     st.backFrom = () => renderMatchFound(m);
-    const basis = m.ask === "dob" ? "Same birthday" : m.type === "license number" ? "License match" : "Name match";
+    /* one label per type findLicenseMatch() can return — a name+DOB hit is a
+       stronger match than a name alone and must not be understated as one
+       (CodeRabbit, PR #49). The pill states the real basis, never a score. */
+    const BASIS = {
+      "license number": "License match",
+      "date of birth and name": "Name and birthday match",
+      "date of birth": "Same birthday",
+      "name": "Name match"
+    };
+    const basis = BASIS[m.type] || "Match found";
     foot(`<button type="button" class="btn btn--primary scan-cta" data-link>${m.ask === "dob" ? "Same person — review their record" : "Review Customer"}</button>
       <button type="button" class="btn scan-cta scan-cta--text" data-new>${m.ask === "dob" ? "Different guest — create new" : "No, create a new customer"}</button>`);
     /* only what answers "is this the same customer?" — identity facts, no
