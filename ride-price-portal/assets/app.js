@@ -158,9 +158,17 @@ function toast(msg) {
      The customer's upload page has a sticky action bar of its own and needs
      the same lift (owner prototype, 2026-08-26), so both are considered and
      the lowest one wins. */
-  const foot = $("#modalBack .modal__foot") || $(".dr-clientbottom") || $(".desk-sticky");
-  const fr = foot && foot.getBoundingClientRect();
-  t.style.bottom = fr && fr.bottom > window.innerHeight - 80 ? Math.round(window.innerHeight - fr.top + 12) + "px" : "";
+  /* measured AFTER the paint that follows this call: many callers toast and
+     then render the screen the toast belongs to, so measuring now would read
+     the outgoing screen — which is how a toast ended up underneath the
+     desking payment bar it was supposed to sit above. */
+  const place = () => {
+    const foot = $("#modalBack .modal__foot") || $(".dr-clientbottom") || $(".desk-sticky");
+    const fr = foot && foot.getBoundingClientRect();
+    t.style.bottom = fr && fr.bottom > window.innerHeight - 80 ? Math.round(window.innerHeight - fr.top + 12) + "px" : "";
+  };
+  place();
+  requestAnimationFrame(place);
   t.classList.add("show");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 2100);
@@ -2130,7 +2138,7 @@ function wireDeskTop() {
 }
 /* the golden example's flat car illustration, coloured from the vehicle's hue */
 function mCarSvg(v) {
-  const color = `hsl(${v.hue}, 58%, 52%)`;
+  const color = `hsl(${esc(v.hue)}, 58%, 52%)`;
   return `<svg class="m-carsvg" viewBox="0 0 260 130" aria-hidden="true">
     <ellipse cx="130" cy="106" rx="94" ry="10" fill="rgba(0,0,0,.09)"/>
     <path d="M45 78h18l18-31c5-9 14-14 25-14h49c12 0 23 5 31 14l24 31h13c9 0 16 7 16 16v7H28v-7c0-9 7-16 17-16Z" fill="${color}"/>
@@ -2179,7 +2187,7 @@ route("vehicles/:id", ({ id }) => {
 
   const cardHtml = (v) => `
     <div class="m-vcard" data-detail="${esc(v.stock)}" role="button" tabindex="0" aria-label="${esc(v.year + " " + v.make + " " + v.model)} details">
-      <div class="m-photo" style="background:linear-gradient(145deg,hsl(${v.hue},42%,94%),hsl(${v.hue},36%,86%))">
+      <div class="m-photo" style="background:linear-gradient(145deg,hsl(${esc(v.hue)},42%,94%),hsl(${esc(v.hue)},36%,86%))">
         <span class="m-badge">${esc(v.type.toUpperCase())}</span>${mCarSvg(v)}
       </div>
       <div class="m-cardbody">
@@ -2193,7 +2201,7 @@ route("vehicles/:id", ({ id }) => {
 
   const summaryHtml = (v) => `
     <div class="m-summary">
-      <div class="m-thumb" style="background:linear-gradient(145deg,hsl(${v.hue},42%,94%),hsl(${v.hue},36%,86%))">${mCarSvg(v)}</div>
+      <div class="m-thumb" style="background:linear-gradient(145deg,hsl(${esc(v.hue)},42%,94%),hsl(${esc(v.hue)},36%,86%))">${mCarSvg(v)}</div>
       <div><div class="m-sumtitle">${esc(v.year)} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</div>
         <div class="m-summeta">${money0(v.selling)} · Stock ${esc(v.stock)}</div></div>
     </div>`;
@@ -2205,7 +2213,7 @@ route("vehicles/:id", ({ id }) => {
       const v = Store.vehicle(sh.stock);
       return `
       <div class="m-sheettop"><div class="m-sheettitle">Vehicle details</div><button class="m-close" data-sheet-close aria-label="Close">✕</button></div>
-      <div class="m-sheetphoto" style="background:linear-gradient(145deg,hsl(${v.hue},42%,94%),hsl(${v.hue},36%,86%))">${mCarSvg(v)}</div>
+      <div class="m-sheetphoto" style="background:linear-gradient(145deg,hsl(${esc(v.hue)},42%,94%),hsl(${esc(v.hue)},36%,86%))">${mCarSvg(v)}</div>
       <h2>${esc(v.year)} ${esc(v.make)} ${esc(v.model)}</h2>
       <div class="m-sheetsub">${esc(v.trim)} · ${esc(v.ext)} · ${esc(v.drive)}</div>
       <div class="m-specgroup">
@@ -2246,13 +2254,13 @@ route("vehicles/:id", ({ id }) => {
       </div>`;
     }
     /* filters */
-    const opt = (group, val, label) => `<button class="m-opt${ui[group] === val ? " selected" : ""}" data-opt="${group}" data-val="${esc(val)}">${esc(label)}</button>`;
+    const opt = (group, val, label) => `<button class="m-opt${ui[group] === val ? " selected" : ""}" data-opt="${esc(group)}" data-val="${esc(val)}">${esc(label)}</button>`;
     return `
       <div class="m-sheettop"><div class="m-sheettitle">Filters</div><button class="m-close" data-sheet-close aria-label="Close">✕</button></div>
       <div class="m-fsection"><h3>Make</h3><div class="m-optgrid">${opt("make", "All", "All")}${makes.map(m => opt("make", m, m)).join("")}</div></div>
       <div class="m-fsection"><h3>Body style</h3><div class="m-optgrid">${opt("body", "All", "All")}${bodies.map(b => opt("body", b, b)).join("")}</div></div>
       <div class="m-fsection"><h3>Max price</h3>
-        <div class="m-priceinput"><span>$</span><input type="number" id="mMaxPrice" step="1000" placeholder="No limit" value="${ui.maxPrice || ""}"></div></div>
+        <div class="m-priceinput"><span>$</span><input type="number" id="mMaxPrice" step="1000" placeholder="No limit" value="${esc(ui.maxPrice || "")}"></div></div>
       <div class="m-fsection"><h3>Sort</h3><div class="m-optgrid">${opt("sort", "hi", "Price: high to low")}${opt("sort", "lo", "Price: low to high")}</div></div>
       <div class="m-ffoot"><button class="m-clearlink" id="mClearAll">Clear all</button><button class="m-primary" data-sheet-close>Show ${filtered().length} vehicle${filtered().length === 1 ? "" : "s"}</button></div>`;
   }
@@ -2324,6 +2332,9 @@ route("vehicles/:id", ({ id }) => {
       const s2 = $("#mSearch"); s2.focus(); s2.setSelectionRange(pos, pos);
     };
     $$(".m-chip[data-type]").forEach(b => b.onclick = () => { ui.type = b.dataset.type; render(); });
+    /* [data-nav] is bound once at boot, so anything a route renders needs its
+       own binding — the browse banner's button was dead without this */
+    $$("[data-nav]", view()).forEach(b => b.onclick = (e) => { e.preventDefault(); navigate(b.dataset.nav); });
     $("#mFilters").onclick = () => { ui.sheet = { kind: "filters" }; render(); };
     $("#mSort").onclick = () => { ui.sort = ui.sort === "hi" ? "lo" : "hi"; render(); };
     $$("[data-detail]").forEach(el => {
@@ -2923,7 +2934,7 @@ route("desk/:id", ({ id }) => {
       </div>
 
       <div class="dk-vehicle">
-        <div class="dk-vehicle-art" style="background:linear-gradient(145deg,hsl(${v.hue},42%,94%),hsl(${v.hue},36%,86%))" aria-hidden="true">${mCarSvg(v)}</div>
+        <div class="dk-vehicle-art" style="background:linear-gradient(145deg,hsl(${esc(v.hue)},42%,94%),hsl(${esc(v.hue)},36%,86%))" aria-hidden="true">${mCarSvg(v)}</div>
         <div><h3>${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</h3>
           <p>Stock ${esc(v.stock)} · VIN ${esc(v.vin)}</p>
           <p>Your price ${money0(r.yourPrice)}</p></div>
@@ -3076,7 +3087,7 @@ route("desk/:id", ({ id }) => {
       <div class="dk-sheet-inner">
         <div class="dk-handle"></div>
         <div class="dk-sheetbar"><h2>Compare payments</h2><button type="button" class="dk-close" id="dkSheetClose" aria-label="Close">×</button></div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.45">Compare the two primary deal structures without leaving the pencil. Rebates and cash down are recalculated when the deal type changes.</div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.45">Compare the two primary deal structures without leaving the pencil. A rebate applies to every deal type; cash down applies to a finance deal, and a lease uses the due-at-signing figure instead.</div>
         <div class="dk-cmpcard">
           <div class="top"><h3>Finance</h3><span class="dk-badge">${f.term} months</span></div>
           <div class="price">${money(f.payment)} / mo</div>
@@ -3191,7 +3202,7 @@ route("compare/:id", ({ id }) => {
           <div class="dk-meta" style="margin:0"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</div></div>
         <a class="dk-linkbtn" href="#/desk/${esc(deal.id)}" style="text-align:right">Back to the pencil</a>
       </div>
-      <div class="dk-notice" style="margin-top:16px"><strong>Before you switch</strong>Rebates and cash down will not carry over when changing deal types.</div>
+      <div class="dk-notice" style="margin-top:16px"><strong>Before you switch</strong>A rebate applies to every deal type. Cash down applies to a finance deal; a lease uses the due-at-signing figure instead.</div>
       <div class="dk-cmpgrid">${sides.map((s, i) => colHtml(s, i)).join("")}</div>
     </div>`;
     wireDeskTop();
