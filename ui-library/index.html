@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ride Price Mobile UI Flow Library — v006</title>
+<title>Ride Price Mobile UI Flow Library — v007</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--chrome:#071b49;--chrome-2:#0b255d;--navy:#262254;--ink:#34314e;--muted:#6f6c88;--bg:#f2f2f8;--line:#e3e1ef;--card:#fff;--radius:14px;
@@ -59,7 +59,7 @@ a{color:inherit}
 <body>
 <header class="appbar"><div class="brand"><i>Ride</i><span>PRICE</span></div><span class="chip">UI LIBRARY</span>
   <input id="q" type="search" placeholder="Filter screens, flows, issues…" aria-label="Filter">
-  <span class="ver">v006 · captured 2026-08-26 22:31 · viewport 390×844 · app 2a29a56</span></header>
+  <span class="ver">v007 · captured 2026-08-27 16:17 · viewport 390×844 · app 2838cc4</span></header>
 <div class="layout">
   <nav class="side"><h4>Product areas</h4><a href="#home">Home — Deals Queue &amp; Navigation<small>7</small></a><a href="#onboarding">Customer Onboarding — Find a Customer<small>5</small></a><a href="#license-scan">Scan Driver&#39;s License<small>14</small></a><a href="#training">Training Licenses &amp; Registrations<small>2</small></a><a href="#discovery">Discovery Session<small>3</small></a><a href="#vehicles">Vehicle Selection<small>7</small></a><a href="#test-drive">Test Drive Agreement<small>7</small></a><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership<small>4</small></a><a href="#desking">Desking — Calculate Payments<small>5</small></a><a href="#agreement">Base Payment Agreement<small>3</small></a><a href="#credit">Credit Application (Lending Lane)<small>4</small></a><a href="#buyers">Buyers on the Deal (Co-Buyer)<small>4</small></a><a href="#presentation">F&amp;I Product Presentation<small>4</small></a><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts<small>16</small></a><a href="#deal-jacket">Deal Jacket &amp; Compliance<small>11</small></a><a href="#document-request">Send Text Request (advisor → client)<small>3</small></a><a href="#client-upload">Client Document Upload (customer&#39;s phone)<small>10</small></a><a href="#snap-all">Snap All — burst capture<small>4</small></a><a href="#doc-review">Document Review (advisor)<small>1</small></a><a href="#print-center">Print Center &amp; Printables<small>3</small></a><h4>Reports</h4><a href="reports/ux-audit.md">UX audit</a><a href="reports/flow-manifest.json">Flow manifest</a><a href="reports/changelog.md">Changelog</a><a href="reports/library-summary.md">Summary</a></nav>
   <main class="main">
@@ -68,7 +68,7 @@ a{color:inherit}
         <p>Every mobile flow of the working Ride Price portal, captured as a user sees it at 390 × 844, organised as sequential journeys. Read left to right: each arrow names the action that caused the next screen; branches list where else a screen can go; flagged screens carry their UX findings.</p>
         <p>The screenshots are untouched captures of the real application. Nothing here was redesigned — problems are documented, not fixed.</p></div>
       <div class="stats"><div class="stat"><b>20</b><span>flows</span></div><div class="stat"><b>117</b><span>screens</span></div><div class="stat"><b>65</b><span>branches</span></div>
-        <div class="stat"><b>0</b><span><span class="sev sev--Critical">Critical</span></span></div><div class="stat"><b>2</b><span><span class="sev sev--Major">Major</span></span></div><div class="stat"><b>13 / 6</b><span><span class="sev sev--Minor">Minor</span> <span class="sev sev--Observation">Observation</span></span></div></div>
+        <div class="stat"><b>0</b><span><span class="sev sev--Critical">Critical</span></span></div><div class="stat"><b>2</b><span><span class="sev sev--Major">Major</span></span></div><div class="stat"><b>12 / 5</b><span><span class="sev sev--Minor">Minor</span> <span class="sev sev--Observation">Observation</span></span></div></div>
     </section>
     <div class="map"><h2>How the product connects</h2><ol><li><a href="#home">Home — Deals Queue &amp; Navigation</a> <small>— 7 screens; entry point</small></li><li><a href="#onboarding">Customer Onboarding — Find a Customer</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</small></li><li><a href="#license-scan">Scan Driver&#39;s License</a> <small>— 14 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#training">Training Licenses &amp; Registrations</a> <small>— 2 screens; from Home — Deals Queue &amp; Navigation · 02 Navigation drawer</small></li><li><a href="#discovery">Discovery Session</a> <small>— 3 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#vehicles">Vehicle Selection</a> <small>— 7 screens; from Discovery Session · 03 Discovery — last question</small></li><li><a href="#test-drive">Test Drive Agreement</a> <small>— 7 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership</a> <small>— 4 screens; from Vehicle Selection · 05 Your Journey menu</small></li><li><a href="#desking">Desking — Calculate Payments</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</small></li><li><a href="#agreement">Base Payment Agreement</a> <small>— 3 screens; from Desking — Calculate Payments · 02 Calculate Payments — Finance</small></li><li><a href="#credit">Credit Application (Lending Lane)</a> <small>— 4 screens; from Base Payment Agreement · 02 Agreement — signed</small></li><li><a href="#buyers">Buyers on the Deal (Co-Buyer)</a> <small>— 4 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#presentation">F&amp;I Product Presentation</a> <small>— 4 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented</small></li><li><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts</a> <small>— 16 screens; from Credit Application (Lending Lane) · 04 Approved (simulated)</small></li><li><a href="#deal-jacket">Deal Jacket &amp; Compliance</a> <small>— 11 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#document-request">Send Text Request (advisor → client)</a> <small>— 3 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#client-upload">Client Document Upload (customer&#39;s phone)</a> <small>— 10 screens; from Send Text Request (advisor → client) · 01 Send Text Request — composer</small></li><li><a href="#snap-all">Snap All — burst capture</a> <small>— 4 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#doc-review">Document Review (advisor)</a> <small>— 1 screens; from Deal Jacket &amp; Compliance · 03 Deal forms &amp; jacket — opened</small></li><li><a href="#print-center">Print Center &amp; Printables</a> <small>— 3 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 15 Step 5 — Financial Contracts</small></li></ol></div>
     
@@ -417,7 +417,7 @@ a{color:inherit}
     <p class="notes">Linking overwrites someone&#39;s existing record off a typed number, so it is gated (owner, 2026-08-25): a 6-digit code goes to that number and the guest reads it back. A wrong code marks the field and merges nothing. The demo has no network path, so the sheet says plainly that no text was really sent and shows the code the guest would have received.</p>
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): .scan-ask Is this the same person? &lt;&gt;  Verify the number;  Link to that record saves th &lt;&gt; .scan-conseq A 6-digit code was sent to (;  Link to that record saves th &lt;&gt;  A 6-digit code was sent to (;  Keep as a new customer means &lt;&gt; .scan-conseq A 6-digit code was sent to (;  Keep as a new customer &lt;&gt; .scan-conseq A 6-digit code was sent to (; .btn.btn--ghost Keep as a new customer &lt;&gt; .scan-subtle Demo: nothing leaves this de; .btn.btn--ghost Keep as a new customer &lt;&gt;  861769; .btn.scan-cta Back — fix the number &lt;&gt; .btn.btn--primary Verify &amp; Link</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): .scan-ask Is this the same person? &lt;&gt;  Verify the number;  Link to that record saves th &lt;&gt; .scan-conseq A 6-digit code was sent to (;  Link to that record saves th &lt;&gt;  A 6-digit code was sent to (;  Keep as a new customer means &lt;&gt; .scan-conseq A 6-digit code was sent to (;  Keep as a new customer &lt;&gt; .scan-conseq A 6-digit code was sent to (; .btn.btn--ghost Keep as a new customer &lt;&gt; .scan-subtle Demo: nothing leaves this de; .btn.btn--ghost Keep as a new customer &lt;&gt;  174781; .btn.scan-cta Back — fix the number &lt;&gt; .btn.btn--primary Verify &amp; Link</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Read the code back, tap Verify &amp; Link</div></div><article class="scr" id="license-scan-scan-complete" data-search="scan driver&#39;s license customer added / updated quiet success: a modest green ring, the name, one line. scan another license resets the captured photo, persona and working values and restarts the journey in place — the advisor with two guests at the desk never leaves. ">
     <div class="frame">
@@ -480,10 +480,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">01</span>
       <span class="flags"><span class="sev sev--Minor">Minor</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — question 1" data-cap="Discovery Session · 01 Discovery — question 1 · #/discovery/d-adxtsuv"><img loading="lazy" src="current/05-discovery/01-question-1.png" alt="Discovery — question 1"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — question 1" data-cap="Discovery Session · 01 Discovery — question 1 · #/discovery/d-453dmld"><img loading="lazy" src="current/05-discovery/01-question-1.png" alt="Discovery — question 1"></button>
     </div>
     <h3>Discovery — question 1</h3>
-    <div class="hash">#/discovery/d-adxtsuv</div>
+    <div class="hash">#/discovery/d-453dmld</div>
     
     <ul class="branches"><li>Tap 👤 Buyer in the crumbs → <a href="#buyers-buyers-modal">Buyers on the Deal (Co-Buyer) · 01 Buyers on this deal</a></li><li>Tap 📁 Jacket in the crumbs → <a href="#deal-jacket-jacket-overview">Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</a></li></ul>
     <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-005</b><p>The deal crumb controls (Buyer, Jacket, and the screen&#39;s back/forward link) wrap into three rows on a phone, pushing the working area ~120px down. The same row appears on every deal screen (discovery, vehicles, test drive, trade, desking, agreement, credit, menu, print).</p><p><em>Consistent, but it costs a sixth of the phone screen before the content starts. A single compact row (icon buttons, or the back link folded into the title) would recover it.</em></p></div></details>
@@ -493,10 +493,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — mid-interview" data-cap="Discovery Session · 02 Discovery — mid-interview · #/discovery/d-adxtsuv"><img loading="lazy" src="current/05-discovery/02-question-mid.png" alt="Discovery — mid-interview"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — mid-interview" data-cap="Discovery Session · 02 Discovery — mid-interview · #/discovery/d-453dmld"><img loading="lazy" src="current/05-discovery/02-question-mid.png" alt="Discovery — mid-interview"></button>
     </div>
     <h3>Discovery — mid-interview</h3>
-    <div class="hash">#/discovery/d-adxtsuv</div>
+    <div class="hash">#/discovery/d-453dmld</div>
     
     
     
@@ -506,10 +506,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — last question" data-cap="Discovery Session · 03 Discovery — last question · #/discovery/d-adxtsuv"><img loading="lazy" src="current/05-discovery/03-question-last.png" alt="Discovery — last question"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — last question" data-cap="Discovery Session · 03 Discovery — last question · #/discovery/d-453dmld"><img loading="lazy" src="current/05-discovery/03-question-last.png" alt="Discovery — last question"></button>
     </div>
     <h3>Discovery — last question</h3>
-    <div class="hash">#/discovery/d-adxtsuv</div>
+    <div class="hash">#/discovery/d-453dmld</div>
     
     
     
@@ -527,10 +527,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">01</span>
       <span class="flags"><span class="sev sev--Observation">Observation</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle Search — inventory" data-cap="Vehicle Selection · 01 Vehicle Search — inventory · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/01-inventory.png" alt="Vehicle Search — inventory"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle Search — inventory" data-cap="Vehicle Selection · 01 Vehicle Search — inventory · #/vehicles/d-ia1s4w2"><img loading="lazy" src="current/06-vehicle-selection/01-inventory.png" alt="Vehicle Search — inventory"></button>
     </div>
     <h3>Vehicle Search — inventory</h3>
-    <div class="hash">#/vehicles/d-e12j4mx</div>
+    <div class="hash">#/vehicles/d-ia1s4w2</div>
     
     
     <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-021</b><p>The inventory is one long page (the 12-vehicle demo already exceeds 3,200px on a phone) with the filter panel taking the whole first screen.</p><p><em>Fine at demo size; a collapsed filter bar on phones would bring the first vehicle above the fold.</em></p></div></details>
@@ -540,10 +540,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — filter applied" data-cap="Vehicle Selection · 02 Inventory — filter applied · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/02-inventory-filtered.png" alt="Inventory — filter applied"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — filter applied" data-cap="Vehicle Selection · 02 Inventory — filter applied · #/vehicles/d-ia1s4w2"><img loading="lazy" src="current/06-vehicle-selection/02-inventory-filtered.png" alt="Inventory — filter applied"></button>
     </div>
     <h3>Inventory — filter applied</h3>
-    <div class="hash">#/vehicles/d-e12j4mx</div>
+    <div class="hash">#/vehicles/d-ia1s4w2</div>
     
     
     
@@ -553,10 +553,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — no vehicles match" data-cap="Vehicle Selection · 03 Inventory — no vehicles match · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/03-inventory-no-match.png" alt="Inventory — no vehicles match"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — no vehicles match" data-cap="Vehicle Selection · 03 Inventory — no vehicles match · #/vehicles/d-ia1s4w2"><img loading="lazy" src="current/06-vehicle-selection/03-inventory-no-match.png" alt="Inventory — no vehicles match"></button>
     </div>
     <h3>Inventory — no vehicles match</h3>
-    <div class="hash">#/vehicles/d-e12j4mx</div>
+    <div class="hash">#/vehicles/d-ia1s4w2</div>
     
     
     
@@ -566,10 +566,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">04</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle details" data-cap="Vehicle Selection · 04 Vehicle details · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/04-vehicle-details.png" alt="Vehicle details"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle details" data-cap="Vehicle Selection · 04 Vehicle details · #/vehicles/d-ia1s4w2"><img loading="lazy" src="current/06-vehicle-selection/04-vehicle-details.png" alt="Vehicle details"></button>
     </div>
     <h3>Vehicle details</h3>
-    <div class="hash">#/vehicles/d-e12j4mx</div>
+    <div class="hash">#/vehicles/d-ia1s4w2</div>
     
     
     
@@ -579,10 +579,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">05</span>
       <span class="flags"><span class="sev sev--Minor">Minor</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Your Journey menu" data-cap="Vehicle Selection · 05 Your Journey menu · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/05-your-journey-menu.png" alt="Your Journey menu"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Your Journey menu" data-cap="Vehicle Selection · 05 Your Journey menu · #/vehicles/d-ia1s4w2"><img loading="lazy" src="current/06-vehicle-selection/05-your-journey-menu.png" alt="Your Journey menu"></button>
     </div>
     <h3>Your Journey menu</h3>
-    <div class="hash">#/vehicles/d-e12j4mx</div>
+    <div class="hash">#/vehicles/d-ia1s4w2</div>
     
     <ul class="branches"><li>Trade Appraisal → <a href="#trade-trade-evaluation">Trade-In Evaluation &amp; Proof of Ownership · 01 Trade-In Evaluation</a></li><li>Calculate Payment → <a href="#desking-huddle-gate">Desking — Calculate Payments · 01 Base Payment Huddle</a></li><li>Quote → <a href="#vehicles-quote-blocked">Vehicle Selection · 06 Quote — follow-up only</a></li></ul>
     <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-013</b><p>The Your Journey popover opens over the vehicle card&#39;s own title, stock and price, hiding what the advisor is choosing for.</p><p><em>Five plain-text items; opening below the button (or as a bottom sheet on phones) would keep the vehicle visible.</em></p></div></details>
@@ -592,10 +592,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">06</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Quote — follow-up only" data-cap="Vehicle Selection · 06 Quote — follow-up only · #/vehicles/d-e12j4mx"><img loading="lazy" src="current/06-vehicle-selection/06-quote-blocked.png" alt="Quote — follow-up only"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Quote — follow-up only" data-cap="Vehicle Selection · 06 Quote — follow-up only · #/vehicles/d-ia1s4w2"><img loading="lazy" src="current/06-vehicle-selection/06-quote-blocked.png" alt="Quote — follow-up only"></button>
     </div>
     <h3>Quote — follow-up only</h3>
-    <div class="hash">#/vehicles/d-e12j4mx</div>
+    <div class="hash">#/vehicles/d-ia1s4w2</div>
     <p class="notes">Quick Quote is refused during the visit (toast); Save Quote records the structure for follow-up.</p>
     
     
@@ -1059,7 +1059,7 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
     
     <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-019</b><p>Tapping 💬 Advisor Script (and M/D Budget) opens content below the fold of the fixed Prev/Next bar; at the top of the page nothing visibly changes.</p><p><em>The library had to scroll to show the change; a user may think the tap did nothing.</em></p></div></details>
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt;  Your manufacturer&#39;s comprehe; #hamburgerBtn.hamburger ☰ &lt;&gt;  Benefits:; .rideprice Ride &lt;&gt;  Your manufacturer&#39;s comprehe; .price PRICE &lt;&gt;  Your manufacturer&#39;s comprehe; .chip DEMO &lt;&gt;  Your manufacturer&#39;s comprehe; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Your manufacturer&#39;s comprehe; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Benefits:; .seg__opt.on Advisor &lt;&gt;  Your manufacturer&#39;s comprehe
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt;  Your manufacturer&#39;s comprehe; #hamburgerBtn.hamburger ☰ &lt;&gt;  Benefits:; .rideprice Ride &lt;&gt;  Benefits:; .price PRICE &lt;&gt;  Benefits:; .chip DEMO &lt;&gt;  Benefits:; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Your manufacturer&#39;s comprehe; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Benefits:; .seg__opt.on Advisor &lt;&gt;  Your manufacturer&#39;s comprehe
 small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Tap M/D Budget</div></div><article class="scr" id="presentation-budget-impact" data-search="f&amp;i product presentation monthly/daily budget impact  ">
@@ -1402,7 +1402,7 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt; .jk-row__mark.jk-row__mark--miss !; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt; .jk-row__why Missing · Registers and titl; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt; .btn.btn--primary 📷 Scan; .seg__opt.on Advisor &lt;&gt; .jk-row__why Missing · Registers and titl; .seg__opt.on Advisor &lt;&gt; .btn.btn--primary 📷 Scan; .seg__opt Team Lead &lt;&gt; .btn.btn--primary 📷 Scan; .jk-row__mark ✓ &lt;&gt; .btn.btn--ghost ← Back to Deal;  Test Drive Agreement &lt;&gt; .btn.btn--ghost ← Back to Deal</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt; .jk-row__mark.jk-row__mark--miss !; .rideprice Ride &lt;&gt;  Signed Contracts; .rideprice Ride &lt;&gt; .jk-row__why Missing · The retail instalm; .rideprice Ride &lt;&gt; .jk-miss Missing; .price PRICE &lt;&gt; .jk-row__why Missing · The retail instalm; .price PRICE &lt;&gt; .jk-miss Missing; .price PRICE &lt;&gt; .jk-why-s Retail contract; .chip DEMO &lt;&gt; .jk-row__why Missing · The retail instalm</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Tap 📷 Scan on the Driver&#39;s License row</div></div><article class="scr" id="deal-jacket-queue-row-blocked" data-search="deal jacket &amp; compliance queue row — scan blocked (back missing) the simulated check insists on both sides of a licence. ">
     <div class="frame">
@@ -1496,9 +1496,9 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
   <header><h2>Client Document Upload (customer&#39;s phone)<small>10 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">What the customer sees from the text link: no account, one row per document, instant simulated verification with scripted beats (licence needs both sides, insurance flags once, two paystubs), the considered capture path with review and failure coaching, and the receipt.</p>
+  <p class="desc">What the customer sees from the text link, rebuilt from the owner&#39;s upload prototype (2026-08-27) in Ride Price colours. This is the customer&#39;s OWN page: no app bar, no role switch, no debug strip — a white edge-to-edge canvas reached from a text message by someone who does not work at the dealership. One row per requested document with a line icon and a plain what-to-bring subtitle, an &quot;n of N ready&quot; progress line, and one dominant action. Verification is simulated with scripted beats (the licence needs both sides, insurance flags once, two paystubs). An unreadable photo is refused plainly — &quot;Too blurry to read&quot; — with the retake on the row, never a coaching screen.</p>
   <p class="entry">↳ Reached from <a href="#document-request-composer">Send Text Request (advisor → client) · 01 Send Text Request — composer</a> — <b>Send Text Request</b></p>
-  <div class="strip"><article class="scr" id="client-upload-sms" data-search="client document upload (customer&#39;s phone) text message with the link  ">
+  <div class="strip"><article class="scr" id="client-upload-sms" data-search="client document upload (customer&#39;s phone) text message with the link the advisor sends the request; this is the message as the customer receives it. the link is the only way in — no account, no password. ">
     <div class="frame">
       <span class="n">01</span>
       
@@ -1506,127 +1506,128 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     </div>
     <h3>Text message with the link</h3>
     <div class="hash">#/clientlink/d-demo1/sms</div>
-    
+    <p class="notes">The advisor sends the request; this is the message as the customer receives it. The link is the only way in — no account, no password.</p>
     
     
     <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (1):  rideprice.com/u/48201 158x19</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap the link</div></div><article class="scr" id="client-upload-landing" data-search="client document upload (customer&#39;s phone) upload your documents  a developer debug strip (received / accepted counters, advisor / client link jumps) is fixed to the bottom of every customer-facing screen, and the submit documents cta sits directly above it.">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap the link</div></div><article class="scr" id="client-upload-landing" data-search="client document upload (customer&#39;s phone) upload your documents the heading runs straight into the progress line — the explanatory paragraph was cut (owner, 2026-08-27): &quot;0 of 3 ready&quot; and the submit button already carry the send-when-ready model. ">
     <div class="frame tall">
       <span class="n">02</span>
-      <span class="flags"><span class="sev sev--Observation">Observation</span></span>
+      
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Upload your documents" data-cap="Client Document Upload (customer&#39;s phone) · 02 Upload your documents · #/clientlink/d-demo1/sms"><img loading="lazy" src="current/17-client-document-upload/02-landing.png" alt="Upload your documents"></button>
     </div>
     <h3>Upload your documents</h3>
-    <div class="hash">#/clientlink/d-demo1/sms · <a href="current/17-client-document-upload/02-landing.scroll.png" target="_blank">full length ↓</a></div>
+    <div class="hash">#/clientlink/d-demo1/sms</div>
+    <p class="notes">The heading runs straight into the progress line — the explanatory paragraph was cut (owner, 2026-08-27): &quot;0 of 3 ready&quot; and the submit button already carry the send-when-ready model.</p>
+    <ul class="branches"><li>Tap a document row → <a href="#client-upload-document-sheet">Client Document Upload (customer&#39;s phone) · 08 What we need — bottom sheet</a></li><li>Add documents (burst) → <a href="#snap-all-capture">Snap All — burst capture · 01 Snap All — camera</a></li></ul>
     
-    <ul class="branches"><li>Tap a document&#39;s name → <a href="#client-upload-document-detail">Client Document Upload (customer&#39;s phone) · 08 Document detail — what we need</a></li><li>📷 Snap All → <a href="#snap-all-capture">Snap All — burst capture · 01 Snap All — camera</a></li></ul>
-    <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-018</b><p>A developer DEBUG strip (received / accepted counters, Advisor / Client link jumps) is fixed to the bottom of every customer-facing screen, and the Submit Documents CTA sits directly above it.</p><p><em>Deliberate demo chrome (recorded in the architecture docs) — but it is what a trainee playing the customer sees, and a toast plus the strip can stack over the CTA.</em></p></div></details>
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">📷 Add Photo on Driver&#39;s License (one side)</div></div><article class="scr" id="client-upload-row-blocked" data-search="client document upload (customer&#39;s phone) row blocked — back of licence missing  ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Add the licence (one side)</div></div><article class="scr" id="client-upload-row-blocked" data-search="client document upload (customer&#39;s phone) row blocked — back of licence missing a blocked row keeps its one-tap retake rather than making the whole row the control — the prototype&#39;s version cost an extra tap on the screen where the customer is already stuck. ">
     <div class="frame tall">
       <span class="n">03</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Row blocked — back of licence missing" data-cap="Client Document Upload (customer&#39;s phone) · 03 Row blocked — back of licence missing · #/clientlink/d-demo1/sms"><img loading="lazy" src="current/17-client-document-upload/03-row-blocked.png" alt="Row blocked — back of licence missing"></button>
     </div>
     <h3>Row blocked — back of licence missing</h3>
-    <div class="hash">#/clientlink/d-demo1/sms · <a href="current/17-client-document-upload/03-row-blocked.scroll.png" target="_blank">full length ↓</a></div>
+    <div class="hash">#/clientlink/d-demo1/sms</div>
+    <p class="notes">A blocked row keeps its ONE-TAP retake rather than making the whole row the control — the prototype&#39;s version cost an extra tap on the screen where the customer is already stuck.</p>
     
     
     
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">📷 Retake Photo (the back)</div></div><article class="scr" id="client-upload-row-verified" data-search="client document upload (customer&#39;s phone) row verified  ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Retake Photo (the back)</div></div><article class="scr" id="client-upload-row-verified" data-search="client document upload (customer&#39;s phone) row verified a verified row carries a quiet green pill; the progress line and percentage move with it. ">
     <div class="frame tall">
       <span class="n">04</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Row verified" data-cap="Client Document Upload (customer&#39;s phone) · 04 Row verified · #/clientlink/d-demo1/sms"><img loading="lazy" src="current/17-client-document-upload/04-row-verified.png" alt="Row verified"></button>
     </div>
     <h3>Row verified</h3>
-    <div class="hash">#/clientlink/d-demo1/sms · <a href="current/17-client-document-upload/04-row-verified.scroll.png" target="_blank">full length ↓</a></div>
+    <div class="hash">#/clientlink/d-demo1/sms</div>
+    <p class="notes">A verified row carries a quiet green pill; the progress line and percentage move with it.</p>
     
     
     
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Add the insurance card</div></div><article class="scr" id="client-upload-insurance-flagged" data-search="client document upload (customer&#39;s phone) insurance flagged — expires within 45 days  ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Add the insurance card</div></div><article class="scr" id="client-upload-insurance-flagged" data-search="client document upload (customer&#39;s phone) insurance flagged — expires within 45 days the refusal names the real reason on the row itself. the toast lifts clear of the sticky action bar, the same way it already did for dialog footers. ">
     <div class="frame tall">
       <span class="n">05</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Insurance flagged — expires within 45 days" data-cap="Client Document Upload (customer&#39;s phone) · 05 Insurance flagged — expires within 45 days · #/clientlink/d-demo1/sms"><img loading="lazy" src="current/17-client-document-upload/05-insurance-flagged.png" alt="Insurance flagged — expires within 45 days"></button>
     </div>
     <h3>Insurance flagged — expires within 45 days</h3>
-    <div class="hash">#/clientlink/d-demo1/sms · <a href="current/17-client-document-upload/05-insurance-flagged.scroll.png" target="_blank">full length ↓</a></div>
+    <div class="hash">#/clientlink/d-demo1/sms</div>
+    <p class="notes">The refusal names the real reason on the row itself. The toast lifts clear of the sticky action bar, the same way it already did for dialog footers.</p>
     
     
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (1): .dr-demonote Training demo — this page se &lt;&gt; .dr-clientcta Add documents</div></details>
     
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Retake; add both paystubs</div></div><article class="scr" id="client-upload-all-verified" data-search="client document upload (customer&#39;s phone) all documents verified  ">
-    <div class="frame">
+  </article><div class="arrow"><div class="line"></div><div class="act">Retake; add both paystubs</div></div><article class="scr" id="client-upload-all-verified" data-search="client document upload (customer&#39;s phone) all documents verified only when everything is ready does the single green submit replace the add/submit-what&#39;s-ready pair. ">
+    <div class="frame tall">
       <span class="n">06</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: All documents verified" data-cap="Client Document Upload (customer&#39;s phone) · 06 All documents verified · #/clientlink/d-demo1/sms"><img loading="lazy" src="current/17-client-document-upload/06-all-verified.png" alt="All documents verified"></button>
     </div>
     <h3>All documents verified</h3>
     <div class="hash">#/clientlink/d-demo1/sms</div>
+    <p class="notes">Only when everything is ready does the single green submit replace the add/submit-what&#39;s-ready pair.</p>
     
     
     
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Submit Documents (3/3) ✓</div></div><article class="scr" id="client-upload-receipt" data-search="client document upload (customer&#39;s phone) receipt — your documents  ">
-    <div class="frame">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Submit documents</div></div><article class="scr" id="client-upload-receipt" data-search="client document upload (customer&#39;s phone) receipt — your documents what landed, when, and that it is already in the deal jacket. ">
+    <div class="frame tall">
       <span class="n">07</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Receipt — your documents" data-cap="Client Document Upload (customer&#39;s phone) · 07 Receipt — your documents · #/clientlink/d-demo1/sms"><img loading="lazy" src="current/17-client-document-upload/07-receipt.png" alt="Receipt — your documents"></button>
     </div>
     <h3>Receipt — your documents</h3>
     <div class="hash">#/clientlink/d-demo1/sms</div>
+    <p class="notes">What landed, when, and that it is already in the Deal Jacket.</p>
     
     
     
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Back to status</div></div><article class="scr" id="client-upload-document-detail" data-search="client document upload (customer&#39;s phone) document detail — what we need  the third capture option reads &#39;pdf choose a pdf&#39; — the icon slot shows the word pdf next to the label, so the line reads as a doubled word.">
+  </article><div class="arrow"><div class="line"></div><div class="act">Back to status</div></div><article class="scr" id="client-upload-document-sheet" data-search="client document upload (customer&#39;s phone) what we need — bottom sheet a sheet over the list, not a page that replaces it (owner, 2026-08-27), so the customer never loses their place; it dismisses by tapping the list behind it or by escape. no requirements list: telling someone what a good photo looks like before they have taken one is text for its own sake — the refusal afterwards is the part that helps. ">
     <div class="frame tall">
       <span class="n">08</span>
-      <span class="flags"><span class="sev sev--Minor">Minor</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Document detail — what we need" data-cap="Client Document Upload (customer&#39;s phone) · 08 Document detail — what we need · #/clientlink/d-demo1"><img loading="lazy" src="current/17-client-document-upload/08-document-detail.png" alt="Document detail — what we need"></button>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: What we need — bottom sheet" data-cap="Client Document Upload (customer&#39;s phone) · 08 What we need — bottom sheet · #/clientlink/d-demo1"><img loading="lazy" src="current/17-client-document-upload/08-document-sheet.png" alt="What we need — bottom sheet"></button>
     </div>
-    <h3>Document detail — what we need</h3>
-    <div class="hash">#/clientlink/d-demo1 · <a href="current/17-client-document-upload/08-document-detail.scroll.png" target="_blank">full length ↓</a></div>
+    <h3>What we need — bottom sheet</h3>
+    <div class="hash">#/clientlink/d-demo1</div>
+    <p class="notes">A sheet OVER the list, not a page that replaces it (owner, 2026-08-27), so the customer never loses their place; it dismisses by tapping the list behind it or by Escape. No requirements list: telling someone what a good photo looks like before they have taken one is text for its own sake — the refusal afterwards is the part that helps.</p>
+    <ul class="branches"><li>Simulate an unreadable photo → Take a photo → <a href="#client-upload-unreadable-refused">Client Document Upload (customer&#39;s phone) · 10 Too blurry to read — refused on the row</a></li></ul>
     
-    <ul class="branches"><li>Simulate a bad photo → Take photo → <a href="#client-upload-failure-coaching">Client Document Upload (customer&#39;s phone) · 10 Let&#39;s fix this photo</a></li></ul>
-    <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-014</b><p>The third capture option reads &#39;PDF Choose a PDF&#39; — the icon slot shows the word PDF next to the label, so the line reads as a doubled word.</p><p><em>Copy/icon nit on the client&#39;s phone.</em></p></div></details>
-    <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (2): .dr-back ‹ 34x34; .dr-linkbtn Other income type 105x24</div></details>
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8):  Driver&#39;s License &lt;&gt; .dr-sheet__sub Two recent paystubs; .dr-rowsub Front and back &lt;&gt; .dr-sheet__sub Two recent paystubs; .dr-clientadd Add &lt;&gt;  Proof of Income (Paystub); .dr-clientadd Add &lt;&gt; .dr-sheet__sub Two recent paystubs; .dr-rowsub Two recent paystubs &lt;&gt;  Take a photo; .dr-clientcta Add documents &lt;&gt;  If you have a file instead; .dr-clientcta Add documents &lt;&gt; .dr-linkbtn See a good example; .dr-clientcta.dr-clientcta--text Save &amp; finish later &lt;&gt; .opt-row__label Demo only: simulate an unrea
+small targets &lt;36px (3): .dr-sheet__x × 34x34; .dr-linkbtn Other income type 114x27; .dr-linkbtn See a good example 123x27</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Choose from library (two files)</div></div><article class="scr" id="client-upload-review-capture" data-search="client document upload (customer&#39;s phone) review capture — 2 pages  ">
-    <div class="frame">
+  </article><div class="arrow"><div class="line"></div><div class="act">Choose from library (two files)</div></div><article class="scr" id="client-upload-review-capture" data-search="client document upload (customer&#39;s phone) review capture — 2 pages deliberately still a full screen — it is a photo viewer with pinch-zoom and page arrows, and wants the room a sheet cannot give. ">
+    <div class="frame tall">
       <span class="n">09</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Review capture — 2 pages" data-cap="Client Document Upload (customer&#39;s phone) · 09 Review capture — 2 pages · #/clientlink/d-demo1"><img loading="lazy" src="current/17-client-document-upload/09-review-capture.png" alt="Review capture — 2 pages"></button>
     </div>
     <h3>Review capture — 2 pages</h3>
     <div class="hash">#/clientlink/d-demo1</div>
-    
+    <p class="notes">Deliberately still a full screen — it is a photo viewer with pinch-zoom and page arrows, and wants the room a sheet cannot give.</p>
     
     
     <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (5): .dr-back ‹ 34x34;  − 34x34;  ＋ 34x34;  ← 38x34;  → 38x34</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Done (2)</div></div><article class="scr" id="client-upload-failure-coaching" data-search="client document upload (customer&#39;s phone) let&#39;s fix this photo  ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Done (2)</div></div><article class="scr" id="client-upload-unreadable-refused" data-search="client document upload (customer&#39;s phone) too blurry to read — refused on the row replaces the old three-card glare / blur / cropped coaching screen (owner, 2026-08-27): &quot;when a scanner works very well, it should tell someone that it&#39;s too blurry to be uploaded&quot;. it routes through the same rejection every other refusal uses — the row says why and offers the retake. ">
     <div class="frame tall">
       <span class="n">10</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Let&#39;s fix this photo" data-cap="Client Document Upload (customer&#39;s phone) · 10 Let&#39;s fix this photo · #/clientlink/d-demo1"><img loading="lazy" src="current/17-client-document-upload/10-failure-coaching.png" alt="Let&#39;s fix this photo"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Too blurry to read — refused on the row" data-cap="Client Document Upload (customer&#39;s phone) · 10 Too blurry to read — refused on the row · #/clientlink/d-demo1"><img loading="lazy" src="current/17-client-document-upload/10-unreadable-refused.png" alt="Too blurry to read — refused on the row"></button>
     </div>
-    <h3>Let&#39;s fix this photo</h3>
-    <div class="hash">#/clientlink/d-demo1 · <a href="current/17-client-document-upload/10-failure-coaching.scroll.png" target="_blank">full length ↓</a></div>
+    <h3>Too blurry to read — refused on the row</h3>
+    <div class="hash">#/clientlink/d-demo1</div>
+    <p class="notes">Replaces the old three-card Glare / Blur / cropped coaching screen (owner, 2026-08-27): &quot;when a scanner works very well, it should tell someone that it&#39;s too blurry to be uploaded&quot;. It routes through the same rejection every other refusal uses — the row says why and offers the retake.</p>
     
     
-    
-    <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (1): .dr-back ‹ 34x34</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (1): .dr-demonote Training demo — this page se &lt;&gt; .dr-clientcta Add documents</div></details>
     
   </article></div>
 </section>
@@ -1663,7 +1664,7 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (3): .sa-thumb__x × 24x24; .sa-thumb__x × 24x24; .sa-thumb__x × 24x24</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Process 3 Photos &amp; Auto-Sort →</div></div><article class="scr" id="snap-all-results" data-search="snap all — burst capture auto-sort results  ">
-    <div class="frame">
+    <div class="frame tall">
       <span class="n">03</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Auto-sort results" data-cap="Snap All — burst capture · 03 Auto-sort results · #/snapall/d-demo1/advisor"><img loading="lazy" src="current/18-snap-all/03-results.png" alt="Auto-sort results"></button>
@@ -1673,10 +1674,10 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
     
     
-    
+    <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (3): .dr-linkbtn.sa-override Accept anyway 96x28; .dr-linkbtn.sa-override Accept anyway 96x28; .dr-linkbtn.sa-override Accept anyway 96x28</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Accept Anyway on a flagged card</div></div><article class="scr" id="snap-all-results-accepted" data-search="snap all — burst capture results — exception accepted  ">
-    <div class="frame">
+    <div class="frame tall">
       <span class="n">04</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Results — exception accepted" data-cap="Snap All — burst capture · 04 Results — exception accepted · #/snapall/d-demo1/advisor"><img loading="lazy" src="current/18-snap-all/04-results-accepted.png" alt="Results — exception accepted"></button>
@@ -1686,7 +1687,8 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
     
     
-    
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (1): .dr-demonote Demo — the sorting is simula &lt;&gt; #saSave.sa-save Confirm &amp; Save to Deal Jacke
+small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 96x28; .dr-linkbtn.sa-override Accept anyway 96x28</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Confirm &amp; Save to Deal Jacket →<br><a href="#deal-jacket-jacket-overview" style="font-weight:600">Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</a></div></div></div>
 </section>
