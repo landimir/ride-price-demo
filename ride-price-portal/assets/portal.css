@@ -324,18 +324,195 @@ label.f .seg { display: flex; }
 .pay-hero .amt { font-size: 34px; font-weight: 800; color: #7ef0a9; font-variant-numeric: tabular-nums; }
 .pay-hero .sub { font-size: 12.5px; color: #e6e4f5; }
 
+/* the pencil's sticky payment bar (audit RP-UI-001) — the prototype shows it
+   at every width: a white blur bar pinned to the bottom so the payment and
+   Continue are always in reach, however deep the terms scroll. */
+.desk-sticky {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: flex; align-items: center; justify-content: space-between; gap: 14px;
+  /* the side padding centres the bar contents onto the 620px pencil column */
+  padding: 12px max(20px, calc((100% - 620px) / 2)) calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, .96); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  border-top: 1px solid #ebebeb;
+}
+.desk-sticky__copy { display: flex; flex-direction: column; min-width: 0; }
+.desk-sticky__copy span { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); }
+.desk-sticky__copy b { font-size: 19px; font-weight: 800; color: var(--ink); letter-spacing: -.3px; }
+.desk-sticky__copy small { font-size: 12px; color: var(--muted); }
+.desk-sticky__go { min-width: 132px; }
+
+/* ---------- desking v2 (owner's desking prototype, 2026-08-27) ----------
+   The prototype's layout and component structure replicated 1:1 — typography
+   scale, spacing, borders, toggles, inputs — with the owner's theming rules:
+   the app's top header keeps the Ride Price brand as-is; standard structural
+   elements keep neutral default styling; the RP accent appears ONLY on the
+   two note banners (left stripe + tint) and the primary action (gradient).
+   Type sizes and weights are the prototype's; the face stays Poppins — the
+   brand font is part of the persistent identity, like the palette. ------- */
+.dk-wrap { max-width: 620px; margin: 0 auto; padding: 8px 20px 120px; }
+.dk-eyebrow { font-size: 12px; font-weight: 700; color: #717171; letter-spacing: .02em; margin-bottom: 8px; }
+.dk-wrap h1 { font-size: 32px; line-height: 1.08; letter-spacing: -1.1px; margin: 0 0 8px; font-weight: 700; color: var(--ink); }
+.dk-meta { color: var(--muted); font-size: 14px; line-height: 1.45; margin-bottom: 22px; }
+.dk-meta b { color: var(--ink); }
+.dk-headrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+.dk-linkbtn { border: 0; background: transparent; padding: 2px 0; color: var(--ink); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; font-size: 13px; cursor: pointer; }
+.dk-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 24px; }
+.dk-chip {
+  border: 1px solid #dddddd; background: #fff; border-radius: 999px; min-height: 38px; padding: 0 14px;
+  font: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 7px;
+  color: var(--ink); text-decoration: none; cursor: pointer;
+}
+.dk-chip b { font-weight: 800; }
+.dk-section { border-top: 1px solid #ebebeb; padding: 24px 0; }
+.dk-section:first-of-type { border-top: 0; padding-top: 0; }
+.dk-h2 { font-size: 20px; letter-spacing: -.45px; margin: 0; font-weight: 700; color: var(--ink); }
+.dk-subline { font-size: 13px; color: var(--muted); margin: 4px 0 0; line-height: 1.4; }
+.dk-sechead { margin-bottom: 14px; }
+.dk-card { border: 1px solid #dddddd; border-radius: 16px; background: #fff; }
+.dk-card--pad { padding: 4px 18px; }
+/* the pay-choice grid: a radio group drawn as cards */
+.dk-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.dk-choice {
+  border: 1px solid #dddddd; border-radius: 14px; padding: 14px; background: #fff; text-align: left;
+  min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  font: inherit; font-weight: 650; color: var(--ink); cursor: pointer;
+}
+.dk-choice .dot { width: 20px; height: 20px; border: 1.5px solid #b0b0b0; border-radius: 50%; flex: none; }
+.dk-choice.active { border: 2px solid var(--ink); padding: 13px; }
+.dk-choice.active .dot { border: 6px solid var(--ink); }
+.dk-lab { display: block; font-size: 14px; font-weight: 650; margin-bottom: 8px; color: var(--ink); }
+input.dk-input, input.dk-money, textarea.dk-textarea {
+  width: 100%; border: 1px solid #b0b0b0; border-radius: 12px; background: #fff; min-height: 52px;
+  padding: 0 14px; outline: none; font: inherit; font-size: 16px; color: var(--ink);
+}
+textarea.dk-textarea { padding: 13px 14px; min-height: 94px; resize: vertical; }
+.dk-input:focus, .dk-money:focus, .dk-textarea:focus { border: 2px solid var(--ink); padding-left: 13px; }
+.dk-moneywrap { position: relative; }
+.dk-moneywrap::before { content: "$"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--ink); }
+input.dk-money { padding-left: 30px; }
+.dk-money:focus { padding-left: 29px; }
+/* switch rows: the prototype's row layout carrying the app's own toggle */
+.dk-switchrow { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid #ebebeb; }
+.dk-switchrow:first-child { border-top: 0; }
+.dk-switchcopy { font-size: 15px; line-height: 1.35; color: var(--ink); }
+.dk-switchcopy small { display: block; color: var(--muted); margin-top: 4px; font-size: 13px; }
+/* the two note banners — the RP accent's home (owner rule): stripe + tint */
+.dk-notice {
+  background: rgba(179, 54, 75, .05); border-left: 3px solid var(--crimson);
+  border-radius: 14px; padding: 14px 15px; font-size: 14px; line-height: 1.48; color: var(--ink);
+}
+.dk-notice strong { display: block; margin-bottom: 4px; }
+/* the one primary action per screen — the RP conversion gradient */
+.dk-primary {
+  border: 0; background: var(--grad); color: #fff; font: inherit; font-weight: 750; min-height: 52px;
+  border-radius: var(--btn-r); padding: 0 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(229, 80, 78, .18);
+}
+.dk-secondary {
+  border: 1px solid var(--ink); background: #fff; color: var(--ink); font: inherit; font-weight: 700;
+  min-height: 48px; border-radius: var(--btn-r); padding: 0 16px; cursor: pointer;
+}
+.dk-actions { display: grid; grid-template-columns: 1fr 1.35fr; gap: 10px; margin-top: 14px; }
+/* deal-type segmented control */
+.dk-seg { display: flex; border: 1px solid #dddddd; border-radius: 999px; padding: 4px; gap: 2px; background: #fff; overflow: auto; scrollbar-width: none; margin-bottom: 18px; }
+.dk-seg::-webkit-scrollbar { display: none; }
+.dk-seg button { border: 0; background: transparent; border-radius: 999px; padding: 10px 15px; white-space: nowrap; font: inherit; font-weight: 700; font-size: 13px; flex: 1; min-width: max-content; color: var(--ink); cursor: pointer; }
+.dk-seg button.active { background: var(--ink); color: #fff; }
+/* vehicle row */
+.dk-vehicle { display: grid; grid-template-columns: 92px 1fr; gap: 14px; align-items: center; margin-bottom: 18px; }
+.dk-vehicle-art { width: 92px; height: 76px; border-radius: 14px; display: grid; place-items: center; border: 1px solid #ebebeb; font-size: 34px; }
+.dk-vehicle h3 { font-size: 16px; margin: 0 0 5px; line-height: 1.25; color: var(--ink); }
+.dk-vehicle p { font-size: 12px; color: var(--muted); margin: 2px 0; line-height: 1.35; }
+/* the payment hero — .pay-hero and .amt stay for the fee harness */
+.dk-hero { border-radius: 24px; background: #fff; border: 1px solid #dddddd; padding: 22px 20px 20px; margin: 8px 0 18px; text-align: left; }
+.dk-hero .hero-top { font-size: 13px; color: var(--muted); font-weight: 650; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.dk-hero .amt { font-size: 44px; letter-spacing: -1.8px; line-height: 1; font-weight: 800; margin: 12px 0 8px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dk-hero .amt .unit { font-size: 16px; letter-spacing: 0; color: var(--muted); font-weight: 600; margin-left: 4px; }
+.dk-hero .sub { font-size: 13px; color: var(--muted); line-height: 1.45; }
+.dk-hero .acts { display: flex; gap: 10px; margin-top: 18px; }
+.dk-hero .acts button { flex: 1; }
+/* price rows */
+.dk-prices .row { display: flex; justify-content: space-between; gap: 20px; padding: 11px 0; border-top: 1px solid #ebebeb; font-size: 14px; }
+.dk-prices .row:first-child { border-top: 0; }
+.dk-prices .row span { color: var(--muted); }
+.dk-prices .row b { white-space: nowrap; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dk-prices .row.total { font-size: 16px; border-top: 1px solid var(--ink); }
+.dk-prices .row.total span { color: var(--ink); }
+/* accordions */
+details.dk-acc { border-top: 1px solid #ebebeb; }
+details.dk-acc:first-child { border-top: 0; }
+details.dk-acc summary { list-style: none; min-height: 64px; display: flex; align-items: center; gap: 14px; font-weight: 700; cursor: pointer; padding: 0 2px; color: var(--ink); }
+details.dk-acc summary::-webkit-details-marker { display: none; }
+details.dk-acc summary::after { content: "＋"; font-size: 22px; font-weight: 400; color: var(--muted); margin-left: auto; }
+details.dk-acc[open] summary::after { content: "−"; }
+details.dk-acc summary .dk-accsum { margin-left: auto; margin-right: 6px; color: var(--muted); font-weight: 600; font-size: 13px; }
+details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
+.dk-accbody { padding: 2px 0 22px; }
+/* accessories as hairline rows */
+.dk-accessory { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 0; border-top: 1px solid #ebebeb; }
+.dk-accessory:first-child { border-top: 0; }
+.dk-accessory label { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; line-height: 1.3; color: var(--ink); cursor: pointer; }
+.dk-accessory input { width: 20px; height: 20px; accent-color: var(--ink); margin: 0; flex: none; }
+.dk-accessory b { font-size: 14px; white-space: nowrap; color: var(--ink); }
+.dk-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.dk-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.dk-opt { border: 1px solid #dddddd; background: #fff; border-radius: var(--btn-r); min-height: 48px; font: inherit; font-weight: 700; font-size: 13px; color: var(--ink); cursor: pointer; }
+.dk-opt.active { background: var(--ink); border-color: var(--ink); color: #fff; }
+/* word track keeps its own warning tone — not one of the accent targets */
+.dk-wordtrack { background: #fff8f2; border-radius: 14px; padding: 16px; font-size: 14px; line-height: 1.55; color: var(--ink); }
+.dk-wordtrack .label { font-size: 11px; color: #b35a00; font-weight: 800; letter-spacing: .08em; margin-bottom: 7px; }
+.dk-wordtrack .stop { margin-top: 10px; color: #c13515; font-weight: 700; font-size: 13px; }
+/* the compare sheet */
+.dk-scrim { position: fixed; inset: 0; background: rgba(0, 0, 0, .42); z-index: 80; opacity: 0; pointer-events: none; transition: .18s ease; }
+.dk-scrim.show { opacity: 1; pointer-events: auto; }
+.dk-sheet {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 81; background: #fff; border-radius: 24px 24px 0 0;
+  box-shadow: 0 -12px 32px rgba(0, 0, 0, .14); max-height: 90vh; overflow: auto;
+  transform: translateY(105%); visibility: hidden; /* keeps the closed sheet out of the tab order */
+  transition: transform .26s cubic-bezier(.2, .8, .2, 1), visibility 0s .26s;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+.dk-sheet.show { transform: translateY(0); visibility: visible; transition: transform .26s cubic-bezier(.2, .8, .2, 1), visibility 0s 0s; }
+.dk-sheet-inner { max-width: 620px; margin: auto; padding: 10px 20px 24px; }
+.dk-handle { width: 42px; height: 5px; border-radius: 999px; background: #d0d0d0; margin: 0 auto 16px; }
+.dk-sheetbar { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 14px; }
+.dk-sheetbar h2 { font-size: 22px; margin: 0; letter-spacing: -.45px; color: var(--ink); }
+.dk-close { width: 34px; height: 34px; border-radius: 50%; border: 0; background: #f7f7f7; font-size: 20px; display: grid; place-items: center; cursor: pointer; color: var(--ink); }
+.dk-cmpcard { border: 1px solid #dddddd; border-radius: 16px; padding: 18px; margin-top: 12px; text-align: left; }
+.dk-cmpcard h3 { margin: 0; font-size: 17px; color: var(--ink); }
+.dk-cmpcard .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.dk-cmpcard .price { font-size: 28px; font-weight: 800; letter-spacing: -1px; margin: 12px 0; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dk-badge { font-size: 11px; font-weight: 750; border: 1px solid #dddddd; border-radius: 999px; padding: 7px 10px; background: #f7f7f7; color: var(--ink); white-space: nowrap; }
+.dk-wide { width: 100%; margin-top: 14px; }
+
+
 /* credit gradient bar */
 .credit-bar { margin: 10px 0 4px; }
+.credit-bar .bar { margin: 18px 0; }
+.credit-bar .cap { position: relative; z-index: 1; }
 .credit-bar .bar {
   height: 12px; border-radius: 99px; position: relative;
   background: linear-gradient(90deg, #e5504e, #f0a03c, #f2d43d, #7bc96f, #1e9e5a);
 }
-.credit-bar .dot {
-  position: absolute; top: 50%; width: 20px; height: 20px; border-radius: 50%;
-  background: #fff; border: 4px solid var(--navy); transform: translate(-50%, -50%);
-  box-shadow: 0 2px 6px rgba(0,0,0,.3);
-}
 .credit-bar .cap { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; }
+/* the credit slider (audit RP-UI-016): a 16px native range is a small target
+   for the control that sets the rate tier. The input keeps a 44px interaction
+   area and carries a thumb big enough to find with a thumb. */
+.score-range {
+  width: 100%; height: 44px; margin: 2px 0 0; padding: 0;
+  -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer;
+}
+.score-range:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; border-radius: 8px; }
+.score-range::-webkit-slider-runnable-track { height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--crimson), var(--gold) 45%, var(--green)); }
+.score-range::-moz-range-track { height: 8px; border-radius: 999px; background: linear-gradient(90deg, var(--crimson), var(--gold) 45%, var(--green)); }
+.score-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 28px; height: 28px; border-radius: 50%;
+  background: #fff; border: 3px solid var(--navy); box-shadow: 0 2px 8px rgba(38, 34, 84, .3);
+  margin-top: -10px; /* centres the 28px thumb on the 8px track */
+}
+.score-range::-moz-range-thumb {
+  width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--navy);
+  background: #fff; box-shadow: 0 2px 8px rgba(38, 34, 84, .3);
+}
 
 /* ---------- vehicle cards ---------- */
 .vgrid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); }
@@ -1412,11 +1589,13 @@ label.f .seg { display: flex; }
    a slot means adding it here, not restyling an SVG at the call site. */
 .dr-rowicon svg,
 .dr-sheetact__ico svg,
+.dk-chip svg,
 .scan-tip__icon svg {
   width: 21px; height: 21px; fill: none; stroke: currentColor;
   stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
 }
 .scan-tip__icon svg { width: 17px; height: 17px; }
+.dk-chip svg { width: 16px; height: 16px; }
 .dr-rowsub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
 .dr-status { display: block; font-size: 12px; font-weight: 700; margin-top: 3px; }
 .dr-status--received { color: #8a6207; }
@@ -1767,7 +1946,6 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
    unscoped block here would silently resize the cut-out prop licenses.
    ============================================================ */
 @media screen and (max-width: 720px) {
-
   /* ---- app bar: the single element the page overflow came from ----
      635px of unshrinkable flex row vs a ~360px screen. The store name and
      the three inline nav links are both duplicated in the drawer, so they

@@ -158,7 +158,7 @@ function toast(msg) {
      The customer's upload page has a sticky action bar of its own and needs
      the same lift (owner prototype, 2026-08-26), so both are considered and
      the lowest one wins. */
-  const foot = $("#modalBack .modal__foot") || $(".dr-clientbottom");
+  const foot = $("#modalBack .modal__foot") || $(".dr-clientbottom") || $(".desk-sticky");
   const fr = foot && foot.getBoundingClientRect();
   t.style.bottom = fr && fr.bottom > window.innerHeight - 80 ? Math.round(window.innerHeight - fr.top + 12) + "px" : "";
   t.classList.add("show");
@@ -268,13 +268,16 @@ const STAGES = {
 };
 
 /* output flows into innerHTML (renderChrome crumbs) — escape here, at the source */
-function dealTitle(deal) {
+function dealTitle(deal, bare) {
   const c = Store.customer(deal.customerId);
   const cb = deal.coBuyerId ? Store.customer(deal.coBuyerId) : null; /* missing record = no co-buyer */
   const v = Store.vehicle(deal.stock);
   const names = `${c ? esc(c.first + " " + c.last) : "—"}${cb ? " + " + esc(cb.first + " " + cb.last) : ""}`;
   const jkc = jacketCounts(deal);
-  return `${deal.dealNo ? `<b class="crumb-no">Deal #${esc(deal.dealNo)}</b> · ` : ""}${names} · ${v ? esc(v.year + " " + v.make + " " + v.model) : "no vehicle yet"}
+  const line = `${deal.dealNo ? `<b class="crumb-no">Deal #${esc(deal.dealNo)}</b> · ` : ""}${names} · ${v ? esc(v.year + " " + v.make + " " + v.model) : "no vehicle yet"}`;
+  if (bare) return line; /* the desking screens repeat these chips in flow */
+  return line +
+    `
     <button class="crumb-btn" data-buyers="${esc(deal.id)}" title="Buyers on this deal">${cb ? "👥 Buyers" : "👤 Buyer"}</button>
     <a class="crumb-btn" href="#/jacket/${esc(deal.id)}" title="Documents this deal needs" aria-label="Deal jacket${jkc.missing ? ` — ${jkc.missing} document(s) still outstanding` : ""}">📁 Jacket${jkc.missing ? `<b class="crumb-btn__n">${jkc.missing}</b>` : ""}</a>`;
 }
@@ -2570,6 +2573,25 @@ route("trade/:id", ({ id }) => {
 /* ============================================================
    VIEW: Calculate Payments (desking)
    ============================================================ */
+/* Audit RP-UI-001: on a phone the pencil is a long column and the Monthly
+   Payment hero sat 822px below the fold while Continue lived at the top.
+   This bar pins the live number and the forward action together. It renders
+   inside the view, which render() rewrites on every change, so it can never
+   drift from the hero above it. Since the prototype round (2026-08-27) it
+   shows at every width, styled as the neutral blur bar in the centred column. */
+function deskStickyBar(r, isCash, isLease, deal) {
+  const label = isCash ? "Total due" : deal.dealType === "onepay" ? "Due at signing" : "Estimated payment";
+  const amount = isCash ? money(r.totalDue) : deal.dealType === "onepay" ? money(r.onePayTotal) : money(r.payment);
+  const sub = isCash ? "cash purchase"
+    : deal.dealType === "onepay" ? `${r.term} mo · ${r.miles.toLocaleString()} mi/yr`
+    : isLease ? `${r.term} mo · ${r.miles.toLocaleString()} mi/yr`
+    : `${r.term} mo @ ${r.apr}%`;
+  return `<div class="desk-sticky">
+    <div class="desk-sticky__copy"><span>${esc(label)}</span><b>${esc(amount)}</b><small>${esc(sub)}</small></div>
+    <button type="button" class="btn btn--grad desk-sticky__go" id="deskContinueSticky">Continue →</button>
+  </div>`;
+}
+
 route("desk/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
   if (!deal.stock) { toast("Pick a vehicle first"); return navigate(`#/vehicles/${deal.id}`); }
@@ -2593,54 +2615,74 @@ route("desk/:id", ({ id }) => {
   function renderHuddle() {
     const h = deal.huddle;
     const paying = h.paying || deal.dealType;
-    renderChrome("Base Payment Huddle", dealTitle(deal),
+    renderChrome("Base Payment Huddle", dealTitle(deal, true),
       h.done ? `<button class="btn btn--ghost btn--sm" id="huddleCancel">← Back to the pencil</button>` : "");
+    /* the owner's desking prototype (2026-08-27), 1:1: eyebrow → h1 → deal
+       meta → chips, then one bordered section per question. The RP accent
+       lives ONLY on the two notice banners and the primary action; toggles,
+       inputs and choice cards keep the neutral default grammar. */
     view().innerHTML = `
-      <div class="panel panel--navyhead" style="max-width:780px;margin:0 auto">
-        <div class="panel__head"><h2>Touch the Desk — Post-Demo Team Lead Huddle</h2>
-          <div class="right"><span class="badge badge--prog">before the pencil</span></div></div>
-        <div class="panel__body">
-          <label class="f"><span class="lab">1 · What was the answer to the trial close?</span>
-            <input type="text" id="hTrial" value="${esc(h.trialClose || "")}" placeholder="e.g. “If the numbers make sense, we'd take it home today.”"></label>
+    <div class="dk-wrap">
+      <div class="dk-eyebrow">FIRST PENCIL</div>
+      <h1>Get the game plan aligned.</h1>
+      <div class="dk-meta"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}<br>Before showing numbers, confirm how the customer wants to buy.</div>
+      <div class="dk-chips">
+        <button type="button" class="dk-chip" data-buyers="${esc(deal.id)}">${rpIcon("user")} Buyer</button>
+        <a class="dk-chip" href="#/jacket/${esc(deal.id)}">${rpIcon("folder")} Jacket ${jacketCounts(deal).missing ? `<b>${jacketCounts(deal).missing}</b>` : ""}</a>
+      </div>
 
-          <span class="lab" style="display:block;font-size:12px;font-weight:700;color:var(--ink);margin-bottom:4px">2 · How are they paying for the car?</span>
-          <div class="radio-row" id="hPayRow">
-            ${Object.entries(DEAL_TYPES).map(([k, l]) => `<label><input type="radio" name="hPay" value="${k}" ${paying === k ? "checked" : ""}> ${l}</label>`).join("")}
+      <div class="dk-section">
+        <div class="dk-sechead"><h2 class="dk-h2">What was the answer to the trial close?</h2>
+          <p class="dk-subline">Capture the customer&rsquo;s words, not an interpretation.</p></div>
+        <input type="text" id="hTrial" class="dk-input" value="${esc(h.trialClose || "")}" placeholder="e.g. If the numbers make sense, we'd take it today.">
+      </div>
+
+      <div class="dk-section">
+        <div class="dk-sechead"><h2 class="dk-h2">How are they paying?</h2>
+          <p class="dk-subline">This choice unlocks the first pencil.</p></div>
+        <div class="dk-choices" id="hPayRow" role="radiogroup" aria-label="How are they paying">
+          ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" class="dk-choice${paying === k ? " active" : ""}" data-pay="${k}" role="radio" aria-checked="${paying === k}"><span>${esc(l)}</span><span class="dot"></span></button>`).join("")}
+        </div>
+      </div>
+
+      <div class="dk-section">
+        <div class="dk-notice" id="hPayTrack"><strong>Discovery question</strong>${PAY_TRACKS[paying].q} ${PAY_TRACKS[paying].wt}</div>
+        <div class="dk-card dk-card--pad" style="margin-top:14px">
+          <div class="dk-switchrow">
+            <div class="dk-switchcopy">Trade evaluation needed${deal.trade.has && deal.trade.value ? `<small>Current documented trade: ${money0(deal.trade.value)}</small>` : ""}</div>
+            <label class="switch"><input type="checkbox" id="hTrade" ${h.trade != null ? (h.trade ? "checked" : "") : (deal.trade.has ? "checked" : "")} aria-label="Trade evaluation needed"><span class="sl"></span></label>
           </div>
-          <div class="note note--wt" id="hPayTrack"><span class="lab">Discovery question</span>${PAY_TRACKS[paying].q}<br>${PAY_TRACKS[paying].wt}</div>
-
-          <div class="grid grid--2" style="margin-top:6px">
-            <label class="opt-row">
-              <span class="switch"><input type="checkbox" id="hTrade" ${h.trade != null ? (h.trade ? "checked" : "") : (deal.trade.has ? "checked" : "")}><span class="sl"></span></span>
-              <span class="opt-row__label">3 · Trade evaluation needed${deal.trade.has && deal.trade.value ? ` — documented (${money0(deal.trade.value)})` : ""}</span>
-            </label>
-            <label class="opt-row">
-              <span class="switch"><input type="checkbox" id="hStock" ${h.inStock === false ? "" : "checked"}><span class="sl"></span></span>
-              <span class="opt-row__label">4 · Car in stock today — ${esc(v.year)} ${esc(v.make)} ${esc(v.model)} · ${esc(v.stock)}</span>
-            </label>
-          </div>
-
-          <label class="f"><span class="lab">5 · Is there anything else?</span>
-            <textarea id="hNotes" placeholder="Objections heard, must-haves, co-buyer, timing…">${esc(h.notes || "")}</textarea></label>
-
-          <div class="note note--red">The Team Lead and Client Advisor will <b>“game plan”</b> the initial pencil together before any numbers are shown.</div>
-          <div class="flex mt">
-            ${deal.trade.has || h.trade ? `<a class="btn btn--ghost btn--sm" href="#/trade/${esc(deal.id)}">Trade evaluation →</a>` : ""}
-            <div class="push"></div>
-            <button class="btn btn--grad" id="hConfirm">🤝 Game plan the pencil →</button>
+          <div class="dk-switchrow">
+            <div class="dk-switchcopy">Vehicle is in stock today<small>${esc(v.year + " " + v.make + " " + v.model)} · Stock ${esc(v.stock)}</small></div>
+            <label class="switch"><input type="checkbox" id="hStock" ${h.inStock === false ? "" : "checked"} aria-label="Vehicle is in stock today"><span class="sl"></span></label>
           </div>
         </div>
-      </div>`;
+      </div>
 
-    $$('#hPayRow input[name="hPay"]').forEach(r => r.onchange = () => {
-      const t = PAY_TRACKS[r.value];
-      $("#hPayTrack").innerHTML = `<span class="lab">Discovery question</span>${t.q}<br>${t.wt}`;
+      <div class="dk-section">
+        <label class="dk-lab" for="hNotes">Anything else before the pencil?</label>
+        <textarea id="hNotes" class="dk-textarea" placeholder="Objections, must-haves, co-buyer, timing…">${esc(h.notes || "")}</textarea>
+      </div>
+
+      <div class="dk-section">
+        <div class="dk-notice"><strong>Team Lead + Advisor</strong>Game plan the first pencil together before any numbers are shown.</div>
+        <div class="dk-actions">
+          <a class="dk-secondary" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none" href="#/trade/${esc(deal.id)}">Trade evaluation</a>
+          <button type="button" class="dk-primary" id="hConfirm">Game plan the pencil</button>
+        </div>
+      </div>
+    </div>`;
+
+    let payingSel = paying;
+    $$("#hPayRow [data-pay]").forEach(b => b.onclick = () => {
+      payingSel = b.dataset.pay;
+      $$("#hPayRow [data-pay]").forEach(x => { x.classList.toggle("active", x === b); x.setAttribute("aria-checked", String(x === b)); });
+      const t = PAY_TRACKS[payingSel];
+      $("#hPayTrack").innerHTML = `<strong>Discovery question</strong>${t.q} ${t.wt}`;
     });
     const cancel = $("#huddleCancel");
     if (cancel) cancel.onclick = () => render();
     $("#hConfirm").onclick = () => {
-      const payingSel = ($('#hPayRow input[name="hPay"]:checked') || {}).value;
-      if (!payingSel) return toast("Pick how they're paying — it sets the pencil");
       Object.assign(deal.huddle, {
         done: true, at: new Date().toISOString(),
         by: `${Store.s.advisor} + ${RIDE_PRICE_DATA.dealership.teamLead}`,
@@ -2657,131 +2699,154 @@ route("desk/:id", ({ id }) => {
     };
   }
 
+  /* which accordions are open survives the full re-render each change makes;
+     the prototype opens Vehicle price and Payment terms by default */
+  const ui = { open: { price: true, terms: true, accessories: false, trade: false, credit: false, taxes: false, script: false } };
+
   function render() {
-    renderChrome("Calculate Payments", dealTitle(deal),
-      `<button class="btn btn--ghost btn--sm" id="huddleBtn">🤝 Huddle</button>
-       <a class="btn btn--ghost btn--sm" href="#/compare/${esc(deal.id)}">More… Compare Payments</a>
+    renderChrome("Calculate Payments", dealTitle(deal, true),
+      `<button class="btn btn--ghost btn--sm" id="huddleBtn">Huddle</button>
        <button class="btn btn--grad btn--sm" id="deskContinue">Continue →</button>`);
     $("#huddleBtn").onclick = () => renderHuddle();
     const r = RIDE_PRICE_CALC.calc(deal, v);
     const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
     const isCash = deal.dealType === "cash";
     const score = c.creditScore || 700;
-    const pct = Math.min(100, Math.max(0, (score - 450) / (850 - 450) * 100));
+    const tier = RIDE_PRICE_CALC.creditTier(score);
+    const accTotal = r.accessories;
+    const accCount = deal.desk.accessories.length;
+
+    /* the hero states the figure the deal type actually produces */
+    const heroLabel = isCash ? "Estimated total due" : deal.dealType === "onepay" ? "Due at signing — One Pay" : "Estimated monthly payment";
+    const heroAmt = isCash ? money(r.totalDue) : deal.dealType === "onepay" ? money(r.onePayTotal) : money(r.payment);
+    const heroUnit = isCash || deal.dealType === "onepay" ? "" : `<span class="unit">/mo</span>`;
+    const heroSub = isCash ? "Cash purchase · trade and rebate applied"
+      : isLease ? `${r.term} months · ${r.miles.toLocaleString()} mi/yr · ${money(deal.desk.dueAtSigning)} due at signing`
+      : `${r.term} months · ${r.apr}% APR · ${money(deal.desk.downPayment)} down`;
+
+    const acc = (key, label, sum, body, extra) => `
+      <details class="dk-acc" data-acc-key="${key}" ${ui.open[key] ? "open" : ""}>
+        <summary>${label}${sum ? ` <span class="dk-accsum">${sum}</span>` : ""}</summary>
+        <div class="dk-accbody${extra || ""}">${body}</div>
+      </details>`;
+    const row = (label2, val, cls) => `<div class="row${cls ? " " + cls : ""}"><span>${label2}</span><b class="amt">${val}</b></div>`;
 
     view().innerHTML = `
-    <div class="grid grid--pencil">
-      <div>
-        <div class="panel">
-          <div class="panel__head"><h2>Vehicle</h2>
-            <div class="right"><label class="f" style="margin:0"><select id="dealType" data-ui="seg" title="Deal type">
-              ${Object.entries(DEAL_TYPES).map(([k, l]) => `<option value="${k}" ${deal.dealType === k ? "selected" : ""}>${l}</option>`).join("")}
-            </select></label></div>
-          </div>
-          <div class="panel__body">
-            <div class="flex">
-              <div class="vimg" style="width:110px;height:74px;border-radius:10px;background:linear-gradient(140deg,hsl(${v.hue},42%,90%),hsl(${v.hue},38%,78%));display:grid;place-items:center;font-size:38px">${v.emoji}</div>
-              <div>
-                <b style="color:var(--navy)">${esc(v.year)} ${esc(v.make)} ${esc(v.model)} | ${esc(v.trim)}</b>
-                <div class="small">Stock ${esc(v.stock)} · VIN ${esc(v.vin)}</div>
-              </div>
-            </div>
-            <ul class="lines mt">
-              <li><span>MSRP</span><b class="amt">${money(v.msrp)}</b></li>
-              <li><span>ⓘ Selling Price</span><b class="amt">${money(v.selling)}</b></li>
-              <li><span>ⓘ Included Options</span><b class="amt">${money(v.includedOptions)}</b></li>
-              <li><span>Accessories</span><b class="amt">${money(r.accessories)}</b></li>
-              <li class="total"><span>ⓘ Your Price</span><b class="amt">${money(r.yourPrice)}</b></li>
-              ${isLease ? `<li><span>Residual $</span><b class="amt">${money(r.residual)}</b></li>
-              <li class="sub"><span>Residual %</span><b class="amt">${(r.residualPct * 100).toFixed(1)}%</b></li>` : ""}
-            </ul>
-          </div>
-        </div>
+    <div class="dk-wrap">
+      <div class="dk-eyebrow">DESKING</div>
+      <div class="dk-headrow">
+        <div><h1 style="margin-bottom:7px">Calculate payments</h1>
+          <div class="dk-meta" style="margin:0"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</div></div>
+        <button type="button" class="dk-linkbtn" id="dkHuddleLink">Huddle</button>
+      </div>
 
-        <div class="panel">
-          <div class="panel__head"><h2>Customized Options — Accessories</h2></div>
-          <div class="panel__body">
-            <div class="fields fields--tight">
-              ${RIDE_PRICE_DATA.accessories.map(a => `<label class="opt-row">
-                <input type="checkbox" data-acc="${a.id}" ${deal.desk.accessories.includes(a.id) ? "checked" : ""}><span class="opt-row__label">${a.name}</span><span class="opt-row__val">${money0(a.price)}</span></label>`).join("")}
-            </div>
-          </div>
-        </div>
+      <div class="dk-chips" style="margin-top:18px">
+        <button type="button" class="dk-chip" data-buyers="${esc(deal.id)}">${rpIcon("user")} Buyer</button>
+        <a class="dk-chip" href="#/jacket/${esc(deal.id)}">${rpIcon("folder")} Jacket ${jacketCounts(deal).missing ? `<b>${jacketCounts(deal).missing}</b>` : ""}</a>
+      </div>
 
-        <div class="panel">
-          <div class="panel__head"><h2>Trade &amp; Rebate</h2>
-            <div class="right"><a class="btn btn--sm btn--ghost" href="#/trade/${esc(deal.id)}">Import Trade</a></div></div>
-          <div class="panel__body">
-            <div class="fields fields--tight">
-              <label class="f"><span class="lab">Trade Value</span><span class="minput"><input type="number" id="tradeVal" value="${esc(String(deal.trade.value || 0))}" step="100"></span></label>
-              <label class="f"><span class="lab">Trade Payoff</span><span class="minput"><input type="number" id="tradePay" value="${esc(String(deal.trade.payoff || 0))}" step="100"></span></label>
-              <label class="f"><span class="lab">ⓘ Rebates</span><span class="minput"><input type="number" id="rebates" value="${esc(String(deal.trade.rebates || 0))}" step="100"></span></label>
-              <label class="opt-row" style="align-self:end"><span class="switch"><input type="checkbox" id="taxCredit" ${deal.trade.applyTaxCredit ? "checked" : ""}><span class="sl"></span></span><span class="opt-row__label">Apply Tax Credit</span></label>
-            </div>
-          </div>
+      <div class="dk-seg" id="dkTypes" role="tablist" aria-label="Deal type">
+        ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" data-type="${k}" class="${deal.dealType === k ? "active" : ""}" role="tab" aria-selected="${deal.dealType === k}">${esc(l)}</button>`).join("")}
+      </div>
+
+      <div class="dk-vehicle">
+        <div class="dk-vehicle-art" style="background:linear-gradient(140deg,hsl(${v.hue},42%,92%),hsl(${v.hue},38%,80%))" aria-hidden="true">${v.emoji}</div>
+        <div><h3>${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</h3>
+          <p>Stock ${esc(v.stock)} · VIN ${esc(v.vin)}</p>
+          <p>Your price ${money(r.yourPrice)}</p></div>
+      </div>
+
+      <div class="dk-hero pay-hero">
+        <div class="hero-top"><span>${heroLabel}</span><span>${esc(tier.label)} credit</span></div>
+        <div class="amt">${heroAmt}${heroUnit}</div>
+        <div class="sub">${heroSub}</div>
+        <div class="acts">
+          <button type="button" class="dk-secondary" id="dkCompare">Compare</button>
+          <button type="button" class="dk-secondary" id="dkEditTerms">Edit terms</button>
         </div>
       </div>
 
-      <div>
-        <div class="panel">
-          <div class="panel__head"><h2>Payment Terms</h2></div>
-          <div class="panel__body">
-            ${isCash ? "" : isLease ? `
-              <div class="fields fields--tight">
-                <label class="f"><span class="lab">Term</span><select id="leaseTerm" data-ui="seg">${RIDE_PRICE_DATA.leaseTerms.map(t => `<option ${deal.desk.leaseTerm === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
-                <label class="f"><span class="lab">Miles Per Year</span><select id="mpy" data-ui="seg">${RIDE_PRICE_DATA.milesOptions.map(m2 => `<option value="${m2}" ${deal.desk.milesPerYear === m2 ? "selected" : ""}>${m2 / 1000}k</option>`).join("")}</select></label>
-                ${deal.dealType === "lease" ? `<label class="f"><span class="lab">Due At Signing</span><span class="minput"><input type="number" id="das" value="${esc(String(deal.desk.dueAtSigning))}" step="100"></span></label>` : ""}
-              </div>
-              <ul class="lines small">
-                <li><span>Lease Factor</span><b class="amt">${(deal.dealType === "onepay" ? Math.max(0.00001, deal.desk.leaseFactor - 0.0004) : deal.desk.leaseFactor).toFixed(5)}</b></li>
-                <li><span>Acquisition Fee</span><b class="amt">${money(RIDE_PRICE_DATA.leaseFees.acquisition)}</b></li>
-                <li><span>Security Deposit</span><b class="amt">$0.00</b></li>
-                <li><span>Disposition Fee (at lease end)</span><b class="amt">${money(RIDE_PRICE_DATA.leaseFees.disposition)}</b></li>
-              </ul>` : `
-              <div class="fields fields--tight">
-                <label class="f"><span class="lab">Term</span><select id="finTerm" data-ui="seg">${RIDE_PRICE_DATA.financeTerms.map(t => `<option ${deal.desk.term === t ? "selected" : ""}>${t}</option>`).join("")}</select></label>
-                <label class="f"><span class="lab">APR %</span><input type="number" id="apr" value="${deal.desk.apr}" step="0.1"></label>
-                <label class="f"><span class="lab">Down Payment</span><span class="minput"><input type="number" id="down" value="${esc(String(deal.desk.downPayment))}" step="100"></span></label>
-                <label class="f"><span class="lab">Days to First Payment</span><select id="dtf" data-ui="seg">${[30, 45, 60].map(d2 => `<option ${deal.desk.daysToFirst === d2 ? "selected" : ""}>${d2}</option>`).join("")}</select></label>
-              </div>`}
-            <div class="pay-hero mt">
-              ${isCash ? `<span class="lab">Total Due</span><div class="amt">${money(r.totalDue)}</div><span class="sub">cash purchase</span>`
-              : deal.dealType === "onepay" ? `<span class="lab">Due At Signing — One Pay</span><div class="amt">${money(r.onePayTotal)}</div><span class="sub">${r.term} months · ${r.miles.toLocaleString()} mi/yr</span>`
-              : `<span class="lab">Monthly Payment</span><div class="amt">${money(r.payment)}</div>
-                 <span class="sub">${isLease ? `${r.term} mo · ${r.miles.toLocaleString()} mi/yr · ${money(deal.desk.dueAtSigning)} due at signing` : `${r.term} mo @ ${r.apr}% · ${money(deal.desk.downPayment)} down`}</span>`}
-            </div>
-          </div>
-        </div>
+      <div class="dk-section" style="padding-top:0">
+        ${acc("price", "Vehicle price", null, `<div class="dk-prices">
+          ${row("MSRP", money(v.msrp))}
+          ${row("Selling price", money(v.selling))}
+          ${row("Included options", money(v.includedOptions))}
+          ${row("Accessories", money(accTotal))}
+          ${row("Your price", money(r.yourPrice), "total")}
+          ${isLease ? row("Residual", money(r.residual)) + row("Residual %", (r.residualPct * 100).toFixed(1) + "%") : ""}
+        </div>`, " dk-prices")}
 
-        <div class="panel">
-          <div class="panel__head"><h2>Estimated Credit Score</h2></div>
-          <div class="panel__body">
-            <div class="credit-bar">
-              <div class="bar"><div class="dot" style="left:clamp(10px, ${pct}%, calc(100% - 10px))"></div></div>
-              <div class="cap"><span>450</span><b style="color:var(--navy)">${score} · ${RIDE_PRICE_CALC.creditTier(score).label}</b><span>850</span></div>
-            </div>
-            <input type="range" min="450" max="850" step="5" value="${score}" id="scoreRange" style="width:100%">
-            <p class="hint">Based on the credit the client provided — never assume.</p>
-          </div>
-        </div>
+        ${acc("accessories", "Accessories", `${accCount} selected · ${money0(accTotal)}`, RIDE_PRICE_DATA.accessories.map(a => `
+          <div class="dk-accessory"><label><input type="checkbox" data-acc="${a.id}" ${deal.desk.accessories.includes(a.id) ? "checked" : ""}>${esc(a.name)}</label><b>${money0(a.price)}</b></div>`).join(""))}
 
-        <div class="panel">
-          <div class="panel__head"><h2>Taxes &amp; Fees</h2></div>
-          <div class="panel__body">
-            <ul class="lines small">
-              ${r.taxes.rows.map(t => `<li><span>${t.label}</span><b class="amt">${money(t.amount)}</b></li>`).join("")}
-              <li><span>Total Fees</span><b class="amt">${money(RIDE_PRICE_CALC.totalFees())}</b></li>
-              ${!isCash && !isLease ? `<li class="total"><span>Amount Financed</span><b class="amt">${money(r.amountFinanced)}</b></li>` : ""}
-            </ul>
+        ${acc("trade", "Trade & rebates", deal.trade.rebates ? money0(deal.trade.rebates) + " rebate" : (deal.trade.value ? money0(deal.trade.value) + " trade" : "none"), `
+          <div class="dk-2col">
+            <div><label class="dk-lab">Trade value</label><div class="dk-moneywrap"><input id="tradeVal" class="dk-money" type="number" step="100" value="${esc(String(deal.trade.value || 0))}"></div></div>
+            <div><label class="dk-lab">Trade payoff</label><div class="dk-moneywrap"><input id="tradePay" class="dk-money" type="number" step="100" value="${esc(String(deal.trade.payoff || 0))}"></div></div>
           </div>
-        </div>
+          <div class="dk-2col" style="margin-top:14px">
+            <div><label class="dk-lab">Rebate</label><div class="dk-moneywrap"><input id="rebates" class="dk-money" type="number" step="100" value="${esc(String(deal.trade.rebates || 0))}"></div></div>
+            <div style="display:flex;align-items:flex-end"><div class="dk-switchrow" style="width:100%;padding:0 0 9px">
+              <div class="dk-switchcopy" style="font-size:13px">Apply tax credit</div>
+              <label class="switch"><input type="checkbox" id="taxCredit" ${deal.trade.applyTaxCredit ? "checked" : ""} aria-label="Apply tax credit"><span class="sl"></span></label>
+            </div></div>
+          </div>
+          <p style="margin:14px 0 0"><a class="dk-linkbtn" href="#/trade/${esc(deal.id)}">Import Trade</a></p>`)}
+
+        ${acc("terms", "Payment terms", null, isCash
+          ? `<div class="dk-notice"><strong>Cash purchase</strong>No finance term is needed. Trade, rebate, taxes and fees are reflected in the total due.</div>`
+          : isLease ? `
+          <div class="dk-2col">
+            <div><label class="dk-lab">Term</label><div class="dk-3col" id="dkLeaseTerms">${RIDE_PRICE_DATA.leaseTerms.map(t => `<button type="button" class="dk-opt${deal.desk.leaseTerm === t ? " active" : ""}" data-lterm="${t}">${t}</button>`).join("")}</div></div>
+            <div><label class="dk-lab">Miles / year</label><div class="dk-3col" id="dkMiles">${RIDE_PRICE_DATA.milesOptions.map(m2 => `<button type="button" class="dk-opt${deal.desk.milesPerYear === m2 ? " active" : ""}" data-miles="${m2}">${m2 / 1000}k</button>`).join("")}</div></div>
+          </div>
+          ${deal.dealType === "lease" ? `<div style="margin-top:14px"><label class="dk-lab">Due at signing</label><div class="dk-moneywrap"><input id="das" class="dk-money" type="number" step="100" value="${esc(String(deal.desk.dueAtSigning))}"></div></div>` : ""}
+          <div class="dk-prices" style="margin-top:14px">
+            ${row("Lease Factor", (deal.dealType === "onepay" ? Math.max(0.00001, deal.desk.leaseFactor - 0.0004) : deal.desk.leaseFactor).toFixed(5))}
+            ${row("Acquisition Fee", money(RIDE_PRICE_DATA.leaseFees.acquisition))}
+            ${row("Security Deposit", "$0.00")}
+            ${row("Disposition Fee (at lease end)", money(RIDE_PRICE_DATA.leaseFees.disposition))}
+          </div>` : `
+          <label class="dk-lab">Term</label>
+          <div class="dk-3col" id="dkFinTerms">${RIDE_PRICE_DATA.financeTerms.map(t => `<button type="button" class="dk-opt${deal.desk.term === t ? " active" : ""}" data-term="${t}">${t}</button>`).join("")}</div>
+          <div class="dk-2col" style="margin-top:14px">
+            <div><label class="dk-lab">APR %</label><input id="apr" class="dk-input" type="number" step="0.1" value="${deal.desk.apr}"></div>
+            <div><label class="dk-lab">Down payment</label><div class="dk-moneywrap"><input id="down" class="dk-money" type="number" step="100" value="${esc(String(deal.desk.downPayment))}"></div></div>
+          </div>
+          <label class="dk-lab" style="margin-top:14px">Days to first payment</label>
+          <div class="dk-3col" id="dkDtf">${[30, 45, 60].map(d2 => `<button type="button" class="dk-opt${deal.desk.daysToFirst === d2 ? " active" : ""}" data-days="${d2}">${d2}</button>`).join("")}</div>`)}
+
+        ${acc("credit", "Estimated credit score", `${score} · ${esc(tier.label)}`, `
+          <div class="credit-bar">
+            <div class="bar">
+              <input type="range" min="450" max="850" step="5" value="${score}" id="scoreRange" class="score-range" aria-label="Estimated credit score">
+            </div>
+            <div class="cap"><span>450</span><b style="color:var(--ink)">${score} · ${esc(tier.label)}</b><span>850</span></div>
+          </div>
+          <div style="font-size:12px;color:var(--muted);margin-top:10px">Based on the credit the client provided — never assume.</div>`)}
+
+        ${acc("taxes", "Taxes & fees", null, `<div class="dk-prices">
+          ${r.taxes.rows.map(t => row(esc(t.label), money(t.amount))).join("")}
+          ${row("Total Fees", money(RIDE_PRICE_CALC.totalFees()))}
+          ${!isCash && !isLease ? row("Amount Financed", money(r.amountFinanced), "total") : ""}
+        </div>`)}
+
+        ${acc("script", "Advisor word track", null, `<div class="dk-wordtrack">
+          <div class="label">BASE PAYMENT WORD TRACK</div>
+          <div>${wordTrack(r)}</div>
+          <div class="stop">🤫 Stop talking. Wait for your client to respond.</div>
+        </div>`)}
       </div>
+      ${deskStickyBar(r, isCash, isLease, deal)}
     </div>
-    <div class="note note--wt"><span class="lab">Base payment word track</span>${wordTrack(r)}</div>
-    <p class="note note--red">🤫 Stop talking! Wait for your client to respond.</p>`;
+    ${compareSheetHtml()}`;
+
+    /* accordion open-state survives the redraw each change triggers */
+    $$("details.dk-acc", view()).forEach(d2 => d2.addEventListener("toggle", () => { ui.open[d2.dataset.accKey] = d2.open; }));
 
     /* bindings */
-    $("#dealType").onchange = (e) => { deal.dealType = e.target.value; Store.save(); render(); };
+    $("#dkHuddleLink").onclick = () => renderHuddle();
+    $$("#dkTypes [data-type]").forEach(b => b.onclick = () => { deal.dealType = b.dataset.type; Store.save(); render(); });
     $$("[data-acc]").forEach(cb => cb.onchange = () => {
       deal.desk.accessories = $$("[data-acc]").filter(x => x.checked).map(x => x.dataset.acc);
       Store.save(); render();
@@ -2791,24 +2856,86 @@ route("desk/:id", ({ id }) => {
     bind("#tradePay", e => deal.trade.payoff = parseFloat(e.target.value) || 0);
     bind("#rebates", e => deal.trade.rebates = parseFloat(e.target.value) || 0);
     bind("#taxCredit", e => deal.trade.applyTaxCredit = e.target.checked);
-    bind("#finTerm", e => deal.desk.term = parseInt(e.target.value, 10));
     bind("#apr", e => deal.desk.apr = parseFloat(e.target.value) || 0);
     bind("#down", e => deal.desk.downPayment = parseFloat(e.target.value) || 0);
-    bind("#dtf", e => deal.desk.daysToFirst = parseInt(e.target.value, 10));
-    bind("#leaseTerm", e => deal.desk.leaseTerm = parseInt(e.target.value, 10));
-    bind("#mpy", e => deal.desk.milesPerYear = parseInt(e.target.value, 10));
     bind("#das", e => deal.desk.dueAtSigning = parseFloat(e.target.value) || 0);
+    const pick = (sel, fn) => $$(sel).forEach(b => b.onclick = () => { fn(b); Store.save(); render(); });
+    pick("#dkFinTerms [data-term]", b => deal.desk.term = parseInt(b.dataset.term, 10));
+    pick("#dkDtf [data-days]", b => deal.desk.daysToFirst = parseInt(b.dataset.days, 10));
+    pick("#dkLeaseTerms [data-lterm]", b => deal.desk.leaseTerm = parseInt(b.dataset.lterm, 10));
+    pick("#dkMiles [data-miles]", b => deal.desk.milesPerYear = parseInt(b.dataset.miles, 10));
     bind("#scoreRange", e => {
       c.creditScore = parseInt(e.target.value, 10);
-      const tier = RIDE_PRICE_CALC.creditTier(c.creditScore);
-      deal.desk.apr = tier.agreedApr; deal.desk.leaseFactor = tier.leaseFactor;
+      const t2 = RIDE_PRICE_CALC.creditTier(c.creditScore);
+      deal.desk.apr = t2.agreedApr; deal.desk.leaseFactor = t2.leaseFactor;
     });
-    $("#deskContinue").onclick = () => {
+    $("#dkEditTerms").onclick = () => {
+      ui.open.terms = true;
+      const d2 = $('[data-acc-key="terms"]'); if (d2) { d2.open = true; d2.scrollIntoView({ block: "start", behavior: "smooth" }); }
+    };
+    wireCompareSheet();
+    /* one handler, both entries — the crumb button and the sticky bar must do
+       exactly the same thing, not merely look alike */
+    const goOn = () => {
       deal.basePayment = { signedAt: null, snapshot: RIDE_PRICE_CALC.calc(deal, v) };
       if (["desking"].includes(deal.stage)) deal.stage = "signed";
       Store.save();
       navigate(`#/agreement/${deal.id}`);
     };
+    $("#deskContinue").onclick = goOn;
+    const stickyGo = $("#deskContinueSticky"); if (stickyGo) stickyGo.onclick = goOn;
+  }
+
+  /* Compare payments as a bottom sheet on the pencil (prototype): finance and
+     lease side by side, each from the real calculator on a cloned deal — the
+     same honest math the #/compare route uses. Selecting one sets the deal
+     type and drops the sheet. */
+  function compareSheetHtml() {
+    const mk = (type) => {
+      const clone = JSON.parse(JSON.stringify(deal)); clone.dealType = type;
+      return RIDE_PRICE_CALC.calc(clone, v);
+    };
+    const f = mk("finance"), l = mk("lease");
+    return `
+    <div class="dk-scrim" id="dkScrim"></div>
+    <div class="dk-sheet" id="dkSheet" role="dialog" aria-modal="true" aria-label="Compare payments">
+      <div class="dk-sheet-inner">
+        <div class="dk-handle"></div>
+        <div class="dk-sheetbar"><h2>Compare payments</h2><button type="button" class="dk-close" id="dkSheetClose" aria-label="Close">×</button></div>
+        <div style="font-size:14px;color:var(--muted);line-height:1.45">Compare the two primary deal structures without leaving the pencil. Rebates and cash down are recalculated when the deal type changes.</div>
+        <div class="dk-cmpcard">
+          <div class="top"><h3>Finance</h3><span class="dk-badge">${f.term} months</span></div>
+          <div class="price">${money(f.payment)} / mo</div>
+          <div class="dk-prices">
+            <div class="row"><span>Vehicle price</span><b>${money(f.yourPrice)}</b></div>
+            <div class="row"><span>Cash down</span><b>${money(deal.desk.downPayment)}</b></div>
+            <div class="row"><span>APR</span><b>${f.apr}%</b></div>
+          </div>
+          <button type="button" class="dk-primary dk-wide" data-pick-type="finance">Select finance</button>
+        </div>
+        <div class="dk-cmpcard">
+          <div class="top"><h3>Lease</h3><span class="dk-badge">${l.term} months · ${l.miles / 1000}k</span></div>
+          <div class="price">${money(l.payment)} / mo</div>
+          <div class="dk-prices">
+            <div class="row"><span>Vehicle price</span><b>${money(l.yourPrice)}</b></div>
+            <div class="row"><span>Residual</span><b>${money(l.residual)}</b></div>
+            <div class="row"><span>Due at signing</span><b>${money(deal.desk.dueAtSigning)}</b></div>
+          </div>
+          <button type="button" class="dk-primary dk-wide" data-pick-type="lease">Select lease</button>
+        </div>
+        <p style="margin:16px 0 0;text-align:center"><a class="dk-linkbtn" href="#/compare/${esc(deal.id)}">Full comparison — all four deal types</a></p>
+      </div>
+    </div>`;
+  }
+  function wireCompareSheet() {
+    const scrim = $("#dkScrim"), sheet = $("#dkSheet");
+    if (!scrim || !sheet) return;
+    const openSheet2 = () => { scrim.classList.add("show"); sheet.classList.add("show"); };
+    const closeSheet2 = () => { scrim.classList.remove("show"); sheet.classList.remove("show"); };
+    $("#dkCompare").onclick = openSheet2;
+    $("#dkSheetClose").onclick = closeSheet2;
+    scrim.onclick = closeSheet2;
+    $$("[data-pick-type]").forEach(b => b.onclick = () => { deal.dealType = b.dataset.pickType; Store.save(); render(); });
   }
 
   function wordTrack(r) {
@@ -4159,7 +4286,7 @@ const CLIENT_QUEUE_IDS = ["form-insurance", "form-license", "form-paystub"];
    mixture is what made these screens look unrelated. Add a new key here and
    reference it; never inline an emoji into an icon slot.
    Slots that must use this set: .dr-rowicon, .dr-sheetact__ico,
-   .scan-tip__icon, and the .sa-card rows. (Emoji stay fine in
+   .scan-tip__icon, .dk-chip, and the .sa-card rows. (Emoji stay fine in
    prose and in the drawer's own nav list, which is not an icon slot.) ---- */
 const RP_ICON = {
   shield: `<path d="M12 3 5 6v5.5c0 4.3 2.9 8.3 7 9.5 4.1-1.2 7-5.2 7-9.5V6l-7-3z"/>`,
@@ -4169,6 +4296,8 @@ const RP_ICON = {
   camera: `<path d="M3 8.5h3.2l1.6-2.4h8.4l1.6 2.4H21v11H3z"/><circle cx="12" cy="13.6" r="3.6"/>`,
   images: `<rect x="3" y="6" width="14" height="11" rx="2"/><path d="M7 3.5h14v11"/><path d="m5 15 3.4-3.4 2.6 2.6 2.2-2.2L17 15.6"/>`,
   lock: `<rect x="4.5" y="10" width="15" height="10.5" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/>`,
+  user: `<circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.5c.9-3.4 3.8-5.3 7.2-5.3s6.3 1.9 7.2 5.3"/>`,
+  folder: `<path d="M3 5.5h6l2 2.5h10v11.5H3z"/>`,
   sun: `<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/>`
 };
 const rpIcon = (k) => `<svg viewBox="0 0 24 24">${RP_ICON[k] || RP_ICON.file}</svg>`;
