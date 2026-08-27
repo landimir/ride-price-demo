@@ -5032,7 +5032,6 @@ function drClientLink(id, startScreen) {
     const r = rec(st.docId);
     const note = m.multiNote || "";
     const noteHead = note.split(".")[0];
-    const checks = (m.checks || []).slice(0, 5);
     const act = (kind, ico, label, sub, primary) => `<button type="button" class="dr-sheetact${primary ? " dr-sheetact--primary" : ""}" data-capture="${kind}">
       <span class="dr-sheetact__ico" aria-hidden="true">${ico}</span>
       <span><b>${esc(label)}</b><span>${esc(sub)}</span></span>
@@ -5047,7 +5046,6 @@ function drClientLink(id, startScreen) {
           <button type="button" class="dr-sheet__x" data-back-landing aria-label="Close">×</button>
         </div>
         ${r && r.state === "rejected" ? `<p class="dr-sheetnote dr-sheetnote--warn"><b>${esc(r.rejectedReason || "")}</b></p>` : ""}
-        <ol class="dr-checks">${checks.map((ch, i) => `<li><i>${i + 1}</i><span>${esc(ch)}</span></li>`).join("")}</ol>
         ${note ? `<p class="dr-sheetnote"><b>${esc(noteHead)}.</b>${m.altIncome ? ` <button type="button" class="dr-linkbtn" data-other-income>Other income type</button>` : ""}</p>` : ""}
         <div class="dr-sheetacts">
           ${act("camera", rpIcon("camera"), "Take a photo", "Use your phone camera", true)}

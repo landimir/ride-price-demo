@@ -1489,15 +1489,10 @@ label.f .seg { display: flex; }
   font-size: 17px; line-height: 1; cursor: pointer; flex: none; display: grid; place-items: center;
 }
 .dr-sheet__x:hover { background: #eceaf4; }
-/* the checks, as short numbered lines — this is what the reader actually
-   looks for, so saying it plainly is both shorter and truer than a paragraph */
-.dr-checks { list-style: none; margin: 16px 0 0; padding: 0; border-top: 1px solid var(--line); }
-.dr-checks li { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; padding: 11px 0; border-bottom: 1px solid var(--hairline, #eceaf4); font-size: 14px; color: var(--ink); line-height: 1.45; }
-.dr-checks li:last-child { border-bottom: 0; }
-.dr-checks i {
-  width: 22px; height: 22px; border-radius: 50%; background: #f4f3f9; color: var(--navy);
-  font-style: normal; font-size: 11.5px; font-weight: 800; display: grid; place-items: center;
-}
+/* the sheet says what the document is and, if a photo was refused, why. It
+   does NOT list requirements up front (owner, 2026-08-27): telling someone
+   what a good photo looks like before they have taken one is text for its
+   own sake — the error afterwards is the part that helps. */
 .dr-sheetnote { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 14px 0 0; }
 .dr-sheetnote b { color: var(--ink); }
 .dr-sheetnote--warn { background: rgba(249, 178, 52, .16); color: #8a6207; border-radius: 12px; padding: 11px 13px; margin-top: 14px; }
