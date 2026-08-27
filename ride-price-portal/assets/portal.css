@@ -345,8 +345,8 @@ label.f .seg { display: flex; }
 .desk-sticky__copy { display: flex; flex-direction: column; min-width: 0; }
 .desk-sticky__copy > span { font-size: 11px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
 .desk-sticky__val { display: flex; align-items: baseline; gap: 5px; }
-.desk-sticky__copy b { font-size: 19px; font-weight: 600; color: var(--ink); letter-spacing: -.3px; }
-.desk-sticky__unit { font-size: 14px; font-weight: 600; color: var(--ink); }
+.desk-sticky__copy b { font-size: 24px; font-weight: 750; color: var(--ink); letter-spacing: -.5px; }
+.desk-sticky__unit { font-size: 15px; font-weight: 750; color: var(--ink); }
 .desk-sticky__go { min-width: 132px; }
 
 /* ---------- desking v2 (owner's desking prototype, 2026-08-27) ----------
@@ -360,7 +360,7 @@ label.f .seg { display: flex; }
 body[data-screen="desk"] .pagebar { display: none; }
 .dk-wrap { max-width: 620px; margin: 0 auto; padding: 8px 20px 120px; }
 .dk-eyebrow { font-size: 12px; font-weight: 600; color: #717171; letter-spacing: .02em; margin-bottom: 8px; }
-.dk-wrap h1 { font-size: 32px; line-height: 1.05; letter-spacing: -.8px; margin: 0 0 8px; font-weight: 700; color: var(--ink); }
+.dk-wrap h1 { font-size: 29px; line-height: 1.08; letter-spacing: -.75px; margin: 0 0 8px; font-weight: 750; color: var(--ink); }
 .dk-meta { color: var(--muted); font-size: 14px; line-height: 1.45; margin-bottom: 22px; }
 .dk-meta b { color: var(--ink); }
 .dk-headrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
@@ -434,9 +434,9 @@ input.dk-money { padding-left: 30px; }
 /* the payment hero — .pay-hero and .amt stay for the fee harness */
 .dk-hero { border-radius: 24px; background: #fff; border: 1px solid #dddddd; padding: 22px 20px 20px; margin: 8px 0 18px; text-align: left; }
 .dk-hero .hero-top { font-size: 13px; color: var(--muted); font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.dk-hero .amt { font-size: 40px; letter-spacing: -1px; line-height: 1; font-weight: 600; margin: 12px 0 8px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dk-hero .amt { font-size: 44px; letter-spacing: -1.5px; line-height: 1; font-weight: 750; margin: 12px 0 8px; color: var(--ink); font-variant-numeric: tabular-nums; }
 .dk-hero .amt .unit { font-size: 16px; letter-spacing: 0; color: var(--muted); font-weight: 600; margin-left: 4px; }
-.dk-hero .sub { font-size: 13px; color: var(--muted); line-height: 1.45; }
+.dk-hero .sub { font-size: 15px; color: var(--muted); line-height: 1.45; }
 .dk-hero .acts { display: flex; gap: 10px; margin-top: 18px; }
 .dk-hero .acts button { flex: 1; }
 /* price rows */
@@ -489,7 +489,7 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
 .dk-cmpcard { border: 1px solid #dddddd; border-radius: 16px; padding: 18px; margin-top: 12px; text-align: left; }
 .dk-cmpcard h3 { margin: 0; font-size: 17px; color: var(--ink); }
 .dk-cmpcard .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.dk-cmpcard .price { font-size: 28px; font-weight: 600; letter-spacing: -1px; margin: 12px 0; color: var(--ink); font-variant-numeric: tabular-nums; }
+.dk-cmpcard .price { font-size: 28px; font-weight: 750; letter-spacing: -1px; margin: 12px 0; color: var(--ink); font-variant-numeric: tabular-nums; }
 .dk-badge { font-size: 11px; font-weight: 750; border: 1px solid #dddddd; border-radius: 999px; padding: 7px 10px; background: #f7f7f7; color: var(--ink); white-space: nowrap; }
 .dk-wide { width: 100%; margin-top: 14px; }
 
@@ -2160,6 +2160,9 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
   .sig-box { font-size: 20px; padding: 10px 12px; min-height: 56px; }
   .pay-hero { padding: 14px 12px; }
   .pay-hero .amt { font-size: 28px; }
+  /* the desking hero is the star of its screen — the phone shrink is for the old navy hero only */
+  .dk-hero.pay-hero { padding: 22px 20px 20px; }
+  .dk-hero.pay-hero .amt { font-size: 44px; }
   .vcard .vprice { flex-wrap: wrap; }
   .mcol__head, .mprod, .mcol__pay { flex-wrap: wrap; }
   .bbar > button { padding: 12px 14px; font-size: 12px; letter-spacing: .6px; }
