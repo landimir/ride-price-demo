@@ -480,6 +480,7 @@ function renderChrome(title, crumbs, actionsHtml) {
   $("#pageActions").innerHTML = actionsHtml || "";
   /* per-screen styling hook; routes that want it re-set it after this call */
   document.body.dataset.screen = "";
+  document.body.dataset.canvas = "";
   document.body.classList.remove("script-open");
 }
 
@@ -2102,92 +2103,255 @@ route("discovery/:id", ({ id }) => {
 /* ============================================================
    VIEW: Vehicle Search
    ============================================================ */
+/* ---------------- master system helpers (Master Replication, 2026-08-27) ---------------- */
+/* the master top bar: back circle, centred brand, advisor avatar (opens the drawer) */
+function masterTop() {
+  return `<div class="m-topbar"><div class="m-toprow">
+    <button class="m-circle" id="mBack" aria-label="Back">‹</button>
+    <div class="m-brand">Ride Price</div>
+    <button class="m-avatar" id="mAvatar" aria-label="Open navigation menu">${esc((roleName()[0] || "A").toUpperCase())}</button>
+  </div></div>`;
+}
+function wireMasterTop() {
+  const b = $("#mBack"), a = $("#mAvatar");
+  if (b) b.onclick = () => history.back();
+  if (a) a.onclick = () => $("#hamburgerBtn").click();
+}
+/* the golden example's flat car illustration, coloured from the vehicle's hue */
+function mCarSvg(v) {
+  const color = `hsl(${v.hue}, 58%, 52%)`;
+  return `<svg class="m-carsvg" viewBox="0 0 260 130" aria-hidden="true">
+    <ellipse cx="130" cy="106" rx="94" ry="10" fill="rgba(0,0,0,.09)"/>
+    <path d="M45 78h18l18-31c5-9 14-14 25-14h49c12 0 23 5 31 14l24 31h13c9 0 16 7 16 16v7H28v-7c0-9 7-16 17-16Z" fill="${color}"/>
+    <path d="M93 45h60c7 0 12 2 17 7l20 24H70l14-24c3-5 5-7 9-7Z" fill="#D8EFF6"/>
+    <path d="M130 45v31" stroke="#A9CAD3" stroke-width="4"/>
+    <rect x="49" y="81" width="21" height="11" rx="5" fill="#FFE9A8"/>
+    <rect x="194" y="81" width="21" height="11" rx="5" fill="#FFB1B9"/>
+    <circle cx="75" cy="101" r="19" fill="#292929"/><circle cx="75" cy="101" r="9" fill="#A8A8A8"/>
+    <circle cx="192" cy="101" r="19" fill="#292929"/><circle cx="192" cy="101" r="9" fill="#A8A8A8"/>
+  </svg>`;
+}
+
 route("vehicles/:id", ({ id }) => {
   const deal = id === "browse" ? null : Store.deal(id);
   if (id !== "browse" && !deal) return navigate("#/deals");
-
-  renderChrome("Vehicle Search", deal ? dealTitle(deal) : "Browsing inventory",
-    deal ? `<a class="btn btn--ghost btn--sm" href="#/discovery/${esc(deal.id)}">← Discovery</a>` : "");
+  renderChrome("Vehicle Search", "", "");
+  document.body.dataset.canvas = "master";
 
   const makes = [...new Set(RIDE_PRICE_DATA.inventory.map(v => v.make))];
   const bodies = [...new Set(RIDE_PRICE_DATA.inventory.map(v => v.body))];
+  const cust = deal ? Store.customer(deal.customerId) : null;
+  /* the browse state survives sheet opens but resets on route entry */
+  const ui = { type: "All", make: "All", body: "All", maxPrice: null, sort: "hi", search: "", sheet: null };
 
-  view().innerHTML = `
-    <div class="grid grid--side">
-      <div class="panel" style="align-self:start">
-        <div class="panel__head"><h2>Filters</h2><div class="right"><button class="btn btn--sm btn--ghost" id="resetF">Reset</button></div></div>
-        <div class="panel__body">
-          <label class="f"><span class="lab">Vehicle Type</span><select id="fType" data-ui="seg"><option value="">All</option><option>New</option><option>Used</option><option>CPO</option></select></label>
-          <label class="f"><span class="lab">Make</span><select id="fMake" data-ui="seg"><option value="">All</option>${makes.map(m => `<option>${m}</option>`).join("")}</select></label>
-          <label class="f"><span class="lab">Body Style</span><select id="fBody" data-ui="seg"><option value="">All</option>${bodies.map(b => `<option>${b}</option>`).join("")}</select></label>
-          <label class="f"><span class="lab">Max Price</span><span class="minput"><input type="number" id="fPrice" placeholder="50,000" step="1000"></span></label>
-          <label class="f"><span class="lab">Sort By</span><select id="fSort" data-ui="seg"><option value="hi">High → low</option><option value="lo">Low → high</option></select></label>
-        </div>
+  function filtered() {
+    let list = RIDE_PRICE_DATA.inventory.slice();
+    if (ui.type !== "All") list = list.filter(v => v.type === ui.type);
+    if (ui.make !== "All") list = list.filter(v => v.make === ui.make);
+    if (ui.body !== "All") list = list.filter(v => v.body === ui.body);
+    if (ui.maxPrice) list = list.filter(v => v.selling <= ui.maxPrice);
+    const q = ui.search.trim().toLowerCase();
+    if (q) list = list.filter(v => [v.make, v.model, v.trim, v.stock, v.vin].join(" ").toLowerCase().includes(q));
+    list.sort((a, b) => ui.sort === "hi" ? b.selling - a.selling : a.selling - b.selling);
+    return list;
+  }
+  const filterCount = () => (ui.make !== "All" ? 1 : 0) + (ui.body !== "All" ? 1 : 0) + (ui.maxPrice ? 1 : 0);
+
+  /* the golden's journey rows, carried over with the app's line icons */
+  const JOURNEY = [
+    { act: "test", icon: "car", t: "Test Drive", d: "Start the customer test-drive flow" },
+    { act: "trade", icon: "swap", t: "Trade Appraisal", d: "Evaluate a trade and proof of ownership" },
+    { act: "calc", icon: "dollar", t: "Calculate Payment", d: "Open desking with this vehicle selected" },
+    { act: "quote", icon: "page", t: "Quote", d: "Quick Quote is follow-up only during a visit" },
+    { act: "savequote", icon: "check", t: "Save Quote", d: "Save this structure for follow-up" }
+  ];
+
+  const cardHtml = (v) => `
+    <div class="m-vcard" data-detail="${esc(v.stock)}" role="button" tabindex="0" aria-label="${esc(v.year + " " + v.make + " " + v.model)} details">
+      <div class="m-photo" style="background:linear-gradient(145deg,hsl(${v.hue},42%,94%),hsl(${v.hue},36%,86%))">
+        <span class="m-badge">${esc(v.type.toUpperCase())}</span>${mCarSvg(v)}
       </div>
-      <div id="vwrap"></div>
+      <div class="m-cardbody">
+        <div class="m-cardtitle">${esc(v.year)} ${esc(v.make)} ${esc(v.model)}</div>
+        <div class="m-cardtrim">${esc(v.trim)}</div>
+        <div class="m-cardmeta">Stock ${esc(v.stock)} · ${esc(v.miles.toLocaleString())} mi · ${esc(v.ext)} · ${esc(v.drive)}</div>
+        <div class="m-pricerow"><span class="m-price">${money0(v.selling)}</span>${v.msrp !== v.selling ? `<span class="m-msrp">MSRP ${money0(v.msrp)}</span>` : ""}</div>
+        <div class="m-cardhint"><span>View vehicle details</span><span>›</span></div>
+      </div>
     </div>`;
 
+  const summaryHtml = (v) => `
+    <div class="m-summary">
+      <div class="m-thumb" style="background:linear-gradient(145deg,hsl(${v.hue},42%,94%),hsl(${v.hue},36%,86%))">${mCarSvg(v)}</div>
+      <div><div class="m-sumtitle">${esc(v.year)} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</div>
+        <div class="m-summeta">${money0(v.selling)} · Stock ${esc(v.stock)}</div></div>
+    </div>`;
+
+  function sheetHtml() {
+    const sh = ui.sheet;
+    if (!sh) return "";
+    if (sh.kind === "details") {
+      const v = Store.vehicle(sh.stock);
+      return `
+      <div class="m-sheettop"><div class="m-sheettitle">Vehicle details</div><button class="m-close" data-sheet-close aria-label="Close">✕</button></div>
+      <div class="m-sheetphoto" style="background:linear-gradient(145deg,hsl(${v.hue},42%,94%),hsl(${v.hue},36%,86%))">${mCarSvg(v)}</div>
+      <h2>${esc(v.year)} ${esc(v.make)} ${esc(v.model)}</h2>
+      <div class="m-sheetsub">${esc(v.trim)} · ${esc(v.ext)} · ${esc(v.drive)}</div>
+      <div class="m-specgroup">
+        <div class="m-specrow"><span>MSRP</span><strong>${money(v.msrp)}</strong></div>
+        <div class="m-specrow"><span>Selling price</span><strong>${money(v.selling)}</strong></div>
+        ${v.includedOptions ? `<div class="m-specrow"><span>Included options</span><strong>${money(v.includedOptions)}</strong></div>` : ""}
+      </div>
+      <p class="m-desc">${esc(v.blurb)}</p>
+      <p class="m-desc" style="margin-top:0">VIN ${esc(v.vin)} · ${esc(v.engine)} · ${esc(v.mpg)} MPG · ${esc(v.int)} interior · ${esc(v.miles.toLocaleString())} miles</p>
+      <div class="m-sheetactions">
+        ${deal ? `<button class="m-primary" data-choose="${esc(v.stock)}">Choose this vehicle</button>` : ""}
+        <button class="m-ghost" data-sheet-close>Back to inventory</button>
+      </div>`;
+    }
+    if (sh.kind === "next") {
+      const v = Store.vehicle(sh.stock);
+      return `
+      <div class="m-sheettop"><div class="m-sheettitle">What&rsquo;s next?</div><button class="m-close" data-sheet-close aria-label="Close">✕</button></div>
+      ${summaryHtml(v)}
+      <div class="m-jlist">
+        ${JOURNEY.map(j => `<button class="m-jrow" data-act="${j.act}" data-stock="${esc(v.stock)}">
+          <span class="m-actionicon">${rpIcon(j.icon)}</span>
+          <span><strong>${j.t}</strong><small>${j.d}</small></span>
+          <span class="m-chev">›</span></button>`).join("")}
+      </div>`;
+    }
+    if (sh.kind === "quote") {
+      const v = Store.vehicle(sh.stock);
+      return `
+      <div class="m-sheettop"><div class="m-sheettitle">Quote</div><button class="m-close" data-sheet-close aria-label="Close">✕</button></div>
+      <div class="m-quoteicon">${rpIcon("page")}</div>
+      <h2>Quick Quote is for follow-up only</h2>
+      <p class="m-quotecopy">During an active client visit, keep the conversation in the guided deal flow. You can save this ${esc(v.year)} ${esc(v.make)} ${esc(v.model)} structure now and send a quote later.</p>
+      ${summaryHtml(v)}
+      <div class="m-sheetactions">
+        <button class="m-primary" data-act="savequote" data-stock="${esc(v.stock)}">Save quote for follow-up</button>
+        <button class="m-textbtn" data-back-next="${esc(v.stock)}">Back to next steps</button>
+      </div>`;
+    }
+    /* filters */
+    const opt = (group, val, label) => `<button class="m-opt${ui[group] === val ? " selected" : ""}" data-opt="${group}" data-val="${esc(val)}">${esc(label)}</button>`;
+    return `
+      <div class="m-sheettop"><div class="m-sheettitle">Filters</div><button class="m-close" data-sheet-close aria-label="Close">✕</button></div>
+      <div class="m-fsection"><h3>Make</h3><div class="m-optgrid">${opt("make", "All", "All")}${makes.map(m => opt("make", m, m)).join("")}</div></div>
+      <div class="m-fsection"><h3>Body style</h3><div class="m-optgrid">${opt("body", "All", "All")}${bodies.map(b => opt("body", b, b)).join("")}</div></div>
+      <div class="m-fsection"><h3>Max price</h3>
+        <div class="m-priceinput"><span>$</span><input type="number" id="mMaxPrice" step="1000" placeholder="No limit" value="${ui.maxPrice || ""}"></div></div>
+      <div class="m-fsection"><h3>Sort</h3><div class="m-optgrid">${opt("sort", "hi", "Price: high to low")}${opt("sort", "lo", "Price: low to high")}</div></div>
+      <div class="m-ffoot"><button class="m-clearlink" id="mClearAll">Clear all</button><button class="m-primary" data-sheet-close>Show ${filtered().length} vehicle${filtered().length === 1 ? "" : "s"}</button></div>`;
+  }
+
   function render() {
-    let list = RIDE_PRICE_DATA.inventory.slice();
-    const t = $("#fType").value, m = $("#fMake").value, b = $("#fBody").value, p = parseFloat($("#fPrice").value);
-    if (t) list = list.filter(v => v.type === t);
-    if (m) list = list.filter(v => v.make === m);
-    if (b) list = list.filter(v => v.body === b);
-    if (p) list = list.filter(v => v.selling <= p);
-    list.sort((a, bb) => $("#fSort").value === "hi" ? bb.selling - a.selling : a.selling - bb.selling);
-
-    $("#vwrap").innerHTML = `<div class="vgrid">${list.map(v => `
-      <div class="vcard">
-        <div class="vimg" style="background:linear-gradient(140deg,hsl(${v.hue},42%,90%),hsl(${v.hue},38%,78%))">
-          <span class="tag badge badge--type">${v.type}</span>${v.emoji}
+    const list = filtered();
+    const fc = filterCount();
+    view().innerHTML = `
+    <div class="m-app">
+      ${masterTop()}
+      <div class="m-hero">
+        <div class="m-eyebrow">${deal ? "VEHICLE SELECTION" : "INVENTORY"}</div>
+        <h1 class="m-h1">${deal ? "Choose a vehicle" : "Browse inventory"}</h1>
+        <div class="m-sub">${deal ? "Find the right vehicle without leaving the customer conversation." : "Explore inventory. Deal actions unlock once a customer visit is active."}</div>
+      </div>
+      ${deal ? `
+      <div class="m-context">
+        <div class="m-context-avatar">${esc((cust.first[0] || "") + (cust.last[0] || ""))}</div>
+        <div class="m-context-copy">
+          <div class="m-context-name">${esc(cust.first + " " + cust.last)}</div>
+          <div class="m-context-meta">Deal #${esc(deal.dealNo)} · ${deal.stock ? esc(drVehicleShort(Store.vehicle(deal.stock))) + " selected" : "No vehicle selected"}</div>
         </div>
-        <div class="vbody">
-          <h3>${esc(v.year)} ${esc(v.make)} ${esc(v.model)}<br><span style="font-size:12.5px;font-weight:400">${esc(v.trim)}</span></h3>
-          <div class="vmeta">Stock ${esc(v.stock)} · ${esc(v.miles.toLocaleString())} mi · ${esc(v.ext)} · ${esc(v.drive)}</div>
-          <div class="vprice"><b>${money0(v.selling)}</b>${v.msrp !== v.selling ? `<s>MSRP ${money0(v.msrp)}</s>` : ""}</div>
-          <div class="flex"><button class="btn btn--sm btn--ghost" data-detail="${esc(v.stock)}">Details</button></div>
-          <div class="journey">
-            <button class="btn btn--primary btn--sm" data-journey="${esc(v.stock)}">Your Journey ▾</button>
-            <div class="jmenu" id="jm-${esc(v.stock)}">
-              <button data-act="test" data-stock="${esc(v.stock)}">Test Drive</button>
-              <button data-act="trade" data-stock="${esc(v.stock)}">Trade Appraisal</button>
-              <button data-act="calc" data-stock="${esc(v.stock)}">Calculate Payment</button>
-              <button data-act="quote" data-stock="${esc(v.stock)}">Quote</button>
-              <button data-act="savequote" data-stock="${esc(v.stock)}">Save Quote</button>
-            </div>
-          </div>
+        <span class="m-rolepill">Buyer</span>
+      </div>` : `
+      <div class="m-banner">
+        <strong>Browsing without a visit</strong>
+        <p>Test drives, trades, and payments unlock after you start a customer visit — inventory stays open for a look around.</p>
+        <button class="m-smallbtn" data-nav="#/customers">Start a customer visit</button>
+      </div>`}
+      <div class="m-searchwrap">
+        <div class="m-search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path></svg>
+          <input id="mSearch" placeholder="Make, model, stock or VIN" value="${esc(ui.search)}" aria-label="Search inventory">
         </div>
-      </div>`).join("") || `<p class="muted">No vehicles match those filters.</p>`}</div>`;
+      </div>
+      <div class="m-chips" role="tablist" aria-label="Vehicle type">
+        ${["All", "New", "Used", "CPO"].map(t => `<button class="m-chip${ui.type === t ? " active" : ""}" data-type="${t}" role="tab" aria-selected="${ui.type === t}">${t}</button>`).join("")}
+        <button class="m-chip${fc ? " filter-active" : ""}" id="mFilters" aria-label="More filters">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
+          Filters${fc ? ` <span class="m-chipcount">${fc}</span>` : ""}
+        </button>
+      </div>
+      <div class="m-results">
+        <div><div class="m-restitle">Available vehicles</div><div class="m-resmeta">${list.length} vehicle${list.length === 1 ? "" : "s"}</div></div>
+        <button class="m-sort" id="mSort">Price: ${ui.sort === "hi" ? "high to low" : "low to high"}</button>
+      </div>
+      ${list.length ? `<div class="m-inv">${list.map(cardHtml).join("")}</div>` : `
+      <div class="m-empty">
+        <div class="m-emptyicon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg></div>
+        <h2>No vehicles match</h2>
+        <p>Nothing in stock fits those filters. Loosen one and the lot opens back up.</p>
+        <button class="m-smallbtn" id="mClearEmpty">Clear all filters</button>
+      </div>`}
+      <div class="m-scrim${ui.sheet ? " show" : ""}" id="mScrim"><div class="m-sheet" role="dialog" aria-modal="true"><div class="m-handle"></div>${sheetHtml()}</div></div>
+    </div>`;
+    wire();
+  }
 
-    $$("[data-journey]").forEach(btn => btn.onclick = (e) => {
-      e.stopPropagation();
-      const menu = $("#jm-" + btn.dataset.journey);
-      $$(".jmenu.open").forEach(m2 => { if (m2 !== menu) m2.classList.remove("open"); });
-      menu.classList.toggle("open");
+  const clearAll = () => { ui.type = "All"; ui.make = "All"; ui.body = "All"; ui.maxPrice = null; ui.search = ""; };
+
+  function wire() {
+    wireMasterTop();
+    const search = $("#mSearch");
+    search.oninput = () => {
+      ui.search = search.value;
+      /* re-render everything below without stealing the keyboard focus */
+      const pos = search.selectionStart;
+      render();
+      const s2 = $("#mSearch"); s2.focus(); s2.setSelectionRange(pos, pos);
+    };
+    $$(".m-chip[data-type]").forEach(b => b.onclick = () => { ui.type = b.dataset.type; render(); });
+    $("#mFilters").onclick = () => { ui.sheet = { kind: "filters" }; render(); };
+    $("#mSort").onclick = () => { ui.sort = ui.sort === "hi" ? "lo" : "hi"; render(); };
+    $$("[data-detail]").forEach(el => {
+      el.onclick = () => { ui.sheet = { kind: "details", stock: el.dataset.detail }; render(); };
+      el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); } };
     });
-    $$("[data-detail]").forEach(btn => btn.onclick = () => {
-      const v = Store.vehicle(btn.dataset.detail);
-      modal(`${v.year} ${v.make} ${v.model} ${v.trim}`, `
-        <div class="vimg" style="height:120px;border-radius:12px;background:linear-gradient(140deg,hsl(${v.hue},42%,90%),hsl(${v.hue},38%,78%));display:grid;place-items:center;font-size:56px">${v.emoji}</div>
-        <ul class="lines mt">
-          <li><span>MSRP</span><b class="amt">${money(v.msrp)}</b></li>
-          <li><span>Selling Price</span><b class="amt">${money(v.selling)}</b></li>
-          ${v.includedOptions ? `<li><span>Included Options</span><b class="amt">${money(v.includedOptions)}</b></li>` : ""}
-        </ul>
-        <p class="small mt">${esc(v.blurb)}</p>
-        <p class="small">VIN ${esc(v.vin)} · ${esc(v.engine)} · ${esc(v.mpg)} MPG · ${esc(v.int)} interior · ${esc(v.miles.toLocaleString())} miles</p>`,
-        `<button class="btn btn--ghost" data-close>Close</button>`);
-    });
-    $$(".jmenu button").forEach(btn => btn.onclick = () => {
-      const stock = btn.dataset.stock, act = btn.dataset.act;
-      if (!deal) return toast("Start a customer visit first (Customers → Start Visit)");
-      deal.stock = stock;
+    const clearEmpty = $("#mClearEmpty");
+    if (clearEmpty) clearEmpty.onclick = () => { clearAll(); render(); };
+
+    /* sheet wiring */
+    const scrim = $("#mScrim");
+    if (scrim) {
+      scrim.onclick = (e) => { if (e.target === scrim) { ui.sheet = null; render(); } };
+      $$("[data-sheet-close]").forEach(b => b.onclick = () => { ui.sheet = null; render(); });
+    }
+    $$("[data-opt]").forEach(b => b.onclick = () => { ui[b.dataset.opt] = b.dataset.opt === "sort" ? b.dataset.val : (ui[b.dataset.opt] === b.dataset.val ? "All" : b.dataset.val); render(); });
+    const mp = $("#mMaxPrice");
+    if (mp) mp.onchange = () => { ui.maxPrice = parseFloat(mp.value) || null; render(); };
+    const clearAllBtn = $("#mClearAll");
+    if (clearAllBtn) clearAllBtn.onclick = () => { clearAll(); render(); };
+
+    $$("[data-choose]").forEach(b => b.onclick = () => {
       /* the deal keeps its own vehicle identity from the moment of attachment,
          so the queue's VIN survives an unstocked unit or a catalog change */
+      const stock = b.dataset.choose;
       const vsel = Store.vehicle(stock);
+      deal.stock = stock;
       deal.vehicle = vsel ? { vin: vsel.vin, stock: vsel.stock } : { vin: null, stock };
-      if (deal.stage === "vehicle") deal.stage = act === "test" ? "testdrive" : act === "calc" ? "desking" : deal.stage;
       Store.save();
+      ui.sheet = { kind: "next", stock };
+      render();
+    });
+    const backNext = $("[data-back-next]");
+    if (backNext) backNext.onclick = () => { ui.sheet = { kind: "next", stock: backNext.dataset.backNext }; render(); };
+
+    $$("[data-act]").forEach(btn => btn.onclick = () => {
+      const stock = btn.dataset.stock, act = btn.dataset.act;
+      if (!deal) return;
+      if (act === "quote") { ui.sheet = { kind: "quote", stock }; render(); return; }
       if (act === "test") { deal.stage = "testdrive"; Store.save(); navigate(`#/testdrive/${deal.id}`); }
       else if (act === "trade") navigate(`#/trade/${deal.id}`);
       else if (act === "calc") { deal.stage = deal.basePayment ? deal.stage : "desking"; Store.save(); navigate(`#/desk/${deal.id}`); }
@@ -2199,23 +2363,19 @@ route("vehicles/:id", ({ id }) => {
           summary: deal.dealType === "cash" ? r.totalDue : (deal.dealType === "onepay" ? r.onePayTotal : r.payment)
         });
         Store.save();
-        const cust = Store.customer(deal.customerId);
-        toast(`Quote saved in Ride Price — structure emailed to ${cust.email} (demo)`);
+        toast(`Quote saved in Ride Price — structure emailed to ${Store.customer(deal.customerId).email} (demo)`);
+        ui.sheet = { kind: "next", stock };
+        render();
       }
-      else toast("Quick Quote is for follow-up only — not during the client visit");
-    });
-  }
-  ["fType", "fMake", "fBody", "fPrice", "fSort"].forEach(fid => $("#" + fid).onchange = render);
-  $("#resetF").onclick = () => { ["fType", "fMake", "fBody", "fPrice"].forEach(fid => $("#" + fid).value = ""); render(); };
-  /* persistent, registered once: {once:true} left reopened menus with no dismiss path */
-  if (!document.jmenuCloser) {
-    document.jmenuCloser = true;
-    document.addEventListener("click", (e) => {
-      if (!e.target.closest(".journey") || e.target.closest(".jmenu button"))
-        $$(".jmenu.open").forEach(m => m.classList.remove("open"));
     });
   }
   render();
+  /* Escape closes whichever sheet is up; the listener leaves with the route
+     (the leak pattern review caught twice on the client sheets) */
+  const mOnKey = (e) => { if (e.key === 'Escape' && ui.sheet) { ui.sheet = null; render(); } };
+  document.addEventListener('keydown', mOnKey);
+  const mCleanup = () => { document.removeEventListener('keydown', mOnKey); window.removeEventListener('hashchange', mCleanup); };
+  window.addEventListener('hashchange', mCleanup);
 });
 
 /* ============================================================
@@ -2615,11 +2775,12 @@ route("desk/:id", ({ id }) => {
     const paying = h.paying || deal.dealType;
     renderChrome("Base Payment Huddle", dealTitle(deal, true), "");
     document.body.dataset.screen = "desk"; /* the prototype has one header — the flow carries the title */
+    document.body.dataset.canvas = "master";
     /* the owner's desking prototype (2026-08-27), 1:1: eyebrow → h1 → deal
        meta → chips, then one bordered section per question. The RP accent
        lives ONLY on the two notice banners and the primary action; toggles,
        inputs and choice cards keep the neutral default grammar. */
-    view().innerHTML = `
+    view().innerHTML = `${masterTop()}
     <div class="dk-wrap">
       <div class="dk-headrow"><div class="dk-eyebrow" style="margin:0">FIRST PENCIL</div>${h.done ? `<button type="button" class="dk-linkbtn" id="huddleCancel">Back to the pencil</button>` : ""}</div>
       <h1>Get the game plan aligned.</h1>
@@ -2678,6 +2839,7 @@ route("desk/:id", ({ id }) => {
       const t = PAY_TRACKS[payingSel];
       $("#hPayTrack").innerHTML = `<strong>Discovery question</strong>${t.q} ${t.wt}`;
     });
+    wireMasterTop();
     const cancel = $("#huddleCancel");
     if (cancel) cancel.onclick = () => render();
     $("#hConfirm").onclick = () => {
@@ -2706,6 +2868,7 @@ route("desk/:id", ({ id }) => {
       `<button class="btn btn--ghost btn--sm" id="huddleBtn">Huddle</button>
        <button class="btn btn--grad btn--sm" id="deskContinue">Continue</button>`);
     document.body.dataset.screen = "desk";
+    document.body.dataset.canvas = "master";
     $("#huddleBtn").onclick = () => renderHuddle();
     const r = RIDE_PRICE_CALC.calc(deal, v);
     const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
@@ -2730,7 +2893,7 @@ route("desk/:id", ({ id }) => {
       </details>`;
     const row = (label2, val, cls) => `<div class="row${cls ? " " + cls : ""}"><span>${label2}</span><b class="amt">${val}</b></div>`;
 
-    view().innerHTML = `
+    view().innerHTML = `${masterTop()}
     <div class="dk-wrap">
       <div class="dk-eyebrow">DESKING</div>
       <div class="dk-headrow">
@@ -2749,7 +2912,7 @@ route("desk/:id", ({ id }) => {
       </div>
 
       <div class="dk-vehicle">
-        <div class="dk-vehicle-art" style="background:linear-gradient(140deg,hsl(${v.hue},42%,92%),hsl(${v.hue},38%,80%))" aria-hidden="true"><svg viewBox="0 0 48 28" class="dk-carline"><path d="M7 20h34v-3.4c0-1.8-1.4-3.2-3.2-3.2h-4.6l-4.9-6c-.8-1-2-1.6-3.3-1.6h-6c-1.3 0-2.5.6-3.3 1.6l-4.9 6h-4.6C8.4 13.4 7 14.8 7 16.6V20z"/><path d="M17.2 7.6 13 13h9v-5.6zM25 7.4V13h8.6L29 7.9" fill="none"/><circle cx="15" cy="20.5" r="3.4"/><circle cx="33" cy="20.5" r="3.4"/></svg></div>
+        <div class="dk-vehicle-art" style="background:linear-gradient(145deg,hsl(${v.hue},42%,94%),hsl(${v.hue},36%,86%))" aria-hidden="true">${mCarSvg(v)}</div>
         <div><h3>${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</h3>
           <p>Stock ${esc(v.stock)} · VIN ${esc(v.vin)}</p>
           <p>Your price ${money0(r.yourPrice)}</p></div>
@@ -2872,6 +3035,7 @@ route("desk/:id", ({ id }) => {
       ui.open.terms = true;
       const d2 = $('[data-acc-key="terms"]'); if (d2) { d2.open = true; d2.scrollIntoView({ block: "start", behavior: "smooth" }); }
     };
+    wireMasterTop();
     wireCompareSheet();
     /* one handler, both entries — the crumb button and the sticky bar must do
        exactly the same thing, not merely look alike */
@@ -4297,6 +4461,10 @@ const RP_ICON = {
   lock: `<rect x="4.5" y="10" width="15" height="10.5" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/>`,
   user: `<circle cx="12" cy="8" r="3.6"/><path d="M4.8 20.5c.9-3.4 3.8-5.3 7.2-5.3s6.3 1.9 7.2 5.3"/>`,
   folder: `<path d="M3 5.5h6l2 2.5h10v11.5H3z"/>`,
+  car: `<path d="M4 16.5h16v-2.8c0-1.2-.9-2.1-2.1-2.1h-1.8l-2.7-3.5c-.5-.7-1.3-1.1-2.2-1.1h-2.7c-.9 0-1.7.4-2.2 1.1l-2.7 3.5h-.5c-1.2 0-2.1.9-2.1 2.1v2.8z"/><circle cx="8.2" cy="16.8" r="1.9"/><circle cx="15.8" cy="16.8" r="1.9"/>`,
+  swap: `<path d="M6.5 8.5h11M14.5 5.5l3 3-3 3M17.5 15.5h-11M9.5 12.5l-3 3 3 3"/>`,
+  dollar: `<path d="M12 3.5v17M16 7.3c-.8-1.3-2.2-2.1-3.9-2.1-2.1 0-3.7 1.2-3.7 3 0 3.9 7.7 2 7.7 5.9 0 1.8-1.7 3-4 3-1.9 0-3.4-.8-4.2-2.2"/>`,
+  check: `<path d="m5 12.5 4.5 4.5L19 7.5"/>`,
   sun: `<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/>`
 };
 const rpIcon = (k) => `<svg viewBox="0 0 24 24">${RP_ICON[k] || RP_ICON.file}</svg>`;
