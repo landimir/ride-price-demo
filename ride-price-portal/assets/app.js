@@ -2117,6 +2117,17 @@ function wireMasterTop() {
   if (b) b.onclick = () => history.back();
   if (a) a.onclick = () => $("#hamburgerBtn").click();
 }
+/* the deal header (owner's desking prototype): wordmark left, deal + role right */
+function deskTop(deal) {
+  return `<div class="m-topbar"><div class="m-dealrow">
+    <div class="m-wordmark"><span class="rideprice">Ride</span><span class="price">PRICE</span></div>
+    <div class="m-dealside">${deal.dealNo ? `<span class="m-dealno">Deal #${esc(deal.dealNo)}</span>` : ""}<button class="m-rolebtn" id="mRole">${isTeamLead() ? "Team Lead" : "Advisor"}</button></div>
+  </div></div>`;
+}
+function wireDeskTop() {
+  const r = $("#mRole");
+  if (r) r.onclick = () => $("#hamburgerBtn").click(); /* the drawer carries nav and the role switch */
+}
 /* the golden example's flat car illustration, coloured from the vehicle's hue */
 function mCarSvg(v) {
   const color = `hsl(${v.hue}, 58%, 52%)`;
@@ -2780,11 +2791,11 @@ route("desk/:id", ({ id }) => {
        meta → chips, then one bordered section per question. The RP accent
        lives ONLY on the two notice banners and the primary action; toggles,
        inputs and choice cards keep the neutral default grammar. */
-    view().innerHTML = `${masterTop()}
+    view().innerHTML = `${deskTop(deal)}
     <div class="dk-wrap">
       <div class="dk-headrow"><div class="dk-eyebrow" style="margin:0">FIRST PENCIL</div>${h.done ? `<button type="button" class="dk-linkbtn" id="huddleCancel">Back to the pencil</button>` : ""}</div>
       <h1>Get the game plan aligned.</h1>
-      <div class="dk-meta"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}${deal.dealNo ? ` · Deal #${esc(deal.dealNo)}` : ""}<br>Before showing numbers, confirm how the customer wants to buy.</div>
+      <div class="dk-meta"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}<br>Before showing numbers, confirm how the customer wants to buy.</div>
       <div class="dk-chips">
         <button type="button" class="dk-chip" data-buyers="${esc(deal.id)}">${rpIcon("user")} Buyer</button>
         <a class="dk-chip" href="#/jacket/${esc(deal.id)}">${rpIcon("folder")} Jacket ${jacketCounts(deal).missing ? `<b>${jacketCounts(deal).missing}</b>` : ""}</a>
@@ -2839,7 +2850,7 @@ route("desk/:id", ({ id }) => {
       const t = PAY_TRACKS[payingSel];
       $("#hPayTrack").innerHTML = `<strong>Discovery question</strong>${t.q} ${t.wt}`;
     });
-    wireMasterTop();
+    wireDeskTop();
     const cancel = $("#huddleCancel");
     if (cancel) cancel.onclick = () => render();
     $("#hConfirm").onclick = () => {
@@ -2893,12 +2904,12 @@ route("desk/:id", ({ id }) => {
       </details>`;
     const row = (label2, val, cls) => `<div class="row${cls ? " " + cls : ""}"><span>${label2}</span><b class="amt">${val}</b></div>`;
 
-    view().innerHTML = `${masterTop()}
+    view().innerHTML = `${deskTop(deal)}
     <div class="dk-wrap">
       <div class="dk-eyebrow">DESKING</div>
       <div class="dk-headrow">
         <div><h1 style="margin-bottom:7px">Calculate payments</h1>
-          <div class="dk-meta" style="margin:0"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}${deal.dealNo ? ` · Deal #${esc(deal.dealNo)}` : ""}</div></div>
+          <div class="dk-meta" style="margin:0"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</div></div>
         <button type="button" class="dk-linkbtn" id="dkHuddleLink">Huddle</button>
       </div>
 
@@ -3035,7 +3046,7 @@ route("desk/:id", ({ id }) => {
       ui.open.terms = true;
       const d2 = $('[data-acc-key="terms"]'); if (d2) { d2.open = true; d2.scrollIntoView({ block: "start", behavior: "smooth" }); }
     };
-    wireMasterTop();
+    wireDeskTop();
     wireCompareSheet();
     /* one handler, both entries — the crumb button and the sticky bar must do
        exactly the same thing, not merely look alike */
