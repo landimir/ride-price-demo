@@ -1407,7 +1407,16 @@ label.f .seg { display: flex; }
   width: 44px; height: 44px; border-radius: 12px; flex: none; display: grid; place-items: center;
   background: #f4f3f9; color: var(--navy);
 }
-.dr-rowicon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+/* ONE stroke rule for every icon slot (owner rule, 2026-08-27): same grid,
+   same weight, currentColor so an icon always takes its surroundings. Adding
+   a slot means adding it here, not restyling an SVG at the call site. */
+.dr-rowicon svg,
+.dr-sheetact__ico svg,
+.scan-tip__icon svg {
+  width: 21px; height: 21px; fill: none; stroke: currentColor;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
+}
+.scan-tip__icon svg { width: 17px; height: 17px; }
 .dr-rowsub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
 .dr-status { display: block; font-size: 12px; font-weight: 700; margin-top: 3px; }
 .dr-status--received { color: #8a6207; }
@@ -1676,20 +1685,20 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
 .sa-grouplab { font-size: 13.5px; font-weight: 700; margin: 22px 0 12px; color: var(--navy); }
 .sa-grouplab--green { color: #1e7c4c; }
 .sa-grouplab--amber { color: #8a6207; }
+/* the results rows wear the customer page's grammar exactly (owner,
+   2026-08-27): the same line-icon tile, the same title and subtitle sizes,
+   and the one forward action as a plain word on the right. "Accept anyway"
+   stays reachable as a quiet link under the issue — retaking is the better
+   path, so it should not be the loudest thing on the card. */
 .sa-card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; min-height: 76px; }
-.sa-card--attn { display: block; background: #fff; border-color: #f0e2bd; }
-.sa-cardmain { display: flex; align-items: center; gap: 14px; }
-.sa-cardicon { width: 44px; height: 44px; border-radius: 12px; background: #f4f3f9; display: flex; align-items: center; justify-content: center; font-size: 19px; flex: 0 0 auto; }
-.sa-card--attn .sa-cardicon { background: rgba(249, 178, 52, .18); }
-.sa-cardcopy { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.sa-card .dr-rowicon { align-self: flex-start; }
+.sa-card .dr-clientadd { align-self: center; }
+.sa-override { display: inline-block; margin-top: 6px; font-size: 13px; }
+.sa-cardcopy { min-width: 0; flex: 1; display: flex; flex-direction: column; align-items: flex-start; }
 .sa-cardcopy b { font-size: 15.5px; font-weight: 700; color: var(--navy); }
 .sa-cardcopy span { font-size: 13px; color: var(--muted); margin-top: 2px; }
 .sa-issue { color: #8a6207; font-weight: 600; }
 .sa-verified { flex: none; padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(30, 158, 90, .10); color: #1e7c4c; white-space: nowrap; }
-.sa-attnact { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
-.sa-attnact .btn { min-height: 48px; border-radius: var(--btn-r); }
-.sa-retakebtn { justify-content: center; background: #faf9fc; border-color: var(--line); color: var(--navy); font-weight: 700; }
-.sa-overridebtn { justify-content: center; background: #fff; border-color: var(--line); color: var(--muted); font-weight: 700; }
 /* sticky, like the customer page's action bar, and the brand gradient carries
    the one forward action rather than a second green */
 .sa-save {

@@ -1040,9 +1040,9 @@ function openScanFlow(opts) {
             <span class="scan-idcard__lines"><i></i><i></i><i></i><i></i></span></div>
         </div>
       </div>
-      <div class="scan-tip"><span class="scan-tip__icon" aria-hidden="true">🔒</span>
+      <div class="scan-tip"><span class="scan-tip__icon" aria-hidden="true">${rpIcon("lock")}</span>
         <span><strong>Fast &amp; secure</strong>We only use this to find your customer — the photos are read on this phone and discarded.</span></div>
-      <div class="scan-tip"><span class="scan-tip__icon scan-tip__icon--sun" aria-hidden="true">☀</span>
+      <div class="scan-tip"><span class="scan-tip__icon scan-tip__icon--sun" aria-hidden="true">${rpIcon("sun")}</span>
         <span><strong>Works in any light</strong>The phone&rsquo;s own camera handles focus and exposure — no special setup.</span></div>
       <p class="scan-demo-hint">Only the 5 printed training licenses can be recognized — there is no reader for a real ID.</p>`;
     $("[data-begin]").onclick = () => renderFront();
@@ -4151,13 +4151,33 @@ function jacketRequest(deal, docIds) {
    client "sends" exist solely in this session's memory, below. */
 
 const CLIENT_QUEUE_IDS = ["form-insurance", "form-license", "form-paystub"];
-/* line icons for the customer's document rows — decorative; the row's own
-   title and subtitle name the document (owner prototype, 2026-08-26) */
+
+/* ---- ONE icon set for every icon slot (owner rule, 2026-08-27) ------------
+   Every icon in the app's UI slots is a line icon from here: same 24-grid,
+   same 1.7 stroke, currentColor, no fill. Emoji are not icons — they render
+   differently on every phone, cannot take the surrounding colour, and the
+   mixture is what made these screens look unrelated. Add a new key here and
+   reference it; never inline an emoji into an icon slot.
+   Slots that must use this set: .dr-rowicon, .dr-sheetact__ico,
+   .scan-tip__icon, and the .sa-card rows. (Emoji stay fine in
+   prose and in the drawer's own nav list, which is not an icon slot.) ---- */
+const RP_ICON = {
+  shield: `<path d="M12 3 5 6v5.5c0 4.3 2.9 8.3 7 9.5 4.1-1.2 7-5.2 7-9.5V6l-7-3z"/>`,
+  idcard: `<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M5 16.4c.6-1.6 2-2.5 3.5-2.5s2.9.9 3.5 2.5M15 10h4M15 13.5h3"/>`,
+  page: `<path d="M6 2.5h8.5L19 7v14.5H6z"/><path d="M14 2.5V7h5M9 12h6M9 15.5h6M9 8.5h2"/>`,
+  file: `<path d="M6 2.5h8.5L19 7v14.5H6z"/><path d="M14 2.5V7h5"/>`,
+  camera: `<path d="M3 8.5h3.2l1.6-2.4h8.4l1.6 2.4H21v11H3z"/><circle cx="12" cy="13.6" r="3.6"/>`,
+  images: `<rect x="3" y="6" width="14" height="11" rx="2"/><path d="M7 3.5h14v11"/><path d="m5 15 3.4-3.4 2.6 2.6 2.2-2.2L17 15.6"/>`,
+  lock: `<rect x="4.5" y="10" width="15" height="10.5" rx="2.5"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10"/>`,
+  sun: `<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/>`
+};
+const rpIcon = (k) => `<svg viewBox="0 0 24 24">${RP_ICON[k] || RP_ICON.file}</svg>`;
+/* the customer's document rows, keyed by the document they stand for */
 const DR_ROW_ICON = {
-  "form-insurance": `<svg viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.3 2.9 8.3 7 9.5 4.1-1.2 7-5.2 7-9.5V6l-7-3z"/></svg>`,
-  "form-license": `<svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M5 16.4c.6-1.6 2-2.5 3.5-2.5s2.9.9 3.5 2.5M15 10h4M15 13.5h3"/></svg>`,
-  "form-paystub": `<svg viewBox="0 0 24 24"><path d="M6 2.5h8.5L19 7v14.5H6z"/><path d="M14 2.5V7h5M9 12h6M9 15.5h6M9 8.5h2"/></svg>`,
-  default: `<svg viewBox="0 0 24 24"><path d="M6 2.5h8.5L19 7v14.5H6z"/><path d="M14 2.5V7h5"/></svg>`
+  "form-insurance": rpIcon("shield"),
+  "form-license": rpIcon("idcard"),
+  "form-paystub": rpIcon("page"),
+  default: rpIcon("file")
 };
 function clientMeta(docId) { return RIDE_PRICE_DATA.clientDocs[docId.replace(/^form-/, "")] || null; }
 
@@ -5030,9 +5050,9 @@ function drClientLink(id, startScreen) {
         <ol class="dr-checks">${checks.map((ch, i) => `<li><i>${i + 1}</i><span>${esc(ch)}</span></li>`).join("")}</ol>
         ${note ? `<p class="dr-sheetnote"><b>${esc(noteHead)}.</b>${m.altIncome ? ` <button type="button" class="dr-linkbtn" data-other-income>Other income type</button>` : ""}</p>` : ""}
         <div class="dr-sheetacts">
-          ${act("camera", "📷", "Take a photo", "Use your phone camera", true)}
-          ${act("library", "▣", "Choose from library", "Select an existing photo")}
-          ${act("pdf", "📄", "Choose a PDF", "If you have a file instead")}
+          ${act("camera", rpIcon("camera"), "Take a photo", "Use your phone camera", true)}
+          ${act("library", rpIcon("images"), "Choose from library", "Select an existing photo")}
+          ${act("pdf", rpIcon("file"), "Choose a PDF", "If you have a file instead")}
         </div>
         <p class="dr-sheetnote"><button type="button" class="dr-linkbtn" data-example>See a good example</button></p>
         <label class="opt-row dr-badtoggle"><input type="checkbox" id="drBad" ${st.badPhoto ? "checked" : ""}><span class="opt-row__label">Demo only: simulate an unreadable photo.</span></label>
@@ -5436,21 +5456,20 @@ route("snapall/:id/:origin", ({ id, origin }) => {
         <div class="sa-reshead"><h2>Upload Results</h2><p>Deal #${esc(deal.dealNo || "")}${cst ? " • " + esc(cst.first + " " + cst.last) : ""}</p></div>
         <div class="sa-resbody">
           ${ok.length ? `<p class="sa-grouplab sa-grouplab--green">Verified (${ok.length})</p>` + ok.map(r => `
-            <div class="sa-card"><span class="sa-cardicon">${r.icon}</span>
+            <div class="sa-card"><span class="dr-rowicon" aria-hidden="true">${DR_ROW_ICON[r.id] || DR_ROW_ICON.default}</span>
               <span class="sa-cardcopy"><b>${esc(r.title)}</b><span>${esc(r.detail)} · ${r.shots.length} page${r.shots.length === 1 ? "" : "s"}</span></span>
-              <span class="sa-verified">Verified ✓</span></div>`).join("") : ""}
+              <span class="sa-verified">Verified</span></div>`).join("") : ""}
           ${attn.length ? `<p class="sa-grouplab sa-grouplab--amber">Needs attention (${attn.length})</p>` + attn.map(r => `
-            <div class="sa-card sa-card--attn">
-              <div class="sa-cardmain"><span class="sa-cardicon">${r.icon}</span>
-                <span class="sa-cardcopy"><b>${esc(r.title)}</b><span class="sa-issue">Issue: ${esc(r.issue)}</span></span></div>
-              <div class="sa-attnact">
-                <button type="button" class="btn sa-retakebtn" data-sa-retake="${esc(r.id)}">📷 ${r.kind === "pages" ? "Add the page" : "Retake Card"}</button>
-                <button type="button" class="btn sa-overridebtn" data-sa-accept="${esc(r.id)}">Accept Anyway</button>
-              </div>
+            <div class="sa-card">
+              <span class="dr-rowicon" aria-hidden="true">${DR_ROW_ICON[r.id] || DR_ROW_ICON.default}</span>
+              <span class="sa-cardcopy"><b>${esc(r.title)}</b>
+                <span class="sa-issue">${esc(r.issue)}</span>
+                <button type="button" class="dr-linkbtn sa-override" data-sa-accept="${esc(r.id)}">Accept anyway</button></span>
+              <button type="button" class="dr-clientadd" data-sa-retake="${esc(r.id)}">${r.kind === "pages" ? "Add the page" : "Retake"}</button>
             </div>`).join("") : ""}
           ${missing.length ? `<p class="sa-grouplab">Still needed (${missing.length})</p>` + missing.map(r => `
-            <div class="sa-card sa-card--missing"><span class="sa-cardicon">${r.icon}</span>
-              <span class="sa-cardcopy"><b>${esc(r.title)}</b><span>No photo landed on this one — snap it, or send it on its own.</span></span></div>`).join("") : ""}
+            <div class="sa-card sa-card--missing"><span class="dr-rowicon" aria-hidden="true">${DR_ROW_ICON[r.id] || DR_ROW_ICON.default}</span>
+              <span class="sa-cardcopy"><b>${esc(r.title)}</b><span>No photo landed on this one</span></span></div>`).join("") : ""}
           <p class="dr-demonote">Demo — the sorting is simulated. Nothing is read from your photos and they never leave this device.</p>
         </div>
         <button type="button" class="sa-save" id="saSave">Confirm &amp; Save to Deal Jacket →</button>
