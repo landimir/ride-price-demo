@@ -4953,6 +4953,18 @@ function drClientLink(id, startScreen) {
   const cst = Store.customer(deal.customerId);
   const v = Store.vehicle(deal.stock);
   const st = { screen: startScreen === "sms" ? "sms" : "landing", docId: null, badPhoto: false, zoom: 1, page: 0, source: "camera" };
+  /* the sheet's Escape handler, held in the view's scope so every render can
+     detach the previous one — see wire(). Leaving the route entirely does NOT
+     re-run wire(), so the teardown below is what stops a listener outliving
+     the whole view: its closeSheet() calls render(), which would paint this
+     view over whichever route the user has since moved to (CodeRabbit, #50).
+     Same shape as the scan journey's and Snap All's own hashchange cleanup. */
+  let sheetKey = null;
+  function drClientCleanup() {
+    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+    window.removeEventListener("hashchange", drClientCleanup);
+  }
+  window.addEventListener("hashchange", drClientCleanup);
 
   renderChrome("Client link", dealTitle(deal), "");
   document.body.dataset.screen = "clientlink";
@@ -5165,13 +5177,17 @@ function drClientLink(id, startScreen) {
     $$("[data-open-client]").forEach(a => a.onclick = (e) => { e.preventDefault(); st.screen = "landing"; render(); });
     $$("[data-back-landing]").forEach(b => b.onclick = () => { st.screen = "landing"; st.zoom = 1; render(); });
     /* a sheet dismisses the way sheets do: tap the dimmed list behind it, or
-       press Escape. The listener comes off with the sheet, or a later Escape
-       would reach one that is no longer there. */
+       press Escape. wire() runs on EVERY render, so detaching first is what
+       guarantees exactly zero or one listener no matter which path closed the
+       sheet — the X uses the generic data-back-landing handler, which does not
+       know about this one, and a leaked listener would later yank the customer
+       back to the list from a different screen (CodeRabbit, PR #50). */
+    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
     const sheetBack = $("#drSheetBack");
     if (sheetBack) {
-      const closeSheet = () => { document.removeEventListener("keydown", onSheetKey, true); st.screen = "landing"; st.zoom = 1; render(); };
-      function onSheetKey(e) { if (e.key === "Escape") { e.stopPropagation(); closeSheet(); } }
-      document.addEventListener("keydown", onSheetKey, true);
+      const closeSheet = () => { st.screen = "landing"; st.zoom = 1; render(); };
+      sheetKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); closeSheet(); } };
+      document.addEventListener("keydown", sheetKey, true);
       sheetBack.addEventListener("click", (e) => { if (e.target === sheetBack) closeSheet(); });
     }
     $$("[data-back-detail]").forEach(b => b.onclick = () => { st.screen = "detail"; st.zoom = 1; render(); });

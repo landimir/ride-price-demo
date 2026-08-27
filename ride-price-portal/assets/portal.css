@@ -1426,7 +1426,7 @@ label.f .seg { display: flex; }
 /* the right-hand control: a quiet word, or a status pill once it has one */
 .dr-clientadd {
   flex: 0 0 auto; min-height: 44px; border: 0; background: none; color: var(--navy);
-  border-radius: 10px; padding: 10px 8px; font: inherit; font-size: 14px; font-weight: 700;
+  border-radius: var(--btn-r); padding: 10px 8px; font: inherit; font-size: 14px; font-weight: 700;
   white-space: nowrap; cursor: pointer;
 }
 .dr-clientadd:hover { background: rgba(38, 34, 84, .06); }
