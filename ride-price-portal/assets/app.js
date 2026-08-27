@@ -2582,13 +2582,11 @@ route("trade/:id", ({ id }) => {
 function deskStickyBar(r, isCash, isLease, deal) {
   const label = isCash ? "Total due" : deal.dealType === "onepay" ? "Due at signing" : "Estimated payment";
   const amount = isCash ? money(r.totalDue) : deal.dealType === "onepay" ? money(r.onePayTotal) : money(r.payment);
-  const sub = isCash ? "cash purchase"
-    : deal.dealType === "onepay" ? `${r.term} mo · ${r.miles.toLocaleString()} mi/yr`
-    : isLease ? `${r.term} mo · ${r.miles.toLocaleString()} mi/yr`
-    : `${r.term} mo @ ${r.apr}%`;
+  const unit = isCash || deal.dealType === "onepay" ? "total" : "/ mo";
   return `<div class="desk-sticky">
-    <div class="desk-sticky__copy"><span>${esc(label)}</span><b>${esc(amount)}</b><small>${esc(sub)}</small></div>
-    <button type="button" class="btn btn--grad desk-sticky__go" id="deskContinueSticky">Continue →</button>
+    <div class="desk-sticky__copy"><span>${esc(label)}</span>
+      <div class="desk-sticky__val"><b>${esc(amount)}</b><span class="desk-sticky__unit">${unit}</span></div></div>
+    <button type="button" class="btn btn--grad desk-sticky__go" id="deskContinueSticky">Continue</button>
   </div>`;
 }
 
@@ -2615,17 +2613,17 @@ route("desk/:id", ({ id }) => {
   function renderHuddle() {
     const h = deal.huddle;
     const paying = h.paying || deal.dealType;
-    renderChrome("Base Payment Huddle", dealTitle(deal, true),
-      h.done ? `<button class="btn btn--ghost btn--sm" id="huddleCancel">← Back to the pencil</button>` : "");
+    renderChrome("Base Payment Huddle", dealTitle(deal, true), "");
+    document.body.dataset.screen = "desk"; /* the prototype has one header — the flow carries the title */
     /* the owner's desking prototype (2026-08-27), 1:1: eyebrow → h1 → deal
        meta → chips, then one bordered section per question. The RP accent
        lives ONLY on the two notice banners and the primary action; toggles,
        inputs and choice cards keep the neutral default grammar. */
     view().innerHTML = `
     <div class="dk-wrap">
-      <div class="dk-eyebrow">FIRST PENCIL</div>
+      <div class="dk-headrow"><div class="dk-eyebrow" style="margin:0">FIRST PENCIL</div>${h.done ? `<button type="button" class="dk-linkbtn" id="huddleCancel">Back to the pencil</button>` : ""}</div>
       <h1>Get the game plan aligned.</h1>
-      <div class="dk-meta"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}<br>Before showing numbers, confirm how the customer wants to buy.</div>
+      <div class="dk-meta"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}${deal.dealNo ? ` · Deal #${esc(deal.dealNo)}` : ""}<br>Before showing numbers, confirm how the customer wants to buy.</div>
       <div class="dk-chips">
         <button type="button" class="dk-chip" data-buyers="${esc(deal.id)}">${rpIcon("user")} Buyer</button>
         <a class="dk-chip" href="#/jacket/${esc(deal.id)}">${rpIcon("folder")} Jacket ${jacketCounts(deal).missing ? `<b>${jacketCounts(deal).missing}</b>` : ""}</a>
@@ -2706,7 +2704,8 @@ route("desk/:id", ({ id }) => {
   function render() {
     renderChrome("Calculate Payments", dealTitle(deal, true),
       `<button class="btn btn--ghost btn--sm" id="huddleBtn">Huddle</button>
-       <button class="btn btn--grad btn--sm" id="deskContinue">Continue →</button>`);
+       <button class="btn btn--grad btn--sm" id="deskContinue">Continue</button>`);
+    document.body.dataset.screen = "desk";
     $("#huddleBtn").onclick = () => renderHuddle();
     const r = RIDE_PRICE_CALC.calc(deal, v);
     const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
@@ -2721,8 +2720,8 @@ route("desk/:id", ({ id }) => {
     const heroAmt = isCash ? money(r.totalDue) : deal.dealType === "onepay" ? money(r.onePayTotal) : money(r.payment);
     const heroUnit = isCash || deal.dealType === "onepay" ? "" : `<span class="unit">/mo</span>`;
     const heroSub = isCash ? "Cash purchase · trade and rebate applied"
-      : isLease ? `${r.term} months · ${r.miles.toLocaleString()} mi/yr · ${money(deal.desk.dueAtSigning)} due at signing`
-      : `${r.term} months · ${r.apr}% APR · ${money(deal.desk.downPayment)} down`;
+      : isLease ? `${r.term} months · ${r.miles.toLocaleString()} mi/yr · ${money0(deal.desk.dueAtSigning)} due at signing`
+      : `${r.term} months · ${r.apr}% APR · ${money0(deal.desk.downPayment)} down`;
 
     const acc = (key, label, sum, body, extra) => `
       <details class="dk-acc" data-acc-key="${key}" ${ui.open[key] ? "open" : ""}>
@@ -2736,7 +2735,7 @@ route("desk/:id", ({ id }) => {
       <div class="dk-eyebrow">DESKING</div>
       <div class="dk-headrow">
         <div><h1 style="margin-bottom:7px">Calculate payments</h1>
-          <div class="dk-meta" style="margin:0"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</div></div>
+          <div class="dk-meta" style="margin:0"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}${deal.dealNo ? ` · Deal #${esc(deal.dealNo)}` : ""}</div></div>
         <button type="button" class="dk-linkbtn" id="dkHuddleLink">Huddle</button>
       </div>
 
@@ -2750,10 +2749,10 @@ route("desk/:id", ({ id }) => {
       </div>
 
       <div class="dk-vehicle">
-        <div class="dk-vehicle-art" style="background:linear-gradient(140deg,hsl(${v.hue},42%,92%),hsl(${v.hue},38%,80%))" aria-hidden="true">${v.emoji}</div>
+        <div class="dk-vehicle-art" style="background:linear-gradient(140deg,hsl(${v.hue},42%,92%),hsl(${v.hue},38%,80%))" aria-hidden="true"><svg viewBox="0 0 48 28" class="dk-carline"><path d="M7 20h34v-3.4c0-1.8-1.4-3.2-3.2-3.2h-4.6l-4.9-6c-.8-1-2-1.6-3.3-1.6h-6c-1.3 0-2.5.6-3.3 1.6l-4.9 6h-4.6C8.4 13.4 7 14.8 7 16.6V20z"/><path d="M17.2 7.6 13 13h9v-5.6zM25 7.4V13h8.6L29 7.9" fill="none"/><circle cx="15" cy="20.5" r="3.4"/><circle cx="33" cy="20.5" r="3.4"/></svg></div>
         <div><h3>${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</h3>
           <p>Stock ${esc(v.stock)} · VIN ${esc(v.vin)}</p>
-          <p>Your price ${money(r.yourPrice)}</p></div>
+          <p>Your price ${money0(r.yourPrice)}</p></div>
       </div>
 
       <div class="dk-hero pay-hero">
