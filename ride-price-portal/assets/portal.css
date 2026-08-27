@@ -1621,8 +1621,10 @@ body[data-screen="clientlink"] { background: #fff; }
 .sa-camtop { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding: 0 0 10px; }
 .sa-camtop b { text-align: center; font-size: 14px; }
 .sa-x { border: 0; background: transparent; color: #fff; font-size: 26px; min-height: 44px; cursor: pointer; }
+/* the viewfinder fills the camera surface instead of sitting at the top of
+   it — a fixed height left a tall black void above the controls (owner, 2026-08-27) */
 .sa-viewfinder {
-  min-height: 280px; border: 2px dashed rgba(255,255,255,.25); border-radius: 24px;
+  flex: 1; min-height: 280px; border: 2px dashed rgba(255,255,255,.25); border-radius: 24px;
   background: radial-gradient(circle at 50% 45%, #1e293b 0, #0f172a 50%, #020617 100%);
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; padding: 24px;
@@ -1659,31 +1661,42 @@ body[data-screen="clientlink"] { background: #fff; }
 .sa-cam .demo-note { color: #94a3b8; text-align: center; margin: 10px 0 0; }
 
 /* the results sheet */
-.sa-results { background: var(--bg); border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; padding-bottom: 14px; }
-.sa-reshead { padding: 15px 16px; background: #fff; border-bottom: 1px solid var(--line); }
-.sa-reshead h2 { font-size: 18px; margin: 0; color: var(--navy); }
-.sa-reshead p { font-size: 11.5px; margin: 4px 0 0; color: var(--ink); }
-.sa-resbody { padding: 14px; }
-.sa-grouplab { font-size: 10.5px; font-weight: 900; text-transform: uppercase; letter-spacing: .65px; margin: 5px 2px 8px; color: var(--ink); }
-.sa-grouplab--green { color: #047857; }
-.sa-grouplab--amber { color: #a16207; }
-.sa-card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 11px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
-.sa-card--attn { display: block; background: #fffbeb; border-color: #fde68a; }
-.sa-cardmain { display: flex; align-items: center; gap: 10px; }
-.sa-cardicon { width: 36px; height: 36px; border-radius: 10px; background: #eff6ff; display: flex; align-items: center; justify-content: center; font-size: 18px; flex: 0 0 auto; }
-.sa-card--attn .sa-cardicon { background: #fef3c7; }
+/* the results wear the customer page's grammar (owner, 2026-08-27 — this one
+   had been left behind): white canvas, 24px gutters, quiet rows, one
+   dominant action, and colour only where it means something. */
+/* on the customer canvas the camera is edge-to-edge and fills the screen —
+   it is a camera, not a panel sitting on a page (owner, 2026-08-27) */
+body[data-screen="clientlink"] .sa-wrap { max-width: 430px; }
+body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
+.sa-results { background: #fff; padding-bottom: 20px; }
+.sa-reshead { padding: 22px 24px 16px; background: #fff; }
+.sa-reshead h2 { font-size: 27px; line-height: 1.16; margin: 0; color: var(--navy); letter-spacing: -.3px; }
+.sa-reshead p { font-size: 13.5px; margin: 6px 0 0; color: var(--muted); }
+.sa-resbody { padding: 0 24px; }
+.sa-grouplab { font-size: 13.5px; font-weight: 700; margin: 22px 0 12px; color: var(--navy); }
+.sa-grouplab--green { color: #1e7c4c; }
+.sa-grouplab--amber { color: #8a6207; }
+.sa-card { background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 12px; display: flex; align-items: center; gap: 14px; min-height: 76px; }
+.sa-card--attn { display: block; background: #fff; border-color: #f0e2bd; }
+.sa-cardmain { display: flex; align-items: center; gap: 14px; }
+.sa-cardicon { width: 44px; height: 44px; border-radius: 12px; background: #f4f3f9; display: flex; align-items: center; justify-content: center; font-size: 19px; flex: 0 0 auto; }
+.sa-card--attn .sa-cardicon { background: rgba(249, 178, 52, .18); }
 .sa-cardcopy { min-width: 0; flex: 1; display: flex; flex-direction: column; }
-.sa-cardcopy b { font-size: 12.5px; color: var(--navy); }
-.sa-cardcopy span { font-size: 11px; color: var(--ink); margin-top: 3px; }
-.sa-issue { color: #92400e; font-weight: 700; }
-.sa-verified { font-size: 11px; font-weight: 900; color: #047857; white-space: nowrap; }
-.sa-attnact { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-.sa-retakebtn { justify-content: center; background: #fff; border-color: var(--line); color: var(--navy); font-weight: 900; }
-.sa-overridebtn { justify-content: center; background: #0f172a; border-color: transparent; color: #fff; font-weight: 900; }
+.sa-cardcopy b { font-size: 15.5px; font-weight: 700; color: var(--navy); }
+.sa-cardcopy span { font-size: 13px; color: var(--muted); margin-top: 2px; }
+.sa-issue { color: #8a6207; font-weight: 600; }
+.sa-verified { flex: none; padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; background: rgba(30, 158, 90, .10); color: #1e7c4c; white-space: nowrap; }
+.sa-attnact { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px; }
+.sa-attnact .btn { min-height: 48px; border-radius: var(--btn-r); }
+.sa-retakebtn { justify-content: center; background: #faf9fc; border-color: var(--line); color: var(--navy); font-weight: 700; }
+.sa-overridebtn { justify-content: center; background: #fff; border-color: var(--line); color: var(--muted); font-weight: 700; }
+/* sticky, like the customer page's action bar, and the brand gradient carries
+   the one forward action rather than a second green */
 .sa-save {
-  display: block; width: calc(100% - 28px); margin: 4px auto 0; min-height: 52px; border: 0;
-  border-radius: var(--btn-r); background: linear-gradient(90deg, #059669, #10b981); color: #fff;
-  font: inherit; font-weight: 900; cursor: pointer;
+  position: sticky; bottom: 0; display: block; width: calc(100% - 48px);
+  margin: 20px auto calc(4px + env(safe-area-inset-bottom, 0px)); min-height: 54px; border: 0;
+  border-radius: var(--btn-r); background: var(--grad); color: #fff;
+  font: inherit; font-size: 15.5px; font-weight: 700; cursor: pointer;
 }
 
 /* phone-only pieces, hidden above 720 */

@@ -5330,7 +5330,11 @@ route("snapall/:id/:origin", ({ id, origin }) => {
   const cst = Store.customer(deal.customerId);
 
   renderChrome("Snap All Documents", dealTitle(deal), "");
-  document.body.dataset.screen = "snapall";
+  /* reached from the client link, this is still the CUSTOMER's page and keeps
+     their canvas — no app bar, no role switch (owner, 2026-08-27; the chrome
+     was leaking back in here after the client page had shed it) */
+  const clientSide = origin !== "advisor";
+  document.body.dataset.screen = clientSide ? "clientlink" : "snapall";
 
   /* shots are session-only object URLs until Confirm hands them to a
      document's page set; leaving the screen releases whatever was not kept */
@@ -5431,11 +5435,11 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       <div class="sa-results">
         <div class="sa-reshead"><h2>Upload Results</h2><p>Deal #${esc(deal.dealNo || "")}${cst ? " • " + esc(cst.first + " " + cst.last) : ""}</p></div>
         <div class="sa-resbody">
-          ${ok.length ? `<p class="sa-grouplab sa-grouplab--green">Auto-identified &amp; Verified (${ok.length})</p>` + ok.map(r => `
+          ${ok.length ? `<p class="sa-grouplab sa-grouplab--green">Verified (${ok.length})</p>` + ok.map(r => `
             <div class="sa-card"><span class="sa-cardicon">${r.icon}</span>
               <span class="sa-cardcopy"><b>${esc(r.title)}</b><span>${esc(r.detail)} · ${r.shots.length} page${r.shots.length === 1 ? "" : "s"}</span></span>
               <span class="sa-verified">Verified ✓</span></div>`).join("") : ""}
-          ${attn.length ? `<p class="sa-grouplab sa-grouplab--amber">Needs Attention (${attn.length})</p>` + attn.map(r => `
+          ${attn.length ? `<p class="sa-grouplab sa-grouplab--amber">Needs attention (${attn.length})</p>` + attn.map(r => `
             <div class="sa-card sa-card--attn">
               <div class="sa-cardmain"><span class="sa-cardicon">${r.icon}</span>
                 <span class="sa-cardcopy"><b>${esc(r.title)}</b><span class="sa-issue">Issue: ${esc(r.issue)}</span></span></div>
@@ -5447,7 +5451,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
           ${missing.length ? `<p class="sa-grouplab">Still needed (${missing.length})</p>` + missing.map(r => `
             <div class="sa-card sa-card--missing"><span class="sa-cardicon">${r.icon}</span>
               <span class="sa-cardcopy"><b>${esc(r.title)}</b><span>No photo landed on this one — snap it, or send it on its own.</span></span></div>`).join("") : ""}
-          <p class="demo-note">Demo — the sort and the checks are simulated on this device. Nothing is read from the photos (they are dealt onto the documents still needed, in order) and they never leave it.</p>
+          <p class="dr-demonote">Demo — the sorting is simulated. Nothing is read from your photos and they never leave this device.</p>
         </div>
         <button type="button" class="sa-save" id="saSave">Confirm &amp; Save to Deal Jacket →</button>
       </div>
@@ -5456,7 +5460,11 @@ route("snapall/:id/:origin", ({ id, origin }) => {
 
   function render() {
     view().innerHTML = st.screen === "results" ? resultsScreen() : captureScreen();
-    view().insertAdjacentHTML("beforeend", drDebugStrip(deal));
+    /* the DEBUG counters are staff furniture and this screen is often the
+       customer's (owner, 2026-08-27). The ✕ already returns wherever they came
+       from, so the strip added nothing here; the trainer keeps the marked demo
+       control on the customer side, as on the upload page. */
+    if (clientSide) view().insertAdjacentHTML("beforeend", `<button type="button" class="dr-demoexit" data-dbg="advisor">Demo · advisor view</button>`);
     drWireDebug(deal);
     if (st.screen === "results") {
       $("#saSave").onclick = commit;
