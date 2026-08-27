@@ -3136,9 +3136,11 @@ route("desk/:id", ({ id }) => {
 route("compare/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
   const v = Store.vehicle(deal.stock);
+  const c = Store.customer(deal.customerId);
 
-  renderChrome("Payment Comparison", dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/desk/${esc(deal.id)}">← Calculate Payments</a>`);
+  renderChrome("Payment Comparison", "", "");
+  document.body.dataset.screen = "desk";
+  document.body.dataset.canvas = "master";
 
   const sides = [deal.dealType === "lease" ? "finance" : deal.dealType, deal.dealType === "lease" ? "lease" : "lease"];
 
@@ -3147,37 +3149,53 @@ route("compare/:id", ({ id }) => {
     clone.dealType = side;
     const r = RIDE_PRICE_CALC.calc(clone, v);
     const head = side === "cash" ? money(r.totalDue) : side === "onepay" ? money(r.onePayTotal) : money(r.payment);
-    return `<div class="panel">
-      <div class="panel__head"><h2>Payment: ${head}</h2>
-        <div class="right"><select data-side="${i}" data-ui="dd" title="Deal type">${Object.entries(DEAL_TYPES).map(([k, l]) => `<option value="${k}" ${side === k ? "selected" : ""}>${l}</option>`).join("")}</select></div></div>
-      <div class="panel__body">
-        <ul class="lines small">
-          <li><span>Vehicle Price</span><b class="amt">${money(r.yourPrice)}</b></li>
-          <li><span>Accessories</span><b class="amt">${money(r.accessories)}</b></li>
-          <li><span>Rebate</span><b class="amt">${money(deal.trade.rebates || 0)}</b></li>
-          <li><span>Trade Allowance</span><b class="amt">${money(deal.trade.value || 0)}</b></li>
-          <li><span>Trade Payoff</span><b class="amt">${money(deal.trade.payoff || 0)}</b></li>
-          <li><span>Total Fees</span><b class="amt">${money(RIDE_PRICE_CALC.totalFees())}</b></li>
-          ${side === "lease" || side === "onepay"
-            ? `<li><span>Miles Per Year</span><b class="amt">${(deal.desk.milesPerYear).toLocaleString()}</b></li>
-               <li><span>Residual</span><b class="amt">${money(r.residual)}</b></li>
-               <li><span>Lease Factor</span><b class="amt">${r.factor.toFixed(5)}</b></li>
-               <li><span>Term</span><b class="amt">${r.term} months</b></li>`
-            : side === "cash" ? `<li><span>Taxes</span><b class="amt">${money(r.taxes.total)}</b></li>`
-            : `<li><span>Cash Down</span><b class="amt">${money(deal.desk.downPayment)}</b></li>
-               <li><span>APR</span><b class="amt">${deal.desk.apr}%</b></li>
-               <li><span>Term</span><b class="amt">${r.term} months</b></li>`}
-        </ul>
-        <button class="btn btn--primary mt" data-save="${side}" style="width:100%;justify-content:center">Save — select this deal type</button>
+    const unit = side === "cash" || side === "onepay" ? "total" : "/ mo";
+    const badge = side === "cash" ? "cash purchase"
+      : side === "onepay" ? `${r.term} months · one payment`
+      : side === "lease" ? `${r.term} months · ${Math.round(r.miles / 1000)}k`
+      : `${r.term} months`;
+    const row = (l, val) => `<div class="m-specrow"><span>${l}</span><strong>${val}</strong></div>`;
+    return `<div class="dk-cmpcard">
+      <div class="dk-cmphead"><b>${esc(DEAL_TYPES[side])}</b><span class="dk-badge">${esc(badge)}</span></div>
+      <div class="dk-typerow" role="tablist" aria-label="Deal type for this card">
+        ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" class="m-chip dk-typechip${side === k ? " active" : ""}" data-side="${i}" data-val="${k}" role="tab" aria-selected="${side === k}">${esc(l)}</button>`).join("")}
       </div>
+      <div class="price">${esc(head)} <span class="unit">${unit}</span></div>
+      <div class="m-specgroup">
+        ${row("Vehicle price", money(r.yourPrice))}
+        ${row("Accessories", money(r.accessories))}
+        ${row("Rebate", money(deal.trade.rebates || 0))}
+        ${row("Trade allowance", money(deal.trade.value || 0))}
+        ${row("Trade payoff", money(deal.trade.payoff || 0))}
+        ${row("Total Fees", money(RIDE_PRICE_CALC.totalFees()))}
+        ${side === "lease" || side === "onepay"
+          ? row("Miles per year", (deal.desk.milesPerYear).toLocaleString())
+            + row("Residual", money(r.residual))
+            + row("Lease factor", r.factor.toFixed(5))
+            + row("Term", `${r.term} months`)
+          : side === "cash" ? row("Taxes", money(r.taxes.total))
+          : row("Cash down", money(deal.desk.downPayment))
+            + row("APR", `${deal.desk.apr}%`)
+            + row("Term", `${r.term} months`)}
+      </div>
+      <button type="button" class="dk-primary" style="width:100%;margin-top:16px" data-save="${side}">Select ${esc(DEAL_TYPES[side].toLowerCase())}</button>
     </div>`;
   }
 
   function render() {
-    view().innerHTML = `
-      <p class="note">Rebates and cash down <b>will not carry over</b> when changing deal types.</p>
-      <div class="grid grid--2">${sides.map((s, i) => colHtml(s, i)).join("")}</div>`;
-    $$("[data-side]").forEach(sel => sel.onchange = (e) => { sides[+sel.dataset.side] = e.target.value; render(); });
+    view().innerHTML = `${deskTop(deal)}
+    <div class="dk-wrap dk-wrap--wide">
+      <div class="dk-eyebrow">DESKING</div>
+      <div class="dk-headrow">
+        <div><h1 style="margin-bottom:7px">Compare payments</h1>
+          <div class="dk-meta" style="margin:0"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</div></div>
+        <a class="dk-linkbtn" href="#/desk/${esc(deal.id)}" style="text-align:right">Back to the pencil</a>
+      </div>
+      <div class="dk-notice" style="margin-top:16px"><strong>Before you switch</strong>Rebates and cash down will not carry over when changing deal types.</div>
+      <div class="dk-cmpgrid">${sides.map((s, i) => colHtml(s, i)).join("")}</div>
+    </div>`;
+    wireDeskTop();
+    $$("[data-side]").forEach(b => b.onclick = () => { sides[+b.dataset.side] = b.dataset.val; render(); });
     $$("[data-save]").forEach(b => b.onclick = () => {
       deal.dealType = b.dataset.save; Store.save();
       toast(`Deal type set to ${DEAL_TYPES[deal.dealType]}`);
