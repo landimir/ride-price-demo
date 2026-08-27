@@ -1361,45 +1361,152 @@ label.f .seg { display: flex; }
 /* the simulated client phone — a centred column that reads as the client's
    device on any screen width (my call for desktop: the client journey is a
    phone journey, so it renders at phone width everywhere) */
-.dr-client { max-width: 430px; margin: 0 auto; background: #fff; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; box-shadow: var(--sh); position: relative; }
-.dr-trust { background: #fff; border-bottom: 1px solid var(--line); padding: 14px; }
-.dr-dealerline { display: flex; align-items: center; gap: 10px; }
-.dr-logomark { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--orange), var(--coral)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+/* ---------- the customer's own canvas (owner prototype, 2026-08-26) ----------
+   This page is reached from a text message by someone who does not work here.
+   It gets an edge-to-edge white canvas with none of the advisor tool's chrome
+   — no app bar, no role switcher, no debug counters — and the prototype's
+   bolder card grammar, in Ride Price colours (the gradient carries the one
+   conversion action; the reference's pink never enters the palette). ------- */
+.dr-client {
+  max-width: 430px; margin: 0 auto; background: #fff; position: relative;
+  min-height: 100vh; display: flex; flex-direction: column;
+}
+.dr-trust { background: #fff; padding: 18px 24px 16px; }
+.dr-dealerline { display: flex; align-items: center; gap: 12px; }
+.dr-logomark { width: 44px; height: 44px; border-radius: 13px; background: var(--grad); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; flex: none; }
 .dr-dealercopy { flex: 1; min-width: 0; }
-.dr-dealercopy b { display: block; font-size: 15px; }
-.dr-dealercopy span { display: block; font-size: 12px; color: var(--ink); }
-.dr-trustmeta { font-size: 13px; color: var(--ink); margin-top: 10px; }
-.dr-clientbody { padding: 14px 14px 90px; background: var(--bg); }
-.dr-clientbody h1 { font-size: 24px; margin: 4px 0 4px; }
-.dr-subhead { font-size: 13px; color: var(--ink); margin: 0 0 10px; }
+.dr-dealercopy b { display: block; font-size: 15px; color: var(--navy); }
+.dr-dealercopy span { display: block; font-size: 12.5px; color: var(--muted); }
+.dr-trustmeta { font-size: 13px; color: var(--muted); margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.dr-trustmeta b { color: var(--navy); }
+.dr-clientbody { padding: 8px 24px 210px; background: #fff; flex: 1; }
+.dr-eyebrow { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .2px; margin: 6px 0 4px; }
+/* nothing follows the heading now the paragraph is gone, so it carries the
+   gap to the progress line itself (owner, 2026-08-27) */
+.dr-clientbody h1 { font-size: 27px; line-height: 1.16; margin: 0 0 22px; color: var(--navy); letter-spacing: -.3px; }
+/* progress: the count leads, the bar is a thin confirmation of it */
+.dr-progress { margin: 0 0 22px; }
+.dr-progress__row { display: flex; justify-content: space-between; align-items: baseline; font-size: 13.5px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+.dr-progress__row span:last-child { color: var(--muted); font-weight: 600; }
+.dr-progress__track { height: 5px; border-radius: 999px; background: #eceaf4; overflow: hidden; }
+.dr-progress__fill { display: block; height: 100%; border-radius: 999px; background: var(--grad); transition: width .3s ease; }
+.dr-seclab { font-size: 13.5px; font-weight: 700; color: var(--navy); margin: 0 0 12px; }
 .dr-needbox { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 10px; }
 .dr-needbox b { display: block; font-size: 13px; }
 .dr-needbox span { font-size: 13px; color: var(--ink); }
+/* one boxed row per requested document: icon tile, what it is, and the one
+   control that moves it forward. The whole row opens "what we need". */
 .dr-clientrow {
-  width: 100%; display: flex; align-items: center; gap: 10px; text-align: left;
-  background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 12px; margin-bottom: 10px;
-  font: inherit; cursor: pointer;
+  width: 100%; display: flex; align-items: center; gap: 14px; text-align: left;
+  background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin-bottom: 12px;
+  font: inherit; cursor: pointer; min-height: 76px;
 }
+.dr-clientrow:hover { border-color: #cfcbe2; }
 .dr-clientrow[disabled] { cursor: default; }
-.dr-status { display: block; font-size: 11px; font-weight: 800; margin-top: 3px; }
-.dr-status--received { color: #a16207; }
-.dr-status--accepted { color: #047857; }
-.dr-status--rejected { color: #be123c; }
-.dr-blockhint { display: block; font-size: 11px; color: #9a3412; margin-top: 3px; }
+.dr-rowicon {
+  width: 44px; height: 44px; border-radius: 12px; flex: none; display: grid; place-items: center;
+  background: #f4f3f9; color: var(--navy);
+}
+.dr-rowicon svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.dr-rowsub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
+.dr-status { display: block; font-size: 12px; font-weight: 700; margin-top: 3px; }
+.dr-status--received { color: #8a6207; }
+.dr-status--accepted { color: #1e7c4c; }
+.dr-status--rejected { color: var(--crimson); }
+.dr-blockhint { display: block; font-size: 12px; color: #8a6207; margin-top: 3px; }
+/* the right-hand control: a quiet word, or a status pill once it has one */
 .dr-clientadd {
-  flex: 0 0 auto; min-height: 40px; border: 1px solid #bfdbfe; background: #eff6ff; color: #1d4ed8;
-  border-radius: var(--btn-r); padding: 8px 11px; font: inherit; font-size: 11px; font-weight: 900;
+  flex: 0 0 auto; min-height: 44px; border: 0; background: none; color: var(--navy);
+  border-radius: 10px; padding: 10px 8px; font: inherit; font-size: 14px; font-weight: 700;
   white-space: nowrap; cursor: pointer;
 }
+.dr-clientadd:hover { background: rgba(38, 34, 84, .06); }
+.dr-pill { flex: none; padding: 5px 11px; border-radius: 999px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.dr-pill--ok { background: rgba(30, 158, 90, .10); color: #1e7c4c; }
+.dr-pill--warn { background: rgba(249, 178, 52, .18); color: #8a6207; }
+.dr-pill--bad { background: rgba(179, 54, 75, .10); color: var(--crimson); }
 .dr-hiddeninput { display: none !important; }
 .dr-chev { color: var(--muted); font-weight: 800; white-space: nowrap; }
 .dr-savelater { width: 100%; background: #fff; border: 1px solid var(--line); border-radius: var(--btn-r); padding: 12px; font: inherit; font-weight: 800; color: var(--navy); margin-top: 4px; cursor: pointer; }
 .dr-savelater[disabled] { opacity: .45; }
-.dr-clientbottom { position: sticky; bottom: 0; background: linear-gradient(180deg, transparent, var(--bg) 30%); padding: 10px 14px 14px; }
-.dr-clientcta { width: 100%; border: 0; border-radius: var(--btn-r); padding: 14px; font: inherit; font-weight: 900; color: #fff; background: linear-gradient(90deg, var(--orange), var(--coral)); cursor: pointer; }
+/* sticky, safe-area aware: the one action stays reachable with a thumb */
+.dr-clientbottom {
+  position: sticky; bottom: 0; background: linear-gradient(180deg, rgba(255, 255, 255, 0), #fff 34%);
+  padding: 14px 24px calc(16px + env(safe-area-inset-bottom, 0px));
+  display: grid; gap: 8px;
+}
+.dr-clientcta {
+  width: 100%; border: 0; border-radius: var(--btn-r); min-height: 54px; padding: 14px;
+  font: inherit; font-size: 15.5px; font-weight: 700; color: #fff; background: var(--grad); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
 .dr-clientcta[disabled] { opacity: .45; }
-.dr-clientcta--green { background: linear-gradient(90deg, #059669, #10b981); }
-.dr-clientcta--secondary { background: #fff; color: var(--navy); border: 1px solid var(--line); }
+.dr-clientcta--green { background: var(--green); }
+.dr-clientcta--secondary { background: #fff; color: var(--navy); border: 1px solid var(--line); min-height: 48px; }
+.dr-clientcta--text { background: none; color: var(--navy); min-height: 44px; font-size: 14.5px; }
+.dr-clientcta--text:hover { background: rgba(38, 34, 84, .06); }
+/* the trainer's way back, deliberately outside the customer's page: the
+   advisor/debug strip does not belong on a page a customer opens from a text
+   (open audit finding on drDebugStrip) */
+.dr-demoexit {
+  display: block; margin: 4px auto 24px;
+  border: 0; border-radius: 999px; background: rgba(249, 178, 52, .95); color: #4a3505;
+  font: inherit; font-size: 11.5px; font-weight: 800; padding: 9px 14px; min-height: 40px;
+  box-shadow: 0 4px 14px rgba(38, 34, 84, .18); cursor: pointer;
+}
+.dr-demonote { font-size: 11.5px; color: var(--muted); text-align: center; margin: 18px 0 0; line-height: 1.5; }
+
+/* "what we need" slides up over the list instead of replacing it (owner,
+   2026-08-27), so the customer never loses their place. The long requirement
+   paragraph is gone with it — short scannable lines only. */
+.dr-sheetback {
+  position: fixed; inset: 0; background: rgba(28, 25, 64, .38); z-index: 70;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.dr-sheet {
+  width: min(430px, 100%); background: #fff; border-radius: 20px 20px 0 0;
+  padding: 10px 24px calc(20px + env(safe-area-inset-bottom, 0px));
+  max-height: 88%; overflow-y: auto; animation: drsheet .22s ease;
+}
+@keyframes drsheet { from { transform: translateY(40px); opacity: .4; } to { transform: none; opacity: 1; } }
+.dr-sheet__handle { display: block; width: 40px; height: 4px; border-radius: 999px; background: #dddbe9; margin: 0 auto 16px; }
+.dr-sheet__head { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 4px; }
+.dr-sheet__head > div { flex: 1; min-width: 0; }
+.dr-sheet__eyebrow { display: block; font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+.dr-sheet h2 { font-size: 21px; margin: 0; color: var(--navy); letter-spacing: -.2px; }
+.dr-sheet__sub { display: block; font-size: 13.5px; color: var(--muted); margin-top: 3px; }
+.dr-sheet__x {
+  width: 34px; height: 34px; border-radius: 50%; border: 0; background: #f4f3f9; color: var(--navy);
+  font-size: 17px; line-height: 1; cursor: pointer; flex: none; display: grid; place-items: center;
+}
+.dr-sheet__x:hover { background: #eceaf4; }
+/* the checks, as short numbered lines — this is what the reader actually
+   looks for, so saying it plainly is both shorter and truer than a paragraph */
+.dr-checks { list-style: none; margin: 16px 0 0; padding: 0; border-top: 1px solid var(--line); }
+.dr-checks li { display: grid; grid-template-columns: 24px 1fr; gap: 12px; align-items: start; padding: 11px 0; border-bottom: 1px solid var(--hairline, #eceaf4); font-size: 14px; color: var(--ink); line-height: 1.45; }
+.dr-checks li:last-child { border-bottom: 0; }
+.dr-checks i {
+  width: 22px; height: 22px; border-radius: 50%; background: #f4f3f9; color: var(--navy);
+  font-style: normal; font-size: 11.5px; font-weight: 800; display: grid; place-items: center;
+}
+.dr-sheetnote { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin: 14px 0 0; }
+.dr-sheetnote b { color: var(--ink); }
+.dr-sheetnote--warn { background: rgba(249, 178, 52, .16); color: #8a6207; border-radius: 12px; padding: 11px 13px; margin-top: 14px; }
+.dr-sheetnote--warn b { color: #8a6207; }
+/* the capture choices: full-width rows, one dominant */
+.dr-sheetacts { display: grid; gap: 8px; margin-top: 18px; }
+.dr-sheetact {
+  display: flex; align-items: center; gap: 13px; width: 100%; min-height: 62px;
+  border: 1px solid var(--line); border-radius: 14px; background: #fff; padding: 12px 14px;
+  font: inherit; text-align: left; cursor: pointer; color: var(--navy);
+}
+.dr-sheetact:hover { border-color: #cfcbe2; }
+.dr-sheetact--primary { background: var(--grad); border-color: transparent; color: #fff; }
+.dr-sheetact__ico { width: 34px; height: 34px; border-radius: 10px; background: #f4f3f9; display: grid; place-items: center; font-size: 15px; flex: none; }
+.dr-sheetact--primary .dr-sheetact__ico { background: rgba(255, 255, 255, .22); }
+.dr-sheetact b { display: block; font-size: 15px; font-weight: 700; }
+.dr-sheetact span { display: block; font-size: 12.5px; opacity: .8; margin-top: 1px; }
+.dr-sheetact__go { margin-left: auto; opacity: .5; font-size: 18px; }
 
 /* the document's own screen (master prototype): requirement, example,
    capture methods, demo toggle — reached from the row body */
@@ -1430,22 +1537,6 @@ label.f .seg { display: flex; }
 .dr-reviewactions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
 .dr-reviewactions button { min-height: 46px; border: 1px solid var(--line); background: #fff; border-radius: var(--btn-r); font: inherit; font-weight: 800; color: var(--navy); cursor: pointer; }
 .dr-reviewactions button[disabled] { opacity: .4; }
-.dr-failcard { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 10px; margin-bottom: 9px; }
-.dr-failcard b { display: block; font-size: 13px; margin-bottom: 7px; }
-.dr-failcard p { font-size: 11px; color: var(--ink); line-height: 1.4; margin: 7px 0 0; }
-.dr-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.dr-comparebox { height: 90px; border-radius: 10px; border: 1px solid var(--line); position: relative; }
-.dr-comparebox--bad { background: linear-gradient(145deg, #ddd, #fff); }
-.dr-comparebox--good { background: linear-gradient(145deg, #eef6ff, #fff); }
-.dr-comparebox::after {
-  content: "DOC"; position: absolute; inset: 18px; background: #fff; border: 2px solid #64748b;
-  border-radius: 6px; display: flex; align-items: center; justify-content: center;
-  color: #64748b; font-weight: 900; font-size: 12px;
-}
-.dr-comparebox--bad::after { filter: blur(1.4px); }
-.dr-comparelabels { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 10px; font-weight: 900; margin-top: 4px; color: var(--muted); }
-.dr-escapegrid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0 8px; }
-.dr-escapegrid button { min-height: 48px; border: 1px solid var(--line); border-radius: var(--btn-r); background: #fff; color: var(--navy); font: inherit; font-size: 12px; font-weight: 800; cursor: pointer; }
 .dr-stage { position: relative; background: #0f172a; border-radius: 14px; min-height: 220px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 8px; touch-action: pan-y; }
 .dr-photo { max-width: 100%; max-height: 300px; transition: transform .15s; }
 .dr-photoart { width: 78%; height: 170px; border-radius: 8px; background: repeating-linear-gradient(0deg, #e2e8f0, #e2e8f0 10px, #f8fafc 10px, #f8fafc 22px); transition: transform .15s; }
@@ -1492,11 +1583,17 @@ label.f .seg { display: flex; }
 }
 .dr-debug b { color: #fff; }
 /* the strip floats over the page foot — the screens that carry it keep room */
-body[data-screen="clientlink"] #view,
 body[data-screen="docreq"] #view,
 body[data-screen="snapall"] #view,
 body[data-screen="docreview"] #view { padding-bottom: 56px; }
-body[data-screen="clientlink"] .dr-clientbottom { bottom: 48px; }
+/* the client link is the customer's page, not a screen of the advisor tool:
+   the app bar, the drawer trigger, the role switch and the DEMO chip all
+   belong to staff and are hidden here at every width (owner prototype,
+   2026-08-26). The honest demo marker stays as a line in the page itself. */
+body[data-screen="clientlink"] .appbar,
+body[data-screen="clientlink"] .pagebar { display: none; }
+body[data-screen="clientlink"] #view { padding: 0; max-width: none; }
+body[data-screen="clientlink"] { background: #fff; }
 .dr-debug__sp { flex: 1; }
 .dr-debug button {
   border: 1px solid #475569; background: #1f2937; color: #fff; border-radius: 8px;

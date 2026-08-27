@@ -8,7 +8,9 @@ const RIDE_PRICE_DATA = {
     advisor: "Ashley Collins",
     teamLead: "Jordan Reyes",
     address: "321 Northern Blvd, Long Island City, NY 11101",
-    phone: "(718) 867-5309"
+    /* 555 is the reserved range for fiction; the number here before it was a
+       real, assignable line and this is a fictional dealership (no-PII rule) */
+    phone: "(718) 555-0188"
   },
 
   /* New York City tax + fee structure. Total 8.875% — the combined rate for
@@ -300,6 +302,8 @@ const RIDE_PRICE_DATA = {
   clientDocs: {
     insurance: {
       icon: "🛡", short: "Insurance Card", plainReason: "Needed for delivery",
+      /* one plain line under the row title: what to bring, not why */
+      sub: "Current binder or card",
       requirement: "Must show the vehicle by VIN or description, your name, the policy number, effective dates covering today, and comprehensive plus collision coverage. If the card runs to two pages, add both.",
       minPages: 1,
       multiNote: "May be multi-page. If your insurance card or binder has a second page, add both before you finish.",
@@ -310,6 +314,8 @@ const RIDE_PRICE_DATA = {
     },
     license: {
       icon: "🪪", short: "License", plainReason: "Needed for registration",
+      /* one plain line under the row title: what to bring, not why */
+      sub: "Front and back",
       requirement: "Front and back, unexpired, name matching the credit application. Not a photo of a photo, not a screenshot, not a temporary paper permit unless you also add the expired card.",
       minPages: 2,
       multiNote: "Two sides required. Capture the front and back — you can add the second side from the review screen.",
@@ -320,6 +326,8 @@ const RIDE_PRICE_DATA = {
     },
     paystub: {
       icon: "📄", short: "Paystub", plainReason: "Bank requirement",
+      /* one plain line under the row title: what to bring, not why */
+      sub: "Two recent paystubs",
       requirement: "Your two most recent consecutive stubs, each showing employer name, pay period dates, and year-to-date gross. If you're self-employed, add “Other income type” instead.",
       minPages: 2,
       multiNote: "Two paystubs required. Add your two most recent consecutive stubs.",

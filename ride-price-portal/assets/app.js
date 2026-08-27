@@ -152,10 +152,13 @@ function toast(msg) {
   let t = $("#toast");
   if (!t) { t = document.createElement("div"); t.id = "toast"; document.body.appendChild(t); }
   t.textContent = msg;
-  /* a dialog's footer pinned to the bottom of a phone is where the user just
-     tapped — a toast there would cover the button. Measured, not assumed: a
-     footer-less dialog, or one sitting short of the bottom, keeps the default. */
-  const foot = $("#modalBack .modal__foot");
+  /* a footer pinned to the bottom of a phone is where the user just tapped —
+     a toast there would cover the button. Measured, not assumed: a
+     footer-less dialog, or one sitting short of the bottom, keeps the default.
+     The customer's upload page has a sticky action bar of its own and needs
+     the same lift (owner prototype, 2026-08-26), so both are considered and
+     the lowest one wins. */
+  const foot = $("#modalBack .modal__foot") || $(".dr-clientbottom");
   const fr = foot && foot.getBoundingClientRect();
   t.style.bottom = fr && fr.bottom > window.innerHeight - 80 ? Math.round(window.innerHeight - fr.top + 12) + "px" : "";
   t.classList.add("show");
@@ -4148,6 +4151,14 @@ function jacketRequest(deal, docIds) {
    client "sends" exist solely in this session's memory, below. */
 
 const CLIENT_QUEUE_IDS = ["form-insurance", "form-license", "form-paystub"];
+/* line icons for the customer's document rows — decorative; the row's own
+   title and subtitle name the document (owner prototype, 2026-08-26) */
+const DR_ROW_ICON = {
+  "form-insurance": `<svg viewBox="0 0 24 24"><path d="M12 3 5 6v5.5c0 4.3 2.9 8.3 7 9.5 4.1-1.2 7-5.2 7-9.5V6l-7-3z"/></svg>`,
+  "form-license": `<svg viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><circle cx="8.5" cy="11" r="2.2"/><path d="M5 16.4c.6-1.6 2-2.5 3.5-2.5s2.9.9 3.5 2.5M15 10h4M15 13.5h3"/></svg>`,
+  "form-paystub": `<svg viewBox="0 0 24 24"><path d="M6 2.5h8.5L19 7v14.5H6z"/><path d="M14 2.5V7h5M9 12h6M9 15.5h6M9 8.5h2"/></svg>`,
+  default: `<svg viewBox="0 0 24 24"><path d="M6 2.5h8.5L19 7v14.5H6z"/><path d="M14 2.5V7h5"/></svg>`
+};
 function clientMeta(docId) { return RIDE_PRICE_DATA.clientDocs[docId.replace(/^form-/, "")] || null; }
 
 function jacketClient(deal) {
@@ -4221,6 +4232,21 @@ function drIssueFor(deal, docId) {
   if (m.minPages && pages < m.minPages && m.missingPage) return m.missingPage.title;
   if (m.firstIssue && !(r.tries > 0)) return drFirstIssueText(m);
   return null;
+}
+
+/* The one thing a reader that works well says when it cannot read a photo.
+   It replaces the old three-card coaching screen (owner, 2026-08-26): the
+   customer is told plainly and given the retake, not taught photography. */
+const DR_UNREADABLE = "Too blurry to read";
+function drRejectUnreadable(deal, docId) {
+  const rc = jacketClientOf(deal);
+  const r = rc[docId] || (rc[docId] = {});
+  r.tries = (r.tries || 0) + 1;
+  r.receivedAt = new Date().toISOString();
+  r.state = "rejected";
+  r.rejectedReason = DR_UNREADABLE;
+  Store.save();
+  return { ok: false, issue: DR_UNREADABLE };
 }
 
 function drAutoVerify(deal, docId) {
@@ -4934,17 +4960,24 @@ function drClientLink(id, startScreen) {
     const blocked = s === "rejected";
     const status = s === "accepted" ? "Verified" : s === "received" ? "Sent — being reviewed" : blocked ? "Needs a new photo" : "";
     const cls = s === "accepted" ? "accepted" : s === "received" ? "received" : "rejected";
+    /* the right-hand control is one word, or a status pill once the document
+       has a state of its own (owner prototype, 2026-08-26) */
     const action = s === "accepted"
-      ? `<span class="dr-chip dr-chip--accepted">Verified</span>`
-      : `<button type="button" class="dr-clientadd" data-trigger-upload="${esc(docId)}" aria-controls="drUpl-${esc(docId)}">📷 ${blocked ? "Retake Photo" : "Add Photo"}</button><input id="drUpl-${esc(docId)}" class="dr-hiddeninput" type="file" accept="image/*" capture="environment" data-upload-input="${esc(docId)}">`;
+      ? `<span class="dr-pill dr-pill--ok">Verified</span>`
+      /* a blocked row keeps its ONE-TAP retake: the prototype makes the row
+         itself the control, which costs the customer an extra tap on the very
+         screen where they are already stuck. The crimson status line under the
+         title carries the "fix needed" meaning instead of a pill. */
+      : `<button type="button" class="dr-clientadd" data-trigger-upload="${esc(docId)}" aria-controls="drUpl-${esc(docId)}">${blocked ? "Retake Photo" : s === "received" ? "Replace" : "Add"}</button><input id="drUpl-${esc(docId)}" class="dr-hiddeninput" type="file" accept="image/*" capture="environment" data-upload-input="${esc(docId)}">`;
     /* the row body opens the document's own screen — what we need, a good
-       example, the other capture methods and the multi-page review. The
-       Add Photo button beside it stays the one-tap path. */
+       example, the other capture methods and the multi-page review. The row's
+       own subtitle says what the document IS; its state says where it stands. */
     return `<div class="dr-clientrow">
-      <span class="dr-qicon${s === "accepted" ? " dr-qicon--green" : ""}">${s === "accepted" ? "✓" : m.icon}</span>
+      <span class="dr-rowicon" aria-hidden="true">${DR_ROW_ICON[docId] || DR_ROW_ICON.default}</span>
       <button type="button" class="dr-itemcopy dr-itemopen" ${s === "accepted" ? "disabled" : `data-detail="${esc(docId)}"`}>
-        <b>${esc(d.label)}</b>${status ? `<span class="dr-status dr-status--${cls}">${esc(status)}</span>` : ""}${blocked ? `<span class="dr-blockhint">⚠ ${esc(r.rejectedReason || "")}</span>` : ""}
-        ${s === "accepted" ? "" : `<span class="dr-openhint">What we need ›</span>`}
+        <b>${esc(d.label)}</b>
+        <span class="dr-rowsub">${esc(m.sub || "")}</span>
+        ${status ? `<span class="dr-status dr-status--${cls}">${esc(status)}</span>` : ""}${blocked ? `<span class="dr-blockhint">${esc(r.rejectedReason || "")}</span>` : ""}
       </button>
       ${action}
     </div>`;
@@ -4954,40 +4987,55 @@ function drClientLink(id, startScreen) {
     const host = view();
     if (st.screen === "sms") host.innerHTML = smsScreen();
     else if (st.screen === "receipt") host.innerHTML = receiptScreen();
-    else if (st.screen === "detail") host.innerHTML = detailScreen();
     else if (st.screen === "review") host.innerHTML = reviewScreen();
-    else if (st.screen === "failure") host.innerHTML = failureScreen();
     else host.innerHTML = landingScreen();
-    host.insertAdjacentHTML("beforeend", drDebugStrip(deal));
+    /* the document's own detail is a sheet ON the list — the list is drawn
+       first and stays behind it (owner, 2026-08-27) */
+    if (st.screen === "detail") host.insertAdjacentHTML("beforeend", detailSheet());
+    /* the advisor DEBUG strip does not belong on a page a customer opens from
+       a text message (open audit finding; owner prototype, 2026-08-26). The
+       trainer keeps one clearly-marked way back to the advisor view. */
+    host.insertAdjacentHTML("beforeend", `<button type="button" class="dr-demoexit" data-dbg="advisor">Demo · advisor view</button>`);
     wire();
     drWireDebug(deal);
     drPinchZoom($(".dr-stage"), st, render);
   }
 
   /* the document's own screen: what we need, a good example, the capture
-     methods, and the demo switch that exercises the failure coaching */
-  function detailScreen() {
+     methods, and the demo switch that exercises the unreadable refusal */
+  /* "What we need" is a sheet over the list, not a page that replaces it
+     (owner, 2026-08-27) — the customer keeps their place. The long
+     requirement paragraph is gone: the `checks` are the very things the
+     reader looks for, so listing them is shorter AND truer than prose. */
+  function detailSheet() {
     const d = docMeta(st.docId); const m = clientMeta(st.docId);
     const r = rec(st.docId);
     const note = m.multiNote || "";
     const noteHead = note.split(".")[0];
-    return `<div class="dr-client">
-      <div class="dr-detailhead"><button class="dr-back" data-back-landing aria-label="Back">‹</button><b>${esc(d.label)}</b></div>
-      <div class="dr-clientbody">
-        ${r && r.state === "rejected" ? `<div class="dr-multinote dr-multinote--warn"><b>⚠ ${esc(r.rejectedReason || "")}</b> ${esc((clientMeta(st.docId).missingPage && clientMeta(st.docId).missingPage.title === r.rejectedReason ? clientMeta(st.docId).missingPage.description : (m.firstIssue && m.firstIssue.description)) || "")}</div>` : ""}
-        <div class="dr-requirement"><b>What we need</b>${esc(m.requirement)}</div>
-        <div class="dr-example"><span class="dr-thumb" aria-hidden="true"></span>
-          <span class="dr-itemcopy"><b>See what a good example looks like</b><span>Clear, complete and current.</span></span>
-          <button type="button" class="btn btn--ghost btn--sm" data-example>See example</button></div>
-        ${note ? `<div class="dr-multinote"><b>${esc(noteHead)}.</b> ${esc(note.slice(noteHead.length + 1).trim())}
-          ${m.altIncome ? `<button type="button" class="dr-linkbtn" data-other-income>Other income type</button>` : ""}</div>` : ""}
-        <div class="dr-capturegrid">
-          <button type="button" class="dr-capture dr-capture--primary" data-capture="camera">📷 Take photo</button>
-          <button type="button" class="dr-capture" data-capture="library">▣ Choose from library</button>
-          <button type="button" class="dr-capture" data-capture="pdf">PDF Choose a PDF</button>
+    const checks = (m.checks || []).slice(0, 5);
+    const act = (kind, ico, label, sub, primary) => `<button type="button" class="dr-sheetact${primary ? " dr-sheetact--primary" : ""}" data-capture="${kind}">
+      <span class="dr-sheetact__ico" aria-hidden="true">${ico}</span>
+      <span><b>${esc(label)}</b><span>${esc(sub)}</span></span>
+      <span class="dr-sheetact__go" aria-hidden="true">›</span></button>`;
+    return `<div class="dr-sheetback" id="drSheetBack">
+      <div class="dr-sheet" role="dialog" aria-modal="true" aria-label="${esc(d.label)}">
+        <span class="dr-sheet__handle" aria-hidden="true"></span>
+        <div class="dr-sheet__head">
+          <div><span class="dr-sheet__eyebrow">What we need</span>
+            <h2>${esc(d.label)}</h2>
+            <span class="dr-sheet__sub">${esc(m.sub || "")}</span></div>
+          <button type="button" class="dr-sheet__x" data-back-landing aria-label="Close">×</button>
         </div>
-        <label class="opt-row dr-badtoggle"><input type="checkbox" id="drBad" ${st.badPhoto ? "checked" : ""}><span class="opt-row__label">Demo only: simulate a bad photo to see the failure path.</span></label>
-        <button type="button" class="dr-savelater" data-save-later>Save &amp; finish later</button>
+        ${r && r.state === "rejected" ? `<p class="dr-sheetnote dr-sheetnote--warn"><b>${esc(r.rejectedReason || "")}</b></p>` : ""}
+        <ol class="dr-checks">${checks.map((ch, i) => `<li><i>${i + 1}</i><span>${esc(ch)}</span></li>`).join("")}</ol>
+        ${note ? `<p class="dr-sheetnote"><b>${esc(noteHead)}.</b>${m.altIncome ? ` <button type="button" class="dr-linkbtn" data-other-income>Other income type</button>` : ""}</p>` : ""}
+        <div class="dr-sheetacts">
+          ${act("camera", "📷", "Take a photo", "Use your phone camera", true)}
+          ${act("library", "▣", "Choose from library", "Select an existing photo")}
+          ${act("pdf", "📄", "Choose a PDF", "If you have a file instead")}
+        </div>
+        <p class="dr-sheetnote"><button type="button" class="dr-linkbtn" data-example>See a good example</button></p>
+        <label class="opt-row dr-badtoggle"><input type="checkbox" id="drBad" ${st.badPhoto ? "checked" : ""}><span class="opt-row__label">Demo only: simulate an unreadable photo.</span></label>
         <input type="file" accept="image/*" capture="environment" id="drCapCam" hidden>
         <input type="file" accept="image/*" multiple id="drCapLib" hidden>
         <input type="file" accept="application/pdf" id="drCapPdf" hidden>
@@ -5021,22 +5069,6 @@ function drClientLink(id, startScreen) {
   }
 
   /* the coaching screen the demo toggle reaches */
-  function failureScreen() {
-    const card = (t, fix) => `<div class="dr-failcard"><b>${esc(t)}</b>
-      <div class="dr-compare"><span class="dr-comparebox dr-comparebox--bad"></span><span class="dr-comparebox dr-comparebox--good"></span></div>
-      <div class="dr-comparelabels"><span>Bad</span><span>Good</span></div><p>${esc(fix)}</p></div>`;
-    return `<div class="dr-client">
-      <div class="dr-detailhead"><button class="dr-back" data-back-detail aria-label="Back">‹</button><b>Let's fix this photo</b></div>
-      <div class="dr-clientbody">
-        <p class="hint">We couldn't confidently read the document. Try one specific fix below — or use another capture method.</p>
-        ${card("Glare", "Tilt the card slightly up or down to kill the reflection.")}
-        ${card("Blur", "Move the document closer or further until it sharpens; hold steady.")}
-        ${card("Text unreadable / cropped", "Get all four corners in frame on a dark surface.")}
-        <div class="dr-escapegrid"><button type="button" data-manual>Capture manually instead</button><button type="button" data-email>Send by email instead</button></div>
-        <button type="button" class="dr-savelater" data-save-later>Save &amp; finish later</button>
-      </div>
-    </div>`;
-  }
 
   function smsScreen() {
     const first = (Store.s.advisor || "").split(" ")[0];
@@ -5054,16 +5086,28 @@ function drClientLink(id, startScreen) {
   function landingScreen() {
     const sent = doneCount();
     const all = queueIds().length;
-    const bottom = sent === 0
-      ? `<button class="dr-clientcta dr-clientcta--secondary" data-save-later>Save &amp; finish later</button>`
-      : `<button class="dr-clientcta${sent === all ? " dr-clientcta--green" : ""}" data-receipt>Submit Documents (${sent}/${all}) ${sent === all ? "✓" : "→"}</button>`;
+    const pct = all ? Math.round((sent / all) * 100) : 0;
+    /* one dominant action: submit once everything is ready, otherwise the
+       quiet way out. Snap All stays as the batch path for a customer holding
+       all three documents at once. */
+    const bottom = sent === all && all
+      ? `<button class="dr-clientcta dr-clientcta--green" data-receipt>Submit documents ✓</button>`
+      : `${clientQueue(deal).length ? `<button class="dr-clientcta" data-snapall>Add documents</button>` : ""}
+         ${sent ? `<button class="dr-clientcta dr-clientcta--secondary" data-receipt>Submit what's ready (${sent}/${all})</button>` : ""}
+         <button class="dr-clientcta dr-clientcta--text" data-save-later>Save &amp; finish later</button>`;
     return `<div class="dr-client">
-      ${trustHeader(`<div class="dr-trustmeta"><b>${esc(drVehicleShort(v))}</b><br>Deal #${esc(deal.dealNo || "")}</div>`)}
+      ${trustHeader(`<div class="dr-trustmeta"><b>${esc(drVehicleShort(v))}</b> · Deal #${esc(deal.dealNo || "")}</div>`)}
       <div class="dr-clientbody">
+        <p class="dr-eyebrow">Secure document upload</p>
         <h1>Upload your documents</h1>
-        <p class="dr-subhead">No account or password needed. You can stop and return to this same link anytime.</p>
-        ${clientQueue(deal).length ? `<button class="dr-snapall" data-snapall>📷 Snap All Documents</button>` : ""}
+        <div class="dr-progress">
+          <div class="dr-progress__row"><span>${sent} of ${all} ready</span><span>${pct}%</span></div>
+          <div class="dr-progress__track" role="progressbar" aria-valuemin="0" aria-valuemax="${all}" aria-valuenow="${sent}" aria-label="${sent} of ${all} documents ready">
+            <span class="dr-progress__fill" style="width:${pct}%"></span></div>
+        </div>
+        <p class="dr-seclab">Requested documents</p>
         ${queueIds().map(clientRowHtml).join("")}
+        <p class="dr-demonote">Training demo — this page sends nothing and stores nothing off this device.</p>
       </div>
       <div class="dr-clientbottom">${bottom}</div>
     </div>`;
@@ -5102,6 +5146,16 @@ function drClientLink(id, startScreen) {
   function wire() {
     $$("[data-open-client]").forEach(a => a.onclick = (e) => { e.preventDefault(); st.screen = "landing"; render(); });
     $$("[data-back-landing]").forEach(b => b.onclick = () => { st.screen = "landing"; st.zoom = 1; render(); });
+    /* a sheet dismisses the way sheets do: tap the dimmed list behind it, or
+       press Escape. The listener comes off with the sheet, or a later Escape
+       would reach one that is no longer there. */
+    const sheetBack = $("#drSheetBack");
+    if (sheetBack) {
+      const closeSheet = () => { document.removeEventListener("keydown", onSheetKey, true); st.screen = "landing"; st.zoom = 1; render(); };
+      function onSheetKey(e) { if (e.key === "Escape") { e.stopPropagation(); closeSheet(); } }
+      document.addEventListener("keydown", onSheetKey, true);
+      sheetBack.addEventListener("click", (e) => { if (e.target === sheetBack) closeSheet(); });
+    }
     $$("[data-back-detail]").forEach(b => b.onclick = () => { st.screen = "detail"; st.zoom = 1; render(); });
     $$("[data-save-later]").forEach(b => b.onclick = () => toast("Saved. Reopen this same link to continue where you left off."));
     $$("[data-receipt]").forEach(b => b.onclick = () => { st.screen = "receipt"; render(); });
@@ -5131,7 +5185,17 @@ function drClientLink(id, startScreen) {
     const capIds = { camera: "#drCapCam", library: "#drCapLib", pdf: "#drCapPdf" };
     $$("[data-capture]").forEach(b => b.onclick = () => {
       st.source = b.dataset.capture;
-      if (st.badPhoto) { st.screen = "failure"; render(); return; }
+      /* an unreadable photo gets the plain refusal, not a photography lesson
+         (owner, 2026-08-26): "when a scanner works very well, it should tell
+         someone that it's too blurry to be uploaded". It goes through the same
+         rejection the flow already uses for every other refusal, so the row
+         says why and offers its one-tap retake. */
+      if (st.badPhoto) {
+        st.badPhoto = false;
+        drRejectUnreadable(deal, st.docId);
+        toast("Upload blocked: " + DR_UNREADABLE);
+        st.screen = "landing"; render(); return;
+      }
       const inp = $(capIds[st.source]);
       if (inp) { inp.value = ""; inp.click(); }
     });
@@ -5182,15 +5246,6 @@ function drClientLink(id, startScreen) {
       st.zoom = 1; render();
     });
     $$("[data-use]").forEach(b => b.onclick = useCapture);
-    /* the failure screen's escapes: capture normally, or hand it off */
-    $$("[data-manual]").forEach(b => b.onclick = () => {
-      st.badPhoto = false; st.screen = "detail"; render();
-      toast("Simulated bad photo is off — capture normally now.");
-    });
-    $$("[data-email]").forEach(b => b.onclick = () => {
-      toast("Email option opened. The document stays needed until the file lands.");
-      st.screen = "landing"; render();
-    });
   }
 
   render();
