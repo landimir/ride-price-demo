@@ -3482,14 +3482,24 @@ route("credit/:id", ({ id }) => {
     return alertBox(st.err.summary);
   };
 
-  function jointHtml() {
+  /* remote completion (v2): the send-link path is simulated honestly — the
+     demo has no network (invariant 2), so the sheet says so plainly and the
+     statuses stay waiting, the same pattern as the scan journey's code
+     verification. Real per-target sends are recorded on deal.creditRemote. */
+  const sentPill = (t) => deal.creditRemote && deal.creditRemote[t] ? `<span class="ca-sentpill">Link sent</span>` : "";
+  function individualRemoteHtml() {
+    return `<div class="ca-remote">
+      <div class="ca-remotetop"><div><strong>Finish on customer&rsquo;s phone</strong><span>Send ${esc(c.first)} a secure link to continue this same application on mobile.</span></div>${sentPill("applicant")}</div>
+      <button type="button" class="ca-linkaction" data-linksheet="applicant"><span class="ca-linkcopy"><strong>Send to ${esc(c.phone)}</strong><span>Starts with identity verification before any credit fields.</span></span><span class="ca-roundarrow">→</span></button></div>`;
+  }
+  function jointRemoteHtml() {
+    return `<div class="ca-remote">
+      <div class="ca-remotetop"><div><strong>Co-buyer needed</strong><span>No co-buyer is attached yet. The fastest option is to send the co-buyer a secure mobile link.</span></div>${deal.creditRemote && deal.creditRemote.cobuyer ? `<span class="ca-sentpill">Link sent</span>` : `<span class="ca-notpill">Not attached</span>`}</div>
+      <button type="button" class="ca-linkaction" data-linksheet="cobuyer"><span class="ca-linkcopy"><strong>Send co-buyer link</strong><span>They verify identity and complete their part remotely.</span></span><span class="ca-roundarrow">→</span></button>
+      <div class="ca-actionrow"><button type="button" class="ca-secondary ca-secondary--soft" id="caCoScan">Scan co-buyer license</button><button type="button" class="ca-secondary ca-secondary--soft" data-buyers="${esc(deal.id)}">Choose existing customer</button></div></div>`;
+  }
+  function attachedCoHtml() {
     const cb = cbRec();
-    if (!cb) return `<div class="ca-joint">
-      <div class="ca-jointtop"><div><strong>Co-buyer needed</strong><span>No co-buyer is attached to this deal yet.</span></div><span class="ca-notpill">Not attached</span></div>
-      <div class="ca-twobtns">
-        <button type="button" class="ca-secondary" id="caCoScan">Scan co-buyer license</button>
-        <button type="button" class="ca-secondary" data-buyers="${esc(deal.id)}">Choose existing customer</button>
-      </div></div>`;
     return `<div class="ca-joint">
       <div class="ca-jointtop"><div><strong>Co-applicant</strong><span>Identity prefilled from <b>${esc(cb.first + " " + cb.last)}</b>&rsquo;s record. Employment and income go on the dealership&rsquo;s paper form.</span></div>
         <button type="button" class="ca-managelink" data-buyers="${esc(deal.id)}">Manage buyers</button></div>
@@ -3506,19 +3516,21 @@ route("credit/:id", ({ id }) => {
 
   function applicantHtml() {
     return `<div class="ca-card">
-      <h2 class="ca-cardtitle">Applicant</h2>
-      <p class="ca-cardsub">Tell the lender who is applying and how this application should be structured.</p>
-      <span class="ca-demo">DEMO — sample data only, never real SSNs</span>
-      ${scanned ? `<span class="ca-scanpill">✓ Filled from license scan</span>` : ""}
+      <h2 class="ca-cardtitle">Application type</h2>
+      <p class="ca-cardsub">Choose how the customer wants to apply. A remote participant can complete their portion from their own phone.</p>
       ${stepAlert(1)}
-      <div class="ca-rule"></div>
-      <div class="ca-choice${F.appType === "individual" ? " active" : ""}" data-atype="individual" role="radio" aria-checked="${F.appType === "individual"}" tabindex="0"><div class="ca-radio"></div><div class="ca-choicetext"><strong>Individual application</strong><span>Applying for credit in your own name, relying on your own income and assets.</span></div></div>
-      <div class="ca-choice${F.appType === "joint" ? " active" : ""}" data-atype="joint" role="radio" aria-checked="${F.appType === "joint"}" tabindex="0"><div class="ca-radio"></div><div class="ca-choicetext"><strong>With another person</strong><span>In accordance with Regulation B, you certify that you are applying for joint credit.</span></div></div>
-      ${F.appType === "joint" ? jointHtml() : ""}
+      <div class="ca-choice${F.appType === "individual" ? " active" : ""}" data-atype="individual" role="radio" aria-checked="${F.appType === "individual"}" tabindex="0"><div class="ca-radio"></div><div class="ca-choicetext"><strong>Individual application</strong><span>One applicant completes this application.</span></div></div>
+      <div class="ca-choice${F.appType === "joint" ? " active" : ""}" data-atype="joint" role="radio" aria-checked="${F.appType === "joint"}" tabindex="0"><div class="ca-radio"></div><div class="ca-choicetext"><strong>Joint application</strong><span>A co-buyer will apply together. In accordance with Regulation B, you certify that you are applying for joint credit.</span></div></div>
+      ${F.appType === "joint" ? (cbRec() ? attachedCoHtml() : jointRemoteHtml()) : individualRemoteHtml()}
       <div class="ca-rule"></div>
       <label class="ca-lab">Credit Type <span class="ca-req">*</span></label>${seg(["Retail", "Lease", "Balloon"], "creditType", "cols3")}
       <div style="height:16px"></div>
       <label class="ca-lab">Primary Use</label>${seg(["Personal, family or household", "Business or commercial"], "primaryUse", "cols2")}
+      <div class="ca-rule"></div>
+      <h2 class="ca-cardtitle" style="font-size:18px">Applicant information</h2>
+      <p class="ca-cardsub">Known customer information is prefilled. Only complete what is missing.</p>
+      <span class="ca-demo">DEMO — sample data only, never real SSNs</span>
+      ${scanned ? `<span class="ca-scanpill">✓ Filled from license scan</span>` : ""}
       <div class="ca-fieldgrid">
         <div class="ca-fieldrow">${field("First Name", "first", { req: true })}${field("Middle", "middle")}</div>
         ${field("Last Name", "last", { req: true })}
@@ -3586,6 +3598,7 @@ route("credit/:id", ({ id }) => {
       <p class="ca-cardsub">Confirm the information before sending this demo application for a simulated lender decision.</p>
       ${stepAlert(4)}
       <div class="ca-review">
+        <div class="ca-revrow"><span>Identity</span><strong>${deal.identity && deal.identity.verifiedAt ? "Verified" : "—"}</strong></div>
         <div class="ca-revrow"><span>Applicant</span><strong>${esc(F.first + " " + F.last)}</strong></div>
         <div class="ca-revrow"><span>Application</span><strong>${F.appType === "joint" ? "Joint" : "Individual"} · ${esc(F.creditType)}</strong></div>
         ${F.appType === "joint" && cbRec() ? `<div class="ca-revrow"><span>Co-applicant</span><strong>${esc(F.coFirst + " " + F.coLast)} · ${esc(F.coRel)}</strong></div>` : ""}
@@ -3601,8 +3614,11 @@ route("credit/:id", ({ id }) => {
   }
 
   const wsRow = (label, val) => `<div class="ca-wsrow"><span>${label}</span><strong>${val}</strong></div>`;
+  /* Deal Summary Option A (v2): customer-facing title, the source line
+     subordinate and muted. The time is honest — the rows are computed from
+     the live worksheet at render. */
   const worksheetHtml = () => !r ? "" : `<div class="ca-ws">
-    <div class="ca-wshead"><strong>Synced from your worksheet</strong><a class="ca-managelink" href="#/desk/${esc(deal.id)}">Edit</a></div>
+    <div class="ca-wshead"><div><div class="ca-wstitle">Deal summary</div><div class="ca-wssource"><span class="ca-sourcedot"></span>Updated from worksheet · ${esc(new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }))}</div></div><a class="ca-managelink" href="#/desk/${esc(deal.id)}">Edit</a></div>
     <div class="ca-wsrows">
       ${wsRow("Vehicle", `${esc(v.year)} ${esc(v.make)} ${esc(v.model)} · ${esc(v.stock)}`)}
       ${wsRow("MSRP", money(v.msrp))}
@@ -3620,6 +3636,7 @@ route("credit/:id", ({ id }) => {
     <p class="ca-subtitle">${deal.dealNo ? `<strong>Deal #${esc(deal.dealNo)}</strong> · ` : ""}${esc(c.first + " " + c.last)}${v ? `<br><span>${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}</p>
     <div class="dk-chips" style="margin-top:20px;margin-bottom:0">
       <button type="button" class="dk-chip" data-buyers="${esc(deal.id)}">${rpIcon("user")} Buyer</button>
+      ${r ? `<button type="button" class="dk-chip" id="caDealSum">${rpIcon("page")} Deal summary</button>` : ""}
       <a class="dk-chip" href="#/jacket/${esc(deal.id)}">${rpIcon("folder")} Jacket ${jacketCounts(deal).missing ? `<b>${esc(String(jacketCounts(deal).missing))}</b>` : ""}</a>
     </div>`;
 
@@ -3627,7 +3644,68 @@ route("credit/:id", ({ id }) => {
     <div class="ca-progressmeta"><strong>${STEP_NAMES[st.step - 1]}</strong><span>Step ${st.step} of 4</span></div>
     <div class="ca-progress"><div style="width:${st.step * 25}%"></div></div></div>`;
 
+  /* the contextual sheets (v2): Deal summary, and the secure-link send /
+     status views. One shell per surface; a send marks the sheet dirty so
+     closing repaints the surface's Link-sent pills. */
+  let repaint = () => {};
+  let sheetDirty = false;
+  const sheetTop3 = (title) => `<div class="m-sheettop"><div class="m-sheettitle">${esc(title)}</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>`;
+  const openSheet3 = (html) => { $("#caSheet").innerHTML = `<div class="m-handle"></div>${html}`; $("#caScrim").classList.add("show"); };
+  function wireSheetShell() {
+    const scrim = $("#caScrim");
+    if (!scrim) return;
+    scrim.onclick = (e) => {
+      if (e.target === scrim || e.target.closest("[data-sheet-close]")) {
+        scrim.classList.remove("show");
+        if (sheetDirty) { sheetDirty = false; repaint(); }
+      }
+    };
+  }
+  const openSummarySheet = () => openSheet3(`${sheetTop3("Deal summary")}${worksheetHtml()}`);
+  function openLinkSheet(target) {
+    const isCo = target === "cobuyer";
+    const cb = cbRec();
+    const name = isCo ? (cb ? cb.first + " " + cb.last : "Co-buyer") : c.first + " " + c.last;
+    const phone = isCo ? (cb ? cb.phone : "") : c.phone;
+    const email = isCo ? (cb ? cb.email : "") : c.email;
+    openSheet3(`${sheetTop3(isCo ? "Send co-buyer link" : "Send application link")}
+      <p class="ca-sheetsub">${isCo ? "The co-buyer can complete their part without being in the showroom." : `Let ${esc(c.first)} continue this application on their own phone.`}</p>
+      <div class="ca-recipient"><small>${isCo ? "Recipient" : "Customer"}</small><strong>${esc(name)}</strong></div>
+      <div class="ca-fieldgrid">
+        <div><label class="ca-lab" for="clPhone">Phone number</label><input class="ca-input" id="clPhone" type="tel" value="${esc(phone)}" placeholder="(000) 000-0000"></div>
+        <div><label class="ca-lab" for="clEmail">Email</label><input class="ca-input" id="clEmail" type="email" value="${esc(email)}" placeholder="name@example.com"></div>
+      </div>
+      <div class="ca-consent" style="cursor:default"><span><strong>What happens next.</strong> The recipient opens the link on mobile, completes identity verification first, and then continues only their required credit-application fields. <b>Demo — no text or email is really sent; the link and its statuses are simulated on this device.</b></span></div>
+      <div class="ca-errtext" id="clErr" hidden>Enter a phone number or an email for the link</div>
+      <button type="button" class="mp-primary mp-wide" id="clSend">Send secure link</button>`);
+    $("#clSend").onclick = () => {
+      const phone2 = $("#clPhone").value.trim(), email2 = $("#clEmail").value.trim();
+      if (!phone2 && !email2) { $("#clErr").hidden = false; return; }
+      deal.creditRemote = deal.creditRemote || {};
+      deal.creditRemote[target] = { phone: phone2, email: email2, sentAt: new Date().toISOString() };
+      Store.save();
+      sheetDirty = true;
+      renderLinkStatus(target);
+    };
+  }
+  function renderLinkStatus(target) {
+    const isCo = target === "cobuyer";
+    const rec = deal.creditRemote[target];
+    openSheet3(`${sheetTop3(isCo ? "Co-buyer link sent" : "Application link sent")}
+      <div class="ca-sentstate"><div class="ca-senticon">✓</div><h3>Sent successfully</h3>
+        <p>${isCo ? "The co-buyer can verify their identity and complete their portion from home." : `${esc(c.first)} can verify their identity and continue the application on their phone.`}</p></div>
+      <div class="ca-statuslist">
+        <div class="ca-statusitem"><strong>Link sent</strong><span>${esc(new Date(rec.sentAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }))}</span></div>
+        <div class="ca-statusitem"><strong>Opened</strong><span>Waiting</span></div>
+        <div class="ca-statusitem"><strong>Identity verified</strong><span>Waiting</span></div>
+        <div class="ca-statusitem"><strong>Application submitted</strong><span>Waiting</span></div>
+      </div>
+      <p class="ca-sheetsub" style="margin-top:14px">Demo — no text or email was really sent; the statuses are simulated and stay waiting.</p>
+      <button type="button" class="mp-primary mp-wide" data-sheet-close>Done</button>`);
+  }
+
   function render() {
+    repaint = render;
     const stepHtml = st.step === 1 ? applicantHtml() : st.step === 2 ? residenceHtml() : st.step === 3 ? employmentHtml() : reviewHtml();
     view().innerHTML = `
     <div class="ca-app">
@@ -3636,18 +3714,20 @@ route("credit/:id", ({ id }) => {
         ${headerHtml()}
         ${progressHtml()}
         ${stepHtml}
-        ${worksheetHtml()}
+        ${st.step >= 2 ? worksheetHtml() : ""}
       </div>
     </div>
     <div class="ca-dock">
       <div class="ca-dockinfo"><small>${st.step < 4 ? "Next" : "Lending Lane"}</small><strong>${st.step < 4 ? STEP_NAMES[st.step] : "Ready to submit"}</strong></div>
       <button type="button" class="mp-primary" id="caGo">${st.step < 4 ? "Continue" : "Submit application"} →</button>
-    </div>`;
+    </div>
+    <div class="m-scrim" id="caScrim"><div class="m-sheet m-sheet--wide" role="dialog" aria-modal="true" id="caSheet"></div></div>`;
     wireDeskTop();
     wire();
   }
 
   function wire() {
+    wireSheetShell();
     $$("[data-atype]").forEach(el => {
       const pick = () => { F.appType = el.dataset.atype; render(); };
       el.onclick = pick;
@@ -3659,7 +3739,74 @@ route("credit/:id", ({ id }) => {
     if (refs) refs.onclick = () => { F.refsOpen = !F.refsOpen; render(); };
     const sc = $("#caCoScan");
     if (sc) sc.onclick = () => openScanFlow({ mode: "cobuyer", deal, onDone: () => router() });
+    const ds = $("#caDealSum");
+    if (ds) ds.onclick = openSummarySheet;
+    $$("[data-linksheet]").forEach(b => b.onclick = () => openLinkSheet(b.dataset.linksheet));
     $("#caGo").onclick = () => { if (st.step < 4) { st.step++; st.err = null; render(); window.scrollTo({ top: 0, behavior: "smooth" }); } else submit(); };
+  }
+
+  /* identity verification (v2): a pre-application gate. The capture uses the
+     phone's own camera through a file input (invariant 5 — no getUserMedia,
+     works over LAN http); the photo is never read or stored, and the page
+     says plainly that no real biometric match occurs in the demo. */
+  function renderIdentity(verified) {
+    repaint = () => renderIdentity(verified);
+    renderChrome("Lending Lane — Identity Verification", dealTitle(deal), "");
+    document.body.dataset.canvas = "master";
+    const lic = c.license && c.license.number;
+    const checklist = verified ? `
+      <div class="ca-checklist">
+        <div class="ca-checkrow"><div class="ca-checkmark">✓</div><strong>Photo captured for verification</strong><span>Done</span></div>
+        <div class="ca-checkrow"><div class="ca-checkmark">✓</div><strong>Phone number on file</strong><span>${esc(c.phone)}</span></div>
+        <div class="ca-checkrow"><div class="ca-checkmark">✓</div><strong>Email on file</strong><span>On file</span></div>
+      </div>` : `
+      <div class="ca-checklist">
+        <div class="ca-checkrow">${lic ? `<div class="ca-checkmark">✓</div><strong>Driver&rsquo;s license on file</strong><span>${esc(lic)}</span>` : `<div class="ca-checkmark ca-checkmark--off">–</div><strong>Driver&rsquo;s license</strong><span>Not on file</span>`}</div>
+        <div class="ca-checkrow"><div class="ca-checkmark">✓</div><strong>Phone number on file</strong><span>${esc(c.phone)}</span></div>
+        <div class="ca-checkrow"><div class="ca-checkmark">✓</div><strong>Email on file</strong><span>On file</span></div>
+      </div>`;
+    view().innerHTML = `
+    <div class="ca-app">
+      ${deskTop(deal)}
+      <div class="ca-page">
+        <div class="ca-eyebrow">Identity verification</div>
+        <div class="ca-headrow"><h1 class="ca-h1">${verified ? "Identity verified" : "Verify your identity"}</h1><a class="ca-linkbtn" href="#/agreement/${esc(deal.id)}">Cancel</a></div>
+        <p class="ca-subtitle">${verified ? `<strong>${esc(c.first + " " + c.last)}</strong> is ready to continue to the credit application.` : `Before the credit application begins, confirm that the customer matches the driver&rsquo;s license already on file.`}</p>
+        <div class="ca-card">
+          <div class="ca-verifywrap">
+            <div class="ca-faceframe${verified ? " verified" : ""}"><div class="ca-faceicon">${verified ? rpIcon("check") : rpIcon("user")}</div></div>
+            <h2>${verified ? "You&rsquo;re verified" : "Take a quick photo"}</h2>
+            <p>${verified ? "Identity verification is recorded for this application." : "The photo confirms the customer matches the driver&rsquo;s license on file and helps protect the application from fraud."}</p>
+            ${checklist}
+            <div class="ca-privacy">${rpIcon("lock")}<span>Demo — the photo is confirmed on this device and discarded; no real biometric match occurs.</span></div>
+            ${verified ? "" : `<p class="ca-uploadline"><label class="ca-uploadlink"><u>or upload a photo</u><input type="file" accept="image/*" data-idcap hidden></label></p>`}
+          </div>
+        </div>
+        <div class="ca-remote">
+          <div class="ca-remotetop"><div><strong>Customer wants to use their own phone?</strong><span>Send a secure application link. The customer starts with this same identity-verification step, then completes the application on mobile.</span></div>${sentPill("applicant")}</div>
+          <button type="button" class="ca-secondary ca-full" data-linksheet="applicant">Send secure link to phone</button>
+        </div>
+      </div>
+    </div>
+    <div class="ca-dock">
+      <div class="ca-dockinfo"><small>${verified ? "Next" : "Required before application"}</small><strong>${verified ? "Application type" : "Identity verification"}</strong></div>
+      ${verified
+        ? `<button type="button" class="mp-primary" id="idGo">Continue →</button>`
+        : `<label class="mp-primary ca-caplabel">Take photo<input type="file" accept="image/*" capture="user" data-idcap hidden></label>`}
+    </div>
+    <div class="m-scrim" id="caScrim"><div class="m-sheet m-sheet--wide" role="dialog" aria-modal="true" id="caSheet"></div></div>`;
+    wireDeskTop();
+    wireSheetShell();
+    $$("[data-idcap]").forEach(inp => inp.onchange = (e) => {
+      if (!e.target.files || !e.target.files.length) return; /* a cancelled picker verifies nothing */
+      deal.identity = { verifiedAt: new Date().toISOString() };
+      Store.save();
+      renderIdentity(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+    const idGo = $("#idGo");
+    if (idGo) idGo.onclick = () => render();
+    $$("[data-linksheet]").forEach(b => b.onclick = () => openLinkSheet(b.dataset.linksheet));
   }
 
   /* one delegated writer: masks applied here so the stored value matches what
@@ -3762,6 +3909,7 @@ route("credit/:id", ({ id }) => {
   }
 
   function renderApproved(justNow) {
+    repaint = () => renderApproved();
     const a = deal.creditApp;
     renderChrome("Lending Lane — Credit Application", dealTitle(deal), "");
     document.body.dataset.canvas = "master";
@@ -3779,15 +3927,21 @@ route("credit/:id", ({ id }) => {
           </div>
           <div class="ca-selectline"><label class="ca-lab" for="assignLender">Assign Lender</label>
             <select class="ca-input" id="assignLender">${RIDE_PRICE_DATA.lenders.map(l => `<option ${l === a.lender ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></div>
-          <div class="ca-wait"><div class="ca-eyebrow">While you waited</div><p>The Manufacturer Warranty Overview and Service Walk are complete and the Cover Sheet is printed. Next: the Team Lead signs off on the deal and delivers it to Processing — then the menu gets built.</p></div>
+          ${deal.identity && deal.identity.verifiedAt
+            ? `<div class="ca-wait"><div class="ca-eyebrow">Identity complete</div><p>Identity verification is already complete, so the advisor does not need to repeat that step during delivery.</p></div>`
+            : `<div class="ca-wait"><div class="ca-eyebrow">While you waited</div><p>The Manufacturer Warranty Overview and Service Walk are complete and the Cover Sheet is printed. Next: the Team Lead signs off on the deal and delivers it to Processing — then the menu gets built.</p></div>`}
         </div>
       </div>
     </div>
     <div class="ca-dock">
       <div class="ca-dockinfo"><small>Next step</small><strong>Manager Sign-Off</strong></div>
       <a class="mp-primary" style="display:inline-flex;align-items:center;text-decoration:none" href="#/menu/${esc(deal.id)}">Continue →</a>
-    </div>`;
+    </div>
+    <div class="m-scrim" id="caScrim"><div class="m-sheet m-sheet--wide" role="dialog" aria-modal="true" id="caSheet"></div></div>`;
     wireDeskTop();
+    wireSheetShell();
+    const ds = $("#caDealSum");
+    if (ds) ds.onclick = openSummarySheet;
     $("#assignLender").onchange = (e) => {
       a.lender = e.target.value; Store.save();
       toast("Lender assigned: " + a.lender);
@@ -3796,7 +3950,11 @@ route("credit/:id", ({ id }) => {
     if (justNow) toast("Application approved — qualified rate " + a.qualifiedApr + "%");
   }
 
-  if (app && app.approved) renderApproved(); else render();
+  /* v2 gate: identity verification comes before the application begins; an
+     already-approved deal never re-gates */
+  if (app && app.approved) renderApproved();
+  else if (!(deal.identity && deal.identity.verifiedAt)) renderIdentity(false);
+  else render();
 });
 
 /* ============================================================

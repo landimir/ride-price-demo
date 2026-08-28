@@ -2617,7 +2617,8 @@ button.m-rolepill { font: inherit; cursor: pointer; }
 .ca-scanpill { display: inline-flex; margin-top: 14px; padding: 8px 11px; background: #E9F8F2; color: #168A62; border-radius: 999px; font-size: 12px; font-weight: 650; }
 .ca-rule { height: 1px; background: var(--line-soft); margin: 22px 0; }
 .ca-h3 { font-size: 16px; margin: 0 0 4px; color: var(--ink); }
-.ca-choice { display: flex; gap: 12px; align-items: flex-start; padding: 12px 0; cursor: pointer; }
+.ca-choice { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border: 1px solid var(--line); border-radius: 16px; margin-top: 12px; cursor: pointer; }
+.ca-choice.active { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
 .ca-radio { width: 20px; height: 20px; border: 1.5px solid #B0B0B0; border-radius: 50%; display: grid; place-items: center; flex: 0 0 20px; margin-top: 1px; }
 .ca-radio::after { content: ""; width: 10px; height: 10px; border-radius: 50%; background: transparent; }
 .ca-choice.active .ca-radio { border-color: var(--ink); }
@@ -2687,6 +2688,53 @@ select.ca-input { appearance: auto; }
 .ca-wait { margin-top: 22px; background: #FFF5EB; border-radius: 16px; padding: 17px; }
 .ca-wait .ca-eyebrow { color: #B05B16; margin-bottom: 8px; }
 .ca-wait p { margin: 0; font-size: 14px; color: #5B5148; line-height: 1.55; font-style: italic; }
+/* v2: identity verification, remote links, Deal Summary Option A */
+.ca-wstitle { font-size: 17px; font-weight: 700; }
+.ca-wssource { font-size: 12px; color: var(--muted); margin-top: 5px; display: flex; align-items: center; gap: 6px; }
+.ca-sourcedot { width: 7px; height: 7px; border-radius: 50%; background: #34A853; display: inline-block; }
+.ca-remote { margin-top: 16px; border: 1px solid var(--line); border-radius: 18px; padding: 17px; background: #fff; }
+.ca-remotetop { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.ca-remotetop strong { display: block; font-size: 17px; }
+.ca-remotetop span { display: block; font-size: 14px; line-height: 1.4; color: var(--muted); margin-top: 4px; }
+.ca-sentpill { display: inline-flex; align-items: center; padding: 8px 11px; border-radius: 999px; background: #E9F8F2; color: #168A62; font-size: 13px; font-weight: 700; white-space: nowrap; }
+.ca-linkaction { margin-top: 14px; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 14px; border: 1px solid var(--line); border-radius: 16px; padding: 14px 15px; background: #fff; font: inherit; color: var(--ink); cursor: pointer; text-align: left; }
+.ca-linkcopy { min-width: 0; }
+.ca-linkcopy strong { display: block; font-size: 15px; }
+.ca-linkcopy span { display: block; color: var(--muted); font-size: 13px; margin-top: 3px; line-height: 1.35; }
+.ca-roundarrow { width: 38px; height: 38px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 18px; flex: 0 0 38px; display: grid; place-items: center; }
+.ca-actionrow { display: flex; gap: 10px; margin-top: 16px; }
+.ca-actionrow > * { flex: 1; }
+.ca-verifywrap { text-align: center; padding: 16px 0 8px; }
+.ca-verifywrap h2 { font-size: 28px; letter-spacing: -.7px; margin: 8px 0 10px; color: var(--ink); }
+.ca-verifywrap > p { font-size: 15px; line-height: 1.5; color: var(--muted); max-width: 440px; margin: 0 auto; }
+.ca-faceframe { width: 188px; height: 188px; border-radius: 50%; border: 2px solid #DADADA; margin: 28px auto 20px; position: relative; display: grid; place-items: center; background: linear-gradient(180deg, #FBFBFB, #F3F3F3); }
+.ca-faceframe::after { content: ""; position: absolute; inset: -8px; border: 2px solid transparent; border-top-color: var(--accent); border-right-color: var(--accent); border-radius: 50%; transform: rotate(30deg); }
+.ca-faceicon { width: 104px; height: 104px; border-radius: 50%; background: #EDEDED; display: grid; place-items: center; color: #666; }
+.ca-faceicon svg { width: 48px; height: 48px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.ca-faceframe.verified::after { border-color: #168A62; transform: none; }
+.ca-faceframe.verified .ca-faceicon { background: #E9F8F2; color: #168A62; }
+.ca-checklist { margin-top: 22px; text-align: left; border-top: 1px solid var(--line-soft); }
+.ca-checkrow { display: flex; align-items: center; gap: 11px; padding: 14px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
+.ca-checkmark { width: 22px; height: 22px; border-radius: 50%; background: #E9F8F2; color: #168A62; display: grid; place-items: center; font-weight: 800; flex: 0 0 22px; }
+.ca-checkmark--off { background: var(--surface-2); color: var(--muted); }
+.ca-checkrow span { color: var(--muted); margin-left: auto; font-size: 13px; }
+.ca-privacy { display: flex; gap: 9px; justify-content: center; align-items: flex-start; font-size: 12px; color: var(--muted); line-height: 1.4; margin-top: 14px; }
+.ca-privacy svg { width: 14px; height: 14px; flex: 0 0 auto; margin-top: 1px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ca-uploadline { margin: 12px 0 0; font-size: 13px; }
+.ca-uploadlink { cursor: pointer; color: var(--ink); font-weight: 650; }
+.ca-caplabel { display: inline-flex; align-items: center; justify-content: center; cursor: pointer; padding: 0 22px; }
+.m-sheet--wide { width: min(680px, 100%); }
+.ca-sheetsub { font-size: 14px; line-height: 1.5; color: var(--muted); margin: 0 0 4px; }
+.ca-recipient { background: var(--surface); border-radius: 16px; padding: 14px 15px; margin-top: 16px; }
+.ca-recipient small { display: block; color: var(--muted); font-size: 12px; margin-bottom: 4px; }
+.ca-recipient strong { font-size: 16px; }
+.ca-sentstate { text-align: center; padding: 14px 0 8px; }
+.ca-senticon { width: 68px; height: 68px; border-radius: 50%; background: #E9F8F2; color: #168A62; display: grid; place-items: center; font-size: 30px; font-weight: 800; margin: 0 auto 14px; }
+.ca-sentstate h3 { font-size: 22px; margin: 0 0 8px; color: var(--ink); }
+.ca-sentstate p { margin: 0 auto; max-width: 420px; font-size: 14px; line-height: 1.5; color: var(--muted); }
+.ca-statuslist { margin-top: 18px; border-top: 1px solid var(--line-soft); }
+.ca-statusitem { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
+.ca-statusitem span:last-child { color: var(--muted); }
 @media (min-width: 431px) {
   body[data-canvas="master"] .ca-app { box-shadow: 0 0 0 1px rgba(0, 0, 0, .04); }
 }
