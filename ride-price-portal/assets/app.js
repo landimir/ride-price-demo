@@ -742,7 +742,13 @@ route("deals", () => {
 
   $("#dealSearch").oninput = (e) => { dealsUI.q = e.target.value; paint(); };
   $$(".dl-pill").forEach(p => p.onclick = () => { dealsUI.pipe = p.dataset.pipe; paint(); });
-  $("#dealScanBtn").onclick = () => openScanFlow({ mode: "customer", onDone: (cust) => startVisit(cust.id) });
+  $("#dealScanBtn").onclick = () => openScanFlow({ mode: "customer", onDone: (cust) => {
+    /* same stamp as the resolver's scan path: the license address was just
+       confirmed through the scan's own review */
+    cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), address: { confirmedAt: new Date().toISOString(), source: "license" } });
+    Store.save();
+    startVisit(cust.id);
+  } });
   paint();
 });
 
@@ -750,133 +756,486 @@ route("deals", () => {
    VIEW: Find a Customer
    ============================================================ */
 route("customers", () => {
-  renderChrome("Find a Customer", `Search first — Ride Price checks the CRM and all prior entries`,
-    `<button class="btn btn--grad" id="scanBtn">🪪 Scan license</button>
-     <button class="btn btn--primary" id="createBtn">👤＋ Create Customer</button>`);
+  renderChrome("Find a Customer", "", "");
+  document.body.dataset.canvas = "master";
+  /* the unified Customer Resolver (owner's onboarding v3 package, 2026-08-28):
+     one resolver for every place Ride Price needs a person. Search first,
+     then a physical-license scan or a secure self-upload; manual entry is
+     the fallback only. There is no top-level Create Customer any more. */
 
-  const recent = Store.s.customers.slice().sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+  const st = { mode: "idle", results: null, found: null, source: "record" };
+  /* the scan flow's no-match create and the deals-camera hand-off both land
+     on the manual fallback now (the flag is consumed exactly once) */
+  if (scanWantsCreate) { scanWantsCreate = false; st.mode = "manual"; }
 
-  view().innerHTML = `
-    <div class="grid grid--side">
-      <div class="panel">
-        <div class="panel__head"><h2>Customer Search</h2></div>
-        <div class="panel__body">
-          <div class="radio-row">
-            <label><input type="radio" name="ctype" checked> Individual</label>
-            <label><input type="radio" name="ctype"> Company</label>
-          </div>
-          <label class="f"><span class="lab">Phone</span><input type="tel" id="qPhone" placeholder="(000) 000-0000"></label>
-          <label class="f"><span class="lab">Email</span><input type="email" id="qEmail" placeholder="email@email.com"></label>
-          <label class="f"><span class="lab">Last Name</span><input type="text" id="qLast" placeholder="Last"></label>
-          <label class="f"><span class="lab">First Name</span><input type="text" id="qFirst" placeholder="First"></label>
-          <button class="btn btn--primary" id="searchBtn" style="width:100%;justify-content:center">Search</button>
-        </div>
-      </div>
-      <div>
-        <div class="panel" id="resultsPanel" hidden>
-          <div class="panel__head"><h2>Results</h2></div>
-          <div class="panel__body" id="results"></div>
-        </div>
-        <div class="panel">
-          <div class="panel__head"><h2>Recent Customers</h2></div>
-          <div class="tbl-scroll"><table class="tbl"><thead><tr><th>Customer</th><th>Contact</th><th>Last Activity</th><th></th></tr></thead>
-          <tbody>${recent.map(c => customerRow(c)).join("")}</tbody></table></div>
-        </div>
-      </div>
-    </div>`;
+  const session = () => Store.s.idSession || null;
 
-  function customerRow(c) {
-    return `<tr><td data-label="Customer"><b>${esc(c.last)}, ${esc(c.first)}</b><div class="small">${esc(c.city)}, ${esc(c.state)} ${esc(c.zip)}</div></td>
-      <td class="small" data-label="Contact">${esc(c.phone)}<br>${esc(c.email)}</td>
-      <td class="small" data-label="Last Activity">${new Date(c.createdAt).toLocaleDateString()}</td>
-      <td class="right acts"><button class="btn btn--sm btn--grad" data-start="${esc(c.id)}">Start Visit →</button></td></tr>`;
-  }
+  const initials = (c) => esc(((c.first || " ")[0] + (c.last || " ")[0]).toUpperCase());
+  const shell = (content) => `
+    <div class="ca-app" style="max-width:600px">
+      ${deskTop({ dealNo: null })}
+      <div class="ob-main">${content}</div>
+    </div>
+    <div class="m-scrim" id="obScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="obSheet"></div></div>`;
+  const heroHtml = (eyebrow, title, lead) => `<div class="ca-eyebrow">${eyebrow}</div><h1 class="ob-h1">${title}</h1>${lead ? `<p class="ob-lead">${lead}</p>` : ""}`;
+  const contextPill = () => `<div class="ob-context"><span class="ob-pill"><span class="ob-dot"></span>Start new customer visit</span></div>`;
 
-  function doSearch() {
-    const rp = $("#resultsPanel"); rp.hidden = false;
-    const ph = $("#qPhone").value.replace(/\D/g, "");
-    const em = $("#qEmail").value.trim().toLowerCase();
-    const ln = $("#qLast").value.trim().toLowerCase();
-    const fn = $("#qFirst").value.trim().toLowerCase();
-    if (!ph && !em && !ln && !fn) {
-      $("#results").innerHTML = `<p class="center muted" style="padding:26px 0">Enter at least one field to search.</p>`;
-    } else {
-      const hits = Store.s.customers.filter(c =>
-        (ph && c.phone.replace(/\D/g, "").includes(ph)) ||
-        (em && c.email.toLowerCase().includes(em)) ||
-        (ln && c.last.toLowerCase().includes(ln)) ||
-        (fn && c.first.toLowerCase().includes(fn)));
-      $("#results").innerHTML = hits.length
-        ? `<div class="tbl-scroll"><table class="tbl"><tbody>${hits.map(c => customerRow(c)).join("")}</tbody></table></div>`
-        : `<p class="center muted" style="padding:20px 0">No matches found. <br><button class="btn btn--primary btn--sm mt" id="createBtn2">👤＋ Create Customer</button></p>`;
-      bindStart();
-      const c2 = $("#createBtn2"); if (c2) c2.onclick = openCreate;
+  /* ---- sheets ---- */
+  let sheetClose = null;
+  const openSheet4 = (html, onMount) => {
+    $("#obSheet").innerHTML = `<div class="m-handle"></div>${html}`;
+    $("#obScrim").classList.add("show");
+    if (onMount) onMount($("#obSheet"));
+  };
+  const closeSheet4 = () => $("#obScrim").classList.remove("show");
+  const sheetHead4 = (title, sub) => `<div class="m-sheettop"><div class="m-sheettitle">${esc(title)}</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>${sub ? `<p class="ob-sheetdesc">${sub}</p>` : ""}`;
+
+  /* one address parser for the single-field rule: "street, city, ST 12345",
+     or "street, 12345" completed from the demo ZIP table. Never a guess —
+     an unparseable string stays unparsed and the field says the format. */
+  function parseAddress(text) {
+    const t = String(text || "").trim();
+    let m = t.match(/^(.+?),\s*(.+?),\s*([A-Za-z]{2})\.?\s+(\d{5})$/);
+    if (m) return { address: m[1].trim(), city: m[2].trim(), state: m[3].toUpperCase(), zip: m[4] };
+    m = t.match(/^(.+?),?\s+(\d{5})$/);
+    if (m && RIDE_PRICE_DATA.zipLookup[m[2]]) {
+      const hit = RIDE_PRICE_DATA.zipLookup[m[2]];
+      return { address: m[1].replace(/,$/, "").trim(), city: hit.city, state: hit.state, zip: m[2] };
     }
-    /* on a phone the Results panel stacks under the whole search form, so a
-       tap on Search rendered ≈700px below the fold and looked like nothing
-       happened (RP-UI-004) — every outcome, the empty-fields message included,
-       now brings the panel into view. "nearest" is a no-op when it is already
-       visible (the desktop side column). A result list taller than the screen
-       aligns its top edge, so the margin is measured from whatever bars are
-       sticky at this width (the app bar; the page bar too above 720px) and
-       the Results heading stays out from under them. */
-    const stickyH = $$(".appbar, .pagebar").filter(el => getComputedStyle(el).position === "sticky").reduce((s, el) => s + el.offsetHeight, 0);
-    rp.style.scrollMarginTop = (stickyH + 8) + "px";
-    rp.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    return null;
   }
-  $("#searchBtn").onclick = doSearch;
-  /* property assignment, not addEventListener: #view outlives the render, so a
-     listener would stack up and fire this view's doSearch on later screens */
-  view().onkeydown = (e) => { if (e.key === "Enter" && e.target.tagName === "INPUT" && $("#qPhone")) doSearch(); };
+  const fmtAddr = (a) => `${a.address}, ${a.city}, ${a.state} ${a.zip}`;
 
-  function bindStart() {
-    $$("[data-start]").forEach(b => b.onclick = () => startVisit(b.dataset.start));
+  /* the one write path for a confirmed registration address — explicit
+     choice, never a silent overwrite; the record keeps its single address
+     that every downstream surface already reads */
+  function confirmAddress(c, a, source) {
+    Object.assign(c, { address: a.address, city: a.city, state: a.state, zip: a.zip });
+    c.onboard = Object.assign({}, c.onboard, { address: { confirmedAt: new Date().toISOString(), source } });
+    Store.save();
   }
-  bindStart();
 
-  function openCreate() {
-    modal("Create Customer", `
-      <div class="fields">
-        <label class="f"><span class="lab">First Name <i class="req">*</i></span><input id="nFirst" type="text"></label>
-        <label class="f"><span class="lab">Middle Name</span><input id="nMiddle" type="text"></label>
-        <label class="f"><span class="lab">Last Name <i class="req">*</i></span><input id="nLast" type="text"></label>
-        <label class="f"><span class="lab">Email <i class="req">*</i></span><input id="nEmail" type="email"></label>
-        <label class="f"><span class="lab">Phone <i class="req">*</i></span><input id="nPhone" type="tel" placeholder="(718) 555-5555"></label>
-        <label class="f"><span class="lab">Est. Credit Score</span><input id="nScore" type="number" min="400" max="850" value="700"></label>
-        <label class="f"><span class="lab">Address <i class="req">*</i></span><input id="nAddr" type="text"></label>
-        <label class="f"><span class="lab">ZIP Code <i class="req">*</i></span><input id="nZip" type="text"></label>
-        <label class="f"><span class="lab">City</span><input id="nCity" type="text" value="Astoria"></label>
-        <label class="f"><span class="lab">State</span><input id="nState" type="text" value="NY"></label>
+  /* ---- idle: search, the two license paths, recent customers ---- */
+  function idleHtml() {
+    const s = session();
+    const recent = Store.s.customers.slice().sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 5);
+    return shell(`
+      ${heroHtml("Customer onboarding", "Find customer", "Search the CRM, scan a physical license, or let the customer securely upload a license photo from their own phone.")}
+      ${contextPill()}
+      ${s ? `<button type="button" class="ob-session" id="obSession">
+        <span class="ob-sessiondot${s.doneAt ? " done" : ""}"></span>
+        <span class="ob-sessioncopy"><b>${s.doneAt ? "Customer finished the secure upload" : "Waiting for the customer's upload"}</b><small>${esc(s.phone || s.email)}</small></span>
+        <span class="sc2-go">›</span></button>` : ""}
+      <div class="ob-search"><span class="ob-searchicon">${rpIcon("user")}</span><input id="obSearch" placeholder="Name, phone, email, or license #" aria-label="Search customers"><button type="button" class="ob-searchbtn" id="searchBtn">Search</button></div>
+      <div class="ob-helper">Ride Price searches existing profiles before any new customer is created.</div>
+      <div class="ob-or">or identify from a license</div>
+      <div>
+        <button type="button" class="ob-action" id="scanBtn"><span class="ob-iconwell">${rpIcon("idcard")}</span><span class="ob-actionmain"><span class="ob-actiontitle">Scan physical license</span><span class="ob-actionsub">Best when the customer has the license in the showroom.</span></span><span class="sc2-go">›</span></button>
+        <button type="button" class="ob-action" id="obSendLink"><span class="ob-iconwell">${rpIcon("swap")}</span><span class="ob-actionmain"><span class="ob-actiontitle">Send secure upload link</span><span class="ob-actionsub">Customer has a license photo on their phone. The image uploads directly to Ride Price.</span></span><span class="sc2-go">›</span></button>
       </div>
-      <p class="hint">Required: first &amp; last name, phone and email, address and zip code. <span class="demo-note">Demo tool — use sample data only.</span></p>`,
-      `<button class="btn btn--ghost" data-close>Cancel</button><button class="btn btn--primary" id="saveCust">Save &amp; Start Visit →</button>`);
-    $("#saveCust").onclick = () => {
-      const c = {
-        id: uid("c"), first: $("#nFirst").value.trim(), middle: $("#nMiddle").value.trim(), last: $("#nLast").value.trim(),
-        email: $("#nEmail").value.trim(), phone: $("#nPhone").value.trim(),
-        creditScore: parseInt($("#nScore").value, 10) || 700,
-        address: $("#nAddr").value.trim(), zip: $("#nZip").value.trim(),
-        city: $("#nCity").value.trim(), state: $("#nState").value.trim(), createdAt: new Date().toISOString()
+      ${st.results ? resultsHtml() : `
+      <section class="ob-section"><div class="ob-sectiontitle">Recent customers</div><div class="ob-rows">
+        ${recent.map(c => `<button type="button" class="ob-row" data-found="${esc(c.id)}"><span class="ob-avatar">${initials(c)}</span><span class="ob-rowmain"><span class="ob-rowtitle">${esc(c.first + " " + c.last)}</span><span class="ob-rowsub">${esc(c.phone)} · ${esc(c.city)}, ${esc(c.state)}</span></span><span class="sc2-go">›</span></button>`).join("")}
+      </div></section>`}`);
+  }
+
+  function resultsHtml() {
+    const hits = st.results;
+    if (!hits.length) return `<section class="ob-section"><div class="ob-sectiontitle">No matches</div>
+      <p class="ob-helper" style="margin-top:0">Nothing on file matches that search. Scan the license, send a secure upload link, or add the customer manually.</p>
+      <button type="button" class="sc2-textbtn" id="obManual">No license available · add manually</button></section>`;
+    return `<section class="ob-section"><div class="ob-sectiontitle">Results (${hits.length})</div><div class="ob-rows">
+      ${hits.map(c => `<button type="button" class="ob-row" data-found="${esc(c.id)}"><span class="ob-avatar">${initials(c)}</span><span class="ob-rowmain"><span class="ob-rowtitle">${esc(c.first + " " + c.last)}</span><span class="ob-rowsub">${esc(c.phone)} · ${esc(c.city)}, ${esc(c.state)}</span></span><span class="sc2-go">›</span></button>`).join("")}
+    </div></section>`;
+  }
+
+  /* ---- found: confirm the customer and the registration address ---- */
+  function foundHtml() {
+    const c = st.found;
+    const a = { address: c.address, city: c.city, state: c.state, zip: c.zip };
+    return shell(`
+      ${heroHtml("Customer onboarding", "Customer found", "Confirm the customer and the address Ride Price should use for registration and tax calculations.")}
+      ${contextPill()}
+      <div class="ob-card">
+        <div class="ob-resulthead"><span class="ob-avatar">${initials(c)}</span>
+          <div><div class="ob-rowtitle">${esc(c.first + " " + c.last)}</div><div class="ob-rowsub">Existing Ride Price customer</div></div>
+          <span class="ob-badge">CRM match</span></div>
+        <div class="ob-facts">
+          <div class="ob-fact"><span>Phone</span><strong>${esc(c.phone)}</strong></div>
+          <div class="ob-fact"><span>Email</span><strong>${esc(c.email)}</strong></div>
+        </div>
+      </div>
+      <div class="ob-addresscard">
+        <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">Customer record</div></div><span class="ob-pill">Required</span></div>
+        <div class="ob-addressvalue">${esc(fmtAddr(a))}</div>
+        <div class="ob-addressnote">Ride Price carries this address into registration, tax calculations, credit, and deal paperwork so the customer is not asked again.</div>
+        <button type="button" class="ob-primary" id="obConfirm">Confirm address &amp; start visit</button>
+        <button type="button" class="sc2-textbtn ob-center" id="obOtherAddr">Use a different address</button>
+      </div>
+      <button type="button" class="sc2-textbtn ob-center" id="obBack">Not the right customer? Search again</button>`);
+  }
+
+  /* ---- manual fallback: minimum typing, one address field ---- */
+  function manualHtml() {
+    return shell(`
+      ${heroHtml("Customer onboarding", "No license available", "Use this only when the customer has neither a physical license nor a usable photo.")}
+      <div class="ob-notice"><span>!</span><div><strong>Fallback only</strong>If a license or license photo becomes available, use it instead so Ride Price can read the identity and address automatically.</div></div>
+      <div class="ob-field"><label class="ca-lab" for="obName">Full name</label><input class="ca-input" id="obName" placeholder="First Last"></div>
+      <div class="ob-field"><label class="ca-lab" for="obPhone">Mobile phone</label><input class="ca-input" id="obPhone" type="tel" placeholder="(718) 555-5555"></div>
+      <div class="ob-field"><label class="ca-lab" for="obEmail">Email</label><input class="ca-input" id="obEmail" type="email" placeholder="name@testing.com"></div>
+      <div class="ob-field"><label class="ca-lab" for="obAddr">Registration address</label><input class="ca-input" id="obAddr" placeholder="Street, city, ST 12345">
+        <div id="obAddrHint"></div></div>
+      <p class="ob-helper">Both phone and email are required on every customer record. <span class="demo-note">Demo tool — sample data only.</span></p>
+      <button type="button" class="ob-primary" id="obManualSave">Confirm &amp; start visit</button>
+      <button type="button" class="sc2-textbtn ob-center" id="obBack">Back to resolver</button>`);
+  }
+
+  /* ---- remote session: waiting + ready (advisor side) ---- */
+  function waitingHtml() {
+    const s = session();
+    const row = (okFlag, label, sub, value) => `<div class="ob-statusrow"><span class="ob-statusicon${okFlag ? "" : " pending"}">${okFlag ? "✓" : "•"}</span><div><div class="ob-statuslabel">${label}</div>${sub ? `<div class="ob-statussub">${sub}</div>` : ""}</div><span class="ob-statusvalue${okFlag ? "" : " pending"}">${value}</span></div>`;
+    return shell(`
+      ${heroHtml("Customer onboarding", "Waiting for customer", "The secure Ride Price session is ready. The customer uploads their license photo from their own phone — never by texting it to the salesperson.")}
+      <div class="ob-notice"><span>✓</span><div><strong>Secure link prepared</strong>${esc(s.phone || s.email)} · ${esc(s.channel)}<br><b>Demo — no text or email is really sent; open the customer view on this device to play the customer.</b></div></div>
+      <div class="ob-statuslist">
+        ${row(true, "Link sent", "Secure Ride Price session created", "Complete")}
+        ${row(!!s.photoAt, "License photo", s.photoAt ? "Read from the training prop" : "Waiting for customer upload", s.photoAt ? "Received" : "Pending")}
+        ${row(!!s.faceAt, "Identity photo", s.faceAt ? "Captured on the customer's device" : "Face step follows the upload", s.faceAt ? "Captured" : "Pending")}
+        ${row(!!s.addressConfirmedAt, "Registration address", s.addressConfirmedAt ? "Confirmed by the customer" : "Customer confirms the extracted address", s.addressConfirmedAt ? "Confirmed" : "Pending")}
+      </div>
+      <a class="ob-primary ob-linkbtn" href="#/idverify">Open customer view</a>
+      <button type="button" class="sc2-textbtn ob-center" id="obBack">Back to customer resolver</button>
+      <button type="button" class="sc2-textbtn ob-center" id="obCancelSession">Cancel this secure link</button>`);
+  }
+
+  function remoteReadyHtml() {
+    const s = session();
+    const p = s.persona;
+    const linked = s.matchId ? Store.customer(s.matchId) : null;
+    const a = s.addressChoice;
+    const row = (okFlag, label, sub, value) => `<div class="ob-statusrow"><span class="ob-statusicon${okFlag ? "" : " pending"}">${okFlag ? "✓" : "•"}</span><div><div class="ob-statuslabel">${label}</div>${sub ? `<div class="ob-statussub">${sub}</div>` : ""}</div><span class="ob-statusvalue${okFlag ? "" : " pending"}">${value}</span></div>`;
+    return shell(`
+      ${heroHtml("Customer onboarding", "Customer identified", `${esc(p.first)} completed the secure phone flow. Start the visit now — the second license side stays a specific pending item instead of blocking everything.`)}
+      <div class="ob-card"><div class="ob-resulthead"><span class="ob-avatar">${initials(p)}</span>
+        <div><div class="ob-rowtitle">${esc(p.first + " " + p.last)}</div><div class="ob-rowsub">Remote secure upload${linked ? " · existing customer" : " · new customer"}</div></div>
+        <span class="ob-badge">Identity photo captured</span></div></div>
+      <div class="ob-statuslist" style="margin-top:14px">
+        ${row(true, "Secure session", "Opened on this device (demo)", "Complete")}
+        ${row(true, "Identity photo", "Demo — captured and discarded; no real biometric match", "Captured")}
+        ${row(true, "License photo", "Read from the training prop", "Received")}
+        ${row(false, "Second license side", "Request later only when a workflow needs the full document", "Pending")}
+      </div>
+      <div class="ob-addresscard">
+        <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">Confirmed by customer · from the license</div></div><span class="ob-badge">Confirmed</span></div>
+        <div class="ob-addressvalue">${esc(fmtAddr(a))}</div>
+        <div class="ob-addressnote">Carried into tax calculations, credit, registration, and paperwork.</div>
+        <button type="button" class="ob-primary" id="obAttach">Start visit</button>
+        <button type="button" class="sc2-textbtn ob-center" id="obDiscardSession">Discard this upload</button>
+      </div>`);
+  }
+
+  /* ---- render + wiring ---- */
+  function render() {
+    const s = session();
+    if (st.mode === "idle" && s && s.doneAt) st.mode = "remote-ready";
+    view().innerHTML =
+      st.mode === "found" ? foundHtml()
+      : st.mode === "manual" ? manualHtml()
+      : st.mode === "waiting" ? waitingHtml()
+      : st.mode === "remote-ready" ? remoteReadyHtml()
+      : idleHtml();
+    wireDeskTop();
+    wire();
+  }
+
+  function wire() {
+    const scrim = $("#obScrim");
+    if (scrim) scrim.onclick = (e) => { if (e.target === scrim || e.target.closest("[data-sheet-close]")) closeSheet4(); };
+
+    $$("[data-found]").forEach(b => b.onclick = () => { st.found = Store.customer(b.dataset.found); st.mode = "found"; render(); window.scrollTo(0, 0); });
+    const back = $("#obBack"); if (back) back.onclick = () => { st.mode = "idle"; st.results = null; st.found = null; render(); };
+
+    const sb = $("#searchBtn");
+    if (sb) {
+      const run = () => {
+        const q = $("#obSearch").value.trim().toLowerCase();
+        if (!q) { $("#obSearch").focus(); return; }
+        const digits = q.replace(/\D/g, "");
+        const norm = (x) => String(x || "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+        st.results = Store.s.customers.filter(c =>
+          (c.first + " " + c.last).toLowerCase().includes(q) ||
+          c.last.toLowerCase().includes(q) ||
+          (digits.length >= 4 && c.phone.replace(/\D/g, "").includes(digits)) ||
+          c.email.toLowerCase().includes(q) ||
+          (c.license && norm(c.license.number).includes(norm(q))));
+        render();
+        const inp = $("#obSearch"); inp.value = q; /* the query survives the render */
       };
-      /* every miss is marked on its own field at once and the first one is
-         scrolled to inside the dialog, so the message does not depend on a
-         toast landing somewhere the user happens to be looking (RP-UI-003);
-         the toast only points at the marks */
-      if (markMissing($("#modalBack"), customerMissing(c, "n", $("#modalBack")))) return toast("Fill in the fields marked in red");
+      sb.onclick = run;
+      $("#obSearch").onkeydown = (e) => { if (e.key === "Enter") run(); };
+    }
+
+    const scan = $("#scanBtn");
+    if (scan) scan.onclick = () => openScanFlow({
+      mode: "customer",
+      onManual: () => { st.mode = "manual"; render(); },
+      onDone: (cust) => {
+        /* the scan already confirmed identity and wrote the license address —
+           record it as the confirmed registration address (source: license) */
+        cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), address: { confirmedAt: new Date().toISOString(), source: "license" } });
+        Store.save();
+        startVisit(cust.id);
+      }
+    });
+
+    const send = $("#obSendLink"); if (send) send.onclick = openSendSheet;
+    const sess = $("#obSession"); if (sess) sess.onclick = () => { st.mode = session().doneAt ? "remote-ready" : "waiting"; render(); };
+    const cancelS = $("#obCancelSession"); if (cancelS) cancelS.onclick = () => { Store.s.idSession = null; Store.save(); st.mode = "idle"; render(); };
+    const discard = $("#obDiscardSession"); if (discard) discard.onclick = () => { Store.s.idSession = null; Store.save(); st.mode = "idle"; render(); };
+    const man = $("#obManual"); if (man) man.onclick = () => { st.mode = "manual"; render(); window.scrollTo(0, 0); };
+
+    const confirmBtn = $("#obConfirm");
+    if (confirmBtn) confirmBtn.onclick = () => {
+      const c = st.found;
+      confirmAddress(c, { address: c.address, city: c.city, state: c.state, zip: c.zip }, "record");
+      startVisit(c.id);
+    };
+    const other = $("#obOtherAddr");
+    if (other) other.onclick = () => openAddressSheet((a) => { confirmAddress(st.found, a, "chosen"); startVisit(st.found.id); });
+
+    const manualSave = $("#obManualSave");
+    if (manualSave) manualSave.onclick = () => {
+      const name = $("#obName").value.trim();
+      const parts = name.split(/\s+/);
+      const phone = $("#obPhone").value.trim(), email = $("#obEmail").value.trim();
+      const parsed = parseAddress($("#obAddr").value);
+      const bad = [];
+      if (parts.length < 2) bad.push({ el: $("#obName"), msg: name ? "First and last name" : "Required" });
+      if (!phone) bad.push({ el: $("#obPhone"), msg: "Required" });
+      if (!email) bad.push({ el: $("#obEmail"), msg: "Required" });
+      if (!parsed) bad.push({ el: $("#obAddr"), msg: $("#obAddr").value.trim() ? "Enter as street, city, ST 12345" : "Required" });
+      if (markMissing(view(), bad)) return;
+      const c = {
+        id: uid("c"), first: parts.slice(0, -1).join(" "), middle: "", last: parts[parts.length - 1],
+        phone, email, creditScore: 700, createdAt: new Date().toISOString(),
+        address: parsed.address, city: parsed.city, state: parsed.state, zip: parsed.zip,
+        onboard: { address: { confirmedAt: new Date().toISOString(), source: "typed" } }
+      };
       Store.s.customers.push(c); Store.save();
-      closeModal(); toast("Customer created");
+      toast("Customer created");
+      startVisit(c.id);
+    };
+    const addrInp = $("#obAddr");
+    if (addrInp) addrInp.oninput = () => {
+      const parsed = parseAddress(addrInp.value);
+      $("#obAddrHint").innerHTML = parsed
+        ? `<button type="button" class="ob-lookup" id="obAddrUse"><strong>${esc(fmtAddr(parsed))}</strong><span>Use this standardized address</span></button>` : "";
+      const use = $("#obAddrUse");
+      if (use) use.onclick = () => { addrInp.value = fmtAddr(parsed); $("#obAddrHint").innerHTML = ""; };
+    };
+
+    const attach = $("#obAttach");
+    if (attach) attach.onclick = () => {
+      const s = session();
+      const p = s.persona, a = s.addressChoice;
+      let c = s.matchId ? Store.customer(s.matchId) : null;
+      if (c) {
+        Object.assign(c, {
+          first: p.first, middle: p.middle || "", last: p.last, dob: p.dob || c.dob,
+          license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
+        });
+      } else {
+        c = {
+          id: uid("c"), first: p.first, middle: p.middle || "", last: p.last, dob: p.dob || "",
+          phone: s.phone, email: s.email, creditScore: 700, createdAt: new Date().toISOString(),
+          address: a.address, city: a.city, state: a.state, zip: a.zip,
+          license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
+        };
+        Store.s.customers.push(c);
+      }
+      Object.assign(c, { address: a.address, city: a.city, state: a.state, zip: a.zip });
+      c.onboard = Object.assign({}, c.onboard, {
+        phoneAt: s.doneAt, faceAt: s.faceAt, licensePhotoAt: s.photoAt, secondSide: "pending",
+        address: { confirmedAt: s.addressConfirmedAt, source: "license" }
+      });
+      Store.s.idSession = null;
+      Store.save();
       startVisit(c.id);
     };
   }
-  $("#createBtn").onclick = openCreate;
-  /* consumed once — a later visit to this screen must not reopen the dialog */
-  if (scanWantsCreate) { scanWantsCreate = false; openCreate(); }
-  $("#scanBtn").onclick = () => openScanFlow({
-    mode: "customer",
-    onManual: openCreate,
-    onDone: (cust) => startVisit(cust.id)
-  });
 
+  function openSendSheet() {
+    openSheet4(`${sheetHead4("Send secure upload link", "The customer uploads the license directly to Ride Price — never by texting or emailing it to the salesperson.")}
+      <div class="ob-channel" id="obChannel"><button type="button" class="active" data-ch="Text">Text</button><button type="button" data-ch="Email">Email</button></div>
+      <div class="ob-field"><label class="ca-lab" for="obLinkPhone">Customer mobile</label><input class="ca-input" id="obLinkPhone" type="tel" placeholder="(718) 555-5555"></div>
+      <div class="ob-field"><label class="ca-lab" for="obLinkEmail">Email</label><input class="ca-input" id="obLinkEmail" type="email" placeholder="name@testing.com"></div>
+      <div class="ob-privacy"><strong>Private by design:</strong> the upload link creates a secure Ride Price session. The salesperson receives status, not a copy in personal messages. <b>Demo — no text or email is really sent; the customer view opens on this device.</b></div>
+      <p class="ob-helper" style="margin:0 0 4px">Both channels are kept on the record — phone and email are required on every customer profile.</p>
+      <button type="button" class="ob-primary" id="obSendGo">Send secure link</button>`, (sheet) => {
+      let channel = "Text";
+      $$("#obChannel button", sheet).forEach(b => b.onclick = () => {
+        channel = b.dataset.ch;
+        $$("#obChannel button", sheet).forEach(x => x.classList.toggle("active", x === b));
+      });
+      $("#obSendGo", sheet).onclick = () => {
+        const phone = $("#obLinkPhone", sheet).value.trim(), email = $("#obLinkEmail", sheet).value.trim();
+        const bad = [];
+        if (!phone) bad.push({ el: $("#obLinkPhone", sheet), msg: "Required" });
+        if (!email) bad.push({ el: $("#obLinkEmail", sheet), msg: "Required" });
+        if (markMissing(sheet, bad)) return;
+        Store.s.idSession = { id: uid("s"), phone, email, channel, sentAt: new Date().toISOString(), photoAt: null, persona: null, matchId: null, faceAt: null, addressChoice: null, addressConfirmedAt: null, doneAt: null };
+        Store.save();
+        closeSheet4();
+        st.mode = "waiting"; render(); window.scrollTo(0, 0);
+      };
+    });
+  }
+
+  function openAddressSheet(onPick) {
+    openSheet4(`${sheetHead4("Use a different address", "One address search field — no separate street, city, state and ZIP typing.")}
+      <div class="ob-field"><label class="ca-lab" for="obSheetAddr">Search address</label><input class="ca-input" id="obSheetAddr" placeholder="Street, city, ST 12345"></div>
+      <div id="obSheetHint" class="ob-helper" style="margin-top:0">Type the address as street, city, ST 12345 — the demo standardizes against its ZIP table.</div>
+      <div id="obSheetOut"></div>`, (sheet) => {
+      const inp = $("#obSheetAddr", sheet);
+      inp.oninput = () => {
+        const parsed = parseAddress(inp.value);
+        $("#obSheetOut", sheet).innerHTML = parsed
+          ? `<button type="button" class="ob-lookup" data-pickaddr><strong>${esc(fmtAddr(parsed))}</strong><span>Use this standardized address</span></button>` : "";
+        const pick = $("[data-pickaddr]", sheet);
+        if (pick) pick.onclick = () => { closeSheet4(); onPick(parsed); };
+      };
+      inp.focus();
+    });
+  }
+
+  render();
+});
+
+/* the customer's own secure-upload session (onboarding v3): opened from the
+   advisor's waiting screen — the demo has no network (invariant 2), so the
+   "link" opens here and every screen says so. Photos are read by the prop
+   recognizer and discarded; the identity photo is never even read. */
+route("idverify", () => {
+  renderChrome("Secure Identity Upload", "", "");
+  document.body.dataset.canvas = "master";
+  const s = Store.s.idSession;
+
+  const shell = (content) => `
+    <div class="ca-app" style="max-width:560px">
+      <div class="ob-clienttop"><span class="m-wordmark"><span class="rideprice">Ride</span><span class="price">PRICE</span></span></div>
+      <div class="ob-main">${content}</div>
+    </div>`;
+  const heroHtml = (eyebrow, title, lead) => `<div class="ca-eyebrow">${eyebrow}</div><h1 class="ob-h1">${title}</h1>${lead ? `<p class="ob-lead">${lead}</p>` : ""}`;
+
+  if (!s) {
+    view().innerHTML = shell(`${heroHtml("Secure identity upload", "No active session", "Ask the advisor to send a new secure link from the customer resolver.")}
+      <a class="ob-primary ob-linkbtn" href="#/customers">Back to Ride Price</a>`);
+    return;
+  }
+
+  function render() {
+    if (!s.photoAt) renderUpload();
+    else if (!s.faceAt) renderFace();
+    else if (!s.addressConfirmedAt) renderAddress();
+    else renderDoneView();
+  }
+
+  function renderUpload() {
+    view().innerHTML = shell(`
+      ${heroHtml("Secure identity upload", "Upload your driver&rsquo;s license", "Choose the license photo already saved on your phone, or take a new one. Your ID uploads directly to Ride Price.")}
+      <div class="ob-privacy"><strong>Your license is not sent to the salesperson.</strong> The image goes from your device directly into the secure Ride Price profile. <b>Demo — only the 5 printed training licenses can be read, from their barcode side, and photos are discarded after reading.</b></div>
+      <div class="sc2-capture">
+        <div class="sc2-frame"><div class="sc2-cardart" aria-hidden="true"><span class="sc2-cardface">${rpIcon("user")}</span><span class="sc2-cardlines"><i></i><i></i><i></i></span></div></div>
+        <div class="sc2-captitle">Upload your license</div>
+        <p class="sc2-captip">Use the training prop&rsquo;s barcode side — that is the side the demo can read.</p>
+        <div id="obUpNote"></div>
+      </div>
+      <div class="sc2-actions">
+        <label class="sc2-primary sc2-cap">Choose license photo<input type="file" accept="image/*" data-upcap hidden></label>
+        <label class="sc2-secondary sc2-cap">Take a photo<input type="file" accept="image/*" capture="environment" data-upcap hidden></label>
+      </div>`);
+    $$("[data-upcap]").forEach(inp => inp.onchange = (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      $("#obUpNote").innerHTML = `<div class="sc2-status"><span class="sc2-statusicon">✓</span><div><b>Reading&hellip;</b></div></div>`;
+      RIDE_PRICE_SCAN.recognizeFile(f).then((res) => {
+        if (!Store.s.idSession || Store.s.idSession.id !== s.id) return; /* session was cancelled */
+        if (res && res.ok && res.persona) {
+          s.photoAt = new Date().toISOString();
+          s.persona = res.persona;
+          const m = findLicenseMatch(res.persona);
+          s.matchId = m.customer && m.type === "license number" ? m.customer.id : null;
+          Store.save();
+          render();
+          window.scrollTo(0, 0);
+        } else {
+          $("#obUpNote").innerHTML = `<div class="sc2-status"><span class="sc2-statusicon" style="background:#FFF3F0;color:#B42318">!</span><div><b>Couldn&rsquo;t read that photo</b><br><span>The demo reads only the printed training prop&rsquo;s barcode side — try that side.</span></div></div>`;
+        }
+      }).catch(() => {
+        $("#obUpNote").innerHTML = `<div class="sc2-status"><span class="sc2-statusicon" style="background:#FFF3F0;color:#B42318">!</span><div><b>Couldn&rsquo;t read that photo</b><br><span>The demo reads only the printed training prop&rsquo;s barcode side.</span></div></div>`;
+      });
+    });
+  }
+
+  function renderFace() {
+    const p = s.persona;
+    view().innerHTML = shell(`
+      ${heroHtml("Identity verification", "Confirm it&rsquo;s you", "Take a quick photo so the dealership can confirm you match the license that was uploaded.")}
+      <div class="ob-notice"><span>✓</span><div><strong>License read</strong>${esc(p.first + " " + p.last)} · ${esc(p.license.number)} · ${esc(p.license.state)}</div></div>
+      <div class="ob-selfie">${rpIcon("user")}</div>
+      <div class="ob-privacy"><strong>Why this helps:</strong> it protects the application from someone using a photo of another person&rsquo;s license. <b>Demo — the photo is confirmed on this device and discarded; no real biometric match occurs.</b></div>
+      <div class="sc2-actions">
+        <label class="sc2-primary sc2-cap">Take identity photo<input type="file" accept="image/*" capture="user" data-facecap hidden></label>
+        <label class="sc2-secondary sc2-cap">Choose a photo<input type="file" accept="image/*" data-facecap hidden></label>
+      </div>`);
+    $$("[data-facecap]").forEach(inp => inp.onchange = (e) => {
+      if (!e.target.files || !e.target.files.length) return;
+      if (!Store.s.idSession || Store.s.idSession.id !== s.id) return;
+      s.faceAt = new Date().toISOString();
+      Store.save();
+      render(); window.scrollTo(0, 0);
+    });
+  }
+
+  function renderAddress() {
+    const p = s.persona;
+    const lic = { address: p.address, city: p.city, state: p.state, zip: p.zip };
+    const linked = s.matchId ? Store.customer(s.matchId) : null;
+    const crm = linked ? { address: linked.address, city: linked.city, state: linked.state, zip: linked.zip } : null;
+    const same = crm && `${crm.address}|${crm.zip}`.toLowerCase() === `${lic.address}|${lic.zip}`.toLowerCase();
+    const fmt = (a) => `${a.address}, ${a.city}, ${a.state} ${a.zip}`;
+    const choose = (a) => { s.addressChoice = a; s.addressConfirmedAt = new Date().toISOString(); s.doneAt = new Date().toISOString(); Store.save(); render(); window.scrollTo(0, 0); };
+    view().innerHTML = shell(`
+      ${heroHtml("Registration", "Confirm registration address", "This address is used for vehicle registration and deal calculations — confirming it here means nobody asks you to type it again.")}
+      ${crm && !same ? `
+      <p class="ob-helper" style="margin-top:0">The address on the license differs from the one on file. Which should be used?</p>
+      <div class="ob-addressoptions">
+        <button type="button" class="ob-addressoption" data-pick="lic"><strong>${esc(fmt(lic))}</strong><span>From the license just uploaded</span></button>
+        <button type="button" class="ob-addressoption" data-pick="crm"><strong>${esc(fmt(crm))}</strong><span>Already on the Ride Price record</span></button>
+      </div>` : `
+      <div class="ob-addresscard">
+        <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">From the uploaded license</div></div>${same ? `<span class="ob-badge">Matches record</span>` : `<span class="ob-pill">Required</span>`}</div>
+        <div class="ob-addressvalue">${esc(fmt(lic))}</div>
+        ${same ? `<div class="ob-matchline">✓ Matches the customer record</div>` : ""}
+        <button type="button" class="ob-primary" data-pick="lic">Use this address</button>
+      </div>`}`);
+    $$("[data-pick]").forEach(b => b.onclick = () => choose(b.dataset.pick === "crm" ? crm : lic));
+  }
+
+  function renderDoneView() {
+    view().innerHTML = shell(`
+      <div class="ob-ready"><div class="ob-readycheck">✓</div><h2>You&rsquo;re all set</h2>
+        <p>Your information went directly to Ride Price — the advisor never receives your license image through text or email.</p></div>
+      <div class="ob-statuslist">
+        <div class="ob-statusrow"><span class="ob-statusicon">✓</span><div><div class="ob-statuslabel">Identity photo</div></div><span class="ob-statusvalue">Captured</span></div>
+        <div class="ob-statusrow"><span class="ob-statusicon">✓</span><div><div class="ob-statuslabel">License photo</div></div><span class="ob-statusvalue">Received</span></div>
+        <div class="ob-statusrow"><span class="ob-statusicon pending">•</span><div><div class="ob-statuslabel">Second license side</div><div class="ob-statussub">Can be added later when a workflow requires it</div></div><span class="ob-statusvalue pending">Pending</span></div>
+        <div class="ob-statusrow"><span class="ob-statusicon">✓</span><div><div class="ob-statuslabel">Registration address</div></div><span class="ob-statusvalue">Confirmed</span></div>
+      </div>
+      <a class="ob-primary ob-linkbtn" href="#/customers">Return to advisor view</a>`);
+  }
+
+  render();
 });
 
 /* start a visit for a known customer — used by the Find-a-Customer screen
