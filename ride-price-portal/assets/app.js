@@ -2274,11 +2274,9 @@ route("vehicles/:id", ({ id }) => {
       <div class="m-hero">
         <div class="m-eyebrow">${deal ? "VEHICLE SELECTION" : "INVENTORY"}</div>
         <h1 class="m-h1">${deal ? "Choose a vehicle" : "Browse inventory"}</h1>
-        <div class="m-sub">${deal ? "Find the right vehicle without leaving the customer conversation." : "Explore inventory. Deal actions unlock once a customer visit is active."}</div>
       </div>
       ${deal ? `
       <div class="m-context">
-        <div class="m-context-avatar">${esc((cust.first[0] || "") + (cust.last[0] || ""))}</div>
         <div class="m-context-copy">
           <div class="m-context-name">${esc(cust.first + " " + cust.last)}</div>
           <div class="m-context-meta">Deal #${esc(deal.dealNo)} · ${deal.stock ? esc(drVehicleShort(Store.vehicle(deal.stock))) + " selected" : "No vehicle selected"}</div>
@@ -3258,9 +3256,6 @@ route("agreement/:id", ({ id }) => {
   <div class="dk-wrap">
     <div class="dk-eyebrow">DESKING</div>
     <h1>Base payment agreement</h1>
-    <div class="dk-meta" style="margin-bottom:0">${signed
-      ? "The base payment is acknowledged. Continue to the credit application or redesk if the structure changes."
-      : `Review the agreed base structure with <b>${esc(c.first)}</b> before continuing to credit.`}</div>
 
     <div class="dk-chips" style="margin-top:14px">
       <button type="button" class="dk-chip" data-buyers="${esc(deal.id)}">${rpIcon("user")} Buyer</button>
