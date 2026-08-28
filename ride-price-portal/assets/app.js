@@ -913,8 +913,6 @@ function startVisit(customerId) {
    can ever resolve (see assets/scan.js). Photos are never stored.
    ============================================================ */
 const SCAN_SILHOUETTE = `<svg viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="20" cy="15" r="9"/><path d="M4 48c0-10 7-16 16-16s16 6 16 16z"/></svg>`;
-/* the journey is five steps wide: intro · front · back · read · review */
-const SCAN_STEPS = 5;
 
 /* Certain matches apply silently; ambiguous ones (`ask` set) get a confirmation
    prompt in the scan flow. Name+DOB-differs falls through: that's a different person. */
@@ -937,24 +935,25 @@ function findLicenseMatch(p) {
 
 function openScanFlow(opts) {
   const o = Object.assign({ mode: "customer" }, opts);
-  const st = { frontUrl: null, persona: null, match: null, backFrom: null, render: null, saved: false, manNum: "", manState: "NY" };
+  const st = { frontDone: false, persona: null, match: null, render: null, saved: false, manNum: "", manState: "NY", stage: "front", sv: null };
   modal("Scan Driver's License", `<div id="scanBody"></div>`);
   const body = $("#scanBody");
-  /* the scan is a focused journey (owner's v2 prototype, 2026-08-23): it owns
-     the phone screen with its own top row, hero headers, camera visuals and a
-     pinned gradient step action. Production-shaped UI — recognition itself
-     still only ever reads the five printed props (invariant 4). */
+  /* the scan is the master package's two-decision flow (owner's simplified v2,
+     2026-08-28): capture the license, then confirm the customer. Everything
+     else is a system state or an exception sheet. Recognition itself still
+     only ever reads the five printed props (invariant 4). */
   const backEl = $("#modalBack");
   backEl.classList.add("modal-back--journey");
   $(".modal", backEl).classList.add("modal--journey");
+  setModalFoot(""); /* the master flow's actions live in the page */
 
   /* one teardown for every exit path — dismissal, navigation, or save */
   function cleanup() {
     st.cancelled = true;
-    if (st.frontUrl) { try { URL.revokeObjectURL(st.frontUrl); } catch (e) { /* noop */ } st.frontUrl = null; }
     window.removeEventListener("hashchange", abandon);
     backEl.removeEventListener("click", onDismiss);
     document.removeEventListener("click", leaveGuard, true);
+    if (sheetClose) sheetClose();
   }
   function onDismiss(e) { if (e.target === backEl || e.target.hasAttribute("data-close")) cleanup(); }
   function abandon() { cleanup(); closeModal(); } /* navigating away abandons the scan */
@@ -965,7 +964,7 @@ function openScanFlow(opts) {
   function leaveGuard(e) {
     if (st.cancelled || st.saved || !document.contains(backEl)) return;
     if (!(e.target === backEl || (backEl.contains(e.target) && e.target.hasAttribute("data-close")))) return;
-    if (!st.frontUrl) return; /* nothing to lose yet */
+    if (!st.frontDone) return; /* nothing to lose yet */
     e.preventDefault(); e.stopImmediatePropagation();
     renderLeaveConfirm();
   }
@@ -975,327 +974,187 @@ function openScanFlow(opts) {
   const done = () => { cleanup(); closeModal(); };
   const live = () => !st.cancelled && document.contains(body);
 
-  /* the journey chrome (owner v2): back circle · brand · help circle, then
-     the thin gradient progress bar. Help opens the training-license peek. */
-  /* minimalist chrome (owner mockup r2, 2026-08-25): one row — a bare ← / ×,
-     the five progress pills inline, and the demo chip. No wordmark, no help
-     circle. The chip stays despite the mockup omitting all badges: the demo
-     marker is a standing rule, and this is its one home in the journey. */
-  function top(pct) {
-    /* ← inside the journey, × at its ends (intro / complete) */
-    const atEnd = st.stage === "intro" || st.saved;
-    const lit = Math.max(1, Math.min(SCAN_STEPS, Math.round(pct / (100 / SCAN_STEPS))));
-    const segs = Array.from({ length: SCAN_STEPS }, (_, i) =>
-      `<i class="${i < lit - 1 ? "done" : i === lit - 1 ? "now" : ""}"></i>`).join("");
-    return `<div class="scan-top">
-      ${st.saved ? `<button type="button" class="scan-top__btn" data-close aria-label="Close">×</button>` : `<button type="button" class="scan-top__btn" data-nav-back aria-label="${atEnd ? "Close" : "Back"}">${atEnd ? "×" : "←"}</button>`}
-      <div class="scan-steps" role="progressbar" aria-valuemin="1" aria-valuemax="${SCAN_STEPS}" aria-valuenow="${lit}" aria-label="Step ${lit} of ${SCAN_STEPS}">${segs}</div>
-      <span class="chip--demo">TRAINING · PROPS ONLY</span>
+  /* chrome (golden): brand row with the demo chip — the marker's one home in
+     the journey (standing rule) — and the two-part Scan / Confirm progress */
+  function top() {
+    const confirmSide = ["confirm", "new", "done", "block", "td"].includes(st.stage);
+    return `<div class="sc2-top">
+      <div class="sc2-brandrow">
+        <div class="sc2-brand"><span>Ride</span> Price</div>
+        <div class="sc2-context"><span class="chip--demo">TRAINING · PROPS ONLY</span>
+          <button type="button" class="sc2-close" data-close aria-label="Close">×</button></div>
+      </div>
+      <div class="sc2-progress" aria-label="Scan, then confirm">
+        <div class="sc2-step ${confirmSide ? "done" : "active"}">1&nbsp; Scan</div>
+        <div class="sc2-step ${confirmSide ? "active" : ""}">2&nbsp; Confirm</div>
+      </div>
     </div>`;
   }
-  const foot = (html) => setModalFoot(html ? `<div class="scan-foot">${html}</div>` : "");
+  const hero = (title, sub) => `<div class="sc2-eyebrow">Customer identity</div><h1 class="sc2-h1">${title}</h1>${sub ? `<p class="sc2-sub">${sub}</p>` : ""}`;
+  const initials = (first, last) => esc(((first || " ")[0] + (last || " ")[0]).toUpperCase().trim() || "?");
 
-  function wire(renderFn, navBack) {
+  function wire(renderFn) {
     st.render = renderFn;
     $$("[data-cap]", body).forEach(inp => inp.onchange = () => {
       const f = inp.files && inp.files[0];
       if (f && st.onCapture) st.onCapture(f);
     });
-    const nb = $("[data-nav-back]", body);
-    if (nb) nb.onclick = () => {
-      if (navBack) return navBack();
-      /* at the journey's first screen ← leaves; a part-done scan asks once */
-      if (st.frontUrl) renderLeaveConfirm(); else done();
-    };
   }
 
-  /* The in-journey "?" help peek is gone with the r2 chrome (the mockup's
-     header carries no help control). The props knowledge it held lives where
-     it always did: the Training Licenses page in the menu, and the
-     not-recognized screen when a scan actually fails. */
+  /* ---- exception sheets: one at a time, scrim tap and Escape both close.
+     Sheets overlay the current screen, so closing one never re-renders. ---- */
+  let sheetClose = null;
+  function openSheet(html, onMount) {
+    if (sheetClose) sheetClose();
+    const sb = document.createElement("div");
+    sb.className = "sc2-sheetback";
+    sb.innerHTML = `<div class="sc2-sheet" role="dialog" aria-modal="true"><div class="sc2-handle" aria-hidden="true"></div>${html}</div>`;
+    $(".modal", backEl).appendChild(sb);
+    const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); close(); } };
+    const close = () => { document.removeEventListener("keydown", onKey, true); sb.remove(); if (sheetClose === close) sheetClose = null; };
+    document.addEventListener("keydown", onKey, true);
+    sb.addEventListener("click", (e) => { if (e.target === sb || e.target.closest("[data-sheet-close]")) close(); });
+    sheetClose = close;
+    if (onMount) onMount($(".sc2-sheet", sb), close);
+    return close;
+  }
+  const sheetHead = (title, sub) => `<div class="sc2-sheethead"><div><h2>${title}</h2>${sub ? `<p>${sub}</p>` : ""}</div><button type="button" class="sc2-sheetx" data-sheet-close aria-label="Close">×</button></div>`;
 
-  /* leaving a part-done scan asks once; Keep scanning restores the exact step */
+  /* leaving a part-done scan asks once; the sheet overlays, so Keep scanning
+     simply closes it and the screen underneath is untouched */
   function renderLeaveConfirm() {
-    const resume = st.render;
-    foot(`<button type="button" class="btn btn--primary scan-cta" data-keep>Keep scanning</button>
-      <button type="button" class="btn scan-cta scan-cta--text" data-leave>Leave — discard the scan</button>`);
-    body.innerHTML = `${top(st.pct || 20)}
-      <div class="scan-hero">
-        <h1>Leave the scan?</h1>
-        <p>The captured photos and parsed details will be discarded.</p>
-      </div>`;
-    $("[data-keep]").onclick = () => resume ? resume() : renderIntro();
-    $("[data-leave]").onclick = () => done();
-    const nb = $("[data-nav-back]", body); if (nb) nb.onclick = () => resume ? resume() : renderIntro();
+    openSheet(`${sheetHead("Leave the scan?", "The captured photos and parsed details will be discarded.")}
+      <div class="sc2-sheetactions">
+        <button type="button" class="sc2-primary" data-sheet-close>Keep scanning</button>
+        <button type="button" class="sc2-textbtn" data-leave>Leave — discard the scan</button>
+      </div>`, (sheet) => { $("[data-leave]", sheet).onclick = () => { if (sheetClose) sheetClose(); done(); }; });
   }
 
-  /* step 0 — the intro (owner v2): purpose, the card visual, the get-ready
-     tip and the advisor's ask. In production this page is where a real
-     consent disclosure would live; the demo never fakes one. */
-  /* the intro (owner mockup r2): title + one line, the flat card graphic,
-     then exactly two benefit cards. The word-track card is gone on the
-     owner's r2 table; the second card keeps the mockup's "Works in any
-     light" headline over a subline that is true of this app (the phone's
-     own camera does the exposure — there is no auto-detect to enable). */
-  function renderIntro() {
-    st.stage = "intro"; st.pct = 20;
-    foot(`<button type="button" class="btn btn--primary scan-cta" data-begin>Begin Scanning</button>`);
-    body.innerHTML = `${top(20)}
-      <div class="scan-hero">
-        <h1>Scan a driver&rsquo;s<br>license</h1>
-        <p>We&rsquo;ll capture the front and back to find or create a customer.</p>
-      </div>
-      <div class="scan-visual">
-        <div class="scan-idcard" aria-hidden="true">
-          <div class="scan-idcard__state">NEW YORK</div><div class="scan-idcard__demo">TRAINING SAMPLE</div>
-          <div class="scan-idcard__body"><span class="scan-idcard__photo"></span>
-            <span class="scan-idcard__lines"><i></i><i></i><i></i><i></i></span></div>
+  /* ---- Screen 1: scan. Front and back are phases of one architecture. ---- */
+  function renderScan(side) {
+    const isBack = side === "back";
+    st.stage = isBack ? "back" : "front";
+    body.innerHTML = `${top()}
+      <div class="sc2-page">
+        ${hero("Scan driver&rsquo;s license", isBack
+          ? "Front captured. Keep the camera open and flip the license over."
+          : o.mode === "testdrive" ? "Verify the guest&rsquo;s license for the drive — both sides in one session."
+          : o.mode === "cobuyer" ? "Scan the co-buyer&rsquo;s license — both sides in one session."
+          : "Capture both sides in one session. Ride Price reads the license and checks the CRM automatically.")}
+        <section class="sc2-capture">
+          <div class="sc2-frame">${isBack
+            ? `<div class="sc2-barcode" aria-hidden="true"></div>`
+            : `<div class="sc2-cardart" aria-hidden="true"><span class="sc2-cardface">${rpIcon("user")}</span><span class="sc2-cardlines"><i></i><i></i><i></i></span></div>`}</div>
+          <div class="sc2-captitle">${isBack ? "Flip to the back" : "Position the front inside the frame"}</div>
+          <p class="sc2-captip">${isBack ? "Keep the barcode flat and avoid glare." : "Hold steady. The full license should be visible."}</p>
+          ${isBack ? `<div class="sc2-status"><span class="sc2-statusicon">✓</span><div><b>Front captured</b><br><span>Ready for the back</span></div></div>` : ""}
+        </section>
+        <div class="sc2-actions">
+          <label class="sc2-primary sc2-cap">${isBack ? "Capture back" : "Take photo"}<input type="file" accept="image/*" capture="environment" data-cap hidden></label>
+          <label class="sc2-secondary sc2-cap">Choose photo<input type="file" accept="image/*" data-cap hidden></label>
         </div>
-      </div>
-      <div class="scan-tip"><span class="scan-tip__icon" aria-hidden="true">${rpIcon("lock")}</span>
-        <span><strong>Fast &amp; secure</strong>We only use this to find your customer — the photos are read on this phone and discarded.</span></div>
-      <div class="scan-tip"><span class="scan-tip__icon scan-tip__icon--sun" aria-hidden="true">${rpIcon("sun")}</span>
-        <span><strong>Works in any light</strong>The phone&rsquo;s own camera handles focus and exposure — no special setup.</span></div>
-      <p class="scan-demo-hint">Only the 5 printed training licenses can be recognized — there is no reader for a real ID.</p>`;
-    $("[data-begin]").onclick = () => renderFront();
-    wire(renderIntro);
-  }
-
-  /* the capture screens (owner v2): a hero instruction over a dark camera
-     visual with the framing guide — an illustration, not a viewfinder
-     (invariant 5: the camera itself opens natively on tap) */
-  function capture(side) {
-    const front = side === "front";
-    /* the full-bleed viewfinder (owner mockup r2): no outer card — the dark
-       panel owns the middle of the screen, with corner brackets, the flash
-       bolt and the shutter drawn as part of the illustration. None of the
-       three is its own control: the whole panel is the control, and a tap
-       anywhere opens the phone's own camera (invariant 5 — there is no live
-       viewfinder for a flash to belong to). */
-    return `<label class="scan-cam scan-cam--v3 scan-cap">
-        <span class="scan-cam__frame">
-          <span class="scan-cam__brackets" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-          ${front
-            ? `<span class="scan-idcard scan-idcard--infield" aria-hidden="true">
-                <span class="scan-idcard__state">NEW YORK</span><span class="scan-idcard__demo">TRAINING SAMPLE</span>
-                <span class="scan-idcard__body"><span class="scan-idcard__photo"></span>
-                <span class="scan-idcard__lines"><i></i><i></i><i></i><i></i></span></span></span>`
-            : `<span class="scan-backcard" aria-hidden="true"><span class="scan-backcard__lab">BACK OF LICENSE</span>
-                <span class="scan-backcard__bars"></span><span class="scan-backcard__line"></span></span>`}
-          <span class="scan-scanline" aria-hidden="true"></span>
-        </span>
-        <span class="scan-flash" aria-hidden="true">⚡</span>
-        <span class="scan-shutter" aria-hidden="true"></span>
-        <span class="scan-camtip">${front ? "Avoid glare and keep all four corners visible." : "Keep the whole barcode visible and steady."}</span>
-        <input type="file" accept="image/*" capture="environment" data-cap>
-      </label>
-    <p class="scan-upload"><label class="scan-cap"><u>or upload a photo</u><input type="file" accept="image/*" data-cap></label></p>`;
-  }
-
-  function renderFront() {
-    st.stage = "front"; st.pct = 40;
-    foot(`<button type="button" class="btn btn--primary scan-cta" data-shoot>Capture Front</button>`);
-    body.innerHTML = `${top(40)}
-      <div class="scan-hero scan-hero--left scan-hero--tight">
-        <h1>Scan the front<br>of the license</h1>
-        <p>Center the license in the frame.</p>
-      </div>
-      ${capture("front")}`;
-    st.onCapture = (file) => {
-      if (st.frontUrl) { try { URL.revokeObjectURL(st.frontUrl); } catch (e) { /* noop */ } }
-      st.frontUrl = URL.createObjectURL(file);
-      /* a retaken front makes any in-flight recognition of the old photo stale */
-      const gen = st.frontGen = (st.frontGen || 0) + 1;
-      renderBack();
+        <p class="sc2-micro">Photos are read on this device and discarded. Only the <b>5 printed training licenses</b> can be recognized — there is no reader for a real ID.</p>
+      </div>`;
+    st.onCapture = isBack ? (file) => renderProcessing(file) : (file) => {
+      st.frontDone = true;
       /* opportunistic: if this photo already shows the barcode side, skip the
          wait — recognition still only ever reads the known prop barcodes */
+      const gen = st.frontGen = (st.frontGen || 0) + 1;
       RIDE_PRICE_SCAN.recognizeFile(file).then((res) => {
         if (res && res.ok && res.persona && !st.cancelled && st.frontGen === gen && st.stage === "back" && document.contains(body)) {
           toast("Barcode detected on that photo — skipping ahead");
-          renderProcessing(file);
+          renderProcessing(null, res.persona);
         }
       }).catch(() => { /* front photo without a barcode is the normal case */ });
+      renderScan("back");
     };
-    $("[data-shoot]").onclick = () => { const i = $("input[data-cap]", body); if (i) i.click(); };
-    wire(renderFront, () => renderIntro());
+    wire(() => renderScan(side));
   }
 
-  function renderBack() {
-    st.stage = "back"; st.pct = 60;
-    foot(`<button type="button" class="btn btn--primary scan-cta" data-shoot>Capture Back</button>`);
-    body.innerHTML = `${top(60)}
-      <div class="scan-hero scan-hero--left scan-hero--tight">
-        <h1>Scan the back<br>of the license</h1>
-        <p>Center the barcode side in the frame.</p>
-      </div>
-      ${capture("back")}
-      <div class="scan-captured">Front captured
-        ${st.frontUrl ? `<img class="scan-thumb" src="${st.frontUrl}" alt="front of license">` : "✓"}
-        <button type="button" class="btn btn--ghost btn--sm" data-retake>Retake front</button></div>`;
-    st.onCapture = (file) => renderProcessing(file);
-    $("[data-shoot]").onclick = () => { const i = $("input[data-cap]", body); if (i) i.click(); };
-    $("[data-retake]", body).onclick = () => renderFront();
-    wire(renderBack, () => renderFront());
-  }
-
-  /* processing (owner v2): the spinner, and a checklist that only claims what
-     is true — both captures exist, and the match cascade IS the CRM check */
-  function renderProcessing(file) {
-    st.stage = "processing"; st.pct = 80;
-    foot("");
-    /* three rows, each naming real work: the barcode read, the match cascade,
-       then assembling the review. A row only ticks when its step has actually
-       finished — the list is a status display, not an animation. */
-    const procRow = (key, label) => `<div class="scan-procrow" data-proc="${key}"><span>${label}</span><i>✓</i></div>`;
-    body.innerHTML = `${top(80)}
-      <div class="scan-hero scan-hero--tight">
-        <h1>Processing<br>your scan</h1>
-        <p>Extracting information and searching for matches&hellip;</p>
-      </div>
-      <div class="scan-ring" aria-hidden="true"></div>
-      <div class="scan-proc" role="status" aria-live="polite">
-        ${procRow("read", "Reading license")}
-        ${procRow("match", "Finding customer")}
-        ${procRow("prep", "Verifying details")}
-      </div>`;
-    /* A recognition already in flight must not paint over a screen the user
-       has since moved to — `live()` alone cannot tell, because the journey
-       body is still in the document after a back or a leave-and-resume
-       (review lesson 5). Every entry takes a generation; navigating away
-       bumps it and strands the older callback. */
+  /* processing and the CRM search are system states, not journey steps: they
+     render inline on the scan architecture. Every entry takes a generation
+     token; navigating away or a newer read invalidates the old resolve
+     (review lesson 5 — a stale recognizeFile must never paint this screen). */
+  function renderProcessing(file, personaAlready) {
+    st.stage = "processing";
     const gen = st.procGen = (st.procGen || 0) + 1;
     const mine = () => live() && st.procGen === gen;
-    /* mark step `key` done and light the next one; a stale run is a no-op */
-    const step = (key, next) => {
-      if (!mine()) return;
-      const el = $(`[data-proc="${key}"]`, body);
-      if (el) { el.classList.remove("is-now"); el.classList.add("is-done"); }
-      const nx = next && $(`[data-proc="${next}"]`, body);
-      if (nx) nx.classList.add("is-now");
-    };
-    const first = $(`[data-proc="read"]`, body); if (first) first.classList.add("is-now");
-    const t0 = Date.now();
+    body.innerHTML = `${top()}
+      <div class="sc2-page">
+        ${hero("Reading license", "No extra step is required. Ride Price is reading the barcode and checking the CRM in the background.")}
+        <section class="sc2-capture sc2-capture--busy">
+          <span class="sc2-spin" aria-hidden="true"></span>
+          <div class="sc2-captitle">Checking Ride Price…</div>
+          <p class="sc2-captip">Reading identity details · Searching customer records</p>
+          <div class="sc2-status"><span class="sc2-statusicon">✓</span><div><b>Front and back captured</b><br><span>No action needed</span></div></div>
+        </section>
+      </div>`;
+    st.render = () => renderProcessing(null, st.persona); /* resume only re-shows the busy state */
+    const settle = (p) => { if (!mine()) return; if (p) { st.persona = p; afterRecognize(); } else renderReject(); };
+    if (personaAlready) { setTimeout(() => settle(personaAlready), 700); return; }
     RIDE_PRICE_SCAN.recognizeFile(file).then((res) => {
-      /* a floor on each stage so the list is readable even on an instant read */
-      setTimeout(() => {
-        step("read", "match");
-        setTimeout(() => {
-          step("match", "prep");
-          setTimeout(() => {
-            if (!mine()) return; /* dismissed, or navigated away mid-scan */
-            step("prep", null);
-            if (res && res.ok && res.persona) { st.persona = res.persona; afterRecognize(); }
-            else renderReject();
-          }, 420);
-        }, 420);
-      }, Math.max(0, 700 - (Date.now() - t0)));
+      setTimeout(() => settle(res && res.ok ? res.persona : null), 500);
     }).catch(() => { if (mine()) renderReject(); });
-    /* the back arrow is a real control here: it strands this read and returns
-       to the capture step. Resuming a part-done scan re-enters processing
-       (and re-reads the same photo) rather than dropping to the intro. */
-    wire(() => renderProcessing(file), () => { st.procGen++; renderBack(); });
   }
 
+  /* failed read is an exception sheet over the capture screen — the advisor
+     never leaves the scanner to recover */
   function renderReject() {
-    st.stage = "back"; st.pct = 60;
-    foot(`<button type="button" class="btn btn--primary scan-cta" data-retry>Retake photo</button>
-      ${o.mode === "customer" ? `<button type="button" class="btn scan-cta scan-cta--text" data-manual>Enter license manually</button>` : ""}`);
-    /* one idea per line: the demo limit, then the capture fix. No cause is
-       diagnosed — the recognizer finds a prop marker or refuses (invariant 4). */
-    body.innerHTML = `${top(60)}
-      <div class="scan-hero">
-        <h1>That didn&rsquo;t read</h1>
-        <p>We couldn't find the barcode. Keep the whole barcode visible and avoid glare.</p>
-        <p class="scan-demo-hint" style="margin:14px 0 0;text-align:left">In this demo only the 5 printed training licenses can be read.</p>
-      </div>`;
-    $("[data-retry]").onclick = () => renderBack();
-    /* the manual licence SEARCH is a customer-mode path only: a co-buyer or
-       test-drive scan is verifying a card in someone's hand, and there is no
-       Create Customer form behind those to fall back to */
-    const man = $("[data-manual]"); if (man) man.onclick = () => renderManual();
-    wire(renderReject, () => renderBack());
+    renderScan("back");
+    openSheet(`${sheetHead("We couldn&rsquo;t read the license", "We couldn&rsquo;t find the barcode. Keep the whole barcode visible and avoid glare.")}
+      <p class="sc2-sheethint">Only the 5 printed training licenses can be recognized — there is no reader for a real ID.</p>
+      <div class="sc2-sheetactions">
+        <button type="button" class="sc2-primary" data-sheet-close>Try again</button>
+        ${o.mode === "customer" ? `<button type="button" class="sc2-secondary" data-manual>Find customer manually</button>` : ""}
+      </div>`, (sheet, close) => {
+      const m = $("[data-manual]", sheet);
+      if (m) m.onclick = () => { close(); renderManual(); };
+    });
   }
 
-  /* manual entry (owner mockup s7): typing the license number searches the
-     CRM directly. It is a SEARCH, never a read — nothing typed here is
-     treated as license data recovered from the card, and no persona is
-     invented, so the only outcomes are an existing customer or the full
-     Create Customer form. */
+  /* manual CRM search (exception sheet): by license number and issuing state
+     ONLY — nothing typed here is ever treated as data read from a card, and
+     no persona is invented (recorded honesty decision) */
   function renderManual() {
-    st.stage = "manual"; st.pct = 40;
-    foot(`<button type="button" class="btn btn--primary scan-cta" data-search>Search</button>
-      <button type="button" class="btn scan-cta scan-cta--text" data-cancel>Cancel</button>`);
-    const states = ["NY", "NJ", "CT", "PA", "CA", "FL", "TX"];
-    body.innerHTML = `${top(40)}
-      <div class="scan-hero scan-hero--left scan-hero--tight">
-        <h1>Enter license manually</h1>
-        <p>Type the license number to search for a customer. This searches your records — it does not read the card.</p>
+    openSheet(`${sheetHead("Find customer", "Search the CRM by license number and issuing state. Typed details are a search — never a card read.")}
+      <div class="sc2-searchbox">
+        <input class="sc2-input" id="mnNum" placeholder="License #" value="${esc(st.manNum)}" aria-label="License number">
+        <input class="sc2-input sc2-input--state" id="mnState" maxlength="2" value="${esc(st.manState)}" aria-label="Issuing state">
+        <button type="button" class="sc2-primary sc2-searchgo" id="mnGo">Search</button>
       </div>
-      <div class="scan-form">
-        <label for="svManNum">License number</label>
-        <span class="scan-form__wrap">
-          <input id="svManNum" type="text" autocomplete="off" spellcheck="false" placeholder="T-0000101" value="${esc(st.manNum || "")}" style="padding-right:48px">
-          <button type="button" class="scan-form__clear" data-clear aria-label="Clear the license number">×</button>
-        </span>
-        <label for="svManState">Issuing state</label>
-        <select id="svManState">${states.map(s => `<option value="${s}"${(st.manState || "NY") === s ? " selected" : ""}>${s}</option>`).join("")}</select>
-        <div class="scan-subtle">The 5 training licenses are numbered T-0000101 to T-0000105 (NY).</div>
-      </div>`;
-    const numEl = $("#svManNum", body);
-    $("[data-clear]", body).onclick = () => { numEl.value = ""; numEl.focus(); };
-    $("[data-cancel]").onclick = () => renderBack();
-    $("[data-search]").onclick = () => {
-      const num = numEl.value.trim();
-      st.manNum = num; st.manState = $("#svManState", body).value;
-      if (!num) { markMissing(body, [{ el: numEl, msg: "Required" }]); return toast("Enter a license number to search"); }
-      renderManualResults(num, st.manState);
-    };
-    wire(renderManual, () => renderBack());
+      <div id="mnOut"></div>`, (sheet, close) => {
+      const run = () => {
+        st.manNum = $("#mnNum", sheet).value.trim();
+        st.manState = $("#mnState", sheet).value.trim().toUpperCase();
+        if (!st.manNum) return markMissing(sheet, [{ el: $("#mnNum", sheet), msg: "Required" }]);
+        const norm = (s) => String(s || "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+        const hit = Store.s.customers.find(x => x.license && norm(x.license.number) === norm(st.manNum)
+          && (!x.license.state || !st.manState || norm(x.license.state) === norm(st.manState)));
+        $("#mnOut", sheet).innerHTML = hit
+          ? `<div class="sc2-result"><span class="sc2-person">${rpIcon("user")}</span><div style="min-width:0"><b>${esc(hit.first + " " + hit.last)}</b><span>${esc(hit.license.number + (hit.license.state ? " · " + hit.license.state : ""))}</span></div><button type="button" class="sc2-use" data-use>Use</button></div>`
+          : `<p class="sc2-noresult">No customer carries that license number${st.manState ? " in " + esc(st.manState) : ""}.</p>
+             ${o.mode === "customer" ? `<button type="button" class="sc2-textbtn" data-create>No match · create new customer</button>` : ""}`;
+        const use = $("[data-use]", sheet);
+        if (use) use.onclick = () => { close(); done(); if (o.onDone) o.onDone(hit, null, { type: "license number", customer: hit }); };
+        const cr = $("[data-create]", sheet);
+        /* an entry with no onManual (the deals-queue camera) still gets a real
+           create path: Find a Customer opens with the Create dialog ready
+           (the PR #49 fix — the flag is consumed exactly once) */
+        if (cr) cr.onclick = () => {
+          close(); done();
+          if (o.onManual) return o.onManual();
+          scanWantsCreate = true;
+          if (location.hash === "#/customers") router(); else navigate("#/customers");
+        };
+      };
+      $("#mnGo", sheet).onclick = run;
+      $("#mnNum", sheet).focus();
+    });
   }
 
-  /* manual results (owner mockup s8): the one card, or an honest empty state */
-  function renderManualResults(num, state) {
-    st.stage = "manual"; st.pct = 60;
-    const norm = (s) => String(s || "").replace(/[^a-z0-9]/gi, "").toLowerCase();
-    const hit = Store.s.customers.find(x => x.license && norm(x.license.number) === norm(num)
-      && (!x.license.state || !state || norm(x.license.state) === norm(state))) || null;
-    foot(hit
-      ? `<button type="button" class="btn btn--primary scan-cta" data-use>Review Customer</button>
-         <button type="button" class="btn scan-cta scan-cta--text" data-new>No match, create new</button>`
-      : `<button type="button" class="btn btn--primary scan-cta" data-new>Create a new customer</button>
-         <button type="button" class="btn scan-cta scan-cta--text" data-again>Search again</button>`);
-    body.innerHTML = `${top(60)}
-      <div class="scan-hero scan-hero--tight">
-        <h1>${hit ? "Search results" : "No customer on<br>that number"}</h1>
-        <p>${hit
-          ? `We found a matching customer on license <b>${esc(num)}</b>${state ? " · " + esc(state) : ""}.`
-          : `Nothing in your records carries license <b>${esc(num)}</b>${state ? " · " + esc(state) : ""}. Check the number, or create the customer from scratch.`}</p>
-      </div>
-      ${hit ? personDoc(hit, "License match", [
-        ["Date of birth", hit.dob ? dateUS(hit.dob) : null],
-        ["Phone", hit.phone],
-        ["Address", hit.address ? hit.address + ", " + hit.city + ", " + hit.state + " " + hit.zip : null],
-        ["License", hit.license && hit.license.number ? hit.license.number + (hit.license.state ? " · " + hit.license.state : "") : null]
-      ]) : ""}`;
-    if (hit) $("[data-use]").onclick = () => { done(); if (o.onDone) o.onDone(hit, null, { type: "license number", customer: hit }); };
-    const again = $("[data-again]"); if (again) again.onclick = () => renderManual();
-    /* nothing was read, so there is no persona to pre-fill from: manual
-       "create" hands off to the full Create Customer form. Not every
-       customer-mode caller supplies one (the deals-queue camera does not), so
-       the fallback lands on Find a Customer with that dialog already open —
-       never a button that just closes the journey and does nothing. */
-    $("[data-new]").onclick = () => {
-      done();
-      if (o.onManual) return o.onManual();
-      scanWantsCreate = true;
-      if (location.hash === "#/customers") router(); else navigate("#/customers");
-    };
-    wire(() => renderManualResults(num, state), () => renderManual());
-  }
-
-  /* recognition succeeded — route to the right screen. Certain matches go straight
-     to verify; ambiguous ones ask first; a co-buyer scan that resolves to someone
-     already on the deal is blocked outright. */
+  /* recognition succeeded — route by mode, then by the match cascade. A
+     certain match confirms; an ambiguous one asks on the same confirm screen
+     (never merged silently); nothing on file creates. */
   function afterRecognize() {
     const p = st.persona;
     if (o.mode === "testdrive") return renderVerifyTd(p);
@@ -1304,136 +1163,39 @@ function openScanFlow(opts) {
       if (m.customer.id === o.deal.customerId) return renderBlock();
       if (m.customer.id === o.deal.coBuyerId) return renderBlock("already");
     }
-    /* every match now stops at the Match Found screen first (owner mockup s5);
-       only a scan with nothing on file goes straight to Create New */
-    if (m.customer) return renderMatchFound(m);
+    if (m.customer) { st.match = m; return renderConfirm(m); }
     st.match = m;
-    st.backFrom = null; /* nothing on file: the capture step is what came before */
-    renderVerifyNew();
+    renderNewCustomer();
   }
 
   /* hard block, no override: the scan resolved to a person already on this deal */
   function renderBlock(kind) {
-    st.stage = "verify"; st.pct = 100;
-    foot(`<button type="button" class="btn btn--primary scan-cta" data-rescan>Scan a different license</button>
-      <button type="button" class="btn scan-cta scan-cta--text" data-close>Cancel</button>`);
-    body.innerHTML = `${top(100)}
-      <div class="scan-hero">
-        <h1>${kind === "already" ? "Already the co-buyer" : "That&rsquo;s the primary buyer"}</h1>
-        <p>${kind === "already"
+    st.stage = "block";
+    body.innerHTML = `${top()}
+      <div class="sc2-page">
+        ${hero(kind === "already" ? "Already the co-buyer" : "That&rsquo;s the primary buyer", kind === "already"
           ? "This license resolves to the person already attached as the co-buyer."
-          : "A person can&rsquo;t co-sign their own loan — the co-buyer must be a different guest."}</p>
+          : "A person can&rsquo;t co-sign their own loan — the co-buyer must be a different guest.")}
+        <div class="sc2-actions" style="margin-top:26px">
+          <button type="button" class="sc2-primary" data-rescan>Scan a different license</button>
+          <button type="button" class="sc2-textbtn" data-close>Cancel</button>
+        </div>
       </div>`;
-    $("[data-rescan]").onclick = () => renderFront();
-    wire(() => renderBlock(kind), () => renderBack());
+    $("[data-rescan]").onclick = () => { st.frontDone = false; renderScan("front"); };
+    wire(() => renderBlock(kind));
   }
 
-  /* the identity facts a card can honestly show; absent values render as — */
-  /* a review screen's ← returns to whichever screen chose it — the match, the
-     duplicate list — and to the capture step when the scan went straight there */
-  const reviewBack = () => st.backFrom || (() => renderBack());
-  const initials = (first, last) => esc(((first || " ")[0] + (last || " ")[0]).toUpperCase().trim() || "?");
-
-  /* one data row on a document surface: small label over a readable value.
-     `meta` is a quiet line under the value ("was …"); `act` a text action.
-     An absent value renders — */
-  const docRow = (label, val, opts) => {
-    const o2 = opts || {};
-    return `<div class="scan-row"${o2.attr ? " " + o2.attr : ""}>
-      <div><span class="scan-row__lab">${esc(label)}</span>
-        <span class="scan-row__val">${val ? esc(val) : "—"}</span>
-        ${o2.meta ? `<span class="scan-row__meta${o2.metaChg ? " scan-row__meta--chg" : ""}">${esc(o2.meta)}</span>` : ""}</div>
-      ${o2.act ? `<button type="button" class="scan-act" ${o2.act.attr}>${esc(o2.act.label)}</button>` : ""}
-    </div>`;
+  /* one label per type findLicenseMatch() can return — the badge states the
+     REAL basis, never an invented confidence (CodeRabbit, PR #49) */
+  const BASIS = {
+    "license number": "License match",
+    "date of birth and name": "Name and birthday match",
+    "date of birth": "Same birthday",
+    "name": "Name match",
+    "your selection": "Your selection"
   };
 
-  /* the customer document the match, review and search screens all share:
-     one soft surface — name, a quiet status pill stating the REAL match
-     basis (never an invented confidence), then plain rows. */
-  const personDoc = (c, pill, rows, sub) => `<div class="scan-doc scan-doc--head">
-    <div class="scan-dochead">
-      <div><b>${esc([c.first, c.middle, c.last].filter(Boolean).join(" "))}</b>${sub ? `<small>${esc(sub)}</small>` : ""}</div>
-      ${pill ? `<span class="scan-pill">${esc(pill)}</span>` : ""}
-    </div>
-    ${rows.map(r => docRow(r[0], r[1], r[2])).join("")}
-  </div>`;
-
-  /* the bottom sheet: one focused secondary decision at a time — never a
-     modal inside a modal. Outside tap dismisses; content wires itself. */
-  function openSheet(title, contentHTML, onMount) {
-    const old = $(".scan-sheet-back", backEl); if (old) old.remove();
-    const sb = document.createElement("div");
-    sb.className = "scan-sheet-back";
-    sb.innerHTML = `<div class="scan-sheet" role="dialog" aria-modal="true" aria-label="${esc(title)}">
-      <span class="scan-sheet__handle" aria-hidden="true"></span>
-      <h2>${esc(title)}</h2>
-      <div class="scan-sheet__body">${contentHTML}</div>
-    </div>`;
-    $(".modal", backEl).appendChild(sb);
-    /* the journey renders as a dialog on desktop too, so the sheet has to be
-       dismissible from the keyboard — and the listener has to come off with
-       it, or a later Escape would reach a sheet that no longer exists */
-    const onKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); close(); } };
-    const close = () => { document.removeEventListener("keydown", onKey, true); sb.remove(); };
-    document.addEventListener("keydown", onKey, true);
-    sb.addEventListener("click", (e) => { if (e.target === sb) close(); });
-    if (onMount) onMount(sb, close);
-    return close;
-  }
-
-  /* ambiguous match (owner v2): the on-file record and the scanned license as
-     two cards the trainee can actually compare. The badge states the REAL
-     match basis — never an invented confidence percentage. */
-  /* match found (owner mockup s5) — now shown for EVERY match, not only the
-     ambiguous ones: the advisor sees who the scan resolved to before anything
-     is attached. The badge states the real basis; when the match is only a
-     guess (`ask`) the scanned license is shown underneath so the two records
-     can actually be compared, which is the whole point of that screen. */
-  function renderMatchFound(m) {
-    st.stage = "verify"; st.pct = 100;
-    const p = st.persona, ex = m.customer;
-    st.backFrom = () => renderMatchFound(m);
-    /* one label per type findLicenseMatch() can return — a name+DOB hit is a
-       stronger match than a name alone and must not be understated as one
-       (CodeRabbit, PR #49). The pill states the real basis, never a score. */
-    const BASIS = {
-      "license number": "License match",
-      "date of birth and name": "Name and birthday match",
-      "date of birth": "Same birthday",
-      "name": "Name match"
-    };
-    const basis = BASIS[m.type] || "Match found";
-    foot(`<button type="button" class="btn btn--primary scan-cta" data-link>${m.ask === "dob" ? "Same person — review their record" : "Review Customer"}</button>
-      <button type="button" class="btn scan-cta scan-cta--text" data-new>${m.ask === "dob" ? "Different guest — create new" : "No, create a new customer"}</button>`);
-    /* only what answers "is this the same customer?" — identity facts, no
-       CRM metadata (visit counts and ids do not identify a person) */
-    body.innerHTML = `${top(100)}
-      <div class="scan-hero scan-hero--tight">
-        <h1>We found a<br>matching customer</h1>
-        <p>${m.ask === "dob"
-          ? "Same birthday as a customer on file. Same person, or a different guest?"
-          : m.ask
-            ? "The name matches a customer on file. Compare the two before continuing."
-            : "Review the details below."}</p>
-      </div>
-      ${personDoc(ex, basis, [
-        ["Date of birth", ex.dob ? dateUS(ex.dob) : null],
-        ["Phone", ex.phone],
-        ["Address", ex.address ? ex.address + ", " + ex.city + ", " + ex.state + " " + ex.zip : null],
-        ["License", ex.license && ex.license.number ? ex.license.number + (ex.license.state ? " · " + ex.license.state : "") : null]
-      ])}
-      ${m.ask ? `<h2 class="scan-h2">The license just scanned</h2>
-      ${personDoc(p, null, [
-        ["Date of birth", p.dob ? dateUS(p.dob) : null],
-        ["Address", p.address + ", " + p.city + ", " + p.state + " " + p.zip],
-        ["License", p.license.number + " · " + p.license.state]
-      ], "Not yet in your records")}` : ""}`;
-    $("[data-link]").onclick = () => { st.match = { type: m.type, customer: m.customer }; renderVerifyExisting(); };
-    $("[data-new]").onclick = () => { st.match = { type: null, customer: null }; renderVerifyNew(); };
-    wire(() => renderMatchFound(m), () => renderBack());
-  }
-
-  /* the working values (ISO dates); the review screens edit into this */
+  /* the working values (ISO dates) every save path writes from */
   function seedSv(ex) {
     const p = st.persona;
     return st.sv = st.sv || {
@@ -1443,10 +1205,141 @@ function openScanFlow(opts) {
       license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
     };
   }
+  const svVals = () => ({
+    first: st.sv.first, middle: st.sv.middle, last: st.sv.last,
+    dob: st.sv.dob, address: st.sv.address, city: st.sv.city,
+    state: st.sv.state, zip: st.sv.zip,
+    email: st.sv.email, phone: st.sv.phone,
+    license: { number: st.sv.license.number, state: st.sv.license.state, expires: st.sv.license.expires }
+  });
   const normPhone = (s) => String(s || "").replace(/\D/g, "");
 
+  /* what the scanned license changes on the record — delta-only (golden):
+     when nothing changed, nothing is listed */
+  function deltasFor(ex, sv) {
+    const chg = [];
+    const push = (label, oldV, newV, isDate) => { if (newV && (!oldV || String(oldV) !== String(newV))) chg.push({ label, oldV: oldV || null, newV, isDate }); };
+    push("Name", ex.first + " " + ex.last, sv.first + " " + sv.last);
+    push("Date of birth", ex.dob, sv.dob, true);
+    push("License #", ex.license && ex.license.number, sv.license.number);
+    push("Expires", ex.license && ex.license.expires, sv.license.expires, true);
+    push("Address", ex.address, sv.address);
+    return chg;
+  }
+
+  /* ---- Screen 2: confirm. Certain matches confirm with a delta; ambiguous
+     ones carry the explicit same-person question plus the scanned license
+     for a real comparison — nothing merges without a human yes. ---- */
+  function renderConfirm(m) {
+    st.stage = "confirm";
+    const p = st.persona, ex = m.customer;
+    const sv = seedSv(ex);
+    const chg = deltasFor(ex, sv);
+    const needContact = !ex.phone || !ex.email; /* both channels required (owner rule) */
+    const ask = !!m.ask;
+    const basis = BASIS[m.type] || "Match found";
+    const last4 = ex.license && ex.license.number ? ex.license.number.slice(-4) : null;
+    body.innerHTML = `${top()}
+      <div class="sc2-page">
+        ${hero("Confirm customer", ask
+          ? (m.ask === "dob" ? "Same birthday as a customer on file. Same person, or a different guest?" : "The name matches a customer on file. Compare the two before continuing.")
+          : "Ride Price found an existing customer. Review only what changed, then continue.")}
+        <section class="sc2-found">
+          <div class="sc2-foundhead">
+            <span class="sc2-person">${rpIcon("user")}</span>
+            <div><h2>${esc([ex.first, ex.middle, ex.last].filter(Boolean).join(" "))}</h2>
+              <p>Existing customer${last4 ? " · license ending " + esc(last4) : ""}${o.mode === "cobuyer" ? " · will be attached as the co-buyer" : ""}</p></div>
+            <span class="sc2-badge">${esc(basis)}</span>
+          </div>
+          <div class="sc2-checks">
+            <div class="sc2-checkrow"><span class="sc2-checkmark">✓</span><b>${ask ? "Possible identity match" : "Identity matched"}</b><span>${esc(basis)}</span></div>
+            ${needContact
+              ? `<div class="sc2-checkrow"><span class="sc2-checkmark sc2-checkmark--off">–</span><b>Contact incomplete</b><span>${!ex.phone && !ex.email ? "Phone & email needed" : !ex.phone ? "Phone needed" : "Email needed"}</span></div>`
+              : `<div class="sc2-checkrow"><span class="sc2-checkmark">✓</span><b>Phone &amp; email already on file</b><span>Complete</span></div>`}
+          </div>
+        </section>
+        ${ask ? `<section class="sc2-newsummary"><div class="sc2-sumhead">The license just scanned</div>
+          <div class="sc2-sumrow"><span>Name</span><b>${esc([p.first, p.middle, p.last].filter(Boolean).join(" "))}</b></div>
+          <div class="sc2-sumrow"><span>Date of birth</span><b>${p.dob ? esc(dateUS(p.dob)) : "—"}</b></div>
+          <div class="sc2-sumrow"><span>License</span><b>${esc(p.license.number + " · " + p.license.state)}</b></div>
+          <div class="sc2-sumrow"><span>Address</span><b>${esc(p.address + ", " + p.city + ", " + p.state + " " + p.zip)}</b></div>
+        </section>` : ""}
+        ${chg.length ? `<section class="sc2-update">
+          <div class="sc2-updatehead"><b>${chg.length} update${chg.length === 1 ? "" : "s"} from this license</b><span>Only changed data is shown</span></div>
+          <div class="sc2-delta">
+            ${chg.map(c2 => `<div class="sc2-deltarow"><div class="sc2-deltalabel">${esc(c2.label)}</div>
+              <div class="sc2-deltavalues">${c2.oldV ? `<span class="sc2-old">${esc(c2.isDate ? dateUS(c2.oldV) : c2.oldV)}</span><span class="sc2-arrow">→</span>` : `<span class="sc2-newtag">New</span>`}<span class="sc2-new">${esc(c2.isDate ? dateUS(c2.newV) : c2.newV)}</span></div></div>`).join("")}
+          </div>
+        </section>` : ""}
+        ${needContact ? `<div class="sc2-fields">
+          ${!ex.phone ? `<div class="sc2-field"><label for="svPhone">Mobile phone</label><input class="sc2-input" id="svPhone" type="tel" inputmode="tel" placeholder="(718) 555-5555" value="${esc(sv.phone)}"></div>` : ""}
+          ${!ex.email ? `<div class="sc2-field"><label for="svEmail">Email</label><input class="sc2-input" id="svEmail" type="email" placeholder="name@testing.com" value="${esc(sv.email)}"></div>` : ""}
+          <p class="sc2-micro" style="text-align:left;margin-top:0">Both phone and email are required on every customer record.</p>
+        </div>` : ""}
+        <div class="sc2-actions">
+          <button type="button" class="sc2-primary" data-save>${ask ? "Same person — update &amp; continue" : chg.length ? "Update &amp; continue" : "Confirm &amp; continue"}</button>
+          ${ask
+            ? `<button type="button" class="sc2-secondary" data-notme>Different guest — create new</button>`
+            : `<button type="button" class="sc2-textbtn" data-notme>This isn&rsquo;t ${esc(ex.first)}</button>`}
+          <button type="button" class="sc2-textbtn" data-again>Search manually</button>
+        </div>
+      </div>`;
+    $("[data-save]").onclick = () => {
+      if (needContact) {
+        if (!ex.phone) sv.phone = $("#svPhone", body).value.trim();
+        if (!ex.email) sv.email = $("#svEmail", body).value.trim();
+        const bad = [];
+        if (!sv.phone) bad.push({ el: $("#svPhone", body), msg: "Required" });
+        if (!sv.email) bad.push({ el: $("#svEmail", body), msg: "Required" });
+        if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
+      }
+      saveFrom(svVals(), ex);
+    };
+    $("[data-notme]").onclick = () => { st.match = { type: null, customer: null }; st.sv = null; renderNewCustomer(); };
+    $("[data-again]").onclick = () => renderManual();
+    wire(() => renderConfirm(m));
+  }
+
+  /* new customer: identity is a read-only summary from the license — the
+     advisor never retypes card data. The only asks are what a license cannot
+     say: phone and email (both required; owner rule). No credit score is
+     asked (owner, 2026-08-25) — the record starts at the neutral default. */
+  function renderNewCustomer() {
+    st.stage = "new";
+    const sv = seedSv(null);
+    body.innerHTML = `${top()}
+      <div class="sc2-page">
+        ${hero("New customer", `No CRM match was found. The license already filled the identity details — only add what the license cannot provide.${o.mode === "cobuyer" ? " They&rsquo;ll be attached as the co-buyer." : ""}`)}
+        <section class="sc2-newsummary">
+          <div class="sc2-sumrow"><span>Name</span><b>${esc([sv.first, sv.middle, sv.last].filter(Boolean).join(" "))}</b></div>
+          <div class="sc2-sumrow"><span>License</span><b>${esc(sv.license.number + " · " + sv.license.state + (sv.license.expires ? " · exp " + dateUS(sv.license.expires) : ""))}</b></div>
+          <div class="sc2-sumrow"><span>Date of birth</span><b>${sv.dob ? esc(dateUS(sv.dob)) : "—"}</b></div>
+          <div class="sc2-sumrow"><span>Address</span><b>${esc(sv.address + ", " + sv.city + ", " + sv.state + " " + sv.zip)}</b></div>
+        </section>
+        <div class="sc2-fields">
+          <div class="sc2-field"><label for="svPhone">Mobile phone</label><input class="sc2-input" id="svPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="(718) 555-5555" value="${esc(sv.phone)}"></div>
+          <div class="sc2-field"><label for="svEmail">Email</label><input class="sc2-input" id="svEmail" type="email" autocomplete="off" placeholder="name@testing.com" value="${esc(sv.email)}"></div>
+          <p class="sc2-micro" style="text-align:left;margin-top:0">Phone and email are required for the customer profile. <span class="demo-note">Demo tool — sample data only.</span></p>
+        </div>
+        <div class="sc2-actions">
+          <button type="button" class="sc2-primary" data-save>${o.mode === "cobuyer" ? "Add as co-buyer" : "Create customer"}</button>
+          <button type="button" class="sc2-textbtn" data-rescan>Scan again</button>
+        </div>
+      </div>`;
+    $("[data-save]").onclick = () => {
+      sv.phone = $("#svPhone", body).value.trim();
+      sv.email = $("#svEmail", body).value.trim();
+      /* the same required set and the same marks as Create Customer */
+      const bad = customerMissing(svVals(), "sv", body);
+      if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
+      saveFrom(svVals(), null);
+    };
+    $("[data-rescan]").onclick = () => { st.frontDone = false; st.sv = null; st.persona = null; st.match = null; renderScan("front"); };
+    wire(renderNewCustomer);
+  }
+
   /* single save tail for every path (direct, phone-link, phone-keep): write
-     the store, then the completion screen — the visit starts from there */
+     the store, then the local done state — no ceremonial success screen */
   function finishSave(cust, wasExisting, warnMsg) {
     if (o.mode === "cobuyer") o.deal.coBuyerId = cust.id;
     Store.save();
@@ -1457,16 +1350,12 @@ function openScanFlow(opts) {
     }
     st.saved = true;
     if (warnMsg) toast(warnMsg);
-    renderComplete(cust, wasExisting);
+    renderDone(cust, wasExisting);
   }
 
   function saveFrom(vals, ex) {
     const phoneDigits = normPhone(vals.phone);
     const mkNew = () => {
-      /* the scan never asks for a credit score (owner, 2026-08-25 — it is not
-         on the license and not the advisor's guess to make at the door): the
-         record starts at the neutral default and is set later on the desk,
-         where the tier is actually worked. */
       const cust = Object.assign({ id: uid("c"), creditScore: 700, createdAt: new Date().toISOString() }, vals);
       Store.s.customers.push(cust);
       return cust;
@@ -1482,7 +1371,7 @@ function openScanFlow(opts) {
       const dup = phoneDigits && Store.s.customers.find(x => normPhone(x.phone) === phoneDigits);
       if (dup) return renderPhoneConflict(dup, vals, mkNew);
       /* and a near-miss on the name or birthday is worth one look before a
-         second record for the same person is written (owner mockup s6C) */
+         second record for the same person is written */
       const near = nearMatches(vals);
       if (near.length) return renderDuplicates(near, vals, mkNew);
       finishSave(mkNew(), false);
@@ -1500,404 +1389,157 @@ function openScanFlow(opts) {
     }).slice(0, 5);
   }
 
-  /* possible duplicate (owner mockup s6C): the candidates as pickable rows.
-     Picking one opens the normal existing-customer review, so the trainee
-     still sees exactly what the scan would change before anything is saved. */
+  /* possible duplicate (exception sheet): explicit confirmation before a
+     second record for the same person is written — never merged silently */
   function renderDuplicates(cands, vals, mkNew) {
-    st.stage = "verify"; st.pct = 100;
-    foot(`<button type="button" class="btn btn--ghost scan-cta scan-cta--ghost" data-none>None of these — create new</button>
-      <p class="scan-foot-hint">Creating new adds a second record with this name to the CRM.</p>`);
-    body.innerHTML = `${top(100)}
-      <div class="scan-hero scan-hero--tight">
-        <h1>Possible duplicate</h1>
-        <p>We found similar customers. Select the correct one, or create new.</p>
-      </div>
-      <div class="scan-piks">
-        ${cands.map((c, i) => `<button type="button" class="scan-pik" data-pik="${i}">
-          <span class="scan-avatar">${initials(c.first, c.last)}</span>
-          <span style="min-width:0"><b>${esc([c.first, c.middle, c.last].filter(Boolean).join(" "))}</b><small>${esc(c.phone || c.email || "No contact on file")}</small></span>
-          <span class="scan-pik__go" aria-hidden="true">›</span>
-        </button>`).join("")}
-      </div>`;
-    $$("[data-pik]", body).forEach(b => b.onclick = () => {
-      st.match = { type: "your selection", customer: cands[+b.dataset.pik] };
-      /* only the review opened from here goes back to the list — the Create
-         New screen this list came from must keep its own earlier target */
-      st.backFrom = () => renderDuplicates(cands, vals, mkNew);
-      renderVerifyExisting();
-    });
-    $("[data-none]").onclick = () => finishSave(mkNew(), false);
-    wire(() => renderDuplicates(cands, vals, mkNew), () => renderVerifyNew());
-  }
-
-  const svVals = () => ({
-    first: st.sv.first, middle: st.sv.middle, last: st.sv.last,
-    dob: st.sv.dob, address: st.sv.address, city: st.sv.city,
-    state: st.sv.state, zip: st.sv.zip,
-    email: st.sv.email, phone: st.sv.phone,
-    license: { number: st.sv.license.number, state: st.sv.license.state, expires: st.sv.license.expires }
-  });
-
-  /* existing customer (owner v2 s6): what CHANGED from the license as open
-     inputs with the previous value under each; everything already matching
-     in a confirmed card. Saving updates the record and moves to completion. */
-  function renderVerifyExisting() {
-    st.stage = "verify"; st.pct = 100;
-    const p = st.persona, m = st.match, ex = m.customer;
-    const sv = seedSv(ex);
-    const chg = [];
-    const push = (key, label, oldV, newV, input) => { if (newV && (!oldV || String(oldV) !== String(newV))) chg.push({ key, label, oldV: oldV || null, input }); };
-    push("name", "Name", (ex.first + " " + ex.last), (sv.first + " " + sv.last), "name");
-    push("dob", "Date of birth", ex.dob, sv.dob, "date");
-    push("license", "License #", ex.license && ex.license.number, sv.license.number, "text");
-    push("expires", "License expires", ex.license && ex.license.expires, sv.license.expires, "date");
-    push("address", "Address", ex.address, sv.address, "text");
-    const needContact = !ex.phone || !ex.email; /* both channels required (owner rule) */
-    const chgOf = (k) => chg.find(c => c.key === k);
-    foot(`${chg.length ? `<p class="scan-foot-hint" style="margin:0 0 8px">${chg.length} field${chg.length === 1 ? "" : "s"} will be updated from the license</p>` : ""}
-      <button type="button" class="btn btn--primary scan-cta" data-save>Use This Customer</button>
-      <button type="button" class="btn scan-cta scan-cta--text" data-again>Search Again</button>`);
-    /* one document (spec s20): every final value as a read-first row. A row
-       the license changed shows the new value with a quiet "was …" line and
-       an Edit text action that opens a focused sheet — read mode first,
-       inputs only when the user chooses to edit. */
-    const wasOf = (c) => c.oldV ? "Updated from license · was " + (c.input === "date" ? dateUS(c.oldV) : c.oldV) : "New from license · not on file before";
-    const editable = (key, label, val) => {
-      const c = chgOf(key);
-      return docRow(label, val, c
-        ? { meta: wasOf(c), metaChg: true, act: { label: "Edit", attr: `data-editex="${esc(key)}"` } }
-        : {});
-    };
-    body.innerHTML = `${top(100)}
-      <div class="scan-hero scan-hero--tight">
-        <h1>Review customer</h1>
-        <p>Confirm the details match the license we scanned.${chg.length ? "" : " Everything on file already matches."}${o.mode === "cobuyer" ? " They&rsquo;ll be attached as the co-buyer." : ""}</p>
-      </div>
-      <div class="scan-doc scan-doc--head">
-        <div class="scan-dochead">
-          <div><b>${esc([sv.first, sv.middle, sv.last].filter(Boolean).join(" "))}</b><small>Existing customer · matched by ${esc(m.type)}</small></div>
-          ${chgOf("name") ? `<button type="button" class="scan-act" data-editex="name">Edit</button>` : ""}
-        </div>
-        ${chgOf("name") ? `<div class="scan-row"><div><span class="scan-row__meta scan-row__meta--chg">${esc(wasOf(chgOf("name")))}</span></div></div>` : ""}
-        ${editable("dob", "Date of birth", sv.dob ? dateUS(sv.dob) : null)}
-        ${ex.phone ? docRow("Phone", ex.phone) : ""}
-        ${ex.email ? docRow("Email", ex.email) : ""}
-        ${editable("address", "Address", sv.address + ", " + sv.city + ", " + sv.state + " " + sv.zip)}
-        ${editable("license", "License", sv.license.number + (sv.license.state ? " · " + sv.license.state : ""))}
-        ${editable("expires", "License expires", sv.license.expires ? dateUS(sv.license.expires) : null)}
-      </div>
-      ${needContact ? `<h2 class="scan-h2">Contact</h2>
-      <div class="scan-form">
-        <label for="svPhone">Mobile phone</label>
-        <input id="svPhone" type="tel" placeholder="(718) 555-5555" value="${esc(sv.phone)}">
-        <label for="svEmail">Email</label>
-        <input id="svEmail" type="email" placeholder="name@testing.com" value="${esc(sv.email)}">
-        <div class="scan-subtle">Both phone and email are required on every customer record.</div>
-      </div>` : ""}
-      <p class="scan-demo-hint">Demo tool — sample data only.</p>`;
-    $("[data-again]").onclick = () => renderManual();
-    /* Edit opens a sheet for that one field; Save writes into the working
-       values and re-renders the document. Typed contact values are stashed
-       first so an edit round-trip cannot lose them. */
-    const stashContact = () => { if (needContact) { sv.phone = $("#svPhone", body).value.trim(); sv.email = $("#svEmail", body).value.trim(); } };
-    $$("[data-editex]", body).forEach(btn => btn.onclick = () => {
-      stashContact();
-      const key = btn.dataset.editex;
-      const c = chgOf(key);
-      const dateInput = (f, val) => `<input data-f="${f}" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(val ? dateUS(val) : "")}">`;
-      const content = key === "name"
-        ? `<div class="scan-form"><label>First name</label><input data-f="first" type="text" value="${esc(sv.first)}">
-           <label>Last name</label><input data-f="last" type="text" value="${esc(sv.last)}"></div>`
-        : key === "dob"
-          ? `<div class="scan-form"><label>Date of birth</label>${dateInput("dob", sv.dob)}</div>`
-          : key === "expires"
-            ? `<div class="scan-form"><label>License expires</label>${dateInput("expires", sv.license.expires)}</div>`
-            : key === "license"
-              ? `<div class="scan-form"><label>License number</label><input data-f="lnum" type="text" value="${esc(sv.license.number)}"></div>`
-              : `<div class="scan-form"><label>Street address</label><input data-f="address" type="text" value="${esc(sv.address)}"></div>`;
-      openSheet("Edit " + (c ? c.label.toLowerCase() : key), `${content}
-        ${c && c.oldV ? `<p class="scan-subtle">On file before this scan: ${esc(c.input === "date" ? dateUS(c.oldV) : c.oldV)}</p>` : ""}
-        <div class="scan-sheet__acts">
-          <button type="button" class="btn btn--primary scan-cta" data-apply>Save</button>
-          <button type="button" class="btn scan-cta scan-cta--text" data-cancel-sheet>Cancel</button>
-        </div>`, (sheet, close) => {
-        $("[data-cancel-sheet]", sheet).onclick = close;
-        $("[data-apply]", sheet).onclick = () => {
-          const get = (f) => { const i = $(`[data-f="${f}"]`, sheet); return i ? i.value.trim() : null; };
-          const bad = [];
-          /* every field in the sheet is required to save (owner, 2026-08-25):
-             an emptied field marks — it never silently keeps the old value */
-          const need = (f) => { if (get(f) === "") bad.push({ el: $(`[data-f="${f}"]`, sheet), msg: "Required" }); };
-          /* and a typed-but-invalid date never erases a stored one */
-          const dateOf = (f, cur) => { const t = get(f); if (t && !dateISO(t)) { bad.push({ el: $(`[data-f="${f}"]`, sheet), msg: "Enter MM/DD/YYYY" }); return cur; } return t ? dateISO(t) : ""; };
-          if (key === "name") { need("first"); need("last"); }
-          else if (key === "dob") need("dob");
-          else if (key === "expires") need("expires");
-          else if (key === "license") need("lnum");
-          else if (key === "address") need("address");
-          const dobV = key === "dob" ? dateOf("dob", sv.dob) : null;
-          const expV = key === "expires" ? dateOf("expires", sv.license.expires) : null;
-          if (markMissing(sheet, bad)) return;
-          if (key === "name") { sv.first = get("first"); sv.last = get("last"); }
-          else if (key === "dob") sv.dob = dobV;
-          else if (key === "expires") sv.license.expires = expV;
-          else if (key === "license") sv.license.number = get("lnum");
-          else if (key === "address") sv.address = get("address");
-          close(); renderVerifyExisting();
-        };
-        const first = $("input", sheet); if (first) first.focus();
+    openSheet(`${sheetHead("Possible duplicate", "We found similar customers. Select the correct one, or create new.")}
+      ${cands.map((c2, i) => `<button type="button" class="sc2-result sc2-result--pick" data-pik="${i}">
+        <span class="sc2-person sc2-person--init">${initials(c2.first, c2.last)}</span>
+        <div style="min-width:0"><b>${esc([c2.first, c2.middle, c2.last].filter(Boolean).join(" "))}</b><span>${esc(c2.phone || c2.email || "No contact on file")}</span></div>
+        <span class="sc2-go" aria-hidden="true">›</span>
+      </button>`).join("")}
+      <div class="sc2-sheetactions">
+        <button type="button" class="sc2-secondary" data-none>None of these — create new</button>
+        <p class="sc2-sheethint">Creating new adds a second record with this name to the CRM.</p>
+      </div>`, (sheet, close) => {
+      $$("[data-pik]", sheet).forEach(b => b.onclick = () => {
+        close();
+        st.match = { type: "your selection", customer: cands[+b.dataset.pik] };
+        st.sv = null;
+        renderConfirm(st.match);
       });
+      $("[data-none]", sheet).onclick = () => { close(); finishSave(mkNew(), false); };
     });
-    $("[data-save]").onclick = () => {
-      stashContact();
-      const bad = [];
-      if (needContact) {
-        if (!sv.phone) bad.push({ el: $("#svPhone", body), msg: "Required" });
-        if (!sv.email) bad.push({ el: $("#svEmail", body), msg: "Required" });
-      }
-      if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
-      saveFrom(svVals(), ex);
-    };
-    wire(renderVerifyExisting, reviewBack());
   }
 
-  /* new customer (owner v2 s7): the license details as read-first rows with
-     per-row Edit; the only typing asked for is what the license cannot say */
-  function renderVerifyNew() {
-    st.stage = "verify"; st.pct = 100;
-    const p = st.persona;
-    const sv = seedSv(null);
-    foot(`<button type="button" class="btn btn--primary scan-cta" data-save>${o.mode === "cobuyer" ? "Add as Co-Buyer" : "Create Customer"}</button>`);
-    /* read-first (spec s21): what the license said, as a document — the only
-       typing asked for is what the license cannot say. Edit is a word. */
-    const row = (key, label, val) => `<div class="scan-row" data-field="${esc(key)}">
-      <div><span class="scan-row__lab">${esc(label)}</span>
-        <span class="scan-row__val" data-show>${esc(val)}</span></div>
-      <button type="button" class="scan-act" data-edit aria-label="Edit ${esc(label)}">Edit</button>
-    </div>`;
-    body.innerHTML = `${top(100)}
-      <div class="scan-hero scan-hero--tight">
-        <h1>Create new customer</h1>
-        <p>The license filled these in. Check each line, then add the guest&rsquo;s contact details.${o.mode === "cobuyer" ? " They&rsquo;ll be attached as the co-buyer." : ""}</p>
-      </div>
-      <h2 class="scan-h2">From the driver&rsquo;s license</h2>
-      <div class="scan-doc">
-        ${row("name", "Name", [sv.first, sv.middle, sv.last].filter(Boolean).join(" "))}
-        ${row("license", "License", sv.license.number + " · " + sv.license.state + (sv.license.expires ? " · exp " + dateUS(sv.license.expires) : ""))}
-        ${row("dob", "Date of birth", sv.dob ? dateUS(sv.dob) : "—")}
-        ${row("address", "Address", sv.address + ", " + sv.city + ", " + sv.state + " " + sv.zip)}
-      </div>
-      <h2 class="scan-h2">Contact</h2>
-      <div class="scan-form">
-        <label for="svPhone">Mobile phone</label>
-        <input id="svPhone" type="tel" inputmode="tel" autocomplete="off" placeholder="(718) 555-5555" value="${esc(sv.phone)}">
-        <label for="svEmail">Email</label>
-        <input id="svEmail" type="email" autocomplete="off" placeholder="name@testing.com" value="${esc(sv.email)}">
-        <div class="scan-subtle">Both phone and email are required. <span class="demo-note">Demo tool — sample data only.</span></div>
-      </div>`;
-    /* per-row edit opens a focused bottom sheet with the real granular
-       inputs (dates stay masked MM/DD/YYYY — never a native picker) */
-    const forms = {
-      name: () => `<input data-f="first" type="text" value="${esc(sv.first)}" placeholder="First" aria-label="First name">
-        <input data-f="middle" type="text" value="${esc(sv.middle)}" placeholder="Middle" aria-label="Middle name">
-        <input data-f="last" type="text" value="${esc(sv.last)}" placeholder="Last" aria-label="Last name">`,
-      license: () => `<input data-f="lnum" type="text" value="${esc(sv.license.number)}" placeholder="License #" aria-label="License number">
-        <input data-f="lstate" type="text" value="${esc(sv.license.state)}" placeholder="State" aria-label="Issuing state">
-        <input data-f="lexp" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(sv.license.expires ? dateUS(sv.license.expires) : "")}" aria-label="Expires">`,
-      dob: () => `<input data-f="dob" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(sv.dob ? dateUS(sv.dob) : "")}" aria-label="Date of birth">`,
-      address: () => `<input data-f="address" type="text" value="${esc(sv.address)}" placeholder="Street" aria-label="Street">
-        <input data-f="city" type="text" value="${esc(sv.city)}" placeholder="City" aria-label="City">
-        <input data-f="state" type="text" value="${esc(sv.state)}" placeholder="State" aria-label="State">
-        <input data-f="zip" type="text" value="${esc(sv.zip)}" placeholder="ZIP" aria-label="ZIP">`
-    };
-    const shows = {
-      name: () => [sv.first, sv.middle, sv.last].filter(Boolean).join(" "),
-      license: () => sv.license.number + " · " + sv.license.state + (sv.license.expires ? " · exp " + dateUS(sv.license.expires) : ""),
-      dob: () => sv.dob ? dateUS(sv.dob) : "—",
-      address: () => sv.address + ", " + sv.city + ", " + sv.state + " " + sv.zip
-    };
-    const sheetTitles = { name: "Edit name", license: "Edit license", dob: "Edit date of birth", address: "Edit address" };
-    $$("[data-edit]", body).forEach(btn => btn.onclick = () => {
-      const rowEl = btn.closest(".scan-row"), key = rowEl.dataset.field;
-      /* typed contact must survive the sheet round-trip */
-      sv.phone = $("#svPhone", body).value.trim(); sv.email = $("#svEmail", body).value.trim();
-      openSheet(sheetTitles[key], `<div class="scan-form" data-form="${esc(key)}">${forms[key]()}</div>
-        <div class="scan-sheet__acts">
-          <button type="button" class="btn btn--primary scan-cta" data-apply>Save</button>
-          <button type="button" class="btn scan-cta scan-cta--text" data-cancel-sheet>Cancel</button>
-        </div>`, (sheet, close) => {
-        $("[data-cancel-sheet]", sheet).onclick = close;
-        const formEl = $(`[data-form="${key}"]`, sheet);
-        const first = $("input", formEl); if (first) first.focus();
-        $("[data-apply]", sheet).onclick = () => {
-          const get = (f) => { const i = $(`[data-f="${f}"]`, formEl); return i ? i.value.trim() : null; };
-          const bad = [];
-          /* every field in the sheet is required to save (owner, 2026-08-25).
-             The one exception is the middle name — a guest may simply not
-             have one, so an empty middle is a fact, not a miss. */
-          const need = (f) => { if (!get(f)) bad.push({ el: $(`[data-f="${f}"]`, formEl), msg: "Required" }); };
-          const dateOf = (f, cur) => { const t = get(f); if (t && !dateISO(t)) { bad.push({ el: $(`[data-f="${f}"]`, formEl), msg: "Enter MM/DD/YYYY" }); return cur; } return t ? dateISO(t) : ""; };
-          if (key === "name") { need("first"); need("last"); }
-          if (key === "license") { need("lnum"); need("lstate"); need("lexp"); }
-          if (key === "dob") need("dob");
-          if (key === "address") { need("address"); need("city"); need("state"); need("zip"); }
-          const dobV = key === "dob" ? dateOf("dob", sv.dob) : null;
-          const expV = key === "license" ? dateOf("lexp", sv.license.expires) : null;
-          if (markMissing(formEl, bad)) return;
-          if (key === "name") { sv.first = get("first"); sv.middle = get("middle"); sv.last = get("last"); }
-          if (key === "license") { sv.license.number = get("lnum"); sv.license.state = get("lstate"); sv.license.expires = expV; }
-          if (key === "dob") sv.dob = dobV;
-          if (key === "address") { sv.address = get("address"); sv.city = get("city"); sv.state = get("state"); sv.zip = get("zip"); }
-          $("[data-show]", rowEl).textContent = shows[key]();
-          close();
-        };
-      });
-    });
-    $("[data-save]").onclick = () => {
-      sv.email = $("#svEmail", body).value.trim();
-      sv.phone = $("#svPhone", body).value.trim();
-      /* the same required set and the same marks as Create Customer */
-      const bad = customerMissing(svVals(), "sv", body);
-      if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
-      saveFrom(svVals(), null);
-    };
-    wire(renderVerifyNew, reviewBack());
-  }
-
-  /* the typed phone matches an existing record — the evidence, what each
-     action does, and the cheap typo fix, all on one card */
+  /* the typed phone matches an existing record (exception sheet): the
+     evidence, what each action does, and the cheap typo fix. Nothing merges
+     until the number is verified. */
   function renderPhoneConflict(dup, vals, mkNew) {
-    st.stage = "verify"; st.pct = 100;
     const isPrimary = o.mode === "cobuyer" && dup.id === o.deal.customerId;
-    foot(`${isPrimary ? "" : `<button type="button" class="btn btn--primary scan-cta" data-plink>Link to that record</button>`}
-      <button type="button" class="btn btn--ghost scan-cta scan-cta--ghost" data-pnew>Keep as a new customer</button>
-      <button type="button" class="btn scan-cta scan-cta--text" data-pfix>Back — fix the number</button>`);
-    /* calm explanation (spec s23): the page stays neutral — red touches only
-       the conflicting number itself. The real conflict this app can have is
-       the number just typed already belonging to someone else (no license
-       carries a phone), so that is what the two groups show. */
-    body.innerHTML = `${top(100)}
-      <div class="scan-hero scan-hero--tight">
-        <h1>Information conflict</h1>
-        <p>The phone number entered belongs to another customer.</p>
-      </div>
-      <div class="scan-conflict">
-        <div class="scan-row">
-          <div><span class="scan-row__lab">Phone entered</span>
-            <span class="scan-row__val scan-row__val--bad">${esc(vals.phone)}</span></div>
-        </div>
-        <div class="scan-row">
-          <div><span class="scan-row__lab">Customer already using this number</span>
-            <span class="scan-row__val">${esc(dup.first + " " + dup.last)}</span>
-            ${dup.dob ? `<span class="scan-row__meta">Born ${esc(dateUS(dup.dob))}</span>` : ""}</div>
-        </div>
-      </div>
-      <p class="scan-ask">Is this the same person?</p>
-      <div class="scan-conseq">
-        ${isPrimary ? "" : `<p><b>Link to that record</b> saves the scanned details onto ${esc(dup.first + " " + dup.last)}&rsquo;s record — no duplicate is created.</p>`}
-        <p><b>Keep as a new customer</b> means two customers will share this phone number.</p>
-        ${isPrimary ? `<p><b>That&rsquo;s the primary buyer on this deal</b> — they can&rsquo;t also be the co-buyer, so linking isn&rsquo;t available here.</p>` : ""}
-      </div>`;
-    /* linking overwrites someone's existing record off a TYPED number, so it
-       is gated behind a code verification (owner, 2026-08-25): the guest
-       reads back the code sent to that number, proving the number is theirs
-       before anything merges. In production the code goes out by text; this
-       demo has no network path (invariant), so the sheet says so and shows
-       the code the guest "received" — the rehearsal stays the real one. */
-    const link = $("[data-plink]");
-    if (link) link.onclick = () => {
-      const code = String(Math.floor(100000 + Math.random() * 900000));
-      openSheet("Verify the number", `
-        <p class="scan-conseq" style="margin:0 0 4px"><b>A 6-digit code was sent to ${esc(vals.phone)}.</b> Ask the guest to read it back — it proves the number is theirs before the records link.</p>
-        <div class="scan-form">
-          <label for="svLinkCode">Verification code</label>
-          <input id="svLinkCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="6-digit code">
-        </div>
-        <p class="scan-subtle">Demo: nothing leaves this device, so no text was really sent — the code on the guest&rsquo;s phone would read <b>${esc(code)}</b>.</p>
-        <div class="scan-sheet__acts">
-          <button type="button" class="btn btn--primary scan-cta" data-verify>Verify &amp; Link</button>
-          <button type="button" class="btn scan-cta scan-cta--text" data-cancel-sheet>Cancel</button>
-        </div>`, (sheet, close) => {
-        $("[data-cancel-sheet]", sheet).onclick = close;
-        const inp = $("#svLinkCode", sheet); inp.focus();
-        $("[data-verify]", sheet).onclick = () => {
-          const typed = inp.value.trim();
-          if (typed !== code) return markMissing(sheet, [{ el: inp, msg: typed ? "Code doesn't match" : "Required" }]);
-          close();
-          Object.assign(dup, vals); finishSave(dup, true);
-        };
-      });
-    };
-    $("[data-pnew]").onclick = () => finishSave(mkNew(), false);
-    $("[data-pfix]").onclick = () => { st.sv.phone = ""; renderVerifyNew(); setTimeout(() => { const ph = $("#svPhone", body); if (ph) { ph.scrollIntoView({ block: "center" }); ph.focus(); } }, 50); };
-    wire(() => renderPhoneConflict(dup, vals, mkNew), () => renderVerifyNew());
+    openSheet(`${sheetHead("This phone number is already in use", "Verify ownership before linking customer information to another CRM profile.")}
+      <div class="sc2-conflict"><b>${esc(vals.phone)}</b>
+        <p>This number is currently on ${esc(dup.first + " " + dup.last)}&rsquo;s profile${dup.dob ? " (born " + esc(dateUS(dup.dob)) + ")" : ""}. Nothing will be merged until the number is verified.</p>
+        ${isPrimary ? `<p><b>That&rsquo;s the primary buyer on this deal</b> — they can&rsquo;t also be the co-buyer, so linking isn&rsquo;t available here.</p>` : ""}</div>
+      <div class="sc2-sheetactions">
+        ${isPrimary ? "" : `<button type="button" class="sc2-primary" data-plink>Verify number &amp; link</button>`}
+        <button type="button" class="sc2-secondary" data-pfix>Use a different number</button>
+        <button type="button" class="sc2-textbtn" data-pnew>Keep profiles separate</button>
+      </div>`, (sheet, close) => {
+      const link = $("[data-plink]", sheet);
+      if (link) link.onclick = () => { close(); renderVerifyCode(dup, vals); };
+      $("[data-pnew]", sheet).onclick = () => { close(); finishSave(mkNew(), false); };
+      $("[data-pfix]", sheet).onclick = () => {
+        close();
+        st.sv.phone = "";
+        const ph = $("#svPhone", body);
+        if (ph) { ph.value = ""; ph.scrollIntoView({ block: "center" }); ph.focus(); }
+      };
+    });
   }
 
-  /* completion (owner mockup s9): the drawn ring, the name, then the visit.
-     "Scan another license" restarts the journey in place rather than closing
-     and reopening it — the advisor with two guests at the desk never leaves. */
-  function renderComplete(cust, wasExisting) {
-    st.stage = "complete"; st.pct = 100;
-    foot(`<button type="button" class="btn btn--primary scan-cta" data-go>Continue to Visit</button>
-      <button type="button" class="btn scan-cta scan-cta--text" data-more>Scan Another License</button>`);
-    body.innerHTML = `${top(100)}
-      <div class="scan-hero" style="text-align:center;padding-top:40px">
-        <div class="scan-done" aria-hidden="true"><svg viewBox="0 0 52 52"><path d="M12 27.5 21.5 37 40 17"/></svg></div>
-        <h1>${wasExisting ? "Customer updated" : "Customer added"}</h1>
-        <p class="scan-donename">${esc([cust.first, cust.middle, cust.last].filter(Boolean).join(" "))}</p>
-        <p>The customer is ready to continue.</p>
+  /* linking overwrites someone's existing record off a TYPED number, so it is
+     gated behind a code verification (owner, 2026-08-25): the guest reads
+     back the code sent to that number. This demo has no network path
+     (invariant), so the sheet says so and shows the code the guest "received"
+     — the rehearsal stays the real one. Wrong code merges nothing. */
+  function renderVerifyCode(dup, vals) {
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    openSheet(`${sheetHead("Verify the phone number", `Ask the guest to read back the six-digit code sent to ${esc(vals.phone)} — it proves the number is theirs before the records link.`)}
+      <div class="sc2-code" id="svCode">${Array.from({ length: 6 }, (_, i) => `<input maxlength="1" inputmode="numeric" aria-label="Code digit ${i + 1}">`).join("")}</div>
+      <div class="sc2-demo"><b>Demo:</b> nothing leaves this device, so no text was really sent — the code on the guest&rsquo;s phone would read <b>${esc(code)}</b>.</div>
+      <div class="sc2-sheetactions">
+        <button type="button" class="sc2-primary" data-verify>Verify &amp; link</button>
+        <button type="button" class="sc2-textbtn" data-sheet-close>Cancel</button>
+      </div>`, (sheet, close) => {
+      const boxes = $$("#svCode input", sheet);
+      boxes.forEach((b, i) => b.oninput = () => {
+        b.value = b.value.replace(/\D/g, "").slice(0, 1);
+        if (b.value && boxes[i + 1]) boxes[i + 1].focus();
+      });
+      boxes[0].focus();
+      $("[data-verify]", sheet).onclick = () => {
+        const typed = boxes.map(b => b.value).join("");
+        if (typed !== code) return markMissing(sheet, [{ el: boxes[0], msg: typed ? "Code doesn't match" : "Required" }]);
+        close();
+        Object.assign(dup, vals);
+        finishSave(dup, true);
+      };
+    });
+  }
+
+  /* completion is local feedback on the confirm surface — the success bar,
+     the customer, and the visit as the dominant next action. "Scan another"
+     restarts in place with a clean slate. */
+  function renderDone(cust, wasExisting) {
+    st.stage = "done";
+    body.innerHTML = `${top()}
+      <div class="sc2-page">
+        <div class="sc2-successbar"><span class="sc2-statusicon">✓</span>Customer ready · ${wasExisting ? "profile updated" : "new profile created"}</div>
+        ${hero(esc([cust.first, cust.middle, cust.last].filter(Boolean).join(" ")), wasExisting
+          ? "The record is up to date from the license and ready to continue."
+          : "Identity details came from the license. Phone and email are confirmed on the customer profile.")}
+        <section class="sc2-newsummary">
+          <div class="sc2-sumrow"><span>License</span><b>${cust.license && cust.license.number ? esc(cust.license.number + (cust.license.state ? " · " + cust.license.state : "")) : "—"}</b></div>
+          <div class="sc2-sumrow"><span>Phone</span><b>${esc(cust.phone || "—")}</b></div>
+          <div class="sc2-sumrow"><span>Email</span><b>${esc(cust.email || "—")}</b></div>
+        </section>
+        <div class="sc2-actions">
+          <button type="button" class="sc2-primary sc2-primary--accent" data-go>Continue to visit</button>
+          <button type="button" class="sc2-textbtn" data-more>Scan another license</button>
+        </div>
       </div>`;
     $("[data-go]").onclick = () => { done(); if (o.onDone) o.onDone(cust, st.persona, st.match); };
-    /* a fresh scan needs a clean slate: the old photo, persona, working values
-       and back-target must not leak into the next guest's journey */
+    /* a fresh scan needs a clean slate: the old persona, working values and
+       match must not leak into the next guest's journey */
     $("[data-more]").onclick = () => {
-      if (st.frontUrl) { try { URL.revokeObjectURL(st.frontUrl); } catch (e) { /* noop */ } }
-      st.frontUrl = null; st.persona = null; st.match = null; st.backFrom = null;
+      st.frontDone = false; st.persona = null; st.match = null;
       st.sv = null; st.saved = false; st.manNum = ""; st.manState = "NY";
-      renderIntro();
+      renderScan("front");
     };
-    st.render = () => renderComplete(cust, wasExisting);
+    st.render = () => renderDone(cust, wasExisting);
   }
 
+  /* test-drive mode: verify the card in hand for the drive. On a name
+     mismatch the card may belong to someone else — fill the agreement but
+     never write that identity onto this customer's record. */
   function renderVerifyTd(p) {
-    st.stage = "verify"; st.pct = 100;
+    st.stage = "td";
     const c = o.deal ? Store.customer(o.deal.customerId) : null;
     const mismatch = c && (c.first.toLowerCase() !== p.first.toLowerCase() || c.last.toLowerCase() !== p.last.toLowerCase());
-    foot(`<button type="button" class="btn btn--primary scan-cta" id="svSave">Use These Details</button>`);
-    body.innerHTML = `${top(100)}
-      <div class="scan-hero scan-hero--tight">
-        <h1>${mismatch ? "Check the name" : "License read"}</h1>
-        <p>${mismatch
-          ? `The license reads <b>${esc(p.first + " " + p.last)}</b>, but this deal's customer is <b>${esc(c.first + " " + c.last)}</b>. Double-check you have the right guest — the name on file won't be changed here.`
-          : `${c ? "For " + esc(c.first + " " + c.last) + ". " : ""}Verify each field against the card before continuing.`}</p>
-      </div>
-      <div class="fields" style="padding:0 26px">
-        <label class="f"><span class="lab">License # <i class="req">*</i></span><input id="svDl" type="text" value="${esc(p.license.number)}"></label>
-        <label class="f"><span class="lab">Issuing State</span><input id="svDlState" type="text" value="${esc(p.license.state)}"></label>
-        <label class="f"><span class="lab">Expires</span><input id="svDlExp" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.license.expires))}"></label>
-        <label class="f"><span class="lab">Date of Birth</span><input id="svDob" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.dob))}"></label>
+    body.innerHTML = `${top()}
+      <div class="sc2-page">
+        ${hero(mismatch ? "Check the name" : "License read", mismatch
+          ? `The license reads <b>${esc(p.first + " " + p.last)}</b>, but this deal&rsquo;s customer is <b>${esc(c.first + " " + c.last)}</b>. Double-check you have the right guest — the name on file won&rsquo;t be changed here.`
+          : `${c ? "For " + esc(c.first + " " + c.last) + ". " : ""}Verify each field against the card before continuing.`)}
+        <div class="sc2-fields">
+          <div class="sc2-field"><label for="svDl">License # <span class="sc2-req">*</span></label><input class="sc2-input" id="svDl" type="text" value="${esc(p.license.number)}"></div>
+          <div class="sc2-field"><label for="svDlState">Issuing State</label><input class="sc2-input" id="svDlState" type="text" value="${esc(p.license.state)}"></div>
+          <div class="sc2-field"><label for="svDlExp">Expires</label><input class="sc2-input" id="svDlExp" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.license.expires))}"></div>
+          <div class="sc2-field"><label for="svDob">Date of Birth</label><input class="sc2-input" id="svDob" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(dateUS(p.dob))}"></div>
+        </div>
+        <div class="sc2-actions">
+          <button type="button" class="sc2-primary" id="svSave">Use These Details</button>
+        </div>
       </div>`;
     $("#svSave").onclick = () => {
       const expText = $("#svDlExp", body).value.trim(), dobText = $("#svDob", body).value.trim();
       const expires = expText ? dateISO(expText) : "";
       const dob = dobText ? dateISO(dobText) : "";
       const lic = { number: $("#svDl", body).value.trim(), state: $("#svDlState", body).value.trim(), expires };
-      /* the same marks as every other form: the miss is shown on its field */
       const bad = [];
       if (!lic.number) bad.push({ el: $("#svDl", body), msg: "Required" });
       if (expText && !expires) bad.push({ el: $("#svDlExp", body), msg: "Enter MM/DD/YYYY" });
       if (dobText && !dob) bad.push({ el: $("#svDob", body), msg: "Enter MM/DD/YYYY" });
       if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
-      /* on a name mismatch the card may belong to someone else — fill the agreement
-         but never write that identity onto this customer's record */
       if (c && !mismatch) { c.dob = dob || c.dob; c.license = lic; Store.save(); }
       done();
       if (o.onDone) o.onDone(c, Object.assign({}, p, { license: lic }));
     };
-    wire(() => renderVerifyTd(p), () => renderBack());
+    wire(() => renderVerifyTd(p));
   }
 
-  renderIntro();
+  renderScan("front");
 }
 
 /* ============================================================
