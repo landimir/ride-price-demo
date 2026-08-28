@@ -2556,9 +2556,9 @@ body[data-canvas="master"] .view { max-width: none; padding: 0; }
 .dk-typechip { height: 34px; padding: 0 12px; font-size: 12px; }
 .dk-cmpcard .price .unit { font-size: 16px; font-weight: 750; }
 
-/* the desking system rides the master canvas: the accent turns solid
-   (the master locks "no gradient as a default CTA") and the notice
-   tint follows the accent token */
+/* the desking system rides the master canvas: primary actions wear the
+   signature gradient (owner ruling 2026-08-27, outranking the package's
+   no-gradient default) and the notice tint follows the accent token */
 body[data-canvas="master"] .dk-primary,
 body[data-canvas="master"] .desk-sticky__go {
   background: var(--grad); border-radius: 12px; min-height: 52px; font-weight: 750; font-size: 15px; box-shadow: none;
@@ -2569,6 +2569,60 @@ body[data-canvas="master"] .dk-secondary { border-radius: 12px; min-height: 48px
 body[data-canvas="master"] .dk-notice { background: #FFF3ED; border-left-color: var(--accent); }
 body[data-canvas="master"] .dk-wrap { max-width: 430px; padding: 8px 20px 120px; }
 body[data-canvas="master"] .desk-sticky { padding-left: max(20px, calc((100% - 430px) / 2)); padding-right: max(20px, calc((100% - 430px) / 2)); }
+.desk-sticky__copy > .desk-sticky__sub { font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); margin-top: 2px; }
+
+/* ---- Base Payment Agreement (bp- family; owner's base-payment golden,
+   2026-08-27). Anatomy transcribed verbatim: summary card, party
+   surfaces, flat term rows, sign / signed panels, contextual action
+   rows, and the redesk-sheet extras. Colors ride the master tokens. */
+.bp-summary { border: 1px solid var(--line); border-radius: 24px; padding: 20px; background: #fff; }
+.bp-sumtop { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.bp-sumlabel { font-size: 13px; color: var(--muted); font-weight: 600; }
+.bp-payment { font-size: 42px; line-height: 1; letter-spacing: -.045em; font-weight: 650; margin-top: 7px; color: var(--ink); }
+.bp-paymeta { font-size: 14px; color: var(--muted); margin-top: 7px; }
+.bp-status { height: 32px; padding: 0 11px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; background: var(--surface); white-space: nowrap; }
+.bp-status--signed { background: #EDF7ED; color: #15651A; }
+.bp-divider { height: 1px; background: var(--line-soft); margin: 18px 0; }
+.bp-vehline { font-size: 15px; font-weight: 650; }
+.bp-vehmeta { font-size: 13px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
+.bp-h2 { font-size: 18px; font-weight: 720; letter-spacing: -.02em; margin: 0 0 12px; color: var(--ink); }
+.bp-parties { display: grid; gap: 12px; }
+.bp-party { padding: 14px; background: var(--surface); border-radius: 16px; }
+.bp-pname { font-size: 14px; font-weight: 700; }
+.bp-pmeta { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-top: 5px; }
+.bp-terms { border-top: 1px solid var(--line); }
+.bp-trow { display: flex; justify-content: space-between; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; line-height: 1.35; }
+.bp-trow span:first-child { color: var(--muted); }
+.bp-trow strong { text-align: right; font-weight: 650; }
+.bp-trow--total { font-size: 15px; }
+.bp-trow--pay { font-size: 16px; border-bottom: 0; padding-bottom: 4px; }
+.bp-trow--pay span:first-child { color: var(--ink); font-weight: 650; }
+.bp-trow--pay strong { font-weight: 750; }
+.bp-ack { font-size: 13px; line-height: 1.58; color: #444; margin: 0; }
+.bp-ack strong { color: var(--ink); }
+.bp-signpanel { border: 1px solid var(--line); border-radius: 20px; padding: 18px; background: #fff; }
+.bp-lab { display: block; font-size: 13px; font-weight: 650; margin-bottom: 8px; }
+.bp-nameinput { width: 100%; height: 50px; border: 1px solid #BDBDBD; border-radius: 12px; padding: 0 14px; font: inherit; font-size: 16px; outline: 0; background: #fff; color: var(--ink); }
+.bp-nameinput:focus { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.bp-sigpreview { height: 72px; margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: flex; align-items: center; padding: 0 16px; color: #333; font-family: "Snell Roundhand", "Segoe Script", cursive; font-size: 28px; font-style: italic; }
+.bp-sighelp { font-size: 12px; color: var(--muted); line-height: 1.4; margin-top: 9px; }
+.bp-signed { border: 1px solid var(--line); border-radius: 20px; padding: 18px; }
+.bp-signedhead { display: flex; justify-content: space-between; gap: 14px; align-items: center; }
+.bp-check { width: 42px; height: 42px; border-radius: 50%; background: #EDF7ED; color: var(--success); display: grid; place-items: center; font-weight: 850; font-size: 20px; flex: none; }
+.bp-signedtitle { font-size: 16px; font-weight: 720; }
+.bp-signedtime { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.bp-signedsig { margin-top: 16px; padding: 16px; border-radius: 12px; background: var(--surface); font-family: "Snell Roundhand", "Segoe Script", cursive; font-size: 28px; font-style: italic; }
+.bp-actions { border-top: 1px solid var(--line); margin-top: 14px; }
+.bp-actrow { width: 100%; min-height: 58px; border: 0; border-bottom: 1px solid var(--line-soft); background: #fff; display: flex; align-items: center; justify-content: space-between; gap: 14px; text-align: left; padding: 0 2px; cursor: pointer; font: inherit; color: var(--ink); text-decoration: none; }
+.bp-actcopy strong { display: block; font-size: 14px; }
+.bp-actcopy small { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
+.bp-chev { font-size: 20px; color: var(--muted); }
+.bp-sheetcopy { font-size: 14px; line-height: 1.5; color: var(--muted); margin: 10px 0 18px; }
+.bp-highlight { padding: 14px; background: var(--surface); border-radius: 16px; margin: 4px 0 18px; }
+.bp-highlight strong { display: block; font-size: 14px; }
+.bp-highlight span { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
+.bp-sheetacts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.bp-danger { height: 48px; border: 1px solid var(--crimson); border-radius: 12px; background: #fff; color: var(--crimson); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 18px; }
 
 @media (min-width: 431px) {
   body[data-canvas="master"] { background: #F5F5F5; }

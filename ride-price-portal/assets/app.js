@@ -3228,75 +3228,162 @@ route("agreement/:id", ({ id }) => {
   const isCash = deal.dealType === "cash";
   const signed = deal.basePayment && deal.basePayment.signedAt;
 
-  renderChrome("Base Payment — Terms of Agreement", dealTitle(deal),
-    `<a class="btn btn--danger btn--sm" href="#/desk/${esc(deal.id)}" id="redesk">Redesk Payment</a>
-     ${signed ? `<a class="btn btn--grad btn--sm" href="#/credit/${esc(deal.id)}">Continue → Credit Application</a>` : ""}`);
+  renderChrome("Base Payment Agreement", dealTitle(deal), "");
+  document.body.dataset.screen = "desk";
+  document.body.dataset.canvas = "master";
 
-  view().innerHTML = `
-    <div class="doc">
-      <div class="doc-brand"><span style="font-size:22px;font-weight:800;font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent">Ride</span><span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--navy)">PRICE</span></div>
-      <h2>Customer Acknowledgement of Basic Terms of Agreement</h2>
-      <div class="two">
-        <div><b>${esc(c.first)} ${esc(c.last)}</b><br>${esc(c.phone)}<br>${esc(c.email)}<br>${esc(c.address)}, ${esc(c.city)}, ${esc(c.state)} ${esc(c.zip)}</div>
-        <div class="right"><b>${esc(Store.s.advisor)} — ${RIDE_PRICE_DATA.dealership.name}</b><br>${RIDE_PRICE_DATA.dealership.phone}<br>${RIDE_PRICE_DATA.dealership.address}<br>Date: ${today()}</div>
+  /* the figure the deal type actually produces — the unit word is derived,
+     never assumed (review lesson 9) */
+  const sumLabel = isCash ? "Estimated total due" : deal.dealType === "onepay" ? "Due at signing — One Pay" : "Base monthly payment";
+  const sumAmt = isCash ? money(r.totalDue) : deal.dealType === "onepay" ? money(r.onePayTotal) : money(r.payment);
+  const sumMeta = isCash ? "Cash purchase"
+    : deal.dealType === "onepay" ? `${esc(String(r.term))} months · ${esc(r.miles.toLocaleString())} mi/yr · One-Pay Lease`
+    : isLease ? `${esc(String(r.term))} months · ${esc(r.miles.toLocaleString())} mi/yr · Lease`
+    : `${esc(String(r.term))} months · ${esc(String(r.apr))}% APR · Finance`;
+  const vehMeta = `Your price ${money(r.yourPrice)} · ` + (isCash ? `Total due ${money(r.totalDue)}`
+    : deal.dealType === "onepay" ? `One-pay total ${money(r.onePayTotal)}`
+    : isLease ? `Due at signing ${money0(deal.desk.dueAtSigning)}`
+    : `Total amount financed ${money(r.amountFinanced)}`);
+  const dockUnit = isCash || deal.dealType === "onepay" ? "total" : "/ mo";
+
+  const trow = (label, val, cls) => `<div class="bp-trow${cls ? " " + cls : ""}"><span>${label}</span><strong>${val}</strong></div>`;
+  const sigName = signed ? (deal.basePayment.sigName || c.first + " " + c.last) : c.first + " " + c.last;
+  const signedWhen = () => {
+    const dt = new Date(deal.basePayment.signedAt);
+    return dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + " · " + dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  };
+  const jk = jacketCounts(deal);
+
+  view().innerHTML = `${deskTop(deal)}
+  <div class="dk-wrap">
+    <div class="dk-eyebrow">DESKING</div>
+    <h1>Base payment agreement</h1>
+    <div class="dk-meta" style="margin-bottom:0">${signed
+      ? "The base payment is acknowledged. Continue to the credit application or redesk if the structure changes."
+      : `Review the agreed base structure with <b>${esc(c.first)}</b> before continuing to credit.`}</div>
+
+    <div class="dk-chips" style="margin-top:14px">
+      <button type="button" class="dk-chip" data-buyers="${esc(deal.id)}">${rpIcon("user")} Buyer</button>
+      <a class="dk-chip" href="#/jacket/${esc(deal.id)}">${rpIcon("folder")} Jacket ${jk.missing ? `<b>${esc(String(jk.missing))}</b>` : ""}</a>
+      <button type="button" class="dk-linkbtn" id="bpRedesk">Redesk payment</button>
+    </div>
+
+    <div class="bp-summary" style="margin-top:18px">
+      <div class="bp-sumtop">
+        <div>
+          <div class="bp-sumlabel">${sumLabel}</div>
+          <div class="bp-payment">${esc(sumAmt)}</div>
+          <div class="bp-paymeta">${sumMeta}</div>
+        </div>
+        <div class="bp-status${signed ? " bp-status--signed" : ""}">${signed ? "Signed" : "Ready to sign"}</div>
       </div>
-      <ul class="lines">
-        <li><span>Deal Type</span><b class="amt">${DEAL_TYPES[deal.dealType]}</b></li>
-        ${!isCash && !isLease ? `<li><span>Term / APR</span><b class="amt">${r.term} months / ${r.apr}%</b></li>` : ""}
-        ${isLease ? `<li><span>Term / Miles</span><b class="amt">${r.term} months / ${r.miles.toLocaleString()} mi-yr</b></li>` : ""}
-        <li><span>MSRP</span><b class="amt">${money(v.msrp)}</b></li>
-        <li><span>Selling Price (incl. options)</span><b class="amt">${money(v.selling + v.includedOptions)}</b></li>
-        <li><span>Accessories</span><b class="amt">${money(r.accessories)}</b></li>
-        <li><span><b>Your Price</b></span><b class="amt">${money(r.yourPrice)}</b></li>
-        ${deal.trade.rebates ? `<li class="neg"><span>Rebates</span><b class="amt">−${money(deal.trade.rebates)}</b></li>` : ""}
-        ${deal.trade.value ? `<li><span>Trade Value / Payoff</span><b class="amt">${money(deal.trade.value)} / ${money(deal.trade.payoff)}</b></li>` : ""}
-        ${isLease ? `<li><span>Residual (lease end value)</span><b class="amt">${money(r.residual)}</b></li>` : ""}
-        <li><span>Total Taxes &amp; Fees</span><b class="amt">${money((r.taxes.total || 0) + RIDE_PRICE_CALC.totalFees())}</b></li>
-        ${!isCash && !isLease ? `<li><span>Down Payment</span><b class="amt">${money(deal.desk.downPayment)}</b></li>
-          <li><span>Total Amount Financed</span><b class="amt">${money(r.amountFinanced)}</b></li>
-          <li class="total"><span>${r.term} Monthly Payments (inc. taxes)</span><b class="amt">${money(r.payment)}</b></li>` : ""}
-        ${deal.dealType === "lease" ? `<li><span>Due At Signing</span><b class="amt">${money(deal.desk.dueAtSigning)}</b></li>
-          <li class="total"><span>${r.term} Monthly Payments (inc. taxes)</span><b class="amt">${money(r.payment)}</b></li>` : ""}
-        ${deal.dealType === "onepay" ? `<li class="total"><span>One-Pay Total Due At Signing</span><b class="amt">${money(r.onePayTotal)}</b></li>` : ""}
-        ${isCash ? `<li class="total"><span>Total Due</span><b class="amt">${money(r.totalDue)}</b></li>` : ""}
-      </ul>
-      <p class="fine">I/We have agreed to an approximate base payment structure per the terms above. I/We understand these payment terms are based on a standard rate and are subject to the dealership's ability to obtain approval of the lending institution — the rate may be higher or lower based on my credit score and other factors lenders use in approving financing. <b>This is a ballpark structure, not a purchase.</b></p>
-      <div class="sig-line">
-        ${signed
-          ? `<div class="sig-box">${esc(deal.basePayment.sigName || c.first + " " + c.last)}</div><p class="small">Signed ${new Date(deal.basePayment.signedAt).toLocaleString()}</p>`
-          : `<label class="f"><span class="lab">Type name to sign</span><input type="text" id="bpSig" value="${esc(c.first + " " + c.last)}"></label>
-             <div class="sig-box" id="bpPreview">${esc(c.first + " " + c.last)}</div>`}
+      <div class="bp-divider"></div>
+      <div class="bp-vehline">${esc(v.year)} ${esc(v.make)} ${esc(v.model)}</div>
+      <div class="bp-vehmeta">${vehMeta}</div>
+    </div>
+
+    <div class="dk-section" style="border-top:0;padding-bottom:0">
+      <h2 class="bp-h2">Agreement details</h2>
+      <div class="bp-parties">
+        <div class="bp-party"><div class="bp-pname">${esc(c.first)} ${esc(c.last)}</div>
+          <div class="bp-pmeta">${esc(c.phone)}<br>${esc(c.email)}<br>${esc(c.address)}, ${esc(c.city)}, ${esc(c.state)} ${esc(c.zip)}</div></div>
+        <div class="bp-party"><div class="bp-pname">${esc(Store.s.advisor)} — ${esc(RIDE_PRICE_DATA.dealership.name)}</div>
+          <div class="bp-pmeta">${esc(RIDE_PRICE_DATA.dealership.phone)}<br>${esc(RIDE_PRICE_DATA.dealership.address)}<br>Date: ${esc(today())}</div></div>
       </div>
     </div>
-    <div class="flex mt" style="max-width:760px;margin:16px auto 0">
-      ${signed
-        ? `<a class="btn btn--ghost" href="#/print/${esc(deal.id)}/agreement">🖨 Print for deal folder</a>
-           <div class="push"></div><a class="btn btn--grad" href="#/credit/${esc(deal.id)}">Continue → Credit Application</a>`
-        : `<div class="push"></div><button class="btn btn--grad" id="signBp">✍ Sign Base Payment Agreement</button>`}
+
+    <div class="bp-terms" style="margin-top:22px">
+      ${trow("Deal type", esc(DEAL_TYPES[deal.dealType]))}
+      ${!isCash && !isLease ? trow("Term / APR", `${esc(String(r.term))} months / ${esc(String(r.apr))}%`) : ""}
+      ${isLease ? trow("Term / Miles", `${esc(String(r.term))} months / ${esc(r.miles.toLocaleString())} mi-yr`) : ""}
+      ${trow("MSRP", money(v.msrp))}
+      ${trow("Selling price (incl. options)", money(v.selling + v.includedOptions))}
+      ${trow("Accessories", money(r.accessories))}
+      ${trow("Your price", money(r.yourPrice), "bp-trow--total")}
+      ${deal.trade.rebates ? trow("Rebates", "−" + money(deal.trade.rebates)) : ""}
+      ${deal.trade.value ? trow("Trade value / payoff", `${money(deal.trade.value)} / ${money(deal.trade.payoff)}`) : ""}
+      ${isLease ? trow("Residual (lease end value)", money(r.residual)) : ""}
+      ${trow("Total taxes &amp; fees", money((r.taxes.total || 0) + RIDE_PRICE_CALC.totalFees()))}
+      ${!isCash && !isLease ? trow("Down payment", money(deal.desk.downPayment))
+        + trow("Total amount financed", money(r.amountFinanced), "bp-trow--total")
+        + trow(`${esc(String(r.term))} monthly payments (inc. taxes)`, money(r.payment), "bp-trow--pay") : ""}
+      ${deal.dealType === "lease" ? trow("Due at signing", money(deal.desk.dueAtSigning))
+        + trow(`${esc(String(r.term))} monthly payments (inc. taxes)`, money(r.payment), "bp-trow--pay") : ""}
+      ${deal.dealType === "onepay" ? trow("One-pay total due at signing", money(r.onePayTotal), "bp-trow--pay") : ""}
+      ${isCash ? trow("Total due", money(r.totalDue), "bp-trow--pay") : ""}
     </div>
-    ${signed ? `<p class="note" style="max-width:760px;margin:14px auto">Print this and put it in the deal folder. <b>Redesk Payment</b> voids this signed agreement and reopens the desking screen.</p>` : ""}`;
+
+    <p class="bp-ack" style="margin-top:20px">I/We have agreed to an approximate base payment structure per the terms above. I/We understand these payment terms are based on a standard rate and are subject to the dealership's ability to obtain approval of the lending institution — the rate may be higher or lower based on my credit score and other factors lenders use in approving financing. <strong>This is a ballpark structure, not a purchase.</strong></p>
+
+    ${signed ? `
+    <div class="dk-section" style="border-top:0;padding-bottom:0">
+      <h2 class="bp-h2">Agreement signed</h2>
+      <div class="bp-signed">
+        <div class="bp-signedhead"><div class="bp-check">✓</div>
+          <div style="flex:1"><div class="bp-signedtitle">${esc(c.first)} ${esc(c.last)} acknowledged the base terms</div>
+            <div class="bp-signedtime">Signed ${esc(signedWhen())}</div></div></div>
+        <div class="bp-signedsig">${esc(sigName)}</div>
+      </div>
+      <div class="bp-actions">
+        <a class="bp-actrow" href="#/print/${esc(deal.id)}/agreement"><span class="bp-actcopy"><strong>Print for deal folder</strong><small>Open the printable agreement</small></span><span class="bp-chev">›</span></a>
+        <button type="button" class="bp-actrow" id="bpRedeskRow"><span class="bp-actcopy"><strong>Redesk payment</strong><small>Voids this signature and reopens desking</small></span><span class="bp-chev">›</span></button>
+      </div>
+    </div>` : `
+    <div class="dk-section" style="border-top:0;padding-bottom:0">
+      <h2 class="bp-h2">Sign agreement</h2>
+      <div class="bp-signpanel">
+        <label class="bp-lab" for="bpSig">Type name to sign</label>
+        <input class="bp-nameinput" type="text" id="bpSig" value="${esc(sigName)}" autocomplete="off">
+        <div class="bp-sigpreview" id="bpPreview">${esc(sigName)}</div>
+        <div class="bp-sighelp">The typed name is recorded as the acknowledgement signature for this base payment structure.</div>
+      </div>
+    </div>`}
+
+    <div class="desk-sticky">
+      <div class="desk-sticky__copy"><span>${signed ? "Next step" : "Base payment"}</span>
+        <div class="desk-sticky__val"><b>${esc(sumAmt)}</b><span class="desk-sticky__unit">${dockUnit}</span></div>
+        <span class="desk-sticky__sub">${signed ? "Credit application unlocked" : "Ready for acknowledgement"}</span></div>
+      <button type="button" class="btn btn--grad desk-sticky__go" id="bpDockGo">${signed ? "Continue" : "Sign agreement"}</button>
+    </div>
+  </div>
+  <div class="m-scrim" id="bpScrim"><div class="m-sheet" role="dialog" aria-modal="true" aria-label="Redesk payment">
+    <div class="m-handle"></div>
+    <div class="m-sheettop"><div class="m-sheettitle">${signed ? "Void signature and redesk?" : "Return to desking?"}</div><button type="button" class="m-close" id="bpSheetClose" aria-label="Close">✕</button></div>
+    <div class="bp-sheetcopy">${signed
+      ? `Redesking voids the signed base payment agreement. <b>${esc(c.first)}</b> will need to review and sign the new structure before the credit application can continue.`
+      : "Return to Calculate Payments to change the base structure before the customer signs."}</div>
+    <div class="bp-highlight"><strong>${esc(sumAmt)}${isCash || deal.dealType === "onepay" ? " total" : " / month"}</strong><span>${sumMeta}</span></div>
+    <div class="bp-sheetacts"><button type="button" class="m-ghost" id="bpSheetCancel">Cancel</button><button type="button" class="bp-danger" id="bpRedeskGo">${signed ? "Void &amp; redesk" : "Redesk payment"}</button></div>
+  </div></div>`;
+
+  wireDeskTop();
 
   const sig = $("#bpSig");
   if (sig) sig.oninput = (e) => { $("#bpPreview").textContent = e.target.value; };
-  const signBtn = $("#signBp");
-  if (signBtn) signBtn.onclick = () => {
-    deal.basePayment = { signedAt: new Date().toISOString(), sigName: $("#bpSig").value, snapshot: r };
+
+  $("#bpDockGo").onclick = () => {
+    if (signed) return navigate(`#/credit/${deal.id}`);
+    const name = $("#bpSig").value.trim();
+    if (!name) { toast("Enter the customer name before signing"); $("#bpSig").focus(); return; }
+    deal.basePayment = { signedAt: new Date().toISOString(), sigName: name, snapshot: r };
     deal.stage = "credit"; Store.save(); router();
     toast("Base payment signed — client agreed to the ballpark structure");
   };
-  $("#redesk").onclick = (e) => {
-    if (!signed) {
-      deal.basePayment = null;
-      if (["signed", "credit"].includes(deal.stage)) deal.stage = "desking";
-      Store.save();
-      return;
-    }
-    e.preventDefault();
-    confirmModal("Redesk Payment", "Redesking voids the signed base payment agreement — the client will need to sign the new structure.", "Void & redesk", () => {
-      deal.basePayment = null;
-      if (["signed", "credit"].includes(deal.stage)) deal.stage = "desking";
-      Store.save(); navigate(`#/desk/${deal.id}`);
-    });
+
+  /* redesk always confirms in the sheet — signed or not, it never voids on
+     the first tap (the golden's interaction rule) */
+  const scrim = $("#bpScrim");
+  const openSheet2 = () => scrim.classList.add("show");
+  const closeSheet2 = () => scrim.classList.remove("show");
+  $("#bpRedesk").onclick = openSheet2;
+  const row = $("#bpRedeskRow"); if (row) row.onclick = openSheet2;
+  $("#bpSheetClose").onclick = closeSheet2;
+  $("#bpSheetCancel").onclick = closeSheet2;
+  scrim.onclick = (e) => { if (e.target === scrim) closeSheet2(); };
+  $("#bpRedeskGo").onclick = () => {
+    deal.basePayment = null;
+    if (["signed", "credit"].includes(deal.stage)) deal.stage = "desking";
+    Store.save(); navigate(`#/desk/${deal.id}`);
   };
 });
 
