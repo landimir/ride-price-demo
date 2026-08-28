@@ -526,7 +526,7 @@ const view = () => $("#view");
 
 /* screen state at module level so typing and pill picks survive re-renders;
    the brand logo resets both and re-pulls the queue (owner spec) */
-const dealsUI = { q: "", pipe: "all", arch: false };
+const dealsUI = { q: "", pipe: "all", range: "today", from: "", to: "", funded: false };
 
 /* Two queues, one route (owner, 2026-08-23): the Team Lead's floor view is
    UNCHANGED from the original — All / Desking / F&I-Docs pills, the classic
@@ -542,13 +542,14 @@ const dealsUI = { q: "", pipe: "all", arch: false };
 const FNI_STAGES = ["signed", "credit", "menu", "forms"];
 const dealPipe = (d) => d.stage === "complete" ? "funded" : (FNI_STAGES.indexOf(d.stage) >= 0 ? "fni" : "desking");
 
-/* the advisor's five stage chips, read from the deal's stage so every deal
-   wears exactly one. Each is one of the app's existing status badges. */
+/* v3 (owner package, 2026-08-28): showroom visits are their own section, not
+   a deal stage, so the buckets cover desked work only — three stages
+   everywhere: DESKING, F&I, DONE. The five-chip advisor vocabulary of
+   2026-08-23 is superseded by this package. */
+const SHOWROOM_STAGES = ["discovery", "vehicle", "testdrive"];
 const DEAL_BUCKETS = [
   { id: "desking", label: "Desking", chip: "DESKING", badge: "badge--prog", stages: ["discovery", "vehicle", "testdrive", "desking"] },
-  { id: "credit", label: "Credit", chip: "CREDIT", badge: "badge--menu", stages: ["signed", "credit"] },
-  { id: "fni", label: "F&I", chip: "F&I", badge: "badge--new", stages: ["menu"] },
-  { id: "docs", label: "Docs", chip: "DOCS", badge: "badge--type", stages: ["forms"] },
+  { id: "fni", label: "F&I", chip: "F&I", badge: "badge--new", stages: ["signed", "credit", "menu", "forms"] },
   { id: "done", label: "Done", chip: "DONE", badge: "badge--done", stages: ["complete"] }
 ];
 const dealBucket = (d) => DEAL_BUCKETS.find(b => b.stages.indexOf(d.stage) >= 0) || DEAL_BUCKETS[0];
@@ -586,20 +587,14 @@ route("deals", () => {
   const lead = isTeamLead();
   const mine = Store.s.deals.filter(d => lead || !d.advisor || d.advisor === Store.s.advisor);
   const bySeen = (a, b) => (b.createdAt || "").localeCompare(a.createdAt || "");
-  const act = mine.filter(d => d.stage !== "complete").sort(bySeen);
+  /* v3: In showroom is a separate active-visits section, not a deal stage */
+  const showroom = mine.filter(d => SHOWROOM_STAGES.indexOf(d.stage) >= 0).sort(bySeen);
+  const act = mine.filter(d => SHOWROOM_STAGES.indexOf(d.stage) < 0 && d.stage !== "complete").sort(bySeen);
   const funded = mine.filter(d => d.stage === "complete").sort(bySeen);
-  const counts = {
-    all: act.length,
-    desking: act.filter(d => dealPipe(d) === "desking").length,
-    fni: act.filter(d => dealPipe(d) === "fni").length
-  };
 
-  /* one baseline row: title + primary action, no stacked subtitle
-     (owner refinement, 2026-08-20). The Team Lead reads the floor, the
-     advisor reads their own deals — the title says which (owner, 2026-08-23). */
-  renderChrome(`${lead ? "Active Deals" : "My Deals"} (${act.length})`, "",
-    `<a class="btn btn--grad" href="#/customers">＋ New Customer Visit</a>`);
+  renderChrome(lead ? "Active Floor" : "My Deals", "", "");
   document.body.dataset.screen = "deals";
+  document.body.dataset.canvas = "master";
 
   /* one resolver for the vehicle identity a row may show: the deal's own
      snapshot first (survives unstocked units and catalog changes), the
@@ -620,84 +615,33 @@ route("deals", () => {
     };
   }
 
-  /* Team Lead card — unchanged classic: the whole card is the click target,
-     no chevron, no per-card controls (owner refinement, 2026-08-20; kept on
-     the owner's instruction 2026-08-23); the chip is pinned to the corner */
-  function leadCard(d) {
-    const c = Store.customer(d.customerId), { v, vin, stock } = vehicleIds(d);
-    const st = STAGES[d.stage] || STAGES.discovery;
-    const pipe = dealPipe(d);
-    const chip = pipe === "funded" ? `<span class="dl-chip badge--done">FUNDED</span>`
-      : pipe === "fni" ? `<span class="dl-chip badge--new">F&amp;I READY</span>`
-      : `<span class="dl-chip badge--prog">DESKING</span>`;
-    const name = c ? c.first + " " + c.last : "—";
-    /* the four identifiers hold for the Team Lead too (owner hard rule,
-       2026-08-23): name, VIN, stock, stage — same mono line as the advisor's,
-       the rest of the classic card unchanged. During discovery the line is
-       simply absent (owner, 2026-08-23): a blank while rapport is being
-       built, auto-populated the moment a vehicle lands on the deal. */
-    const ids = vin || stock
-      ? `<span class="dl-card__ids"><span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span> <span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span></span>`
-      : "";
-    return `<a class="dl-card dl-card--classic" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
-      <b class="dl-card__name">${esc(name)}</b>
-      ${ids}
-      ${v ? `<span class="dl-card__veh">${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}
-      <span class="dl-card__status">${esc(dealNextAction(d))}</span>
-      ${chip}
-      <span class="dl-card__chev" aria-hidden="true">›</span>
-    </a>`;
-  }
+  /* the Team Lead's history window (v3: the date control governs HISTORY —
+     the live floor is always current, an active deal never disappears
+     because it started last week) */
+  const rangeWin = () => {
+    const now = new Date();
+    const d0 = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    if (dealsUI.range === "yesterday") { const y = new Date(d0); y.setDate(y.getDate() - 1); return { from: y, to: d0, label: "Yesterday" }; }
+    if (dealsUI.range === "7d") { const f = new Date(d0); f.setDate(f.getDate() - 6); return { from: f, to: null, label: "Last 7 days" }; }
+    if (dealsUI.range === "30d") { const f = new Date(d0); f.setDate(f.getDate() - 29); return { from: f, to: null, label: "Last 30 days" }; }
+    if (dealsUI.range === "custom") {
+      const f = dealsUI.from ? new Date(dealsUI.from + "T00:00") : null;
+      let t = dealsUI.to ? new Date(dealsUI.to + "T00:00") : null;
+      if (t) { t = new Date(t); t.setDate(t.getDate() + 1); }
+      return { from: f, to: t, label: (dealsUI.from || "…") + " – " + (dealsUI.to || "…") };
+    }
+    return { from: d0, to: null, label: "Today" };
+  };
+  const fundedInRange = () => {
+    const w = rangeWin();
+    return funded.filter(d => { const at = new Date(d.createdAt || 0); return (!w.from || at >= w.from) && (!w.to || at < w.to); });
+  };
 
-  /* Advisor row (owner direction, 2026-08-23): the four identifiers — name,
-     VIN, stock, stage — the whole row the tap, a chevron as the cue, and a
-     Next line saying what to do on this deal. Funded rows drop the Next line;
-     the DONE chip already says it. */
-  function advisorCard(d) {
-    const c = Store.customer(d.customerId);
-    const st = STAGES[d.stage] || STAGES.discovery;
-    const b = dealBucket(d);
-    const name = c ? c.first + " " + c.last : "—";
-    /* universal VIN visibility (owner, 2026-08-23): once a vehicle is on the
-       deal, the VIN renders whether or not the unit is stocked in — a known
-       value in bold, a missing one as an honest Pending, never invented.
-       During discovery the line is simply absent (owner, 2026-08-23): blank
-       while rapport is built, auto-populated on vehicle selection. */
-    const { v, vin, stock } = vehicleIds(d);
-    const ids = vin || stock
-      ? `<span class="dl-card__ids"><span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span> <span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span></span>`
-      : "";
-    return `<a class="dl-card" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
-      <b class="dl-card__name">${esc(name)}</b>
-      <span class="dl-chip ${esc(b.badge)}">${esc(b.chip)}</span>
-      ${ids}
-      ${v ? `<span class="dl-card__veh">${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}
-      ${b.id === "done" ? "" : `<span class="dl-card__next dl-card__next--${esc(b.id)}">Next: ${esc(dealNextAction(d))} →</span>`}
-      <span class="dl-card__chev" aria-hidden="true">›</span>
-    </a>`;
-  }
-
-  view().innerHTML = `
-    <div class="dl-search">
-      <span class="dl-search__icon" aria-hidden="true">🔍</span>
-      <input type="search" id="dealSearch" placeholder="Search stock, customer, or VIN…" aria-label="Search deals by customer, stock number, VIN, or phone" value="${esc(dealsUI.q)}">
-      <button type="button" class="dl-search__cam" id="dealScanBtn" title="Scan a training license to start a visit" aria-label="Scan a driver's license to start a visit">📷</button>
-    </div>
-    ${lead ? `<div class="dl-pills" role="group" aria-label="Filter deals by pipeline stage">
-      <button type="button" class="dl-pill" data-pipe="all">All (${counts.all})</button>
-      <button type="button" class="dl-pill" data-pipe="desking"><i class="dl-dot dl-dot--desking" aria-hidden="true"></i>Desking (${counts.desking})</button>
-      <button type="button" class="dl-pill" data-pipe="fni"><i class="dl-dot dl-dot--fni" aria-hidden="true"></i>F&amp;I / Docs (${counts.fni})</button>
-    </div>` : ""}
-    <div class="dl-list" id="dealList"></div>
-    ${lead && funded.length ? `
-    <details class="dl-archive"${dealsUI.arch ? " open" : ""}>
-      <summary>Archived — funded contracts (${funded.length})</summary>
-      <div class="dl-list">${funded.map(leadCard).join("")}</div>
-    </details>` : ""}`;
-
-  /* any re-render (role switch, logo refresh) must not snap the archive shut */
-  const det = $(".dl-archive");
-  if (det) det.ontoggle = () => { dealsUI.arch = det.open; };
+  const counts = {
+    all: act.length,
+    desking: act.filter(d => dealPipe(d) === "desking").length,
+    fni: act.filter(d => dealPipe(d) === "fni").length
+  };
 
   /* search matches name, vehicle, stock, VIN, deal #, or phone — punctuation
      dropped on both sides so "(555) 12" finds the digits it contains */
@@ -715,33 +659,144 @@ route("deals", () => {
       hay.replace(/[^a-z0-9]/g, "").indexOf(q.replace(/[^a-z0-9]/g, "")) >= 0;
   }
 
+  /* one deal row (v3): the four identifiers hold for every role — name, the
+     mono VIN/STK line with honest Pending fallbacks, the vehicle, the stage
+     chip — plus the advisor's Next line, and the chevron as the tap cue */
+  function dealRow(d, { next = true } = {}) {
+    const c = Store.customer(d.customerId);
+    const st = STAGES[d.stage] || STAGES.discovery;
+    const b = dealBucket(d);
+    const name = c ? c.first + " " + c.last : "—";
+    const { v, vin, stock } = vehicleIds(d);
+    const ids = vin || stock
+      ? `<span class="dq-ids"><span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span><span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span></span>`
+      : "";
+    return `<a class="dq-row" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
+      <span class="dq-name">${esc(name)}</span>
+      <span class="dq-stage dq-stage--${esc(b.id)}">${esc(b.chip)}</span>
+      ${v ? `<span class="dq-veh">${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}
+      ${ids}
+      ${next && b.id !== "done" ? `<span class="dq-next">Next: ${esc(dealNextAction(d))} →</span>` : ""}
+      <span class="dq-chev" aria-hidden="true">›</span>
+    </a>`;
+  }
+
+  /* showroom visit row — never a vehicle placeholder (owner rule 2026-08-23,
+     reasserted on the v3 reference 2026-08-28): the meta is the vehicle when
+     one is chosen and the arrival time, nothing else */
+  function visitRow(d) {
+    const c = Store.customer(d.customerId);
+    const st = STAGES[d.stage] || STAGES.discovery;
+    const { v } = vehicleIds(d);
+    const arrived = d.createdAt ? new Date(d.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "";
+    const meta = [v ? v.year + " " + v.make + " " + v.model : null, arrived ? "arrived " + arrived : null].filter(Boolean).join(" · ");
+    return `<a class="dq-visit" href="${esc(st.route(d))}" aria-label="Open ${esc(c ? c.first + " " + c.last : "visit")}">
+      <span class="dq-name dq-name--visit">${esc(c ? c.first + " " + c.last : "—")}</span>
+      <span class="dq-visitmeta">${esc(meta)}</span>
+      <span class="dq-showroompill">IN SHOWROOM</span>
+    </a>`;
+  }
+
+  function showroomHtml(rows) {
+    return `<div class="dq-showroom"><div class="dq-subhead"><b>In showroom · ${rows.length}</b><span>Active visits</span></div>
+      ${rows.length ? `<div class="dq-list">${rows.map(visitRow).join("")}</div>` : `<p class="dq-empty">No showroom visits${dealsUI.q.trim() ? " match this search" : ""}.</p>`}</div>`;
+  }
+
+  view().innerHTML = `
+  <div class="dq-app">
+    <div class="dq-topbar">
+      <div class="m-wordmark"><span class="rideprice">Ride</span><span class="price">PRICE</span></div>
+      <div class="dq-topside"><span class="chip--demo">DEMO</span>
+        <button type="button" class="m-rolebtn" id="dqRole">${lead ? "Team Lead" : "Advisor"} ▾</button></div>
+    </div>
+    <div class="dq-content">
+      <div class="dq-titlerow">
+        <div><div class="ca-eyebrow" style="margin-bottom:5px">${lead ? "Floor overview" : "Sales floor"}</div>
+          <h1 class="dq-title">${lead ? "Active floor" : "My deals"}</h1>
+          <div class="dq-count" id="dqCount"></div></div>
+        <a class="dq-newvisit" href="#/customers">New visit</a>
+      </div>
+      <div class="dq-searchwrap">
+        <label class="dq-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="dealSearch" placeholder="Search customer, VIN, or stock" aria-label="Search deals" value="${esc(dealsUI.q)}"></label>
+        <button type="button" class="dq-scanbtn" id="dealScanBtn" aria-label="Scan a driver's license to start a visit">${rpIcon("idcard")}</button>
+      </div>
+      ${lead ? `<div class="dq-managermeta">
+        <div class="dq-datesummary" id="dqDateSummary"></div>
+        <button type="button" class="dq-datebtn" id="dqDateBtn"><span id="dqDateLabel"></span> ▾</button>
+      </div>` : ""}
+      <div id="dqShowroom"></div>
+      ${lead ? `<div class="dq-sectionlabel">Deals</div>
+      <div class="dq-seg" role="group" aria-label="Filter deals by stage">
+        <button type="button" class="dq-chipbtn" data-pipe="all">All ${counts.all}</button>
+        <button type="button" class="dq-chipbtn" data-pipe="desking"><i class="dq-dot dq-dot--amber"></i>Desking ${counts.desking}</button>
+        <button type="button" class="dq-chipbtn" data-pipe="fni"><i class="dq-dot dq-dot--blue"></i>F&amp;I ${counts.fni}</button>
+      </div>` : `<div class="dq-sectionlabel" id="dqSectionLabel">In progress</div>`}
+      <div id="dealList"></div>
+      <div id="dqFunded"></div>
+    </div>
+    <nav class="dq-nav" aria-label="Primary">
+      <span class="dq-navbtn active" aria-current="page">${rpIcon("page")}<span>Deals</span></span>
+      <a class="dq-navbtn" href="#/vehicles/browse">${rpIcon("car")}<span>Inventory</span></a>
+      <a class="dq-navbtn" href="#/customers">${rpIcon("user")}<span>Customers</span></a>
+      <button type="button" class="dq-navbtn" id="dqMore">${rpIcon("dots")}<span>More</span></button>
+    </nav>
+  </div>
+  <div class="m-scrim" id="dqScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="dqSheet"></div></div>`;
+
+  const openSheet5 = (html, onMount) => { $("#dqSheet").innerHTML = `<div class="m-handle"></div>${html}`; $("#dqScrim").classList.add("show"); if (onMount) onMount($("#dqSheet")); };
+  const closeSheet5 = () => $("#dqScrim").classList.remove("show");
+  $("#dqScrim").onclick = (e) => { if (e.target === $("#dqScrim") || e.target.closest("[data-sheet-close]")) closeSheet5(); };
+
   function paint() {
     if (!lead) dealsUI.pipe = "all";
-    $$(".dl-pill").forEach(p => {
-      const on = p.dataset.pipe === dealsUI.pipe;
-      p.classList.toggle("on", on);
-      p.setAttribute("aria-pressed", String(on));
-    });
-    /* Team Lead: the active floor through the lane filter, archive below.
-       Advisor: active deals then their funded ones, one list, search over all. */
-    const pool = lead
-      ? act.filter(d => dealsUI.pipe === "all" || dealPipe(d) === dealsUI.pipe)
-      : act.concat(funded);
-    const rows = pool.filter(matches);
-    /* the Team Lead's empty states are the original queue's; the advisor's
-       empty search names the search and offers the way back */
-    const searching = !!dealsUI.q.trim();
-    const empty = pool.length || (lead && act.length)
-      ? `<p class="dl-empty">${lead ? "No deals match that filter." : "No deals match that search."}</p>` +
-        (!lead && searching ? `<p class="dl-empty dl-empty--act"><button type="button" class="btn btn--ghost btn--sm" id="dealShowAll">Clear search</button></p>` : "")
-      : `<p class="dl-empty">No active deals — start a new customer visit.</p>`;
-    $("#dealList").innerHTML = rows.length ? rows.map(lead ? leadCard : advisorCard).join("") : empty;
-    const sa = $("#dealShowAll");
-    if (sa) sa.onclick = () => { dealsUI.q = ""; $("#dealSearch").value = ""; paint(); };
+    const q = dealsUI.q.trim();
+    const showRows = showroom.filter(matches);
+    const searching = !!q;
+    /* the showroom section renders for BOTH roles — an advisor's own visit
+       must stay reachable even though it is no longer a deal stage */
+    $("#dqShowroom").innerHTML = (showroom.length || lead) ? showroomHtml(showRows) : "";
+    if (lead) {
+      $$(".dq-chipbtn").forEach(p => {
+        const on = p.dataset.pipe === dealsUI.pipe;
+        p.classList.toggle("active", on);
+        p.setAttribute("aria-pressed", String(on));
+      });
+      const w = rangeWin();
+      $("#dqDateLabel").textContent = w.label;
+      $("#dqDateSummary").textContent = `${w.label} · ${dealsUI.funded ? "active + funded" : "active floor"}`;
+      $("#dqCount").textContent = `${showroom.length} in showroom · ${act.length} active deal${act.length === 1 ? "" : "s"}`;
+      const pool = act.filter(d => dealsUI.pipe === "all" || dealPipe(d) === dealsUI.pipe);
+      const rows = pool.filter(matches);
+      $("#dealList").innerHTML = rows.length
+        ? `<div class="dq-list">${rows.map(d => dealRow(d, { next: false })).join("")}</div>`
+        : `<div class="dq-empty dq-empty--box"><h3>${pool.length ? "No deals match that search" : "No deals in this stage"}</h3><p>${pool.length ? "Try another customer name, VIN, or stock number." : "Choose another stage or start a new customer visit."}</p></div>`;
+      const hist = fundedInRange().filter(matches);
+      $("#dqFunded").innerHTML = dealsUI.funded
+        ? `<div class="dq-subhead" style="margin-top:26px"><b>Funded · ${hist.length}</b><span>${esc(w.label)}</span></div>
+           ${hist.length ? `<div class="dq-list">${hist.map(d => dealRow(d, { next: false })).join("")}</div>` : `<p class="dq-empty">No funded contracts in this range.</p>`}`
+        : "";
+    } else {
+      const active = act.filter(matches);
+      const done = funded.filter(matches);
+      $("#dqCount").textContent = `${act.length} active`;
+      $("#dqSectionLabel").textContent = active.length ? "In progress" : "Completed";
+      let html = active.length ? `<div class="dq-list">${active.map(d => dealRow(d)).join("")}</div>` : "";
+      if (!active.length && !done.length && !showRows.length) {
+        html = searching
+          ? `<div class="dq-empty dq-empty--box"><h3>No deals found</h3><p>Try another customer name, VIN, or stock number.</p><p class="dq-empty--act"><button type="button" class="sc2-textbtn" id="dealShowAll">Clear search</button></p></div>`
+          : `<div class="dq-empty dq-empty--box"><h3>No active deals</h3><p>Start a new customer visit to begin.</p></div>`;
+      }
+      $("#dealList").innerHTML = html;
+      $("#dqFunded").innerHTML = done.length
+        ? `<div class="dq-sectionlabel" style="margin-top:28px">Completed</div><div class="dq-list">${done.map(d => dealRow(d, { next: false })).join("")}</div>`
+        : "";
+      const sa = $("#dealShowAll");
+      if (sa) sa.onclick = () => { dealsUI.q = ""; $("#dealSearch").value = ""; paint(); };
+    }
   }
 
   $("#dealSearch").oninput = (e) => { dealsUI.q = e.target.value; paint(); };
-  $$(".dl-pill").forEach(p => p.onclick = () => { dealsUI.pipe = p.dataset.pipe; paint(); });
+  $$(".dq-chipbtn").forEach(p => p.onclick = () => { dealsUI.pipe = p.dataset.pipe; paint(); });
   $("#dealScanBtn").onclick = () => openScanFlow({ mode: "customer", onDone: (cust) => {
     /* same stamp as the resolver's scan path: the license address was just
        confirmed through the scan's own review */
@@ -749,12 +804,78 @@ route("deals", () => {
     Store.save();
     startVisit(cust.id);
   } });
+
+  /* role sheet (v3): the switch lives on the queue's own chrome */
+  $("#dqRole").onclick = () => {
+    const opt = (key, title, sub, on) => `<button type="button" class="dq-roleopt${on ? " active" : ""}" data-role="${key}"><span><b>${title}</b><small>${sub}</small></span>${on ? `<span class="dq-check">✓</span>` : ""}</button>`;
+    openSheet5(`<div class="m-sheettop"><div class="m-sheettitle">Switch demo role</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>
+      <p class="ob-sheetdesc">This demo has no sign-in. Choose the floor view you want to preview.</p>
+      ${opt("advisor", "Advisor", "Guided queue with the next action on each deal", !lead)}
+      ${opt("teamlead", "Team Lead", "Compact active pipeline, showroom visits, and date-based history", lead)}`, (sheet) => {
+      $$("[data-role]", sheet).forEach(b => b.onclick = () => {
+        Store.s.role = b.dataset.role === "teamlead" ? "teamlead" : "advisor";
+        dealsUI.pipe = "all"; Store.save();
+        closeSheet5();
+        toast("Now acting as " + (isTeamLead() ? RIDE_PRICE_DATA.dealership.teamLead : Store.s.advisor));
+        router();
+      });
+    });
+  };
+
+  /* date/history sheet — Team Lead only (v3): history windows plus the
+     funded toggle; funded left the active chips for good */
+  const dateBtn = $("#dqDateBtn");
+  if (dateBtn) dateBtn.onclick = () => {
+    const options = [["today", "Today", "Default active-floor view"], ["yesterday", "Yesterday", "Review floor activity in this period"], ["7d", "Last 7 days", "Review floor activity in this period"], ["30d", "Last 30 days", "Review floor activity in this period"], ["custom", "Custom range", "Choose a specific start and end date"]];
+    openSheet5(`<div class="m-sheettop"><div class="m-sheettitle">Date range</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>
+      <p class="ob-sheetdesc">Team Lead only. Keep the everyday queue on Today and expand the funded history only when needed.</p>
+      ${options.map(([key, label, sub]) => `<button type="button" class="dq-roleopt${dealsUI.range === key ? " active" : ""}" data-range="${key}"><span><b>${label}</b><small>${sub}</small></span>${dealsUI.range === key ? `<span class="dq-check">✓</span>` : ""}</button>`).join("")}
+      <div id="dqCustomWrap"${dealsUI.range === "custom" ? "" : " hidden"} style="margin-top:12px">
+        <div class="ca-fieldrow">
+          <div><label class="ca-lab" for="dqFrom">From</label><input class="ca-input" id="dqFrom" type="date" value="${esc(dealsUI.from)}"></div>
+          <div><label class="ca-lab" for="dqTo">To</label><input class="ca-input" id="dqTo" type="date" value="${esc(dealsUI.to)}"></div>
+        </div>
+        <button type="button" class="ob-primary" id="dqApplyRange">Apply range</button>
+      </div>
+      <button type="button" class="dq-roleopt${dealsUI.funded ? " active" : ""}" id="dqFundedToggle"><span><b>Include funded contracts</b><small>Historical deals stay out of the active-stage chips</small></span>${dealsUI.funded ? `<span class="dq-check">✓</span>` : ""}</button>`, (sheet) => {
+      $$("[data-range]", sheet).forEach(b => b.onclick = () => {
+        dealsUI.range = b.dataset.range;
+        if (dealsUI.range === "custom") { $("#dqCustomWrap", sheet).hidden = false; return; }
+        closeSheet5(); paint();
+      });
+      const apply = $("#dqApplyRange", sheet);
+      if (apply) apply.onclick = () => {
+        dealsUI.from = $("#dqFrom", sheet).value; dealsUI.to = $("#dqTo", sheet).value;
+        dealsUI.range = "custom";
+        closeSheet5(); paint();
+      };
+      $("#dqFundedToggle", sheet).onclick = () => { dealsUI.funded = !dealsUI.funded; closeSheet5(); paint(); };
+    });
+  };
+
+  /* More sheet (v3): secondary destinations stay out of the queue */
+  $("#dqMore").onclick = () => {
+    const row = (href, icon, title, sub, extra) => `<a class="dq-morerow${extra || ""}" href="${href}"${href.indexOf("../") === 0 ? ` target="_blank" rel="noopener"` : ""}><span class="ob-iconwell">${rpIcon(icon)}</span><span class="dq-moremain"><b>${title}</b><small>${sub}</small></span><span class="sc2-go">›</span></a>`;
+    openSheet5(`<div class="m-sheettop"><div class="m-sheettitle">More</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>
+      <p class="ob-sheetdesc">Secondary tools stay out of the queue until you need them.</p>
+      ${row("#/vehicles/browse", "car", "Inventory", "Browse or search vehicles")}
+      ${row("#/customers", "user", "New customer visit", "Open the universal Customer Resolver")}
+      ${row("#/props", "idcard", "Training licenses", "Print the prop licenses to practice scanning")}
+      ${row("#/regprops", "page", "Training registrations", "Print the trade-in registration props")}
+      ${row("../ride-price-training-hub/index.html", "sun", "Training hub", "Guides and practice flows")}
+      <button type="button" class="dq-morerow dq-morerow--danger" id="dqReset"><span class="ob-iconwell">${rpIcon("trash")}</span><span class="dq-moremain"><b>Reset demo data</b><small>Return the demo to its original seed state</small></span><span class="sc2-go">›</span></button>`, (sheet) => {
+      $("#dqReset", sheet).onclick = () => {
+        closeSheet5();
+        confirmModal("Reset demo data", "Reset all portal data back to the demo seed? Every deal and customer you created will be gone.", "Reset demo data", () => {
+          Store.reset(); navigate("#/deals"); router(); toast("Demo data reset");
+        });
+      };
+    });
+  };
+
   paint();
 });
 
-/* ============================================================
-   VIEW: Find a Customer
-   ============================================================ */
 route("customers", () => {
   renderChrome("Find a Customer", "", "");
   document.body.dataset.canvas = "master";
@@ -4911,7 +5032,9 @@ const RP_ICON = {
   windshield: `<path d="M3.5 18.5 6 6.5h12l2.5 12z"/><path d="m10 9.5 1.8 2-1.4 1.8 1.8 2.2"/>`,
   carplus: `<path d="M4 17h14v-2.6c0-1.1-.8-1.9-1.9-1.9h-1.6l-2.4-3.2c-.5-.6-1.2-1-2-1H7.7c-.8 0-1.5.4-2 1l-2.4 3.2h-.4c-1.1 0-1.9.8-1.9 1.9"/><circle cx="7.4" cy="17.3" r="1.8"/><circle cx="14.6" cy="17.3" r="1.8"/><path d="M19.5 3.5v5M17 6h5"/>`,
   radar: `<circle cx="12" cy="12" r="1.6"/><path d="M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 19a10 10 0 0 1 0-14M19 5a10 10 0 0 1 0 14"/>`,
-  bank: `<path d="m3.5 9 8.5-5.5L20.5 9v1.5h-17z"/><path d="M5.5 10.5v7M10 10.5v7M14 10.5v7M18.5 10.5v7M4 17.5h16M3 20.5h18"/>`
+  bank: `<path d="m3.5 9 8.5-5.5L20.5 9v1.5h-17z"/><path d="M5.5 10.5v7M10 10.5v7M14 10.5v7M18.5 10.5v7M4 17.5h16M3 20.5h18"/>`,
+  dots: `<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>`,
+  trash: `<path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13.5h9l1-13.5M10 10.5v7M14 10.5v7"/>`
 };
 const rpIcon = (k) => `<svg viewBox="0 0 24 24">${RP_ICON[k] || RP_ICON.file}</svg>`;
 /* the customer's document rows, keyed by the document they stand for */
