@@ -621,24 +621,6 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
 .mcol__empty { border: 1.5px dashed #cfcddd; border-radius: 9px; padding: 16px 10px; text-align: center; color: var(--muted); font-size: 12.5px; }
 .mcol.dragover { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(47,111,208,.2); }
 
-/* preferred presentation tiles */
-.ptiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 3px; margin-bottom: 20px; border-radius: var(--radius); overflow: hidden; }
-.ptile {
-  position: relative; border: 0; cursor: pointer; padding: 22px 14px 18px; text-align: center;
-  background: linear-gradient(140deg, #191635, var(--navy-3)); color: #fff;
-  font-family: inherit; font-size: 12.5px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase;
-  transition: filter .15s ease;
-}
-.ptile:hover { filter: brightness(1.5); }
-.ptile .pt-icon { display: block; font-size: 24px; margin-bottom: 8px; }
-.ptile.on { background: var(--grad); }
-.ptile.seen:not(.on) { color: #b9b6d6; }
-.ptile .pt-check {
-  position: absolute; top: 8px; right: 10px; width: 18px; height: 18px; border-radius: 50%;
-  background: var(--green); color: #fff; font-size: 11px; display: grid; place-items: center; letter-spacing: 0;
-}
-.present-detail { border-top: 4px solid transparent; border-image: var(--grad) 1; }
-
 /* black disclosure bars */
 .black-bars { display: flex; flex-direction: column; gap: 10px; }
 .bbar { border-radius: 10px; overflow: hidden; border: 1px solid #14122e; }
@@ -1398,8 +1380,8 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
 .advscript-card__col { flex: 1; display: flex; flex-direction: column; text-align: left; }
 .advscript-card__sub { font-size: 12px; color: var(--ink); font-weight: 400; }
 .jk-miss { font-style: normal; color: var(--crimson); font-weight: 600; }
-/* dual reason labels, same pattern as .pt-long/.pt-short: desktop reads the
-   long reason, the phone reads the short status tag */
+/* dual reason labels: desktop reads the long reason, the phone reads the
+   short status tag */
 .jk-why-s { display: none; }
 .jk-row__req { display: block; font-size: 12px; margin-top: 3px; font-weight: 700; color: var(--navy-2); }
 
@@ -2186,79 +2168,6 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
 }
 
 /* ============================================================
-   Product presentation — phone layout (owner mockup, 2026-08-15)
-   Desktop is deliberately untouched: everything visual below sits
-   inside a phone media query, scoped to body[data-screen="present"].
-   Measured before: 888px of stacked tiles, first talking point
-   1358px down — 1.8 screens of scrolling mid-presentation.
-   ============================================================ */
-.pcol { display: flex; flex-direction: column; gap: 10px; min-width: min(180px, 100%); }
-.pt-short { display: none; }
-.advscript-toggle { display: none; }
-
-@media screen and (min-width: 721px) {
-  /* unchanged desktop behaviour: a disabled Prev is hidden, not greyed */
-  .pnav .btn[disabled] { visibility: hidden; }
-}
-
-@media screen and (max-width: 720px) {
-  /* the heading, step chips and top continue-action are what pushed the
-     content below the fold; the crumb line already says who and what */
-  body[data-screen="present"] .pagebar h1,
-  body[data-screen="present"] .pagebar .actions,
-  body[data-screen="present"] .stepper { display: none; }
-
-  /* the tile stack becomes a horizontally scrolling strip */
-  body[data-screen="present"] .ptiles {
-    display: flex; gap: 8px; overflow-x: auto; overflow-y: visible;
-    border-radius: 0; margin-bottom: 14px; padding: 2px 2px 8px;
-    scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
-  }
-  body[data-screen="present"] .ptile {
-    flex: 0 0 auto; width: 88px; min-height: 84px; padding: 12px 8px 10px;
-    border-radius: 14px; scroll-snap-align: start;
-    background: #fff; color: var(--navy); border: 1px solid var(--line);
-    font-size: 11px; font-weight: 700; letter-spacing: .2px;
-    line-height: 1.25; text-transform: none;
-  }
-  body[data-screen="present"] .ptile.on { background: var(--grad); color: #fff; border-color: transparent; }
-  /* deliberately NOT dimmed: the desktop rail greys visited tiles against a
-     dark background, but these are dark-on-white and still tap targets, and
-     ui-context says load-bearing text is --ink, never --muted, because the
-     app is used outdoors. The check badge carries the visited state. */
-  body[data-screen="present"] .ptile.seen:not(.on) { color: var(--navy); }
-  body[data-screen="present"] .ptile .pt-icon { font-size: 22px; margin-bottom: 6px; }
-  body[data-screen="present"] .pt-long { display: none; }
-  body[data-screen="present"] .pt-short { display: inline; }
-
-  /* coaching content folds behind one control so the card is what the
-     customer sees and the guidance is one tap away */
-  body[data-screen="present"] .advscript-item { display: none; }
-  body[data-screen="present"].script-open .advscript-item { display: block; }
-  body[data-screen="present"].script-open .pcol { display: flex; }
-  body[data-screen="present"] .advscript-toggle {
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    width: 100%; min-height: 44px; margin: 18px 0 0; padding: 12px 14px 2px;
-    border: 0; border-top: 1px solid var(--line); background: none;
-    font-family: inherit; font-size: 14px; font-weight: 700; color: var(--navy);
-    cursor: pointer;
-  }
-
-  /* nav becomes a fixed bar; back link and counter drop per the mockup */
-  body[data-screen="present"] .pnav {
-    position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; margin: 0;
-    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-    background: var(--navy); gap: 10px;
-  }
-  body[data-screen="present"] .pnav #backToTerms,
-  body[data-screen="present"] .pnav .pill,
-  body[data-screen="present"] .pnav .push { display: none; }
-  body[data-screen="present"] .pnav .btn { flex: 1; margin: 0; }
-  body[data-screen="present"] .pnav .btn[disabled] { opacity: .45; }
-  body[data-screen="present"] .view { padding-bottom: 104px; }
-}
-
-/* ============================================================
    Repayment Options — phone layout (owner mockup, 2026-08-15)
    Four programs stacked to 2758px / 3.68 screens, so comparing
    them — the entire point of a menu — was impossible on a phone.
@@ -2621,6 +2530,65 @@ body[data-canvas="master"] .desk-sticky { padding-left: max(20px, calc((100% - 4
 .bp-highlight span { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
 .bp-sheetacts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .bp-danger { height: 48px; border: 1px solid var(--crimson); border-radius: 12px; background: #fff; color: var(--crimson); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 18px; }
+
+/* ---- F&I Product Presentation (mp- family; owner's presentation golden,
+   2026-08-27). Anatomy transcribed verbatim: the product rail, the one
+   product card, compare rows, the mileage card, inline actions, the
+   presenting dock, and the sheet extras. Colors ride the master tokens;
+   rail icons come from RP_ICON. */
+button.m-rolepill { font: inherit; cursor: pointer; }
+.mp-rail { display: flex; gap: 8px; overflow-x: auto; padding: 14px 20px; scrollbar-width: none; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+.mp-rail::-webkit-scrollbar { display: none; }
+.mp-tab { position: relative; width: 78px; min-width: 78px; height: 74px; border: 1px solid var(--line); border-radius: 16px; background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; scroll-snap-align: start; font: inherit; font-size: 12px; font-weight: 700; color: var(--ink); }
+.mp-tab.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+.mp-tabicon { width: 28px; height: 28px; border-radius: 9px; background: var(--surface); display: grid; place-items: center; color: var(--ink); }
+.mp-tab.active .mp-tabicon { background: rgba(255, 255, 255, .16); color: #fff; }
+.mp-tabicon svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.mp-seen { position: absolute; top: 6px; right: 8px; width: 16px; height: 16px; border-radius: 50%; background: #EDF7ED; color: var(--success); font-size: 10px; font-weight: 800; display: grid; place-items: center; }
+.mp-content { padding: 0 20px 28px; }
+.mp-card { border: 1px solid var(--line); border-radius: 20px; padding: 18px 18px 16px; background: #fff; }
+.mp-kicker { font-size: 12px; color: var(--muted); font-weight: 650; margin-bottom: 7px; }
+.mp-titlerow { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.mp-title { font-size: 22px; line-height: 1.16; font-weight: 740; letter-spacing: -.03em; margin: 0; }
+.mp-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--success); margin-top: 8px; flex: none; }
+.mp-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.mp-pill { min-height: 34px; padding: 6px 11px; border-radius: 999px; background: var(--surface); display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; }
+.mp-body { font-size: 14px; line-height: 1.52; color: #484848; margin: 10px 0 0; }
+.mp-benefits { margin-top: 16px; display: grid; gap: 11px; }
+.mp-benefit { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; font-size: 13px; line-height: 1.4; }
+.mp-check { width: 20px; height: 20px; border-radius: 50%; background: #EAF7EC; color: var(--success); display: grid; place-items: center; font-size: 12px; font-weight: 800; }
+.mp-compare { margin-top: 17px; border-top: 1px solid var(--line-soft); }
+.mp-cmprow { display: flex; justify-content: space-between; gap: 16px; padding: 13px 0; border-bottom: 1px solid var(--line-soft); font-size: 13px; align-items: center; }
+.mp-cmprow span:first-child { color: var(--muted); }
+.mp-cmprow strong { font-size: 14px; }
+.mp-cmprow.good strong { color: var(--success); }
+.mp-hint { font-size: 13px; color: var(--muted); margin: 14px 0 0; }
+.mp-mileage { margin-top: 17px; padding: 14px; background: #FCFAF7; border-radius: 16px; border: 1px solid #F0ECE5; }
+.mp-miletop { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.mp-miletitle { font-size: 13px; font-weight: 720; line-height: 1.35; }
+.mp-milevalue { font-size: 13px; font-weight: 750; white-space: nowrap; }
+.mp-range { width: 100%; margin: 13px 0 8px; accent-color: var(--ink); }
+.mp-milecopy { font-size: 12.5px; color: #505050; line-height: 1.45; margin: 0; }
+.mp-good { color: var(--success); }
+.mp-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+.mp-ghost { height: 48px; border: 1px solid var(--ink); border-radius: 12px; background: #fff; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; color: var(--ink); }
+.mp-dark { height: 48px; border: 0; border-radius: 12px; background: var(--ink); color: #fff; font: inherit; font-weight: 750; font-size: 14px; cursor: pointer; }
+.mp-textbtn { width: 100%; border: 0; background: transparent; text-decoration: underline; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; padding: 14px 8px 4px; color: var(--ink); }
+.mp-dock { position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 20; width: min(430px, 100%); background: rgba(255, 255, 255, .97); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid var(--line); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
+.mp-dockcopy { min-width: 0; }
+.mp-docklab { font-size: 11px; color: var(--muted); font-weight: 650; text-transform: uppercase; letter-spacing: .02em; }
+.mp-dockval { font-size: 14px; font-weight: 730; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mp-primary { height: 52px; border: 0; border-radius: 12px; background: var(--grad); color: #fff; font: inherit; font-weight: 750; font-size: 15px; padding: 0 20px; cursor: pointer; }
+.mp-primary:hover { filter: brightness(1.06); }
+.mp-wide { width: 100%; margin-top: 18px; }
+.mp-script { background: var(--surface); border-radius: 18px; padding: 16px; font-size: 15px; line-height: 1.55; }
+.mp-sheetnote { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 14px 0 0; }
+.mp-budget { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.mp-stat { background: var(--surface); border-radius: 16px; padding: 16px; }
+.mp-statlab { font-size: 12px; color: var(--muted); font-weight: 650; }
+.mp-statval { font-size: 24px; font-weight: 730; letter-spacing: -.03em; margin-top: 5px; }
+.mp-morelist { margin-top: 8px; border-top: 1px solid var(--line-soft); }
+.mp-morerow { padding: 13px 0; border-bottom: 1px solid var(--line-soft); font-size: 13px; line-height: 1.45; }
 
 @media (min-width: 431px) {
   body[data-canvas="master"] { background: #F5F5F5; }

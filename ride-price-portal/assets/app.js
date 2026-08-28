@@ -3724,6 +3724,7 @@ function bindMenuStepper(deal, onLocalStep) {
 route("present/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
   const v = Store.vehicle(deal.stock);
+  const c = Store.customer(deal.customerId);
   const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
   const isCash = deal.dealType === "cash";
   const progSet = RIDE_PRICE_DATA.programs[isLease ? "lease" : isCash ? "cash" : "finance"];
@@ -3734,6 +3735,7 @@ route("present/:id", ({ id }) => {
   const tileKeys = [...(isCash ? [] : ["rate", "term"]), ...prog.products];
   let sel = tileKeys[0];
   const visited = new Set([sel]);
+  let miles = deal.desk.milesPerYear || 15000;
 
   /* this IS step 2 of the menu */
   migrateMenuV5(deal);
@@ -3743,11 +3745,20 @@ route("present/:id", ({ id }) => {
     M2.presented = true; M2.step = 3; M2.maxStep = Math.max(M2.maxStep || 1, 3); Store.save();
     navigate(`#/menu/${deal.id}`);
   };
+  const backToTerms = () => { M2.step = 1; Store.save(); navigate(`#/menu/${deal.id}`); };
 
-  renderChrome(`Step 2 · ${prog.label} — Product Presentation`, dealTitle(deal),
-    `<button class="btn btn--ghost btn--sm" id="retOptsTop">Continue to Repayment Options →</button>`);
-  $("#retOptsTop").onclick = toOptions;
+  renderChrome("Product Presentation", dealTitle(deal), "");
   document.body.dataset.screen = "present";
+  document.body.dataset.canvas = "master";
+
+  /* rail icons: line icons only (owner ruling) — the presentations' emoji
+     never reach an icon slot */
+  const PRESENT_ICON = {
+    rate: "percent", term: "calendar", vsc10: "shield", vsc7: "shield",
+    ppm8: "wrench", ppm3: "wrench", gap: "umbrella", multi: "box",
+    appear: "sparkle", lep: "key", wind: "windshield", roadhaz: "wheel",
+    keyrep: "key", tlp: "carplus", recovery: "radar"
+  };
 
   function tileInfo(key) {
     const p = RIDE_PRICE_CALC.productById(key);
@@ -3756,7 +3767,7 @@ route("present/:id", ({ id }) => {
       key,
       label: pres.label || (p ? p.name : key),
       short: pres.short || pres.label || (p ? p.name : key),
-      icon: pres.icon || "🛡️",
+      icon: rpIcon(PRESENT_ICON[key] || "shield"),
       headline: pres.headline || "",
       body: pres.body || "",
       benefits: pres.benefits || [],
@@ -3770,127 +3781,154 @@ route("present/:id", ({ id }) => {
     return { monthly, daily };
   }
 
-  function render() {
-    const t = tileInfo(sel);
-    const allSeen = visited.size >= tileKeys.length;
-    view().innerHTML = `${menuStepperHtml(deal, 2)}
-      <div class="ptiles">
-        ${tileKeys.map(k => {
-          const ti = tileInfo(k);
-          return `<button type="button" class="ptile ${k === sel ? "on" : ""} ${visited.has(k) ? "seen" : ""}" data-tile="${k}">
-            <span class="pt-icon">${ti.icon}</span><span class="pt-long">${ti.label}</span><span class="pt-short">${ti.short}</span>${visited.has(k) && k !== sel ? `<span class="pt-check">✓</span>` : ""}
-          </button>`;
-        }).join("")}
-      </div>
+  /* VSC mileage math — the real factory coverage window */
+  const mileageMath = () => {
+    const factoryMonths = Math.round(Math.min(36, 36000 / miles * 12));
+    const vscYears = sel === "vsc10" ? 10 : 7;
+    const vscMiles = sel === "vsc10" ? 120000 : 100000;
+    const vscMonths = Math.round(Math.min(vscYears * 12, vscMiles / miles * 12));
+    const end = new Date();
+    end.setMonth(end.getMonth() + vscMonths);
+    return { factoryMonths, vscYears, vscMiles, endLabel: end.toLocaleDateString("en-US", { month: "long", year: "numeric" }) };
+  };
+  const mileCopy = () => {
+    const mm = mileageMath();
+    return `At <b>${esc(miles.toLocaleString())} miles a year</b>, the factory comprehensive coverage expires in <b>${mm.factoryMonths} months</b>. This benefit mirrors the manufacturer for up to <b>${mm.vscYears} years / ${mm.vscMiles.toLocaleString()} miles</b> — peace of mind until <b class="mp-good">${esc(mm.endLabel)}</b>.`;
+  };
 
-      <div class="panel present-detail">
-        <div class="panel__body" style="padding:28px 30px">
-          <div class="flex" style="align-items:flex-start">
-            <div style="flex:1;min-width:min(260px,100%)">
-              <h2 style="margin:0;font-size:22px;color:var(--navy)">${t.label}${t.product ? ` <span style="font-size:13px;font-weight:600">· ${t.product.detail}</span>` : ""}</h2>
-              <h3 style="margin:14px 0 6px;font-size:17px">${t.headline}</h3>
-              <p style="max-width:760px">${t.body}</p>
-              ${t.benefits.length ? `<h4 style="margin:14px 0 4px">Benefits:</h4>
-              <ul class="checks">${t.benefits.map(b => `<li>${b}</li>`).join("")}</ul>` : ""}
-              ${sel === "rate" ? rateBody() : ""}
-              ${sel === "vsc10" || sel === "vsc7" ? `
-              <div class="note" style="max-width:560px">
-                <b>Your driving affects the warranty</b> — their annual mileage:
-                <input type="range" id="mwoMiles" min="5000" max="25000" step="2500" value="${deal.desk.milesPerYear || 15000}" style="width:100%;margin:10px 0 4px">
-                <div id="mwoOut" class="small"></div>
-              </div>` : ""}
-              ${t.product ? `<p class="hint mt advscript-item">Tie it down to what they told you in discovery — the benefit must make sense to <b>them</b> (WIIFM).</p>` : ""}
-            </div>
-            ${t.product ? `
-            <div class="pcol advscript-item">
-              <button class="btn btn--primary" id="mdBudget">M/D Budget</button>
-              <button class="btn btn--ghost" id="moreInfo">More Info</button>
-              <div id="mdOut"></div>
-            </div>` : ""}
-          </div>
-          <button type="button" class="advscript-toggle" id="advToggle" aria-expanded="${document.body.classList.contains("script-open")}"><span aria-hidden="true">💬</span> Advisor Script</button>
-        </div>
-      </div>
+  const benefitHtml = (b) => `<div class="mp-benefit"><span class="mp-check">✓</span><span>${esc(b)}</span></div>`;
 
-      <div class="flex mt pnav">
-        <button class="btn btn--ghost" id="backToTerms">← Purchase Terms</button>
-        <span class="pill ${allSeen ? "pill--hot" : ""}" style="padding:8px 16px">${visited.size} / ${tileKeys.length} presented</span>
-        <div class="push"></div>
-        <button class="btn btn--ghost" id="prevTile">← Prev</button>
-        <button class="btn btn--grad" id="nextTile">${tileKeys.indexOf(sel) === tileKeys.length - 1 ? "Done — Repayment Options →" : "Next product →"}</button>
-      </div>
-      <p class="note note--wt advscript-item"><span class="lab">The 300% rule</span>Present every product without attempting to close after each one. Ask which option they choose only after Preferred, Standard, and Budget have all been presented.</p>`;
-
-    bindMenuStepper(deal);
-    $$("[data-tile]").forEach(b => b.onclick = () => { sel = b.dataset.tile; visited.add(sel); render(); });
-    /* render() replaces the rail, which resets scrollLeft to 0 — on a phone
-       that leaves the tile you just tapped off-screen. Re-centre it.
-       Measured off rects, not offsetLeft: .ptile is position:relative, so its
-       offsetParent is not the rail. */
-    const rail = $(".ptiles"), onTile = $(".ptile.on");
-    if (rail && onTile && rail.scrollWidth > rail.clientWidth) {
-      const r = rail.getBoundingClientRect(), t = onTile.getBoundingClientRect();
-      rail.scrollLeft += (t.left - r.left) - (r.width - t.width) / 2;
-    }
-    $("#backToTerms").onclick = () => { M2.step = 1; Store.save(); navigate(`#/menu/${deal.id}`); };
-    const advBtn = $("#advToggle");
-    if (advBtn) advBtn.onclick = () => {
-      const open = document.body.classList.toggle("script-open");
-      advBtn.setAttribute("aria-expanded", open ? "true" : "false");
-    };
-    const prev = $("#prevTile"), next = $("#nextTile");
-    prev.disabled = tileKeys.indexOf(sel) === 0;
-    /* desktop hides a disabled Prev via CSS; the phone bar greys it in place
-       so the two buttons do not jump when you reach the first product */
-    prev.onclick = () => { sel = tileKeys[Math.max(0, tileKeys.indexOf(sel) - 1)]; visited.add(sel); render(); };
-    next.onclick = () => {
-      const i = tileKeys.indexOf(sel);
-      if (i === tileKeys.length - 1) return toOptions();
-      sel = tileKeys[i + 1]; visited.add(sel); render();
-    };
-    /* VSC mileage slider — reveal the real factory coverage window */
-    const mwo = $("#mwoMiles");
-    if (mwo) {
-      const updMwo = () => {
-        const m = parseInt(mwo.value, 10);
-        const factoryMonths = Math.round(Math.min(36, 36000 / m * 12));
-        const vscYears = sel === "vsc10" ? 10 : 7;
-        const vscMiles = sel === "vsc10" ? 120000 : 100000;
-        const vscMonths = Math.round(Math.min(vscYears * 12, vscMiles / m * 12));
-        const end = new Date();
-        end.setMonth(end.getMonth() + vscMonths);
-        const endLabel = end.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-        $("#mwoOut").innerHTML = `At <b>${m.toLocaleString()} miles a year</b>, the factory comprehensive coverage expires in
-          <b>${factoryMonths} months</b>. This benefit mirrors the manufacturer for up to <b>${vscYears} years / ${vscMiles.toLocaleString()} miles</b>
-          — peace of mind until <b style="color:var(--green)">${endLabel}</b>.`;
-      };
-      mwo.oninput = updMwo;
-      updMwo();
-    }
-
-    const md = $("#mdBudget");
-    if (md) md.onclick = () => {
-      const b = mdBudget(t.product);
-      $("#mdOut").innerHTML = `<div class="pay-hero" style="padding:12px 14px"><span class="lab">Impact on payment</span>
-        <div class="amt" style="font-size:22px">${money(b.monthly)}<span style="font-size:12px;color:#cfcde6">/mo</span></div>
-        <span class="sub">≈ ${money(b.daily)} a day over ${term} months</span></div>`;
-    };
-    const mi = $("#moreInfo");
-    if (mi) mi.onclick = () => modal(t.label, `
-      <div class="center" style="padding:8px 0 2px;font-size:44px">${t.icon}</div>
-      <h3 class="center" style="margin:4px 0 10px">${t.headline}</h3>
-      <p class="small">${t.body}</p>
-      <ul class="checks small">${t.benefits.map(b => `<li>${b}</li>`).join("")}</ul>`,
-      `<button class="btn btn--ghost" data-close>Close</button>`);
+  function rateRows() {
+    const q = deal.creditApp || {};
+    if (!q.approved) return `<p class="mp-hint">Submit the credit application to present the qualified rate.</p>`;
+    return `<div class="mp-compare">
+      <div class="mp-cmprow"><span>Agreed rate (structure)</span><strong>${esc(String(deal.desk.apr))}%</strong></div>
+      <div class="mp-cmprow good"><span>Qualified rate (${esc(q.lender)})</span><strong>${esc(String(q.qualifiedApr))}%</strong></div>
+    </div>`;
   }
 
-  function rateBody() {
+  function cardHtml(t) {
     const q = deal.creditApp || {};
-    if (!q.approved) return `<p class="hint">Submit the credit application to present the qualified rate.</p>`;
-    return `<ul class="lines small" style="max-width:420px">
-      <li><span>Agreed rate (structure)</span><b class="amt">${deal.desk.apr}%</b></li>
-      <li><span>Qualified rate (${esc(q.lender)})</span><b class="amt" style="color:var(--green)">${q.qualifiedApr}%</b></li>
-    </ul>`;
+    return `<section class="mp-card">
+      <div class="mp-kicker">${esc(t.label.toUpperCase())}</div>
+      <div class="mp-titlerow"><h2 class="mp-title">${esc(t.headline)}</h2>${t.key === "rate" && q.approved ? `<span class="mp-dot" aria-label="Approved"></span>` : ""}</div>
+      ${t.product ? `<div class="mp-pills"><span class="mp-pill">${esc(t.product.detail)}</span></div>` : ""}
+      <p class="mp-body">${esc(t.body)}</p>
+      ${t.benefits.length ? `<div class="mp-benefits">${t.benefits.map(benefitHtml).join("")}</div>` : ""}
+      ${t.key === "rate" ? rateRows() : ""}
+      ${sel === "vsc10" || sel === "vsc7" ? `
+      <div class="mp-mileage">
+        <div class="mp-miletop"><div class="mp-miletitle">Your driving changes the warranty timeline</div><div class="mp-milevalue" id="mpMileVal">${esc(miles.toLocaleString())} mi/yr</div></div>
+        <input class="mp-range" id="mpMiles" type="range" min="5000" max="25000" step="2500" value="${esc(String(miles))}" aria-label="Annual mileage">
+        <p class="mp-milecopy" id="mpMileCopy">${mileCopy()}</p>
+      </div>` : ""}
+      ${t.product ? `<div class="mp-actions">
+        <button type="button" class="mp-dark" id="mpScript">Advisor script</button>
+        <button type="button" class="mp-ghost" id="mpBudget">Budget impact</button>
+      </div>` : ""}
+      <button type="button" class="mp-textbtn" id="mpMore">${t.key === "rate" ? "See why this rate is credible" : "More product details"}</button>
+    </section>`;
+  }
+
+  const sheetTop = (title) => `<div class="m-sheettop"><div class="m-sheettitle">${esc(title)}</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>`;
+  const openSheet2 = (html) => { $("#mpSheet").innerHTML = `<div class="m-handle"></div>${html}`; $("#mpScrim").classList.add("show"); };
+  const closeSheet2 = () => $("#mpScrim").classList.remove("show");
+
+  function render() {
+    const t = tileInfo(sel);
+    const i = tileKeys.indexOf(sel);
+    const last = i === tileKeys.length - 1;
+    view().innerHTML = `
+    <div class="m-app">
+      ${masterTop()}
+      <div class="m-hero">
+        <div class="m-eyebrow">F&amp;I · ${esc(prog.label.toUpperCase())} · PRODUCT PRESENTATION</div>
+        <h1 class="m-h1">Present the protection</h1>
+      </div>
+      <div class="m-context">
+        <div class="m-context-copy">
+          <div class="m-context-name">${esc(c.first + " " + c.last)}</div>
+          <div class="m-context-meta">${deal.dealNo ? `Deal #${esc(deal.dealNo)} · ` : ""}${esc(v.year + " " + v.make + " " + v.model)}</div>
+        </div>
+        <button type="button" class="m-rolepill" data-buyers="${esc(deal.id)}">Buyer</button>
+      </div>
+      <nav class="mp-rail" aria-label="Products">
+        ${tileKeys.map(k => {
+          const ti = tileInfo(k);
+          return `<button type="button" class="mp-tab${k === sel ? " active" : ""}" data-tile="${esc(k)}" aria-pressed="${k === sel}">
+            ${visited.has(k) && k !== sel ? `<span class="mp-seen" aria-label="Presented">✓</span>` : ""}
+            <span class="mp-tabicon">${ti.icon}</span><span>${esc(ti.short)}</span>
+          </button>`;
+        }).join("")}
+      </nav>
+      <div class="mp-content">${cardHtml(t)}</div>
+    </div>
+    <div class="mp-dock">
+      <div class="mp-dockcopy">
+        <div class="mp-docklab">Now presenting · ${visited.size} of ${tileKeys.length}</div>
+        <div class="mp-dockval">${esc(t.label)}</div>
+      </div>
+      <button type="button" class="mp-primary" id="mpNext">${last ? "Done — Repayment Options" : `Next: ${esc(tileInfo(tileKeys[i + 1]).short)}`}</button>
+    </div>
+    <div class="m-scrim" id="mpScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="mpSheet"></div></div>`;
+
+    wireMasterTop();
+    $("#mBack").onclick = backToTerms; /* back returns to Purchase Terms, not history */
+
+    $$("[data-tile]").forEach(b => b.onclick = () => { sel = b.dataset.tile; visited.add(sel); render(); });
+    /* render() replaces the rail, which resets scrollLeft to 0 — on a phone
+       that leaves the tile you just tapped off-screen. Re-centre it. */
+    const rail = $(".mp-rail"), onTile = $(".mp-tab.active");
+    if (rail && onTile && rail.scrollWidth > rail.clientWidth) {
+      const r = rail.getBoundingClientRect(), tr = onTile.getBoundingClientRect();
+      rail.scrollLeft += (tr.left - r.left) - (r.width - tr.width) / 2;
+    }
+
+    $("#mpNext").onclick = () => {
+      if (last) return toOptions();
+      sel = tileKeys[i + 1]; visited.add(sel); render();
+    };
+
+    /* the sheet shell is re-rendered closed; content is injected on open */
+    const scrim = $("#mpScrim");
+    scrim.onclick = (e) => { if (e.target === scrim || e.target.closest("[data-sheet-close]")) closeSheet2(); };
+
+    const mpMiles = $("#mpMiles");
+    if (mpMiles) mpMiles.oninput = () => {
+      miles = parseInt(mpMiles.value, 10);
+      $("#mpMileVal").textContent = miles.toLocaleString() + " mi/yr";
+      $("#mpMileCopy").innerHTML = mileCopy();
+    };
+
+    const scriptBtn = $("#mpScript");
+    if (scriptBtn) scriptBtn.onclick = () => {
+      const isVsc = sel === "vsc10" || sel === "vsc7";
+      const lead = isVsc ? `<b>&ldquo;${esc(c.first)}, you told me you drive about ${esc(miles.toLocaleString())} miles a year.</b> At that pace the factory comprehensive coverage is gone in about ${mileageMath().factoryMonths} months.&rdquo; ` : "";
+      openSheet2(`${sheetTop("Advisor script")}
+        <div class="mp-script">${lead}${esc(t.body)}</div>
+        <p class="mp-sheetnote">Tie it down to what they told you in discovery — the benefit must make sense to <b>them</b> (WIIFM).</p>
+        <p class="mp-sheetnote"><b>The 300% rule:</b> present every product without attempting to close after each one. Ask which option they choose only after Preferred, Standard, and Budget have all been presented.</p>
+        <button type="button" class="mp-primary mp-wide" data-sheet-close>Back to product</button>`);
+    };
+
+    const budgetBtn = $("#mpBudget");
+    if (budgetBtn) budgetBtn.onclick = () => {
+      const b = mdBudget(t.product);
+      openSheet2(`${sheetTop("Monthly / daily budget")}
+        <p class="mp-body" style="margin-top:0">The impact of ${esc(t.label)} inside the ${esc(String(term))}-month structure — derived from the deal, not typed in.</p>
+        <div class="mp-budget">
+          <div class="mp-stat"><div class="mp-statlab">Monthly</div><div class="mp-statval">${esc(money(b.monthly))}</div></div>
+          <div class="mp-stat"><div class="mp-statlab">Daily</div><div class="mp-statval">${esc(money(b.daily))}</div></div>
+        </div>
+        <p class="mp-sheetnote">≈ ${esc(money(b.daily))} a day over ${esc(String(term))} months.</p>
+        <button type="button" class="mp-primary mp-wide" data-sheet-close>Back to product</button>`);
+    };
+
+    $("#mpMore").onclick = () => openSheet2(`${sheetTop(t.label)}
+      ${t.product ? `<div class="mp-pills" style="margin-top:0"><span class="mp-pill">${esc(t.product.detail)}</span></div>` : ""}
+      <p class="mp-body">${esc(t.body)}</p>
+      <div class="mp-morelist">${t.benefits.map(b => `<div class="mp-morerow">✓ ${esc(b)}</div>`).join("")}</div>
+      <button type="button" class="mp-primary mp-wide" data-sheet-close>${t.key === "rate" || t.key === "term" ? "Done" : "Back to product"}</button>`);
   }
 
   render();
@@ -4587,7 +4625,18 @@ const RP_ICON = {
   swap: `<path d="M6.5 8.5h11M14.5 5.5l3 3-3 3M17.5 15.5h-11M9.5 12.5l-3 3 3 3"/>`,
   dollar: `<path d="M12 3.5v17M16 7.3c-.8-1.3-2.2-2.1-3.9-2.1-2.1 0-3.7 1.2-3.7 3 0 3.9 7.7 2 7.7 5.9 0 1.8-1.7 3-4 3-1.9 0-3.4-.8-4.2-2.2"/>`,
   check: `<path d="m5 12.5 4.5 4.5L19 7.5"/>`,
-  sun: `<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/>`
+  sun: `<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/>`,
+  percent: `<path d="M5 19 19 5"/><circle cx="7.2" cy="7.2" r="2.7"/><circle cx="16.8" cy="16.8" r="2.7"/>`,
+  calendar: `<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 9.5h17M8 2.8v3.4M16 2.8v3.4"/>`,
+  wrench: `<path d="M20.5 6.7a5 5 0 0 1-6.6 6.6L7 20.2a2.1 2.1 0 0 1-3-3l6.9-6.9a5 5 0 0 1 6.6-6.6l-3.3 3.3.8 2.7 2.7.8z"/>`,
+  umbrella: `<path d="M12 3.5a8.8 8.8 0 0 1 8.8 8.5H3.2A8.8 8.8 0 0 1 12 3.5z"/><path d="M12 12v6.3a2.1 2.1 0 0 0 4.2 0"/>`,
+  box: `<path d="m12 2.8 8.5 4.4v9.6L12 21.2l-8.5-4.4V7.2z"/><path d="M3.5 7.2 12 11.6l8.5-4.4M12 11.6v9.6"/>`,
+  sparkle: `<path d="M12 3.5 13.8 9.2l5.7 1.8-5.7 1.8L12 18.5l-1.8-5.7-5.7-1.8 5.7-1.8z"/><path d="M19.2 3.2v3.2M20.8 4.8h-3.2"/>`,
+  key: `<circle cx="7.5" cy="15.5" r="4"/><path d="m10.5 12.5 8-8M15.5 7.5l3 3M12.8 10.2l2.2 2.2"/>`,
+  wheel: `<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="3"/><path d="M12 3.5V9M12 15v5.5M3.5 12H9M15 12h5.5"/>`,
+  windshield: `<path d="M3.5 18.5 6 6.5h12l2.5 12z"/><path d="m10 9.5 1.8 2-1.4 1.8 1.8 2.2"/>`,
+  carplus: `<path d="M4 17h14v-2.6c0-1.1-.8-1.9-1.9-1.9h-1.6l-2.4-3.2c-.5-.6-1.2-1-2-1H7.7c-.8 0-1.5.4-2 1l-2.4 3.2h-.4c-1.1 0-1.9.8-1.9 1.9"/><circle cx="7.4" cy="17.3" r="1.8"/><circle cx="14.6" cy="17.3" r="1.8"/><path d="M19.5 3.5v5M17 6h5"/>`,
+  radar: `<circle cx="12" cy="12" r="1.6"/><path d="M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 19a10 10 0 0 1 0-14M19 5a10 10 0 0 1 0 14"/>`
 };
 const rpIcon = (k) => `<svg viewBox="0 0 24 24">${RP_ICON[k] || RP_ICON.file}</svg>`;
 /* the customer's document rows, keyed by the document they stand for */
