@@ -2487,8 +2487,8 @@ body[data-canvas="master"] .view { max-width: none; padding: 0; }
 
 /* buttons */
 .m-smallbtn { height: 38px; border-radius: 999px; border: 1px solid var(--ink); background: #fff; padding: 0 14px; font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--ink); }
-.m-primary { width: 100%; height: 52px; border: 0; border-radius: 12px; background: var(--accent); color: #fff; font: inherit; font-weight: 750; font-size: 15px; cursor: pointer; }
-.m-primary:hover { background: var(--accent-dark); }
+.m-primary { width: 100%; height: 52px; border: 0; border-radius: 12px; background: var(--grad); color: #fff; font: inherit; font-weight: 750; font-size: 15px; cursor: pointer; }
+.m-primary:hover { filter: brightness(1.06); }
 .m-dark { width: 100%; height: 52px; border: 0; border-radius: 12px; background: var(--ink); color: #fff; font: inherit; font-weight: 750; font-size: 15px; cursor: pointer; }
 .m-ghost { width: 100%; height: 48px; border: 1px solid var(--ink); border-radius: 12px; background: #fff; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; color: var(--ink); }
 .m-textbtn { border: 0; background: transparent; text-decoration: underline; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; padding: 10px; color: var(--ink); }
@@ -2561,10 +2561,10 @@ body[data-canvas="master"] .view { max-width: none; padding: 0; }
    tint follows the accent token */
 body[data-canvas="master"] .dk-primary,
 body[data-canvas="master"] .desk-sticky__go {
-  background: var(--accent); border-radius: 12px; min-height: 52px; font-weight: 750; font-size: 15px; box-shadow: none;
+  background: var(--grad); border-radius: 12px; min-height: 52px; font-weight: 750; font-size: 15px; box-shadow: none;
 }
 body[data-canvas="master"] .dk-primary:hover,
-body[data-canvas="master"] .desk-sticky__go:hover { background: var(--accent-dark); filter: none; }
+body[data-canvas="master"] .desk-sticky__go:hover { filter: brightness(1.06); }
 body[data-canvas="master"] .dk-secondary { border-radius: 12px; min-height: 48px; }
 body[data-canvas="master"] .dk-notice { background: #FFF3ED; border-left-color: var(--accent); }
 body[data-canvas="master"] .dk-wrap { max-width: 430px; padding: 8px 20px 120px; }
