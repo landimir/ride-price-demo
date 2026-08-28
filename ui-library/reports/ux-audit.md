@@ -1,13 +1,13 @@
-# Ride Price Mobile UI — UX Audit (v007)
+# Ride Price Mobile UI — UX Audit (v008)
 
-Captured 2026-08-27T16:17:22.903Z · viewport 390×844 · app 2838cc4fa90b4704858db2b6eeecc98ecd685d33
+Captured 2026-08-27T22:54:47.900Z · viewport 390×844 · app 1b22445d2bf7973e5011bf8cdabb40a591c47b1f
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
-| Major | 2 |
-| Minor | 12 |
-| Observation | 5 |
+| Major | 1 |
+| Minor | 10 |
+| Observation | 3 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
 
@@ -15,14 +15,7 @@ Severity scale: **Critical** — the user cannot complete the flow · **Major** 
 
 _None recorded._
 
-## Major (2)
-
-### RP-UI-001 — Desking — Calculate Payments · Calculate Payments — Finance
-
-- **Screenshot:** `current/09-desking/02-pencil-finance.png`
-- **Issue:** On a phone the desking screen is a single ~2,700px column: the Monthly Payment hero — the reason the screen exists — sits about 1,300px below the fold, while the Continue → action lives at the very top in the crumb area.
-- **Observation:** The flow completes, but the advisor scrolls down to read the payment, adjusts terms further down still, and scrolls all the way back up to continue. A sticky payment summary or a bottom action bar would keep the number and the next step in view.
-- **Suggested area to investigate:** portal.css .grid--pencil phone collapse; desk route chrome actions (#deskContinue)
+## Major (1)
 
 ### RP-UI-002 — Credit Application (Lending Lane) · Credit application — Individual
 
@@ -31,7 +24,7 @@ _None recorded._
 - **Observation:** Every field is labelled and required fields are marked, so it can be completed — but on a phone it reads as an endless scroll. Grouping into Applicant / Residence / Employment steps (or collapsible sections) would fit the phone floor better.
 - **Suggested area to investigate:** credit route form layout (.fields, section headings)
 
-## Minor (12)
+## Minor (10)
 
 ### RP-UI-005 — Discovery Session · Discovery — question 1
 
@@ -89,26 +82,12 @@ _None recorded._
 - **Observation:** By recorded decision the props are never scaled (they must print at true size); on a phone the grid scrolls horizontally, but nothing says so.
 - **Suggested area to investigate:** .props-grid horizontal scroll hint at ≤720px
 
-### RP-UI-013 — Vehicle Selection · Your Journey menu
-
-- **Screenshot:** `current/06-vehicle-selection/05-your-journey-menu.png`
-- **Issue:** The Your Journey popover opens over the vehicle card's own title, stock and price, hiding what the advisor is choosing for.
-- **Observation:** Five plain-text items; opening below the button (or as a bottom sheet on phones) would keep the vehicle visible.
-- **Suggested area to investigate:** .jmenu positioning in .vcard
-
 ### RP-UI-015 — Snap All — burst capture · Three shots taken
 
 - **Screenshot:** `current/18-snap-all/02-thumbs.png`
 - **Issue:** The per-thumbnail remove controls (×) are 24×24px, under the phone touch floor (≥40px for small variants).
 - **Observation:** Also 34px zoom / page buttons on the client review screen and the advisor document review.
 - **Suggested area to investigate:** .sa-thumb__x, .dr-zoom button, .dr-pagetools button sizing at ≤720px
-
-### RP-UI-016 — Desking — Calculate Payments · Calculate Payments — Lease
-
-- **Screenshot:** `current/09-desking/03-pencil-lease.png`
-- **Issue:** The estimated-credit-score slider is a 16px-tall native range input — a small target on a phone for the control that changes the rate tier.
-- **Observation:** Works, but easy to miss with a thumb.
-- **Suggested area to investigate:** #scoreRange styling (thumb/track size) at ≤720px
 
 ### RP-UI-017 — Home — Deals Queue & Navigation · Funded contracts auto-archived
 
@@ -117,7 +96,7 @@ _None recorded._
 - **Observation:** Still true after the 2026-08-23 role-aware queue: the Team Lead deliberately keeps the original view including this fold (owner decision), so the disclosure row remains the only way a manager reaches finished deals; the minimum fix is restyling the row to the 44px floor. The Advisor no longer has the fold at all — their funded deals sit at the end of the one list under a DONE chip.
 - **Suggested area to investigate:** .dl-archive summary sizing
 
-## Observation (5)
+## Observation (3)
 
 ### RP-UI-019 — F&I Product Presentation · Advisor script open
 
@@ -125,20 +104,6 @@ _None recorded._
 - **Issue:** Tapping 💬 Advisor Script (and M/D Budget) opens content below the fold of the fixed Prev/Next bar; at the top of the page nothing visibly changes.
 - **Observation:** The library had to scroll to show the change; a user may think the tap did nothing.
 - **Suggested area to investigate:** present route: scroll the opened block into view, or open it as a sheet
-
-### RP-UI-020 — Vehicle Selection · Browse inventory (no deal)
-
-- **Screenshot:** `current/06-vehicle-selection/07-inventory-browse.png`
-- **Issue:** In browse mode (drawer → Vehicle Search without a customer visit) every card still shows a Your Journey menu whose items only produce a 'Start a customer visit first' toast.
-- **Observation:** Honest, but a disabled/hidden menu in browse mode would set the expectation before the tap.
-- **Suggested area to investigate:** vehicles route, id === "browse" branch
-
-### RP-UI-021 — Vehicle Selection · Vehicle Search — inventory
-
-- **Screenshot:** `current/06-vehicle-selection/01-inventory.png`
-- **Issue:** The inventory is one long page (the 12-vehicle demo already exceeds 3,200px on a phone) with the filter panel taking the whole first screen.
-- **Observation:** Fine at demo size; a collapsed filter bar on phones would bring the first vehicle above the fold.
-- **Suggested area to investigate:** .grid--side phone collapse
 
 ### RP-UI-022 — Finance Menu · Team Lead sign-off required — Advisor view
 

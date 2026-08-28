@@ -1,5 +1,6 @@
 {
-  "version": "v007",
-  "capturedAt": "2026-08-27T16:17:22.903Z",
-  "appCommit": "2838cc4fa90b4704858db2b6eeecc98ecd685d33"
+  "version": "v008",
+  "capturedAt": "2026-08-27T22:54:47.900Z",
+  "appCommit": "1b22445d2bf7973e5011bf8cdabb40a591c47b1f",
+  "note": "Screenshots and manifest are the 2026-08-27 capture of 1b22445; the reports were regenerated after retiring the findings this release fixed, which changed no screenshot."
 }

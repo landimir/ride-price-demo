@@ -1,19 +1,19 @@
 # Ride Price Mobile UI Library
 
-Version: v007
-Captured: 2026-08-27T16:17:22.903Z
-App commit: 2838cc4fa90b4704858db2b6eeecc98ecd685d33
+Version: v008
+Captured: 2026-08-27T22:54:47.900Z
+App commit: 1b22445d2bf7973e5011bf8cdabb40a591c47b1f
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 117
+Screens documented: 118
 Branches documented: 65
 
 UX Audit:
 - Critical: 0
-- Major: 2
-- Minor: 12
-- Observation: 5
+- Major: 1
+- Minor: 10
+- Observation: 3
 
 ## Flows
 
@@ -25,9 +25,9 @@ UX Audit:
 | 4 | Training Licenses & Registrations | 2 | Home — Deals Queue & Navigation · 02 Navigation drawer — Training Licenses / Training Registrations |
 | 5 | Discovery Session | 3 | Customer Onboarding — Find a Customer · 01 Find a Customer — Start Visit → (creates the deal) |
 | 6 | Vehicle Selection | 7 | Discovery Session · 03 Discovery — last question — Tap Pick Vehicle → |
-| 7 | Test Drive Agreement | 7 | Vehicle Selection · 05 Your Journey menu — Tap Test Drive |
-| 8 | Trade-In Evaluation & Proof of Ownership | 4 | Vehicle Selection · 05 Your Journey menu — Tap Trade Appraisal |
-| 9 | Desking — Calculate Payments | 5 | Home — Deals Queue & Navigation · 01 My Deals (landing — Advisor) — Tap the deal card (Continue) |
+| 7 | Test Drive Agreement | 7 | Vehicle Selection · 05 What's next? — after choosing — Tap Test Drive |
+| 8 | Trade-In Evaluation & Proof of Ownership | 4 | Vehicle Selection · 05 What's next? — after choosing — Tap Trade Appraisal |
+| 9 | Desking — Calculate Payments | 6 | Home — Deals Queue & Navigation · 01 My Deals (landing — Advisor) — Tap the deal card (Continue) |
 | 10 | Base Payment Agreement | 3 | Desking — Calculate Payments · 02 Calculate Payments — Finance — Tap Continue → |
 | 11 | Credit Application (Lending Lane) | 4 | Base Payment Agreement · 02 Agreement — signed — Continue → Credit Application |
 | 12 | Buyers on the Deal (Co-Buyer) | 4 | Discovery Session · 01 Discovery — question 1 — Tap 👤 Buyer in the crumbs |

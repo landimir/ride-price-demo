@@ -1,15 +1,5 @@
 [
   {
-    "id": "RP-UI-001",
-    "severity": "Major",
-    "flow": "Desking — Calculate Payments",
-    "screen": "Calculate Payments — Finance",
-    "screenshot": "current/09-desking/02-pencil-finance.png",
-    "issue": "On a phone the desking screen is a single ~2,700px column: the Monthly Payment hero — the reason the screen exists — sits about 1,300px below the fold, while the Continue → action lives at the very top in the crumb area.",
-    "observation": "The flow completes, but the advisor scrolls down to read the payment, adjusts terms further down still, and scrolls all the way back up to continue. A sticky payment summary or a bottom action bar would keep the number and the next step in view.",
-    "area": "portal.css .grid--pencil phone collapse; desk route chrome actions (#deskContinue)"
-  },
-  {
     "id": "RP-UI-002",
     "severity": "Major",
     "flow": "Credit Application (Lending Lane)",
@@ -100,16 +90,6 @@
     "area": ".props-grid horizontal scroll hint at ≤720px"
   },
   {
-    "id": "RP-UI-013",
-    "severity": "Minor",
-    "flow": "Vehicle Selection",
-    "screen": "Your Journey menu",
-    "screenshot": "current/06-vehicle-selection/05-your-journey-menu.png",
-    "issue": "The Your Journey popover opens over the vehicle card's own title, stock and price, hiding what the advisor is choosing for.",
-    "observation": "Five plain-text items; opening below the button (or as a bottom sheet on phones) would keep the vehicle visible.",
-    "area": ".jmenu positioning in .vcard"
-  },
-  {
     "id": "RP-UI-015",
     "severity": "Minor",
     "flow": "Snap All — burst capture",
@@ -118,16 +98,6 @@
     "issue": "The per-thumbnail remove controls (×) are 24×24px, under the phone touch floor (≥40px for small variants).",
     "observation": "Also 34px zoom / page buttons on the client review screen and the advisor document review.",
     "area": ".sa-thumb__x, .dr-zoom button, .dr-pagetools button sizing at ≤720px"
-  },
-  {
-    "id": "RP-UI-016",
-    "severity": "Minor",
-    "flow": "Desking — Calculate Payments",
-    "screen": "Calculate Payments — Lease",
-    "screenshot": "current/09-desking/03-pencil-lease.png",
-    "issue": "The estimated-credit-score slider is a 16px-tall native range input — a small target on a phone for the control that changes the rate tier.",
-    "observation": "Works, but easy to miss with a thumb.",
-    "area": "#scoreRange styling (thumb/track size) at ≤720px"
   },
   {
     "id": "RP-UI-017",
@@ -148,26 +118,6 @@
     "issue": "Tapping 💬 Advisor Script (and M/D Budget) opens content below the fold of the fixed Prev/Next bar; at the top of the page nothing visibly changes.",
     "observation": "The library had to scroll to show the change; a user may think the tap did nothing.",
     "area": "present route: scroll the opened block into view, or open it as a sheet"
-  },
-  {
-    "id": "RP-UI-020",
-    "severity": "Observation",
-    "flow": "Vehicle Selection",
-    "screen": "Browse inventory (no deal)",
-    "screenshot": "current/06-vehicle-selection/07-inventory-browse.png",
-    "issue": "In browse mode (drawer → Vehicle Search without a customer visit) every card still shows a Your Journey menu whose items only produce a 'Start a customer visit first' toast.",
-    "observation": "Honest, but a disabled/hidden menu in browse mode would set the expectation before the tap.",
-    "area": "vehicles route, id === \"browse\" branch"
-  },
-  {
-    "id": "RP-UI-021",
-    "severity": "Observation",
-    "flow": "Vehicle Selection",
-    "screen": "Vehicle Search — inventory",
-    "screenshot": "current/06-vehicle-selection/01-inventory.png",
-    "issue": "The inventory is one long page (the 12-vehicle demo already exceeds 3,200px on a phone) with the filter panel taking the whole first screen.",
-    "observation": "Fine at demo size; a collapsed filter bar on phones would bring the first vehicle above the fold.",
-    "area": ".grid--side phone collapse"
   },
   {
     "id": "RP-UI-022",

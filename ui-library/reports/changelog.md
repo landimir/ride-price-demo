@@ -1,5 +1,159 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v008 — 2026-08-27
+
+App commit: 1b22445 · 20 flows · 118 screens · previous: v007
+
+### Added
+- Vehicle Selection · What's next? — after choosing
+- Desking — Calculate Payments · Compare payments — sheet
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Deals Queue & Navigation · My Deals (landing — Advisor)
+- Home — Deals Queue & Navigation · Navigation drawer
+- Home — Deals Queue & Navigation · Reset demo data — confirm
+- Home — Deals Queue & Navigation · Role switched to Team Lead
+- Home — Deals Queue & Navigation · Pipeline filter — no match
+- Home — Deals Queue & Navigation · Funded contracts auto-archived
+- Home — Deals Queue & Navigation · Advisor — funded deal ends the list
+- Customer Onboarding — Find a Customer · Find a Customer
+- Customer Onboarding — Find a Customer · Search results — match found
+- Customer Onboarding — Find a Customer · Search results — no match
+- Customer Onboarding — Find a Customer · Create Customer
+- Customer Onboarding — Find a Customer · Create Customer — validation
+- Scan Driver's License · Intro — scan a driver's licence
+- Scan Driver's License · Capture — front of licence
+- Scan Driver's License · Capture — back of licence
+- Scan Driver's License · Processing your scan
+- Scan Driver's License · That didn't read
+- Scan Driver's License · Enter license manually
+- Scan Driver's License · Search results
+- Scan Driver's License · We found a matching customer (prop 1)
+- Scan Driver's License · Review customer — read-first document
+- Scan Driver's License · Edit sheet (bottom sheet)
+- Scan Driver's License · Create new customer (prop 3)
+- Scan Driver's License · Information conflict
+- Scan Driver's License · Verify the number (bottom sheet)
+- Scan Driver's License · Customer added / updated
+- Training Licenses & Registrations · Training Licenses
+- Training Licenses & Registrations · Training Registrations
+- Discovery Session · Discovery — question 1
+- Discovery Session · Discovery — mid-interview
+- Discovery Session · Discovery — last question
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · Vehicle details sheet
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Test Drive Agreement · E-signature authorization
+- Test Drive Agreement · Licence & terms
+- Test Drive Agreement · Scan licence (test-drive mode)
+- Test Drive Agreement · Terms signed — Driver One
+- Test Drive Agreement · Test drive in progress
+- Test Drive Agreement · End Test Drive — odometer
+- Test Drive Agreement · Test drive completed
+- Trade-In Evaluation & Proof of Ownership · Trade-In Evaluation
+- Trade-In Evaluation & Proof of Ownership · Proof of ownership — gaps flagged
+- Trade-In Evaluation & Proof of Ownership · Evaluated trade value
+- Trade-In Evaluation & Proof of Ownership · Proof of ownership complete
+- Desking — Calculate Payments · Base Payment Huddle
+- Desking — Calculate Payments · Calculate Payments — Finance
+- Desking — Calculate Payments · Calculate Payments — Lease
+- Desking — Calculate Payments · Calculate Payments — Cash
+- Desking — Calculate Payments · Payment Comparison — full page
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Agreement — signed
+- Base Payment Agreement · Redesk — void & redesk confirm
+- Credit Application (Lending Lane) · Credit application — Individual
+- Credit Application (Lending Lane) · Joint application — no co-buyer yet
+- Credit Application (Lending Lane) · Application — validation errors
+- Credit Application (Lending Lane) · Approved (simulated)
+- Buyers on the Deal (Co-Buyer) · Buyers on this deal
+- Buyers on the Deal (Co-Buyer) · Search existing customer
+- Buyers on the Deal (Co-Buyer) · Co-buyer added
+- Buyers on the Deal (Co-Buyer) · Swap is a Team Lead action
+- F&I Product Presentation · Product presentation — rate
+- F&I Product Presentation · Vehicle service contract
+- F&I Product Presentation · Advisor script open
+- F&I Product Presentation · Monthly/daily budget impact
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Team Lead sign-off required — Advisor view
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Sign-off — jacket locked (Team Lead)
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Override the jacket lock
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Sign-off — ready
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Step 1 — Purchase Terms
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Purchase Terms — all boxes presented
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Step 3 — Repayment Options (Preferred)
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Custom package — products moved, payment toggled
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Client initials
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Package accepted
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Continue without products — custom box must be initialed
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Continue without products — confirm
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Step 4 — Disclosure Forms
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Acknowledgement signed, forms selected
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Step 5 — Financial Contracts
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Deal finalized
+- Deal Jacket & Compliance · Deal Jacket — overview
+- Deal Jacket & Compliance · Advisor script sheet
+- Deal Jacket & Compliance · Deal forms & jacket — opened
+- Deal Jacket & Compliance · Missing form — row actions
+- Deal Jacket & Compliance · Mark received — record by hand
+- Deal Jacket & Compliance · Request from the client — list
+- Deal Jacket & Compliance · Upload a document
+- Deal Jacket & Compliance · Add Optional / Custom Form
+- Deal Jacket & Compliance · Queue row — scan blocked (back missing)
+- Deal Jacket & Compliance · Queue row — verified instantly
+- Deal Jacket & Compliance · Jacket complete — dock unlocks sign-off
+- Send Text Request (advisor → client) · Send Text Request — composer
+- Send Text Request (advisor → client) · Jacket after sending — Resend Link
+- Send Text Request (advisor → client) · Resend — composer
+- Client Document Upload (customer's phone) · Text message with the link
+- Client Document Upload (customer's phone) · Upload your documents
+- Client Document Upload (customer's phone) · Row blocked — back of licence missing
+- Client Document Upload (customer's phone) · Row verified
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · All documents verified
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Client Document Upload (customer's phone) · What we need — bottom sheet
+- Client Document Upload (customer's phone) · Review capture — 2 pages
+- Client Document Upload (customer's phone) · Too blurry to read — refused on the row
+- Snap All — burst capture · Snap All — camera
+- Snap All — burst capture · Three shots taken
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Print Center & Printables · Print Center
+- Print Center & Printables · Print preview — Base Payment Agreement
+- Print Center & Printables · Print preview — MV-82 (training sample)
+
+### Removed
+- Vehicle Selection · Your Journey menu
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
+## v007 — 2026-08-27
+
+App commit: 2838cc4 · 20 flows · 117 screens · previous: v006
+
+Recovered entry: this release was captured but its changelog entry was never
+written. The figures above come from `versions/v007/reports/`, which holds the
+full manifest and its issue board; the per-screen diff against v006 was not
+recorded at the time and is not reconstructed here rather than guessed.
+
+## v006 — 2026-08-26
+
+App commit: 2a29a56 · 20 flows · 117 screens · previous: v005
+
+Recovered entry: same as above — captured on the day the customer upload page
+landed, written up only now. See `versions/v006/reports/` for the manifest and
+the issue board as they stood.
+
 ## v005 — 2026-08-24
 
 App commit: 89f260a · 20 flows · 114 screens · previous: v004
