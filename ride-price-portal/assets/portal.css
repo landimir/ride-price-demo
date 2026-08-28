@@ -2627,4 +2627,8 @@ body[data-canvas="master"] .desk-sticky { padding-left: max(20px, calc((100% - 4
 @media (min-width: 431px) {
   body[data-canvas="master"] { background: #F5F5F5; }
   body[data-canvas="master"] .m-app { box-shadow: 0 0 0 1px rgba(0, 0, 0, .04); }
+  /* the desking family renders in .dk-wrap, not .m-app — it needs the same
+     white column the golden's .app keeps on the grey backdrop, or wide
+     phones show grey-on-grey surfaces (owner's phone, 2026-08-27) */
+  body[data-canvas="master"] .dk-wrap { background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .04); min-height: 100vh; }
 }
