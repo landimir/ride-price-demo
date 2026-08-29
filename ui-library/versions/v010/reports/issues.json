@@ -1,0 +1,112 @@
+[
+  {
+    "id": "RP-UI-005",
+    "severity": "Minor",
+    "flow": "Discovery Session",
+    "screen": "Discovery — question 1",
+    "screenshot": "current/05-discovery/01-question-1.png",
+    "issue": "The deal crumb controls (Buyer, Jacket, and the screen's back/forward link) wrap into three rows on a phone, pushing the working area ~120px down. The same row appears on every deal screen (discovery, vehicles, test drive, trade, desking, agreement, credit, menu, print).",
+    "observation": "Consistent, but it costs a sixth of the phone screen before the content starts. A single compact row (icon buttons, or the back link folded into the title) would recover it.",
+    "area": "dealTitle() crumb markup; .crumb-btn / #pageActions wrapping at ≤720px"
+  },
+  {
+    "id": "RP-UI-006",
+    "severity": "Minor",
+    "flow": "Finance Menu",
+    "screen": "Step 1 — Purchase Terms",
+    "screenshot": "current/14-finance-menu/05-purchase-terms.png",
+    "issue": "The five-step menu stepper wraps into three rows of pills on a phone.",
+    "observation": "It still reads correctly; a horizontally scrolling stepper or numbers-only pills would keep it to one row.",
+    "area": ".stepper at ≤720px"
+  },
+  {
+    "id": "RP-UI-007",
+    "severity": "Minor",
+    "flow": "Finance Menu",
+    "screen": "Deal finalized",
+    "screenshot": "current/14-finance-menu/16-deal-finalized.png",
+    "issue": "The finalize toast says the deal \"now shows dark blue in the Deals list\" — copy from the retired deals table. Since the deals-queue redesign a finalized deal leaves the active list into the folded Archived section.",
+    "observation": "Stale copy, not a functional problem; the Deals screen itself is correct.",
+    "area": "menu route #finalize toast text"
+  },
+  {
+    "id": "RP-UI-008",
+    "severity": "Minor",
+    "flow": "Finance Menu",
+    "screen": "Step 5 — Financial Contracts",
+    "screenshot": "current/14-finance-menu/15-financial-contracts.png",
+    "issue": "In the Repayment Options printable, a long product line (Key Replacement — 3 yr — lost or damaged remotes) wraps its price onto its own line, left-aligned under the label, breaking the money column.",
+    "observation": "Only on long labels at phone width; the amount stays readable.",
+    "area": ".doc .lines li wrapping at ≤720px (overflow-wrap rule)"
+  },
+  {
+    "id": "RP-UI-009",
+    "severity": "Minor",
+    "flow": "Finance Menu",
+    "screen": "Custom package — products moved, payment toggled",
+    "screenshot": "current/14-finance-menu/08-repayment-custom.png",
+    "issue": "The Toggle Payment control sits below the Accept Custom Package CTA and the 'Continue without products' link, so the reveal of the custom payment comes after the decision it informs.",
+    "observation": "Order of operations on the phone layout; desktop keeps it inside the column.",
+    "area": "step2() phone layout, #togglePay placement"
+  },
+  {
+    "id": "RP-UI-012",
+    "severity": "Minor",
+    "flow": "Training Licenses & Registrations",
+    "screen": "Training Registrations",
+    "screenshot": "current/04-training-materials/02-training-registrations.png",
+    "issue": "The registration cards are print-sized (112mm wide) and wider than the phone; their right-hand side (SAMPLE overprint, amounts, expiry) is cut off in view with no visible scroll affordance.",
+    "observation": "By recorded decision the props are never scaled (they must print at true size); on a phone the grid scrolls horizontally, but nothing says so.",
+    "area": ".props-grid horizontal scroll hint at ≤720px"
+  },
+  {
+    "id": "RP-UI-015",
+    "severity": "Minor",
+    "flow": "Snap All — burst capture",
+    "screen": "Three shots taken",
+    "screenshot": "current/18-snap-all/02-thumbs.png",
+    "issue": "The per-thumbnail remove controls (×) are 24×24px, under the phone touch floor (≥40px for small variants).",
+    "observation": "Also 34px zoom / page buttons on the client review screen and the advisor document review.",
+    "area": ".sa-thumb__x, .dr-zoom button, .dr-pagetools button sizing at ≤720px"
+  },
+  {
+    "id": "RP-UI-022",
+    "severity": "Observation",
+    "flow": "Finance Menu",
+    "screen": "Team Lead sign-off required — Advisor view",
+    "screenshot": "current/14-finance-menu/01-signoff-gate-advisor.png",
+    "issue": "The advisor's dead end here is intentional (the note says to switch to Team Lead), but the role switch it refers to is the unlabelled segmented control in the app bar.",
+    "observation": "A trainee who has not used the app bar switch may not connect the instruction to the control.",
+    "area": "sign-off gate note copy / role switch affordance"
+  },
+  {
+    "id": "RP-UI-023",
+    "severity": "Observation",
+    "flow": "Home — Deals Queue & Navigation",
+    "screen": "My Deals (landing — Advisor)",
+    "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
+    "issue": "No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet on the queue top bar standing in for identity.",
+    "observation": "By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.",
+    "area": "n/a"
+  },
+  {
+    "id": "RP-UI-024",
+    "severity": "Minor",
+    "flow": "Customer Onboarding — the Customer Resolver",
+    "screen": "Customer identified (advisor)",
+    "screenshot": "current/02-customer-onboarding/09-remote-ready.png",
+    "issue": "The role pill in the master deal header (.m-rolebtn) is 65x35px — under the 40px small-variant touch floor the phone layout documents.",
+    "observation": "It opens the drawer, so it is a real target, not decoration. Introduced with the master deal header (PR #51) and now visible on far more screens because the resolver, credit and agreement all use that header. Raising it to 40px is a one-line change in the .m-rolebtn padding.",
+    "area": "portal.css .m-rolebtn"
+  },
+  {
+    "id": "RP-UI-025",
+    "severity": "Minor",
+    "flow": "Deal Jacket & Compliance",
+    "screen": "Add optional document",
+    "screenshot": "current/15-deal-jacket/06-add-optional.png",
+    "issue": "The sheet's close control is squeezed to 28×40 — the long title plus the flexible header row shrink it below its own 40px box, under the touch floor.",
+    "observation": "The automated small-target check measured .m-close at 28x40 on this sheet only; every other jacket sheet keeps 40x40. The header row needs flex: none on the close (or a min-width), so a long title wraps instead of eating the control.",
+    "area": "portal.css .m-sheettop / #jkSheet .m-close"
+  }
+]

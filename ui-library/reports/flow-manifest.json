@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-08-29T17:14:45.987Z",
-  "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+  "capturedAt": "2026-08-29T22:02:41.282Z",
+  "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-08-29T17:14:45.995Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:02:41.289Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -411,8 +411,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-08-29T17:14:58.172Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:02:53.257Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -751,8 +751,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-08-29T17:15:12.619Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:03:07.950Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -1091,7 +1091,7 @@
               " 4102 Bell Blvd, Bayside, NY  <>  Ask the guest to read back t",
               " Email <> .sc2-demo Demo: nothing leaves this de",
               " Email <>  Demo:",
-              " Email <>  775036",
+              " Email <>  494122",
               ".sc2-micro Phone and email are required <> .sc2-primary Verify & link",
               ".sc2-micro Phone and email are required <> .sc2-textbtn Cancel",
               ".demo-note Demo tool — sample data only <> .sc2-textbtn Cancel"
@@ -1150,8 +1150,8 @@
         "from": "home/more-sheet",
         "action": "Training licenses / Training registrations"
       },
-      "capturedAt": "2026-08-29T17:15:33.401Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:03:28.928Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -1259,21 +1259,21 @@
         "from": "onboarding/customer-found",
         "action": "Start Visit → (creates the deal)"
       },
-      "capturedAt": "2026-08-29T17:15:36.644Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:03:31.719Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-1v7y83g",
+          "hash": "#/discovery/d-z3zujt1",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
             {
               "action": "Tap 👤 Buyer in the crumbs",
-              "to": "buyers/buyers-modal"
+              "to": "buyers/buyers-sheet"
             },
             {
               "action": "Tap 📁 Jacket in the crumbs",
@@ -1312,7 +1312,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-1v7y83g",
+          "hash": "#/discovery/d-z3zujt1",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1340,7 +1340,7 @@
           "key": "question-last",
           "screen": "Discovery — last question",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-1v7y83g",
+          "hash": "#/discovery/d-z3zujt1",
           "action": "Tap Pick Vehicle →",
           "next": "vehicles/inventory",
           "branches": [],
@@ -1374,15 +1374,15 @@
         "from": "discovery/question-last",
         "action": "Tap Pick Vehicle →"
       },
-      "capturedAt": "2026-08-29T17:15:42.789Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:03:37.886Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
           "screen": "Vehicle Search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-ygyv3rg",
+          "hash": "#/vehicles/d-jl0q6r7",
           "action": "Tap the Used chip",
           "next": "inventory-filtered",
           "branches": [],
@@ -1413,7 +1413,7 @@
           "key": "inventory-filtered",
           "screen": "Inventory — Used only",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-ygyv3rg",
+          "hash": "#/vehicles/d-jl0q6r7",
           "action": "Open Filters, cap the price at $1,000",
           "next": "inventory-no-match",
           "branches": [],
@@ -1444,7 +1444,7 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-ygyv3rg",
+          "hash": "#/vehicles/d-jl0q6r7",
           "action": "Clear all filters; tap a vehicle",
           "next": "vehicle-details",
           "branches": [],
@@ -1475,7 +1475,7 @@
           "key": "vehicle-details",
           "screen": "Vehicle details sheet",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-ygyv3rg",
+          "hash": "#/vehicles/d-jl0q6r7",
           "action": "Tap Choose this vehicle",
           "next": "next-steps",
           "branches": [],
@@ -1516,7 +1516,7 @@
           "key": "next-steps",
           "screen": "What's next? — after choosing",
           "screenshot": "current/06-vehicle-selection/05-next-steps.png",
-          "hash": "#/vehicles/d-ygyv3rg",
+          "hash": "#/vehicles/d-jl0q6r7",
           "action": "Tap Test Drive",
           "next": "test-drive/authorization",
           "branches": [
@@ -1570,7 +1570,7 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-ygyv3rg",
+          "hash": "#/vehicles/d-jl0q6r7",
           "action": null,
           "next": null,
           "branches": [],
@@ -1658,8 +1658,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-08-29T17:15:52.433Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:03:47.782Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -1878,8 +1878,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-08-29T17:15:58.771Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:03:54.175Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -2004,8 +2004,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-08-29T17:16:04.089Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:03:59.515Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -2265,8 +2265,8 @@
         "from": "desking/compare-payments",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-29T17:16:10.206Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:04:05.364Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -2396,8 +2396,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-29T17:16:14.034Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:04:09.147Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -2525,7 +2525,7 @@
             },
             {
               "action": "Choose existing customer",
-              "to": "buyers/buyers-modal"
+              "to": "buyers/buyers-sheet"
             }
           ],
           "notes": "Regulation B joint-credit certification stays in the choice copy. The secure link LEADS the co-buyer paths (owner v2 hierarchy) with scan and choose-existing as the secondary row — the co-buyer does not have to be in the showroom.",
@@ -2697,7 +2697,7 @@
               " Applicant <> .m-sheettitle Deal summary",
               " Step 1 of 4 <> .m-close ✕",
               ".ca-cardtitle Application type <> .ca-wstitle Deal summary",
-              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 1:1",
+              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 6:0",
               ".ca-cardtitle Application type <> .ca-managelink Edit",
               ".ca-cardsub Choose how the customer want <>  Vehicle",
               ".ca-cardsub Choose how the customer want <>  2022 Hyundai Santa Fe · 7H21",
@@ -2753,29 +2753,25 @@
       "id": "buyers",
       "area": "12-buyers-and-co-buyer",
       "title": "Buyers on the Deal (Co-Buyer)",
-      "description": "From the crumb on any deal screen: the primary buyer's card, adding a co-buyer by scan or CRM search, swap (Team Lead) and remove.",
+      "description": "The owner's Buyers on Deal V2 (2026-08-29): one bottom sheet from the Buyer chip — the primary buyer, an optional co-buyer, and one Add co-buyer action that opens the canonical Customer Resolver (search, scan, secure upload; manual creation only after a true no-match). Management is contextual and confirmed: removal keeps the customer profile, and Change roles is Team Lead-only, visible only with two buyers — an Advisor never sees a role control.",
       "entry": {
         "from": "discovery/question-1",
         "action": "Tap 👤 Buyer in the crumbs"
       },
-      "capturedAt": "2026-08-29T17:16:24.733Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:07:21.709Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
-          "key": "buyers-modal",
+          "key": "buyers-sheet",
           "screen": "Buyers on this deal",
-          "screenshot": "current/12-buyers-and-co-buyer/01-buyers-modal.png",
+          "screenshot": "current/12-buyers-and-co-buyer/01-buyers-sheet.png",
           "hash": "#/desk/d-demo1",
-          "action": "Tap 🔎 Search Existing Customer",
-          "next": "search-existing",
+          "action": "Tap Add co-buyer",
+          "next": "add-cobuyer",
           "branches": [
             {
-              "action": "🪪 Scan Driver's License",
-              "to": "license-scan/scan-front"
-            },
-            {
-              "action": "Tap the primary's card",
+              "action": "Tap the primary buyer's row",
               "to": "credit/identity-gate"
             }
           ],
@@ -2785,14 +2781,25 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".dk-h2 How are they paying? <>  Buyers on this deal",
+              ".dk-h2 How are they paying? <> .by2-sub One primary buyer. Add a co-",
+              ".dk-subline This choice unlocks the firs <> .by2-sub One primary buyer. Add a co-",
+              " Finance <> .by2-seclab Primary buyer",
+              " Lease <> .by2-seclab Primary buyer",
+              " Cash <> .by2-avatar JS",
+              " One Pay <> .by2-rowsub (718) 555-0134",
+              "#hPayTrack.dk-notice Discovery questionIs there a <> #byAdd.by2-cta Add co-buyer"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 844,
+            "height": 1503,
             "pageHeight": 1503
           },
           "scrollShot": null,
@@ -2800,27 +2807,47 @@
         },
         {
           "step": 2,
-          "key": "search-existing",
-          "screen": "Search existing customer",
-          "screenshot": "current/12-buyers-and-co-buyer/02-search-existing.png",
+          "key": "add-cobuyer",
+          "screen": "Add co-buyer — the resolver's entries",
+          "screenshot": "current/12-buyers-and-co-buyer/02-add-cobuyer.png",
           "hash": "#/desk/d-demo1",
-          "action": "Pick Cheri Bridwell",
+          "action": "Tap the CRM match",
           "next": "cobuyer-added",
-          "branches": [],
-          "notes": "",
+          "branches": [
+            {
+              "action": "Scan physical license",
+              "to": "license-scan/scan-front"
+            },
+            {
+              "action": "Send secure upload link",
+              "to": "onboarding/send-link-sheet"
+            }
+          ],
+          "notes": "Search dedupes at the source — people already on the deal never appear; manual creation is offered only after a true no-match.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".dk-h2 What was the answer to the t <>  Add co-buyer",
+              ".dk-h2 What was the answer to the t <> .by2-sub Find or identify the custome",
+              ".dk-subline Capture the customer’s words <> .by2-sub Find or identify the custome",
+              ".dk-h2 How are they paying? <> .by2-avatar CB",
+              ".dk-h2 How are they paying? <> .by2-rowname Cheri Bridwell",
+              ".dk-h2 How are they paying? <> .by2-rowsub (347) 555-1212 · Existing cu",
+              ".dk-h2 How are they paying? <> .by2-go ›",
+              "#hPayTrack.dk-notice Discovery questionIs there a <>  Manual creation appears only"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 844,
+            "height": 1503,
             "pageHeight": 1503
           },
           "scrollShot": null,
@@ -2829,31 +2856,37 @@
         {
           "step": 3,
           "key": "cobuyer-added",
-          "screen": "Co-buyer added",
+          "screen": "Co-buyer attached",
           "screenshot": "current/12-buyers-and-co-buyer/03-cobuyer-added.png",
           "hash": "#/desk/d-demo1",
-          "action": "Tap ⇄ Swap as Advisor",
-          "next": "swap-blocked",
-          "branches": [
-            {
-              "action": "Remove co-buyer (two taps)",
-              "to": "buyers/buyers-modal"
-            }
-          ],
-          "notes": "",
+          "action": "Tap the co-buyer's row",
+          "next": "cobuyer-actions",
+          "branches": [],
+          "notes": "The second row appearing is the feedback; Add co-buyer disappears. An Advisor still sees no role control.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".dk-h2 How are they paying? <>  Buyers on this deal",
+              ".dk-h2 How are they paying? <> .by2-sub One primary buyer. Add a co-",
+              ".dk-subline This choice unlocks the firs <> .by2-sub One primary buyer. Add a co-",
+              " Finance <> .by2-seclab Primary buyer",
+              " Lease <> .by2-seclab Primary buyer",
+              " Cash <> .by2-avatar JS",
+              " One Pay <> .by2-rowsub (718) 555-0134",
+              "#hPayTrack.dk-notice Discovery questionIs there a <> .by2-avatar CB"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 844,
+            "height": 1503,
             "pageHeight": 1503
           },
           "scrollShot": null,
@@ -2861,12 +2894,12 @@
         },
         {
           "step": 4,
-          "key": "swap-blocked",
-          "screen": "Swap is a Team Lead action",
-          "screenshot": "current/12-buyers-and-co-buyer/04-swap-blocked.png",
+          "key": "cobuyer-actions",
+          "screen": "Co-buyer — contextual actions",
+          "screenshot": "current/12-buyers-and-co-buyer/04-cobuyer-actions.png",
           "hash": "#/desk/d-demo1",
-          "action": null,
-          "next": null,
+          "action": "Tap Remove from deal",
+          "next": "remove-confirm",
           "branches": [],
           "notes": "",
           "status": "ok",
@@ -2874,17 +2907,142 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              "#hPayTrack.dk-notice Discovery questionIs there a <> #byView.by2-actionbtn View customer profile",
+              "#hPayTrack.dk-notice Discovery questionIs there a <> #byRemove.by2-actionbtn.by2-actionbtn--danger Remove from deal",
+              " Discovery question <> #byView.by2-actionbtn View customer profile"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 1503,
+            "pageHeight": 1503
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 5,
+          "key": "remove-confirm",
+          "screen": "Remove — second tap confirms",
+          "screenshot": "current/12-buyers-and-co-buyer/05-remove-confirm.png",
+          "hash": "#/desk/d-demo1",
+          "action": null,
+          "next": null,
+          "branches": [],
+          "notes": "Removal takes the relationship off the deal and keeps the customer profile.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
+            "clipped": [],
+            "overlaps": [
+              " Cash <> .by2-sub Second tap confirms",
+              " One Pay <> .by2-sub Second tap confirms",
+              "#hPayTrack.dk-notice Discovery questionIs there a <>  Cheri Bridwell's customer pr",
+              "#hPayTrack.dk-notice Discovery questionIs there a <> #byCancel.by2-actionbtn Cancel",
+              "#hPayTrack.dk-notice Discovery questionIs there a <> #byRemoveGo.by2-actionbtn.by2-actionbtn--danger Remove from deal",
+              " Discovery question <>  Cheri Bridwell's customer pr"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 1503,
+            "pageHeight": 1503
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 6,
+          "key": "team-lead-roles",
+          "screen": "Team Lead — Change roles visible",
+          "screenshot": "current/12-buyers-and-co-buyer/06-team-lead-roles.png",
+          "hash": "#/desk/d-demo1",
+          "action": "Tap Change roles",
+          "next": "change-roles-confirm",
+          "branches": [],
+          "notes": "The link exists only for a Team Lead and only with two buyers — never a control that ends in a permission toast.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35",
+              "#dkHuddleLink.dk-linkbtn Huddle 45x24",
+              ".dk-linkbtn Import Trade 80x21"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".amt $709.33/mo <>  Buyers on this deal",
+              ".amt $709.33/mo <> #byRoles.by2-roleslink Change roles",
+              ".amt $709.33/mo <> .by2-sub One primary buyer. Add a co-",
+              ".unit /mo <> .by2-sub One primary buyer. Add a co-",
+              ".sub 60 months · 3.5% APR · $1,00 <> .by2-sub One primary buyer. Add a co-",
+              "#dkCompare.dk-secondary Compare <> .by2-seclab Primary buyer",
+              "#dkCompare.dk-secondary Compare <> .by2-avatar JS",
+              "#dkCompare.dk-secondary Compare <> .by2-rowname John Smith"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1503
+            "pageHeight": 1823
           },
-          "scrollShot": null,
+          "scrollShot": "current/12-buyers-and-co-buyer/06-team-lead-roles.scroll.png",
+          "issues": []
+        },
+        {
+          "step": 7,
+          "key": "change-roles-confirm",
+          "screen": "Change buyer roles? — confirmation",
+          "screenshot": "current/12-buyers-and-co-buyer/07-change-roles-confirm.png",
+          "hash": "#/desk/d-demo1",
+          "action": null,
+          "next": null,
+          "branches": [],
+          "notes": "Confirms before swapping customerId/coBuyerId (the fields the roles live in); a signed benefits acknowledgement is voided and the sheet says so first.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35",
+              "#dkHuddleLink.dk-linkbtn Huddle 45x24",
+              ".dk-linkbtn Import Trade 80x21"
+            ],
+            "clipped": [],
+            "overlaps": [
+              "#dkCompare.dk-secondary Compare <>  Change buyer roles?",
+              "#dkEditTerms.dk-secondary Edit terms <>  Change buyer roles?",
+              " Vehicle price <>  Make Cheri Bridwell the prim",
+              " Vehicle price <>  John Smith will become the c",
+              " MSRP <>  John Smith will become the c",
+              ".amt $42,910.00 <>  John Smith will become the c",
+              " Included options <>  $709.33",
+              " Included options <> .desk-sticky__unit / mo"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1823
+          },
+          "scrollShot": "current/12-buyers-and-co-buyer/07-change-roles-confirm.scroll.png",
           "issues": []
         }
       ]
@@ -2898,8 +3056,8 @@
         "from": "finance-menu/purchase-terms-presented",
         "action": "Tap Next"
       },
-      "capturedAt": "2026-08-29T17:16:28.437Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:04:27.732Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -3138,8 +3296,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager Sign-Off"
       },
-      "capturedAt": "2026-08-29T17:16:32.923Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:04:32.192Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -3658,8 +3816,8 @@
         "from": "discovery/question-1",
         "action": "Tap 📁 Jacket in the crumbs"
       },
-      "capturedAt": "2026-08-29T17:16:50.019Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:04:48.745Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -3771,6 +3929,7 @@
             ],
             "clipped": [],
             "overlaps": [
+              ".price PRICE <> .jk2-rowtitle Driver's License",
               ".jk2-rowtitle Signed Matching Credit App <>  Funding sign-off",
               ".jk2-rowtitle Signed Matching Credit App <>  11 items remaining",
               ".jk2-rowtitle Signed Matching Credit App <> #jkSignoff.jk2-dockbtn Not ready",
@@ -3934,14 +4093,14 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rideprice Ride <> .jk2-secsub Internal forms and signature",
+              ".price PRICE <> .jk2-rowtitle Privacy Policy",
+              ".m-dealno Deal #48201 <> .jk2-rowtitle Privacy Policy",
+              "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
               ".jk2-sectitle Completed <>  Funding sign-off",
-              ".jk2-sectitle Completed <>  11 items remaining",
               ".jk2-sectitle Completed <> #jkSignoff.jk2-dockbtn Not ready",
               ".jk2-secsub Already in the jacket <>  11 items remaining",
               ".jk2-secsub Already in the jacket <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-badge.jk2-badge--good 4 <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-chev.jk2-chev--open ⌄ <> #jkSignoff.jk2-dockbtn Not ready"
+              ".jk2-badge.jk2-badge--good 4 <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
@@ -4037,8 +4196,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-08-29T17:17:01.561Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:04:59.646Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -4144,7 +4303,7 @@
               " 3 items need the customer. <>  Customer request",
               ".jk2-sectitle Waiting on customer <> .jk2-dot ✓",
               ".jk2-sectitle Waiting on customer <>  Link sent",
-              ".jk2-sectitle Waiting on customer <>  Aug 29, 1:17 PM",
+              ".jk2-sectitle Waiting on customer <>  Aug 29, 6:05 PM",
               ".jk2-secsub 3 documents <> .jk2-dot ✓",
               ".jk2-secsub 3 documents <>  Delivered"
             ]
@@ -4169,8 +4328,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-08-29T17:17:05.847Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:05:03.692Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -4502,8 +4661,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-08-29T17:17:18.661Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:05:16.278Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -4649,8 +4808,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-08-29T17:17:22.598Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:05:20.183Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,
@@ -4696,8 +4855,8 @@
         "from": "finance-menu/financial-contracts",
         "action": "Tap 🖨 Print Center"
       },
-      "capturedAt": "2026-08-29T17:17:24.572Z",
-      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "capturedAt": "2026-08-29T22:05:22.205Z",
+      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
       "screens": [
         {
           "step": 1,

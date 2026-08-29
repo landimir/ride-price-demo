@@ -1,12 +1,12 @@
 # Ride Price Mobile UI Library
 
-Version: v010
-Captured: 2026-08-29T17:14:45.987Z
-App commit: 19607acaf52662d92bf6ec3f112d5e1e46a07973
+Version: v011
+Captured: 2026-08-29T22:02:41.282Z
+App commit: eed2fa48cf8ce77071d0e5b424446bb728bcec3c
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 126
+Screens documented: 129
 Branches documented: 70
 
 UX Audit:
@@ -30,7 +30,7 @@ UX Audit:
 | 9 | Desking — Calculate Payments | 6 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap the deal card (Continue) |
 | 10 | Base Payment Agreement | 3 | Desking — Calculate Payments · 06 Payment Comparison — full page — Tap Continue |
 | 11 | Credit Application (Lending Lane) | 9 | Base Payment Agreement · 02 Agreement — signed — Tap Continue |
-| 12 | Buyers on the Deal (Co-Buyer) | 4 | Discovery Session · 01 Discovery — question 1 — Tap 👤 Buyer in the crumbs |
+| 12 | Buyers on the Deal (Co-Buyer) | 7 | Discovery Session · 01 Discovery — question 1 — Tap 👤 Buyer in the crumbs |
 | 13 | F&I Product Presentation | 5 | Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented — Tap Next |
 | 14 | Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts | 16 | Credit Application (Lending Lane) · 09 Approved (simulated) — Continue → Manager Sign-Off |
 | 15 | Deal Jacket & Compliance | 9 | Discovery Session · 01 Discovery — question 1 — Tap 📁 Jacket in the crumbs |

@@ -1,5 +1,69 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v011 — 2026-08-29
+
+App commit: eed2fa4 · 20 flows · 129 screens · previous: v010
+
+### Added
+- Buyers on the Deal (Co-Buyer) · Buyers on this deal
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — the resolver's entries
+- Buyers on the Deal (Co-Buyer) · Co-buyer — contextual actions
+- Buyers on the Deal (Co-Buyer) · Remove — second tap confirms
+- Buyers on the Deal (Co-Buyer) · Team Lead — Change roles visible
+- Buyers on the Deal (Co-Buyer) · Change buyer roles? — confirmation
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1
+- Discovery Session · Discovery — mid-interview
+- Discovery Session · Discovery — last question
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Test Drive Agreement · License & terms
+- Test Drive Agreement · End Test Drive — odometer
+- Desking — Calculate Payments · Base Payment Huddle
+- Desking — Calculate Payments · Calculate Payments — Cash
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Buyers on the Deal (Co-Buyer) · Co-buyer attached
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Step 3 — Repayment Options (Preferred)
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Custom package — products moved, payment toggled
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Print Center & Printables · Print preview — Base Payment Agreement
+- Print Center & Printables · Print preview — MV-82 (training sample)
+
+### Removed
+- Buyers on the Deal (Co-Buyer) · Buyers on this deal
+- Buyers on the Deal (Co-Buyer) · Search existing customer
+- Buyers on the Deal (Co-Buyer) · Swap is a Team Lead action
+
+**What actually changed (hand interpretation):** the Buyers surface was
+rebuilt to the owner's Buyers on Deal V2 package (PR #54) — the added and
+removed lists are that one change: the old modal's four steps became the
+seven sheet states (one Add co-buyer action into the canonical Customer
+Resolver, contextual confirmed removal, Team Lead-only Change roles behind a
+confirmation). Everything under "Changed" is live data (deal numbers, clock
+times, dates); no other screen's design moved. No new findings — the sheet's
+controls clear the touch floor, and the small targets the checks flag on
+these screens (the role pill, desking's text links) are the standing
+RP-UI-024 family, visible behind the sheet, not new.
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v010 — 2026-08-29
 
 App commit: 19607ac · 20 flows · 126 screens · previous: v009
