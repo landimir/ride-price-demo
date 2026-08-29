@@ -945,25 +945,48 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
   font-size: 9.5px; font-weight: 600; letter-spacing: .8px; padding: 4px 9px; border-radius: 999px;
 }
 
-/* ---------- buyers on a deal (co-buyer modal + crumb control) ---------- */
-.buyer-card {
-  display: flex; align-items: center; gap: 10px;
-  border: 1px solid var(--line); border-radius: 10px;
-  padding: 10px 12px; margin: 8px 0;
-}
-.buyer-card .who { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.buyer-card--link { cursor: pointer; transition: border-color .15s ease, background .15s ease; }
-.buyer-card--link:hover { border-color: var(--navy); }
-.buyer-card--link:active { background: #f2f1fb; }
-.buyer-card__go { flex: 0 0 auto; font-size: 20px; line-height: 1; color: var(--muted); }
-.buyer-card .chip { background: var(--navy); color: #fff; border-radius: 99px; padding: 3px 10px; font-size: 10.5px; font-weight: 600; }
-.buyer-card .chip--co { background: #fff; color: var(--ink); border: 1px solid var(--line); }
-.buyer-card--empty { border-style: dashed; color: var(--muted); }
-.by-swaprow { display: flex; justify-content: center; margin: 2px 0; }
-.by-tiles { display: flex; flex-direction: column; gap: 10px; }
-.by-tiles .btn { width: 100%; justify-content: center; }
-.buyer-pick { cursor: pointer; width: 100%; text-align: left; font: inherit; background: #fff; }
-.buyer-pick:hover { border-color: var(--navy); }
+/* ---------- Buyers on the deal V2 (owner's replication package, 2026-08-29)
+   One bottom sheet on the master grammar; geometry transcribed from the
+   package's golden — 48px avatar circles, 16px row cards, pill CTAs and pill
+   action buttons (the golden's own shapes), the section eyebrows, the green
+   attached banner. The one dominant action wears the signature gradient per
+   the owner's standing override. ---------- */
+.by2-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.by2-head h2 { font-size: 26px; letter-spacing: -.7px; margin: 2px 0 0; }
+.by2-roleslink { border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; color: var(--ink); cursor: pointer; padding: 10px 2px; margin: -10px -2px; flex: none; }
+.by2-sub { color: var(--muted); font-size: 14px; line-height: 1.45; margin: 6px 0 14px; }
+.by2-seclab { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 16px 0 8px; }
+.by2-row { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px; font: inherit; color: inherit; cursor: pointer; min-height: 72px; margin-bottom: 10px; }
+.by2-row:active { background: var(--surface); }
+.by2-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--surface-2); display: grid; place-items: center; font-size: 14px; font-weight: 750; flex: none; }
+.by2-iconwell { width: 48px; height: 48px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; flex: none; }
+.by2-iconwell svg { width: 22px; height: 22px; fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.by2-rowmain { flex: 1; min-width: 0; }
+.by2-rowname { display: block; font-size: 16.5px; font-weight: 720; }
+.by2-rowsub { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.by2-pill { flex: none; font-size: 12.5px; font-weight: 700; padding: 8px 13px; border-radius: 999px; background: var(--ink); color: #fff; }
+.by2-pill--co { background: var(--surface-2); color: var(--ink); }
+.by2-go { color: var(--muted); font-size: 18px; flex: none; }
+.by2-cta { width: 100%; min-height: 54px; border: 0; border-radius: 999px; background: var(--grad); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; margin: 14px 0 4px; }
+.by2-cta:active { transform: scale(.99); }
+.by2-note { background: var(--surface); border-radius: 16px; padding: 14px 16px; margin-top: 12px; font-size: 13.5px; line-height: 1.45; }
+.by2-note strong { display: block; }
+.by2-note p { margin: 3px 0 0; color: var(--muted); }
+.by2-banner { background: var(--jk2-ok-bg); color: var(--jk2-ok); border-radius: 14px; padding: 13px 16px; font-size: 14px; font-weight: 700; margin-top: 6px; }
+.by2-actions { display: grid; gap: 12px; margin-top: 16px; }
+.by2-actionbtn { min-height: 52px; border-radius: 999px; border: 1.5px solid var(--ink); background: #fff; color: var(--ink); font: inherit; font-size: 15.5px; font-weight: 700; cursor: pointer; padding: 0 18px; }
+.by2-actionbtn--danger { border-color: #E5A79B; color: var(--jk2-bad); }
+.by2-actionbtn--primary { background: var(--grad); color: #fff; border-color: transparent; }
+.by2-confirmcard { background: var(--surface); border-radius: 16px; padding: 16px 18px; margin-top: 12px; font-size: 14px; line-height: 1.5; }
+.by2-confirmcard strong { display: block; font-size: 16px; margin-bottom: 6px; }
+.by2-confirmcard p { margin: 0; color: var(--muted); }
+.by2-confirmrow { display: grid; grid-template-columns: 1fr 1.15fr; gap: 12px; margin-top: 16px; }
+.by2-ackwarn { background: var(--jk2-warn-bg); color: var(--jk2-warn); border-radius: 14px; padding: 12px 14px; font-size: 13px; line-height: 1.45; margin: 12px 0 0; }
+.by2-search { width: 100%; border: 1px solid #CFCFCF; border-radius: 999px; min-height: 52px; padding: 12px 20px; font: inherit; font-size: 16px; background: #fff; color: var(--ink); margin-bottom: 10px; }
+/* the sheet opens over old-chrome screens too (the crumb control), where the
+   master canvas tokens are absent — pin the ones this family reads, with the
+   master's own values, so the sheet is identical everywhere */
+#byScrim { --surface: #F7F7F7; --surface-2: #F1F1F1; --jk2-ok: #168A62; --jk2-ok-bg: #EAF7F2; --jk2-warn: #8A5A00; --jk2-warn-bg: #FFF6DD; --jk2-bad: #C13515; }
 .crumb-btn {
   border: 1px solid var(--line); background: #fff; color: var(--navy);
   border-radius: 99px; padding: 5px 12px; margin-left: 8px;

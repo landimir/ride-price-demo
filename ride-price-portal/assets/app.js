@@ -290,133 +290,217 @@ function dealTitle(deal, bare) {
     <a class="crumb-btn" href="#/jacket/${esc(deal.id)}" title="Documents this deal needs" aria-label="Deal jacket${jkc.missing ? ` — ${jkc.missing} document(s) still outstanding` : ""}">📁 Jacket${jkc.missing ? `<b class="crumb-btn__n">${jkc.missing}</b>` : ""}</a>`;
 }
 
-/* ---------------- buyers on a deal (add / scan / swap / drop) ---------------- */
-/* crumbs are re-set as innerHTML on every render, so the control is wired once, by delegation */
+/* ---------------- Buyers on the deal, V2 (owner's replication package) -----
+   The owner's "Buyers on Deal V2" package (2026-08-29) rebuilt buyer
+   management as one bottom sheet: the primary buyer, an optional co-buyer,
+   and ONE action — Add co-buyer — that opens the canonical Customer
+   Resolver. The old modal's separate Scan / Search buttons are gone (the
+   package forbids rebuilding resolver entry points at the buyer level), and
+   so is the always-visible Swap: an Advisor never sees a role control at
+   all, and a Team Lead sees "Change roles" only when both roles are filled —
+   never a button that exists just to explain a permission failure in a toast.
+
+   Every management action is contextual and confirmed: removing the
+   co-buyer takes two taps and keeps the customer profile; changing roles
+   confirms first and carries the old swap's business rule — a signed
+   benefits acknowledgement is voided by the swap and the sheet says so
+   before, not after. */
 document.addEventListener("click", (e) => {
   const b = e.target.closest("[data-buyers]");
-  if (b) { e.preventDefault(); openBuyersModal(b.dataset.buyers); }
+  if (b) { e.preventDefault(); openBuyersSheet(b.dataset.buyers); }
 });
 
-function openBuyersModal(dealId) {
+function openBuyersSheet(dealId) {
   const deal = Store.deal(dealId);
   if (!deal) return;
-  modal("Buyers on this deal", `<div id="buyersBody"></div>`);
+  /* one body-level sheet, usable over any screen the Buyer chip lives on.
+     The Escape listener and the hashchange teardown follow the jacket's
+     discipline: a listener must never outlive the surface it serves. */
+  const old = $("#byScrim"); if (old) old.remove();
+  const scrim = document.createElement("div");
+  scrim.className = "m-scrim show"; scrim.id = "byScrim";
+  scrim.innerHTML = `<div class="m-sheet" role="dialog" aria-modal="true" aria-label="Buyers on this deal" id="bySheet"></div>`;
+  document.body.appendChild(scrim);
+  const sheet = $("#bySheet");
 
-  /* each card is a tap target routing to the application profile — affordance
-     is the chevron plus hover/active states, nothing louder (owner spec) */
-  const card = (cust, roleLabel, chipMod) => `<div class="buyer-card buyer-card--link" role="button" tabindex="0" title="Open the credit application">
-    <div class="who"><b>${esc(cust.first + " " + cust.last)}</b><br>
-      <span class="small">${esc(cust.phone || cust.email || "no contact on file")}</span></div>
-    <span class="chip ${chipMod || ""}">${roleLabel}</span>
-    <span class="buyer-card__go">›</span>
-  </div>`;
+  const onKey = (e) => { if (e.key === "Escape") { e.preventDefault(); close(); } };
+  function teardown() {
+    document.removeEventListener("keydown", onKey, true);
+    window.removeEventListener("hashchange", teardown);
+    scrim.remove();
+  }
+  function close() { teardown(); }
+  document.addEventListener("keydown", onKey, true);
+  window.addEventListener("hashchange", teardown);
+  scrim.onclick = (e) => { if (e.target === scrim) close(); };
 
-  function render() {
-    const body = $("#buyersBody");
-    if (!body) return; /* modal dismissed */
+  const initials = (c) => esc(((c.first || " ")[0] + (c.last || " ")[0]).toUpperCase());
+  const digits = (v) => String(v || "").replace(/\D/g, "");
+  const row = (c, roleLabel, coMod, data) => `
+    <button type="button" class="by2-row" ${data}>
+      <span class="by2-avatar">${initials(c)}</span>
+      <span class="by2-rowmain"><span class="by2-rowname">${esc(c.first + " " + c.last)}</span>
+        <span class="by2-rowsub">${esc(c.phone || c.email || "no contact on file")}</span></span>
+      <span class="by2-pill${coMod ? " by2-pill--co" : ""}">${roleLabel}</span>
+      <span class="by2-go">›</span>
+    </button>`;
+
+  /* the sheet's states: list → row actions → a confirmation, or → add */
+  function render(state, arg) {
     const c = Store.customer(deal.customerId);
     const cb = deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
-    body.innerHTML = `
-      ${card(c, "Primary")}
-      ${cb ? `
-        <div class="by-swaprow"><button class="btn btn--ghost btn--sm" id="bySwap" title="Swap primary and co-buyer">⇄ Swap</button></div>
-        ${card(cb, "Co-Buyer", "chip--co")}
-        <p class="hint" id="byConfirmNote" style="display:none;margin:8px 0 0"></p>
-        <div class="right mt"><button class="btn btn--danger btn--sm" id="byDrop">Remove co-buyer</button></div>` : `
-        <div class="by-tiles mt">
-          <button class="btn btn--grad" id="byScan">🪪 Scan Driver's License</button>
-          <button class="btn btn--ghost" id="bySearchBtn">🔎 Search Existing Customer</button>
-        </div>
-        <div id="bySearchWrap" style="display:none" class="mt">
-          <input type="search" id="bySearch" placeholder="Name, phone, or license #" aria-label="Search customers" style="width:100%">
-          <div id="byResults" class="mt"></div>
-        </div>`}`;
 
-    $$(".buyer-card--link", body).forEach(el => {
-      const go = (e) => {
-        if (e.target.closest("button")) return;
-        closeModal();
-        navigate(`#/credit/${deal.id}`);
+    if (state === "actions" && cb) {
+      sheet.innerHTML = `<div class="m-handle"></div>
+        <div class="by2-head"><h2>${esc(cb.first + " " + cb.last)}</h2></div>
+        <p class="by2-sub">Co-buyer on this deal</p>
+        <div class="by2-actions">
+          <button type="button" class="by2-actionbtn" id="byView">View customer profile</button>
+          <button type="button" class="by2-actionbtn by2-actionbtn--danger" id="byRemove">Remove from deal</button>
+        </div>`;
+      $("#byView", sheet).onclick = () => { close(); navigate(`#/credit/${deal.id}`); };
+      $("#byRemove", sheet).onclick = () => render("confirmRemove");
+      return;
+    }
+
+    if (state === "confirmRemove" && cb) {
+      sheet.innerHTML = `<div class="m-handle"></div>
+        <div class="by2-head"><h2>Remove ${esc(cb.first)} from this deal?</h2></div>
+        <p class="by2-sub">Second tap confirms</p>
+        <div class="by2-confirmcard"><strong>The relationship comes off the deal.</strong>
+          <p>${esc(cb.first + " " + cb.last)}'s customer profile is kept — nothing about the person is deleted.</p></div>
+        <div class="by2-confirmrow">
+          <button type="button" class="by2-actionbtn" id="byCancel">Cancel</button>
+          <button type="button" class="by2-actionbtn by2-actionbtn--danger" id="byRemoveGo">Remove from deal</button>
+        </div>`;
+      $("#byCancel", sheet).onclick = () => render("actions");
+      $("#byRemoveGo", sheet).onclick = () => {
+        delete deal.coBuyerId; Store.save();
+        toast("Co-buyer removed — their customer record is kept");
+        router(); render("list");
       };
-      el.onclick = go;
-      el.onkeydown = (e) => {
-        if (e.target.closest("button")) return; /* guard before preventDefault, or a nested button's own key action dies */
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(e); }
+      return;
+    }
+
+    if (state === "confirmRoles" && cb) {
+      /* the old swap's business rule survives, said BEFORE the action: a
+         signed benefits acknowledgement was signed with the buyers in their
+         current positions, so the swap voids it */
+      const ackWarn = deal.menu.ackSigned
+        ? `<p class="by2-ackwarn">The benefits acknowledgement was signed with the buyers in their current positions. Changing roles clears it — <strong>the client must sign it again</strong>.</p>` : "";
+      sheet.innerHTML = `<div class="m-handle"></div>
+        <div class="by2-head"><h2>Change buyer roles?</h2></div>
+        <p class="by2-sub">Team Lead action</p>
+        <div class="by2-confirmcard"><strong>Make ${esc(cb.first + " " + cb.last)} the primary buyer</strong>
+          <p>${esc(c.first + " " + c.last)} will become the co-buyer.<br>
+          Downstream credit and deal workflows update to the new role assignment.</p></div>
+        ${ackWarn}
+        <div class="by2-confirmrow">
+          <button type="button" class="by2-actionbtn" id="byCancel">Cancel</button>
+          <button type="button" class="by2-actionbtn by2-actionbtn--primary" id="byRolesGo">Change roles</button>
+        </div>`;
+      $("#byCancel", sheet).onclick = () => render("list");
+      $("#byRolesGo", sheet).onclick = () => {
+        const tmp = deal.customerId; deal.customerId = deal.coBuyerId; deal.coBuyerId = tmp;
+        if (deal.menu.ackSigned) {
+          deal.menu.ackSigned = false; delete deal.menu.ackName;
+          toast("Roles changed — the benefits acknowledgement must be signed again");
+        } else toast("Buyer roles changed");
+        Store.save(); router(); render("list");
       };
-    });
+      return;
+    }
 
-    const scanBtn = $("#byScan", body);
-    if (scanBtn) scanBtn.onclick = () => {
-      closeModal(); /* the scan flow owns the modal */
-      openScanFlow({ mode: "cobuyer", deal, onDone: () => router() });
-    };
-
-    /* typeahead over the CRM — name, phone digits, or license number */
-    const searchBtn = $("#bySearchBtn", body);
-    if (searchBtn) searchBtn.onclick = () => {
-      searchBtn.style.display = "none";
-      $("#bySearchWrap", body).style.display = "";
-      const inp = $("#bySearch", body);
-      inp.focus();
-      const digits = (v) => String(v || "").replace(/\D/g, "");
-      inp.oninput = () => {
-        const q = inp.value.trim().toLowerCase(), qd = digits(inp.value);
-        const box = $("#byResults", body);
-        if (!q) { box.innerHTML = ""; return; }
-        const hits = Store.s.customers.filter(x => x.id !== deal.customerId).filter(x =>
-          (x.first + " " + x.last).toLowerCase().includes(q) ||
-          (qd && digits(x.phone).includes(qd)) ||
-          (x.license && x.license.number && x.license.number.toLowerCase().includes(q))
-        ).slice(0, 8);
+    if (state === "add" && !cb) {
+      sheet.innerHTML = `<div class="m-handle"></div>
+        <div class="by2-head"><h2>Add co-buyer</h2></div>
+        <p class="by2-sub">Find or identify the customer. Ride Price checks duplicates before attaching.</p>
+        <input type="search" class="by2-search" id="byQ" placeholder="Name, phone, or license #" aria-label="Search customers">
+        <div id="byHits"></div>
+        <div class="by2-seclab">Identify from a license</div>
+        <button type="button" class="by2-row" id="byScan">
+          <span class="by2-iconwell">${rpIcon("idcard")}</span>
+          <span class="by2-rowmain"><span class="by2-rowname">Scan physical license</span>
+            <span class="by2-rowsub">Use the same Scan → Confirm flow.</span></span>
+          <span class="by2-go">›</span>
+        </button>
+        <button type="button" class="by2-row" id="byLink">
+          <span class="by2-iconwell">${rpIcon("swap")}</span>
+          <span class="by2-rowmain"><span class="by2-rowname">Send secure upload link</span>
+            <span class="by2-rowsub">Customer uploads directly into Ride Price.</span></span>
+          <span class="by2-go">›</span>
+        </button>
+        <div class="by2-note"><strong>Manual creation appears only after a true no-match.</strong>
+          <p>No second customer-entry system.</p></div>`;
+      const q = $("#byQ", sheet);
+      q.focus();
+      q.oninput = () => {
+        const t = q.value.trim().toLowerCase(), td = digits(q.value);
+        const box = $("#byHits", sheet);
+        if (!t) { box.innerHTML = ""; return; }
+        /* dedupe at the source: people already on the deal never appear */
+        const hits = Store.s.customers.filter(x => x.id !== deal.customerId && x.id !== deal.coBuyerId).filter(x =>
+          (x.first + " " + x.last).toLowerCase().includes(t) ||
+          (td && digits(x.phone).includes(td)) ||
+          (x.license && x.license.number && x.license.number.toLowerCase().includes(t))
+        ).slice(0, 6);
         box.innerHTML = hits.length
-          ? hits.map(x => `<button class="buyer-card buyer-pick" data-pick="${esc(x.id)}">
-              <span class="who"><b>${esc(x.first + " " + x.last)}</b><br>
-              <span class="small">${esc(x.phone || x.email || "no contact on file")}</span></span>
+          ? hits.map(x => `<button type="button" class="by2-row" data-pick="${esc(x.id)}">
+              <span class="by2-avatar">${initials(x)}</span>
+              <span class="by2-rowmain"><span class="by2-rowname">${esc(x.first + " " + x.last)}</span>
+                <span class="by2-rowsub">${esc(x.phone || x.email || "no contact on file")} · Existing customer</span></span>
+              <span class="by2-go">›</span>
             </button>`).join("")
-          : `<p class="small muted" style="margin:4px 2px">No matching customers.</p>`;
-        $$("[data-pick]", box).forEach(btn => btn.onclick = () => {
-          deal.coBuyerId = btn.dataset.pick; Store.save();
+          : `<button type="button" class="by2-row" id="byCreate">
+              <span class="by2-iconwell">${rpIcon("user")}</span>
+              <span class="by2-rowmain"><span class="by2-rowname">No match — create new customer</span>
+                <span class="by2-rowsub">Opens the Customer Resolver's manual entry.</span></span>
+              <span class="by2-go">›</span>
+            </button>`;
+        $$("[data-pick]", box).forEach(b => b.onclick = () => {
+          deal.coBuyerId = b.dataset.pick; Store.save();
           toast("Co-buyer added to the deal");
-          router(); render();
+          router(); render("list");
         });
+        const create = $("#byCreate", box);
+        if (create) create.onclick = () => {
+          resolverMission = { kind: "cobuyer", dealId: deal.id, back: location.hash, open: "manual" };
+          close(); navigate("#/customers");
+        };
       };
-    };
+      $("#byScan", sheet).onclick = () => {
+        close();
+        openScanFlow({ mode: "cobuyer", deal, onDone: () => { router(); openBuyersSheet(deal.id); } });
+      };
+      $("#byLink", sheet).onclick = () => {
+        resolverMission = { kind: "cobuyer", dealId: deal.id, back: location.hash, open: "sendlink" };
+        close(); navigate("#/customers");
+      };
+      return;
+    }
 
-    /* swap sits between the cards for everyone; the action itself is a
-       Team Lead call (owner decision 2026-08-14 — visible, gated, no hiding) */
-    const swap = $("#bySwap", body);
-    if (swap) swap.onclick = () => {
-      if (!isTeamLead()) return toast("Swapping buyers is a Team Lead action — switch roles first");
-      if (deal.menu.ackSigned && !swap.dataset.confirm) {
-        swap.dataset.confirm = "1";
-        swap.textContent = "⇄ Confirm swap";
-        swap.classList.remove("btn--ghost"); swap.classList.add("btn--danger");
-        const note = $("#byConfirmNote", body);
-        note.style.display = "";
-        note.innerHTML = `The benefits acknowledgement was signed with the buyers in their current positions. Swapping clears it — <b>the client must sign it again</b>.`;
-        return;
-      }
-      const tmp = deal.customerId; deal.customerId = deal.coBuyerId; deal.coBuyerId = tmp;
-      if (deal.menu.ackSigned) {
-        deal.menu.ackSigned = false; delete deal.menu.ackName;
-        toast("Buyers swapped — the benefits acknowledgement must be signed again");
-      } else toast("Buyers swapped");
-      Store.save(); router(); render();
-    };
-
-    const drop = $("#byDrop", body);
-    if (drop) drop.onclick = () => {
-      if (!drop.dataset.confirm) {
-        drop.dataset.confirm = "1";
-        drop.textContent = "Confirm — remove co-buyer";
-        return;
-      }
-      delete deal.coBuyerId; Store.save();
-      toast("Co-buyer removed — their customer record is kept");
-      router(); render();
-    };
+    /* ---- the list ---- */
+    sheet.innerHTML = `<div class="m-handle"></div>
+      <div class="by2-head"><h2>Buyers on this deal</h2>
+        ${cb && isTeamLead() ? `<button type="button" class="by2-roleslink" id="byRoles">Change roles</button>` : ""}</div>
+      <p class="by2-sub">One primary buyer. Add a co-buyer only when the deal needs one.</p>
+      <div class="by2-seclab">Primary buyer</div>
+      ${row(c, "Primary", false, `id="byPrimary"`)}
+      ${cb ? `
+        <div class="by2-seclab">Co-buyer</div>
+        ${row(cb, "Co-buyer", true, `id="byCo"`)}
+        <div class="by2-banner">✓ Co-buyer attached to this deal</div>` : `
+        <button type="button" class="by2-cta" id="byAdd">Add co-buyer</button>
+        <div class="by2-note"><strong>One action opens the Customer Resolver.</strong>
+          <p>Search CRM, scan a license, or send a secure upload link.</p></div>`}`;
+    /* the whole row is the object: the primary continues into the credit
+       application context; the co-buyer opens its contextual actions */
+    $("#byPrimary", sheet).onclick = () => { close(); navigate(`#/credit/${deal.id}`); };
+    const co = $("#byCo", sheet); if (co) co.onclick = () => render("actions");
+    const add = $("#byAdd", sheet); if (add) add.onclick = () => render("add");
+    const roles = $("#byRoles", sheet); if (roles) roles.onclick = () => render("confirmRoles");
   }
-  render();
+  render("list");
 }
 
 /* ---------------- branded form controls ----------------
@@ -496,6 +580,13 @@ function renderChrome(title, crumbs, actionsHtml) {
 /* a scan that ends in "create new" from an entry point with no create
    callback sets this; the customers route consumes it once on arrival */
 let scanWantsCreate = false;
+/* the buyers sheet sends the advisor into the canonical Customer Resolver on
+   a MISSION — attach the person it resolves as this deal's co-buyer instead
+   of starting a new visit. Consumed once by the customers route on arrival,
+   the same contract as scanWantsCreate; a secure-upload session created
+   under a mission carries it on the session itself, so it survives a
+   reload where this module flag cannot. */
+let resolverMission = null;
 const routes = [];
 function route(pattern, fn) { routes.push({ pattern, fn }); }
 function navigate(hash) { location.hash = hash; }
@@ -894,6 +985,38 @@ route("customers", () => {
   /* the scan flow's no-match create and the deals-camera hand-off both land
      on the manual fallback now (the flag is consumed exactly once) */
   if (scanWantsCreate) { scanWantsCreate = false; st.mode = "manual"; }
+  /* the buyers sheet's mission (consumed once, like the flag above): the
+     resolver runs exactly as it always does, but the person it resolves is
+     attached to the deal as the co-buyer instead of starting a visit */
+  const mission = resolverMission; resolverMission = null;
+  const missionDeal = mission && mission.kind === "cobuyer" ? Store.deal(mission.dealId) : null;
+  if (missionDeal && mission.open === "manual") st.mode = "manual";
+
+  /* the one exit for every resolver path. The dedupe guard is absolute: the
+     primary cannot co-sign their own loan, and an already-attached co-buyer
+     is not attached twice. On attach, the advisor returns to the deal screen
+     they came from with the buyers sheet reopened — the second row appearing
+     IS the feedback (the package prefers local state over toast spam). */
+  function finish(customerId, sessionMission) {
+    const m = sessionMission || mission;
+    const mDeal = m && m.kind === "cobuyer" ? Store.deal(m.dealId) : null;
+    if (mDeal) {
+      if (customerId === mDeal.customerId) { toast("That's the primary buyer — a co-buyer must be a different person"); st.mode = "idle"; st.results = null; st.found = null; render(); return; }
+      if (mDeal.coBuyerId && mDeal.coBuyerId !== customerId) { toast("This deal already has a co-buyer"); st.mode = "idle"; render(); return; }
+      mDeal.coBuyerId = customerId; Store.save();
+      const back = m.back || "#/desk/" + mDeal.id;
+      if (location.hash === back) { router(); openBuyersSheet(mDeal.id); }
+      else {
+        /* reopen the sheet once the origin screen has painted — armed only
+           when a navigation is actually coming, or the once-listener would
+           fire on the next unrelated hash change */
+        window.addEventListener("hashchange", () => setTimeout(() => openBuyersSheet(mDeal.id), 80), { once: true });
+        navigate(back);
+      }
+      return;
+    }
+    startVisit(customerId);
+  }
 
   const session = () => Store.s.idSession || null;
 
@@ -905,7 +1028,7 @@ route("customers", () => {
     </div>
     <div class="m-scrim" id="obScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="obSheet"></div></div>`;
   const heroHtml = (eyebrow, title, lead) => `<div class="ca-eyebrow">${eyebrow}</div><h1 class="ob-h1">${title}</h1>${lead ? `<p class="ob-lead">${lead}</p>` : ""}`;
-  const contextPill = () => `<div class="ob-context"><span class="ob-pill"><span class="ob-dot"></span>Start new customer visit</span></div>`;
+  const contextPill = () => `<div class="ob-context"><span class="ob-pill"><span class="ob-dot"></span>${missionDeal ? "Adding a co-buyer to this deal" : "Start new customer visit"}</span></div>`;
 
   /* ---- sheets ---- */
   let sheetClose = null;
@@ -996,7 +1119,7 @@ route("customers", () => {
         <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">Customer record</div></div><span class="ob-pill">Required</span></div>
         <div class="ob-addressvalue">${esc(fmtAddr(a))}</div>
         <div class="ob-addressnote">Ride Price carries this address into registration, tax calculations, credit, and deal paperwork so the customer is not asked again.</div>
-        <button type="button" class="ob-primary" id="obConfirm">Confirm address &amp; start visit</button>
+        <button type="button" class="ob-primary" id="obConfirm">Confirm address &amp; ${missionDeal ? "attach co-buyer" : "start visit"}</button>
         <button type="button" class="sc2-textbtn ob-center" id="obOtherAddr">Use a different address</button>
       </div>
       <button type="button" class="sc2-textbtn ob-center" id="obBack">Not the right customer? Search again</button>`);
@@ -1056,7 +1179,7 @@ route("customers", () => {
         <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">Confirmed by customer · from the license</div></div><span class="ob-badge">Confirmed</span></div>
         <div class="ob-addressvalue">${esc(fmtAddr(a))}</div>
         <div class="ob-addressnote">Carried into tax calculations, credit, registration, and paperwork.</div>
-        <button type="button" class="ob-primary" id="obAttach">Start visit</button>
+        <button type="button" class="ob-primary" id="obAttach">${(session() && session().mission) || missionDeal ? "Attach as co-buyer" : "Start visit"}</button>
         <button type="button" class="sc2-textbtn ob-center" id="obDiscardSession">Discard this upload</button>
       </div>`);
   }
@@ -1111,7 +1234,7 @@ route("customers", () => {
            record it as the confirmed registration address (source: license) */
         cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), address: { confirmedAt: new Date().toISOString(), source: "license" } });
         Store.save();
-        startVisit(cust.id);
+        finish(cust.id);
       }
     });
 
@@ -1125,10 +1248,10 @@ route("customers", () => {
     if (confirmBtn) confirmBtn.onclick = () => {
       const c = st.found;
       confirmAddress(c, { address: c.address, city: c.city, state: c.state, zip: c.zip }, "record");
-      startVisit(c.id);
+      finish(c.id);
     };
     const other = $("#obOtherAddr");
-    if (other) other.onclick = () => openAddressSheet((a) => { confirmAddress(st.found, a, "chosen"); startVisit(st.found.id); });
+    if (other) other.onclick = () => openAddressSheet((a) => { confirmAddress(st.found, a, "chosen"); finish(st.found.id); });
 
     const manualSave = $("#obManualSave");
     if (manualSave) manualSave.onclick = () => {
@@ -1150,7 +1273,7 @@ route("customers", () => {
       };
       Store.s.customers.push(c); Store.save();
       toast("Customer created");
-      startVisit(c.id);
+      finish(c.id);
     };
     const addrInp = $("#obAddr");
     if (addrInp) addrInp.oninput = () => {
@@ -1164,6 +1287,11 @@ route("customers", () => {
     const attach = $("#obAttach");
     if (attach) attach.onclick = () => {
       const s = session();
+      /* a session created under a co-buyer mission carries it — captured
+         before the session is cleared, so a reload between send and attach
+         (which loses the module flag) still attaches instead of starting a
+         visit */
+      const sMission = s.mission || null;
       const p = s.persona, a = s.addressChoice;
       let c = s.matchId ? Store.customer(s.matchId) : null;
       if (c) {
@@ -1187,7 +1315,7 @@ route("customers", () => {
       });
       Store.s.idSession = null;
       Store.save();
-      startVisit(c.id);
+      finish(c.id, sMission);
     };
   }
 
@@ -1211,6 +1339,9 @@ route("customers", () => {
         if (!email) bad.push({ el: $("#obLinkEmail", sheet), msg: "Required" });
         if (markMissing(sheet, bad)) return;
         Store.s.idSession = { id: uid("s"), phone, email, channel, sentAt: new Date().toISOString(), photoAt: null, persona: null, matchId: null, faceAt: null, addressChoice: null, addressConfirmedAt: null, doneAt: null };
+        /* a link sent on the buyers sheet's mission attaches as co-buyer when
+           it completes — recorded on the session, which outlives this page */
+        if (missionDeal) Store.s.idSession.mission = { kind: "cobuyer", dealId: missionDeal.id, back: mission.back };
         Store.save();
         closeSheet4();
         st.mode = "waiting"; render(); window.scrollTo(0, 0);
@@ -1236,6 +1367,9 @@ route("customers", () => {
   }
 
   render();
+  /* the buyers sheet's "Send secure upload link" lands here mid-mission with
+     the send sheet already open — one tap on the buyers sheet, one screen */
+  if (missionDeal && mission.open === "sendlink") openSendSheet();
 });
 
 /* the customer's own secure-upload session (onboarding v3): opened from the
