@@ -1125,161 +1125,37 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
    Desktop splits outstanding from collected, because "what is still missing"
    is the only question this screen is ever opened to answer. On a phone the
    same two sections stack, outstanding first — one DOM, CSS chooses. */
-.jk-bar { height: 8px; border-radius: 99px; background: var(--line); overflow: hidden; margin-bottom: 12px; }
-.jk-bar span { display: block; height: 100%; background: var(--green); border-radius: 99px; }
 /* one column: the screen is a summary, and its two sections stack (owner
    declutter, 2026-08-18 — the side-by-side split ended with the merge) */
-.jk-cols { display: block; margin-bottom: 18px; }
-.jk-col__head {
-  font-size: 13px; text-transform: uppercase; letter-spacing: .5px; color: var(--navy);
-  margin: 0 0 10px; display: flex; align-items: center; gap: 8px;
-}
-.jk-col__head span {
-  background: var(--navy); color: #fff; border-radius: 99px; padding: 1px 9px; font-size: 11px;
-}
 /* a row is a grid — mark beside text, actions on their own line below, which
    is the shape both of the owner's 2026-08-16 mockups draw */
-.jk-row {
-  display: grid; grid-template-columns: 22px 1fr; column-gap: 12px; align-items: start;
-  background: #fff; border: 1px solid var(--line);
-  border-radius: var(--r); padding: 12px 14px; margin-bottom: 10px; box-shadow: var(--sh);
-}
-.jk-row--in { border-color: #cfe9da; background: #fbfefc; }
-.jk-row--miss { border-color: #f0d3d8; background: #fdf6f7; }
-.jk-row__mark {
-  width: 22px; height: 22px; border-radius: 50%; margin-top: 2px;
-  border: 2px solid var(--line); display: flex; align-items: center; justify-content: center;
-  font-size: 12px; font-weight: 600; color: #fff;
-}
-.jk-row--in .jk-row__mark { background: var(--green); border-color: var(--green); }
-.jk-row__mark--miss { background: var(--crimson); border-color: var(--crimson); }
 /* basis 0, not auto: with the row wrapping on phones the browser decides the
    line break from the item's content width before it decides how much to
    squeeze, so a long document name tipped the whole text block onto its own
    line and left the tick stranded above it */
-.jk-row__main { flex: 1 1 0; min-width: 0; }
-.jk-row__main b { font-size: 14px; color: var(--ink); }
-.jk-row__why, .jk-row__state { display: block; font-size: 12px; margin-top: 3px; color: var(--ink); }
-.jk-row__state { font-weight: 700; color: var(--navy-2); }
-.jk-chip {
-  display: inline-block; margin-left: 7px; vertical-align: 2px; padding: 1px 8px; border-radius: 99px;
-  font-size: 10px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase;
-  background: #fdf3e0; color: #8a5a12; border: 1px solid #f2dcb4;
-}
-.jk-chip--added { background: #eef2fb; color: var(--navy-2); border-color: #d7dff2; }
-.jk-row__act, .jk-row__more { grid-column: 2; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 /* the disclosure is a real button so a keyboard can open the folded actions;
    it dresses as the plain row text it replaced */
-.jk-row__disclose {
-  background: none; border: none; padding: 0; margin: 0; font: inherit;
-  color: inherit; text-align: left; display: block; width: 100%; cursor: pointer;
-}
 
 /* the counts are plain coloured text, not pills — override the head-span pill */
-.jk-col__head span.jk-count--miss { background: none; padding: 0; color: var(--crimson); font-size: 13px; }
-.jk-col__head span.jk-count--in { background: none; padding: 0; color: var(--green); font-size: 13px; }
 .advscript-card__col { flex: 1; display: flex; flex-direction: column; text-align: left; }
 .advscript-card__sub { font-size: 12px; color: var(--ink); font-weight: 400; }
-.jk-miss { font-style: normal; color: var(--crimson); font-weight: 600; }
 /* dual reason labels: desktop reads the long reason, the phone reads the
    short status tag */
-.jk-why-s { display: none; }
-.jk-row__req { display: block; font-size: 12px; margin-top: 3px; font-weight: 700; color: var(--navy-2); }
 
 /* the compliance card — the prototype's deep-blue gradient, both surfaces */
-.jk-comp {
-  background: linear-gradient(135deg, #081f54, #0a2c70); color: #fff;
-  border-radius: var(--r); padding: 15px; margin-bottom: 12px; box-shadow: var(--sh);
-}
-.jk-comp__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.jk-comp__top h2 { margin: 0; font-size: 18px; line-height: 1.15; color: #fff; }
-.jk-comp__count { font-size: 18px; font-weight: 900; white-space: nowrap; }
-.jk-comp__track { height: 12px; background: #334a77; border-radius: 99px; overflow: hidden; margin-top: 14px; }
-.jk-comp__fill { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #10b981, #22c55e); transition: width .25s ease; }
-.jk-comp__warn {
-  margin-top: 12px; background: rgba(245,158,11,.12); border: 1px solid rgba(245,158,11,.24);
-  color: #ffd785; padding: 9px 10px; border-radius: 12px; font-weight: 600; font-size: 12px;
-}
-.jk-comp__warn--ok { background: rgba(16,185,129,.12); border-color: rgba(16,185,129,.28); color: #7fe0a8; }
-.jk-comp__warn--ov { background: rgba(196,125,255,.12); border-color: rgba(196,125,255,.28); color: #f2c9ff; }
-.jk-comp__warn span { color: inherit; }
-.jk-gate { margin: 0; font-size: inherit; font-weight: inherit; }
 
 /* the queue card: launcher + rows in one card with hairline dividers */
-.jk-col__head--red { color: var(--crimson); }
-.jk-card { background: #fff; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; box-shadow: var(--sh); }
-.jk-snapall { margin-top: 10px; }
-.jk-card .jk-row, .jk-card .jk-row:first-of-type + .jk-row {
-  border: 0; border-top: 1px solid #f1f5f9; border-radius: 0; margin: 0; box-shadow: none; background: #fff;
-}
-.jk-card .jk-row:first-child { border-top: 0; }
-.jk-card .note { padding: 11px 12px; margin: 0; }
 
 /* the In-The-Jacket accordion (prototype, 2026-08-18) */
-.jk-intoggle {
-  width: 100%; min-height: 52px; border: 1px solid var(--line); background: #fff; color: var(--navy);
-  padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  font: inherit; text-align: left; cursor: pointer; border-radius: var(--r); box-shadow: var(--sh);
-}
-.jk-intoggle[aria-expanded="true"] { border-radius: var(--r) var(--r) 0 0; }
-.jk-intoggle__left { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; flex-wrap: wrap; }
-.jk-incheck {
-  width: 22px; height: 22px; border-radius: 50%; background: #d1fae5; color: #047857;
-  display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 900; flex: 0 0 auto;
-}
 /* the title wraps rather than pushing the row wide — "Required for
    compliance" is longer than "In The Jacket" and overflowed 320px */
-.jk-intitle { font-size: 12px; font-weight: 900; text-transform: uppercase; letter-spacing: .35px; min-width: 0; }
-.jk-incount {
-  font-size: 11px; font-weight: 900; color: #047857; background: #ecfdf5;
-  border: 1px solid #d1fae5; border-radius: 99px; padding: 3px 7px; white-space: nowrap;
-}
 /* the same control, in the outstanding colour when something is missing */
-.jk-incheck--miss { background: #fee2e2; color: var(--crimson); }
-.jk-incount--miss { color: var(--crimson); background: #fff5f6; border-color: #f6d3d9; }
 /* one section holds both groups, each with its own quiet label */
-.jk-grouplab {
-  font-size: 10.5px; font-weight: 900; text-transform: uppercase; letter-spacing: .6px;
-  margin: 4px 2px 8px; color: var(--ink);
-}
-.jk-grouplab--miss { color: var(--crimson); }
-.jk-grouplab--in { color: var(--green); margin-top: 14px; }
 /* the request stamp is a quiet line under the heading, not a heavy pill */
-.jk-reqstamp { margin: -4px 2px 8px; font-size: 11.5px; color: var(--muted); }
 /* every queue row carries its own action */
-.jk-rowscan { white-space: nowrap; background: #eff6ff; border-color: #bfdbfe; color: #1d4ed8; font-weight: 600; }
-.jk-rowscan:hover { background: #dbeafe; }
 /* the advisor script lives in the header now */
-.jk-scriptbtn {
-  width: 38px; height: 38px; flex: 0 0 auto; border-radius: 50%; cursor: pointer;
-  border: 1px solid #f2dcb4; background: #fdf1d8; font-size: 17px; line-height: 1;
-}
-.jk-intoggle__ctl { display: flex; align-items: center; gap: 6px; color: var(--ink); font-size: 11px; font-weight: 600; flex: 0 0 auto; }
-.jk-inchev { display: inline-block; font-size: 10px; transition: transform .16s; }
-.jk-inchev--open { transform: rotate(180deg); }
-.jk-incontent {
-  border: 1px solid var(--line); border-top: 1px solid #f1f5f9; padding: 8px;
-  background: rgba(248,250,252,.65); border-radius: 0 0 var(--r) var(--r);
-}
-.jk-addopt {
-  width: 100%; min-height: 44px; border: 1px dashed #c7d2fe; border-radius: var(--btn-r);
-  background: #eef2ff; color: #4338ca; font: inherit; font-weight: 600; cursor: pointer; margin-top: 4px;
-}
-.jk-dockinfo { flex: 1.7; justify-content: center; background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.16); color: #cbd5e1; }
-.jk-dockinfo[disabled] { opacity: 1; cursor: default; }
 
 /* gate line, request-all, sign-off strip */
-.jk-gate__warn, .jk-gate__ok, .jk-gate__ov { color: inherit; }
-.jk-reqall { width: 100%; justify-content: center; margin-bottom: 10px; }
-.jk-addrow { margin-top: 6px; }
-.jk-reqlist { margin: 0 0 10px; padding-left: 18px; font-size: 13px; color: var(--ink); }
-.jk-reqlist li { margin: 3px 0; }
-.jk-signoff {
-  display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--line);
-  border-radius: var(--r); padding: 14px 16px; box-shadow: var(--sh); margin-bottom: 18px;
-}
-.jk-signoff__ico { font-size: 20px; }
-.jk-signoff p { flex: 1; margin: 0; font-size: 13px; color: var(--ink); }
 
 /* ---------- document request flow (owner's v2 prototype, 2026-08-16).
    The dr- palette is the prototype's own — deep navy, amber chips, emerald
@@ -1288,44 +1164,15 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
 .dr-chip--accepted { background: #d1fae5; color: #047857; }
 .dr-needed { font-size: 11px; font-weight: 900; color: #9a3412; white-space: nowrap; }
 .dr-needed--blocked { color: #be123c; }
-.dr-qrow--snap { cursor: pointer; }
-.dr-qrow--snap:hover { background: #fafcff; }
-/* the action sits inside a section heading, and `.jk-col__head span` is the
-   navy count pill — without this reset that pill painted a dark rounded
-   slab behind the button, poking out at both ends (owner, 2026-08-19).
-   The element+class selector is deliberate: it must outrank that rule. */
-.jk-col__head span.dr-qaction { margin-left: auto; background: none; padding: 0; border-radius: 0; }
-.dr-qaction .btn { white-space: nowrap; font-size: 11px; padding: 8px 10px; }
-.dr-qicon {
-  width: 38px; height: 38px; border-radius: 10px; flex: 0 0 auto;
-  display: flex; align-items: center; justify-content: center; font-size: 18px;
-  background: #fff1f2; color: #e11d48;
-}
 .dr-qicon--amber { background: #fff7ed; color: #c2410c; }
 .dr-qicon--green { background: #ecfdf5; color: #07865f; }
-.dr-qrow { grid-template-columns: 38px 1fr auto; }
-.dr-funding { flex: 2; justify-content: center; background: linear-gradient(90deg, #059669, #10b981); color: #fff; border-color: transparent; white-space: nowrap; font-size: 12px; }
 
-/* composer sheet */
+/* the client sheet — the composer that shared these rules is gone with the
+   V2 jacket, and what is left here dresses the customer-facing document sheet */
 .dr-sheet { max-width: 560px; margin: 0 auto; background: #fff; border: 1px solid var(--line); border-radius: var(--r); overflow: hidden; box-shadow: var(--sh); }
-.dr-sheethead { background: linear-gradient(90deg, #161c55, #272365); color: #fff; padding: 15px 16px; display: flex; align-items: center; }
-.dr-sheethead h2 { margin: 0; font-size: 17px; flex: 1; }
-.dr-close { color: #fff; font-size: 24px; text-decoration: none; line-height: 1; }
-.dr-sheetbody { padding: 16px; }
-.dr-kicker { display: block; font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; }
-.dr-person { padding-bottom: 12px; border-bottom: 1px solid var(--line); margin-bottom: 12px; }
-.dr-person b { font-size: 16px; }
-.dr-person span { display: block; color: var(--ink); font-size: 13px; }
-.dr-items { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; margin: 10px 0; }
-.dr-item { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-top: 1px solid var(--line); }
-.dr-item:first-child { border-top: 0; }
 .dr-itemcopy { flex: 1; min-width: 0; }
 .dr-itemcopy b { display: block; font-size: 13px; }
 .dr-itemcopy span { display: block; font-size: 11px; color: var(--ink); margin-top: 2px; }
-.dr-itemcheck { width: 26px; height: 26px; border-radius: 50%; background: #10b981; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; }
-.dr-bigcta { width: 100%; justify-content: center; background: linear-gradient(90deg, #059669, #10b981); color: #fff; border-color: transparent; font-size: 15px; padding: 14px; margin-top: 10px; }
-.dr-bigcta[disabled] { opacity: .5; }
-.dr-cancel { display: block; width: fit-content; margin: 10px auto 0; color: var(--muted); font-weight: 600; background: none; border: none; cursor: pointer; text-decoration: none; font-size: 12px; padding: 7px 14px; }
 
 /* the simulated client phone — a centred column that reads as the client's
    device on any screen width (my call for desktop: the client journey is a
@@ -1579,10 +1426,6 @@ body[data-screen="clientlink"] { background: #fff; }
 /* ---- Snap All Documents — burst capture + simulated auto-sort ---- */
 /* the advisor launcher shares the jacket screen's recorded blue-CTA
    exception; the client launcher stays on the client-link's own gradient */
-.jk-snapall {
-  display: flex; width: 100%; justify-content: center; min-height: 48px; margin: 0 0 10px;
-  background: linear-gradient(90deg, #2563eb, #3b82f6); color: #fff; border-color: transparent; font-weight: 600;
-}
 .dr-snapall {
   width: 100%; min-height: 48px; border: 0; border-radius: var(--btn-r); margin: 0 0 12px;
   background: linear-gradient(90deg, var(--orange), var(--coral)); color: #fff;
@@ -1676,7 +1519,6 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
 }
 
 /* phone-only pieces, hidden above 720 */
-.jk-phonehead, .jk-bottombar { display: none; }
 
 /* on-screen document previews darken their metadata for sunlight readability;
    scoped to screen so the printed output stays byte-identical */
@@ -1783,107 +1625,15 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
   .dd__btn { min-height: 44px; }
   .stepper .st { min-height: 40px; }
   .crumb-btn { padding: 11px 15px; font-size: 12px; }
-  .jk-cols { grid-template-columns: 1fr; gap: 12px; }
   /* two to a line at most — three abreast at 390px broke every label in half */
-  .jk-row__more .btn { flex: 1 1 auto; min-width: 46%; }
 
-  /* ---- the jacket phone layout (owner mockup, 2026-08-16) ---- */
-  /* the crumb line and page actions duplicate what the header card and the
-     wide scan button say; the phone shows the card, desktop keeps the bar */
-  body[data-screen="jacket"] .pagebar { display: none; }
-  /* the composer and client screens carry their own headers on a phone */
-  body[data-screen="docreq"] .pagebar,
+  /* the composer and client screens carry their own headers on a phone.
+     The Deal Jacket V2 renders its own .m-app column on the master canvas,
+     so the phone layout the 2026-08-16 mockup needed — and the 86px bottom
+     reservation for its old fixed bar — went with the .jk- family it styled;
+     .m-app carries the dock's clearance now. */
   body[data-screen="clientlink"] .pagebar,
   body[data-screen="snapall"] .pagebar { display: none; }
-  /* the queue icon keeps its 38px column on phones — the generic jacket-row
-     rule narrows the first column to 34px and would clip it */
-  body[data-screen="jacket"] .jk-row.dr-qrow { grid-template-columns: 38px 1fr auto; }
-  body[data-screen="jacket"] .jk-phonehead {
-    display: flex; align-items: center; gap: 12px; background: #fff;
-    border: 1px solid var(--line); border-radius: var(--r); padding: 12px 14px;
-    box-shadow: var(--sh); margin-bottom: 12px;
-  }
-  .jk-phonehead__ava {
-    width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(145deg, #dbeafe, #bfdbfe);
-    color: var(--navy); font-weight: 900; font-size: 15px;
-    display: flex; align-items: center; justify-content: center;
-  }
-  .jk-phonehead__who { flex: 1; display: flex; flex-direction: column; min-width: 0; }
-  .jk-phonehead__who b { font-size: 15px; color: var(--ink); }
-  .jk-phonehead__who span { font-size: 12px; color: var(--ink); }
-  .jk-phonehead__no { font-size: 14px; color: var(--ink); font-family: Consolas, monospace; font-weight: 700; }
-  /* the compliance card is the shared .jk-comp component — no phone variant */
-  /* sections are grouped cards; rows sit inside them. The queue and accordion
-     bring their own cards, so those two sections go transparent. */
-  body[data-screen="jacket"] .jk-col {
-    background: #fff; border: 1px solid var(--line); border-radius: var(--r);
-    padding: 12px 12px 8px; box-shadow: var(--sh);
-  }
-  body[data-screen="jacket"] .jk-col.dr-queue,
-  body[data-screen="jacket"] .jk-col--forms { background: none; border: 0; padding: 0; box-shadow: none; }
-  body[data-screen="jacket"] .jk-card .jk-row { border: 0; border-top: 1px solid #f1f5f9; border-radius: 0; margin: 0; }
-  body[data-screen="jacket"] .jk-row { box-shadow: none; }
-  /* completed rows are bordered tinted rows like the missing ones, per the
-     reference component (slate tint, not hairline separators) */
-  body[data-screen="jacket"] .jk-row--in {
-    background: #f8fafc; border: 1px solid #eef0f5;
-    border-radius: 12px; margin-bottom: 10px; padding: 10px 12px;
-  }
-  body[data-screen="jacket"] .jk-row--miss { border-radius: 12px; padding: 10px 12px; }
-  /* the compression pass (owner, 2026-08-16): one status line per card — the
-     short reason replaces the long one, the origin chips go (the Upload vs
-     Scan button already says which paper the app can read), and the metrics
-     tighten so four to five cards fit a screen */
-  body[data-screen="jacket"] .jk-row { padding: 8px 10px; margin-bottom: 8px; column-gap: 10px; grid-template-columns: 26px 1fr auto; }
-  body[data-screen="jacket"] .jk-row .jk-chip { display: none; }
-  body[data-screen="jacket"] .jk-why-l { display: none; }
-  body[data-screen="jacket"] .jk-why-s { display: inline; }
-  body[data-screen="jacket"] .jk-row__main b { font-size: 13px; }
-  body[data-screen="jacket"] .jk-row__why { font-size: 11px; margin-top: 2px; }
-  body[data-screen="jacket"] .jk-row__state { font-size: 11px; }
-  body[data-screen="jacket"] .jk-row__req { font-size: 11px; }
-  /* the missing row's primary action is blue-outlined, per the reference */
-  body[data-screen="jacket"] .jk-row--miss .jk-row__act .btn--primary {
-    color: #2563eb; border-color: #2563eb;
-  }
-  /* one primary action pinned right, vertically centred, like the mockup;
-     the rest folds behind a tap on the row text */
-  body[data-screen="jacket"] .jk-row { grid-template-columns: 34px 1fr auto; }
-  body[data-screen="jacket"] .jk-row__act { grid-column: 3; grid-row: 1; align-self: center; margin-top: 0; }
-  body[data-screen="jacket"] .jk-row__act .btn { flex: none; min-width: 0; }
-  body[data-screen="jacket"] .jk-view { color: var(--blue); border-color: #c5d7f5; }
-  body[data-screen="jacket"] .jk-row__more { grid-column: 1 / -1; display: none; }
-  body[data-screen="jacket"] .jk-row--open .jk-row__more { display: flex; }
-  body[data-screen="jacket"] .jk-row__mark { width: 24px; height: 24px; font-size: 11px; }
-  /* the add-form control dresses as the reference's indigo button; its label
-     and hint are the dropdown's own furniture and the reference has neither */
-  body[data-screen="jacket"] .jk-addrow .lab,
-  body[data-screen="jacket"] .jk-addrow .hint { display: none; }
-  body[data-screen="jacket"] .jk-addrow .dd__btn {
-    background: #eef2ff; border-color: #c7d2fe; color: #4338ca;
-    font-weight: 600; justify-content: center; border-radius: 12px;
-  }
-  body[data-screen="jacket"] .jk-addrow .dd__btn i { color: #4338ca; }
-  /* the sign-off strip's message lives in the banner line on a phone */
-  body[data-screen="jacket"] .jk-signoff { display: none; }
-  /* the bottom dock is navy, per the reference: outlined Prev, translucent
-     Send SMS Link, brand-gradient Next Step at the reference's flex ratios */
-  body[data-screen="jacket"] .jk-bottombar {
-    display: flex; position: fixed; left: 0; right: 0; bottom: 0; gap: 8px; z-index: 40;
-    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
-    background: linear-gradient(90deg, var(--chrome), var(--chrome-2));
-    border-top: 1px solid rgba(255,255,255,.08);
-  }
-  .jk-bottombar .btn { flex: 1; justify-content: center; white-space: nowrap; padding-left: 8px; padding-right: 8px; font-size: 13px; }
-  .jk-bottombar .btn--ghost { background: transparent; color: #fff; border-color: rgba(255,255,255,.25); }
-  .jk-bottombar .btn--grad { flex: 1.7; }
-  /* row action buttons are light and outlined, as the mockup draws them */
-  body[data-screen="jacket"] .jk-row__act .btn--primary {
-    background: #fff; color: var(--navy); border-color: #cfd4e6;
-  }
-  /* reserve what the bar actually occupies — its height grows with the
-     home-indicator inset, so the reservation must grow with it too */
-  body[data-screen="jacket"] #view { padding-bottom: calc(86px + env(safe-area-inset-bottom)); }
   .ini-clear { padding: 8px 14px; }
   .mprod .mv { padding: 9px 12px; }
   .switch { width: 46px; height: 26px; }
@@ -2930,7 +2680,11 @@ button.jk2-row:active { background: var(--surface); }
 .jk2-inline { margin: 0 18px 16px; background: var(--jk2-ok-bg); border-radius: 16px; padding: 12px 14px; font-size: 13px; color: var(--jk2-ok); line-height: 1.5; }
 .jk2-inline--warn { background: var(--jk2-warn-bg); color: var(--jk2-warn); }
 .jk2-inline--flush { margin: 14px 18px; }
-.jk2-inline .jk2-smalllink { color: inherit; padding: 2px 0; min-height: 0; }
+/* the banner's link runs inside a sentence, so it cannot take the 44px
+   box the standalone link uses — vertical padding with a matching negative
+   margin gives it the hit area without moving the line (same trick as
+   `.hint a`). Resetting min-height alone collapsed it to the text height. */
+.jk2-inline .jk2-smalllink { color: inherit; display: inline-block; padding: 13px 2px; margin: -13px -2px; min-height: 0; }
 
 /* funding dock — safe-area aware, unlocks only when the jacket is complete */
 .jk2-dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; width: min(430px, 100%); background: rgba(255, 255, 255, .97); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid var(--line); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; z-index: 12; }
@@ -2973,4 +2727,16 @@ button.jk2-choice:active { background: var(--surface); }
 .jk2-script p { margin: 0 0 12px; }
 .jk2-inline--bare { margin: 0 0 14px; }
 select.jk2-input { appearance: auto; }
+/* the app's phone rule forces 16px on select and textarea so iOS Safari does
+   not zoom the page on focus, but that selector is element-specificity and
+   `.jk2-input` outranks it at every width. The golden's 15px stands on
+   desktop; the phone keeps the rule the whole app already obeys, because a
+   zoom here throws the sheet off screen mid-entry. */
+@media (max-width: 720px) {
+  .jk2-input { font-size: 16px; }
+}
 a.jk2-sheetbtn { display: grid; place-items: center; text-decoration: none; }
+/* the V2 golden sizes its own close control at 40px — the app's small-target
+   floor. Scoped to this jacket's sheets so the shared master close keeps the
+   size its own package locked. */
+#jkSheet .m-close { width: 40px; height: 40px; }

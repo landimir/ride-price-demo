@@ -499,6 +499,12 @@ let scanWantsCreate = false;
 const routes = [];
 function route(pattern, fn) { routes.push({ pattern, fn }); }
 function navigate(hash) { location.hash = hash; }
+/* a route that immediately forwards somewhere else must REPLACE its history
+   entry, not push over it — pushing leaves the dead hash behind the new one,
+   so Back returns to it and it forwards again: a loop the user cannot Back
+   out of (measured on the retired composer hash — two Backs and still stuck).
+   Use this, never navigate(), for any guard or retired route that redirects. */
+function redirect(hash) { location.replace(hash); }
 
 function router() {
   const hash = location.hash || "#/deals";
@@ -4972,17 +4978,19 @@ function jacketReceive(deal, docId, how, note) {
 function jacketRemove(deal, docId) {
   const j = jacketOf(deal);
   delete j.docs[docId];
+  /* taking a document back out returns it to "not yet collected" — the
+     client pipeline record goes with it, or the row would wear a stale
+     Requested/accepted state that a resend could never refresh (its guard
+     rightly skips accepted records). Review find. */
+  if (j.client) delete j.client[docId];
+  if (j.req) delete j.req[docId];
   Store.save();
 }
 
-/* the simulated client request — a stamp on the deal, nothing leaves the device */
-function jacketRequest(deal, docIds) {
-  const j = jacketOf(deal);
-  if (!j.req) j.req = {};
-  const at = new Date().toISOString();
-  docIds.forEach(id => { j.req[id] = at; });
-  Store.save();
-}
+/* jacketRequest and its j.req stamp are retired: the client pipeline record
+   (jacket.client) is the one ledger of what was requested. Old blobs may
+   still carry j.req entries — they are ignored everywhere and cleaned up
+   per-document by jacketRemove. */
 
 /* ---------------- the document-request flow (owner's v2 prototype) ----------------
    Three customer documents travel a state machine:
@@ -5272,6 +5280,11 @@ route("jacket/:id", ({ id }) => {
   const ui = { formsOpen: false, completedOpen: false };
   let camDoc = null;        /* which customer document the camera is filling */
   let sheetKey = null;      /* the Escape handler the open sheet installed */
+  let sendLock = false;     /* a send is in flight — the sheet may not close */
+  /* this view re-renders whole: marking a document received from a row far
+     down the page would otherwise jump the advisor back to the top, losing
+     the place they were working (review lesson 6). Scroll is state here. */
+  let firstPaint = true;
 
   /* a listener must never outlive the view: leaving the route does not re-run
      the wiring, so a stale Escape handler would call render() and paint the
@@ -5285,16 +5298,22 @@ route("jacket/:id", ({ id }) => {
   /* ---- what the buckets hold ---- */
   const inJacket = (d) => !!jacketState(deal, d.id);
   const isCustomerDoc = (d) => CLIENT_QUEUE_IDS.includes(d.id);
-  /* the licence exception is local to the licence: front saved, back still
-     required is a distinct state, not a generic rejection */
+  /* the licence exception is local to the LICENCE (the package's own rule) —
+     the paystub also has a missingPage beat ("Second paystub is missing"),
+     and matching any missing page here sent that rejection to the licence
+     sheet with "add the back barcode side" instructions (review find) */
   function backMissing(docId) {
+    if (docId !== "form-license") return false;
     const m = clientMeta(docId); const r = jacketClient(deal)[docId];
     return !!(m && m.missingPage && r && r.state === "rejected" && r.rejectedReason === m.missingPage.title);
   }
+  /* Requested is derived from the client pipeline record alone — the j.req
+     stamp is write-only history, and reading it here made a document taken
+     back out of the jacket say "Requested" forever (review find) */
   function custStatus(d) {
     const r = jacketClient(deal)[d.id];
     if (r && r.state === "rejected") return backMissing(d.id) ? { cls: "blocked", label: "Back needed" } : { cls: "blocked", label: "Retake needed" };
-    if ((r && r.state === "requested") || jacketRead(deal).req[d.id]) return { cls: "requested", label: "Requested" };
+    if (r && r.state === "requested") return { cls: "requested", label: "Requested" };
     return { cls: "", label: "Needed" };
   }
 
@@ -5310,6 +5329,12 @@ route("jacket/:id", ({ id }) => {
     if (onMount) onMount(sh);
   }
   function closeSheet() {
+    /* a confirmed send may not be dismissed away: during the brief sending
+       window Escape and a scrim tap are inert, or the advisor's own "I'm
+       done" gesture after tapping Send silently discarded the request with
+       no feedback (review find). Navigating away still cancels — teardown
+       and the timer's own liveness check do not come through here. */
+    if (sendLock) return;
     const sc = $("#jkScrim"); if (sc) sc.classList.remove("show");
     if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
   }
@@ -5317,6 +5342,7 @@ route("jacket/:id", ({ id }) => {
     <button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>`;
 
   function render() {
+    const keepScroll = window.scrollY;
     const docs = jacketDocs(deal);
     const jk = jacketRead(deal);
     const cst = Store.customer(deal.customerId);
@@ -5331,6 +5357,18 @@ route("jacket/:id", ({ id }) => {
     const rem = total - done;
     const pct = total ? Math.round(done / total * 100) : 0;
     const reqSent = !!jk.reqSentAt;
+    /* what the banner may claim: only documents actually ON the open request
+       and still owed by the customer. Counting all of custWaiting overstated
+       a partial send (3 pending beside two rows reading Needed), and counting
+       only state "requested" hid the banner entirely when every document on
+       the send was sitting rejected — the one confirmation of that send
+       (review find). A rejected document is still owed: the link shows it
+       with its retake. Gated on reqSent, or an advisor-side rejection with
+       no send yet would claim a request went out. */
+    const reqPending = reqSent ? custWaiting.filter(d => {
+      const r = jacketClient(deal)[d.id];
+      return !!r && (r.state === "requested" || r.state === "rejected");
+    }) : [];
     /* sign-off unlocks at complete; a Team Lead's recorded override is the
        one documented way past it and still counts (owner, 2026-08-16) */
     const fundable = rem === 0 || !!ov;
@@ -5344,7 +5382,12 @@ route("jacket/:id", ({ id }) => {
       const st = kind === "customer" ? custStatus(d)
         : kind === "done" ? { cls: "done", label: "In jacket" }
           : { cls: "", label: "Needed" };
-      const sub = kind === "done" ? receivedLine(d) : (isCustomerDoc(d) ? (clientMeta(d.id) || {}).plainReason || d.whyShort : d.whyShort);
+      /* a refused document says WHY on its own row — the reason was recorded
+         but invisible here, so "Retake needed" gave no clue what was wrong */
+      const rej = kind === "customer" && st.cls === "blocked" ? (jacketClient(deal)[d.id] || {}).rejectedReason : null;
+      const sub = kind === "done" ? receivedLine(d)
+        : rej ? rej
+          : (isCustomerDoc(d) ? (clientMeta(d.id) || {}).plainReason || d.whyShort : d.whyShort);
       return `<button type="button" class="jk2-row" data-open="${esc(d.id)}" data-kind="${esc(kind)}">
         <span class="jk2-icon">${DR_ROW_ICON[d.id] || DR_ROW_ICON.default}</span>
         <span class="jk2-rowcopy"><span class="jk2-rowtitle">${esc(d.label)}</span><span class="jk2-rowsub">${esc(sub)}</span></span>
@@ -5371,7 +5414,9 @@ route("jacket/:id", ({ id }) => {
             </div>
             <div class="jk2-progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Deal jacket ${pct}% complete"><span style="width:${pct}%"></span></div>
             <p class="jk2-note">${rem
-        ? `<b>${custWaiting.length} item${custWaiting.length === 1 ? "" : "s"} need the customer.</b> ${formsWaiting.length ? `The other ${formsWaiting.length} ${formsWaiting.length === 1 ? "is a deal form" : "are deal forms"} your team completes.` : "All deal forms are complete."}`
+        ? custWaiting.length
+          ? `<b>${custWaiting.length} item${custWaiting.length === 1 ? " needs" : "s need"} the customer.</b> ${formsWaiting.length ? `The other ${formsWaiting.length} ${formsWaiting.length === 1 ? "is a deal form" : "are deal forms"} your team completes.` : "All deal forms are complete."}`
+          : `<b>All customer documents are in.</b> The ${formsWaiting.length} remaining ${formsWaiting.length === 1 ? "is a deal form" : "are deal forms"} your team completes.`
         : `<b>Jacket complete.</b> Everything required for funding sign-off is recorded.`}</p>
           </section>
 
@@ -5384,7 +5429,7 @@ route("jacket/:id", ({ id }) => {
             ${custWaiting.length
         ? `<div class="jk2-rows">${custWaiting.map(d => rowHtml(d, "customer")).join("")}</div>`
         : `<div class="jk2-inline jk2-inline--flush">All customer documents are in the jacket.</div>`}
-            ${custWaiting.length && reqSent ? `<div class="jk2-inline">✓ Secure request sent · ${custWaiting.length} document${custWaiting.length === 1 ? "" : "s"} still pending · <button type="button" class="jk2-smalllink" id="jkTrack">View status</button></div>` : ""}
+            ${reqPending.length ? `<div class="jk2-inline">✓ Secure request sent · ${reqPending.length} document${reqPending.length === 1 ? "" : "s"} still pending · <button type="button" class="jk2-smalllink" id="jkTrack">View status</button></div>` : ""}
             ${custWaiting.length ? `<div class="jk2-secactions">
               <button type="button" class="jk2-primary" id="jkRequest">${reqSent ? `Resend secure request (${custWaiting.length})` : `Request ${custWaiting.length} document${custWaiting.length === 1 ? "" : "s"}`}</button>
               ${custWaiting.length > 1 ? `<button type="button" class="jk2-linkbtn" id="jkSnapAll">Capture all ${custWaiting.length} here instead</button>` : ""}
@@ -5435,6 +5480,10 @@ route("jacket/:id", ({ id }) => {
 
     wireDeskTop();
     wire(custWaiting, addable);
+    /* keep the advisor where they were working. The page can be shorter after
+       a document moves buckets, so clamp rather than restoring blind. */
+    if (firstPaint) firstPaint = false;
+    else window.scrollTo(0, Math.min(keepScroll, Math.max(0, document.body.scrollHeight - window.innerHeight)));
   }
 
   /* what the Completed row says it knows — the distinction the old screen
@@ -5470,12 +5519,17 @@ route("jacket/:id", ({ id }) => {
           if (!picked.length) return toast("Choose at least one document");
           sh.innerHTML = `<div class="m-handle"></div><div class="scan-stage"><div class="scan-spin"></div><p class="scan-instruct">Sending the secure link…</p></div>`;
           /* the send window is the same liveness problem the old composer had:
-             navigating away or dismissing mid-send must not let the timer
-             write state and repaint over whatever screen is showing by then */
+             NAVIGATING AWAY mid-send must not let the timer write state and
+             repaint over whatever screen is showing by then. Dismissal is a
+             different case: sendLock makes Escape and the scrim inert until
+             the send lands, so a confirmed send cannot be silently thrown
+             away by an "I'm done" tap on the backdrop (review find). */
+          sendLock = true;
           const alive = () => document.contains(sh) && !!$("#jkScrim") && $("#jkScrim").classList.contains("show");
           setTimeout(() => {
-            if (!alive()) return;
+            if (!alive()) { sendLock = false; return; }
             sendRequest(picked);
+            sendLock = false;
             closeSheet();
             /* no toast: the package puts this feedback in the jacket itself,
                where it stays readable — the inline banner under the customer
@@ -5486,8 +5540,13 @@ route("jacket/:id", ({ id }) => {
       });
   }
 
-  /* one secure link covers every document ticked. A document already
-     accepted is never reset by a resend — only one still in flight is. */
+  /* one secure link covers every document ticked, and the client pipeline
+     record is the ONE ledger of it. A document already accepted is never
+     reset, and a rejected one keeps its rejection — the reason and the
+     preserved pages (the licence front) are exactly what the customer's
+     retake needs. (The old j.req stamp is no longer written: two ledgers
+     recording the same send is how a removed document came to read
+     "Requested" forever — review find.) */
   function sendRequest(ids) {
     const j = jacketOf(deal);
     const cl = jacketClientOf(deal);
@@ -5497,21 +5556,26 @@ route("jacket/:id", ({ id }) => {
       if (!cl[qid] || cl[qid].state === "requested") cl[qid] = { state: "requested", requestedAt: at };
     });
     Store.save();
-    jacketRequest(deal, ids);
   }
 
   /* delivery status, local to the jacket — never its own route */
   function trackingSheet(waiting) {
     const cst = Store.customer(deal.customerId);
     const jk = jacketRead(deal);
-    const uploaded = CLIENT_QUEUE_IDS.filter(qid => { const r = jacketClient(deal)[qid]; return r && r.state !== "requested"; }).length;
-    const asked = CLIENT_QUEUE_IDS.filter(qid => !!jacketClient(deal)[qid]).length;
+    /* one set, read twice: the numerator and the denominator must describe the
+       same documents or the sheet reports two different truths (lesson 7).
+       Advisor-side captures (via: "advisor") are excluded from BOTH — this
+       sheet reports what the CUSTOMER did with the link, and an in-showroom
+       scan is not the customer opening or uploading anything (review find). */
+    const cl = jacketClient(deal);
+    const asked = CLIENT_QUEUE_IDS.filter(qid => cl[qid] && cl[qid].via !== "advisor");
+    const uploaded = asked.filter(qid => cl[qid].state !== "requested");
     openSheet(`${sheetHead("Customer request", cst ? "Sent to " + cst.first + " " + cst.last + (cst.phone ? " · " + cst.phone : "") : "")}
       <div class="jk2-track">
         <div class="jk2-trackrow"><span class="jk2-dot">✓</span><b>Link sent</b><span>${esc(jacketStamp(jk.reqSentAt))}</span></div>
         <div class="jk2-trackrow"><span class="jk2-dot">✓</span><b>Delivered</b><span>${esc(jacketStamp(jk.reqSentAt))}</span></div>
-        <div class="jk2-trackrow${uploaded ? "" : " jk2-trackrow--pending"}"><span class="jk2-dot">${uploaded ? "✓" : "•"}</span><b>Customer opened</b><span>${uploaded ? "Opened" : "Waiting"}</span></div>
-        <div class="jk2-trackrow${uploaded ? "" : " jk2-trackrow--pending"}"><span class="jk2-dot">${uploaded ? "✓" : "•"}</span><b>Documents uploaded</b><span>${uploaded} of ${asked || waiting.length}</span></div>
+        <div class="jk2-trackrow${uploaded.length ? "" : " jk2-trackrow--pending"}"><span class="jk2-dot">${uploaded.length ? "✓" : "•"}</span><b>Customer opened</b><span>${uploaded.length ? "Opened" : "Waiting"}</span></div>
+        <div class="jk2-trackrow${uploaded.length ? "" : " jk2-trackrow--pending"}"><span class="jk2-dot">${uploaded.length ? "✓" : "•"}</span><b>Documents uploaded</b><span>${uploaded.length} of ${asked.length}</span></div>
       </div>
       <p class="jk2-privacy">The customer's phone is played by this same browser — open it to run the upload side of the demo.</p>
       <div class="jk2-sheetactions">
@@ -5593,16 +5657,16 @@ route("jacket/:id", ({ id }) => {
   function recordSheet(d) {
     const st = jacketState(deal, d.id); if (!st) return;
     const viewable = d.origin !== "outside"
-      ? `#/print/${encodeURIComponent(deal.id)}/${encodeURIComponent(d.id)}`
+      ? `#/print/${esc(deal.id)}/${esc(d.id)}`
       : (st.how === "client" || st.how === "sort") && CLIENT_QUEUE_IDS.includes(d.id)
-        ? `#/docreview/${encodeURIComponent(deal.id)}/${encodeURIComponent(d.id)}` : null;
+        ? `#/docreview/${esc(deal.id)}/${esc(d.id)}` : null;
     openSheet(`${sheetHead(d.label, receivedLine(d))}
       <p class="jk2-privacy">${st.how === "scan" ? "Verified — the app read the marker it printed on this page."
         : st.how === "sort" ? "Auto-filed by Snap &amp; Sort (demo — a simulated check)."
           : st.how === "client" ? "Uploaded by the customer through the secure link and accepted after review."
             : "Taken in by hand. The jacket keeps the record, not the paper."}${st.note ? " Note: " + esc(st.note) : ""}</p>
       <div class="jk2-sheetactions${viewable ? "" : " jk2-sheetactions--single"}">
-        ${viewable ? `<a class="jk2-sheetbtn" href="${viewable}">View</a>` : ""}
+        ${viewable ? `<a class="jk2-sheetbtn" href="${esc(viewable)}">View</a>` : ""}
         <button type="button" class="jk2-sheetbtn" id="jkUndo">Take back out</button></div>
       ${d.added ? `<div class="jk2-sheetactions jk2-sheetactions--single"><button type="button" class="jk2-sheetbtn" id="jkDrop">Remove from this deal</button></div>` : ""}`,
       (sh) => {
@@ -5652,6 +5716,8 @@ route("jacket/:id", ({ id }) => {
       <label class="scan-frame scan-frame--tap scan-cap">
         <span class="scan-frame__icon">${rpIcon("camera")}</span><span class="scan-frame__label" id="jkUplLabel">Photograph the document</span>
         <input type="file" accept="image/*" id="jkUplFile"></label>
+      <div class="jk2-field"><label for="jkUplNote">Source or note <i>(optional)</i></label>
+        <input type="text" class="jk2-input" id="jkUplNote" maxlength="120" placeholder="e.g. faxed by the credit union"></div>
       <p class="jk2-privacy">The photo confirms it is in hand and is then discarded — the jacket keeps the record, not the paper. Recorded as taken in by ${esc(roleName())}.</p>
       <div class="jk2-sheetactions">
         <button type="button" class="jk2-sheetbtn" id="jkUplHand">Without a photo</button>
@@ -5664,7 +5730,9 @@ route("jacket/:id", ({ id }) => {
             $("#jkUplGo", sh).disabled = false;
           }
         };
-        const receive = () => { jacketReceive(deal, d.id, "hand", ""); closeSheet(); toast("Marked received by " + roleName()); render(); };
+        /* the note travels with the receipt — dropping it left no way to say
+           where a photographed payoff letter came from (review find) */
+        const receive = () => { jacketReceive(deal, d.id, "hand", ($("#jkUplNote", sh).value || "").trim()); closeSheet(); toast("Marked received by " + roleName()); render(); };
         $("#jkUplGo", sh).onclick = receive;
         $("#jkUplHand", sh).onclick = receive;
       });
@@ -5701,6 +5769,13 @@ route("jacket/:id", ({ id }) => {
       if (!inp.files || !inp.files.length || !camDoc) return;
       drAddShots(deal, camDoc, inp.files);
       const result = drAutoVerify(deal, camDoc);
+      /* the record says WHO captured it: without this, an in-showroom scan
+         made the tracking sheet claim the customer opened the link and
+         uploaded — actions they never took (review find). Absent via means
+         the customer's own device, so records from before this field — and
+         every real client upload — keep counting as theirs. */
+      const rec = jacketClient(deal)[camDoc];
+      if (rec) { rec.via = "advisor"; Store.save(); }
       toast(result.ok ? "✓ Verified. Moved to Completed." : "Blocked: " + result.issue);
       camDoc = null;
       render();
@@ -5851,9 +5926,13 @@ function drWireDebug(deal) {
 /* The composer and the resend page are gone: the owner's V2 package folds
    requesting documents into a bottom sheet on the jacket itself, so the
    advisor never leaves it. Both hashes stay routable and land on the jacket,
-   because a saved link or a bookmark from the old flow must not dead-end. */
-route("docreq/:id", ({ id }) => navigate("#/jacket/" + id));
-route("docreq/:id/:mode", ({ id }) => navigate("#/jacket/" + id));
+   because a saved link or a bookmark from the old flow must not dead-end —
+   via redirect(), which replaces the dead history entry (see its comment).
+   The id rides through as the router delivered it: router() decodes each
+   segment with decodeURIComponent, and every hash the app builds writes ids
+   the same bare way, so re-encoding here would be the odd one out. */
+route("docreq/:id", ({ id }) => redirect("#/jacket/" + id));
+route("docreq/:id/:mode", ({ id }) => redirect("#/jacket/" + id));
 
 /* ---------------- the simulated client phone ---------------- */
 
@@ -6273,7 +6352,10 @@ route("snapall/:id/:origin", ({ id, origin }) => {
   const backHash = origin === "advisor" ? "#/jacket/" + deal.id : "#/clientlink/" + deal.id;
   /* the sort's targets: the customer documents still outstanding */
   const targets = clientQueue(deal);
-  if (!targets.length) return navigate(backHash);
+  /* redirect, not navigate: after a committed batch empties the queue, Back
+     re-enters this route, and a pushed guard would bounce forward forever —
+     the same trap the retired composer hash had (review find) */
+  if (!targets.length) return redirect(backHash);
   const cst = Store.customer(deal.customerId);
 
   renderChrome("Snap All Documents", dealTitle(deal), "");
@@ -6334,6 +6416,9 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       rec.pages = r.shots.length;
       rec.draftPages = r.shots.length;
       rec.receivedAt = at;
+      /* an advisor-side burst is not customer activity — the jacket's
+         delivery tracking must not credit it to the customer's phone */
+      if (origin === "advisor") rec.via = "advisor";
       rec.tries = (rec.tries || 0) + 1; /* a burst pass counts as an attempt, so a later per-row retake is not re-flagged */
       if (r.status === "verified") {
         rec.state = "accepted"; rec.acceptedAt = at; rec.rejectedReason = null;
