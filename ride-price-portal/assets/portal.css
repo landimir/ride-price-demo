@@ -953,7 +953,7 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
    the owner's standing override. ---------- */
 .by2-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .by2-head h2 { font-size: 26px; letter-spacing: -.7px; margin: 2px 0 0; }
-.by2-roleslink { border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; color: var(--ink); cursor: pointer; padding: 10px 2px; margin: -10px -2px; flex: none; }
+.by2-roleslink { border: 0; background: transparent; font: inherit; font-size: 14px; font-weight: 700; text-decoration: underline; color: var(--ink); cursor: pointer; padding: 12px 4px; margin: -12px -4px; flex: none; min-height: 44px; }
 .by2-sub { color: var(--muted); font-size: 14px; line-height: 1.45; margin: 6px 0 14px; }
 .by2-seclab { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 16px 0 8px; }
 .by2-row { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 14px; font: inherit; color: inherit; cursor: pointer; min-height: 72px; margin-bottom: 10px; }

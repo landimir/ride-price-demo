@@ -1002,7 +1002,13 @@ route("customers", () => {
     const mDeal = m && m.kind === "cobuyer" ? Store.deal(m.dealId) : null;
     if (mDeal) {
       if (customerId === mDeal.customerId) { toast("That's the primary buyer — a co-buyer must be a different person"); st.mode = "idle"; st.results = null; st.found = null; render(); return; }
-      if (mDeal.coBuyerId && mDeal.coBuyerId !== customerId) { toast("This deal already has a co-buyer"); st.mode = "idle"; render(); return; }
+      /* resolve the pointer, not the raw id: a dangling coBuyerId means "no
+         co-buyer, never an error" (the documented contract every other
+         reader follows) — a raw check would let the sheet offer Add while
+         every resolver completion got refused (review find). Re-resolving
+         the SAME person is an idempotent success, not a refusal. */
+      const existingCo = mDeal.coBuyerId ? Store.customer(mDeal.coBuyerId) : null;
+      if (existingCo && existingCo.id !== customerId) { toast("This deal already has a co-buyer"); st.mode = "idle"; render(); return; }
       mDeal.coBuyerId = customerId; Store.save();
       const back = m.back || "#/desk/" + mDeal.id;
       if (location.hash === back) { router(); openBuyersSheet(mDeal.id); }
@@ -1313,6 +1319,18 @@ route("customers", () => {
         phoneAt: s.doneAt, faceAt: s.faceAt, licensePhotoAt: s.photoAt, secondSide: "pending",
         address: { confirmedAt: s.addressConfirmedAt, source: "license" }
       });
+      /* the mission guard runs BEFORE the session is spent: a refusal must
+         leave the completed upload intact — clearing first threw away the
+         customer's finished session over the advisor's mistake, forcing a
+         whole new link (review find). The identity updates written above are
+         that person's own data and rightly stay. */
+      if (sMission && sMission.kind === "cobuyer") {
+        const mD = Store.deal(sMission.dealId);
+        if (mD && c.id === mD.customerId) { Store.save(); toast("That's the primary buyer — a co-buyer must be a different person"); return; }
+        /* same contract as finish(): the pointer resolves or it is nothing */
+        const existingCo = mD && mD.coBuyerId ? Store.customer(mD.coBuyerId) : null;
+        if (existingCo && existingCo.id !== c.id) { Store.save(); toast("This deal already has a co-buyer"); return; }
+      }
       Store.s.idSession = null;
       Store.save();
       finish(c.id, sMission);
@@ -1368,8 +1386,12 @@ route("customers", () => {
 
   render();
   /* the buyers sheet's "Send secure upload link" lands here mid-mission with
-     the send sheet already open — one tap on the buyers sheet, one screen */
-  if (missionDeal && mission.open === "sendlink") openSendSheet();
+     the send sheet already open — one tap on the buyers sheet, one screen.
+     Never over an EXISTING session: render() has just put the waiting or
+     remote-ready screen up for it, and the sheet's Send would overwrite a
+     finished upload with one tap (review find). The advisor decides what
+     happens to a session in flight. */
+  if (missionDeal && mission.open === "sendlink" && !session()) openSendSheet();
 });
 
 /* the customer's own secure-upload session (onboarding v3): opened from the
