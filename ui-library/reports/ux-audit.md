@@ -1,12 +1,12 @@
-# Ride Price Mobile UI — UX Audit (v009)
+# Ride Price Mobile UI — UX Audit (v010)
 
-Captured 2026-08-28T23:32:45.348Z · viewport 390×844 · app cc9d1067dc19c05c74f94df222ab05fb73ee1620
+Captured 2026-08-29T17:14:45.987Z · viewport 390×844 · app 19607acaf52662d92bf6ec3f112d5e1e46a07973
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 0 |
-| Minor | 8 |
+| Minor | 9 |
 | Observation | 2 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
@@ -19,7 +19,7 @@ _None recorded._
 
 _None recorded._
 
-## Minor (8)
+## Minor (9)
 
 ### RP-UI-005 — Discovery Session · Discovery — question 1
 
@@ -76,6 +76,13 @@ _None recorded._
 - **Issue:** The role pill in the master deal header (.m-rolebtn) is 65x35px — under the 40px small-variant touch floor the phone layout documents.
 - **Observation:** It opens the drawer, so it is a real target, not decoration. Introduced with the master deal header (PR #51) and now visible on far more screens because the resolver, credit and agreement all use that header. Raising it to 40px is a one-line change in the .m-rolebtn padding.
 - **Suggested area to investigate:** portal.css .m-rolebtn
+
+### RP-UI-025 — Deal Jacket & Compliance · Add optional document
+
+- **Screenshot:** `current/15-deal-jacket/06-add-optional.png`
+- **Issue:** The sheet's close control is squeezed to 28×40 — the long title plus the flexible header row shrink it below its own 40px box, under the touch floor.
+- **Observation:** The automated small-target check measured .m-close at 28x40 on this sheet only; every other jacket sheet keeps 40x40. The header row needs flex: none on the close (or a min-width), so a long title wraps instead of eating the control.
+- **Suggested area to investigate:** portal.css .m-sheettop / #jkSheet .m-close
 
 ## Observation (2)
 

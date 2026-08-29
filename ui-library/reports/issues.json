@@ -98,5 +98,15 @@
     "issue": "The role pill in the master deal header (.m-rolebtn) is 65x35px — under the 40px small-variant touch floor the phone layout documents.",
     "observation": "It opens the drawer, so it is a real target, not decoration. Introduced with the master deal header (PR #51) and now visible on far more screens because the resolver, credit and agreement all use that header. Raising it to 40px is a one-line change in the .m-rolebtn padding.",
     "area": "portal.css .m-rolebtn"
+  },
+  {
+    "id": "RP-UI-025",
+    "severity": "Minor",
+    "flow": "Deal Jacket & Compliance",
+    "screen": "Add optional document",
+    "screenshot": "current/15-deal-jacket/06-add-optional.png",
+    "issue": "The sheet's close control is squeezed to 28×40 — the long title plus the flexible header row shrink it below its own 40px box, under the touch floor.",
+    "observation": "The automated small-target check measured .m-close at 28x40 on this sheet only; every other jacket sheet keeps 40x40. The header row needs flex: none on the close (or a min-width), so a long title wraps instead of eating the control.",
+    "area": "portal.css .m-sheettop / #jkSheet .m-close"
   }
 ]

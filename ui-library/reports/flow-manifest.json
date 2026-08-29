@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-08-28T23:32:45.348Z",
-  "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+  "capturedAt": "2026-08-29T17:14:45.987Z",
+  "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-08-28T23:32:45.362Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:14:45.995Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -411,8 +411,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-08-28T23:38:23.300Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:14:58.172Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -535,7 +535,7 @@
           "screenshot": "current/02-customer-onboarding/04-address-sheet.png",
           "hash": "#/customers",
           "action": "Pick the standardized address",
-          "next": "onboarding/no-match",
+          "next": "discovery/question-1",
           "branches": [],
           "notes": "ONE address search field — never separate street / city / state / ZIP boxes. The demo standardizes against its own ZIP table and offers the result to tap; an unparseable string is refused rather than guessed at.",
           "status": "ok",
@@ -677,7 +677,7 @@
           "screenshot": "current/02-customer-onboarding/08-waiting-for-customer.png",
           "hash": "#/customers",
           "action": "Tap Open customer view",
-          "next": "client-upload/customer-license-upload",
+          "next": "onboarding/remote-ready",
           "branches": [],
           "notes": "Four separate states — link sent, license photo, identity photo, registration address — never collapsed into one binary 'verified' badge. The demo has no network, so the customer view opens on this device and the screen says so.",
           "status": "ok",
@@ -751,8 +751,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-08-28T23:33:13.436Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:15:12.619Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -895,14 +895,14 @@
           "screenshot": "current/03-license-scan/05-scan-manual-result.png",
           "hash": "#/customers",
           "action": "Tap Use",
-          "next": "scan-confirm",
+          "next": "discovery/question-1",
           "branches": [
             {
               "action": "No match · create new customer",
               "to": "onboarding/manual-fallback"
             }
           ],
-          "notes": "A hit offers the record; a miss says plainly that nothing on file carries that number and offers the create path.",
+          "notes": "A hit offers the record; a miss says plainly that nothing on file carries that number and offers the create path. Use hands the found customer straight to the visit — the licence was never read, so there is nothing to confirm against it.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -937,7 +937,7 @@
           "screenshot": "current/03-license-scan/06-scan-confirm.png",
           "hash": "#/customers",
           "action": "Tap Update & continue",
-          "next": "scan-ambiguous",
+          "next": "scan-done",
           "branches": [
             {
               "action": "This isn't them",
@@ -1091,7 +1091,7 @@
               " 4102 Bell Blvd, Bayside, NY  <>  Ask the guest to read back t",
               " Email <> .sc2-demo Demo: nothing leaves this de",
               " Email <>  Demo:",
-              " Email <>  852209",
+              " Email <>  775036",
               ".sc2-micro Phone and email are required <> .sc2-primary Verify & link",
               ".sc2-micro Phone and email are required <> .sc2-textbtn Cancel",
               ".demo-note Demo tool — sample data only <> .sc2-textbtn Cancel"
@@ -1147,11 +1147,11 @@
       "title": "Training Licenses & Registrations",
       "description": "Printable props: five training driver's licenses (the only things the scanner recognises) and five matching training registrations for the trade-in conversation. Millimetre-sized for print; on a phone they scroll inside their grid.",
       "entry": {
-        "from": "home/navigation-drawer",
-        "action": "Training Licenses / Training Registrations"
+        "from": "home/more-sheet",
+        "action": "Training licenses / Training registrations"
       },
-      "capturedAt": "2026-08-28T23:33:34.128Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:15:33.401Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -1256,18 +1256,18 @@
       "title": "Discovery Session",
       "description": "The week-in-the-life interview that opens every visit — one question per screen, answers autosaved, the last question hands off to vehicle selection.",
       "entry": {
-        "from": "onboarding/find-customer",
+        "from": "onboarding/customer-found",
         "action": "Start Visit → (creates the deal)"
       },
-      "capturedAt": "2026-08-28T23:33:36.876Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:15:36.644Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-ny93eqf",
+          "hash": "#/discovery/d-1v7y83g",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1312,7 +1312,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-ny93eqf",
+          "hash": "#/discovery/d-1v7y83g",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1340,7 +1340,7 @@
           "key": "question-last",
           "screen": "Discovery — last question",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-ny93eqf",
+          "hash": "#/discovery/d-1v7y83g",
           "action": "Tap Pick Vehicle →",
           "next": "vehicles/inventory",
           "branches": [],
@@ -1374,15 +1374,15 @@
         "from": "discovery/question-last",
         "action": "Tap Pick Vehicle →"
       },
-      "capturedAt": "2026-08-28T23:33:42.973Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:15:42.789Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
           "screen": "Vehicle Search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-cchwnn0",
+          "hash": "#/vehicles/d-ygyv3rg",
           "action": "Tap the Used chip",
           "next": "inventory-filtered",
           "branches": [],
@@ -1413,7 +1413,7 @@
           "key": "inventory-filtered",
           "screen": "Inventory — Used only",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-cchwnn0",
+          "hash": "#/vehicles/d-ygyv3rg",
           "action": "Open Filters, cap the price at $1,000",
           "next": "inventory-no-match",
           "branches": [],
@@ -1444,7 +1444,7 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-cchwnn0",
+          "hash": "#/vehicles/d-ygyv3rg",
           "action": "Clear all filters; tap a vehicle",
           "next": "vehicle-details",
           "branches": [],
@@ -1475,7 +1475,7 @@
           "key": "vehicle-details",
           "screen": "Vehicle details sheet",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-cchwnn0",
+          "hash": "#/vehicles/d-ygyv3rg",
           "action": "Tap Choose this vehicle",
           "next": "next-steps",
           "branches": [],
@@ -1516,7 +1516,7 @@
           "key": "next-steps",
           "screen": "What's next? — after choosing",
           "screenshot": "current/06-vehicle-selection/05-next-steps.png",
-          "hash": "#/vehicles/d-cchwnn0",
+          "hash": "#/vehicles/d-ygyv3rg",
           "action": "Tap Test Drive",
           "next": "test-drive/authorization",
           "branches": [
@@ -1570,7 +1570,7 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-cchwnn0",
+          "hash": "#/vehicles/d-ygyv3rg",
           "action": null,
           "next": null,
           "branches": [],
@@ -1658,8 +1658,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-08-28T23:33:52.376Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:15:52.433Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -1878,8 +1878,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-08-28T23:33:58.959Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:15:58.771Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -2004,8 +2004,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-08-28T23:34:04.476Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:16:04.089Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -2262,11 +2262,11 @@
       "title": "Base Payment Agreement",
       "description": "The signed acknowledgement of the base terms, rebuilt on the owner's base-payment golden (2026-08-27): the payment summary card with its status pill, the two party surfaces, the flat term rows, the acknowledgement readable on the page, and the sign panel. Redesk never voids on the first tap — signed or not, it confirms in a bottom sheet.",
       "entry": {
-        "from": "desking/pencil-finance",
+        "from": "desking/compare-payments",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-28T23:34:10.506Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:16:10.206Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -2352,7 +2352,7 @@
           "screenshot": "current/10-base-payment-agreement/03-redesk-confirm.png",
           "hash": "#/agreement/d-demo1",
           "action": "Cancel keeps the signature",
-          "next": "credit/identity-gate",
+          "next": "agreement/agreement-signed",
           "branches": [],
           "notes": "Destructive behaviour behind a confirmation sheet that states exactly what voiding means, with the payment restated. Cancel preserves the signed state — the golden's own rule, and a real fix: the previous unsigned Redesk cleared the agreement silently.",
           "status": "ok",
@@ -2396,8 +2396,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-28T23:34:14.284Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:16:14.034Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -2697,7 +2697,7 @@
               " Applicant <> .m-sheettitle Deal summary",
               " Step 1 of 4 <> .m-close ✕",
               ".ca-cardtitle Application type <> .ca-wstitle Deal summary",
-              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 7:3",
+              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 1:1",
               ".ca-cardtitle Application type <> .ca-managelink Edit",
               ".ca-cardsub Choose how the customer want <>  Vehicle",
               ".ca-cardsub Choose how the customer want <>  2022 Hyundai Santa Fe · 7H21",
@@ -2758,8 +2758,8 @@
         "from": "discovery/question-1",
         "action": "Tap 👤 Buyer in the crumbs"
       },
-      "capturedAt": "2026-08-28T23:34:24.967Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:16:24.733Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -2772,11 +2772,11 @@
           "branches": [
             {
               "action": "🪪 Scan Driver's License",
-              "to": "license-scan/scan-intro"
+              "to": "license-scan/scan-front"
             },
             {
               "action": "Tap the primary's card",
-              "to": "credit/application"
+              "to": "credit/identity-gate"
             }
           ],
           "notes": "",
@@ -2898,8 +2898,8 @@
         "from": "finance-menu/purchase-terms-presented",
         "action": "Tap Next"
       },
-      "capturedAt": "2026-08-28T23:34:28.720Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:16:28.437Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -3138,8 +3138,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager Sign-Off"
       },
-      "capturedAt": "2026-08-28T23:34:33.443Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:16:32.923Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -3618,7 +3618,7 @@
           "screenshot": "current/14-finance-menu/16-deal-finalized.png",
           "hash": "#/menu/d-demo1",
           "action": "Return to Deals List",
-          "next": "home/funded-archive",
+          "next": "home/advisor-completed",
           "branches": [],
           "notes": "",
           "status": "ok",
@@ -3653,37 +3653,37 @@
       "id": "deal-jacket",
       "area": "15-deal-jacket",
       "title": "Deal Jacket & Compliance",
-      "description": "Every document the deal needs, worked out from the deal itself: compliance progress, the customer-document queue with per-row scan / mark received / request, the folded Deal forms & jacket list, and the bottom dock to sign-off.",
+      "description": "The owner's Deal Jacket V2 (2026-08-29): compliance complexity behind the interface. One funding-readiness object answers whether the deal can fund, then three buckets — Waiting on customer, Deal forms and Completed, the last two collapsed until the advisor opens them. Rows are whole tap targets that open a contextual sheet; there is no permanent button rail. Requesting customer documents happens in a sheet on this page, so the advisor never leaves the jacket.",
       "entry": {
         "from": "discovery/question-1",
         "action": "Tap 📁 Jacket in the crumbs"
       },
-      "capturedAt": "2026-08-28T23:34:50.166Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:16:50.019Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
           "key": "jacket-overview",
-          "screen": "Deal Jacket — overview",
+          "screen": "Deal Jacket — funding readiness",
           "screenshot": "current/15-deal-jacket/01-jacket-overview.png",
           "hash": "#/jacket/d-demo1",
-          "action": "Tap 💡",
+          "action": "Tap Advisor script",
           "next": "advisor-script",
           "branches": [
             {
-              "action": "Send Text Request",
-              "to": "document-request/composer"
+              "action": "Request N documents",
+              "to": "document-request/request-sheet"
             },
             {
-              "action": "📷 Snap All",
+              "action": "Capture all here instead",
               "to": "snap-all/capture"
             },
             {
-              "action": "🖨 Print Center",
+              "action": "Print Center",
               "to": "print-center/print-center"
             },
             {
-              "action": "Complete Deal & Sign-off →",
+              "action": "Complete sign-off →",
               "to": "finance-menu/signoff-gate-advisor"
             }
           ],
@@ -3693,17 +3693,23 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              "#jkRequest.jk2-primary Request 3 documents <>  Funding sign-off",
+              "#jkRequest.jk2-primary Request 3 documents <>  11 items remaining",
+              "#jkRequest.jk2-primary Request 3 documents <> #jkSignoff.jk2-dockbtn Not ready"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 844
+            "pageHeight": 1265
           },
-          "scrollShot": null,
+          "scrollShot": "current/15-deal-jacket/01-jacket-overview.scroll.png",
           "issues": []
         },
         {
@@ -3712,8 +3718,8 @@
           "screen": "Advisor script sheet",
           "screenshot": "current/15-deal-jacket/02-advisor-script.png",
           "hash": "#/jacket/d-demo1",
-          "action": "Close; open Deal forms & jacket",
-          "next": "forms-and-jacket",
+          "action": "Close; open Deal forms",
+          "next": "deal-forms",
           "branches": [],
           "notes": "",
           "status": "ok",
@@ -3721,72 +3727,405 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 844
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 3,
-          "key": "forms-and-jacket",
-          "screen": "Deal forms & jacket — opened",
-          "screenshot": "current/15-deal-jacket/03-forms-and-jacket.png",
-          "hash": "#/jacket/d-demo1",
-          "action": "Tap a missing form row",
-          "next": "missing-row-actions",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
             "clipped": [],
             "overlaps": [
-              ".jk-row__why Missing · The signed applica <> .btn.btn--ghost ← Back to Deal",
-              ".jk-row__why Missing · The signed applica <> .btn.jk-dockinfo 11 docs needed",
-              ".jk-miss Missing <> .btn.btn--ghost ← Back to Deal",
-              ".jk-why-s Lender match <> .btn.btn--ghost ← Back to Deal",
-              ".jk-row__mark.jk-row__mark--miss ! <> .btn.btn--ghost ← Back to Deal",
-              " Risk-Based Disclosure <> .btn.btn--ghost ← Back to Deal",
-              " Risk-Based Disclosure <> .btn.jk-dockinfo 11 docs needed",
-              ".btn.btn--primary 📷 Scan <> .btn.jk-dockinfo 11 docs needed"
+              ".jk2-rowsub Needed for registration <>  Advisor script",
+              ".jk2-rowtitle Auto Insurance Card (Binder) <> .m-sheetsub Use only when you need a qui",
+              ".jk2-rowsub Needed for delivery <>  “I'm going to send you one s",
+              ".jk2-status Needed <>  “I'm going to send you one s",
+              ".jk2-rowtitle Proof of Income (Paystub) <>  “Upload them straight from y",
+              ".jk2-rowsub Bank requirement <>  “Upload them straight from y",
+              ".jk2-status Needed <>  “Upload them straight from y",
+              "#jkRequest.jk2-primary Request 3 documents <>  Funding sign-off"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1920
+            "pageHeight": 1265
           },
-          "scrollShot": "current/15-deal-jacket/03-forms-and-jacket.scroll.png",
+          "scrollShot": "current/15-deal-jacket/02-advisor-script.scroll.png",
+          "issues": []
+        },
+        {
+          "step": 3,
+          "key": "deal-forms",
+          "screen": "Deal forms — expanded",
+          "screenshot": "current/15-deal-jacket/03-deal-forms.png",
+          "hash": "#/jacket/d-demo1",
+          "action": "Tap a form row",
+          "next": "document-actions",
+          "branches": [],
+          "notes": "Collapsed by default at every width — the package locks progressive disclosure.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".jk2-rowtitle Signed Matching Credit App <>  Funding sign-off",
+              ".jk2-rowtitle Signed Matching Credit App <>  11 items remaining",
+              ".jk2-rowtitle Signed Matching Credit App <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-rowsub Lender match <>  11 items remaining",
+              ".jk2-rowsub Lender match <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-status Needed <> #jkSignoff.jk2-dockbtn Not ready"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1984
+          },
+          "scrollShot": "current/15-deal-jacket/03-deal-forms.scroll.png",
           "issues": []
         },
         {
           "step": 4,
-          "key": "missing-row-actions",
-          "screen": "Missing form — row actions",
-          "screenshot": "current/15-deal-jacket/04-missing-row-actions.png",
+          "key": "document-actions",
+          "screen": "Document row — contextual actions",
+          "screenshot": "current/15-deal-jacket/04-document-actions.png",
           "hash": "#/jacket/d-demo1",
           "action": "Tap Mark received",
-          "next": "mark-received-modal",
+          "next": "mark-received",
+          "branches": [],
+          "notes": "A document this portal printed is offered the marker scan; one that arrives from outside never is — there is nothing to read.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".jk2-rowtitle Driver's License <>  Privacy Policy",
+              ".jk2-rowsub Needed for registration <>  Privacy Policy",
+              ".jk2-rowsub Needed for registration <> .m-sheetsub Handed to every client at de",
+              ".jk2-status Needed <> .m-close ✕",
+              ".jk2-rowtitle Auto Insurance Card (Binder) <>  Scan the document",
+              ".jk2-rowsub Needed for delivery <>  Reads the marker strip Ride ",
+              ".jk2-status Needed <>  Scan the document",
+              ".jk2-status Needed <> .jk2-go ›"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1984
+          },
+          "scrollShot": "current/15-deal-jacket/04-document-actions.scroll.png",
+          "issues": []
+        },
+        {
+          "step": 5,
+          "key": "mark-received",
+          "screen": "Mark received — a person's word",
+          "screenshot": "current/15-deal-jacket/05-mark-received.png",
+          "hash": "#/jacket/d-demo1",
+          "action": "Close; tap + Add optional document",
+          "next": "add-optional",
+          "branches": [],
+          "notes": "States plainly that Ride Price did not scan or verify the document.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".jk2-sectitle Waiting on customer <>  Mark received",
+              ".jk2-sectitle Waiting on customer <> .m-sheetsub Privacy Policy",
+              ".jk2-secsub 3 documents <> .m-sheetsub Privacy Policy",
+              ".jk2-badge.jk2-badge--warn 3 needed <> .m-close ✕",
+              ".jk2-rowtitle Driver's License <>  Source or note (optional)",
+              ".jk2-rowsub Needed for delivery <> .jk2-privacy Recorded against this deal a",
+              ".jk2-rowtitle Proof of Income (Paystub) <> .jk2-privacy Recorded against this deal a",
+              ".jk2-rowsub Bank requirement <> .jk2-privacy Recorded against this deal a"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1984
+          },
+          "scrollShot": "current/15-deal-jacket/05-mark-received.scroll.png",
+          "issues": []
+        },
+        {
+          "step": 6,
+          "key": "add-optional",
+          "screen": "Add optional document",
+          "screenshot": "current/15-deal-jacket/06-add-optional.png",
+          "hash": "#/jacket/d-demo1",
+          "action": "Close; open Completed",
+          "next": "completed-bucket",
+          "branches": [],
+          "notes": "",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35",
+              ".m-close ✕ 28x40"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".jk2-rowtitle Auto Insurance Card (Binder) <> .m-sheetsub Add only what this deal genu",
+              ".jk2-status Needed <> .m-sheetsub Add only what this deal genu",
+              ".jk2-status Needed <> .m-close ✕",
+              "#jkRequest.jk2-primary Request 3 documents <>  Funding sign-off",
+              "#jkRequest.jk2-primary Request 3 documents <>  11 items remaining",
+              "#jkRequest.jk2-primary Request 3 documents <> #jkSignoff.jk2-dockbtn Not ready",
+              "#jkRequest.jk2-primary Request 3 documents <> #jkAddGo.jk2-sheetbtn.jk2-sheetbtn--primary Add document",
+              " Funding sign-off <> #jkAddGo.jk2-sheetbtn.jk2-sheetbtn--primary Add document"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1984
+          },
+          "scrollShot": "current/15-deal-jacket/06-add-optional.scroll.png",
+          "issues": [
+            {
+              "id": "RP-UI-025",
+              "severity": "Minor",
+              "issue": "The sheet's close control is squeezed to 28×40 — the long title plus the flexible header row shrink it below its own 40px box, under the touch floor.",
+              "observation": "The automated small-target check measured .m-close at 28x40 on this sheet only; every other jacket sheet keeps 40x40. The header row needs flex: none on the close (or a min-width), so a long title wraps instead of eating the control.",
+              "area": "portal.css .m-sheettop / #jkSheet .m-close"
+            }
+          ]
+        },
+        {
+          "step": 7,
+          "key": "completed-bucket",
+          "screen": "Completed — already in the jacket",
+          "screenshot": "current/15-deal-jacket/07-completed-bucket.png",
+          "hash": "#/jacket/d-demo1",
+          "action": "Tap the Driver's License row",
+          "next": "license-back-needed",
+          "branches": [],
+          "notes": "",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".rideprice Ride <> .jk2-secsub Internal forms and signature",
+              ".jk2-sectitle Completed <>  Funding sign-off",
+              ".jk2-sectitle Completed <>  11 items remaining",
+              ".jk2-sectitle Completed <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-secsub Already in the jacket <>  11 items remaining",
+              ".jk2-secsub Already in the jacket <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-badge.jk2-badge--good 4 <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-chev.jk2-chev--open ⌄ <> #jkSignoff.jk2-dockbtn Not ready"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 2393
+          },
+          "scrollShot": "current/15-deal-jacket/07-completed-bucket.scroll.png",
+          "issues": []
+        },
+        {
+          "step": 8,
+          "key": "license-back-needed",
+          "screen": "Driver's licence — back still needed",
+          "screenshot": "current/15-deal-jacket/08-license-back-needed.png",
+          "hash": "#/jacket/d-demo1",
+          "action": "Tap Capture back",
+          "next": "jacket-complete",
+          "branches": [],
+          "notes": "The exception is local to the licence: the row says Back needed and the sheet asks only for the missing side.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".jk2-rowtitle Auto Insurance Card (Binder) <>  Finish driver's license",
+              ".jk2-rowtitle Auto Insurance Card (Binder) <> .m-sheetsub Front received · back still ",
+              ".jk2-status Needed <> .m-close ✕",
+              ".jk2-rowtitle Proof of Income (Paystub) <> .jk2-inline.jk2-inline--warn The front is already saved. ",
+              ".jk2-rowsub Bank requirement <> .jk2-inline.jk2-inline--warn The front is already saved. ",
+              ".jk2-status Needed <> .jk2-inline.jk2-inline--warn The front is already saved. ",
+              "#jkRequest.jk2-primary Request 3 documents <>  Funding sign-off",
+              "#jkRequest.jk2-primary Request 3 documents <>  11 items remaining"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1281
+          },
+          "scrollShot": "current/15-deal-jacket/08-license-back-needed.scroll.png",
+          "issues": []
+        },
+        {
+          "step": 9,
+          "key": "jacket-complete",
+          "screen": "Jacket complete — the dock unlocks",
+          "screenshot": "current/15-deal-jacket/09-jacket-complete.png",
+          "hash": "#/jacket/d-demo1",
+          "action": "Tap Complete sign-off →",
+          "next": "finance-menu/signoff-gate-advisor",
+          "branches": [],
+          "notes": "Every document recorded (by hand, for the capture) — sign-off stays locked until this point.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
+            "clipped": [],
+            "overlaps": [
+              "#jkScript.jk2-smalllink Advisor script <>  Jacket complete",
+              ".jk2-smalllink Print Center <>  Jacket complete",
+              ".jk2-smalllink Print Center <> #jkSignoff.jk2-dockbtn Complete sign-off →"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 961
+          },
+          "scrollShot": "current/15-deal-jacket/09-jacket-complete.scroll.png",
+          "issues": []
+        }
+      ]
+    },
+    {
+      "id": "document-request",
+      "area": "16-document-request",
+      "title": "Customer document request (from the jacket)",
+      "description": "One secure link for every customer document still missing. The V2 package folded the old Send Text Request page and its Resend twin into a bottom sheet on the jacket: sending and resending never leave the Deal Jacket, and delivery status returns inline in the customer group rather than on a route of its own.",
+      "entry": {
+        "from": "deal-jacket/jacket-overview",
+        "action": "Tap Request N documents"
+      },
+      "capturedAt": "2026-08-29T17:17:01.561Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
+      "screens": [
+        {
+          "step": 1,
+          "key": "request-sheet",
+          "screen": "Request documents — secure link",
+          "screenshot": "current/16-document-request/01-request-sheet.png",
+          "hash": "#/jacket/d-demo1",
+          "action": "Tap Send secure request",
+          "next": "request-sent",
+          "branches": [],
+          "notes": "The privacy line is the point: the customer uploads directly into Ride Price, never through the salesperson's texts or photo library.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".jk2-note 3 items need the customer. T <>  Request documents",
+              ".jk2-note 3 items need the customer. T <> .m-sheetsub John Smith · (718) 555-0134",
+              ".jk2-note 3 items need the customer. T <> .m-close ✕",
+              " 3 items need the customer. <>  Request documents",
+              ".jk2-sectitle Waiting on customer <>  Needed for registration",
+              ".jk2-badge.jk2-badge--warn 3 needed <>  Needed for registration",
+              ".jk2-rowtitle Driver's License <>  Needed for delivery",
+              ".jk2-rowsub Needed for registration <>  Proof of Income (Paystub)"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1265
+          },
+          "scrollShot": "current/16-document-request/01-request-sheet.scroll.png",
+          "issues": []
+        },
+        {
+          "step": 2,
+          "key": "request-sent",
+          "screen": "Jacket after sending — Requested",
+          "screenshot": "current/16-document-request/02-request-sent.png",
+          "hash": "#/jacket/d-demo1",
+          "action": "Tap View status",
+          "next": "request-tracking",
+          "branches": [],
+          "notes": "Rows turn Requested and an inline banner carries the status — no toast, and no page change.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".jk2-inline ✓ Secure request sent · 3 do <>  Funding sign-off",
+              ".jk2-inline ✓ Secure request sent · 3 do <>  11 items remaining",
+              ".jk2-inline ✓ Secure request sent · 3 do <> #jkSignoff.jk2-dockbtn Not ready",
+              "#jkTrack.jk2-smalllink View status <>  11 items remaining"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1367
+          },
+          "scrollShot": "current/16-document-request/02-request-sent.scroll.png",
+          "issues": []
+        },
+        {
+          "step": 3,
+          "key": "request-tracking",
+          "screen": "Customer request — delivery status",
+          "screenshot": "current/16-document-request/03-request-tracking.png",
+          "hash": "#/jacket/d-demo1",
+          "action": "Open the customer's phone",
+          "next": "client-upload/sms",
           "branches": [
             {
-              "action": "Request",
-              "to": "deal-jacket/request-modal"
-            },
-            {
-              "action": "📷 Scan / ⬆ Upload",
-              "to": "deal-jacket/upload-modal"
+              "action": "Resend link",
+              "to": "document-request/request-sheet"
             }
           ],
           "notes": "",
@@ -3795,338 +4134,28 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
             "clipped": [],
             "overlaps": [
-              "#hamburgerBtn.hamburger ☰ <> .dr-qicon 🛡",
-              ".rideprice Ride <>  Auto Insurance Card (Binder)",
-              ".rideprice Ride <> .jk-row__why Needed for delivery",
-              ".price PRICE <> .jk-row__why Needed for delivery",
-              ".chip DEMO <> .jk-row__why Needed for delivery",
-              "#appbarUser.user Welcome Ashley Collins Advis <> .jk-row__why Needed for delivery",
-              "#appbarUser.user Welcome Ashley Collins Advis <> .btn.btn--sm 📷 Scan",
-              ".seg__opt.on Advisor <> .jk-row__why Needed for delivery"
+              ".jk2-note 3 items need the customer. T <>  Customer request",
+              ".jk2-note 3 items need the customer. T <> .m-close ✕",
+              " 3 items need the customer. <>  Customer request",
+              ".jk2-sectitle Waiting on customer <> .jk2-dot ✓",
+              ".jk2-sectitle Waiting on customer <>  Link sent",
+              ".jk2-sectitle Waiting on customer <>  Aug 29, 1:17 PM",
+              ".jk2-secsub 3 documents <> .jk2-dot ✓",
+              ".jk2-secsub 3 documents <>  Delivered"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1968
+            "pageHeight": 1367
           },
-          "scrollShot": "current/15-deal-jacket/04-missing-row-actions.scroll.png",
-          "issues": []
-        },
-        {
-          "step": 5,
-          "key": "mark-received-modal",
-          "screen": "Mark received — record by hand",
-          "screenshot": "current/15-deal-jacket/05-mark-received-modal.png",
-          "hash": "#/jacket/d-demo1",
-          "action": "Close; tap Request all missing",
-          "next": "request-modal",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 1968
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 6,
-          "key": "request-modal",
-          "screen": "Request from the client — list",
-          "screenshot": "current/15-deal-jacket/06-request-modal.png",
-          "hash": "#/jacket/d-demo1",
-          "action": "Close; tap ⬆ Upload on a row",
-          "next": "upload-modal",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 1968
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 7,
-          "key": "upload-modal",
-          "screen": "Upload a document",
-          "screenshot": "current/15-deal-jacket/07-upload-modal.png",
-          "hash": "#/jacket/d-demo1",
-          "action": "Close; tap ＋ Add Optional / Custom Form",
-          "next": "add-optional-form",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [
-              "  245x21",
-              "  245x21"
-            ],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 1968
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 8,
-          "key": "add-optional-form",
-          "screen": "Add Optional / Custom Form",
-          "screenshot": "current/15-deal-jacket/08-add-optional-form.png",
-          "hash": "#/jacket/d-demo1",
-          "action": "Tap 📷 Scan on the Driver's License row",
-          "next": "queue-row-blocked",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": [
-              "#hamburgerBtn.hamburger ☰ <> .jk-row__mark.jk-row__mark--miss !",
-              ".rideprice Ride <>  Signed Contracts",
-              ".price PRICE <>  Signed Contracts",
-              "#appbarUser.user Welcome Ashley Collins Advis <> .btn.btn--primary 📷 Scan",
-              ".seg__opt.on Advisor <> .btn.btn--primary 📷 Scan",
-              ".seg__opt Team Lead <> .btn.btn--primary 📷 Scan",
-              ".jk-row__mark ✓ <> .btn.btn--ghost ← Back to Deal",
-              " Test Drive Agreement <> .btn.btn--ghost ← Back to Deal"
-            ]
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 2030
-          },
-          "scrollShot": "current/15-deal-jacket/08-add-optional-form.scroll.png",
-          "issues": []
-        },
-        {
-          "step": 9,
-          "key": "queue-row-blocked",
-          "screen": "Queue row — scan blocked (back missing)",
-          "screenshot": "current/15-deal-jacket/09-queue-row-blocked.png",
-          "hash": "#/jacket/d-demo1",
-          "action": "Tap 📷 Retake, add the back",
-          "next": "queue-row-verified",
-          "branches": [],
-          "notes": "The simulated check insists on both sides of a license.",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 844
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 10,
-          "key": "queue-row-verified",
-          "screen": "Queue row — verified instantly",
-          "screenshot": "current/15-deal-jacket/10-queue-row-verified.png",
-          "hash": "#/jacket/d-demo1",
-          "action": "Tap Send Text Request",
-          "next": "document-request/composer",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 844
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 11,
-          "key": "jacket-complete",
-          "screen": "Jacket complete — dock unlocks sign-off",
-          "screenshot": "current/15-deal-jacket/11-jacket-complete.png",
-          "hash": "#/jacket/d-demo1",
-          "action": "Tap Complete Deal & Sign-off →",
-          "next": "finance-menu/signoff-gate-advisor",
-          "branches": [],
-          "notes": "Every document recorded (by hand, for the capture) — the dock turns into the funding link.",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 844
-          },
-          "scrollShot": null,
-          "issues": []
-        }
-      ]
-    },
-    {
-      "id": "document-request",
-      "area": "16-document-request",
-      "title": "Send Text Request (advisor → client)",
-      "description": "The advisor composes the document request; sending marks the queue requested, stamps the jacket, and opens the client's phone view.",
-      "entry": {
-        "from": "deal-jacket/jacket-overview",
-        "action": "Tap Send Text Request"
-      },
-      "capturedAt": "2026-08-28T23:35:02.744Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
-      "screens": [
-        {
-          "step": 1,
-          "key": "composer",
-          "screen": "Send Text Request — composer",
-          "screenshot": "current/16-document-request/01-composer.png",
-          "hash": "#/docreq/d-demo1",
-          "action": "Tap Send Text Request (3 items) →",
-          "next": "client-upload/sms",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [
-              ".dr-close × 16x24",
-              ".dr-cancel Cancel 64x33"
-            ],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 844
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 2,
-          "key": "sent-stamp",
-          "screen": "Jacket after sending — Resend Link",
-          "screenshot": "current/16-document-request/02-sent-stamp.png",
-          "hash": "#/jacket/d-demo1",
-          "action": "Tap Resend Link",
-          "next": "resend-composer",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 844
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 3,
-          "key": "resend-composer",
-          "screen": "Resend — composer",
-          "screenshot": "current/16-document-request/03-resend-composer.png",
-          "hash": "#/docreq/d-demo1/resend",
-          "action": null,
-          "next": null,
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [
-              ".dr-close × 16x24",
-              ".dr-cancel Cancel 64x33"
-            ],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 844
-          },
-          "scrollShot": null,
+          "scrollShot": "current/16-document-request/03-request-tracking.scroll.png",
           "issues": []
         }
       ]
@@ -4137,11 +4166,11 @@
       "title": "Client Document Upload (customer's phone)",
       "description": "What the customer sees from the text link, rebuilt from the owner's upload prototype (2026-08-27) in Ride Price colours. This is the customer's OWN page: no app bar, no role switch, no debug strip — a white edge-to-edge canvas reached from a text message by someone who does not work at the dealership. One row per requested document with a line icon and a plain what-to-bring subtitle, an \"n of N ready\" progress line, and one dominant action. Verification is simulated with scripted beats (the license needs both sides, insurance flags once, two paystubs). An unreadable photo is refused plainly — \"Too blurry to read\" — with the retake on the row, never a coaching screen.",
       "entry": {
-        "from": "document-request/composer",
-        "action": "Send Text Request"
+        "from": "document-request/request-tracking",
+        "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-08-28T23:35:06.394Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:17:05.847Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -4471,10 +4500,10 @@
       "description": "Shoot every outstanding document in one go; the simulated sorter deals the shots onto the queue and shows what verified, what needs attention, and what is still missing.",
       "entry": {
         "from": "deal-jacket/jacket-overview",
-        "action": "Tap 📷 Snap All"
+        "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-08-28T23:35:19.117Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:17:18.661Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -4617,11 +4646,11 @@
       "title": "Document Review (advisor)",
       "description": "Read-only page review of a document the client captured — pages, zoom, the verification status line.",
       "entry": {
-        "from": "deal-jacket/forms-and-jacket",
-        "action": "Tap View on a received client document"
+        "from": "deal-jacket/completed-bucket",
+        "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-08-28T23:35:23.096Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:17:22.598Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,
@@ -4667,8 +4696,8 @@
         "from": "finance-menu/financial-contracts",
         "action": "Tap 🖨 Print Center"
       },
-      "capturedAt": "2026-08-28T23:35:25.133Z",
-      "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620",
+      "capturedAt": "2026-08-29T17:17:24.572Z",
+      "appCommit": "19607acaf52662d92bf6ec3f112d5e1e46a07973",
       "screens": [
         {
           "step": 1,

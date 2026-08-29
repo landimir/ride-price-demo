@@ -1,5 +1,81 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v010 — 2026-08-29
+
+App commit: 19607ac · 20 flows · 126 screens · previous: v009
+
+### Added
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Document row — contextual actions
+- Deal Jacket & Compliance · Mark received — a person's word
+- Deal Jacket & Compliance · Add optional document
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Deal Jacket & Compliance · Driver's licence — back still needed
+- Customer document request (from the jacket) · Request documents — secure link
+- Customer document request (from the jacket) · Jacket after sending — Requested
+- Customer document request (from the jacket) · Customer request — delivery status
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1
+- Discovery Session · Discovery — mid-interview
+- Discovery Session · Discovery — last question
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Test Drive Agreement · License & terms
+- Test Drive Agreement · End Test Drive — odometer
+- Desking — Calculate Payments · Base Payment Huddle
+- Base Payment Agreement · Agreement — ready to sign
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Step 3 — Repayment Options (Preferred)
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Custom package — products moved, payment toggled
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Acknowledgement signed, forms selected
+- Deal Jacket & Compliance · Deal Jacket — funding readiness
+- Deal Jacket & Compliance · Advisor script sheet
+- Deal Jacket & Compliance · Jacket complete — the dock unlocks
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Print Center & Printables · Print preview — Base Payment Agreement
+- Print Center & Printables · Print preview — MV-82 (training sample)
+
+### Removed
+- Deal Jacket & Compliance · Deal forms & jacket — opened
+- Deal Jacket & Compliance · Missing form — row actions
+- Deal Jacket & Compliance · Mark received — record by hand
+- Deal Jacket & Compliance · Request from the client — list
+- Deal Jacket & Compliance · Upload a document
+- Deal Jacket & Compliance · Add Optional / Custom Form
+- Deal Jacket & Compliance · Queue row — scan blocked (back missing)
+- Deal Jacket & Compliance · Queue row — verified instantly
+- Send Text Request (advisor → client) · Send Text Request — composer
+- Send Text Request (advisor → client) · Jacket after sending — Resend Link
+- Send Text Request (advisor → client) · Resend — composer
+
+**What actually changed (hand interpretation):** the Deal Jacket was rebuilt
+to the owner's V2 replication package (PR #53) — the added and removed lists
+above are that one change: the old two-list jacket and the separate Send Text
+Request pages became three buckets with contextual sheets, and requesting
+documents is now a sheet on the jacket itself. Nearly every entry under
+"Changed" is live data (minted deal numbers, clock times, dates), not design;
+the real visual deltas outside the jacket are none. New issue RP-UI-025
+(below) came out of this capture's automated small-target check.
+
+### New issues
+- RP-UI-025 (Minor) — the Add-optional sheet's close control is squeezed to 28×40 by its long title, under the touch floor.
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v009 — 2026-08-28
 
 App commit: cc9d106 · 20 flows · 128 screens · previous: v008
