@@ -2690,6 +2690,9 @@ select.ca-input { appearance: auto; }
 .ob-rowsub { display: block; font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ob-card { border: 1px solid var(--line); border-radius: 22px; padding: 18px; background: #fff; }
 .ob-resulthead { display: flex; align-items: center; gap: 14px; }
+/* the identity block must be allowed to shrink, or its nowrap sub-line pushes
+   the status badge off the right edge at 390px (library audit, v009) */
+.ob-resulthead > div { min-width: 0; }
 .ob-badge { margin-left: auto; background: #EAF7F2; color: #168A62; font-weight: 700; font-size: 12px; border-radius: 999px; padding: 7px 10px; white-space: nowrap; flex: none; }
 .ob-facts { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line-soft); display: grid; gap: 10px; }
 .ob-fact { display: flex; justify-content: space-between; gap: 16px; font-size: 14px; }
