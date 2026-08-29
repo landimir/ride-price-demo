@@ -5034,7 +5034,8 @@ const RP_ICON = {
   radar: `<circle cx="12" cy="12" r="1.6"/><path d="M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M5 19a10 10 0 0 1 0-14M19 5a10 10 0 0 1 0 14"/>`,
   bank: `<path d="m3.5 9 8.5-5.5L20.5 9v1.5h-17z"/><path d="M5.5 10.5v7M10 10.5v7M14 10.5v7M18.5 10.5v7M4 17.5h16M3 20.5h18"/>`,
   dots: `<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>`,
-  trash: `<path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13.5h9l1-13.5M10 10.5v7M14 10.5v7"/>`
+  trash: `<path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13.5h9l1-13.5M10 10.5v7M14 10.5v7"/>`,
+  upload: `<path d="M12 16.5V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4.5 15v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15"/>`
 };
 const rpIcon = (k) => `<svg viewBox="0 0 24 24">${RP_ICON[k] || RP_ICON.file}</svg>`;
 /* the customer's document rows, keyed by the document they stand for */
@@ -5248,374 +5249,466 @@ const jacketStamp = (iso) => {
   return isNaN(d) ? "" : d.toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 };
 
-/* ---------------- the jacket screen ---------------- */
+/* ---------------- the deal jacket, V2 (owner's replication package) --------
+   The owner's "Deal Jacket & Customer Requests V2" package (2026-08-29)
+   folded the old compliance screen and the separate Send Text Request route
+   into one surface on the master canvas. Its thesis: compliance complexity
+   belongs behind the interface, so the advisor answers three questions fast —
+   what are we waiting on from the customer, what forms does the team still
+   owe, and is the deal fundable. Hence three buckets (Waiting on customer,
+   Deal forms collapsed, Completed collapsed), one funding-readiness object
+   instead of a row of counters, and a bottom sheet for every secondary
+   decision so requesting documents never leaves the jacket.
 
+   Every rule the old screen enforced survives: the jacket keeps a RECORD and
+   never a file, Mark received says plainly that nothing was scanned or
+   verified, only documents this portal printed carry a marker to read, and
+   funding sign-off stays locked until nothing is outstanding — with the Team
+   Lead's recorded override still honoured. */
 route("jacket/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
-  /* both lists fold on a phone and open where there is room (desktop) —
-     same query the stylesheet uses, so 720px exactly is a phone on both
-     sides. The missing list gets the same treatment as the jacket list so
-     the screen opens as a summary and expands on demand (owner, 2026-08-18). */
-  const roomy = !window.matchMedia("(max-width: 720px)").matches;
-  /* one section holds every dealer form and everything already collected
-     (owner declutter, 2026-08-18): the screen offers exactly two places to
-     look — what the customer still owes, and everything else */
-  let showForms = roomy;
+  /* both internal buckets start collapsed — progressive disclosure is locked
+     by the package, and the advisor opens Deal forms only to work them */
+  const ui = { formsOpen: false, completedOpen: false };
+  let camDoc = null;        /* which customer document the camera is filling */
+  let sheetKey = null;      /* the Escape handler the open sheet installed */
+
+  /* a listener must never outlive the view: leaving the route does not re-run
+     the wiring, so a stale Escape handler would call render() and paint the
+     jacket over whichever screen the user moved to (the lesson from PR #50) */
+  function teardown() {
+    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+    window.removeEventListener("hashchange", teardown);
+  }
+  window.addEventListener("hashchange", teardown);
+
+  /* ---- what the buckets hold ---- */
+  const inJacket = (d) => !!jacketState(deal, d.id);
+  const isCustomerDoc = (d) => CLIENT_QUEUE_IDS.includes(d.id);
+  /* the licence exception is local to the licence: front saved, back still
+     required is a distinct state, not a generic rejection */
+  function backMissing(docId) {
+    const m = clientMeta(docId); const r = jacketClient(deal)[docId];
+    return !!(m && m.missingPage && r && r.state === "rejected" && r.rejectedReason === m.missingPage.title);
+  }
+  function custStatus(d) {
+    const r = jacketClient(deal)[d.id];
+    if (r && r.state === "rejected") return backMissing(d.id) ? { cls: "blocked", label: "Back needed" } : { cls: "blocked", label: "Retake needed" };
+    if ((r && r.state === "requested") || jacketRead(deal).req[d.id]) return { cls: "requested", label: "Requested" };
+    return { cls: "", label: "Needed" };
+  }
+
+  /* ---- the sheet, one per screen, carrying every secondary decision ---- */
+  function openSheet(html, onMount) {
+    const sh = $("#jkSheet"); if (!sh) return;
+    sh.innerHTML = `<div class="m-handle"></div>${html}`;
+    $("#jkScrim").classList.add("show");
+    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
+    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
+    document.addEventListener("keydown", sheetKey, true);
+    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
+    if (onMount) onMount(sh);
+  }
+  function closeSheet() {
+    const sc = $("#jkScrim"); if (sc) sc.classList.remove("show");
+    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+  }
+  const sheetHead = (title, sub) => `<div class="m-sheettop"><div><h2>${esc(title)}</h2>${sub ? `<p class="m-sheetsub">${esc(sub)}</p>` : ""}</div>
+    <button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>`;
 
   function render() {
     const docs = jacketDocs(deal);
-    const n = jacketCounts(deal);
-    const outstanding = docs.filter(d => !jacketState(deal, d.id));
-    const received = docs.filter(d => jacketState(deal, d.id));
     const jk = jacketRead(deal);
     const cst = Store.customer(deal.customerId);
     const veh = Store.vehicle(deal.stock);
-    const pct = n.total ? Math.round(n.have / n.total * 100) : 0;
     const ov = jk.override;
+
+    const custWaiting = docs.filter(d => isCustomerDoc(d) && !inJacket(d));
+    const formsWaiting = docs.filter(d => !isCustomerDoc(d) && !inJacket(d));
+    const completed = docs.filter(inJacket);
+    const total = docs.length;
+    const done = completed.length;
+    const rem = total - done;
+    const pct = total ? Math.round(done / total * 100) : 0;
+    const reqSent = !!jk.reqSentAt;
+    /* sign-off unlocks at complete; a Team Lead's recorded override is the
+       one documented way past it and still counts (owner, 2026-08-16) */
+    const fundable = rem === 0 || !!ov;
     const addable = RIDE_PRICE_DATA.dealForms.filter(f => !docs.some(d => d.id === "form-" + f.id));
 
-    /* the script button rides the phone header; desktop hides that card, so
-       it also sits in the page actions where desktop can reach it */
-    renderChrome("Deal Jacket", dealTitle(deal),
-      `<button class="btn btn--ghost btn--sm" id="jkScriptTop">💡 Script</button>
-       <a class="btn btn--ghost btn--sm" href="#/forms/${esc(deal.id)}">🖨 Print Center</a>
-       <button class="btn btn--grad btn--sm" id="jkScan">📷 Scan a document</button>`);
+    renderChrome("Deal Jacket", dealTitle(deal), "");
+    document.body.dataset.canvas = "master";
     document.body.dataset.screen = "jacket";
 
-    /* what the banner says about the funding gate — the sign-off itself lives
-       on the Manager Sign-Off screen; this line mirrors its state */
-    const gateLine = deal.signoff
-      ? `<span class="jk-gate__ok">✓ Signed off by ${esc(deal.signoff.by)} · ${esc(jacketStamp(deal.signoff.at))}</span>`
-      : n.missing
-        ? (ov
-          ? `<span class="jk-gate__ov">Sign-off unlocked by override — ${esc(ov.by)}: “${esc(ov.reason)}”</span>`
-          : `<span class="jk-gate__warn">⚠ ${n.missing} item${n.missing === 1 ? "" : "s"} needed before funding sign-off.</span>`)
-        : `<span class="jk-gate__ok">✓ Jacket complete — ready for funding sign-off</span>`;
-
-    /* rows replicate the owner's phone mockup (2026-08-16, reaffirmed): one
-       primary action pinned right — Scan for the app's own paper, Upload for
-       anything from outside. The secondary actions stay in the DOM and fold
-       behind a tap on the row text on phones; desktop shows them inline. */
-    const led = jacketLedgers(deal);
-    const cl = jacketClient(deal);
-    const queue = clientQueue(deal);
-    const reqSent = !!jk.reqSentAt;
-    /* the queue owns its three; the general missing list keeps the rest */
-    const dealerMissing = outstanding.filter(d => !queue.includes(d.id));
-
-    /* the customer-documents queue (owner's prototype, matched 2026-08-18):
-       the whole row is a tap target that opens the camera and verifies
-       instantly through the same simulated check the client link runs */
-    const queueRow = (id) => {
-      const d = docs.find(x => x.id === id);
-      const m = clientMeta(id); const r = cl[id];
-      const blocked = r && r.state === "rejected";
-      /* the row carries its own action, per the owner's wireframe — the
-         whole row stays tappable, and the button says what the tap does */
-      return `<div class="jk-row dr-qrow dr-qrow--snap" data-snaprow="${esc(id)}" role="button" tabindex="0" aria-label="Scan ${esc(d.label)}">
-        <span class="dr-qicon">${m.icon}</span>
-        <span class="jk-row__main"><b>${esc(d.label)}</b>
-          <span class="jk-row__why${blocked ? " jk-row__why--blocked" : ""}">${blocked ? `⚠ ${esc(r.rejectedReason || "")}` : esc(m.plainReason)}</span></span>
-        <button type="button" class="btn btn--sm jk-rowscan" data-snapbtn="${esc(id)}">📷 ${blocked ? "Retake" : "Scan"}</button>
-      </div>`;
+    const rowHtml = (d, kind) => {
+      const st = kind === "customer" ? custStatus(d)
+        : kind === "done" ? { cls: "done", label: "In jacket" }
+          : { cls: "", label: "Needed" };
+      const sub = kind === "done" ? receivedLine(d) : (isCustomerDoc(d) ? (clientMeta(d.id) || {}).plainReason || d.whyShort : d.whyShort);
+      return `<button type="button" class="jk2-row" data-open="${esc(d.id)}" data-kind="${esc(kind)}">
+        <span class="jk2-icon">${DR_ROW_ICON[d.id] || DR_ROW_ICON.default}</span>
+        <span class="jk2-rowcopy"><span class="jk2-rowtitle">${esc(d.label)}</span><span class="jk2-rowsub">${esc(sub)}</span></span>
+        <span class="jk2-status${st.cls ? " jk2-status--" + st.cls : ""}">${esc(st.label)}</span>
+      </button>`;
     };
 
-    const missRow = (d) => `
-      <div class="jk-row jk-row--miss">
-        <span class="jk-row__mark jk-row__mark--miss">!</span>
-        <button type="button" class="jk-row__main jk-row__disclose" data-toggles-row aria-expanded="false">
-          <b>${esc(d.label)}</b>
-          ${d.origin === "outside" ? `<span class="jk-chip">arrives from outside</span>` : ""}
-          ${d.added ? `<span class="jk-chip jk-chip--added">added by hand</span>` : ""}
-          <span class="jk-row__why"><i class="jk-miss">Missing</i> · <span class="jk-why-l">${esc(d.why)}</span><span class="jk-why-s">${esc(d.whyShort)}</span></span>
-          ${jk.req[d.id] ? `<span class="jk-row__req">Requested from the client · ${esc(jacketStamp(jk.req[d.id]))}</span>` : ""}
-        </button>
-        <div class="jk-row__act">
-          ${d.origin !== "outside"
-            ? `<button class="btn btn--primary btn--sm" data-scan="${esc(d.id)}">📷 Scan</button>`
-            : `<button class="btn btn--primary btn--sm" data-upl="${esc(d.id)}">⬆ Upload</button>`}
-        </div>
-        <div class="jk-row__more">
-          <button class="btn btn--ghost btn--sm" data-take="${esc(d.id)}">Mark received</button>
-          <button class="btn btn--ghost btn--sm" data-req="${esc(d.id)}">Request</button>
-          ${d.added ? `<button class="btn btn--ghost btn--sm" data-drop="${esc(d.id)}">Remove</button>` : ""}
-        </div>
-      </div>`;
-
-    /* every collected row gets View, as the mockup draws (owner overwrote the
-       View/Record split, 2026-08-16): an app document opens the app's own
-       rendering, an outside document opens the record the jacket holds. The
-       Source line keeps the machine-check / person's-word distinction. */
-    const inRow = (d) => {
-      const st = jacketState(deal, d.id);
-      const verified = st.how === "scan";
-      return `
-      <div class="jk-row jk-row--in">
-        <span class="jk-row__mark">✓</span>
-        <button type="button" class="jk-row__main jk-row__disclose" data-toggles-row aria-expanded="false">
-          <b>${esc(d.label)}</b>
-          ${d.origin === "outside" ? `<span class="jk-chip">arrives from outside</span>` : ""}
-          ${d.added ? `<span class="jk-chip jk-chip--added">added by hand</span>` : ""}
-          <span class="jk-row__why"><span class="jk-why-l">${esc(d.why)}</span><span class="jk-why-s">${esc(d.whyShort)}</span></span>
-          <span class="jk-row__state">Source: ${verified ? "Camera Scan · Verified" : st.how === "client" ? "Client Upload · Accepted" : st.how === "sort" ? "Snap &amp; Sort · Auto-filed (demo)" : "Manual Entry · Received by " + esc(st.by)} · ${esc(jacketStamp(st.at))}${st.note ? " · " + esc(st.note) : ""}</span>
-        </button>
-        <div class="jk-row__act">
-          ${d.origin !== "outside"
-            ? `<a class="btn btn--ghost btn--sm jk-view" href="#/print/${esc(deal.id)}/${esc(d.id)}">View</a>`
-            : (st.how === "client" || st.how === "sort") && CLIENT_QUEUE_IDS.includes(d.id)
-              ? `<a class="btn btn--ghost btn--sm jk-view" href="#/docreview/${esc(deal.id)}/${esc(d.id)}">View</a>`
-              : `<button class="btn btn--ghost btn--sm jk-view" data-rec="${esc(d.id)}">View</button>`}
-        </div>
-        <div class="jk-row__more">
-          <button class="btn btn--ghost btn--sm" data-undo="${esc(d.id)}">Take back out</button>
-        </div>
-      </div>`;
-    };
-
-    /* the compliance card, the queue card and the In-The-Jacket accordion
-       replicate the owner's prototype (2026-08-18, second match round) */
-    const gateTone = deal.signoff || !n.missing ? "ok" : ov ? "ov" : "warn";
     view().innerHTML = `
-      <div class="jk-phonehead">
-        <span class="jk-phonehead__ava" aria-hidden="true">${cst ? esc(cst.first[0]) : "?"}</span>
-        <div class="jk-phonehead__who"><b>${cst ? esc(cst.first + " " + cst.last) : "—"}</b><span>${veh ? esc(veh.year + " " + veh.make + " " + veh.model) : "no vehicle yet"}</span></div>
-        ${deal.dealNo ? `<b class="jk-phonehead__no">#${esc(deal.dealNo)}</b>` : ""}
-        <button type="button" class="jk-scriptbtn" id="jkScriptBtn" aria-label="Advisor script">💡</button>
-      </div>
-      <div class="jk-comp">
-        <div class="jk-comp__top"><h2>Deal Jacket Compliance</h2><b class="jk-comp__count">${led.accepted} / ${led.total} Docs (${pct}%)</b></div>
-        <div class="jk-comp__track" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Deal jacket compliance ${pct}% complete">
-          <span class="jk-comp__fill" style="width:${pct}%"></span>
-        </div>
-        <div class="jk-comp__warn jk-comp__warn--${gateTone}"><p class="jk-gate">${gateLine}</p></div>
-      </div>
-      ${queue.length || Object.keys(cl).length ? `
-      <section class="jk-col dr-queue">
-        <h3 class="jk-col__head jk-col__head--red">Customer documents <span class="jk-count--miss">(${queue.length})</span>
-          <span class="dr-qaction">${reqSent
-            ? `<button class="btn btn--grad btn--sm" id="drResend">Resend Link</button>`
-            : `<button class="btn btn--grad btn--sm" id="drCompose">Send Text Request</button>`}</span></h3>
-        ${reqSent ? `<p class="jk-reqstamp">Requested ${esc(drStamp(jk.reqSentAt))}</p>` : ""}
-        <div class="jk-card">
-          ${queue.length ? queue.map(queueRow).join("") : `<p class="note">All customer documents are verified. ✓</p>`}
-        </div>
-        ${queue.length > 1 ? `<a class="btn jk-snapall" href="#/snapall/${esc(deal.id)}/advisor">📷 Snap All ${queue.length} Documents</a>` : ""}
-        ${queue.length ? `<input type="file" accept="image/*" capture="environment" id="jkSnapCam" hidden>` : ""}
-      </section>` : ""}
-      <section class="jk-col jk-col--forms">
-        <button type="button" class="jk-intoggle" id="jkFormsToggle" aria-expanded="${showForms}">
-          <span class="jk-intoggle__left"><span class="jk-incheck${dealerMissing.length ? " jk-incheck--miss" : ""}" aria-hidden="true">📁</span>
-            <span class="jk-intitle">Deal forms &amp; jacket</span>
-            <span class="jk-incount${dealerMissing.length ? " jk-incount--miss" : ""}">${dealerMissing.length ? dealerMissing.length + " missing" : led.accepted + "/" + led.total + " verified"}</span></span>
-          <span class="jk-intoggle__ctl">${showForms ? "Hide" : "Show"} <span class="jk-inchev${showForms ? " jk-inchev--open" : ""}" aria-hidden="true">▼</span></span>
-        </button>
-        ${showForms ? `<div class="jk-incontent">
-          ${dealerMissing.length ? `<p class="jk-grouplab jk-grouplab--miss">Still needed (${dealerMissing.length})</p>
-            <button class="btn btn--ghost jk-reqall" id="jkReqAll">Request all missing from the client</button>
-            ${dealerMissing.map(missRow).join("")}`
-          : `<p class="note">${queue.length
-              ? "No dealer forms outstanding — the customer documents above are still to come."
-              : "Nothing outstanding — every document this deal needs is in the jacket."}</p>`}
-          ${received.length ? `<p class="jk-grouplab jk-grouplab--in">In the jacket (${led.accepted}/${led.total})</p>${received.map(inRow).join("")}` : ""}
-          <button type="button" class="jk-addopt" id="jkAddOpt" aria-expanded="false">＋ Add Optional / Custom Form</button>
-          <div class="jk-addrow" id="jkAddRow" hidden>
-            <label class="f"><span class="lab">This deal also needs</span>
-              <select id="jkAdd" data-ui="dd" data-placeholder="+ Add Custom Form (${addable.length} available)">
-                <option value="" data-ph selected hidden>+ Add Custom Form (${addable.length} available)</option>
-                ${addable.map(f => `<option value="form-${esc(f.id)}">${esc(f.label)} — ${esc(f.group)}</option>`).join("")}
-              </select></label>
-            <p class="hint">Only add what this deal genuinely needs — an item added here counts against the jacket until it comes in.</p>
+      <div class="m-app">
+        ${deskTop(deal)}
+        <main class="jk2-main">
+          <div class="jk2-crumb">${deal.dealNo ? `Deal #${esc(deal.dealNo)}` : "This deal"} <i>›</i> ${cst ? esc(cst.first + " " + cst.last) : "—"} <i>›</i> Deal jacket</div>
+          <div class="jk2-context">
+            <div class="jk2-contextmeta"><strong>${cst ? esc(cst.first + " " + cst.last) : "—"}</strong>
+              <span>${veh ? esc(veh.year + " " + veh.make + " " + veh.model) : "no vehicle yet"}</span></div>
+            ${deal.dealNo ? `<div class="jk2-dealno">#${esc(deal.dealNo)}</div>` : ""}
           </div>
-        </div>` : ""}
-      </section>
-      <div class="jk-signoff">
-        <span class="jk-signoff__ico" aria-hidden="true">${deal.signoff || !n.missing || ov ? "✓" : "🔒"}</span>
-        <p>${deal.signoff
-          ? `Deal signed off by <b>${esc(deal.signoff.by)}</b> · ${esc(jacketStamp(deal.signoff.at))}`
-          : n.missing && !ov
-            ? `Funding sign-off is <b>locked</b> until ${n.missing} outstanding document${n.missing === 1 ? " is" : "s are"} received. A Team Lead can override at sign-off, with a recorded reason.`
-            : n.missing && ov
-              ? `Sign-off unlocked by override — <b>${esc(ov.by)}</b>: “${esc(ov.reason)}”`
-              : `Every document is in. The deal is ready for Manager Sign-Off.`}</p>
-        ${deal.signoff ? "" : `<a class="btn ${n.missing && !ov ? "btn--ghost" : "btn--primary"} btn--sm" href="#/menu/${esc(deal.id)}">Go to Manager Sign-Off</a>`}
+
+          <section class="jk2-hero">
+            <div class="jk2-herotop">
+              <div><div class="jk2-eyebrow">Funding readiness</div>
+                <h1 class="jk2-herotitle">${rem ? `${rem} item${rem === 1 ? "" : "s"} remaining` : "Ready for sign-off"}</h1></div>
+              <div class="jk2-count${rem ? "" : " jk2-count--good"}">${done} of ${total} complete</div>
+            </div>
+            <div class="jk2-progress" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Deal jacket ${pct}% complete"><span style="width:${pct}%"></span></div>
+            <p class="jk2-note">${rem
+        ? `<b>${custWaiting.length} item${custWaiting.length === 1 ? "" : "s"} need the customer.</b> ${formsWaiting.length ? `The other ${formsWaiting.length} ${formsWaiting.length === 1 ? "is a deal form" : "are deal forms"} your team completes.` : "All deal forms are complete."}`
+        : `<b>Jacket complete.</b> Everything required for funding sign-off is recorded.`}</p>
+          </section>
+
+          <section class="jk2-section">
+            <div class="jk2-sechead">
+              <div class="jk2-secmain"><div class="jk2-sectitle">Waiting on customer</div>
+                <div class="jk2-secsub">${custWaiting.length} document${custWaiting.length === 1 ? "" : "s"}</div></div>
+              <div class="jk2-badge jk2-badge--${custWaiting.length ? "warn" : "good"}">${custWaiting.length ? `${custWaiting.length} needed` : "Complete"}</div>
+            </div>
+            ${custWaiting.length
+        ? `<div class="jk2-rows">${custWaiting.map(d => rowHtml(d, "customer")).join("")}</div>`
+        : `<div class="jk2-inline jk2-inline--flush">All customer documents are in the jacket.</div>`}
+            ${custWaiting.length && reqSent ? `<div class="jk2-inline">✓ Secure request sent · ${custWaiting.length} document${custWaiting.length === 1 ? "" : "s"} still pending · <button type="button" class="jk2-smalllink" id="jkTrack">View status</button></div>` : ""}
+            ${custWaiting.length ? `<div class="jk2-secactions">
+              <button type="button" class="jk2-primary" id="jkRequest">${reqSent ? `Resend secure request (${custWaiting.length})` : `Request ${custWaiting.length} document${custWaiting.length === 1 ? "" : "s"}`}</button>
+              ${custWaiting.length > 1 ? `<button type="button" class="jk2-linkbtn" id="jkSnapAll">Capture all ${custWaiting.length} here instead</button>` : ""}
+            </div>` : ""}
+          </section>
+
+          <section class="jk2-section">
+            <button type="button" class="jk2-sechead" id="jkFormsToggle" aria-expanded="${ui.formsOpen}" aria-controls="jkFormsRows">
+              <span class="jk2-secmain"><span class="jk2-sectitle">Deal forms</span>
+                <span class="jk2-secsub">Internal forms and signatures</span></span>
+              <span class="jk2-badge jk2-badge--${formsWaiting.length ? "warn" : "good"}">${formsWaiting.length ? `${formsWaiting.length} remaining` : "Complete"}</span>
+              <span class="jk2-chev${ui.formsOpen ? " jk2-chev--open" : ""}" aria-hidden="true">⌄</span>
+            </button>
+            <div id="jkFormsRows">${ui.formsOpen ? `
+              ${formsWaiting.length
+        ? `<div class="jk2-rows">${formsWaiting.map(d => rowHtml(d, "form")).join("")}</div>`
+        : `<div class="jk2-inline jk2-inline--flush">All required deal forms are complete.</div>`}
+              <div class="jk2-secactions"><button type="button" class="jk2-linkbtn" id="jkAddOpt">+ Add optional document</button></div>` : ""}</div>
+          </section>
+
+          <section class="jk2-section">
+            <button type="button" class="jk2-sechead" id="jkDoneToggle" aria-expanded="${ui.completedOpen}" aria-controls="jkDoneRows">
+              <span class="jk2-secmain"><span class="jk2-sectitle">Completed</span>
+                <span class="jk2-secsub">Already in the jacket</span></span>
+              <span class="jk2-badge jk2-badge--good">${done}</span>
+              <span class="jk2-chev${ui.completedOpen ? " jk2-chev--open" : ""}" aria-hidden="true">⌄</span>
+            </button>
+            <div id="jkDoneRows">${ui.completedOpen ? (completed.length
+        ? `<div class="jk2-rows">${completed.map(d => rowHtml(d, "done")).join("")}</div>`
+        : `<div class="jk2-inline jk2-inline--flush jk2-inline--warn">Nothing is in the jacket yet.</div>`) : ""}</div>
+          </section>
+
+          ${ov && rem ? `<div class="jk2-inline jk2-inline--warn jk2-inline--bare">Sign-off unlocked by override — ${esc(ov.by)}: “${esc(ov.reason)}”</div>` : ""}
+
+          <button type="button" class="jk2-smalllink" id="jkScript">Advisor script</button>
+          <a class="jk2-smalllink" href="#/forms/${esc(deal.id)}">Print Center</a>
+        </main>
+
+        <div class="jk2-dock">
+          <div class="jk2-dockcopy"><small>Funding sign-off</small>
+            <strong>${deal.signoff ? `Signed off by ${esc(deal.signoff.by)}` : rem ? `${rem} item${rem === 1 ? "" : "s"} remaining` : "Jacket complete"}</strong></div>
+          <button type="button" class="jk2-dockbtn" id="jkSignoff"${fundable || deal.signoff ? "" : " disabled"}>${deal.signoff ? "View sign-off" : fundable ? "Complete sign-off →" : "Not ready"}</button>
+        </div>
       </div>
-      <div class="jk-bottombar">
-        <a class="btn btn--ghost" href="${esc(STAGES[deal.stage] ? STAGES[deal.stage].route(deal) : "#/deals")}">← Back to Deal</a>
-        ${led.missing === 0
-          ? `<a class="btn dr-funding" href="#/menu/${esc(deal.id)}">Complete Deal &amp; Sign-off →</a>`
-          : `<button type="button" class="btn jk-dockinfo" disabled aria-disabled="true">${led.missing} doc${led.missing === 1 ? "" : "s"} needed</button>`}
-      </div>`;
+      <div class="m-scrim" id="jkScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="jkSheet"></div></div>
+      <input type="file" accept="image/*" capture="environment" id="jkCam" hidden>
+      <input type="file" accept="image/*" id="jkFile" hidden>`;
 
-    /* one modal for marking received; the note is optional, the by-name
-       record is the point */
-    function takeModal(docId) {
-      const m = docMeta(docId);
-      modal("Mark received — " + m.label, `
-        <p class="small">Recorded against this deal as taken in by <b>${esc(roleName())}</b>. Nothing is uploaded — the jacket keeps the record, not the paper.</p>
-        <label class="f"><span class="lab">Note (optional)</span><input type="text" id="jkNoteIn" maxlength="80" placeholder="e.g. faxed by the credit union"></label>`,
-        `<button class="btn btn--ghost" data-close>Cancel</button>
-         <button class="btn btn--primary" id="jkNoteGo">Mark received</button>`);
-      $("#jkNoteGo").onclick = () => {
-        jacketReceive(deal, docId, "hand", ($("#jkNoteIn").value || "").trim());
-        closeModal(); toast("Marked received by " + roleName()); render();
-      };
-    }
-
-    /* the mockup's Upload button, on the app's terms: the photo proves the
-       paper is in hand, then it is discarded — nothing is stored (owner
-       decision, 2026-08-16) and nothing is read from it (invariant 4). The
-       record is what the jacket keeps. */
-    function uploadFlow(docId) {
-      const m = docMeta(docId);
-      if (!m) return;
-      modal("Upload — " + m.label, `
-        <label class="scan-frame scan-frame--tap scan-cap">
-          <span class="scan-frame__icon">📷</span><span class="scan-frame__label" id="jkUplLabel">Photograph the document</span>
-          <input type="file" accept="image/*" capture="environment" id="jkUplFile">
-        </label>
-        <p class="small" style="margin-top:10px">The photo confirms it is in hand and is then discarded — the jacket keeps the record, not the paper. Recorded as taken in by <b>${esc(roleName())}</b>.</p>
-        <label class="f"><span class="lab">Note (optional)</span><input type="text" id="jkUplNote" maxlength="80" placeholder="e.g. faxed by the credit union"></label>`,
-        `<button class="btn btn--ghost" data-close>Cancel</button>
-         <button class="btn btn--ghost" id="jkUplHand">Mark received without a photo</button>
-         <button class="btn btn--primary" id="jkUplGo" disabled>Mark received</button>`);
-      /* Upload means the paper was sighted — completing it without a photo
-         would let the button say something that did not happen. The no-photo
-         path stays one tap away and is recorded the same way. */
-      const fileIn = $("#jkUplFile");
-      if (fileIn) fileIn.onchange = () => {
-        if (fileIn.files && fileIn.files[0]) {
-          $("#jkUplLabel").textContent = "Photo taken — nothing is uploaded or kept";
-          $("#jkUplGo").disabled = false;
-        }
-      };
-      const receive = () => {
-        jacketReceive(deal, docId, "hand", ($("#jkUplNote").value || "").trim());
-        closeModal(); toast("Marked received by " + roleName()); render();
-      };
-      $("#jkUplGo").onclick = receive;
-      $("#jkUplHand").onclick = receive;
-    }
-
-    /* an outside document has no paper here — show what the jacket holds */
-    function recordModal(docId) {
-      const m = docMeta(docId); const st = jacketState(deal, docId);
-      if (!m || !st) return;
-      modal("The record — " + m.label, `
-        <p class="small">This document arrives from outside the dealership, so the jacket keeps the record, not the paper.</p>
-        <ul class="jk-reqlist">
-          <li>${st.how === "scan" ? "Verified — the app read its own marker" : st.how === "sort" ? "Auto-filed by Snap &amp; Sort (demo — simulated check)" : st.how === "client" ? "Accepted after advisor review" : "Marked received by <b>" + esc(st.by) + "</b>"}</li>
-          <li>Taken in ${esc(jacketStamp(st.at))}</li>
-          ${st.note ? `<li>Note: ${esc(st.note)}</li>` : ""}
-        </ul>`,
-        `<button class="btn btn--primary" data-close>Close</button>`);
-    }
-
-    /* the simulated client request — same theater as the credit pull: it
-       looks real, and nothing leaves the device */
-    function requestFlow(ids) {
-      const metas = ids.map(docMeta).filter(Boolean);
-      if (!metas.length) return;
-      modal("Request documents from the client", `
-        <p class="small">Sends <b>${cst ? esc(cst.first + " " + cst.last) : "the client"}</b> a secure link listing what the deal still needs${cst && cst.phone ? ` at <b>${esc(cst.phone)}</b>` : ""}.</p>
-        <ul class="jk-reqlist">${metas.map(x => `<li>${esc(x.label)}</li>`).join("")}</ul>
-        <p class="demo-note">Demo — the message is simulated; nothing leaves this device.</p>`,
-        `<button class="btn btn--ghost" data-close>Cancel</button>
-         <button class="btn btn--grad" id="jkReqGo">Send request</button>`);
-      /* same liveness guard as openDocScanFlow: navigating away or dismissing
-         during the send window must cancel it, or the timer closes whatever
-         modal is open by then and paints jacket markup over another screen */
-      const back = $("#modalBack");
-      const st = {};
-      function cleanup() {
-        st.cancelled = true;
-        window.removeEventListener("hashchange", abandon);
-        back.removeEventListener("click", onDismiss);
-      }
-      function onDismiss(e) { if (e.target === back || e.target.hasAttribute("data-close")) cleanup(); }
-      function abandon() { cleanup(); closeModal(); }
-      back.addEventListener("click", onDismiss);
-      window.addEventListener("hashchange", abandon);
-      $("#jkReqGo").onclick = () => {
-        $("#modalBack .modal__body").innerHTML = `<div class="scan-stage"><div class="scan-spin"></div><p class="scan-instruct">Sending the request…</p></div>`;
-        const foot = $("#modalBack .modal__foot"); if (foot) foot.remove();
-        setTimeout(() => {
-          if (st.cancelled || !document.contains(back)) return;
-          cleanup();
-          jacketRequest(deal, metas.map(x => x.id));
-          closeModal(); toast("Request sent" + (cst ? " to " + cst.first : "")); render();
-        }, 900);
-      };
-    }
-
-    const wireScan = (el) => { if (el) el.onclick = () => openDocScanFlow(deal, render); };
-    wireScan($("#jkScan"));
-    /* a queue row is a camera trigger (owner's prototype): snap, then the
-       same simulated check the client link runs. While a document is blocked
-       on a missing page, another snap appends — front, then back. */
-    let snapDoc = null;
-    const openCam = (id) => { snapDoc = id; const inp = $("#jkSnapCam"); if (inp) { inp.value = ""; inp.click(); } };
-    $$("[data-snaprow]").forEach(row => {
-      row.onclick = () => openCam(row.dataset.snaprow);
-      row.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openCam(row.dataset.snaprow); } };
-    });
-    /* the button and its row do the same thing — without stopping the
-       bubble the camera would open twice */
-    $$("[data-snapbtn]").forEach(b => b.onclick = (e) => { e.stopPropagation(); openCam(b.dataset.snapbtn); });
-    const snapCam = $("#jkSnapCam");
-    if (snapCam) snapCam.onchange = () => {
-      if (!snapCam.files || !snapCam.files.length || !snapDoc) return;
-      drAddShots(deal, snapDoc, snapCam.files);
-      const result = drAutoVerify(deal, snapDoc);
-      toast(result.ok ? "✓ Verified instantly. Moved to In the Jacket." : "Upload blocked: " + result.issue);
-      render();
-    };
-    /* a row's Scan carries which document is expected, so the flow can offer
-       the hand-record path for exactly that document */
-    $$("[data-scan]").forEach(b => b.onclick = () => openDocScanFlow(deal, render, { expect: b.dataset.scan, onHand: () => takeModal(b.dataset.scan) }));
-    $$("[data-upl]").forEach(b => b.onclick = () => uploadFlow(b.dataset.upl));
-    /* on phones the secondary actions fold behind the row-text disclosure —
-       a real <button>, so it is keyboard operable, with aria-expanded kept true */
-    $$("[data-toggles-row]").forEach(el => el.onclick = () => {
-      const open = el.closest(".jk-row").classList.toggle("jk-row--open");
-      el.setAttribute("aria-expanded", String(open));
-    });
-    $$("[data-take]").forEach(b => b.onclick = (e) => { e.stopPropagation(); takeModal(b.dataset.take); });
-    $$("[data-undo]").forEach(b => b.onclick = () => { jacketRemove(deal, b.dataset.undo); render(); });
-    /* only a hand-added document can leave the list; a computed one is needed
-       whether or not anybody wants it there */
-    $$("[data-drop]").forEach(b => b.onclick = () => { jacketDrop(deal, b.dataset.drop); render(); toast("Taken off this deal"); });
-    $$("[data-rec]").forEach(b => b.onclick = () => recordModal(b.dataset.rec));
-    $$("[data-req]").forEach(b => b.onclick = () => requestFlow([b.dataset.req]));
-    /* one bulk request trigger — the top of the missing list (owner usability
-       pass, 2026-08-16: duplicate Request triggers removed) */
-    if ($("#jkReqAll")) $("#jkReqAll").onclick = () => requestFlow(dealerMissing.map(d => d.id));
-    if ($("#drCompose")) $("#drCompose").onclick = () => navigate("#/docreq/" + deal.id);
-    if ($("#drResend")) $("#drResend").onclick = () => navigate("#/docreq/" + deal.id + "/resend");
-    $("#jkFormsToggle").onclick = () => { showForms = !showForms; render(); };
-    /* the script is a sheet off the header now, not a card in the flow */
-    const scriptSheet = () => modal("Advisor Script", `
-      <p class="hint">“Ask for the title while you're valuing the trade — it's in the glovebox today, not at delivery.”</p>
-      <p class="hint">“When the lender asks for stips, tell the client the same day — a paystub photo tonight beats a funding delay on Friday.”</p>
-      <p class="hint">“Walk the jacket before the delivery appointment — hunting paperwork with the client at the desk kills the celebration.”</p>`,
-      `<button class="btn btn--primary" data-close>Close</button>`);
-    $("#jkScriptBtn").onclick = scriptSheet;
-    if ($("#jkScriptTop")) $("#jkScriptTop").onclick = scriptSheet;
-    const addOpt = $("#jkAddOpt");
-    if (addOpt) addOpt.onclick = () => {
-      const row = $("#jkAddRow");
-      const open = row.hidden;
-      row.hidden = !open;
-      addOpt.setAttribute("aria-expanded", String(open));
-    };
-    const addSel = $("#jkAdd");
-    if (addSel) addSel.onchange = () => {
-      const aid = addSel.value; if (!aid) return;
-      const j = jacketOf(deal);
-      if (!j.extra.includes(aid)) { j.extra.push(aid); Store.save(); }
-      render();
-      toast("Added to this deal's jacket");
-    };
+    wireDeskTop();
+    wire(custWaiting, addable);
   }
+
+  /* what the Completed row says it knows — the distinction the old screen
+     drew between a machine check and a person's word is kept word for word */
+  function receivedLine(d) {
+    const st = jacketState(deal, d.id); if (!st) return "";
+    const how = st.how === "scan" ? "Camera scan · verified"
+      : st.how === "client" ? "Customer upload · accepted"
+        : st.how === "sort" ? "Snap & Sort · auto-filed (demo)"
+          : "Marked received by " + st.by;
+    return how + " · " + jacketStamp(st.at);
+  }
+
+  /* ---- the sheets ---- */
+
+  /* one secure request carries every customer document still missing. The
+     advisor stays here: sending and resending never leave the jacket. */
+  function requestSheet(waiting) {
+    const cst = Store.customer(deal.customerId);
+    const reqSent = !!jacketRead(deal).reqSentAt;
+    openSheet(`${sheetHead(reqSent ? "Resend documents" : "Request documents", cst ? cst.first + " " + cst.last + (cst.phone ? " · " + cst.phone : "") : "")}
+      <div class="jk2-choicelist">
+        ${waiting.map(d => `<label class="jk2-choice"><input type="checkbox" checked data-pick="${esc(d.id)}">
+          <span class="jk2-choicecopy"><strong>${esc(d.label)}</strong><span>${esc((clientMeta(d.id) || {}).plainReason || d.whyShort)}</span></span></label>`).join("")}
+      </div>
+      <p class="jk2-privacy">Ride Price sends a secure link. The customer uploads directly into Ride Price — document images do not pass through the salesperson's text messages or photo library.</p>
+      <p class="demo-note">Demo — the message is simulated; nothing leaves this device.</p>
+      <div class="jk2-sheetactions jk2-sheetactions--single">
+        <button type="button" class="jk2-sheetbtn jk2-sheetbtn--primary" id="jkSend">${reqSent ? "Resend" : "Send"} secure request</button></div>`,
+      (sh) => {
+        $("#jkSend", sh).onclick = () => {
+          const picked = $$("[data-pick]", sh).filter(c => c.checked).map(c => c.dataset.pick);
+          if (!picked.length) return toast("Choose at least one document");
+          sh.innerHTML = `<div class="m-handle"></div><div class="scan-stage"><div class="scan-spin"></div><p class="scan-instruct">Sending the secure link…</p></div>`;
+          /* the send window is the same liveness problem the old composer had:
+             navigating away or dismissing mid-send must not let the timer
+             write state and repaint over whatever screen is showing by then */
+          const alive = () => document.contains(sh) && !!$("#jkScrim") && $("#jkScrim").classList.contains("show");
+          setTimeout(() => {
+            if (!alive()) return;
+            sendRequest(picked);
+            closeSheet();
+            /* no toast: the package puts this feedback in the jacket itself,
+               where it stays readable — the inline banner under the customer
+               rows says what was sent and offers the delivery status */
+            render();
+          }, 800);
+        };
+      });
+  }
+
+  /* one secure link covers every document ticked. A document already
+     accepted is never reset by a resend — only one still in flight is. */
+  function sendRequest(ids) {
+    const j = jacketOf(deal);
+    const cl = jacketClientOf(deal);
+    const at = new Date().toISOString();
+    j.reqSentAt = at;
+    ids.forEach(qid => {
+      if (!cl[qid] || cl[qid].state === "requested") cl[qid] = { state: "requested", requestedAt: at };
+    });
+    Store.save();
+    jacketRequest(deal, ids);
+  }
+
+  /* delivery status, local to the jacket — never its own route */
+  function trackingSheet(waiting) {
+    const cst = Store.customer(deal.customerId);
+    const jk = jacketRead(deal);
+    const uploaded = CLIENT_QUEUE_IDS.filter(qid => { const r = jacketClient(deal)[qid]; return r && r.state !== "requested"; }).length;
+    const asked = CLIENT_QUEUE_IDS.filter(qid => !!jacketClient(deal)[qid]).length;
+    openSheet(`${sheetHead("Customer request", cst ? "Sent to " + cst.first + " " + cst.last + (cst.phone ? " · " + cst.phone : "") : "")}
+      <div class="jk2-track">
+        <div class="jk2-trackrow"><span class="jk2-dot">✓</span><b>Link sent</b><span>${esc(jacketStamp(jk.reqSentAt))}</span></div>
+        <div class="jk2-trackrow"><span class="jk2-dot">✓</span><b>Delivered</b><span>${esc(jacketStamp(jk.reqSentAt))}</span></div>
+        <div class="jk2-trackrow${uploaded ? "" : " jk2-trackrow--pending"}"><span class="jk2-dot">${uploaded ? "✓" : "•"}</span><b>Customer opened</b><span>${uploaded ? "Opened" : "Waiting"}</span></div>
+        <div class="jk2-trackrow${uploaded ? "" : " jk2-trackrow--pending"}"><span class="jk2-dot">${uploaded ? "✓" : "•"}</span><b>Documents uploaded</b><span>${uploaded} of ${asked || waiting.length}</span></div>
+      </div>
+      <p class="jk2-privacy">The customer's phone is played by this same browser — open it to run the upload side of the demo.</p>
+      <div class="jk2-sheetactions">
+        <button type="button" class="jk2-sheetbtn" id="jkResend">Resend link</button>
+        <button type="button" class="jk2-sheetbtn jk2-sheetbtn--primary" data-sheet-close>Done</button></div>
+      <div class="jk2-sheetactions jk2-sheetactions--single">
+        <button type="button" class="jk2-sheetbtn" id="jkOpenPhone">Open the customer's phone</button></div>`,
+      (sh) => {
+        $("#jkResend", sh).onclick = () => requestSheet(waiting);
+        $("#jkOpenPhone", sh).onclick = () => { closeSheet(); navigate("#/clientlink/" + deal.id + "/sms"); };
+      });
+  }
+
+  /* one contextual sheet per row — no permanent button rail on the rows */
+  function docSheet(d, kind) {
+    if (kind === "done") return recordSheet(d);
+    if (isCustomerDoc(d) && backMissing(d.id)) return licenseSheet(d);
+    const customer = isCustomerDoc(d);
+    const outside = d.origin === "outside";
+    /* only paper this portal printed carries a marker to read; a title or an
+       insurance card has nothing to scan, so it is never offered one */
+    const capture = customer
+      ? { title: d.id === "form-license" ? "Finish license capture" : "Take photo", sub: d.id === "form-license" ? "Capture front and back in one session" : "Use this device camera" }
+      : outside ? null
+        : { title: "Scan the document", sub: "Reads the marker strip Ride Price printed on it" };
+    openSheet(`${sheetHead(d.label, customer ? (clientMeta(d.id) || {}).plainReason || d.whyShort : d.why)}
+      <div class="jk2-choicelist">
+        ${capture ? `<button type="button" class="jk2-choice" id="jkCapture"><span class="jk2-icon">${rpIcon("camera")}</span>
+          <span class="jk2-choicecopy"><strong>${esc(capture.title)}</strong><span>${esc(capture.sub)}</span></span><span class="jk2-go">›</span></button>` : ""}
+        <button type="button" class="jk2-choice" id="jkUpload"><span class="jk2-icon">${rpIcon("upload")}</span>
+          <span class="jk2-choicecopy"><strong>Upload file</strong><span>Choose a document already on this device</span></span><span class="jk2-go">›</span></button>
+        <button type="button" class="jk2-choice" id="jkMark"><span class="jk2-icon">${rpIcon("check")}</span>
+          <span class="jk2-choicecopy"><strong>Mark received</strong><span>Record a document received outside Ride Price</span></span><span class="jk2-go">›</span></button>
+      </div>`,
+      (sh) => {
+        const cap = $("#jkCapture", sh);
+        if (cap) cap.onclick = () => {
+          closeSheet();
+          if (customer) openCam(d.id, true);
+          else openDocScanFlow(deal, render, { expect: d.id, onHand: () => markSheet(d) });
+        };
+        $("#jkUpload", sh).onclick = () => {
+          closeSheet();
+          if (customer) openCam(d.id, false);
+          else uploadFlow(d);
+        };
+        $("#jkMark", sh).onclick = () => markSheet(d);
+      });
+  }
+
+  /* the licence exception stays local to the licence — a focused sheet, never
+     a toast that explains a requirement and then disappears */
+  function licenseSheet(d) {
+    openSheet(`${sheetHead("Finish driver's license", "Front received · back still required")}
+      <div class="jk2-inline jk2-inline--warn jk2-inline--bare">The front is already saved. Add the back barcode side to finish this document.</div>
+      <div class="jk2-sheetactions jk2-sheetactions--single">
+        <button type="button" class="jk2-sheetbtn jk2-sheetbtn--primary" id="jkBack">Capture back</button></div>`,
+      (sh) => { $("#jkBack", sh).onclick = () => { closeSheet(); openCam(d.id, true); }; });
+  }
+
+  /* a manual receipt is exactly that: the jacket records that a person took
+     the document in, and never implies Ride Price read or verified it */
+  function markSheet(d) {
+    openSheet(`${sheetHead("Mark received", d.label)}
+      <div class="jk2-field"><label for="jkNote">Source or note <i>(optional)</i></label>
+        <textarea class="jk2-input" id="jkNote" rows="3" maxlength="120" placeholder="e.g. received from the customer in the showroom"></textarea></div>
+      <p class="jk2-privacy">Recorded against this deal as taken in by ${esc(roleName())}. Nothing is uploaded and nothing is read — this records the item in the jacket without pretending Ride Price scanned or verified it.</p>
+      <div class="jk2-sheetactions jk2-sheetactions--single">
+        <button type="button" class="jk2-sheetbtn jk2-sheetbtn--primary" id="jkMarkGo">Mark received</button></div>`,
+      (sh) => {
+        $("#jkMarkGo", sh).onclick = () => {
+          jacketReceive(deal, d.id, "hand", ($("#jkNote", sh).value || "").trim());
+          closeSheet(); toast("Marked received by " + roleName()); render();
+        };
+      });
+  }
+
+  /* what the jacket holds for something already in — and the way back out */
+  function recordSheet(d) {
+    const st = jacketState(deal, d.id); if (!st) return;
+    const viewable = d.origin !== "outside"
+      ? `#/print/${encodeURIComponent(deal.id)}/${encodeURIComponent(d.id)}`
+      : (st.how === "client" || st.how === "sort") && CLIENT_QUEUE_IDS.includes(d.id)
+        ? `#/docreview/${encodeURIComponent(deal.id)}/${encodeURIComponent(d.id)}` : null;
+    openSheet(`${sheetHead(d.label, receivedLine(d))}
+      <p class="jk2-privacy">${st.how === "scan" ? "Verified — the app read the marker it printed on this page."
+        : st.how === "sort" ? "Auto-filed by Snap &amp; Sort (demo — a simulated check)."
+          : st.how === "client" ? "Uploaded by the customer through the secure link and accepted after review."
+            : "Taken in by hand. The jacket keeps the record, not the paper."}${st.note ? " Note: " + esc(st.note) : ""}</p>
+      <div class="jk2-sheetactions${viewable ? "" : " jk2-sheetactions--single"}">
+        ${viewable ? `<a class="jk2-sheetbtn" href="${viewable}">View</a>` : ""}
+        <button type="button" class="jk2-sheetbtn" id="jkUndo">Take back out</button></div>
+      ${d.added ? `<div class="jk2-sheetactions jk2-sheetactions--single"><button type="button" class="jk2-sheetbtn" id="jkDrop">Remove from this deal</button></div>` : ""}`,
+      (sh) => {
+        $("#jkUndo", sh).onclick = () => { jacketRemove(deal, d.id); closeSheet(); render(); };
+        const drop = $("#jkDrop", sh);
+        if (drop) drop.onclick = () => { jacketDrop(deal, d.id); closeSheet(); toast("Taken off this deal"); render(); };
+      });
+  }
+
+  /* optional forms stay behind a link, never a permanent top-level workflow.
+     The list is the portal's own form set — a free-typed name would create a
+     document the print route could not render. */
+  function addOptSheet(addable) {
+    openSheet(`${sheetHead("Add optional document", "Add only what this deal genuinely needs — it counts against the jacket until it comes in.")}
+      <div class="jk2-field"><label for="jkAddSel">Document</label>
+        <select class="jk2-input" id="jkAddSel">
+          <option value="" selected>Choose a document (${addable.length} available)</option>
+          ${addable.map(f => `<option value="form-${esc(f.id)}">${esc(f.label)} — ${esc(f.group)}</option>`).join("")}
+        </select></div>
+      <div class="jk2-sheetactions jk2-sheetactions--single">
+        <button type="button" class="jk2-sheetbtn jk2-sheetbtn--primary" id="jkAddGo">Add document</button></div>`,
+      (sh) => {
+        $("#jkAddGo", sh).onclick = () => {
+          const aid = $("#jkAddSel", sh).value;
+          if (!aid) return toast("Choose a document first");
+          const j = jacketOf(deal);
+          if (!j.extra.includes(aid)) { j.extra.push(aid); Store.save(); }
+          closeSheet(); toast("Added to this deal's jacket"); render();
+        };
+      });
+  }
+
+  function scriptSheet() {
+    openSheet(`${sheetHead("Advisor script", "Use only when you need a quick word track.")}
+      <div class="jk2-script">
+        <p>“I'm going to send you one secure Ride Price link for the few documents we still need.”</p>
+        <p>“Upload them straight from your phone — you don't need to text or email anything private to me.”</p>
+        <p>“As they arrive, your deal jacket updates on its own, and we keep the delivery date.”</p>
+      </div>`);
+  }
+
+  /* the upload path for internal paper: the photo proves the document is in
+     hand and is then discarded — nothing is stored and nothing is read from
+     it (owner, 2026-08-16 / invariant 4). The record is what the jacket keeps. */
+  function uploadFlow(d) {
+    openSheet(`${sheetHead("Upload file", d.label)}
+      <label class="scan-frame scan-frame--tap scan-cap">
+        <span class="scan-frame__icon">${rpIcon("camera")}</span><span class="scan-frame__label" id="jkUplLabel">Photograph the document</span>
+        <input type="file" accept="image/*" id="jkUplFile"></label>
+      <p class="jk2-privacy">The photo confirms it is in hand and is then discarded — the jacket keeps the record, not the paper. Recorded as taken in by ${esc(roleName())}.</p>
+      <div class="jk2-sheetactions">
+        <button type="button" class="jk2-sheetbtn" id="jkUplHand">Without a photo</button>
+        <button type="button" class="jk2-sheetbtn jk2-sheetbtn--primary" id="jkUplGo" disabled>Mark received</button></div>`,
+      (sh) => {
+        const f = $("#jkUplFile", sh);
+        f.onchange = () => {
+          if (f.files && f.files[0]) {
+            $("#jkUplLabel", sh).textContent = "Photo taken — nothing is uploaded or kept";
+            $("#jkUplGo", sh).disabled = false;
+          }
+        };
+        const receive = () => { jacketReceive(deal, d.id, "hand", ""); closeSheet(); toast("Marked received by " + roleName()); render(); };
+        $("#jkUplGo", sh).onclick = receive;
+        $("#jkUplHand", sh).onclick = receive;
+      });
+  }
+
+  /* the customer documents run the same instant check the secure link runs */
+  function openCam(docId, useCamera) {
+    camDoc = docId;
+    const inp = $(useCamera ? "#jkCam" : "#jkFile");
+    if (inp) { inp.value = ""; inp.click(); }
+  }
+
+  /* ---- wiring ---- */
+  function wire(custWaiting, addable) {
+    const docs = jacketDocs(deal);
+    $$("[data-open]").forEach(b => b.onclick = () => {
+      const d = docs.find(x => x.id === b.dataset.open);
+      if (d) docSheet(d, b.dataset.kind);
+    });
+    const scrim = $("#jkScrim");
+    if (scrim) scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
+
+    if ($("#jkRequest")) $("#jkRequest").onclick = () => requestSheet(custWaiting);
+    if ($("#jkTrack")) $("#jkTrack").onclick = () => trackingSheet(custWaiting);
+    if ($("#jkSnapAll")) $("#jkSnapAll").onclick = () => navigate("#/snapall/" + deal.id + "/advisor");
+    if ($("#jkAddOpt")) $("#jkAddOpt").onclick = () => addOptSheet(addable);
+    $("#jkScript").onclick = scriptSheet;
+    $("#jkFormsToggle").onclick = () => { ui.formsOpen = !ui.formsOpen; render(); };
+    $("#jkDoneToggle").onclick = () => { ui.completedOpen = !ui.completedOpen; render(); };
+    const so = $("#jkSignoff");
+    if (so && !so.disabled) so.onclick = () => navigate("#/menu/" + deal.id);
+
+    const onPick = (inp) => () => {
+      if (!inp.files || !inp.files.length || !camDoc) return;
+      drAddShots(deal, camDoc, inp.files);
+      const result = drAutoVerify(deal, camDoc);
+      toast(result.ok ? "✓ Verified. Moved to Completed." : "Blocked: " + result.issue);
+      camDoc = null;
+      render();
+    };
+    const cam = $("#jkCam"); if (cam) cam.onchange = onPick(cam);
+    const file = $("#jkFile"); if (file) file.onchange = onPick(file);
+  }
+
   render();
 });
 
@@ -5755,57 +5848,12 @@ function drWireDebug(deal) {
   $$("[data-dbg]").forEach(b => b.onclick = () => navigate(b.dataset.dbg === "advisor" ? "#/jacket/" + deal.id : "#/clientlink/" + deal.id));
 }
 
-function drComposer(id, mode) {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
-  const isResend = mode === "resend";
-  const cst = Store.customer(deal.customerId);
-  /* one count drives both the list and the button: a first-time send covers
-     documents not yet requested-or-landed; a resend covers everything still
-     on the link (anything not accepted) */
-  const queue = isResend ? clientQueue(deal) : clientQueue(deal).filter(d => {
-    const r = jacketClient(deal)[d];
-    return !r || r.state === "requested";
-  });
-  renderChrome(isResend ? "Resend document request" : "Request documents", dealTitle(deal), "");
-  document.body.dataset.screen = "docreq";
-  view().innerHTML = `
-    <div class="dr-sheet">
-      <div class="dr-sheethead"><h2>${isResend ? "Resend document request" : "Request documents"}</h2>
-        <a class="dr-close" href="#/jacket/${esc(deal.id)}" aria-label="Close">×</a></div>
-      <div class="dr-sheetbody">
-        <div class="dr-person"><span class="dr-kicker">Send to</span>
-          <b>${cst ? esc(cst.first + " " + cst.last) : "—"}</b>
-          <span>${cst ? esc(cst.phone || "") : ""}</span></div>
-        <div class="dr-items">
-          ${queue.length ? queue.map(qid => {
-            const d = docMeta(qid); const m = clientMeta(qid);
-            return `<div class="dr-item"><span class="dr-qicon">${m.icon}</span>
-              <span class="dr-itemcopy"><b>${esc(d.label)}</b><span>${esc(m.plainReason)}</span></span>
-              <span class="dr-itemcheck">✓</span></div>`;
-          }).join("") : `<p class="note">No new customer documents need a first-time request.</p>`}
-        </div>
-        <p class="demo-note">Demo — the text is simulated; the client's phone is played by this same browser and nothing leaves this device.</p>
-        <button class="btn dr-bigcta" id="drSend" ${queue.length === 0 ? "disabled" : ""}>${isResend ? "Resend Text Request" : "Send Text Request"} (${queue.length} item${queue.length === 1 ? "" : "s"}) →</button>
-        <a class="dr-cancel" href="#/jacket/${esc(deal.id)}">Cancel</a>
-      </div>
-    </div>`;
-  view().insertAdjacentHTML("beforeend", drDebugStrip(deal));
-  drWireDebug(deal);
-  $("#drSend").onclick = () => {
-    const j = jacketOf(deal);
-    const cl = jacketClientOf(deal);
-    const at = new Date().toISOString();
-    j.reqSentAt = at;
-    clientQueue(deal).forEach(qid => {
-      if (!cl[qid] || cl[qid].state === "requested") cl[qid] = { state: "requested", requestedAt: at };
-    });
-    Store.save();
-    toast(isResend ? "Fresh link sent" : "Text request sent");
-    navigate("#/clientlink/" + deal.id + "/sms");
-  };
-}
-route("docreq/:id", ({ id }) => drComposer(id));
-route("docreq/:id/:mode", ({ id, mode }) => drComposer(id, mode));
+/* The composer and the resend page are gone: the owner's V2 package folds
+   requesting documents into a bottom sheet on the jacket itself, so the
+   advisor never leaves it. Both hashes stay routable and land on the jacket,
+   because a saved link or a bookmark from the old flow must not dead-end. */
+route("docreq/:id", ({ id }) => navigate("#/jacket/" + id));
+route("docreq/:id/:mode", ({ id }) => navigate("#/jacket/" + id));
 
 /* ---------------- the simulated client phone ---------------- */
 

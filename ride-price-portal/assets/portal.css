@@ -2846,3 +2846,131 @@ body[data-canvas="master"][data-screen="deals"] { background: #F7F7F7; }
      phones show grey-on-grey surfaces (owner's phone, 2026-08-27) */
   body[data-canvas="master"] .dk-wrap { background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .04); min-height: 100vh; }
 }
+
+/* ============================================================
+   DEAL JACKET V2 — the owner's Deal Jacket & Customer Requests
+   replication package (2026-08-29). Every size, weight, radius
+   and spacing value below is transcribed from the package's
+   golden approved-deal-jacket.html; the status colours are the
+   package's own semantic set, and the one dominant action wears
+   the signature gradient per the owner's standing override.
+   Three buckets, collapsed disclosure, and a sheet for every
+   secondary decision — the advisor never leaves the jacket.
+   ============================================================ */
+body[data-canvas="master"] {
+  --jk2-ok: #168A62;
+  --jk2-ok-bg: #EAF7F2;
+  --jk2-warn: #8A5A00;
+  --jk2-warn-bg: #FFF6DD;
+  --jk2-bad: #C13515;
+  --jk2-bad-bg: #FFF0ED;
+}
+.jk2-main { padding: 20px 16px 28px; }
+.jk2-crumb { display: flex; align-items: center; gap: 10px; color: var(--muted); font-size: 13px; margin-bottom: 18px; flex-wrap: wrap; }
+.jk2-crumb i { font-style: normal; color: var(--muted-2); }
+
+/* customer context — name and vehicle only. No initials-avatar circle: the
+   owner struck it from the master context card (2026-08-27) and that ruling
+   outranks the golden, which still draws one. */
+.jk2-context { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.jk2-contextmeta { min-width: 0; flex: 1; }
+.jk2-contextmeta strong { display: block; font-size: 17px; font-weight: 700; }
+.jk2-contextmeta span { display: block; color: var(--muted); font-size: 13px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jk2-dealno { font-size: 13px; color: var(--muted); white-space: nowrap; flex: none; }
+
+/* funding readiness — one object, never a row of KPI cards */
+.jk2-hero { background: #fff; border: 1px solid var(--line); border-radius: 28px; padding: 20px; margin-bottom: 18px; }
+.jk2-herotop { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
+.jk2-eyebrow { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .02em; text-transform: uppercase; }
+.jk2-herotitle { font-size: 30px; font-weight: 750; letter-spacing: -1px; line-height: 1.05; margin: 6px 0 0; }
+.jk2-count { font-size: 14px; font-weight: 700; color: var(--jk2-warn); background: var(--jk2-warn-bg); padding: 8px 10px; border-radius: 999px; white-space: nowrap; flex: none; }
+.jk2-count--good { color: var(--jk2-ok); background: var(--jk2-ok-bg); }
+.jk2-progress { height: 8px; border-radius: 99px; background: #ECECEC; margin: 18px 0 12px; overflow: hidden; }
+.jk2-progress > span { display: block; height: 100%; background: var(--jk2-ok); border-radius: 99px; transition: width .25s ease; }
+.jk2-note { font-size: 14px; color: var(--muted); line-height: 1.4; }
+.jk2-note b { color: var(--ink); }
+
+/* a bucket */
+.jk2-section { background: #fff; border: 1px solid var(--line); border-radius: 26px; margin-bottom: 14px; overflow: hidden; }
+.jk2-sechead { padding: 17px 18px; display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; background: none; border: 0; font: inherit; color: inherit; }
+button.jk2-sechead { cursor: pointer; min-height: 56px; }
+.jk2-secmain { display: block; min-width: 0; flex: 1; }
+.jk2-sectitle { display: block; font-size: 17px; font-weight: 700; }
+.jk2-secsub { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; }
+.jk2-badge { font-size: 12px; font-weight: 700; padding: 7px 9px; border-radius: 999px; background: var(--surface-2); color: var(--muted); white-space: nowrap; flex: none; }
+.jk2-badge--warn { background: var(--jk2-warn-bg); color: var(--jk2-warn); }
+.jk2-badge--good { background: var(--jk2-ok-bg); color: var(--jk2-ok); }
+.jk2-chev { color: var(--muted); font-size: 18px; line-height: 1; flex: none; transition: transform .18s ease; }
+.jk2-chev--open { transform: rotate(180deg); }
+
+/* rows — the whole row is the tap target, one compact status, no button rail */
+.jk2-rows { border-top: 1px solid var(--line); }
+.jk2-row { padding: 15px 18px; display: flex; gap: 12px; align-items: center; border: 0; border-bottom: 1px solid var(--line-soft); width: 100%; text-align: left; background: none; font: inherit; color: inherit; min-height: 70px; }
+button.jk2-row { cursor: pointer; }
+button.jk2-row:active { background: var(--surface); }
+.jk2-row:last-child { border-bottom: 0; }
+.jk2-icon { width: 40px; height: 40px; border-radius: 13px; background: var(--surface-2); display: grid; place-items: center; flex: none; }
+.jk2-icon svg { width: 20px; height: 20px; fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.jk2-rowcopy { display: block; min-width: 0; flex: 1; }
+.jk2-rowtitle { display: block; font-weight: 650; font-size: 15px; }
+.jk2-rowsub { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; line-height: 1.35; }
+.jk2-status { font-size: 12px; font-weight: 700; padding: 7px 9px; border-radius: 999px; background: var(--surface-2); color: var(--muted); white-space: nowrap; flex: none; }
+.jk2-status--requested { background: var(--jk2-warn-bg); color: var(--jk2-warn); }
+.jk2-status--done { background: var(--jk2-ok-bg); color: var(--jk2-ok); }
+.jk2-status--blocked { background: var(--jk2-bad-bg); color: var(--jk2-bad); }
+
+/* the one dominant action a bucket may carry */
+.jk2-secactions { padding: 14px 18px 18px; border-top: 1px solid var(--line); }
+.jk2-primary { width: 100%; min-height: 52px; border: 0; border-radius: 18px; background: var(--grad); color: #fff; font: inherit; font-weight: 700; font-size: 15px; cursor: pointer; }
+.jk2-primary:active { transform: scale(.99); }
+.jk2-linkbtn { width: 100%; border: 0; background: transparent; color: var(--ink); font: inherit; font-weight: 650; padding: 13px 0 0; cursor: pointer; min-height: 44px; }
+.jk2-smalllink { border: 0; background: transparent; text-decoration: underline; font: inherit; font-weight: 650; padding: 10px 4px; color: var(--ink); cursor: pointer; min-height: 44px; }
+
+/* local status, never a toast that disappears */
+.jk2-inline { margin: 0 18px 16px; background: var(--jk2-ok-bg); border-radius: 16px; padding: 12px 14px; font-size: 13px; color: var(--jk2-ok); line-height: 1.5; }
+.jk2-inline--warn { background: var(--jk2-warn-bg); color: var(--jk2-warn); }
+.jk2-inline--flush { margin: 14px 18px; }
+.jk2-inline .jk2-smalllink { color: inherit; padding: 2px 0; min-height: 0; }
+
+/* funding dock — safe-area aware, unlocks only when the jacket is complete */
+.jk2-dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; width: min(430px, 100%); background: rgba(255, 255, 255, .97); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid var(--line); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; z-index: 12; }
+.jk2-dockcopy { min-width: 0; flex: 1; }
+.jk2-dockcopy small { display: block; color: var(--muted); font-size: 11px; text-transform: uppercase; font-weight: 700; letter-spacing: .02em; }
+.jk2-dockcopy strong { display: block; font-size: 16px; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jk2-dockbtn { border: 0; border-radius: 17px; padding: 15px 18px; min-height: 48px; font: inherit; font-weight: 700; white-space: nowrap; background: var(--grad); color: #fff; cursor: pointer; flex: none; }
+.jk2-dockbtn[disabled] { background: #E7E7E7; color: #8A8A8A; cursor: default; }
+
+/* sheet interiors */
+.jk2-choicelist { border: 1px solid var(--line); border-radius: 20px; overflow: hidden; }
+.jk2-choice { display: flex; align-items: center; gap: 12px; padding: 14px; border: 0; border-bottom: 1px solid var(--line-soft); width: 100%; text-align: left; background: none; font: inherit; color: inherit; min-height: 64px; }
+button.jk2-choice { cursor: pointer; }
+button.jk2-choice:active { background: var(--surface); }
+.jk2-choice:last-child { border-bottom: 0; }
+.jk2-choice input[type="checkbox"] { width: 22px; height: 22px; flex: none; accent-color: var(--accent); }
+.jk2-choicecopy { flex: 1; min-width: 0; }
+.jk2-choicecopy strong { display: block; font-size: 14px; font-weight: 650; }
+.jk2-choicecopy span { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; line-height: 1.35; }
+.jk2-go { color: var(--muted); font-size: 18px; flex: none; }
+.jk2-privacy { background: var(--surface); border-radius: 16px; padding: 12px 14px; font-size: 12px; line-height: 1.45; color: var(--muted); margin: 14px 0; }
+.jk2-field { margin: 16px 0; }
+.jk2-field label { display: block; font-size: 13px; font-weight: 650; margin-bottom: 7px; }
+.jk2-field label i { font-style: normal; font-weight: 400; color: var(--muted-2); }
+.jk2-input { width: 100%; border: 1px solid #CFCFCF; border-radius: 15px; min-height: 48px; padding: 12px 14px; font: inherit; font-size: 15px; background: #fff; color: var(--ink); }
+.jk2-sheetactions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+.jk2-sheetactions--single { grid-template-columns: 1fr; }
+.jk2-sheetbtn { min-height: 50px; border-radius: 16px; font: inherit; font-weight: 700; border: 1px solid var(--ink); background: #fff; color: var(--ink); cursor: pointer; }
+.jk2-sheetbtn--primary { background: var(--grad); color: #fff; border-color: transparent; }
+
+/* request tracking */
+.jk2-track { border: 1px solid var(--line); border-radius: 18px; overflow: hidden; margin-top: 14px; }
+.jk2-trackrow { display: flex; align-items: center; gap: 10px; padding: 13px 14px; border-bottom: 1px solid var(--line-soft); }
+.jk2-trackrow:last-child { border-bottom: 0; }
+.jk2-trackrow b { font-size: 14px; font-weight: 650; }
+.jk2-trackrow > span:last-child { margin-left: auto; color: var(--muted); font-size: 12px; }
+.jk2-dot { width: 22px; height: 22px; border-radius: 50%; background: var(--jk2-ok-bg); color: var(--jk2-ok); display: grid; place-items: center; font-size: 12px; font-weight: 800; flex: none; }
+.jk2-trackrow--pending .jk2-dot { background: var(--surface-2); color: var(--muted-2); }
+.jk2-script { font-size: 15px; line-height: 1.55; color: var(--muted); }
+.jk2-script p { margin: 0 0 12px; }
+.jk2-inline--bare { margin: 0 0 14px; }
+select.jk2-input { appearance: auto; }
+a.jk2-sheetbtn { display: grid; place-items: center; text-decoration: none; }
