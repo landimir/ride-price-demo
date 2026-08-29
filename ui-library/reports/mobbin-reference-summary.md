@@ -1,6 +1,6 @@
 # Ride Price — Mobbin Reference Summary
 
-Updated 2026-08-23. One entry per reference family used by the improvement review so far. Each was looked up on Mobbin for a specific Ride Price problem; the screens are listed so they can be opened, and the lesson is what Ride Price takes — structure and clarity, never the other app's brand. Nothing here says "copy X": the adaptation always re-expresses the pattern in Ride Price's navy, gradient, Poppins and existing components.
+Updated 2026-08-28. One entry per reference family used by the improvement review so far. Each was looked up on Mobbin for a specific Ride Price problem; the screens are listed so they can be opened, and the lesson is what Ride Price takes — structure and clarity, never the other app's brand. Nothing here says "copy X": the adaptation always re-expresses the pattern in Ride Price's navy, gradient, Poppins and existing components.
 
 ## M3 · Work queue / home with one dominant action
 
@@ -103,7 +103,7 @@ Used by: RP-IMP-001
 
 **Lesson most relevant to Ride Price:** Ride Price's ritual is right; the open question is the shell (owner Q2) — and back-vs-exit semantics apply at any answer.
 
-**Should influence:** Scan Driver's License; the test-drive licence scan reuses whatever is decided.
+**Should influence:** Scan Driver's License; the test-drive license scan reuses whatever is decided.
 
 Used by: RP-IMP-009, RP-IMP-019, RP-IMP-020, RP-IMP-021
 
@@ -154,7 +154,7 @@ Used by: RP-IMP-012, RP-IMP-013
 
 **Lesson most relevant to Ride Price:** Both reviewers proposed it independently — but in Ride Price it reverses a recorded owner decision (11), so it ships only on the owner's explicit reversal; the compatible slice is grouping + changed-value markers.
 
-**Should influence:** Scan verify (both variants); the test-drive licence verify; any future extracted-data review.
+**Should influence:** Scan verify (both variants); the test-drive license verify; any future extracted-data review.
 
 Used by: RP-IMP-010
 
@@ -173,7 +173,7 @@ Used by: RP-IMP-010
 
 **Lesson most relevant to Ride Price:** Ride Price has no live viewfinder (invariant 5), so the lesson lands on the pre-capture screen: the shaped illustration, one sentence, one big capture control, the fallback visible — and help that never leaves the flow.
 
-**Should influence:** Scanner capture steps; the test-drive licence scan; the deal-document scan entry.
+**Should influence:** Scanner capture steps; the test-drive license scan; the deal-document scan entry.
 
 Used by: RP-IMP-008, RP-IMP-017, RP-IMP-018
 

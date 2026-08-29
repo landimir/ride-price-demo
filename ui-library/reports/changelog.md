@@ -1,5 +1,145 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v009 — 2026-08-28
+
+App commit: cc9d106 · 20 flows · 128 screens · previous: v008
+
+### Added
+- Home — Active Floor & Navigation · More sheet — secondary navigation
+- Home — Active Floor & Navigation · Switch demo role
+- Home — Active Floor & Navigation · Active floor (Team Lead)
+- Home — Active Floor & Navigation · Stage filter — no match
+- Home — Active Floor & Navigation · Date range / history sheet
+- Home — Active Floor & Navigation · Funded history in range
+- Home — Active Floor & Navigation · Advisor — completed deal ends the list
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · Find customer — the resolver
+- Customer Onboarding — the Customer Resolver · Customer found — confirm + registration address
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Customer Onboarding — the Customer Resolver · Search results — no match
+- Customer Onboarding — the Customer Resolver · No license available — manual fallback
+- Customer Onboarding — the Customer Resolver · Send secure upload link (sheet)
+- Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Scan Driver's License · Couldn't read the license (sheet)
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Confirm customer (certain match)
+- Scan Driver's License · Confirm customer (ambiguous — prop 1)
+- Scan Driver's License · New customer (prop 3)
+- Scan Driver's License · Customer ready
+- Credit Application (Lending Lane) · Verify your identity (pre-application gate)
+- Credit Application (Lending Lane) · Identity verified
+- Credit Application (Lending Lane) · Step 1 — Application type & applicant
+- Credit Application (Lending Lane) · Joint — co-buyer needed
+- Credit Application (Lending Lane) · Send co-buyer link (sheet)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- F&I Product Presentation · Mileage changes the warranty window
+- F&I Product Presentation · Advisor script (sheet)
+
+### Removed
+- Home — Deals Queue & Navigation · Navigation drawer
+- Home — Deals Queue & Navigation · Role switched to Team Lead
+- Home — Deals Queue & Navigation · Pipeline filter — no match
+- Home — Deals Queue & Navigation · Funded contracts auto-archived
+- Home — Deals Queue & Navigation · Advisor — funded deal ends the list
+- Customer Onboarding — Find a Customer · Find a Customer
+- Customer Onboarding — Find a Customer · Search results — no match
+- Customer Onboarding — Find a Customer · Create Customer
+- Customer Onboarding — Find a Customer · Create Customer — validation
+- Scan Driver's License · Intro — scan a driver's license
+- Scan Driver's License · Processing your scan
+- Scan Driver's License · That didn't read
+- Scan Driver's License · Search results
+- Scan Driver's License · We found a matching customer (prop 1)
+- Scan Driver's License · Review customer — read-first document
+- Scan Driver's License · Edit sheet (bottom sheet)
+- Scan Driver's License · Create new customer (prop 3)
+- Scan Driver's License · Customer added / updated
+- Credit Application (Lending Lane) · Credit application — Individual
+- Credit Application (Lending Lane) · Joint application — no co-buyer yet
+- F&I Product Presentation · Advisor script open
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · My deals (landing — Advisor)
+- Home — Active Floor & Navigation · Reset demo data — confirm
+- Customer Onboarding — the Customer Resolver · Search results
+- Scan Driver's License · Scan — front of license
+- Scan Driver's License · Scan — flip to the back
+- Scan Driver's License · Find customer manually (sheet)
+- Scan Driver's License · Phone already in use (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1
+- Discovery Session · Discovery — mid-interview
+- Discovery Session · Discovery — last question
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · Vehicle details sheet
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Test Drive Agreement · Scan license (test-drive mode)
+- Test Drive Agreement · End Test Drive — odometer
+- Desking — Calculate Payments · Base Payment Huddle
+- Desking — Calculate Payments · Calculate Payments — Finance
+- Desking — Calculate Payments · Calculate Payments — Lease
+- Desking — Calculate Payments · Calculate Payments — Cash
+- Desking — Calculate Payments · Compare payments — sheet
+- Desking — Calculate Payments · Payment Comparison — full page
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Agreement — signed
+- Base Payment Agreement · Void signature and redesk? (sheet)
+- Credit Application (Lending Lane) · Invalid submit — inline summary
+- Credit Application (Lending Lane) · Approved (simulated)
+- Buyers on the Deal (Co-Buyer) · Search existing customer
+- F&I Product Presentation · Presentation — Rate
+- F&I Product Presentation · Vehicle service contract
+- F&I Product Presentation · Monthly / daily budget (sheet)
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Acknowledgement signed, forms selected
+- Deal Jacket & Compliance · Upload a document
+- Deal Jacket & Compliance · Add Optional / Custom Form
+- Send Text Request (advisor → client) · Jacket after sending — Resend Link
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Print Center & Printables · Print preview — Base Payment Agreement
+- Print Center & Printables · Print preview — MV-82 (training sample)
+
+### New issues
+- RP-UI-024 (Minor) — the master deal header role pill is 65×35px, under the 40px small-target floor
+
+### Resolved issues
+- RP-UI-002 (Major) — the credit application is no longer one 3,200px form: it is the four-step wizard
+- RP-UI-010 (Minor) — the approved screen has ONE forward action now (Manager Sign-Off), not two names for it
+- RP-UI-011 (Minor) — credit validation is inline; no toast covers the application-type controls
+- RP-UI-017 (Minor) — the 20px Archived fold is gone; funded contracts live behind the Team Lead date/history sheet
+- RP-UI-019 (Observation) — the advisor script is a bottom sheet, not content opening below the fold
+
+
+_Hand-written interpretation (the mechanical diff cannot say this):_
+
+This release is the Master Replication rollout reaching the whole advisor path, so six flows were
+rebuilt rather than restyled — home, customer onboarding, the license scan, the base payment
+agreement, the credit application and the F&I presentation. That is why 31 screens are new and 21
+are gone: the step keys changed with the architecture (the scan journey alone went from fourteen
+screens to two decisions plus exception sheets). The 46 "changed" entries are mostly live values —
+deal numbers, clock times, arrival times — plus the screens that inherited the master canvas.
+
+One defect was found by eye during this audit and fixed before the capture was accepted: on the
+advisor's remote-ready card the identity badge was pushed off the right edge at 390px, because the
+name block could not shrink. The audit also reports offscreen tiles on the F&I presentation rail and
+text overlapping the fixed bottom docks; both were measured and are capture artifacts, not defects —
+the rail scrolls horizontally by design, and the docks are cleared by the pages' own bottom padding
+(verified at 390×844 on the credit and deals screens).
+
+The changelog tool was fixed in this release too: it had been diffing against the working manifest,
+so a run that died at capture left the new step keys behind and the next run reported "Added: none"
+while forty screens had been replaced. It now diffs against the archived previous version, which
+cannot drift. This entry was recomputed by hand against versions/v008 after that fix.
+
 ## v008 — 2026-08-27
 
 App commit: 1b22445 · 20 flows · 118 screens · previous: v007
@@ -21,9 +161,9 @@ App commit: 1b22445 · 20 flows · 118 screens · previous: v007
 - Customer Onboarding — Find a Customer · Search results — no match
 - Customer Onboarding — Find a Customer · Create Customer
 - Customer Onboarding — Find a Customer · Create Customer — validation
-- Scan Driver's License · Intro — scan a driver's licence
-- Scan Driver's License · Capture — front of licence
-- Scan Driver's License · Capture — back of licence
+- Scan Driver's License · Intro — scan a driver's license
+- Scan Driver's License · Capture — front of license
+- Scan Driver's License · Capture — back of license
 - Scan Driver's License · Processing your scan
 - Scan Driver's License · That didn't read
 - Scan Driver's License · Enter license manually
@@ -47,8 +187,8 @@ App commit: 1b22445 · 20 flows · 118 screens · previous: v007
 - Vehicle Selection · Quote — follow-up only
 - Vehicle Selection · Browse inventory (no visit)
 - Test Drive Agreement · E-signature authorization
-- Test Drive Agreement · Licence & terms
-- Test Drive Agreement · Scan licence (test-drive mode)
+- Test Drive Agreement · License & terms
+- Test Drive Agreement · Scan license (test-drive mode)
 - Test Drive Agreement · Terms signed — Driver One
 - Test Drive Agreement · Test drive in progress
 - Test Drive Agreement · End Test Drive — odometer
@@ -109,7 +249,7 @@ App commit: 1b22445 · 20 flows · 118 screens · previous: v007
 - Send Text Request (advisor → client) · Resend — composer
 - Client Document Upload (customer's phone) · Text message with the link
 - Client Document Upload (customer's phone) · Upload your documents
-- Client Document Upload (customer's phone) · Row blocked — back of licence missing
+- Client Document Upload (customer's phone) · Row blocked — back of license missing
 - Client Document Upload (customer's phone) · Row verified
 - Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
 - Client Document Upload (customer's phone) · All documents verified
@@ -165,13 +305,13 @@ App commit: 89f260a · 20 flows · 114 screens · previous: v004
 
 ### Changed (screenshot bytes differ from the previous version)
 - Customer Onboarding — Find a Customer · Create Customer — validation
-- Scan Driver's License · Capture — front of licence
-- Scan Driver's License · Capture — back of licence
+- Scan Driver's License · Capture — front of license
+- Scan Driver's License · Capture — back of license
 - Scan Driver's License · Checking the license
 - Scan Driver's License · Not recognized
 - Scan Driver's License · Possible match (prop 1)
 - Scan Driver's License · Customer confirmed — changed fields
-- Scan Driver's License · New customer — licence details ready (prop 3)
+- Scan Driver's License · New customer — license details ready (prop 3)
 - Scan Driver's License · Phone number conflict
 - Training Licenses & Registrations · Training Registrations
 - Discovery Session · Discovery — question 1
@@ -182,7 +322,7 @@ App commit: 89f260a · 20 flows · 114 screens · previous: v004
 - Vehicle Selection · Inventory — no vehicles match
 - Vehicle Selection · Your Journey menu
 - Vehicle Selection · Quote — follow-up only
-- Test Drive Agreement · Scan licence (test-drive mode)
+- Test Drive Agreement · Scan license (test-drive mode)
 - Test Drive Agreement · End Test Drive — odometer
 - Desking — Calculate Payments · Calculate Payments — Cash
 - Base Payment Agreement · Agreement — ready to sign
@@ -215,10 +355,10 @@ _Note: a 'changed' screen means the pixels differ between captures — re-read t
 
 ## v004 — 2026-08-23
 
-App commit: da321ec · 20 flows · 111 screens · previous: v003
+App commit: da321ec · 20 flows · 111 screens · previous: v003
 
-_Read of this entry: the scan flow is the real change — rebuilt to the owner's v2 prototype (PR #46: full-screen journey, intro and completion screens, in-journey help, summary-first review, evidence cards) and re-documented as 11 steps; Create Customer's validation capture changed because phone AND email are both required now (owner rule 2026-08-23). The test-drive "Scan licence" capture changed with the same journey. Every other "changed" entry is live values — clock times, minted deal numbers, dates — plus the known sub-pixel jitter; the designs are unchanged. No issue cards were added or resolved: the scanner had none, and the two Majors (desking fold, credit-app length) stand._
-
+_Read of this entry: the scan flow is the real change — rebuilt to the owner's v2 prototype (PR #46: full-screen journey, intro and completion screens, in-journey help, summary-first review, evidence cards) and re-documented as 11 steps; Create Customer's validation capture changed because phone AND email are both required now (owner rule 2026-08-23). The test-drive "Scan license" capture changed with the same journey. Every other "changed" entry is live values — clock times, minted deal numbers, dates — plus the known sub-pixel jitter; the designs are unchanged. No issue cards were added or resolved: the scanner had none, and the two Majors (desking fold, credit-app length) stand._
+
 **What actually changed:** the Home flow — the role-aware queue from PR #44. The landing is now the Advisor's guided view (My Deals, no pills, the VIN + STK line, a Next line, a chevron); the Team Lead screens show the original floor view with the VIN line and chevron added; a new seventh screen documents the Advisor's funded-deal tail (no archive fold for that role). Every other "changed" entry is live values — clock times, computed dates, minted deal numbers — not design; the desking, agreement, presentation and printable layouts are unchanged (the MV-82's 8 recorded overlaps persist as before). RP-UI-017's note now records that the archive fold is Team Lead-only by decision.
 
 ### Added
@@ -283,8 +423,8 @@ App commit: d2e1c8b · 20 flows · 110 screens · previous: v002
 - Customer Onboarding — Find a Customer · Search results — no match
 - Customer Onboarding — Find a Customer · Create Customer
 - Customer Onboarding — Find a Customer · Create Customer — validation
-- Scan Driver's License · Scan — front of licence
-- Scan Driver's License · Scan — back of licence
+- Scan Driver's License · Scan — front of license
+- Scan Driver's License · Scan — back of license
 - Scan Driver's License · Reading barcode…
 - Scan Driver's License · Not recognized
 - Scan Driver's License · Potential match found (prop 1)
@@ -303,7 +443,7 @@ App commit: d2e1c8b · 20 flows · 110 screens · previous: v002
 - Vehicle Selection · Your Journey menu
 - Vehicle Selection · Quote — follow-up only
 - Vehicle Selection · Browse inventory (no deal)
-- Test Drive Agreement · Scan licence (test-drive mode)
+- Test Drive Agreement · Scan license (test-drive mode)
 - Test Drive Agreement · Terms signed — Driver One
 - Test Drive Agreement · Test drive in progress
 - Test Drive Agreement · End Test Drive — odometer
@@ -340,7 +480,7 @@ App commit: d2e1c8b · 20 flows · 110 screens · previous: v002
 - Deal Jacket & Compliance · Queue row — scan blocked (back missing)
 - Deal Jacket & Compliance · Queue row — verified instantly
 - Send Text Request (advisor → client) · Jacket after sending — Resend Link
-- Client Document Upload (customer's phone) · Row blocked — back of licence missing
+- Client Document Upload (customer's phone) · Row blocked — back of license missing
 - Client Document Upload (customer's phone) · Row verified
 - Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
 - Client Document Upload (customer's phone) · All documents verified

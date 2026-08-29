@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ride Price Mobile UI Flow Library — v008</title>
+<title>Ride Price Mobile UI Flow Library — v009</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--chrome:#071b49;--chrome-2:#0b255d;--navy:#262254;--ink:#34314e;--muted:#6f6c88;--bg:#f2f2f8;--line:#e3e1ef;--card:#fff;--radius:14px;
@@ -59,56 +59,58 @@ a{color:inherit}
 <body>
 <header class="appbar"><div class="brand"><i>Ride</i><span>PRICE</span></div><span class="chip">UI LIBRARY</span>
   <input id="q" type="search" placeholder="Filter screens, flows, issues…" aria-label="Filter">
-  <span class="ver">v008 · captured 2026-08-27 22:54 · viewport 390×844 · app 1b22445</span></header>
+  <span class="ver">v009 · captured 2026-08-28 23:32 · viewport 390×844 · app cc9d106</span></header>
 <div class="layout">
-  <nav class="side"><h4>Product areas</h4><a href="#home">Home — Deals Queue &amp; Navigation<small>7</small></a><a href="#onboarding">Customer Onboarding — Find a Customer<small>5</small></a><a href="#license-scan">Scan Driver&#39;s License<small>14</small></a><a href="#training">Training Licenses &amp; Registrations<small>2</small></a><a href="#discovery">Discovery Session<small>3</small></a><a href="#vehicles">Vehicle Selection<small>7</small></a><a href="#test-drive">Test Drive Agreement<small>7</small></a><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership<small>4</small></a><a href="#desking">Desking — Calculate Payments<small>6</small></a><a href="#agreement">Base Payment Agreement<small>3</small></a><a href="#credit">Credit Application (Lending Lane)<small>4</small></a><a href="#buyers">Buyers on the Deal (Co-Buyer)<small>4</small></a><a href="#presentation">F&amp;I Product Presentation<small>4</small></a><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts<small>16</small></a><a href="#deal-jacket">Deal Jacket &amp; Compliance<small>11</small></a><a href="#document-request">Send Text Request (advisor → client)<small>3</small></a><a href="#client-upload">Client Document Upload (customer&#39;s phone)<small>10</small></a><a href="#snap-all">Snap All — burst capture<small>4</small></a><a href="#doc-review">Document Review (advisor)<small>1</small></a><a href="#print-center">Print Center &amp; Printables<small>3</small></a><h4>Reports</h4><a href="../reports/ux-audit.md">UX audit</a><a href="../reports/flow-manifest.json">Flow manifest</a><a href="../reports/changelog.md">Changelog</a><a href="../reports/library-summary.md">Summary</a></nav>
+  <nav class="side"><h4>Product areas</h4><a href="#home">Home — Active Floor &amp; Navigation<small>10</small></a><a href="#onboarding">Customer Onboarding — the Customer Resolver<small>9</small></a><a href="#license-scan">Scan Driver&#39;s License<small>11</small></a><a href="#training">Training Licenses &amp; Registrations<small>2</small></a><a href="#discovery">Discovery Session<small>3</small></a><a href="#vehicles">Vehicle Selection<small>7</small></a><a href="#test-drive">Test Drive Agreement<small>7</small></a><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership<small>4</small></a><a href="#desking">Desking — Calculate Payments<small>6</small></a><a href="#agreement">Base Payment Agreement<small>3</small></a><a href="#credit">Credit Application (Lending Lane)<small>9</small></a><a href="#buyers">Buyers on the Deal (Co-Buyer)<small>4</small></a><a href="#presentation">F&amp;I Product Presentation<small>5</small></a><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts<small>16</small></a><a href="#deal-jacket">Deal Jacket &amp; Compliance<small>11</small></a><a href="#document-request">Send Text Request (advisor → client)<small>3</small></a><a href="#client-upload">Client Document Upload (customer&#39;s phone)<small>10</small></a><a href="#snap-all">Snap All — burst capture<small>4</small></a><a href="#doc-review">Document Review (advisor)<small>1</small></a><a href="#print-center">Print Center &amp; Printables<small>3</small></a><h4>Reports</h4><a href="../reports/ux-audit.md">UX audit</a><a href="../reports/flow-manifest.json">Flow manifest</a><a href="../reports/changelog.md">Changelog</a><a href="../reports/library-summary.md">Summary</a></nav>
   <main class="main">
     <section class="hero">
       <div><h1>Ride Price Mobile UI Flow Library</h1>
         <p>Every mobile flow of the working Ride Price portal, captured as a user sees it at 390 × 844, organised as sequential journeys. Read left to right: each arrow names the action that caused the next screen; branches list where else a screen can go; flagged screens carry their UX findings.</p>
         <p>The screenshots are untouched captures of the real application. Nothing here was redesigned — problems are documented, not fixed.</p></div>
-      <div class="stats"><div class="stat"><b>20</b><span>flows</span></div><div class="stat"><b>118</b><span>screens</span></div><div class="stat"><b>65</b><span>branches</span></div>
-        <div class="stat"><b>0</b><span><span class="sev sev--Critical">Critical</span></span></div><div class="stat"><b>1</b><span><span class="sev sev--Major">Major</span></span></div><div class="stat"><b>10 / 3</b><span><span class="sev sev--Minor">Minor</span> <span class="sev sev--Observation">Observation</span></span></div></div>
+      <div class="stats"><div class="stat"><b>20</b><span>flows</span></div><div class="stat"><b>128</b><span>screens</span></div><div class="stat"><b>71</b><span>branches</span></div>
+        <div class="stat"><b>0</b><span><span class="sev sev--Critical">Critical</span></span></div><div class="stat"><b>0</b><span><span class="sev sev--Major">Major</span></span></div><div class="stat"><b>8 / 2</b><span><span class="sev sev--Minor">Minor</span> <span class="sev sev--Observation">Observation</span></span></div></div>
     </section>
-    <div class="map"><h2>How the product connects</h2><ol><li><a href="#home">Home — Deals Queue &amp; Navigation</a> <small>— 7 screens; entry point</small></li><li><a href="#onboarding">Customer Onboarding — Find a Customer</a> <small>— 5 screens; from Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</small></li><li><a href="#license-scan">Scan Driver&#39;s License</a> <small>— 14 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#training">Training Licenses &amp; Registrations</a> <small>— 2 screens; from Home — Deals Queue &amp; Navigation · 02 Navigation drawer</small></li><li><a href="#discovery">Discovery Session</a> <small>— 3 screens; from Customer Onboarding — Find a Customer · 01 Find a Customer</small></li><li><a href="#vehicles">Vehicle Selection</a> <small>— 7 screens; from Discovery Session · 03 Discovery — last question</small></li><li><a href="#test-drive">Test Drive Agreement</a> <small>— 7 screens; from Vehicle Selection · 05 What&#39;s next? — after choosing</small></li><li><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership</a> <small>— 4 screens; from Vehicle Selection · 05 What&#39;s next? — after choosing</small></li><li><a href="#desking">Desking — Calculate Payments</a> <small>— 6 screens; from Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</small></li><li><a href="#agreement">Base Payment Agreement</a> <small>— 3 screens; from Desking — Calculate Payments · 02 Calculate Payments — Finance</small></li><li><a href="#credit">Credit Application (Lending Lane)</a> <small>— 4 screens; from Base Payment Agreement · 02 Agreement — signed</small></li><li><a href="#buyers">Buyers on the Deal (Co-Buyer)</a> <small>— 4 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#presentation">F&amp;I Product Presentation</a> <small>— 4 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented</small></li><li><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts</a> <small>— 16 screens; from Credit Application (Lending Lane) · 04 Approved (simulated)</small></li><li><a href="#deal-jacket">Deal Jacket &amp; Compliance</a> <small>— 11 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#document-request">Send Text Request (advisor → client)</a> <small>— 3 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#client-upload">Client Document Upload (customer&#39;s phone)</a> <small>— 10 screens; from Send Text Request (advisor → client) · 01 Send Text Request — composer</small></li><li><a href="#snap-all">Snap All — burst capture</a> <small>— 4 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#doc-review">Document Review (advisor)</a> <small>— 1 screens; from Deal Jacket &amp; Compliance · 03 Deal forms &amp; jacket — opened</small></li><li><a href="#print-center">Print Center &amp; Printables</a> <small>— 3 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 15 Step 5 — Financial Contracts</small></li></ol></div>
+    <div class="map"><h2>How the product connects</h2><ol><li><a href="#home">Home — Active Floor &amp; Navigation</a> <small>— 10 screens; entry point</small></li><li><a href="#onboarding">Customer Onboarding — the Customer Resolver</a> <small>— 9 screens; from Home — Active Floor &amp; Navigation · 01 My deals (landing — Advisor)</small></li><li><a href="#license-scan">Scan Driver&#39;s License</a> <small>— 11 screens; from Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver</small></li><li><a href="#training">Training Licenses &amp; Registrations</a> <small>— 2 screens; from home/navigation-drawer</small></li><li><a href="#discovery">Discovery Session</a> <small>— 3 screens; from onboarding/find-customer</small></li><li><a href="#vehicles">Vehicle Selection</a> <small>— 7 screens; from Discovery Session · 03 Discovery — last question</small></li><li><a href="#test-drive">Test Drive Agreement</a> <small>— 7 screens; from Vehicle Selection · 05 What&#39;s next? — after choosing</small></li><li><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership</a> <small>— 4 screens; from Vehicle Selection · 05 What&#39;s next? — after choosing</small></li><li><a href="#desking">Desking — Calculate Payments</a> <small>— 6 screens; from Home — Active Floor &amp; Navigation · 01 My deals (landing — Advisor)</small></li><li><a href="#agreement">Base Payment Agreement</a> <small>— 3 screens; from Desking — Calculate Payments · 02 Calculate Payments — Finance</small></li><li><a href="#credit">Credit Application (Lending Lane)</a> <small>— 9 screens; from Base Payment Agreement · 02 Agreement — signed</small></li><li><a href="#buyers">Buyers on the Deal (Co-Buyer)</a> <small>— 4 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#presentation">F&amp;I Product Presentation</a> <small>— 5 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented</small></li><li><a href="#finance-menu">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts</a> <small>— 16 screens; from Credit Application (Lending Lane) · 09 Approved (simulated)</small></li><li><a href="#deal-jacket">Deal Jacket &amp; Compliance</a> <small>— 11 screens; from Discovery Session · 01 Discovery — question 1</small></li><li><a href="#document-request">Send Text Request (advisor → client)</a> <small>— 3 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#client-upload">Client Document Upload (customer&#39;s phone)</a> <small>— 10 screens; from Send Text Request (advisor → client) · 01 Send Text Request — composer</small></li><li><a href="#snap-all">Snap All — burst capture</a> <small>— 4 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</small></li><li><a href="#doc-review">Document Review (advisor)</a> <small>— 1 screens; from Deal Jacket &amp; Compliance · 03 Deal forms &amp; jacket — opened</small></li><li><a href="#print-center">Print Center &amp; Printables</a> <small>— 3 screens; from Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 15 Step 5 — Financial Contracts</small></li></ol></div>
     
 <section class="flow" id="home" data-flow>
-  <header><h2>Home — Deals Queue &amp; Navigation<small>7 screens</small></h2>
+  <header><h2>Home — Active Floor &amp; Navigation<small>10 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">The portal opens on the queue, which is role-aware (2026-08-23): the Advisor gets a guided list (no filter pills, a Next line per deal), the Team Lead the original two-lane floor view (pills + archive). Both roles see the four identifiers on every row — name, VIN, stock, stage — with a chevron as the tap cue. There is no login: the app-bar role switch stands in for authentication, and the drawer holds global navigation and the demo reset.</p>
+  <p class="desc">The portal opens on the queue, rebuilt to the owner&#39;s home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner&#39;s standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&amp;I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&amp;I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue&#39;s own top bar stands in for authentication.</p>
   
-  <div class="strip"><article class="scr" id="home-deals-queue" data-search="home — deals queue &amp; navigation my deals (landing — advisor) the advisor&#39;s guided view: no filter pills (the dashboard is the team lead&#39;s tool), the mono vin + stk line under the name, the vehicle, and a &#39;next: …&#39; line in the stage colour from real deal state. a discovery deal would show no vehicle line at all until one is selected. no authentication exists: the portal opens straight on the floor queue, with the advisor / team lead switch standing in for identity.">
+  <div class="strip"><article class="scr" id="home-deals-queue" data-search="home — active floor &amp; navigation my deals (landing — advisor) the advisor&#39;s guided view: the mono vin + stk line under the name, the vehicle, the stage chip, and a &#39;next: …&#39; line read from real deal state. the demo chip rides the top bar as the standing demo marker. no authentication exists: the portal opens straight on the floor queue, with the advisor / team lead role sheet on the queue top bar standing in for identity.">
     <div class="frame">
       <span class="n">01</span>
       <span class="flags"><span class="sev sev--Observation">Observation</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: My Deals (landing — Advisor)" data-cap="Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor) · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/01-deals-queue.png" alt="My Deals (landing — Advisor)"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: My deals (landing — Advisor)" data-cap="Home — Active Floor &amp; Navigation · 01 My deals (landing — Advisor) · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/01-deals-queue.png" alt="My deals (landing — Advisor)"></button>
     </div>
-    <h3>My Deals (landing — Advisor)</h3>
+    <h3>My deals (landing — Advisor)</h3>
     <div class="hash">#/deals</div>
-    <p class="notes">The Advisor&#39;s guided view: no filter pills (the dashboard is the Team Lead&#39;s tool), the mono VIN + STK line under the name, the vehicle, and a &#39;Next: …&#39; line in the stage colour from real deal state. A discovery deal would show no vehicle line at all until one is selected.</p>
-    <ul class="branches"><li>Tap a deal card → <a href="#desking-huddle-gate">Desking — Calculate Payments · 01 Base Payment Huddle</a></li><li>Tap ＋ New Customer Visit → <a href="#onboarding-find-customer">Customer Onboarding — Find a Customer · 01 Find a Customer</a></li><li>Tap 📷 in the search bar → <a href="#license-scan-scan-intro">Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence</a></li></ul>
-    <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-023</b><p>No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead switch standing in for identity.</p><p><em>By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.</em></p></div></details>
+    <p class="notes">The Advisor&#39;s guided view: the mono VIN + STK line under the name, the vehicle, the stage chip, and a &#39;Next: …&#39; line read from real deal state. The DEMO chip rides the top bar as the standing demo marker.</p>
+    <ul class="branches"><li>Tap a deal row → <a href="#desking-huddle-gate">Desking — Calculate Payments · 01 Base Payment Huddle</a></li><li>Tap New visit → <a href="#onboarding-resolver-idle">Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver</a></li><li>Tap the scan button beside the search → <a href="#license-scan-scan-front">Scan Driver&#39;s License · 01 Scan — front of license</a></li><li>Tap Inventory / Customers in the bottom nav → <a href="#vehicles-inventory-browse">Vehicle Selection · 07 Browse inventory (no visit)</a></li></ul>
+    <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-023</b><p>No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet on the queue top bar standing in for identity.</p><p><em>By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.</em></p></div></details>
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (1): .dq-name John Smith &lt;&gt; .dq-stage.dq-stage--desking DESKING
+small targets &lt;36px (2): #dqRole.m-rolebtn Advisor ▾ 79x35; #dealSearch  239x25</div></details>
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap ☰ (hamburger)</div></div><article class="scr" id="home-navigation-drawer" data-search="home — deals queue &amp; navigation navigation drawer  ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap More in the bottom nav</div></div><article class="scr" id="home-more-sheet" data-search="home — active floor &amp; navigation more sheet — secondary navigation secondary destinations stay out of the queue until asked for. every row icon is a line icon from the one set. ">
     <div class="frame">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Navigation drawer" data-cap="Home — Deals Queue &amp; Navigation · 02 Navigation drawer · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/02-navigation-drawer.png" alt="Navigation drawer"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: More sheet — secondary navigation" data-cap="Home — Active Floor &amp; Navigation · 02 More sheet — secondary navigation · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/02-more-sheet.png" alt="More sheet — secondary navigation"></button>
     </div>
-    <h3>Navigation drawer</h3>
+    <h3>More sheet — secondary navigation</h3>
     <div class="hash">#/deals</div>
+    <p class="notes">Secondary destinations stay out of the queue until asked for. Every row icon is a line icon from the one set.</p>
+    <ul class="branches"><li>Inventory → <a href="#vehicles-inventory-browse">Vehicle Selection · 07 Browse inventory (no visit)</a></li><li>New customer visit → <a href="#onboarding-resolver-idle">Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver</a></li><li>Training licenses → <a href="#training-training-licenses">Training Licenses &amp; Registrations · 01 Training Licenses</a></li><li>Training registrations → <a href="#training-training-registrations">Training Licenses &amp; Registrations · 02 Training Registrations</a></li></ul>
     
-    <ul class="branches"><li>Deals List / Vehicle Search / New Customer Visit → <a href="#vehicles-inventory-browse">Vehicle Selection · 07 Browse inventory (no visit)</a></li><li>Training Licenses → <a href="#training-training-licenses">Training Licenses &amp; Registrations · 01 Training Licenses</a></li><li>Training Registrations → <a href="#training-training-registrations">Training Licenses &amp; Registrations · 02 Training Registrations</a></li></ul>
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .dq-name John Smith &lt;&gt; .dq-stage.dq-stage--desking DESKING; .dq-name John Smith &lt;&gt; .m-sheettitle More; .dq-stage.dq-stage--desking DESKING &lt;&gt; .m-close ✕; .dq-veh 2022 Hyundai Santa Fe &lt;&gt; .m-sheettitle More;  VIN 5NMS4DAL4NH457995 &lt;&gt; .ob-sheetdesc Secondary tools stay out of ;  5NMS4DAL4NH457995 &lt;&gt; .ob-sheetdesc Secondary tools stay out of ;  STK 7H21313 &lt;&gt; .ob-sheetdesc Secondary tools stay out of ;  7H21313 &lt;&gt; .ob-sheetdesc Secondary tools stay out of 
+small targets &lt;36px (3): #dqRole.m-rolebtn Advisor ▾ 79x35; #dealSearch  239x25; .m-close ✕ 34x34</div></details>
     
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Reset demo data</div></div><article class="scr" id="home-reset-demo-confirm" data-search="home — deals queue &amp; navigation reset demo data — confirm destructive action behind a branded confirm (never the native confirm()). ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Reset demo data</div></div><article class="scr" id="home-reset-demo-confirm" data-search="home — active floor &amp; navigation reset demo data — confirm destructive action behind a branded confirm (never the native confirm()). ">
     <div class="frame">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Reset demo data — confirm" data-cap="Home — Deals Queue &amp; Navigation · 03 Reset demo data — confirm · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/03-reset-demo-confirm.png" alt="Reset demo data — confirm"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Reset demo data — confirm" data-cap="Home — Active Floor &amp; Navigation · 03 Reset demo data — confirm · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/03-reset-demo-confirm.png" alt="Reset demo data — confirm"></button>
     </div>
     <h3>Reset demo data — confirm</h3>
     <div class="hash">#/deals</div>
@@ -117,329 +119,392 @@ a{color:inherit}
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Cancel, tap Advisor | Team Lead</div></div><article class="scr" id="home-role-switch-team-lead" data-search="home — deals queue &amp; navigation role switched to team lead the team lead keeps the original floor view (owner decision 2026-08-23): active deals title, all / desking / f&amp;i-docs pills with live counts, classic cards — now with the vin line and chevron. toast confirms the acting role. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Cancel, then open the role sheet</div></div><article class="scr" id="home-role-sheet" data-search="home — active floor &amp; navigation switch demo role the demo has no sign-in; the role sheet on the queue&#39;s top bar is where the floor view is chosen. ">
     <div class="frame">
       <span class="n">04</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Role switched to Team Lead" data-cap="Home — Deals Queue &amp; Navigation · 04 Role switched to Team Lead · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/04-role-switch-team-lead.png" alt="Role switched to Team Lead"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Switch demo role" data-cap="Home — Active Floor &amp; Navigation · 04 Switch demo role · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/04-role-sheet.png" alt="Switch demo role"></button>
     </div>
-    <h3>Role switched to Team Lead</h3>
+    <h3>Switch demo role</h3>
     <div class="hash">#/deals</div>
-    <p class="notes">The Team Lead keeps the original floor view (owner decision 2026-08-23): Active Deals title, All / Desking / F&amp;I-Docs pills with live counts, classic cards — now with the VIN line and chevron. Toast confirms the acting role.</p>
+    <p class="notes">The demo has no sign-in; the role sheet on the queue&#39;s top bar is where the floor view is chosen.</p>
     
     
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (1): .dq-name John Smith &lt;&gt; .dq-stage.dq-stage--desking DESKING
+small targets &lt;36px (3): #dqRole.m-rolebtn Advisor ▾ 79x35; #dealSearch  239x25; .m-close ✕ 34x34</div></details>
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap the F&amp;I / Docs pill</div></div><article class="scr" id="home-pipeline-filter-empty" data-search="home — deals queue &amp; navigation pipeline filter — no match the f&amp;i / docs pill on the seed floor is empty — the list says so instead of going blank. (team lead only; the advisor view has no pills.) ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Choose Team Lead</div></div><article class="scr" id="home-team-lead-floor" data-search="home — active floor &amp; navigation active floor (team lead) three chips that fit the screen — all / desking / f&amp;i — with live counts, plus the manager-only date control and its summary line. funded contracts are not among the chips. ">
     <div class="frame">
       <span class="n">05</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Pipeline filter — no match" data-cap="Home — Deals Queue &amp; Navigation · 05 Pipeline filter — no match · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/05-pipeline-filter-empty.png" alt="Pipeline filter — no match"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Active floor (Team Lead)" data-cap="Home — Active Floor &amp; Navigation · 05 Active floor (Team Lead) · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/05-team-lead-floor.png" alt="Active floor (Team Lead)"></button>
     </div>
-    <h3>Pipeline filter — no match</h3>
+    <h3>Active floor (Team Lead)</h3>
     <div class="hash">#/deals</div>
-    <p class="notes">The F&amp;I / Docs pill on the seed floor is empty — the list says so instead of going blank. (Team Lead only; the Advisor view has no pills.)</p>
+    <p class="notes">Three chips that fit the screen — All / Desking / F&amp;I — with live counts, plus the manager-only date control and its summary line. Funded contracts are not among the chips.</p>
     
     
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (1): .dq-name John Smith &lt;&gt; .dq-stage.dq-stage--desking DESKING
+small targets &lt;36px (2): #dqRole.m-rolebtn Team Lead ▾ 96x35; #dealSearch  239x25</div></details>
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">A deal is finalized</div></div><article class="scr" id="home-funded-archive" data-search="home — deals queue &amp; navigation funded contracts auto-archived for the team lead a completed deal leaves the active list into the folded archive (shown opened here). the &#39;archived — funded contracts&#39; disclosure is a 20px-tall text row — the only way to reach finished deals, under the touch floor.">
-    <div class="frame">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap the F&amp;I chip</div></div><article class="scr" id="home-stage-filter-empty" data-search="home — active floor &amp; navigation stage filter — no match an empty stage says so instead of going blank. (team lead only; the advisor view has no chips.) ">
+    <div class="frame tall">
       <span class="n">06</span>
-      <span class="flags"><span class="sev sev--Minor">Minor</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Funded contracts auto-archived" data-cap="Home — Deals Queue &amp; Navigation · 06 Funded contracts auto-archived · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/06-funded-archive.png" alt="Funded contracts auto-archived"></button>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Stage filter — no match" data-cap="Home — Active Floor &amp; Navigation · 06 Stage filter — no match · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/06-stage-filter-empty.png" alt="Stage filter — no match"></button>
     </div>
-    <h3>Funded contracts auto-archived</h3>
-    <div class="hash">#/deals</div>
-    <p class="notes">For the Team Lead a completed deal leaves the active list into the folded archive (shown opened here).</p>
+    <h3>Stage filter — no match</h3>
+    <div class="hash">#/deals · <a href="../current/01-home-and-navigation/06-stage-filter-empty.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">An empty stage says so instead of going blank. (Team Lead only; the Advisor view has no chips.)</p>
     
-    <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-017</b><p>The &#39;Archived — funded contracts&#39; disclosure is a 20px-tall text row — the only way to reach finished deals, under the touch floor.</p><p><em>Still true after the 2026-08-23 role-aware queue: the Team Lead deliberately keeps the original view including this fold (owner decision), so the disclosure row remains the only way a manager reaches finished deals; the minimum fix is restyling the row to the 44px floor. The Advisor no longer has the fold at all — their funded deals sit at the end of the one list under a DONE chip.</em></p></div></details>
-    <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (1):  Archived — funded contracts  362x20</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Advisor | Team Lead</div></div><article class="scr" id="home-advisor-funded-tail" data-search="home — deals queue &amp; navigation advisor — funded deal ends the list the advisor has no archive fold: their funded deals sit at the end of the one list under the done chip, with no next line — search still finds them. ">
+    <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (2): #dqRole.m-rolebtn Team Lead ▾ 96x35; #dealSearch  239x25</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap All, then open the date control</div></div><article class="scr" id="home-date-history-sheet" data-search="home — active floor &amp; navigation date range / history sheet manager-only. the window governs the funded history — the live floor is always current, so an active deal never disappears because it started last week. ">
     <div class="frame">
       <span class="n">07</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Advisor — funded deal ends the list" data-cap="Home — Deals Queue &amp; Navigation · 07 Advisor — funded deal ends the list · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/07-advisor-funded-tail.png" alt="Advisor — funded deal ends the list"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Date range / history sheet" data-cap="Home — Active Floor &amp; Navigation · 07 Date range / history sheet · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/07-date-history-sheet.png" alt="Date range / history sheet"></button>
     </div>
-    <h3>Advisor — funded deal ends the list</h3>
+    <h3>Date range / history sheet</h3>
     <div class="hash">#/deals</div>
-    <p class="notes">The Advisor has no archive fold: their funded deals sit at the end of the one list under the DONE chip, with no Next line — search still finds them.</p>
+    <p class="notes">Manager-only. The window governs the funded HISTORY — the live floor is always current, so an active deal never disappears because it started last week.</p>
     
     
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #dqDateSummary.dq-datesummary Today · active floor &lt;&gt; .ob-sheetdesc Team Lead only. Keep the eve; #dqDateBtn.dq-datebtn Today ▾ &lt;&gt; .ob-sheetdesc Team Lead only. Keep the eve; #dqDateLabel Today &lt;&gt; .ob-sheetdesc Team Lead only. Keep the eve;  In showroom · 0 &lt;&gt;  Today;  Active visits &lt;&gt; .dq-check ✓; .dq-empty No showroom visits. &lt;&gt;  Default active-floor view; .dq-empty No showroom visits. &lt;&gt;  Yesterday; .dq-sectionlabel Deals &lt;&gt;  Review floor activity in thi
+small targets &lt;36px (3): #dqRole.m-rolebtn Team Lead ▾ 96x35; #dealSearch  239x25; .m-close ✕ 34x34</div></details>
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap the funded deal<br><a href="#finance-menu-deal-finalized" style="font-weight:600">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 16 Deal finalized</a></div></div></div>
-</section>
-<section class="flow" id="onboarding" data-flow>
-  <header><h2>Customer Onboarding — Find a Customer<small>5 screens</small></h2>
-    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
-      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">Search-first: the CRM is checked before anything is created. Branches into the licence scanner, an existing customer&#39;s visit, or a manual Create Customer.</p>
-  <p class="entry">↳ Reached from <a href="#home-deals-queue">Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</a> — <b>Tap ＋ New Customer Visit</b></p>
-  <div class="strip"><article class="scr" id="onboarding-find-customer" data-search="customer onboarding — find a customer find a customer  ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Toggle Include funded contracts</div></div><article class="scr" id="home-funded-history" data-search="home — active floor &amp; navigation funded history in range funded contracts appear only behind the date control, labelled with the window they belong to. ">
     <div class="frame tall">
-      <span class="n">01</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Find a Customer" data-cap="Customer Onboarding — Find a Customer · 01 Find a Customer · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/01-find-customer.png" alt="Find a Customer"></button>
-    </div>
-    <h3>Find a Customer</h3>
-    <div class="hash">#/customers</div>
-    
-    <ul class="branches"><li>Tap 🪪 Scan license → <a href="#license-scan-scan-intro">Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence</a></li><li>Tap 👤＋ Create Customer → <a href="#onboarding-create-customer">Customer Onboarding — Find a Customer · 04 Create Customer</a></li><li>Start Visit → on a recent customer → <a href="#discovery-question-1">Discovery Session · 01 Discovery — question 1</a></li></ul>
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Enter &#39;Smith&#39;, tap Search</div></div><article class="scr" id="onboarding-search-results" data-search="customer onboarding — find a customer search results — match found after search the page scrolls the results panel into view on a phone (every outcome — hit, miss, empty fields); the full-length capture shows the whole page, so the scroll itself is not visible here. ">
-    <div class="frame tall">
-      <span class="n">02</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Search results — match found" data-cap="Customer Onboarding — Find a Customer · 02 Search results — match found · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/02-search-results.png" alt="Search results — match found"></button>
-    </div>
-    <h3>Search results — match found</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">After Search the page scrolls the Results panel into view on a phone (every outcome — hit, miss, empty fields); the full-length capture shows the whole page, so the scroll itself is not visible here.</p>
-    
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Search for a name not on file</div></div><article class="scr" id="onboarding-search-no-match" data-search="customer onboarding — find a customer search results — no match a miss offers create customer inline. ">
-    <div class="frame tall">
-      <span class="n">03</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Search results — no match" data-cap="Customer Onboarding — Find a Customer · 03 Search results — no match · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/03-search-no-match.png" alt="Search results — no match"></button>
-    </div>
-    <h3>Search results — no match</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">A miss offers Create Customer inline.</p>
-    
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap 👤＋ Create Customer</div></div><article class="scr" id="onboarding-create-customer" data-search="customer onboarding — find a customer create customer the dialog is capped to the screen: cancel and save &amp; start visit stay in the pinned footer, the form scrolls inside. ">
-    <div class="frame">
-      <span class="n">04</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Create Customer" data-cap="Customer Onboarding — Find a Customer · 04 Create Customer · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/04-create-customer.png" alt="Create Customer"></button>
-    </div>
-    <h3>Create Customer</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">The dialog is capped to the screen: Cancel and Save &amp; Start Visit stay in the pinned footer, the form scrolls inside.</p>
-    
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Save &amp; Start Visit with nothing filled</div></div><article class="scr" id="onboarding-create-customer-validation" data-search="customer onboarding — find a customer create customer — validation every missing field is marked in red with the reason under it (first &amp; last name, email or phone, address, zip); the first miss is scrolled to and focused; one short toast points at the marks, lifted clear of the footer. ">
-    <div class="frame">
-      <span class="n">05</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Create Customer — validation" data-cap="Customer Onboarding — Find a Customer · 05 Create Customer — validation · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/05-create-customer-validation.png" alt="Create Customer — validation"></button>
-    </div>
-    <h3>Create Customer — validation</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">Every missing field is marked in red with the reason under it (first &amp; last name, email or phone, address, ZIP); the first miss is scrolled to and focused; one short toast points at the marks, lifted clear of the footer.</p>
-    
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Cancel; Start Visit → on Cheri Bridwell<br><a href="#discovery-question-1" style="font-weight:600">Discovery Session · 01 Discovery — question 1</a></div></div></div>
-</section>
-<section class="flow" id="license-scan" data-flow>
-  <header><h2>Scan Driver&#39;s License<small>14 screens</small></h2>
-    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
-      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">The prop-licence scanner as the Granola-discipline journey (owner&#39;s flow mockup + 34-section design prompt, 2026-08-25): a quiet dot header, serif headings, one soft document surface per group, read-mode-first reviews with editing in bottom sheets, and one dominant action per screen. Only the five printed training props can ever be recognised; anything else is refused with a teaching message. Prop 1 matches a seed customer by name (ambiguous → compare), prop 2 carries a licence on file (confident match), 3–5 create new customers. Phone AND email are both required on every customer record; the scan asks for no credit score.</p>
-  <p class="entry">↳ Reached from <a href="#onboarding-find-customer">Customer Onboarding — Find a Customer · 01 Find a Customer</a> — <b>Tap 🪪 Scan license</b></p>
-  <div class="strip"><article class="scr" id="license-scan-scan-intro" data-search="scan driver&#39;s license intro — scan a driver&#39;s licence the journey owns the phone screen. one quiet header row: a bare ← / ×, five step dots, and the gold training · props only chip — no wordmark, no boxed icons, no help control. serif page heading, one supporting sentence, two benefit rows sitting on the page rather than in cards. ">
-    <div class="frame">
-      <span class="n">01</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Intro — scan a driver&#39;s licence" data-cap="Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence · #/customers"><img loading="lazy" src="../current/03-license-scan/01-scan-intro.png" alt="Intro — scan a driver&#39;s licence"></button>
-    </div>
-    <h3>Intro — scan a driver&#39;s licence</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">The journey owns the phone screen. One quiet header row: a bare ← / ×, five step dots, and the gold TRAINING · PROPS ONLY chip — no wordmark, no boxed icons, no help control. Serif page heading, one supporting sentence, two benefit rows sitting on the page rather than in cards.</p>
-    
-    
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (1): .scan-idcard__state NEW YORK &lt;&gt; .scan-idcard__demo TRAINING SAMPLE</div></details>
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Begin Scanning</div></div><article class="scr" id="license-scan-scan-front" data-search="scan driver&#39;s license capture — front of licence the camera is the one dark surface and owns the middle of the screen: corner brackets, flash bolt and shutter drawn as illustration, one instruction line. the phone&#39;s own camera opens on tap — there is no live viewfinder (invariant 5), so none of the three is its own control. upload fallback beneath. ">
-    <div class="frame">
-      <span class="n">02</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Capture — front of licence" data-cap="Scan Driver&#39;s License · 02 Capture — front of licence · #/customers"><img loading="lazy" src="../current/03-license-scan/02-scan-front.png" alt="Capture — front of licence"></button>
-    </div>
-    <h3>Capture — front of licence</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">The camera is the one dark surface and owns the middle of the screen: corner brackets, flash bolt and shutter drawn as illustration, one instruction line. The phone&#39;s own camera opens on tap — there is no live viewfinder (invariant 5), so none of the three is its own control. Upload fallback beneath.</p>
-    
-    
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (1): .scan-idcard__state NEW YORK &lt;&gt; .scan-idcard__demo TRAINING SAMPLE</div></details>
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Take / upload the front photo</div></div><article class="scr" id="license-scan-scan-back" data-search="scan driver&#39;s license capture — back of licence barcode silhouette in the frame, and &#39;front captured&#39; with a retake front control. this is the side the recognizer actually reads. ">
-    <div class="frame">
-      <span class="n">03</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Capture — back of licence" data-cap="Scan Driver&#39;s License · 03 Capture — back of licence · #/customers"><img loading="lazy" src="../current/03-license-scan/03-scan-back.png" alt="Capture — back of licence"></button>
-    </div>
-    <h3>Capture — back of licence</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">Barcode silhouette in the frame, and &#39;Front captured&#39; with a Retake front control. This is the side the recognizer actually reads.</p>
-    
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Take / upload the back photo</div></div><article class="scr" id="license-scan-scan-reading" data-search="scan driver&#39;s license processing your scan whitespace, a modest green ring, and three rows that tick only as each step really finishes: reading licence, finding customer, verifying details. a stranded read cannot paint over a later screen — the run carries a generation token. ">
-    <div class="frame">
-      <span class="n">04</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Processing your scan" data-cap="Scan Driver&#39;s License · 04 Processing your scan · #/customers"><img loading="lazy" src="../current/03-license-scan/04-scan-reading.png" alt="Processing your scan"></button>
-    </div>
-    <h3>Processing your scan</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">Whitespace, a modest green ring, and three rows that tick only as each step really finishes: reading licence, finding customer, verifying details. A stranded read cannot paint over a later screen — the run carries a generation token.</p>
-    
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Barcode not recognised</div></div><article class="scr" id="license-scan-scan-not-recognized" data-search="scan driver&#39;s license that didn&#39;t read recovery, not punishment: what to fix, then the demo limit in a quiet line. no cause diagnosis — the recognizer finds a prop marker or refuses; there is no code path that reads a real id. ">
-    <div class="frame">
-      <span class="n">05</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: That didn&#39;t read" data-cap="Scan Driver&#39;s License · 05 That didn&#39;t read · #/customers"><img loading="lazy" src="../current/03-license-scan/05-scan-not-recognized.png" alt="That didn&#39;t read"></button>
-    </div>
-    <h3>That didn&#39;t read</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">Recovery, not punishment: what to fix, then the demo limit in a quiet line. No cause diagnosis — the recognizer finds a prop marker or refuses; there is no code path that reads a real ID.</p>
-    <ul class="branches"><li>Retake photo → <a href="#license-scan-scan-back">Scan Driver&#39;s License · 03 Capture — back of licence</a></li></ul>
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Retake photo / Enter license manually</div></div><article class="scr" id="license-scan-scan-manual" data-search="scan driver&#39;s license enter license manually a crm search by licence number and state — never a card read. nothing typed here is treated as licence data recovered from the card, so its &#39;create&#39; hands off to the full create customer form. ">
-    <div class="frame">
-      <span class="n">06</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Enter license manually" data-cap="Scan Driver&#39;s License · 06 Enter license manually · #/customers"><img loading="lazy" src="../current/03-license-scan/06-scan-manual.png" alt="Enter license manually"></button>
-    </div>
-    <h3>Enter license manually</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">A CRM SEARCH by licence number and state — never a card read. Nothing typed here is treated as licence data recovered from the card, so its &#39;create&#39; hands off to the full Create Customer form.</p>
-    
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Type a licence number, tap Search</div></div><article class="scr" id="license-scan-scan-manual-results" data-search="scan driver&#39;s license search results the found customer on one document surface with a quiet &#39;license match&#39; pill. a miss says plainly that nothing in the records carries that number. ">
-    <div class="frame">
-      <span class="n">07</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Search results" data-cap="Scan Driver&#39;s License · 07 Search results · #/customers"><img loading="lazy" src="../current/03-license-scan/07-scan-manual-results.png" alt="Search results"></button>
-    </div>
-    <h3>Search results</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">The found customer on one document surface with a quiet &#39;License match&#39; pill. A miss says plainly that nothing in the records carries that number.</p>
-    <ul class="branches"><li>No match, create new → <a href="#onboarding-create-customer">Customer Onboarding — Find a Customer · 04 Create Customer</a></li></ul>
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Review Customer</div></div><article class="scr" id="license-scan-scan-match-found" data-search="scan driver&#39;s license we found a matching customer (prop 1) shown for every match now, not only ambiguous ones — the advisor sees who the scan resolved to before anything attaches. trimmed to identity facts; no crm metadata. the pill states the real basis (license match / name and birthday match / name match / same birthday), never an invented confidence. when the match is only a guess the scanned licence is shown beneath, so the two can be compared. ">
-    <div class="frame">
       <span class="n">08</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: We found a matching customer (prop 1)" data-cap="Scan Driver&#39;s License · 08 We found a matching customer (prop 1) · #/customers"><img loading="lazy" src="../current/03-license-scan/08-scan-match-found.png" alt="We found a matching customer (prop 1)"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Funded history in range" data-cap="Home — Active Floor &amp; Navigation · 08 Funded history in range · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/08-funded-history.png" alt="Funded history in range"></button>
     </div>
-    <h3>We found a matching customer (prop 1)</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">Shown for EVERY match now, not only ambiguous ones — the advisor sees who the scan resolved to before anything attaches. Trimmed to identity facts; no CRM metadata. The pill states the REAL basis (License match / Name and birthday match / Name match / Same birthday), never an invented confidence. When the match is only a guess the scanned licence is shown beneath, so the two can be compared.</p>
-    <ul class="branches"><li>&#39;No, create a new customer&#39; → <a href="#license-scan-scan-verify-new">Scan Driver&#39;s License · 11 Create new customer (prop 3)</a></li></ul>
+    <h3>Funded history in range</h3>
+    <div class="hash">#/deals · <a href="../current/01-home-and-navigation/08-funded-history.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">Funded contracts appear only behind the date control, labelled with the window they belong to.</p>
     
     
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (6): .dq-name John Smith &lt;&gt; .dq-stage.dq-stage--done DONE; .dq-name John Smith &lt;&gt;  Deals; .dq-name John Smith &lt;&gt;  Inventory; .dq-name John Smith &lt;&gt;  Customers; .dq-name John Smith &lt;&gt;  More; .dq-stage.dq-stage--done DONE &lt;&gt;  More
+small targets &lt;36px (2): #dqRole.m-rolebtn Team Lead ▾ 96x35; #dealSearch  239x25</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Review Customer</div></div><article class="scr" id="license-scan-scan-verify-existing" data-search="scan driver&#39;s license review customer — read-first document summary-first (decision 11, reversed by the owner) and read-mode-first: values render as text on one document surface, with a quiet gold &#39;updated from license · was …&#39; line on each field the licence changed, and &#39;n fields will be updated&#39; by the pinned action. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Switch back to Advisor</div></div><article class="scr" id="home-advisor-completed" data-search="home — active floor &amp; navigation advisor — completed deal ends the list the advisor has no history control: their funded deals sit under a completed label at the end of the one list, with no next line — search still finds them. ">
     <div class="frame">
       <span class="n">09</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Review customer — read-first document" data-cap="Scan Driver&#39;s License · 09 Review customer — read-first document · #/customers"><img loading="lazy" src="../current/03-license-scan/09-scan-verify-existing.png" alt="Review customer — read-first document"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Advisor — completed deal ends the list" data-cap="Home — Active Floor &amp; Navigation · 09 Advisor — completed deal ends the list · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/09-advisor-completed.png" alt="Advisor — completed deal ends the list"></button>
     </div>
-    <h3>Review customer — read-first document</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">Summary-first (decision 11, reversed by the owner) and read-mode-first: values render as text on one document surface, with a quiet gold &#39;Updated from license · was …&#39; line on each field the licence changed, and &#39;n fields will be updated&#39; by the pinned action.</p>
+    <h3>Advisor — completed deal ends the list</h3>
+    <div class="hash">#/deals</div>
+    <p class="notes">The Advisor has no history control: their funded deals sit under a Completed label at the end of the one list, with no Next line — search still finds them.</p>
     
     
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (1): .dq-name John Smith &lt;&gt; .dq-stage.dq-stage--done DONE
+small targets &lt;36px (2): #dqRole.m-rolebtn Advisor ▾ 79x35; #dealSearch  239x25</div></details>
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Use This Customer</div></div><article class="scr" id="license-scan-scan-edit-sheet" data-search="scan driver&#39;s license edit sheet (bottom sheet) edit is a word, not a pill, and it opens a focused bottom sheet — handle, serif title, the granular inputs, one save. never a modal inside a modal; outside tap and escape both close it. every field in a sheet is required to save (owner, 2026-08-25); the one exception is the middle name, which a guest may not have. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap the completed deal</div></div><article class="scr" id="home-showroom-visit" data-search="home — active floor &amp; navigation in showroom — an active visit a guest who has been logged in but has not chosen a vehicle shows only the name and arrival time — no vehicle placeholder, ever (owner rule 2026-08-23, reasserted 2026-08-28). the section is separate from the deal stages and appears for both roles. ">
     <div class="frame">
       <span class="n">10</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Edit sheet (bottom sheet)" data-cap="Scan Driver&#39;s License · 10 Edit sheet (bottom sheet) · #/customers"><img loading="lazy" src="../current/03-license-scan/10-scan-edit-sheet.png" alt="Edit sheet (bottom sheet)"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: In showroom — an active visit" data-cap="Home — Active Floor &amp; Navigation · 10 In showroom — an active visit · #/deals"><img loading="lazy" src="../current/01-home-and-navigation/10-showroom-visit.png" alt="In showroom — an active visit"></button>
     </div>
-    <h3>Edit sheet (bottom sheet)</h3>
+    <h3>In showroom — an active visit</h3>
+    <div class="hash">#/deals</div>
+    <p class="notes">A guest who has been logged in but has not chosen a vehicle shows ONLY the name and arrival time — no vehicle placeholder, ever (owner rule 2026-08-23, reasserted 2026-08-28). The section is separate from the deal stages and appears for both roles.</p>
+    
+    
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (1): .dq-name John Smith &lt;&gt; .dq-stage.dq-stage--desking DESKING
+small targets &lt;36px (2): #dqRole.m-rolebtn Advisor ▾ 79x35; #dealSearch  239x25</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap the showroom row<br><a href="#discovery-question-1" style="font-weight:600">Discovery Session · 01 Discovery — question 1</a></div></div></div>
+</section>
+<section class="flow" id="onboarding" data-flow>
+  <header><h2>Customer Onboarding — the Customer Resolver<small>9 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
+  <p class="desc">One resolver everywhere Ride Price needs a person (owner&#39;s onboarding v3 package, 2026-08-28): one universal search over name, phone, email or license number, then the two license paths — scan the physical card, or send the customer a secure upload link. There is no top-level Create Customer; manual entry survives only as the stated fallback when there is neither a license nor a usable photo. A found customer is confirmed together with their registration address, which is sourced, one-tap confirmed, and never silently overwritten.</p>
+  <p class="entry">↳ Reached from <a href="#home-deals-queue">Home — Active Floor &amp; Navigation · 01 My deals (landing — Advisor)</a> — <b>Tap New visit</b></p>
+  <div class="strip"><article class="scr" id="onboarding-resolver-idle" data-search="customer onboarding — the customer resolver find customer — the resolver search first, then the two license paths as full-width action rows, then recent customers — which appear only in this idle state. ride price searches existing profiles before anything is created. ">
+    <div class="frame tall">
+      <span class="n">01</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Find customer — the resolver" data-cap="Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/01-resolver-idle.png" alt="Find customer — the resolver"></button>
+    </div>
+    <h3>Find customer — the resolver</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">Edit is a word, not a pill, and it opens a focused bottom sheet — handle, serif title, the granular inputs, one Save. Never a modal inside a modal; outside tap and Escape both close it. EVERY field in a sheet is required to save (owner, 2026-08-25); the one exception is the middle name, which a guest may not have.</p>
+    <p class="notes">Search first, then the two license paths as full-width action rows, then recent customers — which appear only in this idle state. Ride Price searches existing profiles before anything is created.</p>
+    <ul class="branches"><li>Scan physical license → <a href="#license-scan-scan-front">Scan Driver&#39;s License · 01 Scan — front of license</a></li><li>Send secure upload link → <a href="#onboarding-send-link-sheet">Customer Onboarding — the Customer Resolver · 07 Send secure upload link (sheet)</a></li><li>Tap a recent customer → <a href="#onboarding-customer-found">Customer Onboarding — the Customer Resolver · 03 Customer found — confirm + registration address</a></li></ul>
+    
+    <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (1): #mRole.m-rolebtn Advisor 65x35</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Type &#39;Smith&#39;, tap Search</div></div><article class="scr" id="onboarding-search-results" data-search="customer onboarding — the customer resolver search results one field takes a name, phone, email or license number — the advisor does not have to know which identifier they hold. ">
+    <div class="frame tall">
+      <span class="n">02</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Search results" data-cap="Customer Onboarding — the Customer Resolver · 02 Search results · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/02-search-results.png" alt="Search results"></button>
+    </div>
+    <h3>Search results</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">One field takes a name, phone, email or license number — the advisor does not have to know which identifier they hold.</p>
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (5): .scan-row__val T-0000103 · NY · exp 06/21/2 &lt;&gt;  Edit address; .scan-act Edit &lt;&gt;  Edit address; .scan-h2 Contact &lt;&gt; .btn.btn--primary Save;  Mobile phone &lt;&gt; .btn.btn--primary Save; .btn.btn--primary Create Customer &lt;&gt; .btn.scan-cta Cancel</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (1): #mRole.m-rolebtn Advisor 65x35</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Fill every field, tap Save</div></div><article class="scr" id="license-scan-scan-verify-new" data-search="scan driver&#39;s license create new customer (prop 3) the licence already filled these in, so they are read-first rows; the only typing asked for is what the licence cannot say. contact is phone and email — both required, and no credit score is asked for at the door. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap the customer</div></div><article class="scr" id="onboarding-customer-found" data-search="customer onboarding — the customer resolver customer found — confirm + registration address the customer and the registration address are confirmed in one decision region. the address is marked required with its source named, because it feeds registration, tax calculations, credit and paperwork — confirming here means nobody is asked to type it again. ">
+    <div class="frame tall">
+      <span class="n">03</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Customer found — confirm + registration address" data-cap="Customer Onboarding — the Customer Resolver · 03 Customer found — confirm + registration address · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/03-customer-found.png" alt="Customer found — confirm + registration address"></button>
+    </div>
+    <h3>Customer found — confirm + registration address</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">The customer and the registration address are confirmed in ONE decision region. The address is marked Required with its source named, because it feeds registration, tax calculations, credit and paperwork — confirming here means nobody is asked to type it again.</p>
+    <ul class="branches"><li>Use a different address → <a href="#onboarding-address-sheet">Customer Onboarding — the Customer Resolver · 04 Use a different address (sheet)</a></li><li>Not the right customer? Search again → <a href="#onboarding-resolver-idle">Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver</a></li></ul>
+    
+    <details><summary>automated checks (2)</summary><div class="auto">clipped text (1): .ob-rowsub Existing Ride Price customer 173&gt;155
+small targets &lt;36px (1): #mRole.m-rolebtn Advisor 65x35</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Confirm address &amp; start visit</div></div><article class="scr" id="onboarding-address-sheet" data-search="customer onboarding — the customer resolver use a different address (sheet) one address search field — never separate street / city / state / zip boxes. the demo standardizes against its own zip table and offers the result to tap; an unparseable string is refused rather than guessed at. ">
+    <div class="frame tall">
+      <span class="n">04</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Use a different address (sheet)" data-cap="Customer Onboarding — the Customer Resolver · 04 Use a different address (sheet) · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/04-address-sheet.png" alt="Use a different address (sheet)"></button>
+    </div>
+    <h3>Use a different address (sheet)</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">ONE address search field — never separate street / city / state / ZIP boxes. The demo standardizes against its own ZIP table and offers the result to tap; an unparseable string is refused rather than guessed at.</p>
+    
+    
+    <details><summary>automated checks (3)</summary><div class="auto">clipped text (1): .ob-rowsub Existing Ride Price customer 173&gt;155
+overlap (8): .ob-addresstitle Registration address &lt;&gt; .m-sheettitle Use a different address; .ob-source Customer record &lt;&gt; .m-sheettitle Use a different address; .ob-pill Required &lt;&gt; .m-close ✕; .ob-addressvalue 31-14 Broadway, Astoria, NY  &lt;&gt; .ob-sheetdesc One address search field — n; .ob-addressnote Ride Price carries this addr &lt;&gt; .ca-lab Search address; #obConfirm.ob-primary Confirm address &amp; start visi &lt;&gt; #obSheetHint.ob-helper Type the address as street, ; #obOtherAddr.sc2-textbtn.ob-center Use a different address &lt;&gt; #obSheetHint.ob-helper Type the address as street, ; #obBack.sc2-textbtn.ob-center Not the right customer? Sear &lt;&gt;  12 Main St, Astoria, NY 1110
+small targets &lt;36px (2): #mRole.m-rolebtn Advisor 65x35; .m-close ✕ 34x34</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Pick the standardized address</div></div><article class="scr" id="onboarding-no-match" data-search="customer onboarding — the customer resolver search results — no match a miss names the other paths rather than jumping straight to a create form. ">
+    <div class="frame tall">
+      <span class="n">05</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Search results — no match" data-cap="Customer Onboarding — the Customer Resolver · 05 Search results — no match · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/05-no-match.png" alt="Search results — no match"></button>
+    </div>
+    <h3>Search results — no match</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">A miss names the other paths rather than jumping straight to a create form.</p>
+    
+    
+    <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (1): #mRole.m-rolebtn Advisor 65x35</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap &#39;No license available · add manually&#39;</div></div><article class="scr" id="onboarding-manual-fallback" data-search="customer onboarding — the customer resolver no license available — manual fallback explicitly labelled fallback-only: if a license or a license photo turns up, use it instead so ride price can read the identity and address rather than asking anyone to type them. both contact channels are still required. ">
+    <div class="frame tall">
+      <span class="n">06</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: No license available — manual fallback" data-cap="Customer Onboarding — the Customer Resolver · 06 No license available — manual fallback · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/06-manual-fallback.png" alt="No license available — manual fallback"></button>
+    </div>
+    <h3>No license available — manual fallback</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">Explicitly labelled fallback-only: if a license or a license photo turns up, use it instead so Ride Price can read the identity and address rather than asking anyone to type them. Both contact channels are still required.</p>
+    
+    
+    <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (1): #mRole.m-rolebtn Advisor 65x35</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Fill the four fields, tap Confirm &amp; start visit</div></div><article class="scr" id="onboarding-send-link-sheet" data-search="customer onboarding — the customer resolver send secure upload link (sheet) the customer uploads their license directly into ride price — the ui never asks anyone to text or email an id image to a salesperson. both channels are required. the demo says plainly that no text or email is really sent. ">
+    <div class="frame tall">
+      <span class="n">07</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Send secure upload link (sheet)" data-cap="Customer Onboarding — the Customer Resolver · 07 Send secure upload link (sheet) · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/07-send-link-sheet.png" alt="Send secure upload link (sheet)"></button>
+    </div>
+    <h3>Send secure upload link (sheet)</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">The customer uploads their license directly into Ride Price — the UI never asks anyone to text or email an ID image to a salesperson. Both channels are required. The demo says plainly that no text or email is really sent.</p>
+    
+    
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .ob-pill Start new customer visit &lt;&gt; .m-sheettitle Send secure upload link; .ob-pill Start new customer visit &lt;&gt; .ob-sheetdesc The customer uploads the lic; #searchBtn.ob-searchbtn Search &lt;&gt;  Email; .ob-helper Ride Price searches existing &lt;&gt; .ca-lab Customer mobile; .ob-actiontitle Scan physical license &lt;&gt; .ca-lab Email; .ob-actiontitle Send secure upload link &lt;&gt; .ob-privacy Private by design: the uploa; .ob-actiontitle Send secure upload link &lt;&gt;  Private by design:; .ob-actionsub Customer has a license photo &lt;&gt; .ob-privacy Private by design: the uploa
+small targets &lt;36px (2): #mRole.m-rolebtn Advisor 65x35; .m-close ✕ 34x34</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Enter phone and email, tap Send secure link</div></div><article class="scr" id="onboarding-waiting-for-customer" data-search="customer onboarding — the customer resolver waiting for customer — progressive status four separate states — link sent, license photo, identity photo, registration address — never collapsed into one binary &#39;verified&#39; badge. the demo has no network, so the customer view opens on this device and the screen says so. ">
+    <div class="frame tall">
+      <span class="n">08</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Waiting for customer — progressive status" data-cap="Customer Onboarding — the Customer Resolver · 08 Waiting for customer — progressive status · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/08-waiting-for-customer.png" alt="Waiting for customer — progressive status"></button>
+    </div>
+    <h3>Waiting for customer — progressive status</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">Four separate states — link sent, license photo, identity photo, registration address — never collapsed into one binary &#39;verified&#39; badge. The demo has no network, so the customer view opens on this device and the screen says so.</p>
+    
+    
+    <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (1): #mRole.m-rolebtn Advisor 65x35</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Open customer view</div></div><article class="scr" id="onboarding-remote-ready" data-search="customer onboarding — the customer resolver customer identified (advisor) the advisor sees the finished session with its progressive statuses — and the second license side stays an honest pending line rather than blocking the visit. the confirmed registration address carries onto the record. the role pill in the master deal header (.m-rolebtn) is 65x35px — under the 40px small-variant touch floor the phone layout documents.">
+    <div class="frame tall">
+      <span class="n">09</span>
+      <span class="flags"><span class="sev sev--Minor">Minor</span></span>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Customer identified (advisor)" data-cap="Customer Onboarding — the Customer Resolver · 09 Customer identified (advisor) · #/customers"><img loading="lazy" src="../current/02-customer-onboarding/09-remote-ready.png" alt="Customer identified (advisor)"></button>
+    </div>
+    <h3>Customer identified (advisor)</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">The advisor sees the finished session with its progressive statuses — and the second license side stays an honest Pending line rather than blocking the visit. The confirmed registration address carries onto the record.</p>
+    
+    <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-024</b><p>The role pill in the master deal header (.m-rolebtn) is 65x35px — under the 40px small-variant touch floor the phone layout documents.</p><p><em>It opens the drawer, so it is a real target, not decoration. Introduced with the master deal header (PR #51) and now visible on far more screens because the resolver, credit and agreement all use that header. Raising it to 40px is a one-line change in the .m-rolebtn padding.</em></p></div></details>
+    <details><summary>automated checks (2)</summary><div class="auto">clipped text (1): .ob-rowsub Remote secure upload · new c 236&gt;85
+small targets &lt;36px (1): #mRole.m-rolebtn Advisor 65x35</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Start visit<br><a href="#discovery-question-1" style="font-weight:600">Discovery Session · 01 Discovery — question 1</a></div></div></div>
+</section>
+<section class="flow" id="license-scan" data-flow>
+  <header><h2>Scan Driver&#39;s License<small>11 screens</small></h2>
+    <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
+      <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
+  <p class="desc">The prop-license scanner as the owner&#39;s simplified v2 (2026-08-28): the advisor experiences two decisions — capture the license, then confirm the customer — and everything else is automation or an exception sheet. Front and back are phases of one capture screen; reading and CRM matching are inline system states, not journey steps. Only the five printed training props can ever be recognised. Prop 1 matches a seed customer by name (ambiguous → the explicit same-person question), prop 2 carries a license on file (certain match), 3–5 create new customers. Phone AND email are both required on every record; the scan asks for no credit score.</p>
+  <p class="entry">↳ Reached from <a href="#onboarding-resolver-idle">Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver</a> — <b>Tap Scan physical license</b></p>
+  <div class="strip"><article class="scr" id="license-scan-scan-front" data-search="scan driver&#39;s license scan — front of license two-part progress — scan, then confirm. the capture card owns the screen: a dashed frame with corner marks and the license drawn inside it. camera capture is the primary action, the photo library secondary. the honest line states that photos are read on the device and discarded, and that only the five printed props can be recognised. ">
+    <div class="frame">
+      <span class="n">01</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Scan — front of license" data-cap="Scan Driver&#39;s License · 01 Scan — front of license · #/customers"><img loading="lazy" src="../current/03-license-scan/01-scan-front.png" alt="Scan — front of license"></button>
+    </div>
+    <h3>Scan — front of license</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">Two-part progress — Scan, then Confirm. The capture card owns the screen: a dashed frame with corner marks and the license drawn inside it. Camera capture is the primary action, the photo library secondary. The honest line states that photos are read on the device and discarded, and that only the five printed props can be recognised.</p>
+    
+    
+    
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Take / choose the front photo</div></div><article class="scr" id="license-scan-scan-back" data-search="scan driver&#39;s license scan — flip to the back the same screen flips to its back phase — front and back belong to one session, never two journey steps. &#39;front captured&#39; confirms inline and the frame now draws the barcode side, which is the side the recognizer actually reads. ">
+    <div class="frame">
+      <span class="n">02</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Scan — flip to the back" data-cap="Scan Driver&#39;s License · 02 Scan — flip to the back · #/customers"><img loading="lazy" src="../current/03-license-scan/02-scan-back.png" alt="Scan — flip to the back"></button>
+    </div>
+    <h3>Scan — flip to the back</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">The SAME screen flips to its back phase — front and back belong to one session, never two journey steps. &#39;Front captured&#39; confirms inline and the frame now draws the barcode side, which is the side the recognizer actually reads.</p>
+    
+    
+    
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Capture the back</div></div><article class="scr" id="license-scan-scan-reject" data-search="scan driver&#39;s license couldn&#39;t read the license (sheet) a failed read is an exception sheet over the capture screen — the advisor never leaves the scanner to recover. escape and an outside tap both close it, and the screen underneath is untouched. ">
+    <div class="frame">
+      <span class="n">03</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Couldn&#39;t read the license (sheet)" data-cap="Scan Driver&#39;s License · 03 Couldn&#39;t read the license (sheet) · #/customers"><img loading="lazy" src="../current/03-license-scan/03-scan-reject.png" alt="Couldn&#39;t read the license (sheet)"></button>
+    </div>
+    <h3>Couldn&#39;t read the license (sheet)</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">A failed read is an exception SHEET over the capture screen — the advisor never leaves the scanner to recover. Escape and an outside tap both close it, and the screen underneath is untouched.</p>
+    <ul class="branches"><li>Try again → <a href="#license-scan-scan-back">Scan Driver&#39;s License · 02 Scan — flip to the back</a></li></ul>
+    
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): .sc2-statusicon ✓ &lt;&gt;  We couldn’t read the license; .sc2-statusicon ✓ &lt;&gt;  We couldn’t find the barcode;  Front captured &lt;&gt;  We couldn’t read the license;  Ready for the back &lt;&gt;  We couldn’t find the barcode; .sc2-primary.sc2-cap Capture back &lt;&gt; .sc2-sheethint Only the 5 printed training ; .sc2-primary.sc2-cap Capture back &lt;&gt; .sc2-primary Try again; .sc2-secondary.sc2-cap Choose photo &lt;&gt; .sc2-primary Try again; .sc2-secondary.sc2-cap Choose photo &lt;&gt; .sc2-secondary Find customer manually</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Find customer manually</div></div><article class="scr" id="license-scan-scan-manual" data-search="scan driver&#39;s license find customer manually (sheet) a crm search by license number and issuing state — never a card read. nothing typed here is treated as data recovered from a license, and no persona is invented. ">
+    <div class="frame">
+      <span class="n">04</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Find customer manually (sheet)" data-cap="Scan Driver&#39;s License · 04 Find customer manually (sheet) · #/customers"><img loading="lazy" src="../current/03-license-scan/04-scan-manual.png" alt="Find customer manually (sheet)"></button>
+    </div>
+    <h3>Find customer manually (sheet)</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">A CRM SEARCH by license number and issuing state — never a card read. Nothing typed here is treated as data recovered from a license, and no persona is invented.</p>
+    
+    
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (7): .sc2-primary.sc2-cap Capture back &lt;&gt;  Find customer; .sc2-primary.sc2-cap Capture back &lt;&gt;  Search the CRM by license nu; .sc2-primary.sc2-cap Capture back &lt;&gt; .sc2-sheetx ×; .sc2-secondary.sc2-cap Choose photo &lt;&gt;  Search the CRM by license nu; .sc2-secondary.sc2-cap Choose photo &lt;&gt; #mnGo.sc2-primary.sc2-searchgo Search; .sc2-micro Photos are read on this devi &lt;&gt; #mnGo.sc2-primary.sc2-searchgo Search;  5 printed training licenses &lt;&gt; #mnGo.sc2-primary.sc2-searchgo Search</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Type a license number, tap Search</div></div><article class="scr" id="license-scan-scan-manual-result" data-search="scan driver&#39;s license manual search — customer found a hit offers the record; a miss says plainly that nothing on file carries that number and offers the create path. ">
+    <div class="frame">
+      <span class="n">05</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Manual search — customer found" data-cap="Scan Driver&#39;s License · 05 Manual search — customer found · #/customers"><img loading="lazy" src="../current/03-license-scan/05-scan-manual-result.png" alt="Manual search — customer found"></button>
+    </div>
+    <h3>Manual search — customer found</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">A hit offers the record; a miss says plainly that nothing on file carries that number and offers the create path.</p>
+    <ul class="branches"><li>No match · create new customer → <a href="#onboarding-manual-fallback">Customer Onboarding — the Customer Resolver · 06 No license available — manual fallback</a></li></ul>
+    
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): .sc2-statusicon ✓ &lt;&gt;  Find customer; .sc2-statusicon ✓ &lt;&gt;  Search the CRM by license nu;  Front captured &lt;&gt;  Find customer;  Ready for the back &lt;&gt;  Search the CRM by license nu; .sc2-primary.sc2-cap Capture back &lt;&gt; #mnGo.sc2-primary.sc2-searchgo Search; .sc2-secondary.sc2-cap Choose photo &lt;&gt;  Cheri Bridwell; .sc2-secondary.sc2-cap Choose photo &lt;&gt; .sc2-use Use; .sc2-micro Photos are read on this devi &lt;&gt;  T-0000102 · NY</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Use</div></div><article class="scr" id="license-scan-scan-confirm" data-search="scan driver&#39;s license confirm customer (certain match) the customer identity is the hero; the badge states the real match basis, never an invented confidence. contact completeness is summarized, and the update card lists only what the license changes — when nothing changed, there is no card at all. ">
+    <div class="frame">
+      <span class="n">06</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Confirm customer (certain match)" data-cap="Scan Driver&#39;s License · 06 Confirm customer (certain match) · #/customers"><img loading="lazy" src="../current/03-license-scan/06-scan-confirm.png" alt="Confirm customer (certain match)"></button>
+    </div>
+    <h3>Confirm customer (certain match)</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">The customer identity is the hero; the badge states the REAL match basis, never an invented confidence. Contact completeness is summarized, and the update card lists ONLY what the license changes — when nothing changed, there is no card at all.</p>
+    <ul class="branches"><li>This isn&#39;t them → <a href="#license-scan-scan-new-customer">Scan Driver&#39;s License · 08 New customer (prop 3)</a></li><li>Search manually → <a href="#license-scan-scan-manual">Scan Driver&#39;s License · 04 Find customer manually (sheet)</a></li></ul>
+    
+    
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Update &amp; continue</div></div><article class="scr" id="license-scan-scan-ambiguous" data-search="scan driver&#39;s license confirm customer (ambiguous — prop 1) when the match is only a guess the screen asks the same-person question outright and shows the scanned license beside the record, so the two can actually be compared. nothing is ever merged silently. ">
+    <div class="frame">
+      <span class="n">07</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Confirm customer (ambiguous — prop 1)" data-cap="Scan Driver&#39;s License · 07 Confirm customer (ambiguous — prop 1) · #/customers"><img loading="lazy" src="../current/03-license-scan/07-scan-ambiguous.png" alt="Confirm customer (ambiguous — prop 1)"></button>
+    </div>
+    <h3>Confirm customer (ambiguous — prop 1)</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">When the match is only a guess the screen asks the same-person question outright and shows the scanned license beside the record, so the two can actually be compared. Nothing is ever merged silently.</p>
+    
+    
+    
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap &#39;Different guest — create new&#39;</div></div><article class="scr" id="license-scan-scan-new-customer" data-search="scan driver&#39;s license new customer (prop 3) identity is a read-only summary from the license — the advisor never retypes card data. the only asks are what a license cannot say: phone and email, both required. no credit score at the door; the record starts at the neutral default. ">
+    <div class="frame">
+      <span class="n">08</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: New customer (prop 3)" data-cap="Scan Driver&#39;s License · 08 New customer (prop 3) · #/customers"><img loading="lazy" src="../current/03-license-scan/08-scan-new-customer.png" alt="New customer (prop 3)"></button>
+    </div>
+    <h3>New customer (prop 3)</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">Identity is a READ-ONLY summary from the license — the advisor never retypes card data. The only asks are what a license cannot say: phone and email, both required. No credit score at the door; the record starts at the neutral default.</p>
+    
+    
+    
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Type a phone already on file, tap Create customer</div></div><article class="scr" id="license-scan-scan-conflict" data-search="scan driver&#39;s license phone already in use (sheet) no license carries a phone number, so this compares the number just typed against the record already holding it. nothing merges until the number is verified — the sheet says so before offering any action. ">
+    <div class="frame">
+      <span class="n">09</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Phone already in use (sheet)" data-cap="Scan Driver&#39;s License · 09 Phone already in use (sheet) · #/customers"><img loading="lazy" src="../current/03-license-scan/09-scan-conflict.png" alt="Phone already in use (sheet)"></button>
+    </div>
+    <h3>Phone already in use (sheet)</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">No license carries a phone number, so this compares the number just TYPED against the record already holding it. Nothing merges until the number is verified — the sheet says so before offering any action.</p>
+    <ul class="branches"><li>Keep profiles separate → <a href="#license-scan-scan-done">Scan Driver&#39;s License · 11 Customer ready</a></li><li>Use a different number → <a href="#license-scan-scan-new-customer">Scan Driver&#39;s License · 08 New customer (prop 3)</a></li></ul>
+    
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (8):  License &lt;&gt;  This phone number is already;  T-0000103 · NY · exp 06/21/2 &lt;&gt;  This phone number is already;  Date of birth &lt;&gt;  This phone number is already;  06/21/1995 &lt;&gt;  This phone number is already;  Address &lt;&gt;  Verify ownership before link;  4102 Bell Blvd, Bayside, NY  &lt;&gt;  Verify ownership before link;  Mobile phone &lt;&gt;  This number is currently on ;  Email &lt;&gt; .sc2-primary Verify number &amp; link</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Verify number &amp; link</div></div><article class="scr" id="license-scan-scan-verify-code" data-search="scan driver&#39;s license verify the phone number (sheet) linking overwrites an existing record off a typed number, so it is gated: six boxes, and a wrong code merges nothing. the demo has no network path, so the sheet states that no text was really sent and shows the code the guest would have received — the rehearsal stays the real one. ">
+    <div class="frame">
+      <span class="n">10</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Verify the phone number (sheet)" data-cap="Scan Driver&#39;s License · 10 Verify the phone number (sheet) · #/customers"><img loading="lazy" src="../current/03-license-scan/10-scan-verify-code.png" alt="Verify the phone number (sheet)"></button>
+    </div>
+    <h3>Verify the phone number (sheet)</h3>
+    <div class="hash">#/customers</div>
+    <p class="notes">Linking overwrites an existing record off a typed number, so it is gated: six boxes, and a wrong code merges nothing. The demo has no network path, so the sheet states that no text was really sent and shows the code the guest would have received — the rehearsal stays the real one.</p>
+    
+    
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (8):  Address &lt;&gt;  Ask the guest to read back t;  4102 Bell Blvd, Bayside, NY  &lt;&gt;  Ask the guest to read back t;  Email &lt;&gt; .sc2-demo Demo: nothing leaves this de;  Email &lt;&gt;  Demo:;  Email &lt;&gt;  852209; .sc2-micro Phone and email are required &lt;&gt; .sc2-primary Verify &amp; link; .sc2-micro Phone and email are required &lt;&gt; .sc2-textbtn Cancel; .demo-note Demo tool — sample data only &lt;&gt; .sc2-textbtn Cancel</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Read the code back, tap Verify &amp; link</div></div><article class="scr" id="license-scan-scan-done" data-search="scan driver&#39;s license customer ready completion is local feedback on the confirmation surface — a green bar and the visit as the dominant next action, with no full-screen success ceremony. scan another restarts in place for the advisor with two guests at the desk. ">
     <div class="frame">
       <span class="n">11</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Create new customer (prop 3)" data-cap="Scan Driver&#39;s License · 11 Create new customer (prop 3) · #/customers"><img loading="lazy" src="../current/03-license-scan/11-scan-verify-new.png" alt="Create new customer (prop 3)"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Customer ready" data-cap="Scan Driver&#39;s License · 11 Customer ready · #/customers"><img loading="lazy" src="../current/03-license-scan/11-scan-done.png" alt="Customer ready"></button>
     </div>
-    <h3>Create new customer (prop 3)</h3>
+    <h3>Customer ready</h3>
     <div class="hash">#/customers</div>
-    <p class="notes">The licence already filled these in, so they are read-first rows; the only typing asked for is what the licence cannot say. Contact is phone and email — both required, and no credit score is asked for at the door.</p>
+    <p class="notes">Completion is LOCAL feedback on the confirmation surface — a green bar and the visit as the dominant next action, with no full-screen success ceremony. Scan another restarts in place for the advisor with two guests at the desk.</p>
+    <ul class="branches"><li>Scan another license → <a href="#license-scan-scan-front">Scan Driver&#39;s License · 01 Scan — front of license</a></li></ul>
     
     
     
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Type a phone already on file, tap Create Customer</div></div><article class="scr" id="license-scan-scan-conflict" data-search="scan driver&#39;s license information conflict the page stays calm — crimson touches only the conflicting number itself. no licence carries a phone number, so this compares the number just typed against the record already holding it, and states what each action does. ">
-    <div class="frame">
-      <span class="n">12</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Information conflict" data-cap="Scan Driver&#39;s License · 12 Information conflict · #/customers"><img loading="lazy" src="../current/03-license-scan/12-scan-conflict.png" alt="Information conflict"></button>
-    </div>
-    <h3>Information conflict</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">The page stays calm — crimson touches only the conflicting number itself. No licence carries a phone number, so this compares the number just TYPED against the record already holding it, and states what each action does.</p>
-    <ul class="branches"><li>Keep as a new customer → <a href="#discovery-question-1">Discovery Session · 01 Discovery — question 1</a></li><li>Back — fix the number → <a href="#license-scan-scan-verify-new">Scan Driver&#39;s License · 11 Create new customer (prop 3)</a></li></ul>
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Link to that record</div></div><article class="scr" id="license-scan-scan-verify-code" data-search="scan driver&#39;s license verify the number (bottom sheet) linking overwrites someone&#39;s existing record off a typed number, so it is gated (owner, 2026-08-25): a 6-digit code goes to that number and the guest reads it back. a wrong code marks the field and merges nothing. the demo has no network path, so the sheet says plainly that no text was really sent and shows the code the guest would have received. ">
-    <div class="frame">
-      <span class="n">13</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Verify the number (bottom sheet)" data-cap="Scan Driver&#39;s License · 13 Verify the number (bottom sheet) · #/customers"><img loading="lazy" src="../current/03-license-scan/13-scan-verify-code.png" alt="Verify the number (bottom sheet)"></button>
-    </div>
-    <h3>Verify the number (bottom sheet)</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">Linking overwrites someone&#39;s existing record off a typed number, so it is gated (owner, 2026-08-25): a 6-digit code goes to that number and the guest reads it back. A wrong code marks the field and merges nothing. The demo has no network path, so the sheet says plainly that no text was really sent and shows the code the guest would have received.</p>
-    
-    
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (8):  Link to that record saves th &lt;&gt;  Verify the number;  Link to that record &lt;&gt;  Verify the number;  Keep as a new customer means &lt;&gt; .scan-conseq A 6-digit code was sent to (;  Keep as a new customer means &lt;&gt;  A 6-digit code was sent to (;  Keep as a new customer &lt;&gt; .scan-conseq A 6-digit code was sent to (;  Keep as a new customer &lt;&gt;  A 6-digit code was sent to (; .btn.btn--primary Link to that record &lt;&gt;  Verification code; .btn.btn--ghost Keep as a new customer &lt;&gt; .scan-subtle Demo: nothing leaves this de</div></details>
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Read the code back, tap Verify &amp; Link</div></div><article class="scr" id="license-scan-scan-complete" data-search="scan driver&#39;s license customer added / updated quiet success: a modest green ring, the name, one line. scan another license resets the captured photo, persona and working values and restarts the journey in place — the advisor with two guests at the desk never leaves. ">
-    <div class="frame">
-      <span class="n">14</span>
-      
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Customer added / updated" data-cap="Scan Driver&#39;s License · 14 Customer added / updated · #/customers"><img loading="lazy" src="../current/03-license-scan/14-scan-complete.png" alt="Customer added / updated"></button>
-    </div>
-    <h3>Customer added / updated</h3>
-    <div class="hash">#/customers</div>
-    <p class="notes">Quiet success: a modest green ring, the name, one line. Scan Another License resets the captured photo, persona and working values and restarts the journey in place — the advisor with two guests at the desk never leaves.</p>
-    <ul class="branches"><li>Scan Another License → <a href="#license-scan-scan-intro">Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence</a></li></ul>
-    
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Continue to Visit<br><a href="#discovery-question-1" style="font-weight:600">Discovery Session · 01 Discovery — question 1</a></div></div></div>
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Continue to visit<br><a href="#discovery-question-1" style="font-weight:600">Discovery Session · 01 Discovery — question 1</a></div></div></div>
 </section>
 <section class="flow" id="training" data-flow>
   <header><h2>Training Licenses &amp; Registrations<small>2 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">Printable props: five training driver&#39;s licences (the only things the scanner recognises) and five matching training registrations for the trade-in conversation. Millimetre-sized for print; on a phone they scroll inside their grid.</p>
-  <p class="entry">↳ Reached from <a href="#home-navigation-drawer">Home — Deals Queue &amp; Navigation · 02 Navigation drawer</a> — <b>Training Licenses / Training Registrations</b></p>
+  <p class="desc">Printable props: five training driver&#39;s licenses (the only things the scanner recognises) and five matching training registrations for the trade-in conversation. Millimetre-sized for print; on a phone they scroll inside their grid.</p>
+  <p class="entry">↳ Reached from <a href="#">home/navigation-drawer</a> — <b>Training Licenses / Training Registrations</b></p>
   <div class="strip"><article class="scr" id="training-training-licenses" data-search="training licenses &amp; registrations training licenses  ">
     <div class="frame tall">
       <span class="n">01</span>
@@ -475,15 +540,15 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The week-in-the-life interview that opens every visit — one question per screen, answers autosaved, the last question hands off to vehicle selection.</p>
-  <p class="entry">↳ Reached from <a href="#onboarding-find-customer">Customer Onboarding — Find a Customer · 01 Find a Customer</a> — <b>Start Visit → (creates the deal)</b></p>
+  <p class="entry">↳ Reached from <a href="#">onboarding/find-customer</a> — <b>Start Visit → (creates the deal)</b></p>
   <div class="strip"><article class="scr" id="discovery-question-1" data-search="discovery session discovery — question 1  the deal crumb controls (buyer, jacket, and the screen&#39;s back/forward link) wrap into three rows on a phone, pushing the working area ~120px down. the same row appears on every deal screen (discovery, vehicles, test drive, trade, desking, agreement, credit, menu, print).">
     <div class="frame">
       <span class="n">01</span>
       <span class="flags"><span class="sev sev--Minor">Minor</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — question 1" data-cap="Discovery Session · 01 Discovery — question 1 · #/discovery/d-x3v5qw8"><img loading="lazy" src="../current/05-discovery/01-question-1.png" alt="Discovery — question 1"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — question 1" data-cap="Discovery Session · 01 Discovery — question 1 · #/discovery/d-ny93eqf"><img loading="lazy" src="../current/05-discovery/01-question-1.png" alt="Discovery — question 1"></button>
     </div>
     <h3>Discovery — question 1</h3>
-    <div class="hash">#/discovery/d-x3v5qw8</div>
+    <div class="hash">#/discovery/d-ny93eqf</div>
     
     <ul class="branches"><li>Tap 👤 Buyer in the crumbs → <a href="#buyers-buyers-modal">Buyers on the Deal (Co-Buyer) · 01 Buyers on this deal</a></li><li>Tap 📁 Jacket in the crumbs → <a href="#deal-jacket-jacket-overview">Deal Jacket &amp; Compliance · 01 Deal Jacket — overview</a></li></ul>
     <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-005</b><p>The deal crumb controls (Buyer, Jacket, and the screen&#39;s back/forward link) wrap into three rows on a phone, pushing the working area ~120px down. The same row appears on every deal screen (discovery, vehicles, test drive, trade, desking, agreement, credit, menu, print).</p><p><em>Consistent, but it costs a sixth of the phone screen before the content starts. A single compact row (icon buttons, or the back link folded into the title) would recover it.</em></p></div></details>
@@ -493,10 +558,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — mid-interview" data-cap="Discovery Session · 02 Discovery — mid-interview · #/discovery/d-x3v5qw8"><img loading="lazy" src="../current/05-discovery/02-question-mid.png" alt="Discovery — mid-interview"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — mid-interview" data-cap="Discovery Session · 02 Discovery — mid-interview · #/discovery/d-ny93eqf"><img loading="lazy" src="../current/05-discovery/02-question-mid.png" alt="Discovery — mid-interview"></button>
     </div>
     <h3>Discovery — mid-interview</h3>
-    <div class="hash">#/discovery/d-x3v5qw8</div>
+    <div class="hash">#/discovery/d-ny93eqf</div>
     
     
     
@@ -506,10 +571,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — last question" data-cap="Discovery Session · 03 Discovery — last question · #/discovery/d-x3v5qw8"><img loading="lazy" src="../current/05-discovery/03-question-last.png" alt="Discovery — last question"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — last question" data-cap="Discovery Session · 03 Discovery — last question · #/discovery/d-ny93eqf"><img loading="lazy" src="../current/05-discovery/03-question-last.png" alt="Discovery — last question"></button>
     </div>
     <h3>Discovery — last question</h3>
-    <div class="hash">#/discovery/d-x3v5qw8</div>
+    <div class="hash">#/discovery/d-ny93eqf</div>
     
     
     
@@ -527,10 +592,10 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">01</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle Search — inventory" data-cap="Vehicle Selection · 01 Vehicle Search — inventory · #/vehicles/d-ikdggo5"><img loading="lazy" src="../current/06-vehicle-selection/01-inventory.png" alt="Vehicle Search — inventory"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle Search — inventory" data-cap="Vehicle Selection · 01 Vehicle Search — inventory · #/vehicles/d-cchwnn0"><img loading="lazy" src="../current/06-vehicle-selection/01-inventory.png" alt="Vehicle Search — inventory"></button>
     </div>
     <h3>Vehicle Search — inventory</h3>
-    <div class="hash">#/vehicles/d-ikdggo5</div>
+    <div class="hash">#/vehicles/d-cchwnn0</div>
     <p class="notes">Content first: the customer context is a quiet row, not a hero card, and the filter panel that used to own the first screen is now one Filters chip.</p>
     
     
@@ -540,23 +605,23 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — Used only" data-cap="Vehicle Selection · 02 Inventory — Used only · #/vehicles/d-ikdggo5"><img loading="lazy" src="../current/06-vehicle-selection/02-inventory-filtered.png" alt="Inventory — Used only"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — Used only" data-cap="Vehicle Selection · 02 Inventory — Used only · #/vehicles/d-cchwnn0"><img loading="lazy" src="../current/06-vehicle-selection/02-inventory-filtered.png" alt="Inventory — Used only"></button>
     </div>
     <h3>Inventory — Used only</h3>
-    <div class="hash">#/vehicles/d-ikdggo5</div>
+    <div class="hash">#/vehicles/d-cchwnn0</div>
     
     
     
     <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (2): #mSearch  288x21; #mSort.m-sort Price: high to low 91x24</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Open Filters, cap the price at $1,000</div></div><article class="scr" id="vehicles-inventory-no-match" data-search="vehicle selection inventory — no vehicles match one quiet recovery object with a single action — not a giant illustration. ">
-    <div class="frame tall">
+    <div class="frame">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — no vehicles match" data-cap="Vehicle Selection · 03 Inventory — no vehicles match · #/vehicles/d-ikdggo5"><img loading="lazy" src="../current/06-vehicle-selection/03-inventory-no-match.png" alt="Inventory — no vehicles match"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Inventory — no vehicles match" data-cap="Vehicle Selection · 03 Inventory — no vehicles match · #/vehicles/d-cchwnn0"><img loading="lazy" src="../current/06-vehicle-selection/03-inventory-no-match.png" alt="Inventory — no vehicles match"></button>
     </div>
     <h3>Inventory — no vehicles match</h3>
-    <div class="hash">#/vehicles/d-ikdggo5</div>
+    <div class="hash">#/vehicles/d-cchwnn0</div>
     <p class="notes">One quiet recovery object with a single action — not a giant illustration.</p>
     
     
@@ -566,42 +631,42 @@ small targets &lt;36px (1):  Find a Customer 97x18</div></details>
     <div class="frame tall">
       <span class="n">04</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle details sheet" data-cap="Vehicle Selection · 04 Vehicle details sheet · #/vehicles/d-ikdggo5"><img loading="lazy" src="../current/06-vehicle-selection/04-vehicle-details.png" alt="Vehicle details sheet"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Vehicle details sheet" data-cap="Vehicle Selection · 04 Vehicle details sheet · #/vehicles/d-cchwnn0"><img loading="lazy" src="../current/06-vehicle-selection/04-vehicle-details.png" alt="Vehicle details sheet"></button>
     </div>
     <h3>Vehicle details sheet</h3>
-    <div class="hash">#/vehicles/d-ikdggo5</div>
+    <div class="hash">#/vehicles/d-cchwnn0</div>
     <p class="notes">The whole card is the tap target, and the first tap shows the object rather than five competing actions.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .m-h1 Choose a vehicle &lt;&gt; .m-sheettitle Vehicle details; .m-h1 Choose a vehicle &lt;&gt; .m-close ✕; .m-chip.active All &lt;&gt;  2022 BMW 7 Series; .m-chip New &lt;&gt;  2022 BMW 7 Series; .m-chip Used &lt;&gt;  2022 BMW 7 Series; .m-chip CPO &lt;&gt;  2022 BMW 7 Series; #mFilters.m-chip Filters &lt;&gt;  2022 BMW 7 Series; .m-restitle Available vehicles &lt;&gt; .m-sheetsub 740i xDrive Sedan · Carbon B
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .m-h1 Choose a vehicle &lt;&gt; .m-sheettitle Vehicle details; .m-h1 Choose a vehicle &lt;&gt; .m-close ✕; .m-restitle Available vehicles &lt;&gt;  2022 BMW 7 Series; .m-resmeta 12 vehicles &lt;&gt;  2022 BMW 7 Series; #mSort.m-sort Price: high to low &lt;&gt;  2022 BMW 7 Series; .m-badge NEW &lt;&gt;  MSRP; .m-cardtitle 2022 BMW 7 Series &lt;&gt; .m-desc VIN WBA7U2C09NCG55107 · 3.0L; .m-cardtrim 740i xDrive Sedan &lt;&gt; .m-desc VIN WBA7U2C09NCG55107 · 3.0L
 small targets &lt;36px (3): #mSearch  288x21; #mSort.m-sort Price: high to low 91x24; .m-close ✕ 34x34</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Tap Choose this vehicle</div></div><article class="scr" id="vehicles-next-steps" data-search="vehicle selection what&#39;s next? — after choosing the chosen vehicle stays visible above the actions, so the next decision keeps its context. the vin and stock are captured onto the deal at this moment. ">
     <div class="frame tall">
       <span class="n">05</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: What&#39;s next? — after choosing" data-cap="Vehicle Selection · 05 What&#39;s next? — after choosing · #/vehicles/d-ikdggo5"><img loading="lazy" src="../current/06-vehicle-selection/05-next-steps.png" alt="What&#39;s next? — after choosing"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: What&#39;s next? — after choosing" data-cap="Vehicle Selection · 05 What&#39;s next? — after choosing · #/vehicles/d-cchwnn0"><img loading="lazy" src="../current/06-vehicle-selection/05-next-steps.png" alt="What&#39;s next? — after choosing"></button>
     </div>
     <h3>What&#39;s next? — after choosing</h3>
-    <div class="hash">#/vehicles/d-ikdggo5</div>
+    <div class="hash">#/vehicles/d-cchwnn0</div>
     <p class="notes">The chosen vehicle stays visible above the actions, so the next decision keeps its context. The VIN and stock are captured onto the deal at this moment.</p>
     <ul class="branches"><li>Trade Appraisal → <a href="#trade-trade-evaluation">Trade-In Evaluation &amp; Proof of Ownership · 01 Trade-In Evaluation</a></li><li>Calculate Payment → <a href="#desking-huddle-gate">Desking — Calculate Payments · 01 Base Payment Huddle</a></li><li>Quote → <a href="#vehicles-quote-blocked">Vehicle Selection · 06 Quote — follow-up only</a></li></ul>
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .m-chip New &lt;&gt; .m-sumtitle 2022 BMW 7 Series 740i xDriv; .m-chip Used &lt;&gt; .m-sumtitle 2022 BMW 7 Series 740i xDriv; .m-chip CPO &lt;&gt; .m-sumtitle 2022 BMW 7 Series 740i xDriv; #mFilters.m-chip Filters &lt;&gt; .m-sumtitle 2022 BMW 7 Series 740i xDriv; .m-restitle Available vehicles &lt;&gt; .m-summeta $91,460 · Stock B220331; .m-cardtitle 2022 BMW 7 Series &lt;&gt;  Quick Quote is follow-up onl; .m-cardtitle 2022 BMW 7 Series &lt;&gt; .m-chev ›; .m-cardmeta Stock B220331 · 10 mi · Carb &lt;&gt;  Save Quote
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .m-chip.active All &lt;&gt; .m-sheettitle What’s next?; .m-chip New &lt;&gt; .m-sheettitle What’s next?; #mFilters.m-chip Filters &lt;&gt; .m-close ✕; .m-restitle Available vehicles &lt;&gt; .m-sumtitle 2022 BMW 7 Series 740i xDriv; .m-resmeta 12 vehicles &lt;&gt; .m-sumtitle 2022 BMW 7 Series 740i xDriv; #mSort.m-sort Price: high to low &lt;&gt; .m-sumtitle 2022 BMW 7 Series 740i xDriv; .m-cardtrim 740i xDrive Sedan &lt;&gt;  Quote; .m-cardtrim 740i xDrive Sedan &lt;&gt; .m-chev ›
 small targets &lt;36px (3): #mSearch  288x21; #mSort.m-sort Price: high to low 91x24; .m-close ✕ 34x34</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Tap Test Drive</div></div><article class="scr" id="vehicles-quote-blocked" data-search="vehicle selection quote — follow-up only the restriction is explained in a focused sheet with a real next action (save quote for follow-up), replacing a toast that disappeared before it could be read. ">
     <div class="frame tall">
       <span class="n">06</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Quote — follow-up only" data-cap="Vehicle Selection · 06 Quote — follow-up only · #/vehicles/d-ikdggo5"><img loading="lazy" src="../current/06-vehicle-selection/06-quote-blocked.png" alt="Quote — follow-up only"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Quote — follow-up only" data-cap="Vehicle Selection · 06 Quote — follow-up only · #/vehicles/d-cchwnn0"><img loading="lazy" src="../current/06-vehicle-selection/06-quote-blocked.png" alt="Quote — follow-up only"></button>
     </div>
     <h3>Quote — follow-up only</h3>
-    <div class="hash">#/vehicles/d-ikdggo5</div>
+    <div class="hash">#/vehicles/d-cchwnn0</div>
     <p class="notes">The restriction is explained in a focused sheet with a real next action (Save quote for follow-up), replacing a toast that disappeared before it could be read.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .m-chip.active All &lt;&gt; .m-sheettitle Quote; #mFilters.m-chip Filters &lt;&gt; .m-close ✕; .m-restitle Available vehicles &lt;&gt; .m-sheettitle Quote; .m-badge NEW &lt;&gt;  Quick Quote is for follow-up; .m-cardtitle 2022 BMW 7 Series &lt;&gt; .m-primary Save quote for follow-up; .m-cardtrim 740i xDrive Sedan &lt;&gt; .m-primary Save quote for follow-up; .m-cardmeta Stock B220331 · 10 mi · Carb &lt;&gt; .m-textbtn Back to next steps; .m-price $91,460 &lt;&gt; .m-textbtn Back to next steps
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .m-resmeta 12 vehicles &lt;&gt; .m-sheettitle Quote; #mSort.m-sort Price: high to low &lt;&gt; .m-close ✕; .m-cardtitle 2022 BMW 7 Series &lt;&gt; .m-summeta $91,460 · Stock B220331; .m-cardmeta Stock B220331 · 10 mi · Carb &lt;&gt; .m-primary Save quote for follow-up; .m-price $91,460 &lt;&gt; .m-primary Save quote for follow-up; .m-msrp MSRP $97,615 &lt;&gt; .m-primary Save quote for follow-up;  View vehicle details &lt;&gt; .m-textbtn Back to next steps;  › &lt;&gt; .m-textbtn Back to next steps
 small targets &lt;36px (3): #mSearch  288x21; #mSort.m-sort Price: high to low 91x24; .m-close ✕ 34x34</div></details>
     
   </article><div class="arrow" style="width:28px"></div><article class="scr" id="vehicles-inventory-browse" data-search="vehicle selection browse inventory (no visit) reached from the drawer without a customer visit: one page-level banner says what unlocks, and the details sheet withholds choose this vehicle rather than showing a dead control on every card. ">
@@ -615,7 +680,7 @@ small targets &lt;36px (3): #mSearch  288x21; #mSort.m-sort Price: high to low 9
     <p class="notes">Reached from the drawer without a customer visit: one page-level banner says what unlocks, and the details sheet withholds Choose this vehicle rather than showing a dead control on every card.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .m-sub Explore inventory. Deal acti &lt;&gt; .m-sheettitle Vehicle details; .m-sub Explore inventory. Deal acti &lt;&gt; .m-close ✕; .m-chip.active All &lt;&gt; .m-sheetsub 740i xDrive Sedan · Carbon B; .m-chip New &lt;&gt; .m-sheetsub 740i xDrive Sedan · Carbon B; .m-chip Used &lt;&gt; .m-sheetsub 740i xDrive Sedan · Carbon B; .m-chip CPO &lt;&gt; .m-sheetsub 740i xDrive Sedan · Carbon B; #mFilters.m-chip Filters &lt;&gt; .m-sheetsub 740i xDrive Sedan · Carbon B; .m-restitle Available vehicles &lt;&gt;  MSRP
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8):  Browsing without a visit &lt;&gt; .m-sheettitle Vehicle details;  Browsing without a visit &lt;&gt; .m-close ✕; .m-chip.active All &lt;&gt;  2022 BMW 7 Series; .m-chip New &lt;&gt;  2022 BMW 7 Series; .m-chip Used &lt;&gt;  2022 BMW 7 Series; .m-chip CPO &lt;&gt;  2022 BMW 7 Series; #mFilters.m-chip Filters &lt;&gt;  2022 BMW 7 Series; .m-restitle Available vehicles &lt;&gt; .m-sheetsub 740i xDrive Sedan · Carbon B
 small targets &lt;36px (3): #mSearch  288x21; #mSort.m-sort Price: high to low 91x24; .m-close ✕ 34x34</div></details>
     
   </article></div>
@@ -624,7 +689,7 @@ small targets &lt;36px (3): #mSearch  288x21; #mSort.m-sort Price: high to low 9
   <header><h2>Test Drive Agreement<small>7 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">E-signature authorisation → licence and terms → drive in progress → end-of-drive odometer. A licence scan can prefill the licence fields.</p>
+  <p class="desc">E-signature authorisation → license and terms → drive in progress → end-of-drive odometer. A license scan can prefill the license fields.</p>
   <p class="entry">↳ Reached from <a href="#vehicles-next-steps">Vehicle Selection · 05 What&#39;s next? — after choosing</a> — <b>Tap Test Drive</b></p>
   <div class="strip"><article class="scr" id="test-drive-authorization" data-search="test drive agreement e-signature authorization  ">
     <div class="frame tall">
@@ -639,33 +704,33 @@ small targets &lt;36px (3): #mSearch  288x21; #mSort.m-sort Price: high to low 9
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Check the acknowledgement, tap Continue →</div></div><article class="scr" id="test-drive-license-and-terms" data-search="test drive agreement licence &amp; terms  ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Check the acknowledgement, tap Continue →</div></div><article class="scr" id="test-drive-license-and-terms" data-search="test drive agreement license &amp; terms  ">
     <div class="frame tall">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Licence &amp; terms" data-cap="Test Drive Agreement · 02 Licence &amp; terms · #/testdrive/d-demo1"><img loading="lazy" src="../current/07-test-drive/02-license-and-terms.png" alt="Licence &amp; terms"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: License &amp; terms" data-cap="Test Drive Agreement · 02 License &amp; terms · #/testdrive/d-demo1"><img loading="lazy" src="../current/07-test-drive/02-license-and-terms.png" alt="License &amp; terms"></button>
     </div>
-    <h3>Licence &amp; terms</h3>
+    <h3>License &amp; terms</h3>
     <div class="hash">#/testdrive/d-demo1</div>
     
     <ul class="branches"><li>Sign &amp; Accept Terms — Driver One → <a href="#test-drive-terms-signed">Test Drive Agreement · 04 Terms signed — Driver One</a></li></ul>
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap 🪪 Scan license</div></div><article class="scr" id="test-drive-scan-license-modal" data-search="test drive agreement scan licence (test-drive mode) same scanner; in this mode only the licence number, state, expiry and dob are taken. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap 🪪 Scan license</div></div><article class="scr" id="test-drive-scan-license-modal" data-search="test drive agreement scan license (test-drive mode) same scanner; in this mode only the license number, state, expiry and dob are taken. ">
     <div class="frame">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Scan licence (test-drive mode)" data-cap="Test Drive Agreement · 03 Scan licence (test-drive mode) · #/testdrive/d-demo1"><img loading="lazy" src="../current/07-test-drive/03-scan-license-modal.png" alt="Scan licence (test-drive mode)"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Scan license (test-drive mode)" data-cap="Test Drive Agreement · 03 Scan license (test-drive mode) · #/testdrive/d-demo1"><img loading="lazy" src="../current/07-test-drive/03-scan-license-modal.png" alt="Scan license (test-drive mode)"></button>
     </div>
-    <h3>Scan licence (test-drive mode)</h3>
+    <h3>Scan license (test-drive mode)</h3>
     <div class="hash">#/testdrive/d-demo1</div>
-    <p class="notes">Same scanner; in this mode only the licence number, state, expiry and DOB are taken.</p>
+    <p class="notes">Same scanner; in this mode only the license number, state, expiry and DOB are taken.</p>
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (1): .scan-idcard__state NEW YORK &lt;&gt; .scan-idcard__demo TRAINING SAMPLE</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Close; enter licence #, sign</div></div><article class="scr" id="test-drive-terms-signed" data-search="test drive agreement terms signed — driver one  ">
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Close; enter license #, sign</div></div><article class="scr" id="test-drive-terms-signed" data-search="test drive agreement terms signed — driver one  ">
     <div class="frame tall">
       <span class="n">04</span>
       
@@ -784,7 +849,7 @@ small targets &lt;36px (3): #mSearch  288x21; #mSort.m-sort Price: high to low 9
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">Rebuilt from the owner&#39;s desking prototype (2026-08-27) on the master canvas: the Team Lead huddle gates the first pencil, then the pencil itself — deal-type pills, a payment hero, and accessories, trade, terms and taxes folded into accordions. The payment bar is pinned at every width and tracks the terms live (audit RP-UI-001).</p>
-  <p class="entry">↳ Reached from <a href="#home-deals-queue">Home — Deals Queue &amp; Navigation · 01 My Deals (landing — Advisor)</a> — <b>Tap the deal card (Continue)</b></p>
+  <p class="entry">↳ Reached from <a href="#home-deals-queue">Home — Active Floor &amp; Navigation · 01 My deals (landing — Advisor)</a> — <b>Tap the deal card (Continue)</b></p>
   <div class="strip"><article class="scr" id="desking-huddle-gate" data-search="desking — calculate payments base payment huddle the accent appears only on the two notice banners and the primary action; the choice cards, toggles and inputs keep the neutral default grammar. ">
     <div class="frame tall">
       <span class="n">01</span>
@@ -873,108 +938,185 @@ small targets &lt;36px (5): #mRole.m-rolebtn Advisor 65x35; #dkHuddleLink.dk-lin
   <header><h2>Base Payment Agreement<small>3 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">The signed acknowledgement of the base terms. Redesk voids a signature behind a confirm; a signed agreement unlocks the credit application.</p>
-  <p class="entry">↳ Reached from <a href="#desking-pencil-finance">Desking — Calculate Payments · 02 Calculate Payments — Finance</a> — <b>Tap Continue →</b></p>
-  <div class="strip"><article class="scr" id="agreement-agreement-unsigned" data-search="base payment agreement agreement — ready to sign  ">
+  <p class="desc">The signed acknowledgement of the base terms, rebuilt on the owner&#39;s base-payment golden (2026-08-27): the payment summary card with its status pill, the two party surfaces, the flat term rows, the acknowledgement readable on the page, and the sign panel. Redesk never voids on the first tap — signed or not, it confirms in a bottom sheet.</p>
+  <p class="entry">↳ Reached from <a href="#desking-pencil-finance">Desking — Calculate Payments · 02 Calculate Payments — Finance</a> — <b>Tap Continue</b></p>
+  <div class="strip"><article class="scr" id="agreement-agreement-unsigned" data-search="base payment agreement agreement — ready to sign the base payment is the dominant value with &#39;ready to sign&#39; opposite it; the dock carries the figure and the one action. the unit word is derived from the deal type — a cash deal reads &#39;total&#39;, never &#39;/mo&#39;. ">
     <div class="frame tall">
       <span class="n">01</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Agreement — ready to sign" data-cap="Base Payment Agreement · 01 Agreement — ready to sign · #/agreement/d-demo1"><img loading="lazy" src="../current/10-base-payment-agreement/01-agreement-unsigned.png" alt="Agreement — ready to sign"></button>
     </div>
     <h3>Agreement — ready to sign</h3>
-    <div class="hash">#/agreement/d-demo1</div>
+    <div class="hash">#/agreement/d-demo1 · <a href="../current/10-base-payment-agreement/01-agreement-unsigned.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">The base payment is the dominant value with &#39;Ready to sign&#39; opposite it; the dock carries the figure and the one action. The unit word is derived from the deal type — a cash deal reads &#39;total&#39;, never &#39;/mo&#39;.</p>
     
     
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (3):  Deal type &lt;&gt;  $709.33;  Finance &lt;&gt; #bpDockGo.btn.btn--grad Sign agreement;  Term / APR &lt;&gt; .desk-sticky__sub Ready for acknowledgement
+small targets &lt;36px (1): #mRole.m-rolebtn Advisor 65x35</div></details>
     
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap ✍ Sign Base Payment Agreement</div></div><article class="scr" id="agreement-agreement-signed" data-search="base payment agreement agreement — signed  ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Type the name, tap Sign agreement</div></div><article class="scr" id="agreement-agreement-signed" data-search="base payment agreement agreement — signed the signed acknowledgement is permanent on the page — who signed, when, and the signature — and print and redesk become contextual rows beneath it. the dock flips to &#39;next step · credit application unlocked&#39;. ">
     <div class="frame tall">
       <span class="n">02</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Agreement — signed" data-cap="Base Payment Agreement · 02 Agreement — signed · #/agreement/d-demo1"><img loading="lazy" src="../current/10-base-payment-agreement/02-agreement-signed.png" alt="Agreement — signed"></button>
     </div>
     <h3>Agreement — signed</h3>
-    <div class="hash">#/agreement/d-demo1</div>
+    <div class="hash">#/agreement/d-demo1 · <a href="../current/10-base-payment-agreement/02-agreement-signed.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">The signed acknowledgement is permanent on the page — who signed, when, and the signature — and Print and Redesk become contextual rows beneath it. The dock flips to &#39;Next step · Credit application unlocked&#39;.</p>
+    <ul class="branches"><li>Continue (credit application) → <a href="#credit-identity-gate">Credit Application (Lending Lane) · 01 Verify your identity (pre-application gate)</a></li><li>Print for deal folder → <a href="#print-center-print-preview">Print Center &amp; Printables · 02 Print preview — Base Payment Agreement</a></li></ul>
     
-    <ul class="branches"><li>Continue → Credit Application → <a href="#credit-application">Credit Application (Lending Lane) · 01 Credit application — Individual</a></li><li>🖨 Print for deal folder → <a href="#print-center-print-preview">Print Center &amp; Printables · 02 Print preview — Base Payment Agreement</a></li></ul>
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (3):  Deal type &lt;&gt;  $709.33;  Finance &lt;&gt; #bpDockGo.btn.btn--grad Continue;  Term / APR &lt;&gt; .desk-sticky__sub Credit application unlocked
+small targets &lt;36px (1): #mRole.m-rolebtn Advisor 65x35</div></details>
     
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Redesk Payment</div></div><article class="scr" id="agreement-redesk-confirm" data-search="base payment agreement redesk — void &amp; redesk confirm  ">
-    <div class="frame">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Redesk payment</div></div><article class="scr" id="agreement-redesk-confirm" data-search="base payment agreement void signature and redesk? (sheet) destructive behaviour behind a confirmation sheet that states exactly what voiding means, with the payment restated. cancel preserves the signed state — the golden&#39;s own rule, and a real fix: the previous unsigned redesk cleared the agreement silently. ">
+    <div class="frame tall">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Redesk — void &amp; redesk confirm" data-cap="Base Payment Agreement · 03 Redesk — void &amp; redesk confirm · #/agreement/d-demo1"><img loading="lazy" src="../current/10-base-payment-agreement/03-redesk-confirm.png" alt="Redesk — void &amp; redesk confirm"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Void signature and redesk? (sheet)" data-cap="Base Payment Agreement · 03 Void signature and redesk? (sheet) · #/agreement/d-demo1"><img loading="lazy" src="../current/10-base-payment-agreement/03-redesk-confirm.png" alt="Void signature and redesk? (sheet)"></button>
     </div>
-    <h3>Redesk — void &amp; redesk confirm</h3>
-    <div class="hash">#/agreement/d-demo1</div>
+    <h3>Void signature and redesk? (sheet)</h3>
+    <div class="hash">#/agreement/d-demo1 · <a href="../current/10-base-payment-agreement/03-redesk-confirm.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">Destructive behaviour behind a confirmation sheet that states exactly what voiding means, with the payment restated. Cancel preserves the signed state — the golden&#39;s own rule, and a real fix: the previous unsigned Redesk cleared the agreement silently.</p>
     
     
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .bp-pmeta (718) 555-0134jsmithtest@tes &lt;&gt; .m-sheettitle Void signature and redesk?; .bp-pmeta (718) 555-0134jsmithtest@tes &lt;&gt; #bpSheetClose.m-close ✕; .bp-pname Ashley Collins — Ride Price  &lt;&gt; .bp-sheetcopy Redesking voids the signed b; .bp-pmeta (718) 555-0188321 Northern B &lt;&gt;  $709.33 / month;  Deal type &lt;&gt;  $709.33;  Deal type &lt;&gt; #bpSheetCancel.m-ghost Cancel;  Finance &lt;&gt; #bpDockGo.btn.btn--grad Continue;  Finance &lt;&gt; #bpRedeskGo.bp-danger Void &amp; redesk
+small targets &lt;36px (2): #mRole.m-rolebtn Advisor 65x35; #bpSheetClose.m-close ✕ 34x34</div></details>
     
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Cancel → Continue to Credit Application<br><a href="#credit-application" style="font-weight:600">Credit Application (Lending Lane) · 01 Credit application — Individual</a></div></div></div>
+  </article><div class="arrow"><div class="line"></div><div class="act">Cancel keeps the signature<br><a href="#credit-identity-gate" style="font-weight:600">Credit Application (Lending Lane) · 01 Verify your identity (pre-application gate)</a></div></div></div>
 </section>
 <section class="flow" id="credit" data-flow>
-  <header><h2>Credit Application (Lending Lane)<small>4 screens</small></h2>
+  <header><h2>Credit Application (Lending Lane)<small>9 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">The lender-form credit application — Individual or Joint (Reg B), residence, employment, disclosures, consent — with a simulated instant approval. The SSN field accepts only 000-00-0000.</p>
-  <p class="entry">↳ Reached from <a href="#agreement-agreement-signed">Base Payment Agreement · 02 Agreement — signed</a> — <b>Continue → Credit Application</b></p>
-  <div class="strip"><article class="scr" id="credit-application" data-search="credit application (lending lane) credit application — individual  the credit application is one uninterrupted form longer than 3,200px on a phone, with no section navigation or progress indication; the submit button and the validation summary are at the far end.">
+  <p class="desc">The lender application rebuilt to the owner&#39;s credit goldens (2026-08-28). Identity verification is a pre-application gate; the application itself is four steps — Applicant, Residence, Employment, Review — instead of one 3,200px form. Validation lives in the wizard&#39;s own working copy, so a step that is not on screen still validates: an invalid submit shows an inline summary, marks the fields, and returns to the first invalid step with nothing saved. The SSN accepts only 000-00-0000.</p>
+  <p class="entry">↳ Reached from <a href="#agreement-agreement-signed">Base Payment Agreement · 02 Agreement — signed</a> — <b>Tap Continue</b></p>
+  <div class="strip"><article class="scr" id="credit-identity-gate" data-search="credit application (lending lane) verify your identity (pre-application gate) before the application begins: what is already on file (license, phone, email) and one dominant take photo action, which opens the phone&#39;s own camera. the demo states plainly that the photo is confirmed on the device and discarded, and that no real biometric match occurs. ">
     <div class="frame tall">
       <span class="n">01</span>
-      <span class="flags"><span class="sev sev--Major">Major</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Credit application — Individual" data-cap="Credit Application (Lending Lane) · 01 Credit application — Individual · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/01-application.png" alt="Credit application — Individual"></button>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Verify your identity (pre-application gate)" data-cap="Credit Application (Lending Lane) · 01 Verify your identity (pre-application gate) · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/01-identity-gate.png" alt="Verify your identity (pre-application gate)"></button>
     </div>
-    <h3>Credit application — Individual</h3>
-    <div class="hash">#/credit/d-demo1</div>
+    <h3>Verify your identity (pre-application gate)</h3>
+    <div class="hash">#/credit/d-demo1 · <a href="../current/11-credit-application/01-identity-gate.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">Before the application begins: what is already on file (license, phone, email) and one dominant Take photo action, which opens the phone&#39;s own camera. The demo states plainly that the photo is confirmed on the device and discarded, and that no real biometric match occurs.</p>
+    <ul class="branches"><li>Send secure link to phone → <a href="#onboarding-send-link-sheet">Customer Onboarding — the Customer Resolver · 07 Send secure upload link (sheet)</a></li></ul>
     
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (3): .ca-checkmark ✓ &lt;&gt;  Required before application;  Email on file &lt;&gt;  Required before application;  On file &lt;&gt; .mp-primary.ca-caplabel Take photo
+small targets &lt;36px (2): #mRole.m-rolebtn Advisor 65x35; .ca-linkbtn Cancel 46x33</div></details>
     
-    <details open><summary>1 issue</summary><div class="issue issue--Major"><b><span class="sev sev--Major">Major</span> RP-UI-002</b><p>The credit application is one uninterrupted form longer than 3,200px on a phone, with no section navigation or progress indication; the Submit button and the validation summary are at the far end.</p><p><em>Every field is labelled and required fields are marked, so it can be completed — but on a phone it reads as an endless scroll. Grouping into Applicant / Residence / Employment steps (or collapsible sections) would fit the phone floor better.</em></p></div></details>
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Select Jointly</div></div><article class="scr" id="credit-joint-no-cobuyer" data-search="credit application (lending lane) joint application — no co-buyer yet  ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Take the identity photo</div></div><article class="scr" id="credit-identity-verified" data-search="credit application (lending lane) identity verified the checklist states what actually happened — a photo was captured — and never claims a face was matched. the verification is recorded once on the deal and never re-gates. ">
     <div class="frame tall">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Joint application — no co-buyer yet" data-cap="Credit Application (Lending Lane) · 02 Joint application — no co-buyer yet · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/02-joint-no-cobuyer.png" alt="Joint application — no co-buyer yet"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Identity verified" data-cap="Credit Application (Lending Lane) · 02 Identity verified · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/02-identity-verified.png" alt="Identity verified"></button>
     </div>
-    <h3>Joint application — no co-buyer yet</h3>
-    <div class="hash">#/credit/d-demo1</div>
-    
-    <ul class="branches"><li>🪪 Scan co-buyer license → <a href="#license-scan-scan-intro">Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence</a></li><li>Choose existing customer → <a href="#buyers-buyers-modal">Buyers on the Deal (Co-Buyer) · 01 Buyers on this deal</a></li></ul>
-    
+    <h3>Identity verified</h3>
+    <div class="hash">#/credit/d-demo1 · <a href="../current/11-credit-application/02-identity-verified.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">The checklist states what actually happened — a photo was captured — and never claims a face was matched. The verification is recorded once on the deal and never re-gates.</p>
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Submit with required fields empty</div></div><article class="scr" id="credit-validation-errors" data-search="credit application (lending lane) application — validation errors field-level errors plus a toast; nothing is saved until the form validates. the validation toast listing the missing fields covers the applicant-type radio text (&#39;with another person…&#39;) while it shows.">
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (3):  Demo — the photo is confirme &lt;&gt;  Next;  Demo — the photo is confirme &lt;&gt;  Application type;  Demo — the photo is confirme &lt;&gt; #idGo.mp-primary Continue →
+small targets &lt;36px (2): #mRole.m-rolebtn Advisor 65x35; .ca-linkbtn Cancel 46x33</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Continue</div></div><article class="scr" id="credit-applicant-step" data-search="credit application (lending lane) step 1 — application type &amp; applicant application type leads as two large choice rows, then the applicant fields — prefilled from the record, so only what is missing needs typing. the four-step progress bar and the dock&#39;s &#39;next: residence&#39; say where this sits. ">
     <div class="frame tall">
       <span class="n">03</span>
-      <span class="flags"><span class="sev sev--Minor">Minor</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Application — validation errors" data-cap="Credit Application (Lending Lane) · 03 Application — validation errors · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/03-validation-errors.png" alt="Application — validation errors"></button>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Step 1 — Application type &amp; applicant" data-cap="Credit Application (Lending Lane) · 03 Step 1 — Application type &amp; applicant · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/03-applicant-step.png" alt="Step 1 — Application type &amp; applicant"></button>
     </div>
-    <h3>Application — validation errors</h3>
-    <div class="hash">#/credit/d-demo1</div>
-    <p class="notes">Field-level errors plus a toast; nothing is saved until the form validates.</p>
-    
-    <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-011</b><p>The validation toast listing the missing fields covers the applicant-type radio text (&#39;With another person…&#39;) while it shows.</p><p><em>Transient; field-level errors underneath are clear. Toasts sit at mid-bottom of the viewport and cover whatever is there on many screens (also seen over the Create Customer State field, the jacket dock and the agreement lines).</em></p></div></details>
+    <h3>Step 1 — Application type &amp; applicant</h3>
+    <div class="hash">#/credit/d-demo1 · <a href="../current/11-credit-application/03-applicant-step.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">Application type leads as two large choice rows, then the applicant fields — prefilled from the record, so only what is missing needs typing. The four-step progress bar and the dock&#39;s &#39;Next: Residence&#39; say where this sits.</p>
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Complete and submit</div></div><article class="scr" id="credit-approved" data-search="credit application (lending lane) approved (simulated) reached via the store shortcut (the form needs every required field); the approval screen is what a full submission shows. two buttons lead to the same place with different names: &#39;continue → menu&#39; in the page header and &#39;continue → manager sign-off&#39; in the body.">
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (4):  Finish on customer’s phone &lt;&gt;  Next;  Finish on customer’s phone &lt;&gt;  Residence;  Finish on customer’s phone &lt;&gt; #caGo.mp-primary Continue →;  Send John a secure link to c &lt;&gt; #caGo.mp-primary Continue →
+small targets &lt;36px (2): #mRole.m-rolebtn Advisor 65x35; .ca-linkbtn Base Payment 98x33</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Choose Joint application</div></div><article class="scr" id="credit-joint-remote" data-search="credit application (lending lane) joint — co-buyer needed regulation b joint-credit certification stays in the choice copy. the secure link leads the co-buyer paths (owner v2 hierarchy) with scan and choose-existing as the secondary row — the co-buyer does not have to be in the showroom. ">
     <div class="frame tall">
       <span class="n">04</span>
-      <span class="flags"><span class="sev sev--Minor">Minor</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Approved (simulated)" data-cap="Credit Application (Lending Lane) · 04 Approved (simulated) · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/04-approved.png" alt="Approved (simulated)"></button>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Joint — co-buyer needed" data-cap="Credit Application (Lending Lane) · 04 Joint — co-buyer needed · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/04-joint-remote.png" alt="Joint — co-buyer needed"></button>
+    </div>
+    <h3>Joint — co-buyer needed</h3>
+    <div class="hash">#/credit/d-demo1 · <a href="../current/11-credit-application/04-joint-remote.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">Regulation B joint-credit certification stays in the choice copy. The secure link LEADS the co-buyer paths (owner v2 hierarchy) with scan and choose-existing as the secondary row — the co-buyer does not have to be in the showroom.</p>
+    <ul class="branches"><li>Scan co-buyer license → <a href="#license-scan-scan-front">Scan Driver&#39;s License · 01 Scan — front of license</a></li><li>Choose existing customer → <a href="#buyers-buyers-modal">Buyers on the Deal (Co-Buyer) · 01 Buyers on this deal</a></li></ul>
+    
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (3):  Co-buyer needed &lt;&gt;  Next;  Co-buyer needed &lt;&gt;  Residence; .ca-notpill Not attached &lt;&gt; #caGo.mp-primary Continue →
+small targets &lt;36px (2): #mRole.m-rolebtn Advisor 65x35; .ca-linkbtn Base Payment 98x33</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Send co-buyer link</div></div><article class="scr" id="credit-send-cobuyer-link" data-search="credit application (lending lane) send co-buyer link (sheet) recipient, both channels, and what happens next: the co-buyer verifies identity first, then completes only their own fields. the demo says plainly that nothing is really sent. ">
+    <div class="frame tall">
+      <span class="n">05</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Send co-buyer link (sheet)" data-cap="Credit Application (Lending Lane) · 05 Send co-buyer link (sheet) · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/05-send-cobuyer-link.png" alt="Send co-buyer link (sheet)"></button>
+    </div>
+    <h3>Send co-buyer link (sheet)</h3>
+    <div class="hash">#/credit/d-demo1 · <a href="../current/11-credit-application/05-send-cobuyer-link.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">Recipient, both channels, and what happens next: the co-buyer verifies identity first, then completes only their own fields. The demo says plainly that nothing is really sent.</p>
+    
+    
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .dk-chip Buyer &lt;&gt; .m-sheettitle Send co-buyer link; .dk-chip Buyer &lt;&gt; .ca-sheetsub The co-buyer can complete th; #caDealSum.dk-chip Deal summary &lt;&gt; .m-sheettitle Send co-buyer link; #caDealSum.dk-chip Deal summary &lt;&gt; .ca-sheetsub The co-buyer can complete th; .dk-chip Jacket 11 &lt;&gt; .m-close ✕; .dk-chip Jacket 11 &lt;&gt; .ca-sheetsub The co-buyer can complete th; .ca-cardsub Choose how the customer want &lt;&gt; .ca-lab Phone number;  Individual application &lt;&gt; .ca-lab Email
+small targets &lt;36px (3): #mRole.m-rolebtn Advisor 65x35; .ca-linkbtn Base Payment 98x33; .m-close ✕ 34x34</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Send secure link</div></div><article class="scr" id="credit-link-sent-status" data-search="credit application (lending lane) link sent — persistent status after sending, the sheet becomes a status view rather than vanishing into a toast: link sent, then opened / identity verified / application submitted, which stay honestly waiting because no link really went out. ">
+    <div class="frame tall">
+      <span class="n">06</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Link sent — persistent status" data-cap="Credit Application (Lending Lane) · 06 Link sent — persistent status · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/06-link-sent-status.png" alt="Link sent — persistent status"></button>
+    </div>
+    <h3>Link sent — persistent status</h3>
+    <div class="hash">#/credit/d-demo1 · <a href="../current/11-credit-application/06-link-sent-status.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">After sending, the sheet BECOMES a status view rather than vanishing into a toast: link sent, then opened / identity verified / application submitted, which stay honestly Waiting because no link really went out.</p>
+    
+    
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .ca-subtitle Deal #48201 · John Smith2022 &lt;&gt; .m-sheettitle Send co-buyer link; .ca-subtitle Deal #48201 · John Smith2022 &lt;&gt; .m-close ✕;  2022 Hyundai Santa Fe &lt;&gt; .m-sheettitle Send co-buyer link; .dk-chip Buyer &lt;&gt; .ca-sheetsub The co-buyer can complete th; #caDealSum.dk-chip Deal summary &lt;&gt; .ca-sheetsub The co-buyer can complete th; .dk-chip Jacket 11 &lt;&gt; .ca-sheetsub The co-buyer can complete th;  11 &lt;&gt; .ca-sheetsub The co-buyer can complete th;  Applicant &lt;&gt;  Recipient
+small targets &lt;36px (3): #mRole.m-rolebtn Advisor 65x35; .ca-linkbtn Base Payment 98x33; .m-close ✕ 34x34</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Done, then walk to Review</div></div><article class="scr" id="credit-validation-errors" data-search="credit application (lending lane) invalid submit — inline summary the summary counts the misses, names them, states the demo ssn rule, and says nothing has been saved or sent — inline, never a toast over the controls — and the wizard returns to the first invalid step with those fields marked. ">
+    <div class="frame tall">
+      <span class="n">07</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Invalid submit — inline summary" data-cap="Credit Application (Lending Lane) · 07 Invalid submit — inline summary · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/07-validation-errors.png" alt="Invalid submit — inline summary"></button>
+    </div>
+    <h3>Invalid submit — inline summary</h3>
+    <div class="hash">#/credit/d-demo1 · <a href="../current/11-credit-application/07-validation-errors.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">The summary counts the misses, names them, states the demo SSN rule, and says nothing has been saved or sent — inline, never a toast over the controls — and the wizard returns to the first invalid step with those fields marked.</p>
+    
+    
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (3):  Joint application &lt;&gt;  Residence;  Joint application &lt;&gt; #caGo.mp-primary Continue →;  A co-buyer will apply togeth &lt;&gt; #caGo.mp-primary Continue →
+small targets &lt;36px (2): #mRole.m-rolebtn Advisor 65x35; .ca-linkbtn Base Payment 98x33</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Fix the fields, submit</div></div><article class="scr" id="credit-deal-summary-sheet" data-search="credit application (lending lane) deal summary (contextual sheet) &#39;synced from your worksheet&#39; became deal summary with a subordinate &#39;updated from worksheet · time&#39; line (owner v2, option a). it opens from a header chip so the numbers can be inspected without losing the form position, and appears inline only from residence onward. ">
+    <div class="frame tall">
+      <span class="n">08</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Deal summary (contextual sheet)" data-cap="Credit Application (Lending Lane) · 08 Deal summary (contextual sheet) · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/08-deal-summary-sheet.png" alt="Deal summary (contextual sheet)"></button>
+    </div>
+    <h3>Deal summary (contextual sheet)</h3>
+    <div class="hash">#/credit/d-demo1 · <a href="../current/11-credit-application/08-deal-summary-sheet.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">&#39;Synced from your worksheet&#39; became Deal summary with a subordinate &#39;Updated from worksheet · time&#39; line (owner v2, Option A). It opens from a header chip so the numbers can be inspected without losing the form position, and appears inline only from Residence onward.</p>
+    
+    
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8):  Applicant &lt;&gt; .m-sheettitle Deal summary;  Step 1 of 4 &lt;&gt; .m-close ✕; .ca-cardtitle Application type &lt;&gt; .ca-wstitle Deal summary; .ca-cardtitle Application type &lt;&gt; .ca-wssource Updated from worksheet · 7:3; .ca-cardtitle Application type &lt;&gt; .ca-managelink Edit; .ca-cardsub Choose how the customer want &lt;&gt;  Vehicle; .ca-cardsub Choose how the customer want &lt;&gt;  2022 Hyundai Santa Fe · 7H21;  7 required items need attent &lt;&gt;  Cash Price
+small targets &lt;36px (4): #mRole.m-rolebtn Advisor 65x35; .ca-linkbtn Base Payment 98x33; .m-close ✕ 34x34; .ca-managelink Edit 24x24</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Close</div></div><article class="scr" id="credit-approved" data-search="credit application (lending lane) approved (simulated) reached via the store shortcut (a real submission needs every required field). loan status, the lender, the qualified rate against the agreed structure, lender reassignment, and one forward action — manager sign-off. because identity was verified up front, the note says delivery will not repeat that step. ">
+    <div class="frame tall">
+      <span class="n">09</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Approved (simulated)" data-cap="Credit Application (Lending Lane) · 09 Approved (simulated) · #/credit/d-demo1"><img loading="lazy" src="../current/11-credit-application/09-approved.png" alt="Approved (simulated)"></button>
     </div>
     <h3>Approved (simulated)</h3>
-    <div class="hash">#/credit/d-demo1</div>
-    <p class="notes">Reached via the store shortcut (the form needs every required field); the approval screen is what a full submission shows.</p>
-    
-    <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-010</b><p>Two buttons lead to the same place with different names: &#39;Continue → Menu&#39; in the page header and &#39;Continue → Manager Sign-Off&#39; in the body.</p><p><em>Duplicate action with inconsistent labelling; one name (the sign-off is what comes next) would remove the doubt.</em></p></div></details>
+    <div class="hash">#/credit/d-demo1 · <a href="../current/11-credit-application/09-approved.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">Reached via the store shortcut (a real submission needs every required field). Loan status, the lender, the qualified rate against the agreed structure, lender reassignment, and ONE forward action — Manager Sign-Off. Because identity was verified up front, the note says delivery will not repeat that step.</p>
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Continue → Manager Sign-Off<br><a href="#finance-menu-signoff-gate-advisor" style="font-weight:600">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 01 Team Lead sign-off required — Advisor view</a></div></div></div>
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (2): .ca-eyebrow Identity complete &lt;&gt;  Manager Sign-Off; .ca-eyebrow Identity complete &lt;&gt; .mp-primary Continue →
+small targets &lt;36px (2): #mRole.m-rolebtn Advisor 65x35; .ca-linkbtn Base Payment 98x33</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Continue<br><a href="#finance-menu-signoff-gate-advisor" style="font-weight:600">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 01 Team Lead sign-off required — Advisor view</a></div></div></div>
 </section>
 <section class="flow" id="buyers" data-flow>
   <header><h2>Buyers on the Deal (Co-Buyer)<small>4 screens</small></h2>
@@ -991,7 +1133,7 @@ small targets &lt;36px (5): #mRole.m-rolebtn Advisor 65x35; #dkHuddleLink.dk-lin
     <h3>Buyers on this deal</h3>
     <div class="hash">#/desk/d-demo1</div>
     
-    <ul class="branches"><li>🪪 Scan Driver&#39;s License → <a href="#license-scan-scan-intro">Scan Driver&#39;s License · 01 Intro — scan a driver&#39;s licence</a></li><li>Tap the primary&#39;s card → <a href="#credit-application">Credit Application (Lending Lane) · 01 Credit application — Individual</a></li></ul>
+    <ul class="branches"><li>🪪 Scan Driver&#39;s License → <a href="#">license-scan/scan-intro</a></li><li>Tap the primary&#39;s card → <a href="#">credit/application</a></li></ul>
     
     
     
@@ -1037,25 +1179,26 @@ small targets &lt;36px (5): #mRole.m-rolebtn Advisor 65x35; #dkHuddleLink.dk-lin
   </article></div>
 </section>
 <section class="flow" id="presentation" data-flow>
-  <header><h2>F&amp;I Product Presentation<small>4 screens</small></h2>
+  <header><h2>F&amp;I Product Presentation<small>5 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">Step 2 of the menu: a horizontal rail of product tiles with a detail panel, the advisor script sheet, monthly-budget impact and the service-contract mileage slider.</p>
-  <p class="entry">↳ Reached from <a href="#finance-menu-purchase-terms-presented">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented</a> — <b>Tap Next →</b></p>
-  <div class="strip"><article class="scr" id="presentation-product-rail" data-search="f&amp;i product presentation product presentation — rate  ">
+  <p class="desc">Step 2 of the menu on the master canvas (owner&#39;s presentation golden, 2026-08-27): a product rail of line-icon tiles, one product card at a time with the customer benefit first, and the advisor&#39;s own tools — script, budget impact, details — in bottom sheets so the card stays the thing the customer sees. The rail follows the deal type: a lease shows Lease-End Protection, a cash deal has no Rate or Term tile.</p>
+  <p class="entry">↳ Reached from <a href="#finance-menu-purchase-terms-presented">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 06 Purchase Terms — all boxes presented</a> — <b>Tap Next</b></p>
+  <div class="strip"><article class="scr" id="presentation-product-rail" data-search="f&amp;i product presentation presentation — rate the rail carries every product in the real program, each with a line icon; the dock counts what has been presented and names the next product. the qualified rate stays gated behind the real credit approval — before it, the card says to submit the application first. ">
     <div class="frame tall">
       <span class="n">01</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Product presentation — rate" data-cap="F&amp;I Product Presentation · 01 Product presentation — rate · #/present/d-demo1"><img loading="lazy" src="../current/13-fi-presentation/01-product-rail.png" alt="Product presentation — rate"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Presentation — Rate" data-cap="F&amp;I Product Presentation · 01 Presentation — Rate · #/present/d-demo1"><img loading="lazy" src="../current/13-fi-presentation/01-product-rail.png" alt="Presentation — Rate"></button>
     </div>
-    <h3>Product presentation — rate</h3>
+    <h3>Presentation — Rate</h3>
     <div class="hash">#/present/d-demo1 · <a href="../current/13-fi-presentation/01-product-rail.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">The rail carries every product in the real program, each with a line icon; the dock counts what has been presented and names the next product. The qualified rate stays gated behind the real credit approval — before it, the card says to submit the application first.</p>
     
     
+    <details><summary>automated checks (2)</summary><div class="auto">off-screen (8): .mp-tab GAP [344..422]; .mp-tabicon  [369..397];   [375..392];  GAP [371..395]; .mp-tab Bundle [430..508]; .mp-tabicon  [455..483];   [461..478];   [463..475]
+overlap (2): #mpMore.mp-textbtn See why this rate is credibl &lt;&gt; .mp-docklab Now presenting · 1 of 9; #mpMore.mp-textbtn See why this rate is credibl &lt;&gt; #mpNext.mp-primary Next: Term</div></details>
     
-    
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap the Service Contract tile</div></div><article class="scr" id="presentation-service-contract" data-search="f&amp;i product presentation vehicle service contract  ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap the VSC tile</div></div><article class="scr" id="presentation-service-contract" data-search="f&amp;i product presentation vehicle service contract kicker, headline, the detail pill, the body and the benefit list — the customer benefit is visible before any price. ">
     <div class="frame tall">
       <span class="n">02</span>
       
@@ -1063,48 +1206,66 @@ small targets &lt;36px (5): #mRole.m-rolebtn Advisor 65x35; #dkHuddleLink.dk-lin
     </div>
     <h3>Vehicle service contract</h3>
     <div class="hash">#/present/d-demo1 · <a href="../current/13-fi-presentation/02-service-contract.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">Kicker, headline, the detail pill, the body and the benefit list — the customer benefit is visible before any price.</p>
     
     
+    <details><summary>automated checks (3)</summary><div class="auto">off-screen (8): .mp-tab GAP [344..422]; .mp-tabicon  [369..397];   [375..392];  GAP [371..395]; .mp-tab Bundle [430..508]; .mp-tabicon  [455..483];   [461..478];   [463..475]
+overlap (4): .mp-miletitle Your driving changes the war &lt;&gt; .mp-docklab Now presenting · 2 of 9; .mp-miletitle Your driving changes the war &lt;&gt; #mpNext.mp-primary Next: Maintenance; #mpMileVal.mp-milevalue 12,000 mi/yr &lt;&gt; #mpNext.mp-primary Next: Maintenance;  10 years / 120,000 miles &lt;&gt; .mp-good August 2036
+small targets &lt;36px (1): #mpMiles.mp-range  282x16</div></details>
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (4):  Rental and roadside benefits &lt;&gt; #prevTile.btn.btn--ghost ← Prev;  Rental and roadside benefits &lt;&gt; #nextTile.btn.btn--grad Next product →;  Cancelable anytime for a pro &lt;&gt; #prevTile.btn.btn--ghost ← Prev;  Cancelable anytime for a pro &lt;&gt; #nextTile.btn.btn--grad Next product →
-small targets &lt;36px (1): #mwoMiles  264x16</div></details>
-    
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap 💬 Advisor Script</div></div><article class="scr" id="presentation-advisor-script-open" data-search="f&amp;i product presentation advisor script open  tapping 💬 advisor script (and m/d budget) opens content below the fold of the fixed prev/next bar; at the top of the page nothing visibly changes.">
+  </article><div class="arrow"><div class="line"></div><div class="act">Drag the mileage slider</div></div><article class="scr" id="presentation-mileage-recalculated" data-search="f&amp;i product presentation mileage changes the warranty window the slider recomputes the real factory-coverage window from the mileage — at 25,000 miles a year the factory comprehensive coverage is gone in about 17 months. nothing here is a fixed marketing number. ">
     <div class="frame tall">
       <span class="n">03</span>
-      <span class="flags"><span class="sev sev--Observation">Observation</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Advisor script open" data-cap="F&amp;I Product Presentation · 03 Advisor script open · #/present/d-demo1"><img loading="lazy" src="../current/13-fi-presentation/03-advisor-script-open.png" alt="Advisor script open"></button>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Mileage changes the warranty window" data-cap="F&amp;I Product Presentation · 03 Mileage changes the warranty window · #/present/d-demo1"><img loading="lazy" src="../current/13-fi-presentation/03-mileage-recalculated.png" alt="Mileage changes the warranty window"></button>
     </div>
-    <h3>Advisor script open</h3>
-    <div class="hash">#/present/d-demo1 · <a href="../current/13-fi-presentation/03-advisor-script-open.scroll.png" target="_blank">full length ↓</a></div>
+    <h3>Mileage changes the warranty window</h3>
+    <div class="hash">#/present/d-demo1 · <a href="../current/13-fi-presentation/03-mileage-recalculated.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">The slider recomputes the REAL factory-coverage window from the mileage — at 25,000 miles a year the factory comprehensive coverage is gone in about 17 months. Nothing here is a fixed marketing number.</p>
     
     
-    <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-019</b><p>Tapping 💬 Advisor Script (and M/D Budget) opens content below the fold of the fixed Prev/Next bar; at the top of the page nothing visibly changes.</p><p><em>The library had to scroll to show the change; a user may think the tap did nothing.</em></p></div></details>
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt;  Your manufacturer&#39;s comprehe; #hamburgerBtn.hamburger ☰ &lt;&gt;  Benefits:; .rideprice Ride &lt;&gt;  Your manufacturer&#39;s comprehe; .price PRICE &lt;&gt;  Your manufacturer&#39;s comprehe; .chip DEMO &lt;&gt;  Your manufacturer&#39;s comprehe; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Your manufacturer&#39;s comprehe; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Benefits:; .seg__opt.on Advisor &lt;&gt;  Your manufacturer&#39;s comprehe
-small targets &lt;36px (1): #mwoMiles  264x16</div></details>
+    <details><summary>automated checks (3)</summary><div class="auto">off-screen (8): .mp-tab GAP [344..422]; .mp-tabicon  [369..397];   [375..392];  GAP [371..395]; .mp-tab Bundle [430..508]; .mp-tabicon  [455..483];   [461..478];   [463..475]
+overlap (4): .mp-miletitle Your driving changes the war &lt;&gt; .mp-docklab Now presenting · 2 of 9; .mp-miletitle Your driving changes the war &lt;&gt; #mpNext.mp-primary Next: Maintenance; #mpMileVal.mp-milevalue 25,000 mi/yr &lt;&gt; #mpNext.mp-primary Next: Maintenance;  10 years / 120,000 miles &lt;&gt; .mp-good June 2031
+small targets &lt;36px (1): #mpMiles.mp-range  282x16</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap M/D Budget</div></div><article class="scr" id="presentation-budget-impact" data-search="f&amp;i product presentation monthly/daily budget impact  ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Advisor script</div></div><article class="scr" id="presentation-advisor-script" data-search="f&amp;i product presentation advisor script (sheet) the script speaks the mileage the slider is set to, then the wiifm reminder and the 300% rule — present every product before asking which they choose. coaching lives in the sheet, not on the customer-facing card. ">
     <div class="frame tall">
       <span class="n">04</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Monthly/daily budget impact" data-cap="F&amp;I Product Presentation · 04 Monthly/daily budget impact · #/present/d-demo1"><img loading="lazy" src="../current/13-fi-presentation/04-budget-impact.png" alt="Monthly/daily budget impact"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Advisor script (sheet)" data-cap="F&amp;I Product Presentation · 04 Advisor script (sheet) · #/present/d-demo1"><img loading="lazy" src="../current/13-fi-presentation/04-advisor-script.png" alt="Advisor script (sheet)"></button>
     </div>
-    <h3>Monthly/daily budget impact</h3>
-    <div class="hash">#/present/d-demo1 · <a href="../current/13-fi-presentation/04-budget-impact.scroll.png" target="_blank">full length ↓</a></div>
+    <h3>Advisor script (sheet)</h3>
+    <div class="hash">#/present/d-demo1 · <a href="../current/13-fi-presentation/04-advisor-script.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">The script speaks the mileage the slider is set to, then the WIIFM reminder and the 300% rule — present every product before asking which they choose. Coaching lives in the sheet, not on the customer-facing card.</p>
     
     
+    <details><summary>automated checks (3)</summary><div class="auto">off-screen (8): .mp-tab GAP [344..422]; .mp-tabicon  [369..397];   [375..392];  GAP [371..395]; .mp-tab Bundle [430..508]; .mp-tabicon  [455..483];   [461..478];   [463..475]
+overlap (8):  Rate &lt;&gt; .m-sheettitle Advisor script;  Term &lt;&gt; .m-sheettitle Advisor script; .mp-kicker VEHICLE SERVICE CONTRACT &lt;&gt; .mp-script “John, you told me you drive; .mp-kicker VEHICLE SERVICE CONTRACT &lt;&gt;  “John, you told me you drive; .mp-title Coverage that outlasts the f &lt;&gt; .mp-script “John, you told me you drive; .mp-title Coverage that outlasts the f &lt;&gt;  “John, you told me you drive; .mp-pill 10 yr / 120,000 mi / $100 de &lt;&gt; .mp-script “John, you told me you drive; .mp-body Your manufacturer&#39;s comprehe &lt;&gt; .mp-script “John, you told me you drive
+small targets &lt;36px (2): #mpMiles.mp-range  282x16; .m-close ✕ 34x34</div></details>
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt;  Coverage that outlasts the f; #hamburgerBtn.hamburger ☰ &lt;&gt;  Your manufacturer&#39;s comprehe; .rideprice Ride &lt;&gt;  Your manufacturer&#39;s comprehe; .price PRICE &lt;&gt;  Your manufacturer&#39;s comprehe; .chip DEMO &lt;&gt;  Your manufacturer&#39;s comprehe; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Coverage that outlasts the f; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt;  Your manufacturer&#39;s comprehe; .seg__opt.on Advisor &lt;&gt;  Coverage that outlasts the f
-small targets &lt;36px (1): #mwoMiles  264x16</div></details>
+  </article><div class="arrow"><div class="line"></div><div class="act">Back to product, tap Budget impact</div></div><article class="scr" id="presentation-budget-impact" data-search="f&amp;i product presentation monthly / daily budget (sheet) both figures are derived from the deal — the product price over the real term — not typed in by the advisor. the reference prototype asked for the number to be entered; the app already knows it. ">
+    <div class="frame tall">
+      <span class="n">05</span>
+      
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Monthly / daily budget (sheet)" data-cap="F&amp;I Product Presentation · 05 Monthly / daily budget (sheet) · #/present/d-demo1"><img loading="lazy" src="../current/13-fi-presentation/05-budget-impact.png" alt="Monthly / daily budget (sheet)"></button>
+    </div>
+    <h3>Monthly / daily budget (sheet)</h3>
+    <div class="hash">#/present/d-demo1 · <a href="../current/13-fi-presentation/05-budget-impact.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">Both figures are DERIVED from the deal — the product price over the real term — not typed in by the advisor. The reference prototype asked for the number to be entered; the app already knows it.</p>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Continue to Repayment Options →<br><a href="#finance-menu-repayment-options" style="font-weight:600">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 07 Step 3 — Repayment Options (Preferred)</a></div></div></div>
+    
+    <details><summary>automated checks (3)</summary><div class="auto">off-screen (8): .mp-tab GAP [344..422]; .mp-tabicon  [369..397];   [375..392];  GAP [371..395]; .mp-tab Bundle [430..508]; .mp-tabicon  [455..483];   [461..478];   [463..475]
+overlap (8): .mp-body Your manufacturer&#39;s comprehe &lt;&gt; .m-sheettitle Monthly / daily budget; .mp-body Your manufacturer&#39;s comprehe &lt;&gt; .m-close ✕; .mp-body Your manufacturer&#39;s comprehe &lt;&gt; .mp-body The impact of Vehicle Servic; .mp-check ✓ &lt;&gt; .mp-statlab Monthly; .mp-check ✓ &lt;&gt; .mp-statval $56.73;  Covers parts and labor with  &lt;&gt; .mp-statlab Monthly;  Covers parts and labor with  &lt;&gt; .mp-statval $56.73;  Covers parts and labor with  &lt;&gt; .mp-statlab Daily
+small targets &lt;36px (2): #mpMiles.mp-range  282x16; .m-close ✕ 34x34</div></details>
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Back to product, Next product<br><a href="#finance-menu-repayment-options" style="font-weight:600">Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · 07 Step 3 — Repayment Options (Preferred)</a></div></div></div>
 </section>
 <section class="flow" id="finance-menu" data-flow>
   <header><h2>Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts<small>16 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
   <p class="desc">The Team Lead sign-off gate, then the four-step menu: Purchase Terms disclosure bars, Repayment Options (Preferred / Standard / Budget / Custom with initials), Disclosure Forms acknowledgement, and Financial Contracts with DMS push and Finalize.</p>
-  <p class="entry">↳ Reached from <a href="#credit-approved">Credit Application (Lending Lane) · 04 Approved (simulated)</a> — <b>Continue → Manager Sign-Off</b></p>
+  <p class="entry">↳ Reached from <a href="#credit-approved">Credit Application (Lending Lane) · 09 Approved (simulated)</a> — <b>Continue → Manager Sign-Off</b></p>
   <div class="strip"><article class="scr" id="finance-menu-signoff-gate-advisor" data-search="finance menu — sign-off, terms, repayment options, forms, contracts team lead sign-off required — advisor view the advisor sees the checklist and is told to get the team lead — no sign-off control. the advisor&#39;s dead end here is intentional (the note says to switch to team lead), but the role switch it refers to is the unlabelled segmented control in the app bar.">
     <div class="frame tall">
       <span class="n">01</span>
@@ -1313,7 +1474,7 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-007</b><p>The finalize toast says the deal &quot;now shows dark blue in the Deals list&quot; — copy from the retired deals table. Since the deals-queue redesign a finalized deal leaves the active list into the folded Archived section.</p><p><em>Stale copy, not a functional problem; the Deals screen itself is correct.</em></p></div></details>
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Return to Deals List<br><a href="#home-funded-archive" style="font-weight:600">Home — Deals Queue &amp; Navigation · 06 Funded contracts auto-archived</a></div></div></div>
+  </article><div class="arrow"><div class="line"></div><div class="act">Return to Deals List<br><a href="#" style="font-weight:600">home/funded-archive</a></div></div></div>
 </section>
 <section class="flow" id="deal-jacket" data-flow>
   <header><h2>Deal Jacket &amp; Compliance<small>11 screens</small></h2>
@@ -1410,7 +1571,7 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
     
     
-    
+    <details><summary>automated checks (1)</summary><div class="auto">small targets &lt;36px (2):   245x21;   245x21</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Close; tap ＋ Add Optional / Custom Form</div></div><article class="scr" id="deal-jacket-add-optional-form" data-search="deal jacket &amp; compliance add optional / custom form  ">
     <div class="frame tall">
@@ -1425,7 +1586,7 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
     <details><summary>automated checks (1)</summary><div class="auto">overlap (8): #hamburgerBtn.hamburger ☰ &lt;&gt; .jk-row__mark.jk-row__mark--miss !; .rideprice Ride &lt;&gt;  Signed Contracts; .price PRICE &lt;&gt;  Signed Contracts; #appbarUser.user Welcome Ashley Collins Advis &lt;&gt; .btn.btn--primary 📷 Scan; .seg__opt.on Advisor &lt;&gt; .btn.btn--primary 📷 Scan; .seg__opt Team Lead &lt;&gt; .btn.btn--primary 📷 Scan; .jk-row__mark ✓ &lt;&gt; .btn.btn--ghost ← Back to Deal;  Test Drive Agreement &lt;&gt; .btn.btn--ghost ← Back to Deal</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap 📷 Scan on the Driver&#39;s License row</div></div><article class="scr" id="deal-jacket-queue-row-blocked" data-search="deal jacket &amp; compliance queue row — scan blocked (back missing) the simulated check insists on both sides of a licence. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap 📷 Scan on the Driver&#39;s License row</div></div><article class="scr" id="deal-jacket-queue-row-blocked" data-search="deal jacket &amp; compliance queue row — scan blocked (back missing) the simulated check insists on both sides of a license. ">
     <div class="frame">
       <span class="n">09</span>
       
@@ -1433,7 +1594,7 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     </div>
     <h3>Queue row — scan blocked (back missing)</h3>
     <div class="hash">#/jacket/d-demo1</div>
-    <p class="notes">The simulated check insists on both sides of a licence.</p>
+    <p class="notes">The simulated check insists on both sides of a license.</p>
     
     
     
@@ -1517,7 +1678,7 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
   <header><h2>Client Document Upload (customer&#39;s phone)<small>10 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">What the customer sees from the text link, rebuilt from the owner&#39;s upload prototype (2026-08-27) in Ride Price colours. This is the customer&#39;s OWN page: no app bar, no role switch, no debug strip — a white edge-to-edge canvas reached from a text message by someone who does not work at the dealership. One row per requested document with a line icon and a plain what-to-bring subtitle, an &quot;n of N ready&quot; progress line, and one dominant action. Verification is simulated with scripted beats (the licence needs both sides, insurance flags once, two paystubs). An unreadable photo is refused plainly — &quot;Too blurry to read&quot; — with the retake on the row, never a coaching screen.</p>
+  <p class="desc">What the customer sees from the text link, rebuilt from the owner&#39;s upload prototype (2026-08-27) in Ride Price colours. This is the customer&#39;s OWN page: no app bar, no role switch, no debug strip — a white edge-to-edge canvas reached from a text message by someone who does not work at the dealership. One row per requested document with a line icon and a plain what-to-bring subtitle, an &quot;n of N ready&quot; progress line, and one dominant action. Verification is simulated with scripted beats (the license needs both sides, insurance flags once, two paystubs). An unreadable photo is refused plainly — &quot;Too blurry to read&quot; — with the retake on the row, never a coaching screen.</p>
   <p class="entry">↳ Reached from <a href="#document-request-composer">Send Text Request (advisor → client) · 01 Send Text Request — composer</a> — <b>Send Text Request</b></p>
   <div class="strip"><article class="scr" id="client-upload-sms" data-search="client document upload (customer&#39;s phone) text message with the link the advisor sends the request; this is the message as the customer receives it. the link is the only way in — no account, no password. ">
     <div class="frame">
@@ -1545,13 +1706,13 @@ small targets &lt;36px (1): #mwoMiles  264x16</div></details>
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Add the licence (one side)</div></div><article class="scr" id="client-upload-row-blocked" data-search="client document upload (customer&#39;s phone) row blocked — back of licence missing a blocked row keeps its one-tap retake rather than making the whole row the control — the prototype&#39;s version cost an extra tap on the screen where the customer is already stuck. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Add the license (one side)</div></div><article class="scr" id="client-upload-row-blocked" data-search="client document upload (customer&#39;s phone) row blocked — back of license missing a blocked row keeps its one-tap retake rather than making the whole row the control — the prototype&#39;s version cost an extra tap on the screen where the customer is already stuck. ">
     <div class="frame tall">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Row blocked — back of licence missing" data-cap="Client Document Upload (customer&#39;s phone) · 03 Row blocked — back of licence missing · #/clientlink/d-demo1/sms"><img loading="lazy" src="../current/17-client-document-upload/03-row-blocked.png" alt="Row blocked — back of licence missing"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Row blocked — back of license missing" data-cap="Client Document Upload (customer&#39;s phone) · 03 Row blocked — back of license missing · #/clientlink/d-demo1/sms"><img loading="lazy" src="../current/17-client-document-upload/03-row-blocked.png" alt="Row blocked — back of license missing"></button>
     </div>
-    <h3>Row blocked — back of licence missing</h3>
+    <h3>Row blocked — back of license missing</h3>
     <div class="hash">#/clientlink/d-demo1/sms</div>
     <p class="notes">A blocked row keeps its ONE-TAP retake rather than making the whole row the control — the prototype&#39;s version cost an extra tap on the screen where the customer is already stuck.</p>
     

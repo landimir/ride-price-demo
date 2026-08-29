@@ -1,13 +1,13 @@
-# Ride Price Mobile UI — UX Audit (v008)
+# Ride Price Mobile UI — UX Audit (v009)
 
-Captured 2026-08-27T22:54:47.900Z · viewport 390×844 · app 1b22445d2bf7973e5011bf8cdabb40a591c47b1f
+Captured 2026-08-28T23:32:45.348Z · viewport 390×844 · app cc9d1067dc19c05c74f94df222ab05fb73ee1620
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
-| Major | 1 |
-| Minor | 10 |
-| Observation | 3 |
+| Major | 0 |
+| Minor | 8 |
+| Observation | 2 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
 
@@ -15,16 +15,11 @@ Severity scale: **Critical** — the user cannot complete the flow · **Major** 
 
 _None recorded._
 
-## Major (1)
+## Major (0)
 
-### RP-UI-002 — Credit Application (Lending Lane) · Credit application — Individual
+_None recorded._
 
-- **Screenshot:** `current/11-credit-application/01-application.png`
-- **Issue:** The credit application is one uninterrupted form longer than 3,200px on a phone, with no section navigation or progress indication; the Submit button and the validation summary are at the far end.
-- **Observation:** Every field is labelled and required fields are marked, so it can be completed — but on a phone it reads as an endless scroll. Grouping into Applicant / Residence / Employment steps (or collapsible sections) would fit the phone floor better.
-- **Suggested area to investigate:** credit route form layout (.fields, section headings)
-
-## Minor (10)
+## Minor (8)
 
 ### RP-UI-005 — Discovery Session · Discovery — question 1
 
@@ -61,20 +56,6 @@ _None recorded._
 - **Observation:** Order of operations on the phone layout; desktop keeps it inside the column.
 - **Suggested area to investigate:** step2() phone layout, #togglePay placement
 
-### RP-UI-010 — Credit Application (Lending Lane) · Approved (simulated)
-
-- **Screenshot:** `current/11-credit-application/04-approved.png`
-- **Issue:** Two buttons lead to the same place with different names: 'Continue → Menu' in the page header and 'Continue → Manager Sign-Off' in the body.
-- **Observation:** Duplicate action with inconsistent labelling; one name (the sign-off is what comes next) would remove the doubt.
-- **Suggested area to investigate:** credit route renderApproved() chrome + body links
-
-### RP-UI-011 — Credit Application (Lending Lane) · Application — validation errors
-
-- **Screenshot:** `current/11-credit-application/03-validation-errors.png`
-- **Issue:** The validation toast listing the missing fields covers the applicant-type radio text ('With another person…') while it shows.
-- **Observation:** Transient; field-level errors underneath are clear. Toasts sit at mid-bottom of the viewport and cover whatever is there on many screens (also seen over the Create Customer State field, the jacket dock and the agreement lines).
-- **Suggested area to investigate:** #toast position / content offset at ≤720px
-
 ### RP-UI-012 — Training Licenses & Registrations · Training Registrations
 
 - **Screenshot:** `current/04-training-materials/02-training-registrations.png`
@@ -89,21 +70,14 @@ _None recorded._
 - **Observation:** Also 34px zoom / page buttons on the client review screen and the advisor document review.
 - **Suggested area to investigate:** .sa-thumb__x, .dr-zoom button, .dr-pagetools button sizing at ≤720px
 
-### RP-UI-017 — Home — Deals Queue & Navigation · Funded contracts auto-archived
+### RP-UI-024 — Customer Onboarding — the Customer Resolver · Customer identified (advisor)
 
-- **Screenshot:** `current/01-home-and-navigation/06-funded-archive.png`
-- **Issue:** The 'Archived — funded contracts' disclosure is a 20px-tall text row — the only way to reach finished deals, under the touch floor.
-- **Observation:** Still true after the 2026-08-23 role-aware queue: the Team Lead deliberately keeps the original view including this fold (owner decision), so the disclosure row remains the only way a manager reaches finished deals; the minimum fix is restyling the row to the 44px floor. The Advisor no longer has the fold at all — their funded deals sit at the end of the one list under a DONE chip.
-- **Suggested area to investigate:** .dl-archive summary sizing
+- **Screenshot:** `current/02-customer-onboarding/09-remote-ready.png`
+- **Issue:** The role pill in the master deal header (.m-rolebtn) is 65x35px — under the 40px small-variant touch floor the phone layout documents.
+- **Observation:** It opens the drawer, so it is a real target, not decoration. Introduced with the master deal header (PR #51) and now visible on far more screens because the resolver, credit and agreement all use that header. Raising it to 40px is a one-line change in the .m-rolebtn padding.
+- **Suggested area to investigate:** portal.css .m-rolebtn
 
-## Observation (3)
-
-### RP-UI-019 — F&I Product Presentation · Advisor script open
-
-- **Screenshot:** `current/13-fi-presentation/03-advisor-script-open.png`
-- **Issue:** Tapping 💬 Advisor Script (and M/D Budget) opens content below the fold of the fixed Prev/Next bar; at the top of the page nothing visibly changes.
-- **Observation:** The library had to scroll to show the change; a user may think the tap did nothing.
-- **Suggested area to investigate:** present route: scroll the opened block into view, or open it as a sheet
+## Observation (2)
 
 ### RP-UI-022 — Finance Menu · Team Lead sign-off required — Advisor view
 
@@ -115,7 +89,7 @@ _None recorded._
 ### RP-UI-023 — Home — Deals Queue & Navigation · My Deals (landing — Advisor)
 
 - **Screenshot:** `current/01-home-and-navigation/01-deals-queue.png`
-- **Issue:** No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead switch standing in for identity.
+- **Issue:** No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet on the queue top bar standing in for identity.
 - **Observation:** By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.
 - **Suggested area to investigate:** n/a
 
