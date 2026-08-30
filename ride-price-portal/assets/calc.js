@@ -75,6 +75,10 @@ const RIDE_PRICE_CALC = (function () {
   /* ---------- LEASE ---------- */
   function lease(deal, vehicle, opts) {
     const o = Object.assign({ term: deal.desk.leaseTerm, miles: deal.desk.milesPerYear, factor: deal.desk.leaseFactor, products: [], dueAtSigning: deal.desk.dueAtSigning }, opts || {});
+    /* Object.assign lets an explicit `factor: undefined` clobber the desk's
+       own — a credit approval that carries an APR but no lease factor then
+       priced every lease at $NaN. A missing factor falls back to the desk. */
+    if (!isFinite(o.factor)) o.factor = deal.desk.leaseFactor;
     const acc = accessoriesTotal(deal.desk.accessories);
     const prodTotal = productsTotal(o.products);
     const yourPrice = vehicle.selling + vehicle.includedOptions + acc;
@@ -141,7 +145,14 @@ const RIDE_PRICE_CALC = (function () {
   /* menu column payment for a given program */
   function menuColumn(deal, vehicle, programKey, program) {
     const q = deal.creditApp && deal.creditApp.approved ? deal.creditApp : null;
-    if (deal.dealType === "lease" || deal.dealType === "onepay") {
+    /* a one-pay lease has no monthly payment — every other surface quotes its
+       onePayTotal, and a column that quoted a monthly figure would put a
+       number in front of the customer that they never pay */
+    if (deal.dealType === "onepay") {
+      const r = onePay(deal, vehicle, { products: program.products });
+      return { key: programKey, label: program.label, products: program.products, payment: r.onePayTotal, isTotal: true, term: r.term, detail: `${r.miles.toLocaleString()} mi/yr · ${r.term} mo, paid in full`, result: r };
+    }
+    if (deal.dealType === "lease") {
       const r = lease(deal, vehicle, { products: program.products, factor: q ? q.leaseFactor : deal.desk.leaseFactor });
       return { key: programKey, label: program.label, products: program.products, payment: r.payment, term: r.term, detail: `${r.miles.toLocaleString()} mi/yr · ${r.term} mo`, result: r };
     }

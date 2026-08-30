@@ -4240,39 +4240,20 @@ route("credit/:id", ({ id }) => {
   else if (!(deal.identity && deal.identity.verifiedAt)) renderIdentity(false);
   else render();
 });
-
 /* ============================================================
-   Shared 5-step menu stepper — the product presentation is step 2
-   ============================================================ */
-const MENU_STEPS = ["Purchase Terms", "Product Presentation", "Repayment Options", "Disclosure Forms", "Financial Contracts"];
-
+   Menu step numbering — the persisted 1..5 contract
+   ============================================================
+   The product presentation is step 2 and lives on its own route. The V3
+   finance menu shows four stages (Terms/Options/Forms/Finalize) and maps
+   them onto steps 1/3/4/5; this migration brings blobs saved before the
+   presentation became its own step onto the same numbering. The old
+   five-label stepper it used to feed retired with the V3 rebuild. */
 function migrateMenuV5(deal) {
   const M = deal.menu;
   if (!M || M.v5) return;
   if (M.step >= 2) M.step += 1;
   if ((M.maxStep || 1) >= 2) M.maxStep = (M.maxStep || 1) + 1;
   M.v5 = true; Store.save();
-}
-
-function menuStepperHtml(deal, active) {
-  const M = deal.menu;
-  const maxReach = Math.max(active, M.maxStep || 1, deal.stage === "complete" ? 5 : 1);
-  return `<div class="stepper">${MENU_STEPS.map((s, i) => {
-    const n = i + 1;
-    const cls = n < active ? "done" : n === active ? "on" : "";
-    return n <= maxReach
-      ? `<button type="button" class="st ${cls}" data-step="${n}" title="Go to ${s}"><i>${n < active ? "✓" : n}</i> ${s}</button>`
-      : `<span class="st ${cls}"><i>${n}</i> ${s}</span>`;
-  }).join("")}</div>`;
-}
-
-function bindMenuStepper(deal, onLocalStep) {
-  $$(".stepper [data-step]").forEach(b => b.onclick = () => {
-    const n = parseInt(b.dataset.step, 10);
-    if (n === 2) { deal.menu.step = 2; Store.save(); navigate(`#/present/${deal.id}`); return; }
-    deal.menu.step = n; Store.save();
-    if (onLocalStep) onLocalStep(); else navigate(`#/menu/${deal.id}`);
-  });
 }
 
 /* ============================================================
@@ -4492,8 +4473,24 @@ route("present/:id", ({ id }) => {
 });
 
 /* ============================================================
-   VIEW: Menu (4-step)
-   ============================================================ */
+   VIEW: Finance Menu V3 (owner's replication package, 2026-08-29)
+   ============================================================
+   Manager sign-off gate, then four stages: Terms → Options → Forms →
+   Finalize. The package's copy rule is structural: no instructional
+   paragraph under an operational page title, so each screen explains
+   itself through labels, state, amounts and one dominant action.
+
+   The persisted `menu.step` keeps its old 1..5 numbering — saved deals in
+   localStorage carry it and there is no migration — while the UI shows the
+   package's four stages. Step 2 remains the product presentation on its own
+   route, reached from Options rather than sitting in the stage row.
+
+   Every business rule the old five-step menu enforced survives: the gate's
+   required checks, the Team Lead's recorded jacket override, the initials
+   that select a program, the custom box's source column setting rate and
+   term, the withheld custom figure, the decline path's initials rule, the
+   trade-locked forms, the benefits acknowledgement gate, and the DMS push
+   recorded against the Team Lead who approved the deal. */
 route("menu/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
   const v = Store.vehicle(deal.stock);
@@ -4503,493 +4500,514 @@ route("menu/:id", ({ id }) => {
   const progSet = RIDE_PRICE_DATA.programs[isLease ? "lease" : isCash ? "cash" : "finance"];
   const M = deal.menu;
   migrateMenuV5(deal);
-  /* backfill for deals saved before step navigation existed */
+  const colLabel = (key) => key === "custom" ? "Custom" : key === "none" ? "No products" : (progSet[key] || {}).label || key;
   if ((M.maxStep || 1) < M.step) { M.maxStep = M.step; Store.save(); }
-  /* backfill sign-off for deals finalized before the Team Lead role existed */
+  /* a deal finalized before sign-off existed keeps its history honest */
   if (!deal.signoff && deal.stage === "complete") {
     deal.signoff = { by: RIDE_PRICE_DATA.dealership.teamLead, at: deal.createdAt, backfilled: true }; Store.save();
   }
 
-  /* ---- Manager Sign-Off gate: the Team Lead delivers the deal to Processing ---- */
-  if (!deal.signoff) {
-    const c2 = Store.customer(deal.customerId);
-    const checks = [
-      { label: "Base payment agreement signed", ok: !!(deal.basePayment && deal.basePayment.signedAt), req: true },
-      { label: "Credit application approved", ok: !!(deal.creditApp && deal.creditApp.approved), req: true },
-      { label: "Test drive completed", ok: !!deal.testDrive.done, req: false },
-      { label: "Trade documented" + (deal.trade.has ? ` — ${esc(deal.trade.desc || "")}` : " (no trade)"), ok: deal.trade.has ? deal.trade.value > 0 : true, req: false },
-      /* proof of ownership: operational gaps, surfaced to the manager and
-         never blocking (owner, 2026-08-15) */
-      ...(deal.trade.has
-        ? (tradeOwnershipGaps(deal).length
-            ? tradeOwnershipGaps(deal).map(g => ({ label: g, ok: false, req: false }))
-            : [{ label: "Trade proof of ownership complete", ok: true, req: false }])
-        : []),
-      { label: "Cover sheet printed for the deal folder", ok: true, req: false },
-      /* the jacket LOCKS sign-off (owner, 2026-08-16 — supersedes flag-only for
-         the jacket specifically), but a Team Lead can override with a recorded
-         reason, so the exception still routes to a manager the way the trade
-         ownership gaps do. Those gaps themselves stay flag-never-block. */
-      ...(function () {
-        const jkc = jacketCounts(deal);
-        const jov = jacketRead(deal).override;
-        if (!jkc.missing) return [{ label: "Deal jacket complete — every document collected", ok: true, req: false }];
-        if (jov) return [{ label: `Deal jacket — ${jkc.missing} outstanding · override recorded by ${esc(jov.by)}: “${esc(jov.reason)}”`, ok: true, req: false }];
-        return [{ label: `Deal jacket — ${jkc.missing} document(s) still outstanding — funding locked`, ok: false, req: true, jacket: true }];
-      })()
+  /* the stage row is four; the persisted step is five. One map, both ways. */
+  const STEP_OF = [1, 3, 4, 5];
+  const STAGES = ["Terms", "Options", "Forms", "Finalize"];
+  const stageOf = (step) => step >= 5 ? 3 : step >= 4 ? 2 : step >= 3 ? 1 : 0;
+
+  let sheetKey = null;
+  function teardown() {
+    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+    window.removeEventListener("hashchange", teardown);
+    const sc = $("#fmScrim"); if (sc) sc.classList.remove("show");
+  }
+  window.addEventListener("hashchange", teardown);
+
+  function openSheet(html, onMount) {
+    const sh = $("#fmSheet"); if (!sh) return;
+    sh.innerHTML = `<div class="m-handle"></div>${html}`;
+    $("#fmScrim").classList.add("show");
+    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
+    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
+    document.addEventListener("keydown", sheetKey, true);
+    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
+    if (onMount) onMount(sh);
+  }
+  function closeSheet() {
+    const sc = $("#fmScrim"); if (sc) sc.classList.remove("show");
+    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+  }
+  const sheetHead = (title, sub) => `<div class="m-sheettop"><div><h2>${esc(title)}</h2>${sub ? `<p class="m-sheetsub">${esc(sub)}</p>` : ""}</div>
+    <button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>`;
+
+  const chips = () => `<div class="fm-chips">
+    ${deal.dealNo ? `<span class="fm-chip">Deal #${esc(deal.dealNo)}</span>` : ""}
+    <span class="fm-chip">${esc(c.first + " " + c.last)}</span>
+    <span class="fm-chip">${esc(v.year + " " + v.make + " " + v.model)}</span>
+    <a class="fm-chip fm-chip--link" href="#/jacket/${esc(deal.id)}">Jacket ${jacketCounts(deal).have}/${jacketCounts(deal).total}</a>
+  </div>`;
+
+  const shell = (eyebrow, title, body, dock) => `
+    <div class="m-app">
+      ${deskTop(deal)}
+      <main class="fm-main">
+        <div class="fm-eyebrow">${esc(eyebrow)}</div>
+        <h1 class="fm-title">${esc(title)}</h1>
+        ${chips()}
+        ${body}
+      </main>
+      ${dock || ""}
+    </div>
+    <div class="m-scrim" id="fmScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="fmSheet"></div></div>`;
+
+  /* the golden names the selected package on Options and the stage word
+     elsewhere — the dock says what you are about to act on */
+  const dock = (stageIdx, btnHtml, strong) => `<div class="fm-dock">
+    <div class="fm-dockcopy"><small>Step ${stageIdx + 1} of 4</small><strong>${esc(strong || STAGES[stageIdx])}</strong></div>
+    ${btnHtml}</div>`;
+
+  const stageRow = (activeIdx) => `<div class="fm-stages">
+    ${STAGES.map((s, i) => {
+      const reached = stageOf(Math.max(M.step, M.maxStep || 1)) >= i || deal.stage === "complete";
+      const cls = i === activeIdx ? "fm-stage fm-stage--on" : i < activeIdx ? "fm-stage fm-stage--done" : "fm-stage";
+      return `<button type="button" class="${cls}" data-stage="${i}"${reached ? "" : " disabled"}>${i < activeIdx ? "✓ " : (i + 1) + " "}${esc(s)}</button>`;
+    }).join("")}</div>`;
+
+  /* ---------- the gate: four upstream statuses, nothing recreated ---------- */
+  function gate() {
+    const jkc = jacketCounts(deal);
+    const jov = jacketRead(deal).override;
+    const rows = [
+      { name: "Base payment agreement", sub: deal.basePayment && deal.basePayment.signedAt ? "Signed" : "Not signed", ok: !!(deal.basePayment && deal.basePayment.signedAt) },
+      { name: "Credit application", sub: deal.creditApp && deal.creditApp.approved ? "Approved" : deal.creditApp ? "Submitted" : "Not submitted", ok: !!(deal.creditApp && deal.creditApp.approved) },
+      { name: "Test drive", sub: deal.testDrive.done ? "Completed" : "Not completed", ok: !!deal.testDrive.done },
+      { name: "Deal Jacket", sub: jkc.missing ? (jov ? `Override recorded by ${jov.by}` : `${jkc.missing} item${jkc.missing === 1 ? "" : "s"} outstanding`) : "Complete", ok: !jkc.missing || !!jov }
     ];
-    const ready = checks.filter(x => x.req).every(x => x.ok);
-    const jacketLocked = checks.some(x => x.jacket);
-    renderChrome("Manager Sign-Off", dealTitle(deal),
-      `<a class="btn btn--ghost btn--sm" href="#/credit/${esc(deal.id)}">← Lending Lane</a>`);
-    view().innerHTML = `
-      <div class="panel panel--navyhead" style="max-width:720px;margin:0 auto">
-        <div class="panel__head"><h2>Team Lead Sign-Off Required</h2>
-          <div class="right"><span class="badge badge--prog">awaiting sign-off</span></div></div>
-        <div class="panel__body">
-          <p class="small">The Team Lead signs off on the deal and delivers it to the Processing Team before the menu is built. Game-plan review for <b>${esc(c2.first)} ${esc(c2.last)}</b>:</p>
-          <ul class="checks" style="margin-top:14px">
-            ${checks.map(x => `<li class="${x.ok ? "ok" : "bad"}">${x.ok ? x.label : `${x.label}${x.req ? " — required" : ""}`} </li>`).join("")}
-          </ul>
-          ${isTeamLead()
-            ? `${jacketLocked ? `<div class="note note--red mt">Funding sign-off is locked while jacket documents are outstanding. If one is genuinely on its way — a lien release in the mail — the Team Lead can override; the override and its reason are recorded on the deal.</div>` : ""}
-               <div class="right mt">
-                 ${jacketLocked ? `<button class="btn btn--ghost" id="jkOverrideBtn">Override the jacket lock</button>` : ""}
-                 <button class="btn btn--grad" id="signoffBtn" ${ready ? "" : "disabled"}>✍ Manager Sign-Off — deliver to Processing</button>
-               </div>`
-            : `<div class="note note--red mt">You are acting as <b>Client Advisor</b>. Get your Team Lead to the desk — switch to <b>Team Lead</b> to sign off as <b>${esc(RIDE_PRICE_DATA.dealership.teamLead)}</b>.</div>`}
+    /* the test drive stays advisory, exactly as it always has — the required
+       three are the payment agreement, the credit decision and the jacket */
+    const blockers = rows.filter((r, i) => !r.ok && i !== 2);
+    const ready = blockers.length === 0;
+    const jacketBlocked = jkc.missing && !jov;
+
+    renderChrome("Manager Sign-Off", dealTitle(deal), "");
+    document.body.dataset.canvas = "master";
+    document.body.dataset.screen = "menu";
+    view().innerHTML = shell("Finance handoff", "Manager sign-off", `
+      <div class="fm-card">
+        <h2 class="fm-cardtitle">Ready for finance</h2>
+        <div class="fm-rows">
+          ${rows.map(r => `<div class="fm-row">
+            <div class="fm-rowmain"><div class="fm-rowname">${esc(r.name)}</div><div class="fm-rowsub">${esc(r.sub)}</div></div>
+            <span class="fm-pill${r.ok ? "" : " fm-pill--bad"}">${r.ok ? "Ready" : "Blocked"}</span>
+          </div>`).join("")}
         </div>
-      </div>`;
-    const so = $("#signoffBtn");
-    if (so) so.onclick = () => {
+      </div>
+      ${isTeamLead() ? `
+        <div class="fm-actions">
+          ${jacketBlocked ? `<button type="button" class="fm-btn" id="fmResolve">Resolve Deal Jacket blocker</button>` : ""}
+          <button type="button" class="fm-btn fm-btn--primary" id="fmApprove"${ready ? "" : " disabled"}>Approve finance menu</button>
+        </div>`
+        : `<div class="fm-note">Waiting for Team Lead.</div>`}`);
+    wireDeskTop();
+
+    const ap = $("#fmApprove");
+    if (ap && !ap.disabled) ap.onclick = () => {
       deal.signoff = { by: RIDE_PRICE_DATA.dealership.teamLead, at: new Date().toISOString() };
       Store.save();
-      toast("Signed off by " + RIDE_PRICE_DATA.dealership.teamLead + " — delivered to Processing");
-      router();
+      toast("Approved by " + RIDE_PRICE_DATA.dealership.teamLead);
+      render();
     };
-    const ov = $("#jkOverrideBtn");
-    if (ov) ov.onclick = () => {
-      modal("Override the jacket lock", `
-        <p class="small">${jacketCounts(deal).missing} document(s) are still outstanding. The override is recorded on the deal with your name and reason — it does not mark anything received.</p>
-        <label class="f"><span class="lab">Reason <i class="req">*</i></span><input type="text" id="jkOvReason" maxlength="120" placeholder="e.g. lien release confirmed in the mail from the credit union"></label>`,
-        `<button class="btn btn--ghost" data-close>Cancel</button>
-         <button class="btn btn--primary" id="jkOvGo">Record override</button>`);
-      $("#jkOvGo").onclick = () => {
-        const reason = ($("#jkOvReason").value || "").trim();
-        if (!reason) { $("#jkOvReason").style.borderColor = "var(--crimson)"; return; }
-        const j = jacketOf(deal);
-        j.override = { by: RIDE_PRICE_DATA.dealership.teamLead, at: new Date().toISOString(), reason };
-        Store.save();
-        closeModal();
-        toast("Override recorded — sign-off unlocked");
-        router();
-      };
-    };
-    return;
+    const rs = $("#fmResolve");
+    if (rs) rs.onclick = () => openSheet(`${sheetHead("Resolve Deal Jacket blocker", "Override records a reason; missing documents remain missing.")}
+      <div class="fm-field"><label for="fmReason">Reason</label>
+        <textarea class="fm-input" id="fmReason" rows="3" maxlength="160" placeholder="e.g. Lien release confirmed and funding lock reviewed"></textarea></div>
+      <div class="fm-actions">
+        <button type="button" class="fm-btn fm-btn--primary" id="fmReasonGo">Record override</button>
+        <button type="button" class="fm-btn" data-sheet-close>Cancel</button>
+      </div>`, (sh) => {
+        $("#fmReasonGo", sh).onclick = () => {
+          const reason = ($("#fmReason", sh).value || "").trim();
+          if (!reason) { $("#fmReason", sh).style.borderColor = "var(--fm-bad)"; return; }
+          jacketOf(deal).override = { by: RIDE_PRICE_DATA.dealership.teamLead, at: new Date().toISOString(), reason };
+          Store.save(); closeSheet(); toast("Override recorded"); render();
+        };
+      });
   }
 
-  function chrome() {
-    renderChrome(isLease ? "Lease Menu" : isCash ? "Cash Menu" : "Finance Menu", dealTitle(deal),
-      `<a class="btn btn--ghost btn--sm" href="#/deals">Deals list</a>`);
-  }
-
-  /* ---------- step 1: purchase terms / disclosure ---------- */
-  function step1() {
+  /* ---------- stage 1: Terms ---------- */
+  function terms() {
     const snap = (deal.basePayment && deal.basePayment.snapshot) || RIDE_PRICE_CALC.calc(deal, v);
     const q = deal.creditApp || {};
     const qualified = !isCash && !isLease && q.approved
       ? RIDE_PRICE_CALC.finance(deal, v, { apr: q.qualifiedApr, term: deal.desk.term }) : null;
+    /* cash and lease quote a total, not a monthly payment — the pair is
+       labelled from the deal type, never suffixed blind (calc.js isTotal) */
+    const isOnePay = deal.dealType === "onepay";
+    const agreedAmt = isCash ? snap.totalDue : isOnePay ? snap.onePayTotal : snap.payment;
+    const agreedLab = isCash ? "Cash total" : isOnePay ? "One-pay total" : "Agreed payment";
+    const agreedSub = isCash ? "Total due" : isOnePay ? `Paid in full · ${snap.term} mo lease`
+      : isLease ? `${snap.term} mo lease` : `${snap.term} mo @ ${snap.apr}%`;
+    const feeNames = isLease
+      ? "acquisition fee, cap cost reduction tax, monthly sales tax"
+      /* a summary line, not the itemisation — the rates and the word "fee"
+         belong in the sheet behind View, and carrying them here wrapped the
+         card to twice the golden height */
+      : (snap.taxes && snap.taxes.rows || []).map(t => t.label).concat(RIDE_PRICE_DATA.fees.map(f => f.label))
+          .map(l => l.replace(/\s*@.*$/, "").replace(/\s+fee$/i, "")).join(", ").toLowerCase();
 
-    let bars;
-    if (isCash) {
-      /* live-system behavior: even cash buyers are shown the financing alternative */
-      const finAgreed = RIDE_PRICE_CALC.finance(deal, v, { apr: deal.desk.apr, term: deal.desk.term });
-      const finQual = q.approved ? RIDE_PRICE_CALC.finance(deal, v, { apr: q.qualifiedApr, term: deal.desk.term }) : null;
-      bars = [
-        { key: "balance", label: "Total Balance", body: `Total Due: <b>${money(snap.totalDue)}</b> — discuss the dollar amount line by line.` },
-        { key: "lien", label: "Lien", body: `We must obtain lien holder information for title — if any portion of the balance is to be borrowed, a lien must be recorded.` },
-        { key: "agreed", label: "Agreed Payment", body: `<span class="note note--wt" style="display:block;margin:0"><span class="lab">If they chose to finance instead</span>“Your Agreed Monthly Payment of: <b>${money(finAgreed.payment)}</b> for ${finAgreed.term} months @ ${deal.desk.apr}% APR.”</span>` },
-        { key: "qualified", label: "Qualified Payment", body: finQual
-          ? `<span class="note note--wt" style="display:block;margin:0"><span class="lab">The financing seed</span>“Your Qualified Monthly Payment is: <b>${money(finQual.payment)}</b> for ${finQual.term} months @ ${q.qualifiedApr}% APR — and that keeps ${money(snap.totalDue - deal.desk.downPayment)} in your pocket today.”</span>`
-          : `Submit the credit application to reveal the qualified financing payment.` },
-        { key: "disclosure", label: "Disclosure", body: `“We will review your options and you can choose which program you prefer.” Proceed as you would with a finance menu — the customizable box can convert this to a finance structure with <b>Switch to Finance</b>.` }
-      ];
-    } else if (isLease) {
-      const l = snap;
-      bars = [
-        { key: "taxpay", label: "Sales Tax on Monthly Payment", body: `${(deal.desk.milesPerYear).toLocaleString()} miles per year for ${l.term} months — monthly sales tax is an addition to any base monthly payment quoted. Your sales tax is <b>${money(l.monthlyTax)}</b> per month at a rate of ${RIDE_PRICE_CALC.taxPct(RIDE_PRICE_CALC.totalTaxRate())}%.` },
-        { key: "ccrtax", label: "Sales Tax on Cap Cost Reduction", body: `We are required, by law, to collect and forward these taxes: a total of <b>${money(l.ccrTax)}</b> at ${RIDE_PRICE_CALC.taxPct(RIDE_PRICE_CALC.totalTaxRate())}% on capitalized cost reduction.` },
-        { key: "lev", label: "Lease End Value", body: `The lease end value for your vehicle is <b>${money(l.residual)}</b>. You may be responsible for costs over and above the lease end value at lease termination.` },
-        { key: "disclosure", label: "Disclosure — Your Responsibility", body: `Excessive wear and use includes, but is not limited to: mechanical defects; broken or missing parts and keys; damaged body, fenders, lights or glass; chipped paint; interior rips, stains or burns; tires with less than 1/8" tread; and any condition making the vehicle unsafe or unlawful to operate. <i>Explaining a lessee's responsibilities generates the need for the protections you're about to show.</i>` }
-      ];
-    } else {
-      bars = [
-        { key: "agreed", label: "Agreed Payment", body: `<span class="note note--wt" style="display:block;margin:0"><span class="lab">Word track</span>“Earlier you agreed to a payment of <b>${money(snap.payment)}</b> for ${snap.term} months at ${snap.apr}%, correct?”</span>` },
-        { key: "qualified", label: "Qualified Payment", body: qualified ? `<span class="note note--wt" style="display:block;margin:0"><span class="lab">Word track</span>“Great news — you qualified for <b>${q.qualifiedApr}%</b> for ${qualified.term} months, correcting your payment to <b>${money(qualified.payment)}</b>. And that will buy the car today. However…”</span>` : "Submit the credit application to reveal the qualified payment." },
-        { key: "disclosure", label: "Disclosure", body: `<span class="note note--wt" style="display:block;margin:0"><span class="lab">Word track</span>“Based on our conversations, that may or may not be the best way to own your vehicle. We will review your options and choose which you prefer.”</span>` }
-      ];
-    }
+    const say = isCash
+      ? `“The total due is ${money(snap.totalDue)}. If you financed instead, the payment would be ${money(RIDE_PRICE_CALC.finance(deal, v, { apr: deal.desk.apr, term: deal.desk.term }).payment)} a month. Next we'll review your protection choices.”`
+      : isOnePay
+        /* a one-pay lease has no monthly payment — snap.payment is 0 here, so
+           the lease sentence would read "$0.00 a month" */
+        ? `“Your one-pay total is ${money(snap.onePayTotal)}, paid in full at signing for the full ${snap.term} months. The lease-end value is ${money(snap.residual)}. Next we'll review your protection choices.”`
+      : isLease
+        ? `“Your payment is ${money(snap.payment)} a month for ${snap.term} months, including ${money(snap.monthlyTax)} of monthly sales tax. The lease-end value is ${money(snap.residual)}. Next we'll review your protection choices.”`
+        : qualified
+          ? `“Earlier we agreed to ${money(snap.payment)} for ${snap.term} months at ${snap.apr}%. You qualified at ${q.qualifiedApr}%, which changes the base payment to ${money(qualified.payment)}. Next we'll review your protection choices.”`
+          : `“Earlier we agreed to ${money(snap.payment)} for ${snap.term} months at ${snap.apr}%. Once the credit application comes back we'll confirm the qualified payment. Next we'll review your protection choices.”`;
 
-    const lineRows = isLease
-      ? `<li><span>Monthly Base Payment</span><b class="amt">${money(snap.basePayment)}</b></li>
-         <li><span>Sales Tax on Base Payment</span><b class="amt">${money(snap.monthlyTax)}</b></li>
-         <li><span>Base Payment with Taxes</span><b class="amt">${money(snap.payment)}</b></li>
-         <li><span>Acquisition Fee</span><b class="amt">${money(snap.acquisitionFee)}</b></li>
-         <li><span>Sales Tax on Cap Cost Reduction</span><b class="amt">${money(snap.ccrTax)}</b></li>
-         <li class="total"><span>Total Due At Signing</span><b class="amt">${money(deal.dealType === "onepay" ? snap.onePayTotal : deal.desk.dueAtSigning)}</b></li>`
-      : `${(snap.taxes && snap.taxes.rows || []).map(t => `<li><span>${t.label}</span><b class="amt">${money(t.amount)}</b></li>`).join("")}
-         ${RIDE_PRICE_DATA.fees.map(f => `<li><span>${f.label}</span><b class="amt">${money(f.amount)}</b></li>`).join("")}
-         <li class="total"><span>${isCash ? "Total Due" : "Balance / Amount Financed"}</span><b class="amt">${money(isCash ? snap.totalDue : snap.amountFinanced)}</b></li>`;
-
-    view().innerHTML = `${menuStepperHtml(deal, M.step)}
-      <div class="grid grid--2">
-        <div class="panel">
-          <div class="panel__head"><h2>Customer Acknowledgement of Basic Terms</h2></div>
-          <div class="panel__body"><ul class="lines">${lineRows}</ul>
-          <p class="hint mt">Explain each number in detail and receive confirmation from your client before moving on.</p></div>
+    body(0, `
+      <div class="fm-card">
+        <h2 class="fm-cardtitle">Payment comparison</h2>
+        <div class="fm-pair">
+          <div class="fm-quote"><div class="fm-quotelab">${agreedLab}</div>
+            <div class="fm-quoteamt">${money(agreedAmt)}</div><div class="fm-quotesub">${esc(agreedSub)}</div></div>
+          <div class="fm-quote"><div class="fm-quotelab">Qualified payment</div>
+            <div class="fm-quoteamt">${qualified ? money(qualified.payment) : "—"}</div>
+            <div class="fm-quotesub">${qualified ? `${qualified.term} mo @ ${q.qualifiedApr}%` : isCash || isLease ? "Not applicable" : "Awaiting credit"}</div></div>
         </div>
-        <div>
-          <div class="black-bars">${bars.map(b => `
-            <div class="bbar ${M.barsDone.includes(b.key) ? "done" : ""}" data-bar="${b.key}">
-              <button type="button">${M.barsDone.includes(b.key) ? "✓ " : ""}${b.label}<span class="pl">＋</span></button>
-              <div class="bbody">${b.body}</div>
-            </div>`).join("")}
-          </div>
-          <div class="flex mt"><a class="btn btn--ghost" href="#/credit/${esc(deal.id)}">← Lending Lane</a><div class="push"></div><button class="btn btn--grad" id="s1next">Next →</button></div>
+        <div class="fm-split">
+          <div class="fm-splitmain"><div class="fm-splittitle">Taxes &amp; fees</div>
+            <div class="fm-splitsub">${esc(feeNames)}</div></div>
+          <button type="button" class="fm-view" id="fmFees">View</button>
         </div>
-      </div>`;
+      </div>
+      <div class="fm-card">
+        <h2 class="fm-cardtitle">Customer explanation</h2>
+        <p class="fm-say">${esc(say)}</p>
+      </div>`,
+      dock(0, `<button type="button" class="fm-dockbtn" id="fmNext">${M.termsPresented ? "Continue" : "Mark presented"}</button>`));
 
-    $$("[data-bar]").forEach(el => {
-      el.querySelector("button").onclick = () => {
-        el.classList.toggle("open");
-        if (!M.barsDone.includes(el.dataset.bar)) { M.barsDone.push(el.dataset.bar); el.classList.add("done"); Store.save(); }
-      };
-    });
-    $("#s1next").onclick = () => {
-      if (M.barsDone.length < bars.length) return toast("Open and present every box before proceeding");
-      /* step 2 IS the product presentation — always */
-      M.step = 2; M.maxStep = Math.max(M.maxStep || 1, 2); Store.save();
-      navigate(`#/present/${deal.id}`);
+    $("#fmFees").onclick = () => {
+      const rows = isLease
+        ? [["Monthly base payment", snap.basePayment], ["Sales tax on base payment", snap.monthlyTax],
+           ["Base payment with taxes", snap.payment], ["Acquisition fee", snap.acquisitionFee],
+           ["Sales tax on cap cost reduction", snap.ccrTax]]
+        : (snap.taxes && snap.taxes.rows || []).map(t => [t.label, t.amount]).concat(RIDE_PRICE_DATA.fees.map(f => [f.label, f.amount]));
+      const total = isLease
+        ? ["Total due at signing", deal.dealType === "onepay" ? snap.onePayTotal : deal.desk.dueAtSigning]
+        : [isCash ? "Total due" : "Amount financed", isCash ? snap.totalDue : snap.amountFinanced];
+      openSheet(`${sheetHead("Taxes & fees", esc(RIDE_PRICE_DATA.dealership.state || "New York") + " · itemised")}
+        <ul class="fm-lines">
+          ${rows.map(r => `<li><span>${esc(r[0])}</span><b>${money(r[1])}</b></li>`).join("")}
+          <li class="fm-total"><span>${esc(total[0])}</span><b>${money(total[1])}</b></li>
+        </ul>`);
+    };
+    $("#fmNext").onclick = () => {
+      if (!M.termsPresented) { M.termsPresented = true; Store.save(); }
+      go(1);
     };
   }
 
-  /* ---------- step 2: repayment options ---------- */
-  /* which program the phone tab bar is showing. Deliberately not persisted:
-     it is a view position, not deal state. */
-  let mTab = null;
-  function step2() {
+  /* ---------- stage 2: Options ---------- */
+  let pack = null;
+  function options() {
     const cols = Object.entries(progSet).map(([key, p]) => RIDE_PRICE_CALC.menuColumn(deal, v, key, p));
-    if (!mTab) mTab = cols[0].key;
     const customResult = RIDE_PRICE_CALC.menuColumn(deal, v, "custom", {
       label: "Custom", products: M.custom,
       termAdj: M.customSource === "budget" ? (progSet.budget ? progSet.budget.termAdj : 0) : 0,
       aprAdj: M.customSource === "budget" ? (progSet.budget ? progSet.budget.aprAdj : 0) : 0
     });
+    if (!pack) pack = M.selectedProgram && M.selectedProgram !== "none" ? M.selectedProgram : cols[0].key;
+    const isCustom = pack === "custom";
+    const col = isCustom ? customResult : (cols.find(x => x.key === pack) || cols[0]);
+    /* Custom withholds its figure until the advisor reveals it — the dock
+       must not leak what the panel is concealing */
+    const hidden = isCustom && !M.showCustomPay;
+    const suffix = col.isTotal ? "" : "<small>/mo</small>";
+    const shownProducts = isCustom ? M.custom : col.products.filter(pid => !M.custom.includes(pid));
 
-    function iniBoxHtml(key) {
-      const isSel = M.selectedProgram === key;
-      return `<div class="ini-box ${isSel ? "ini-box--set" : ""}">
-        <input type="text" maxlength="4" data-ini="${key}" value="${isSel ? esc(M.initials) : ""}" placeholder="initial" aria-label="Client initials — select this program">
-        <button type="button" class="ini-clear" data-clear="${key}">Clear</button>
-      </div>`;
-    }
-
-    const activeCol = mTab === "custom" ? customResult : (cols.find(c => c.key === mTab) || cols[0]);
-    const acceptLabel = mTab === "custom" ? "Custom" : activeCol.label;
-    const acceptPay = mTab === "custom" ? customResult.payment : activeCol.payment;
-    /* Custom deliberately withholds its figure until Toggle Payment is used —
-       the Accept button must not leak what the column is concealing. */
-    const acceptHidden = mTab === "custom" && !M.showCustomPay;
-    /* on cash and one-pay, menuColumn returns a TOTAL DUE, not a monthly
-       payment (calc.js: isTotal). Never suffix that with "/mo". */
-    const acceptSuffix = activeCol.isTotal ? " total" : "/mo";
-    const acceptFigure = acceptHidden ? "" : ` (${money(acceptPay)}${acceptSuffix})`;
-
-    function prodHtml(pid, colKey) {
-      const p = RIDE_PRICE_CALC.productById(pid);
-      return `<div class="mprod" draggable="true" data-prod="${pid}" data-from="${colKey}">
-        <div><b>${p.name}</b><span>${p.detail}<span class="mprice"> · ${money0(p.price)}</span></span></div>
-        ${colKey === "custom"
-          ? `<button class="mv mv--x" data-return="${pid}">✕ remove</button>`
-          : `<button class="mv" data-move="${pid}" data-src="${colKey}">→ Custom</button>`}
-      </div>`;
-    }
-
-    view().innerHTML = `${menuStepperHtml(deal, M.step)}
-      <div class="flex" style="margin-bottom:14px">
-        <p class="note note--wt advscript-item" style="flex:1;min-width:min(280px,100%);margin:0"><span class="lab">Take control — the 300% rule</span>${M.presented ? `Every product has been presented — now show the options and let the client choose.` : `Present every product before showing payments.`} When they push back: <i>“Which product do you see the least amount of value in?”</i></p>
-        <a class="btn advscript-item ${M.presented ? "btn--ghost" : "btn--grad"}" href="#/present/${esc(deal.id)}">🎤 ${M.presented ? "Re-present products" : `Present ${cols[0].label} →`}</a>
+    body(1, `
+      <div class="fm-packs">
+        ${[...cols.map(x => ({ key: x.key, label: x.label })), { key: "custom", label: "Custom" }]
+          .map(t => `<button type="button" class="fm-pack${pack === t.key ? " fm-pack--on" : ""}" data-pack="${esc(t.key)}">${esc(t.label)}</button>`).join("")}
       </div>
-      <div class="mtabs" role="tablist">
-        ${[...cols.map(c => ({ key: c.key, label: c.label })), { key: "custom", label: "Custom" }]
-          .map(t => `<button type="button" role="tab" class="mtab ${mTab === t.key ? "on" : ""}" data-mtab="${t.key}" aria-selected="${mTab === t.key}">${esc(t.label)}</button>`).join("")}
-      </div>
-      <div class="menu-grid" data-activetab="${mTab}">
-        ${cols.map(col => `
-          <div class="mcol ${M.selectedProgram === col.key ? "mcol--active" : ""}" data-col="${col.key}">
-            <div class="mcol__mhead">
-              <div class="mh-top"><span class="mh-star">★</span><b>${esc(col.label.toUpperCase())}</b>${col.key === "preferred" ? `<span class="pop-chip">Most Popular</span>` : ""}</div>
-              <div class="mh-bot"><span>${col.detail}</span><b class="mh-pay">${money(col.payment)}</b></div>
-            </div>
-            <div class="mcol__head"><h3>${col.label}</h3>${col.key === "preferred" ? `<span class="pop-chip">Most Popular</span>` : ""}${iniBoxHtml(col.key)}</div>
-            <div class="mcol__products">
-              ${col.products.filter(pid => !M.custom.includes(pid)).map(pid => prodHtml(pid, col.key)).join("") || `<div class="mcol__empty">all products moved</div>`}
-            </div>
-            <div class="mcol__pay"><span>${col.detail}</span><b>${money(col.payment)}</b></div>
-          </div>`).join("")}
-        <div class="mcol ${M.selectedProgram === "custom" ? "mcol--active" : ""}" data-col="custom" id="customCol">
-          <div class="mcol__mhead">
-            <div class="mh-top"><span class="mh-star">★</span><b>CUSTOM</b></div>
-            <div class="mh-bot"><span>${M.showCustomPay ? customResult.detail : "Custom payment"}</span><b class="mh-pay">${M.showCustomPay ? money(customResult.payment) : "— — —"}</b></div>
-          </div>
-          <div class="mcol__head"><h3>Custom</h3>${iniBoxHtml("custom")}</div>
-          <div class="mcol__products">
-            ${M.custom.length ? M.custom.map(pid => prodHtml(pid, "custom")).join("") : `<div class="mcol__empty">Send products here to build a custom program.<br>The first product's source column sets the rate &amp; term.</div>`}
-          </div>
-          <div class="mcol__pay"><span id="togglePayLab">${M.showCustomPay ? customResult.detail : "Custom payment"}</span><b>${M.showCustomPay ? money(customResult.payment) : "— — —"}</b></div>
+      <div class="fm-card">
+        <div class="fm-paylab">${esc(col.label)} ${col.isTotal ? "total" : "payment"}</div>
+        <div class="fm-payamt">${hidden ? "— — —" : money(col.payment)}${hidden ? "" : suffix}</div>
+        <div class="fm-paysub">${hidden ? "Reveal the payment when you are ready" : esc(col.detail)}</div>
+        ${hidden ? `<div class="fm-actions"><button type="button" class="fm-btn" id="fmReveal">Show custom payment</button></div>` : ""}
+        <div class="fm-prods">
+          ${shownProducts.length ? shownProducts.map(pid => {
+            const p = RIDE_PRICE_CALC.productById(pid);
+            return `<div class="fm-prod">
+              <span class="fm-prodtick">✓</span>
+              <span class="fm-prodmain">${esc(p.name)} — ${esc(p.detail)}<span class="fm-prodprice"> · ${money0(p.price)}</span></span>
+              ${isCustom
+                ? `<button type="button" class="fm-move" data-return="${esc(pid)}">Remove</button>`
+                : `<button type="button" class="fm-move" data-move="${esc(pid)}" data-src="${esc(col.key)}">→ Custom</button>`}
+            </div>`;
+          }).join("") : `<div class="fm-empty">${isCustom
+            ? "Send products here from another package to build a custom program. The first product's package sets the rate and term."
+            : "Every product in this package has been moved to Custom."}</div>`}
         </div>
       </div>
-      <div class="mfoot">
-        <button type="button" class="advscript-card" id="menuAdvToggle" aria-expanded="false">
-          <span class="advscript-card__ico" aria-hidden="true">💡</span>
-          <span class="advscript-card__lab">Advisor Script</span>
-          <span class="advscript-card__chev" aria-hidden="true">▾</span>
-        </button>
-        <button type="button" class="btn btn--grad macpt" id="menuAccept">Accept ${esc(acceptLabel)} Package${acceptFigure} →</button>
-        <button type="button" class="mdecline" id="menuDecline">Continue without products</button>
+      <div class="fm-card">
+        <div class="fm-split" style="margin-top:0;padding-top:0;border-top:0">
+          <div class="fm-splitmain"><div class="fm-splittitle">Product presentation</div>
+            <div class="fm-splitsub">${M.presented ? "Presented to the customer" : "Present each product before the payment"}</div></div>
+          <a class="fm-view" href="#/present/${esc(deal.id)}">${M.presented ? "Re-present" : "Present"}</a>
+        </div>
       </div>
-      <div class="flex mt">
-        <button class="btn btn--primary" id="togglePay">Toggle Payment</button>
-        ${isCash ? `<button class="btn btn--ghost" id="switchFin">Switch to Finance</button>` : ""}
-        <div class="push"></div>
-        <button class="btn btn--ghost" id="backS1">← Back</button>
-        <button class="btn btn--grad" id="s2next">Next →</button>
-      </div>
-      <p class="note advscript-item">Products can move from Preferred and Standard into Custom. ${isCash ? "You cannot pull from Budget on a cash deal unless you switch the deal to finance." : "Moving remaining products from Standard provides payment relief."} It's possible to move forward with no products — but anything in the custom box must be initialed.</p>`;
+      ${M.selectedProgram && M.selectedProgram !== "none" ? `<div class="fm-card">
+        <h2 class="fm-cardtitle">Accepted</h2>
+        <div class="fm-row"><div class="fm-rowmain"><div class="fm-rowname">${esc(colLabel(M.selectedProgram))}</div>
+          <div class="fm-rowsub">Initials ${esc(M.initials || "—")}</div></div><span class="fm-tick">✓</span></div>
+      </div>` : ""}`,
+      dock(1, `<button type="button" class="fm-dockbtn" id="fmAccept">${M.selectedProgram && M.selectedProgram !== "none" ? "Continue" : `Accept ${esc(col.label)}`}</button>
+        <button type="button" class="fm-docklink" id="fmNone">No products</button>`, col.label));
 
-    /* phone tab bar */
-    $$("[data-mtab]").forEach(b => b.onclick = () => { mTab = b.dataset.mtab; step2(); });
-
-    /* on a phone the whole product row is the control that sends it to Custom;
-       the button it replaces is hidden at that width, never removed */
-    const phone = () => window.matchMedia("(max-width: 720px)").matches;
-    $$(".mprod[data-from]").forEach(row => row.addEventListener("click", (e) => {
-      if (!phone() || e.target.closest("button")) return;
-      const btn = row.querySelector("[data-move]") || row.querySelector("[data-return]");
-      if (btn) btn.click();
-    }));
-
-    const advBtn = $("#menuAdvToggle");
-    if (advBtn) {
-      advBtn.setAttribute("aria-expanded", String(document.body.classList.contains("script-open")));
-      advBtn.onclick = () => {
-        const open = document.body.classList.toggle("script-open");
-        advBtn.setAttribute("aria-expanded", String(open));
-      };
-    }
-
-    $("#menuAccept").onclick = () => {
-      if (mTab === "custom" && !M.custom.length) return toast("The custom box is empty — add a product first");
-      initialsModal(acceptLabel, (val) => {
-        M.selectedProgram = mTab; M.initials = val; Store.save();
-        toast("Client initialed: " + acceptLabel);
-        step2();
-      });
-    };
-    $("#menuDecline").onclick = () => {
-      if (M.custom.length && !M.selectedProgram) return toast("Anything in the custom box must be initialed");
-      confirmModal("Move forward with no products?",
-        "The client is declining every product on the menu. This is a legitimate outcome — the deal continues without a protection program.",
-        "Continue without products", () => {
-          M.selectedProgram = "none"; M.initials = "";
-          M.step = 4; M.maxStep = Math.max(M.maxStep || 1, 4); Store.save(); render();
-        });
-    };
-
-    /* move buttons */
+    $$("[data-pack]").forEach(b => b.onclick = () => { pack = b.dataset.pack; options(); });
+    const rev = $("#fmReveal"); if (rev) rev.onclick = () => { M.showCustomPay = true; Store.save(); options(); };
     $$("[data-move]").forEach(b => b.onclick = () => {
       const pid = b.dataset.move, src = b.dataset.src;
-      if (isCash && src === "budget") return toast("Cash deals can't pull from Budget — switch to finance first");
+      /* the old menu guarded against a cash deal pulling from Budget with a
+         blocked toast. A cash deal has no Budget program to pull from, so the
+         guard could never fire — the absence of the column is the rule now,
+         and a customSource left over from a finance session is neutralised
+         where the adjustment is read, not here. */
       if (!M.custom.length) M.customSource = src;
       if (!M.custom.includes(pid)) M.custom.push(pid);
-      M.showCustomPay = false; Store.save(); step2();
+      M.showCustomPay = false; Store.save(); options();
     });
     $$("[data-return]").forEach(b => b.onclick = () => {
       M.custom = M.custom.filter(x => x !== b.dataset.return);
       if (!M.custom.length) M.customSource = null;
-      M.showCustomPay = false; Store.save(); step2();
+      M.showCustomPay = false; Store.save(); options();
     });
 
-    /* drag & drop */
-    $$(".mprod").forEach(p => {
-      p.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", JSON.stringify({ pid: p.dataset.prod, from: p.dataset.from }));
-        p.classList.add("ghost");
-      });
-      p.addEventListener("dragend", () => p.classList.remove("ghost"));
-    });
-    const custom = $("#customCol");
-    custom.addEventListener("dragover", (e) => { e.preventDefault(); custom.classList.add("dragover"); });
-    custom.addEventListener("dragleave", () => custom.classList.remove("dragover"));
-    custom.addEventListener("drop", (e) => {
-      e.preventDefault(); custom.classList.remove("dragover");
-      try {
-        const { pid, from } = JSON.parse(e.dataTransfer.getData("text/plain"));
-        if (from === "custom") return;
-        if (isCash && from === "budget") return toast("Cash deals can't pull from Budget — switch to finance first");
-        if (!M.custom.length) M.customSource = from;
-        if (!M.custom.includes(pid)) M.custom.push(pid);
-        M.showCustomPay = false; Store.save(); step2();
-      } catch (err) { /* ignore */ }
-    });
-
-    $("#togglePay").onclick = () => { M.showCustomPay = true; Store.save(); step2(); };
-    const sw = $("#switchFin");
-    if (sw) sw.onclick = () => {
-      deal.dealType = "finance"; Store.save(); toast("Deal switched to Finance"); render();
+    $("#fmAccept").onclick = () => {
+      if (M.selectedProgram && M.selectedProgram !== "none") return go(2);
+      if (isCustom && !M.custom.length) return toast("The custom box is empty — add a product first");
+      openSheet(`${sheetHead("Accept " + col.label, hidden ? "" : money(col.payment) + (col.isTotal ? " total" : " per month"))}
+        <div class="fm-field"><label for="fmIni">Client initials</label>
+          <input class="fm-input" id="fmIni" maxlength="4" placeholder="JS" autocomplete="off"></div>
+        <div class="fm-actions"><button type="button" class="fm-btn fm-btn--primary" id="fmIniGo">Accept package</button></div>`,
+        (sh) => {
+          const inp = $("#fmIni", sh); inp.focus();
+          $("#fmIniGo", sh).onclick = () => {
+            const val = (inp.value || "").trim();
+            if (!val) { inp.style.borderColor = "var(--fm-bad)"; return; }
+            M.selectedProgram = pack; M.initials = val; Store.save();
+            closeSheet(); toast("Client initialed: " + col.label); go(2);
+          };
+        });
     };
-    const colLabel = (key) => key === "custom" ? "Custom" : progSet[key].label;
-    $$("[data-ini]").forEach(inp => inp.onchange = () => {
-      const key = inp.dataset.ini;
-      const val = inp.value.trim().toUpperCase();
-      if (!val) {
-        if (M.selectedProgram === key) { M.selectedProgram = null; M.initials = ""; }
-      } else {
-        if (key === "custom" && !M.custom.length) { inp.value = ""; return toast("The custom box is empty — add a product first"); }
-        M.selectedProgram = key; M.initials = val;
-      }
-      Store.save(); step2();
-      if (val) toast("Client initialed: " + colLabel(key));
-    });
-    $$("[data-clear]").forEach(b => b.onclick = () => {
-      const key = b.dataset.clear;
-      if (M.selectedProgram === key) { M.selectedProgram = null; M.initials = ""; Store.save(); toast("Selection cleared"); }
-      step2();
-    });
-    $("#backS1").onclick = () => { M.step = 2; Store.save(); navigate(`#/present/${deal.id}`); };
-    $("#s2next").onclick = () => {
-      if (M.custom.length && M.selectedProgram !== "custom" && !M.selectedProgram) return toast("Anything in the custom box must be initialed — have the client initial a program box");
-      if (!M.selectedProgram) {
-        return confirmModal("Move forward with no products?",
-          "No program has been initialed. The deal continues without a protection program.",
-          "Continue without products", () => {
-            M.selectedProgram = "none"; M.initials = "";
-            M.step = 4; M.maxStep = Math.max(M.maxStep || 1, 4); Store.save(); render();
-          });
-      }
-      M.step = 4; M.maxStep = Math.max(M.maxStep || 1, 4); Store.save(); render();
+    $("#fmNone").onclick = () => {
+      /* one confirmation, and never a blocked toast for the custom box:
+         declining clears what was built rather than refusing (package) */
+      openSheet(`${sheetHead("Continue without products", "The customer declines every optional product.")}
+        <div class="fm-field"><label for="fmDecIni">Client initials</label>
+          <input class="fm-input" id="fmDecIni" maxlength="4" placeholder="JS" autocomplete="off"></div>
+        <p class="jk2-privacy">The benefits acknowledgement on the next step records the refusal.${M.custom.length ? " The custom box is cleared." : ""}</p>
+        <div class="fm-actions"><button type="button" class="fm-btn fm-btn--primary" id="fmDecGo">Continue without products</button></div>`,
+        (sh) => {
+          const inp = $("#fmDecIni", sh); inp.focus();
+          $("#fmDecGo", sh).onclick = () => {
+            const val = (inp.value || "").trim();
+            if (!val) { inp.style.borderColor = "var(--fm-bad)"; return; }
+            M.selectedProgram = "none"; M.initials = val;
+            M.custom = []; M.customSource = null; M.showCustomPay = false;
+            Store.save(); closeSheet(); go(2);
+          };
+        });
     };
   }
 
-  /* ---------- step 3: disclosure forms ---------- */
-  function step3() {
-    /* the trade ownership answers make some forms mandatory — select them and
-       lock them, so paperwork the deal depends on cannot quietly go missing */
+  /* ---------- stage 3: Forms ---------- */
+  function forms() {
     const reqForms = requiredTradeForms(deal);
     reqForms.forEach(fid => { if (!deal.forms.selected.includes(fid)) deal.forms.selected.push(fid); });
     if (reqForms.length) Store.save();
-    const groups = {};
-    RIDE_PRICE_DATA.dealForms.forEach(f => { (groups[f.group] = groups[f.group] || []).push(f); });
-    view().innerHTML = `${menuStepperHtml(deal, M.step)}
-      <div class="panel">
-        <div class="panel__head"><h2>Benefits Acknowledgement</h2></div>
-        <div class="panel__body">
-          <p class="small">“The benefits and protection option(s) available have been explained to me/us and I/we choose the option(s) initialed above. I/We hold the Dealer harmless for my/our refusal of any optional benefit or protection.”</p>
-          ${M.ackSigned
-            ? `<div class="sig-box">${esc(M.ackName || c.first + " " + c.last)}</div><p class="small">Signed ${today()} · initials ${esc(M.initials || "—")}</p>`
-            : `<button class="btn btn--primary" id="ackSign">✍ Client signs acknowledgement</button>`}
-        </div>
-      </div>
-      <div class="panel">
-        <div class="panel__head"><h2>Deal Forms — select the forms you need to print</h2></div>
-        <div class="panel__body">
-          <div class="grid grid--2">
-          ${Object.entries(groups).map(([g, forms]) => `
-            <div><h3 style="font-size:13px;text-transform:uppercase;color:var(--navy);margin:0 0 8px">${g}</h3>
-            ${forms.map(f => { const locked = reqForms.includes(f.id); return `<label class="opt-row${locked ? " opt-row--locked" : ""}"><span class="switch"><input type="checkbox" data-form="${f.id}" ${deal.forms.selected.includes(f.id) ? "checked" : ""} ${locked ? "disabled" : ""}><span class="sl"></span></span><span class="opt-row__label">${esc(f.label)}${locked ? ` <b class="req-tag">required by the trade</b>` : ""}</span></label>`; }).join("")}</div>`).join("")}
-          </div>
-          <p class="hint">Additional forms may be printed by your team lead or processing department.</p>
-        </div>
-      </div>
-      <div class="flex"><button class="btn btn--ghost" id="backS2">← Back</button><div class="push"></div><button class="btn btn--grad" id="s3next">Continue →</button></div>`;
+    const chosen = deal.forms.selected.length;
 
-    const ack = $("#ackSign");
-    if (ack) ack.onclick = () => { M.ackSigned = true; M.ackName = c.first + " " + c.last; Store.save(); step3(); toast("Acknowledgement signed"); };
-    $$("[data-form]").forEach(cb => cb.onchange = () => {
-      const picked = $$("[data-form]").filter(x => x.checked).map(x => x.dataset.form);
-      /* locked forms are disabled inputs; keep them in the list regardless */
-      reqForms.forEach(fid => { if (!picked.includes(fid)) picked.push(fid); });
-      deal.forms.selected = picked;
-      Store.save();
-    });
-    $("#backS2").onclick = () => { M.step = 3; M.maxStep = Math.max(M.maxStep || 1, 3); Store.save(); render(); };
-    $("#s3next").onclick = () => {
-      if (!M.ackSigned) return toast("The client must sign the benefits acknowledgement first");
-      M.step = 5; M.maxStep = 5; deal.stage = "forms"; Store.save(); render();
+    body(2, `
+      <div class="fm-card">
+        <h2 class="fm-cardtitle">Benefits acknowledgement</h2>
+        <p class="fm-say">The benefits and protection options available have been explained, and the customer may choose or refuse optional products.</p>
+        ${M.ackSigned
+          ? `<div class="fm-split"><div class="fm-splitmain"><div class="fm-splittitle">${esc(M.ackName || c.first + " " + c.last)}</div>
+              <div class="fm-splitsub">Signed · initials ${esc(M.initials || "—")}</div></div>
+              <span class="fm-pill">Signed</span></div>`
+          : `<div class="fm-actions"><button type="button" class="fm-btn fm-btn--primary" id="fmSign">Client signs acknowledgement</button></div>`}
+      </div>
+      <div class="fm-card">
+        <div class="fm-split" style="margin-top:0;padding-top:0;border-top:0">
+          <div class="fm-splitmain"><div class="fm-splittitle">Additional deal forms</div>
+            <div class="fm-splitsub">${chosen ? `${chosen} selected` : "None selected"}</div></div>
+          <button type="button" class="fm-view" id="fmForms">Choose</button>
+        </div>
+      </div>`,
+      dock(2, `<button type="button" class="fm-dockbtn" id="fmNext"${M.ackSigned ? "" : " disabled"}>Continue</button>`));
+
+    const sign = $("#fmSign");
+    if (sign) sign.onclick = () => openSheet(`${sheetHead("Benefits acknowledgement", c.first + " " + c.last)}
+      <p class="jk2-privacy">The benefits and protection option(s) available have been explained to me/us and I/we choose the option(s) initialed (${esc(M.initials || "—")}). I/We hold the Dealer harmless for my/our refusal of any optional benefit or protection.</p>
+      <div class="fm-sig">${esc(c.first + " " + c.last)}</div>
+      <div class="fm-actions"><button type="button" class="fm-btn fm-btn--primary" id="fmSignGo">Sign acknowledgement</button></div>`,
+      (sh) => {
+        $("#fmSignGo", sh).onclick = () => {
+          M.ackSigned = true; M.ackName = c.first + " " + c.last; Store.save();
+          closeSheet(); toast("Acknowledgement signed"); forms();
+        };
+      });
+
+    $("#fmForms").onclick = () => {
+      const groups = {};
+      RIDE_PRICE_DATA.dealForms.forEach(f => { (groups[f.group] = groups[f.group] || []).push(f); });
+      openSheet(`${sheetHead("Additional deal forms", "Anything the trade requires is selected and locked.")}
+        ${Object.entries(groups).map(([g, list]) => `
+          <div class="fm-grouplab">${esc(g)}</div>
+          ${list.map(f => { const locked = reqForms.includes(f.id);
+            return `<label class="fm-formrow"><input type="checkbox" data-form="${esc(f.id)}"${deal.forms.selected.includes(f.id) ? " checked" : ""}${locked ? " disabled" : ""}>
+              <span class="fm-formmain">${esc(f.label)}${locked ? `<span class="fm-formlock">required by the trade</span>` : ""}</span></label>`;
+          }).join("")}`).join("")}
+        <div class="fm-actions"><button type="button" class="fm-btn fm-btn--primary" data-sheet-close>Done</button></div>`,
+        (sh) => {
+          $$("[data-form]", sh).forEach(cb => cb.onchange = () => {
+            const picked = $$("[data-form]", sh).filter(x => x.checked).map(x => x.dataset.form);
+            /* locked forms are disabled inputs and never report checked —
+               put them back or the trade's paperwork quietly disappears */
+            reqForms.forEach(fid => { if (!picked.includes(fid)) picked.push(fid); });
+            deal.forms.selected = picked; Store.save();
+          });
+        });
     };
+    const nx = $("#fmNext");
+    if (nx && !nx.disabled) nx.onclick = () => { deal.stage = "forms"; Store.save(); go(3); };
   }
 
-  /* ---------- step 4: financial contracts / finalize ---------- */
-  function step4() {
+  /* ---------- stage 4: Finalize ---------- */
+  function finalize() {
+    if (deal.forms.finalized) return finalized();
     const selKey = M.selectedProgram;
     const purchased = selKey && selKey !== "none"
       ? (selKey === "custom" ? M.custom : progSet[selKey].products) : [];
-    const declined = [...new Set(Object.values(progSet).flatMap(p => p.products))].filter(pid => !purchased.includes(pid));
     const colResult = selKey && selKey !== "none"
       ? RIDE_PRICE_CALC.menuColumn(deal, v, selKey, selKey === "custom"
         ? { label: "Custom", products: M.custom, termAdj: 0, aprAdj: 0 }
         : progSet[selKey]) : null;
     const snap = (deal.basePayment && deal.basePayment.snapshot) || RIDE_PRICE_CALC.calc(deal, v);
-    const done = deal.forms.finalized;
+    const jkc = jacketCounts(deal);
+    const jov = jacketRead(deal).override;
+    const ready = [
+      { name: "Manager sign-off", sub: "Complete", ok: true },
+      { name: "Terms presented", sub: M.termsPresented ? "Complete" : "Not presented", ok: !!M.termsPresented },
+      { name: "Protection decision", sub: selKey === "none" ? "Declined — no products" : colResult ? `${colLabel(selKey)} · ${money(colResult.payment)}${colResult.isTotal ? "" : "/mo"}` : "Not chosen", ok: !!selKey },
+      { name: "Benefits acknowledgement", sub: M.ackSigned ? "Signed" : "Not signed", ok: !!M.ackSigned },
+      { name: "Deal Jacket", sub: `${jkc.have} / ${jkc.total}${jkc.missing && jov ? " · override recorded" : ""}`, ok: !jkc.missing || !!jov }
+    ];
+    const canFinalize = ready.every(r => r.ok);
 
-    view().innerHTML = `${menuStepperHtml(deal, M.step)}
-      <div class="doc">
-        <div class="doc-brand"><span style="font-size:22px;font-weight:800;font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent">Ride</span><span style="font-size:10px;font-weight:700;letter-spacing:2px;color:var(--navy)">PRICE</span></div>
-        <h2>Repayment Options — ${RIDE_PRICE_DATA.dealership.name}</h2>
-        <div class="two">
-          <div><b>${esc(c.first)} ${esc(c.last)}</b><br>${esc(c.phone)}<br>${esc(c.address)}, ${esc(c.city)} ${esc(c.zip)}</div>
-          <div class="right"><b>${esc(v.year)} ${esc(v.make)} ${esc(v.model)}</b><br>VIN ${esc(v.vin)} · Stock ${esc(v.stock)}<br>${esc(DEAL_TYPES[deal.dealType])}${colResult && colResult.term ? ` · ${colResult.term} mo${colResult.apr ? " @ " + colResult.apr.toFixed(2) + "%" : ""}` : ""}</div>
+    body(3, `
+      <div class="fm-card">
+        <h2 class="fm-cardtitle">Ready to finalize</h2>
+        <div class="fm-rows">
+          ${ready.map(r => `<div class="fm-row">
+            <div class="fm-rowmain"><div class="fm-rowname">${esc(r.name)}</div><div class="fm-rowsub">${esc(r.sub)}</div></div>
+            <span class="fm-tick${r.ok ? "" : " fm-prodtick--off"}">${r.ok ? "✓" : "•"}</span>
+          </div>`).join("")}
         </div>
-        <h3 style="font-size:13px;color:var(--navy);margin:10px 0 4px">Purchased Products</h3>
-        <ul class="lines small">
-          ${purchased.length ? purchased.map(pid => { const p = RIDE_PRICE_CALC.productById(pid); return `<li><span>${p.name} — ${p.detail}</span><b class="amt">${money(p.price)}</b></li>`; }).join("") : `<li><span class="muted">No products selected</span><b class="amt">$0.00</b></li>`}
-          ${colResult ? `<li class="total"><span>${colResult.isTotal ? "Total Due" : "Monthly Payment (inc. products & taxes)"}</span><b class="amt">${money(colResult.payment)}</b></li>`
-            : `<li class="total"><span>${isCash ? "Total Due" : "Monthly Payment"}</span><b class="amt">${money(isCash ? snap.totalDue : (deal.dealType === "onepay" ? snap.onePayTotal : snap.payment))}</b></li>`}
+      </div>
+      <div class="fm-card">
+        <h2 class="fm-cardtitle">Repayment summary</h2>
+        <ul class="fm-lines">
+          ${purchased.length ? purchased.map(pid => { const p = RIDE_PRICE_CALC.productById(pid);
+            return `<li><span>${esc(p.name)}</span><b>${money(p.price)}</b></li>`; }).join("")
+            : `<li><span>No products selected</span><b>${money(0)}</b></li>`}
+          <li class="fm-total"><span>${colResult ? (colResult.isTotal ? "Total due" : "Monthly payment") : isCash ? "Total due" : "Monthly payment"}</span>
+            <b>${money(colResult ? colResult.payment : isCash ? snap.totalDue : deal.dealType === "onepay" ? snap.onePayTotal : snap.payment)}</b></li>
         </ul>
-        <h3 style="font-size:13px;color:var(--crimson);margin:14px 0 4px">Declined Products</h3>
-        <p class="small">${declined.length ? declined.map(pid => RIDE_PRICE_CALC.productById(pid).name + " (" + RIDE_PRICE_CALC.productById(pid).detail + ")").join(" · ") : "None"}</p>
-        <p class="fine">The benefits and protection option(s) available have been explained to me/us and I/we choose the option(s) initialed (${esc(M.initials || "—")}). I/We hold the Dealer harmless for my/our refusal of any optional benefit or protection.</p>
-        <div class="sig-box" style="margin-top:12px">${esc(c.first + " " + c.last)}</div>
-      </div>
-      <div class="flex mt" style="max-width:760px;margin:16px auto 0">
-        <button class="btn btn--ghost" id="backS3">← Back</button>
-        <a class="btn btn--ghost" href="#/deals">Return to Deals List</a>
-        <button class="btn btn--primary" id="dmsPush">DMS Push</button>
-        <a class="btn btn--ghost" href="#/forms/${esc(deal.id)}">🖨 Print Center</a>
-        <div class="push"></div>
-        ${done ? `<span class="badge badge--approved" style="padding:10px 18px">✓ Deal Finalized</span>` : `<button class="btn btn--grad" id="finalize">Finalize Deal</button>`}
-      </div>
-      <p class="note" style="max-width:760px;margin:14px auto">Print the repayment options page for your processor or team lead — it shows what was purchased and declined. Review each document with your client, collect signatures, then finalize. Team leads are responsible for the DMS push.</p>`;
+        <div class="fm-split">
+          <div class="fm-splitmain"><div class="fm-splittitle">Print centre</div>
+            <div class="fm-splitsub">Repayment options page and the selected forms</div></div>
+          <a class="fm-view" href="#/forms/${esc(deal.id)}">Open</a>
+        </div>
+      </div>`,
+      dock(3, `<button type="button" class="fm-dockbtn" id="fmFinal"${canFinalize ? "" : " disabled"}>Finalize deal</button>`));
 
-    $("#backS3").onclick = () => { M.step = 4; Store.save(); render(); };
-    $("#dmsPush").onclick = () => {
-      if (!isTeamLead()) return toast("Team Leads are responsible for the DMS push — switch to Team Lead first");
-      toast("Pushed to DMS ✓ by " + RIDE_PRICE_DATA.dealership.teamLead + " (demo)");
-    };
-    const fin = $("#finalize");
-    if (fin) fin.onclick = () => {
-      deal.forms.finalized = true; deal.stage = "complete"; Store.save(); step4();
-      toast("🎉 Deal finalized — it now shows dark blue in the Deals list");
+    const fb = $("#fmFinal");
+    if (fb && !fb.disabled) fb.onclick = () => {
+      /* one closeout action: the DMS delivery is part of finalizing, not a
+         second primary button (package). The push is recorded against the
+         Team Lead who approved the deal — the dealership's standing rule
+         that a Team Lead is responsible for it, kept without inventing a
+         second gate the package does not describe. */
+      deal.forms.finalized = true; deal.stage = "complete";
+      deal.dms = { at: new Date().toISOString(), by: (deal.signoff && deal.signoff.by) || RIDE_PRICE_DATA.dealership.teamLead };
+      Store.save();
+      render();
     };
   }
 
+  function finalized() {
+    const jkc = jacketCounts(deal);
+    renderChrome("Finance Menu", dealTitle(deal), "");
+    document.body.dataset.canvas = "master";
+    document.body.dataset.screen = "menu";
+    view().innerHTML = `
+      <div class="m-app">
+        ${deskTop(deal)}
+        <main class="fm-main">
+          <div class="fm-done">
+            <div class="fm-donetick">✓</div>
+            <div class="fm-eyebrow">Finance complete</div>
+            <h1 class="fm-title">Deal finalized</h1>
+            <p class="fm-donesay">The completed package was pushed to the DMS.${deal.dealNo ? ` Deal #${esc(deal.dealNo)}` : " This deal"} has moved out of the active Deals queue.</p>
+          </div>
+          <div class="fm-card">
+            <div class="fm-rows">
+              <div class="fm-row"><div class="fm-rowmain"><div class="fm-rowname">DMS push</div>
+                <div class="fm-rowsub">Completed${deal.dms && deal.dms.by ? ` · ${esc(deal.dms.by)}` : ""}</div></div><span class="fm-pill">Sent</span></div>
+              <div class="fm-row"><div class="fm-rowmain"><div class="fm-rowname">Deal Jacket</div>
+                <div class="fm-rowsub">${jkc.have} / ${jkc.total}</div></div>
+                <span class="fm-pill${jkc.missing ? " fm-pill--bad" : ""}">${jkc.missing ? jkc.missing + " outstanding" : "Complete"}</span></div>
+            </div>
+          </div>
+          <div class="fm-actions">
+            <a class="fm-btn fm-btn--primary" href="#/deals" style="display:grid;place-items:center;text-decoration:none">Return to Deals</a>
+            <a class="fm-btn" href="#/forms/${esc(deal.id)}" style="display:grid;place-items:center;text-decoration:none">Print centre</a>
+          </div>
+        </main>
+      </div>
+      <div class="m-scrim" id="fmScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="fmSheet"></div></div>`;
+    wireDeskTop();
+  }
+
+  /* ---------- shared frame ---------- */
+  function body(stageIdx, cards, dockHtml) {
+    renderChrome("Finance Menu", dealTitle(deal), "");
+    document.body.dataset.canvas = "master";
+    document.body.dataset.screen = "menu";
+    const titles = ["Review the deal terms", "Choose a protection package", "Disclosures & forms", "Final review"];
+    view().innerHTML = shell("Finance menu", titles[stageIdx],
+      `${stageRow(stageIdx)}${cards}`, dockHtml);
+    wireDeskTop();
+    $$("[data-stage]").forEach(b => { if (!b.disabled) b.onclick = () => go(parseInt(b.dataset.stage, 10)); });
+    const scrim = $("#fmScrim");
+    if (scrim) scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
+  }
+
+  function go(stageIdx) {
+    M.step = STEP_OF[stageIdx];
+    M.maxStep = Math.max(M.maxStep || 1, M.step);
+    Store.save();
+    render();
+  }
+
   function render() {
-    if (M.step === 2) return navigate(`#/present/${deal.id}`);
-    chrome();
-    /* renderChrome() cleared this; step 3 is the one with a phone layout */
-    document.body.dataset.screen = M.step === 3 ? "menu3" : "";
-    ({ 1: step1, 3: step2, 4: step3, 5: step4 }[Math.min(5, Math.max(1, M.step))] || step1)();
-    bindMenuStepper(deal, render);
+    closeSheet();
+    if (!deal.signoff) return gate();
+    if (deal.forms.finalized) return finalized();
+    ({ 0: terms, 1: options, 2: forms, 3: finalize }[stageOf(M.step)] || terms)();
   }
   render();
 });

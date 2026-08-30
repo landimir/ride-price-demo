@@ -2763,3 +2763,124 @@ a.jk2-sheetbtn { display: grid; place-items: center; text-decoration: none; }
    floor. Scoped to this jacket's sheets so the shared master close keeps the
    size its own package locked. */
 #jkSheet .m-close { width: 40px; height: 40px; }
+body[data-canvas="master"] {
+  --fm-ok: #168A62;
+  --fm-ok-bg: #EAF7F2;
+  --fm-warn: #8A5A00;
+  --fm-warn-bg: #FFF6DD;
+  --fm-bad: #C13515;
+  --fm-bad-bg: #FFF0ED;
+  --fm-note-bg: #FFF1F3;
+}
+
+/* ---------- Finance Menu V3 (owner's replication package, 2026-08-29)
+   Manager sign-off gate, then four stages: Terms → Options → Forms →
+   Finalize. Geometry transcribed from the golden — 24px cards, 999px stage
+   pills that never wrap, the safe-area dock carrying "Step n of 4" beside
+   one dominant action. The package's copy rule is structural, not cosmetic:
+   no instructional paragraph sits under an operational page title, so the
+   hero is eyebrow + title + context chips and nothing else. ---------- */
+.fm-main { padding: 18px 16px 28px; }
+.fm-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.fm-title { font-size: 32px; font-weight: 780; letter-spacing: -1.1px; line-height: 1.06; margin: 6px 0 0; }
+.fm-chips { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0 0; }
+.fm-chip { border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 10px 16px; font-size: 14px; font-weight: 650; white-space: nowrap; }
+.fm-chip--link { color: inherit; text-decoration: none; }
+.fm-chip--link:active { background: var(--surface); }
+
+/* the four stage pills — one row, never wrapping (locked) */
+.fm-stages { display: flex; gap: 8px; margin: 18px 0 0; }
+.fm-stage { flex: 1 1 0; min-width: 0; border: 1px solid var(--line); background: #fff; border-radius: 999px; min-height: 52px; padding: 0 6px; font: inherit; font-size: 14px; font-weight: 700; color: var(--ink); display: grid; place-items: center; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.fm-stage--on { background: var(--ink); color: #fff; border-color: var(--ink); }
+.fm-stage--done { background: var(--fm-ok-bg); border-color: transparent; color: var(--fm-ok); }
+.fm-stage[disabled] { color: var(--muted-2); cursor: default; }
+
+/* cards */
+.fm-card { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 20px; margin-top: 16px; }
+.fm-cardtitle { font-size: 21px; font-weight: 750; letter-spacing: -.4px; margin: 0 0 14px; }
+.fm-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.fm-quote { background: var(--surface); border-radius: 16px; padding: 14px 16px; }
+.fm-quotelab { font-size: 14px; color: var(--muted); }
+.fm-quoteamt { font-size: 27px; font-weight: 760; letter-spacing: -.8px; margin-top: 2px; }
+.fm-quotesub { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.fm-split { display: flex; align-items: flex-start; gap: 16px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
+.fm-splitmain { flex: 1; min-width: 0; }
+.fm-splittitle { font-size: 17px; font-weight: 720; }
+.fm-splitsub { font-size: 14px; color: var(--muted); margin-top: 3px; line-height: 1.4; }
+.fm-view { border: 0; background: transparent; font: inherit; font-size: 16px; font-weight: 700; text-decoration: underline; color: var(--ink); cursor: pointer; flex: none; padding: 12px 4px; margin: -12px -4px; min-height: 44px; }
+.fm-say { font-size: 16px; line-height: 1.55; color: var(--muted); margin: 0; }
+
+/* status list (the gate, and Ready to finalize) */
+.fm-rows { margin-top: 4px; }
+.fm-row { display: flex; align-items: center; gap: 14px; padding: 15px 0; border-bottom: 1px solid var(--line-soft); }
+.fm-row:last-child { border-bottom: 0; }
+.fm-rowmain { flex: 1; min-width: 0; }
+.fm-rowname { font-size: 17px; font-weight: 700; }
+.fm-rowsub { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.fm-pill { flex: none; font-size: 14px; font-weight: 700; padding: 8px 13px; border-radius: 999px; background: var(--fm-ok-bg); color: var(--fm-ok); }
+.fm-pill--bad { background: var(--fm-bad-bg); color: var(--fm-bad); }
+.fm-tick { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--fm-ok-bg); color: var(--fm-ok); display: grid; place-items: center; font-size: 15px; font-weight: 800; }
+
+/* the waiting note — an exception, which the copy rule allows */
+.fm-note { border-left: 4px solid var(--coral); background: var(--fm-note-bg); border-radius: 0 14px 14px 0; padding: 16px 18px; margin-top: 18px; font-size: 17px; font-weight: 700; }
+
+/* page-level actions on the gate (not a dock — the gate has no stages) */
+.fm-actions { display: grid; gap: 12px; margin-top: 18px; }
+.fm-btn { min-height: 56px; border-radius: 999px; border: 1.5px solid var(--ink); background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; padding: 0 18px; }
+.fm-btn--primary { background: var(--grad); color: #fff; border-color: transparent; }
+.fm-btn[disabled] { background: #C9C9C9; border-color: transparent; color: #fff; cursor: default; }
+
+/* package pills on Options */
+.fm-packs { display: flex; gap: 8px; margin-top: 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+.fm-packs::-webkit-scrollbar { display: none; }
+/* four finance packages fit one row at 390px, as the golden shows. The
+   lease set carries much longer labels, so the row still scrolls rather
+   than truncating them. */
+.fm-pack { flex: 1 0 auto; border: 1px solid var(--line); background: #fff; border-radius: 999px; min-height: 52px; padding: 0 12px; font: inherit; font-size: 14px; font-weight: 700; color: var(--ink); cursor: pointer; white-space: nowrap; }
+.fm-pack--on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+/* the payment above the products (locked hierarchy) */
+.fm-paylab { font-size: 15px; color: var(--muted); }
+.fm-payamt { font-size: 34px; font-weight: 780; letter-spacing: -1px; line-height: 1.1; }
+.fm-payamt small { font-size: 17px; font-weight: 700; color: var(--muted); letter-spacing: 0; }
+.fm-paysub { font-size: 15px; color: var(--muted); margin-top: 2px; }
+.fm-prods { margin-top: 16px; }
+.fm-prod { display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line-soft); }
+.fm-prodtick { flex: none; width: 30px; height: 30px; border-radius: 50%; background: var(--fm-ok); color: #fff; display: grid; place-items: center; font-size: 14px; font-weight: 800; margin-top: 1px; }
+.fm-prodtick--off { background: var(--surface-2); color: var(--muted-2); }
+.fm-prodmain { flex: 1; min-width: 0; font-size: 16px; line-height: 1.4; }
+.fm-prodprice { color: var(--muted); }
+.fm-move { border: 1px solid var(--line); background: #fff; border-radius: 999px; font: inherit; font-size: 13px; font-weight: 650; padding: 9px 12px; min-height: 44px; cursor: pointer; flex: none; color: var(--ink); }
+.fm-empty { padding: 18px 0 4px; font-size: 15px; color: var(--muted); line-height: 1.45; }
+
+/* initials capture */
+.fm-field { margin-top: 16px; }
+.fm-field label { display: block; font-size: 14px; font-weight: 650; margin-bottom: 7px; }
+.fm-input { width: 100%; border: 1px solid #CFCFCF; border-radius: 16px; min-height: 52px; padding: 12px 16px; font: inherit; font-size: 16px; background: #fff; color: var(--ink); }
+.fm-sig { border: 1px dashed var(--line); border-radius: 16px; padding: 16px; font-size: 26px; font-family: "Segoe Script", "Bradley Hand", cursive; text-align: center; }
+
+/* the dock: "Step n of 4" beside one dominant action, safe-area aware */
+.fm-dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; width: min(430px, 100%); background: rgba(255, 255, 255, .97); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid var(--line); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; z-index: 12; }
+.fm-dockcopy { min-width: 0; flex: 1; }
+.fm-dockcopy small { display: block; color: var(--muted); font-size: 13px; }
+.fm-dockcopy strong { display: block; font-size: 17px; font-weight: 750; margin-top: 1px; }
+.fm-dockbtn { border: 0; border-radius: 999px; padding: 15px 22px; min-height: 52px; font: inherit; font-size: 16px; font-weight: 700; white-space: nowrap; background: var(--grad); color: #fff; cursor: pointer; flex: none; }
+.fm-dockbtn[disabled] { background: #E7E7E7; color: #8A8A8A; cursor: default; }
+.fm-docklink { border: 0; background: transparent; font: inherit; font-size: 15px; font-weight: 700; text-decoration: underline; color: var(--ink); cursor: pointer; flex: none; padding: 12px 2px; margin: -12px -2px; min-height: 44px; }
+
+/* finalized */
+.fm-done { text-align: center; padding: 34px 0 6px; }
+.fm-donetick { width: 96px; height: 96px; border-radius: 50%; background: var(--fm-ok); color: #fff; display: grid; place-items: center; font-size: 44px; margin: 0 auto 18px; }
+.fm-donesay { font-size: 17px; color: var(--muted); line-height: 1.5; margin: 12px 0 0; }
+
+/* sheet interiors reused from the master vocabulary; these are the extras */
+.fm-lines { list-style: none; margin: 6px 0 0; padding: 0; }
+.fm-lines li { display: flex; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line-soft); font-size: 15px; }
+.fm-lines li:last-child { border-bottom: 0; }
+.fm-lines li.fm-total { font-weight: 750; font-size: 17px; }
+.fm-formrow { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
+.fm-formrow:last-child { border-bottom: 0; }
+.fm-formrow input { width: 22px; height: 22px; flex: none; accent-color: var(--accent); }
+.fm-formmain { flex: 1; min-width: 0; font-size: 15px; }
+.fm-formlock { font-size: 12px; font-weight: 700; color: var(--fm-warn); background: var(--fm-warn-bg); border-radius: 999px; padding: 4px 9px; margin-left: 8px; white-space: nowrap; }
+.fm-grouplab { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 18px 0 2px; }
