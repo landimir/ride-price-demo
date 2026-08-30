@@ -4501,6 +4501,31 @@ route("menu/:id", ({ id }) => {
   const M = deal.menu;
   migrateMenuV5(deal);
   const colLabel = (key) => key === "custom" ? "Custom" : key === "none" ? "No products" : (progSet[key] || {}).label || key;
+
+  /* ONE definition of a program's spec, so Options and Finalize cannot
+     disagree about what the client initialed — Finalize used to rebuild the
+     custom column with termAdj/aprAdj of 0 and quoted a different payment
+     than the one on the screen the client put their initials on. A program
+     that does not exist on this deal type (a finance deal switched to cash
+     after Budget was selected) resolves to null rather than throwing. */
+  const programSpec = (key) => {
+    if (key === "custom") {
+      const src = M.customSource === "budget" && progSet.budget ? progSet.budget : null;
+      return { label: "Custom", products: M.custom,
+        termAdj: src ? src.termAdj : 0, aprAdj: src ? src.aprAdj : 0 };
+    }
+    return progSet[key] || null;
+  };
+
+  /* The signed snapshot is frozen at signing time and carries only the fields
+     of the deal type it was calculated for. The desking screens can change
+     `dealType` afterwards without clearing it, and reading a finance snapshot
+     as a one-pay deal printed `$NaN` on the customer-facing card. A snapshot
+     from a different deal type is not this deal's snapshot. */
+  const snapshot = () => {
+    const s = deal.basePayment && deal.basePayment.snapshot;
+    return s && s.dealType === deal.dealType ? s : RIDE_PRICE_CALC.calc(deal, v);
+  };
   if ((M.maxStep || 1) < M.step) { M.maxStep = M.step; Store.save(); }
   /* a deal finalized before sign-off existed keeps its history honest */
   if (!deal.signoff && deal.stage === "complete") {
@@ -4633,7 +4658,7 @@ route("menu/:id", ({ id }) => {
 
   /* ---------- stage 1: Terms ---------- */
   function terms() {
-    const snap = (deal.basePayment && deal.basePayment.snapshot) || RIDE_PRICE_CALC.calc(deal, v);
+    const snap = snapshot();
     const q = deal.creditApp || {};
     const qualified = !isCash && !isLease && q.approved
       ? RIDE_PRICE_CALC.finance(deal, v, { apr: q.qualifiedApr, term: deal.desk.term }) : null;
@@ -4688,8 +4713,13 @@ route("menu/:id", ({ id }) => {
 
     $("#fmFees").onclick = () => {
       const rows = isLease
+        /* derive the combined row rather than reading snap.payment: onePay()
+           zeroes payment while keeping the lease-derived components, so
+           reading it printed $0.00 directly under the two figures it is the
+           sum of. lease() defines payment as exactly this sum. */
         ? [["Monthly base payment", snap.basePayment], ["Sales tax on base payment", snap.monthlyTax],
-           ["Base payment with taxes", snap.payment], ["Acquisition fee", snap.acquisitionFee],
+           ["Base payment with taxes", RIDE_PRICE_CALC.round2(snap.basePayment + snap.monthlyTax)],
+           ["Acquisition fee", snap.acquisitionFee],
            ["Sales tax on cap cost reduction", snap.ccrTax]]
         : (snap.taxes && snap.taxes.rows || []).map(t => [t.label, t.amount]).concat(RIDE_PRICE_DATA.fees.map(f => [f.label, f.amount]));
       const total = isLease
@@ -4708,14 +4738,10 @@ route("menu/:id", ({ id }) => {
   }
 
   /* ---------- stage 2: Options ---------- */
-  let pack = null;
+  let pack = null, packScroll = 0;
   function options() {
     const cols = Object.entries(progSet).map(([key, p]) => RIDE_PRICE_CALC.menuColumn(deal, v, key, p));
-    const customResult = RIDE_PRICE_CALC.menuColumn(deal, v, "custom", {
-      label: "Custom", products: M.custom,
-      termAdj: M.customSource === "budget" ? (progSet.budget ? progSet.budget.termAdj : 0) : 0,
-      aprAdj: M.customSource === "budget" ? (progSet.budget ? progSet.budget.aprAdj : 0) : 0
-    });
+    const customResult = RIDE_PRICE_CALC.menuColumn(deal, v, "custom", programSpec("custom"));
     if (!pack) pack = M.selectedProgram && M.selectedProgram !== "none" ? M.selectedProgram : cols[0].key;
     const isCustom = pack === "custom";
     const col = isCustom ? customResult : (cols.find(x => x.key === pack) || cols[0]);
@@ -4765,7 +4791,17 @@ route("menu/:id", ({ id }) => {
       dock(1, `<button type="button" class="fm-dockbtn" id="fmAccept">${M.selectedProgram && M.selectedProgram !== "none" ? "Continue" : `Accept ${esc(col.label)}`}</button>
         <button type="button" class="fm-docklink" id="fmNone">No products</button>`, col.label));
 
-    $$("[data-pack]").forEach(b => b.onclick = () => { pack = b.dataset.pack; options(); });
+    /* options() rebuilds the whole view, and the pill row scrolls when the
+       lease programs' long labels overflow it. Without this the row snaps
+       back to the start on every tap and the pill the user just pressed
+       jumps out from under their finger. */
+    const packRow = $(".fm-packs");
+    if (packRow && packScroll) packRow.scrollLeft = packScroll;
+    $$("[data-pack]").forEach(b => b.onclick = () => {
+      const row = $(".fm-packs");
+      packScroll = row ? row.scrollLeft : 0;
+      pack = b.dataset.pack; options();
+    });
     const rev = $("#fmReveal"); if (rev) rev.onclick = () => { M.showCustomPay = true; Store.save(); options(); };
     $$("[data-move]").forEach(b => b.onclick = () => {
       const pid = b.dataset.move, src = b.dataset.src;
@@ -4889,19 +4925,23 @@ route("menu/:id", ({ id }) => {
   function finalize() {
     if (deal.forms.finalized) return finalized();
     const selKey = M.selectedProgram;
-    const purchased = selKey && selKey !== "none"
-      ? (selKey === "custom" ? M.custom : progSet[selKey].products) : [];
-    const colResult = selKey && selKey !== "none"
-      ? RIDE_PRICE_CALC.menuColumn(deal, v, selKey, selKey === "custom"
-        ? { label: "Custom", products: M.custom, termAdj: 0, aprAdj: 0 }
-        : progSet[selKey]) : null;
-    const snap = (deal.basePayment && deal.basePayment.snapshot) || RIDE_PRICE_CALC.calc(deal, v);
+    const spec = selKey && selKey !== "none" ? programSpec(selKey) : null;
+    const purchased = spec ? spec.products : [];
+    const colResult = spec ? RIDE_PRICE_CALC.menuColumn(deal, v, selKey, spec) : null;
+    const snap = snapshot();
     const jkc = jacketCounts(deal);
     const jov = jacketRead(deal).override;
     const ready = [
       { name: "Manager sign-off", sub: "Complete", ok: true },
       { name: "Terms presented", sub: M.termsPresented ? "Complete" : "Not presented", ok: !!M.termsPresented },
-      { name: "Protection decision", sub: selKey === "none" ? "Declined — no products" : colResult ? `${colLabel(selKey)} · ${money(colResult.payment)}${colResult.isTotal ? "" : "/mo"}` : "Not chosen", ok: !!selKey },
+      /* a program chosen before the deal type changed no longer exists here;
+         say so rather than reporting a decision that cannot be priced */
+      { name: "Protection decision",
+        sub: selKey === "none" ? "Declined — no products"
+          : colResult ? `${colLabel(selKey)} · ${money(colResult.payment)}${colResult.isTotal ? "" : "/mo"}`
+          : selKey ? `${colLabel(selKey)} — not offered on this deal type; choose again`
+          : "Not chosen",
+        ok: selKey === "none" || !!colResult },
       { name: "Benefits acknowledgement", sub: M.ackSigned ? "Signed" : "Not signed", ok: !!M.ackSigned },
       { name: "Deal Jacket", sub: `${jkc.have} / ${jkc.total}${jkc.missing && jov ? " · override recorded" : ""}`, ok: !jkc.missing || !!jov }
     ];

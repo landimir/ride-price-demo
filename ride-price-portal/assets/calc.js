@@ -126,8 +126,13 @@ const RIDE_PRICE_CALC = (function () {
   /* ---------- ONE-PAY LEASE ---------- */
   function onePay(deal, vehicle, opts) {
     const o = opts || {};
-    /* one-pay: all base payments up front at a reduced money factor */
-    const reduced = Math.max(0.00001, (deal.desk.leaseFactor || 0.00117) - 0.0004);
+    /* One-pay: all base payments up front at a reduced money factor. The
+       reduction applies to whichever base factor the caller is pricing at —
+       taking the desk's factor unconditionally made an approved one-pay
+       quote a total built on the agreed factor while every lease column
+       beside it quoted the qualified one. */
+    const base = isFinite(o.factor) ? o.factor : deal.desk.leaseFactor || 0.00117;
+    const reduced = Math.max(0.00001, base - 0.0004);
     const l = lease(deal, vehicle, Object.assign({}, o, { factor: reduced, dueAtSigning: 0 }));
     const dueAtSigning = round2(l.payment * l.term + RIDE_PRICE_DATA.leaseFees.acquisition);
     return Object.assign({}, l, { dealType: "onepay", dueAtSigning, payment: 0, onePayTotal: dueAtSigning });
@@ -149,7 +154,7 @@ const RIDE_PRICE_CALC = (function () {
        onePayTotal, and a column that quoted a monthly figure would put a
        number in front of the customer that they never pay */
     if (deal.dealType === "onepay") {
-      const r = onePay(deal, vehicle, { products: program.products });
+      const r = onePay(deal, vehicle, { products: program.products, factor: q ? q.leaseFactor : deal.desk.leaseFactor });
       return { key: programKey, label: program.label, products: program.products, payment: r.onePayTotal, isTotal: true, term: r.term, detail: `${r.miles.toLocaleString()} mi/yr · ${r.term} mo, paid in full`, result: r };
     }
     if (deal.dealType === "lease") {

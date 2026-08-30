@@ -575,81 +575,6 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
 }
 .sig-box.empty { color: #b6b3cc; font-family: inherit; font-size: 13px; }
 
-/* ---------- menu columns ---------- */
-/* align-items:stretch (not start) plus a flex column is what puts every
-   program's payment on the same line. A menu exists to be compared, and
-   four payments at four different heights cannot be. */
-.menu-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); align-items: stretch; }
-.mcol { background: #fff; border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; }
-.mcol__products { flex: 1; }
-/* the recommended program, called out in both layouts */
-.pop-chip { background: var(--grad); color: #fff; font-size: 10.5px; font-weight: 600; letter-spacing: .3px; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
-.mcol--active { border-color: var(--orange); box-shadow: 0 0 0 3px rgba(240,127,41,.18), var(--shadow-lg); }
-.mcol__head { padding: 12px 16px; background: #fbfbfe; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 8px; }
-.mcol__head h3 { margin: 0; font-size: 15px; color: var(--navy); }
-
-/* client initials box (per the live repayment options screen) */
-.ini-box { margin-left: auto; text-align: center; }
-.ini-box input {
-  width: 76px; height: 42px; text-align: center; border: 1.5px solid var(--line); border-radius: 8px;
-  font-family: "Segoe Script", "Brush Script MT", cursive; font-size: 19px; font-weight: 700;
-  color: var(--navy-2); text-transform: uppercase; background: #fff; padding: 2px 6px;
-}
-.ini-box input::placeholder { font-family: inherit; font-size: 11px; font-weight: 600; color: #b6b3cc; text-transform: none; }
-.ini-box--set input { border-color: var(--orange); background: #fdf9f3; }
-.ini-clear {
-  display: block; margin: 4px auto 0; background: #fff; border: 1px solid var(--line);
-  border-radius: 7px; padding: 4px 10px; font-family: inherit; font-size: 11px;
-  font-weight: 700; color: var(--crimson); cursor: pointer;
-}
-.ini-clear:hover { border-color: var(--crimson); background: #fdf3f5; }
-.mcol__products { min-height: 90px; padding: 8px; display: flex; flex-direction: column; gap: 6px; }
-.mprod {
-  border: 1px solid var(--line); background: #fafafe; border-radius: 9px; padding: 8px 11px;
-  font-size: 12.5px; cursor: grab; display: flex; justify-content: space-between; gap: 8px; align-items: center;
-}
-.mprod b { display: block; font-size: 13px; color: var(--navy); }
-.mprod .mv { border: 0; background: #efeef8; color: var(--navy-2); border-radius: 6px; font-size: 11px; font-weight: 700; padding: 3px 8px; cursor: pointer; white-space: nowrap; }
-.mprod .mv:hover { background: var(--navy); color: #fff; }
-/* removing from Custom is destructive — it must not read like its neighbour */
-.mprod .mv--x { background: #fdf3f5; color: var(--crimson); }
-.mprod .mv--x:hover { background: var(--crimson); color: #fff; }
-.mprod.ghost { opacity: .4; }
-.mcol__pay { background: var(--navy); color: #fff; padding: 11px 16px; display: flex; justify-content: space-between; align-items: baseline; }
-.mcol__pay b { font-size: 19px; color: #7ef0a9; font-variant-numeric: tabular-nums; }
-.mcol__pay span { font-size: 11.5px; color: #d9d7ee; }
-.mcol__empty { border: 1.5px dashed #cfcddd; border-radius: 9px; padding: 16px 10px; text-align: center; color: var(--muted); font-size: 12.5px; }
-.mcol.dragover { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(47,111,208,.2); }
-
-/* black disclosure bars */
-.black-bars { display: flex; flex-direction: column; gap: 10px; }
-.bbar { border-radius: 10px; overflow: hidden; border: 1px solid #14122e; }
-.bbar > button {
-  width: 100%; text-align: left; display: flex; align-items: center; gap: 10px;
-  background: linear-gradient(120deg, #191635, #262254); color: #fff; border: 0;
-  padding: 13px 18px; font-size: 13px; font-weight: 600; letter-spacing: 1.2px; text-transform: uppercase; cursor: pointer;
-}
-.bbar > button .pl { margin-left: auto; font-size: 16px; color: var(--gold); }
-.bbar .bbody { display: none; background: #fff; padding: 14px 18px; font-size: 14px; border-top: 1px solid var(--line); }
-.bbar.open .bbody { display: block; }
-.bbar.done > button { background: linear-gradient(120deg, #143a26, #1e9e5a); }
-
-/* stepper */
-.stepper { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
-.stepper .st {
-  display: flex; align-items: center; gap: 8px; font-size: 12.5px; font-weight: 700; color: var(--muted);
-  background: #fff; border: 1px solid var(--line); padding: 7px 14px; border-radius: 999px;
-}
-.stepper .st i {
-  width: 20px; height: 20px; border-radius: 50%; background: #e3e1ef; color: var(--muted);
-  display: grid; place-items: center; font-style: normal; font-size: 11px;
-}
-.stepper .st.on { color: var(--navy); border-color: var(--navy); }
-.stepper .st.on i { background: var(--navy); color: #fff; }
-.stepper .st.done i { background: var(--green); color: #fff; }
-.stepper button.st { cursor: pointer; font-family: inherit; }
-.stepper button.st:hover { border-color: var(--navy); color: var(--navy); box-shadow: var(--shadow); }
-
 /* ---------- callouts ---------- */
 .note { border-left: 4px solid var(--orange); background: #fdf9f3; border-radius: 8px; padding: 12px 16px; font-size: 13.5px; margin: 14px 0; }
 .note--red { border-color: var(--crimson); background: #fdf3f5; color: #7c2437; font-weight: 600; }
@@ -1657,8 +1582,6 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
      .m-app carries the dock's clearance now. */
   body[data-screen="clientlink"] .pagebar,
   body[data-screen="snapall"] .pagebar { display: none; }
-  .ini-clear { padding: 8px 14px; }
-  .mprod .mv { padding: 9px 12px; }
   .switch { width: 46px; height: 26px; }
   .switch .sl::before { width: 20px; height: 20px; }
   .switch input:checked + .sl::before { transform: translateX(20px); }
@@ -1672,7 +1595,7 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
      is a single token, so restoring token wrapping on amounts fixes it: money
      rows wrap between label and amount, prose amounts wrap at spaces only */
   .lines li { flex-wrap: wrap; }
-  .amt, .mcol__pay b, .mcol__pay span, .vcard .vprice b,
+  .amt, .vcard .vprice b,
   .credit-bar .cap b, .pay-hero .sub {
     overflow-wrap: normal;
   }
@@ -1720,10 +1643,6 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
   .dk-hero.pay-hero { padding: 22px 20px 20px; }
   .dk-hero.pay-hero .amt { font-size: 44px; }
   .vcard .vprice { flex-wrap: wrap; }
-  .mcol__head, .mprod, .mcol__pay { flex-wrap: wrap; }
-  .bbar > button { padding: 12px 14px; font-size: 12px; letter-spacing: .6px; }
-  .bbar .bbody { padding: 12px 14px; }
-  .stepper .st { font-size: 11px; padding: 5px 10px; }
 
   /* on-screen document previews — printed geometry is untouched */
   .doc { padding: 20px 16px; }
@@ -1739,106 +1658,6 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
      scroll container of last resort on very narrow screens. */
   .props-grid { display: block; overflow-x: auto; }
   .prop-pair { flex-wrap: wrap; gap: 4mm; margin-bottom: 8mm; }
-}
-
-/* ============================================================
-   Repayment Options — phone layout (owner mockup, 2026-08-15)
-   Four programs stacked to 2758px / 3.68 screens, so comparing
-   them — the entire point of a menu — was impossible on a phone.
-   Tabs show one at a time. Desktop DOM is untouched; everything
-   new is display:none above 720px.
-   ============================================================ */
-.mtabs, .mcol__mhead, .mfoot { display: none; }
-.mprice { font: inherit; color: inherit; }
-
-@media screen and (max-width: 720px) {
-  body[data-screen="menu3"] .pagebar h1,
-  body[data-screen="menu3"] .pagebar .actions,
-  body[data-screen="menu3"] .stepper { display: none; }
-
-  /* tab bar */
-  body[data-screen="menu3"] .mtabs {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 0 0 14px;
-  }
-  .mtab {
-    min-height: 44px; padding: 8px 4px; border: 1px solid var(--line); border-radius: 12px;
-    background: #fff; color: var(--navy); font-family: inherit; font-size: 12.5px;
-    font-weight: 700; cursor: pointer;
-  }
-  .mtab.on { background: var(--grad); color: #fff; border-color: transparent; }
-
-  /* one program at a time */
-  body[data-screen="menu3"] .menu-grid { display: block; }
-  body[data-screen="menu3"] .mcol { display: none; }
-  body[data-screen="menu3"] .menu-grid[data-activetab="preferred"] .mcol[data-col="preferred"],
-  body[data-screen="menu3"] .menu-grid[data-activetab="standard"] .mcol[data-col="standard"],
-  body[data-screen="menu3"] .menu-grid[data-activetab="budget"] .mcol[data-col="budget"],
-  body[data-screen="menu3"] .menu-grid[data-activetab="custom"] .mcol[data-col="custom"] { display: block; }
-
-  /* the payment moves to a dark header card */
-  body[data-screen="menu3"] .mcol__mhead {
-    display: block; background: var(--navy); color: #fff;
-    border-radius: 14px 14px 0 0; padding: 16px 18px;
-  }
-  .mh-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .mh-top b { font-size: 16px; letter-spacing: .8px; }
-  .mh-star { color: var(--gold); font-size: 18px; }
-  .mh-top .pop-chip { font-size: 11px; padding: 3px 10px; }
-  .mh-bot { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-top: 6px; }
-  .mh-bot span { font-size: 13px; color: #c9c6e4; }
-  .mh-pay { font-size: 26px; color: var(--green); overflow-wrap: normal; }
-
-  /* the desktop head/foot are redundant once the card exists */
-  body[data-screen="menu3"] .mcol__head,
-  body[data-screen="menu3"] .mcol__pay,
-  body[data-screen="menu3"] .mprice,
-  body[data-screen="menu3"] .mprod .mv { display: none; }
-
-  /* rows read as included, and the whole row is the tap target */
-  body[data-screen="menu3"] .mprod {
-    display: flex; align-items: center; gap: 12px; cursor: pointer;
-    justify-content: flex-start; padding: 12px 14px;
-  }
-  body[data-screen="menu3"] .mprod > div { flex: 1; text-align: left; }
-  body[data-screen="menu3"] .mprod b { font-size: 14px; margin-bottom: 2px; }
-  body[data-screen="menu3"] .mprod span { color: var(--ink); }
-  body[data-screen="menu3"] .mprod::before {
-    content: "✓"; flex: 0 0 auto; width: 26px; height: 26px; border-radius: 50%;
-    background: var(--green); color: #fff; font-size: 14px; font-weight: 600;
-    display: grid; place-items: center;
-  }
-  body[data-screen="menu3"] .mcol[data-col="custom"] .mprod::before { content: "−"; background: var(--muted); }
-
-  /* accept / decline / advisor script */
-  body[data-screen="menu3"] .mfoot { display: block; margin-top: 16px; }
-  .advscript-card {
-    display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px;
-    padding: 10px 14px; margin-bottom: 12px; border: 1px solid var(--line);
-    border-radius: 14px; background: #fff; font-family: inherit; cursor: pointer;
-  }
-  .advscript-card__ico {
-    flex: 0 0 auto; width: 34px; height: 34px; border-radius: 10px; background: var(--grad);
-    display: grid; place-items: center; font-size: 17px;
-  }
-  .advscript-card__lab { flex: 1; text-align: left; font-size: 15px; font-weight: 700; color: var(--navy); }
-  .advscript-card__chev { color: var(--navy); font-size: 18px; }
-  .macpt { width: 100%; min-height: 56px; font-size: 15px; }
-  .mdecline {
-    display: block; width: 100%; min-height: 44px; margin-top: 10px; padding: 10px;
-    border: 0; background: none; font-family: inherit; font-size: 14px;
-    font-weight: 600; color: var(--muted); text-decoration: underline; cursor: pointer;
-  }
-
-  /* the desktop nav row is replaced by Accept/decline, except Toggle Payment
-     which the Custom tab still needs to reveal its figure */
-  body[data-screen="menu3"] .mfoot ~ .flex.mt { display: none; }
-  body[data-screen="menu3"] .menu-grid[data-activetab="custom"] ~ .flex.mt { display: flex; }
-  body[data-screen="menu3"] .menu-grid[data-activetab="custom"] ~ .flex.mt #backS1,
-  body[data-screen="menu3"] .menu-grid[data-activetab="custom"] ~ .flex.mt #s2next,
-  body[data-screen="menu3"] .menu-grid[data-activetab="custom"] ~ .flex.mt .push { display: none; }
-
-  body[data-screen="menu3"] .advscript-item { display: none; }
-  body[data-screen="menu3"].script-open .advscript-item { display: block; }
 }
 
 /* ============================================================
@@ -2858,6 +2677,12 @@ body[data-canvas="master"] {
 .fm-field label { display: block; font-size: 14px; font-weight: 650; margin-bottom: 7px; }
 .fm-input { width: 100%; border: 1px solid #CFCFCF; border-radius: 16px; min-height: 52px; padding: 12px 16px; font: inherit; font-size: 16px; background: #fff; color: var(--ink); }
 .fm-sig { border: 1px dashed var(--line); border-radius: 16px; padding: 16px; font-size: 26px; font-family: "Segoe Script", "Bradley Hand", cursive; text-align: center; }
+
+/* The dock's height grows with the home indicator, so the page's bottom
+   reservation has to grow with it too — .m-app's flat 88px would leave the
+   last card under the dock by however deep the inset is. Replaces that
+   reservation on this screen rather than adding to it. */
+body[data-screen="menu"] .m-app { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
 
 /* the dock: "Step n of 4" beside one dominant action, safe-area aware */
 .fm-dock { position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; width: min(430px, 100%); background: rgba(255, 255, 255, .97); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid var(--line); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; z-index: 12; }
