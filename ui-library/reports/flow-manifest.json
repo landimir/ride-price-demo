@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-08-29T22:02:41.282Z",
-  "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+  "capturedAt": "2026-08-30T07:15:47.361Z",
+  "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-08-29T22:02:41.289Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:15:47.373Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -411,8 +411,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-08-29T22:02:53.257Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:16:01.387Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -734,8 +734,8 @@
             {
               "id": "RP-UI-024",
               "severity": "Minor",
-              "issue": "The role pill in the master deal header (.m-rolebtn) is 65x35px — under the 40px small-variant touch floor the phone layout documents.",
-              "observation": "It opens the drawer, so it is a real target, not decoration. Introduced with the master deal header (PR #51) and now visible on far more screens because the resolver, credit and agreement all use that header. Raising it to 40px is a one-line change in the .m-rolebtn padding.",
+              "issue": "The role pill in the master deal header (.m-rolebtn) is 65x35 to 82x35px — under the 40px small-variant touch floor the phone layout documents. Measured across the v012 capture set it appears on 8 of the 20 flows, on every master-canvas screen.",
+              "observation": "Height only; the width is fine. It is the control that switches Advisor and Team Lead, so it is tapped constantly in training.",
               "area": "portal.css .m-rolebtn"
             }
           ]
@@ -751,8 +751,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-08-29T22:03:07.950Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:16:15.413Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -1091,7 +1091,7 @@
               " 4102 Bell Blvd, Bayside, NY  <>  Ask the guest to read back t",
               " Email <> .sc2-demo Demo: nothing leaves this de",
               " Email <>  Demo:",
-              " Email <>  494122",
+              " Email <>  533812",
               ".sc2-micro Phone and email are required <> .sc2-primary Verify & link",
               ".sc2-micro Phone and email are required <> .sc2-textbtn Cancel",
               ".demo-note Demo tool — sample data only <> .sc2-textbtn Cancel"
@@ -1150,8 +1150,8 @@
         "from": "home/more-sheet",
         "action": "Training licenses / Training registrations"
       },
-      "capturedAt": "2026-08-29T22:03:28.928Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:16:36.475Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -1259,15 +1259,15 @@
         "from": "onboarding/customer-found",
         "action": "Start Visit → (creates the deal)"
       },
-      "capturedAt": "2026-08-29T22:03:31.719Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:16:39.778Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-z3zujt1",
+          "hash": "#/discovery/d-z5tjrhp",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1312,7 +1312,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-z3zujt1",
+          "hash": "#/discovery/d-z5tjrhp",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1340,7 +1340,7 @@
           "key": "question-last",
           "screen": "Discovery — last question",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-z3zujt1",
+          "hash": "#/discovery/d-z5tjrhp",
           "action": "Tap Pick Vehicle →",
           "next": "vehicles/inventory",
           "branches": [],
@@ -1374,15 +1374,15 @@
         "from": "discovery/question-last",
         "action": "Tap Pick Vehicle →"
       },
-      "capturedAt": "2026-08-29T22:03:37.886Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:16:46.116Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
           "screen": "Vehicle Search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-jl0q6r7",
+          "hash": "#/vehicles/d-xw8cz2b",
           "action": "Tap the Used chip",
           "next": "inventory-filtered",
           "branches": [],
@@ -1413,7 +1413,7 @@
           "key": "inventory-filtered",
           "screen": "Inventory — Used only",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-jl0q6r7",
+          "hash": "#/vehicles/d-xw8cz2b",
           "action": "Open Filters, cap the price at $1,000",
           "next": "inventory-no-match",
           "branches": [],
@@ -1444,7 +1444,7 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-jl0q6r7",
+          "hash": "#/vehicles/d-xw8cz2b",
           "action": "Clear all filters; tap a vehicle",
           "next": "vehicle-details",
           "branches": [],
@@ -1475,7 +1475,7 @@
           "key": "vehicle-details",
           "screen": "Vehicle details sheet",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-jl0q6r7",
+          "hash": "#/vehicles/d-xw8cz2b",
           "action": "Tap Choose this vehicle",
           "next": "next-steps",
           "branches": [],
@@ -1516,7 +1516,7 @@
           "key": "next-steps",
           "screen": "What's next? — after choosing",
           "screenshot": "current/06-vehicle-selection/05-next-steps.png",
-          "hash": "#/vehicles/d-jl0q6r7",
+          "hash": "#/vehicles/d-xw8cz2b",
           "action": "Tap Test Drive",
           "next": "test-drive/authorization",
           "branches": [
@@ -1570,7 +1570,7 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-jl0q6r7",
+          "hash": "#/vehicles/d-xw8cz2b",
           "action": null,
           "next": null,
           "branches": [],
@@ -1658,8 +1658,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-08-29T22:03:47.782Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:16:56.700Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -1878,8 +1878,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-08-29T22:03:54.175Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:17:03.540Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -2004,8 +2004,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-08-29T22:03:59.515Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:17:09.523Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -2265,8 +2265,8 @@
         "from": "desking/compare-payments",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-29T22:04:05.364Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:17:16.135Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -2396,8 +2396,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-29T22:04:09.147Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:17:20.128Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -2697,7 +2697,7 @@
               " Applicant <> .m-sheettitle Deal summary",
               " Step 1 of 4 <> .m-close ✕",
               ".ca-cardtitle Application type <> .ca-wstitle Deal summary",
-              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 6:0",
+              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 3:1",
               ".ca-cardtitle Application type <> .ca-managelink Edit",
               ".ca-cardsub Choose how the customer want <>  Vehicle",
               ".ca-cardsub Choose how the customer want <>  2022 Hyundai Santa Fe · 7H21",
@@ -2758,8 +2758,8 @@
         "from": "discovery/question-1",
         "action": "Tap 👤 Buyer in the crumbs"
       },
-      "capturedAt": "2026-08-29T22:07:21.709Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:17:31.611Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -3053,11 +3053,11 @@
       "title": "F&I Product Presentation",
       "description": "Step 2 of the menu on the master canvas (owner's presentation golden, 2026-08-27): a product rail of line-icon tiles, one product card at a time with the customer benefit first, and the advisor's own tools — script, budget impact, details — in bottom sheets so the card stays the thing the customer sees. The rail follows the deal type: a lease shows Lease-End Protection, a cash deal has no Rate or Term tile.",
       "entry": {
-        "from": "finance-menu/purchase-terms-presented",
-        "action": "Tap Next"
+        "from": "finance-menu/options",
+        "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-08-29T22:04:27.732Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:17:39.943Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -3243,7 +3243,7 @@
           "screenshot": "current/13-fi-presentation/05-budget-impact.png",
           "hash": "#/present/d-demo1",
           "action": "Back to product, Next product",
-          "next": "finance-menu/repayment-options",
+          "next": "finance-menu/options",
           "branches": [],
           "notes": "Both figures are DERIVED from the deal — the product price over the real term — not typed in by the advisor. The reference prototype asked for the number to be entered; the app already knows it.",
           "status": "ok",
@@ -3290,244 +3290,289 @@
     {
       "id": "finance-menu",
       "area": "14-finance-menu",
-      "title": "Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts",
-      "description": "The Team Lead sign-off gate, then the four-step menu: Purchase Terms disclosure bars, Repayment Options (Preferred / Standard / Budget / Custom with initials), Disclosure Forms acknowledgement, and Financial Contracts with DMS push and Finalize.",
+      "title": "Finance Menu — Sign-Off Gate and Four Stages",
+      "description": "The owner's Finance Menu V3 (2026-08-30). A Manager sign-off gate reads four upstream statuses — base payment agreement, credit application, test drive, Deal Jacket — and recreates none of their detail; an Advisor is simply told it is waiting on the Team Lead. Then four stages, Terms → Options → Forms → Finalize, as one row of pills that never wraps. The money leads every stage and the detail hides behind one tap: taxes behind View, the form catalog behind Choose. Finalize is the single closeout — the DMS push folded into it rather than standing as a second button.",
       "entry": {
         "from": "credit/approved",
-        "action": "Continue → Manager Sign-Off"
+        "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-08-29T22:04:32.192Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:17:44.530Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
           "key": "signoff-gate-advisor",
-          "screen": "Team Lead sign-off required — Advisor view",
+          "screen": "Manager sign-off — Advisor view",
           "screenshot": "current/14-finance-menu/01-signoff-gate-advisor.png",
           "hash": "#/menu/d-demo1",
           "action": "Switch role to Team Lead",
           "next": "signoff-gate-locked",
           "branches": [],
-          "notes": "The advisor sees the checklist and is told to get the Team Lead — no sign-off control.",
+          "notes": "Four statuses and nothing more. The Advisor sees no approval or override control — only who it is waiting on.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Advisor 65x35"
+            ],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 943,
-            "pageHeight": 943
+            "height": 874,
+            "pageHeight": 874
           },
           "scrollShot": null,
           "issues": [
             {
               "id": "RP-UI-022",
               "severity": "Observation",
-              "issue": "The advisor's dead end here is intentional (the note says to switch to Team Lead), but the role switch it refers to is the unlabelled segmented control in the app bar.",
-              "observation": "A trainee who has not used the app bar switch may not connect the instruction to the control.",
-              "area": "sign-off gate note copy / role switch affordance"
+              "issue": "The Advisor's gate is a deliberate dead end — four statuses and the line \"Waiting for Team Lead.\" — but it offers no next action at all. V3 removed the older note that told the reader to switch roles, so nothing on the screen connects the wait to the role control in the top bar.",
+              "observation": "The role control is now a labelled pill (\"Advisor\" / \"Team Lead\"), which is a real improvement on the unlabelled segmented control this was first filed against. What remains is that a trainee reading the gate is not told where the handoff happens.",
+              "area": "menu route gate(), .fm-note copy"
             }
           ]
         },
         {
           "step": 2,
           "key": "signoff-gate-locked",
-          "screen": "Sign-off — jacket locked (Team Lead)",
+          "screen": "Manager sign-off — jacket blocking (Team Lead)",
           "screenshot": "current/14-finance-menu/02-signoff-gate-locked.png",
           "hash": "#/menu/d-demo1",
-          "action": "Tap Override the jacket lock",
-          "next": "override-modal",
+          "action": "Tap Resolve Deal Jacket blocker",
+          "next": "override-sheet",
           "branches": [],
-          "notes": "Required checks: signed base payment, approved credit, jacket complete or overridden.",
+          "notes": "Approve stays disabled while the jacket is outstanding. The test drive is advisory and does not block.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35"
+            ],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1075,
-            "pageHeight": 1075
+            "height": 940,
+            "pageHeight": 940
           },
           "scrollShot": null,
           "issues": []
         },
         {
           "step": 3,
-          "key": "override-modal",
-          "screen": "Override the jacket lock",
-          "screenshot": "current/14-finance-menu/03-override-modal.png",
+          "key": "override-sheet",
+          "screen": "Resolve Deal Jacket blocker",
+          "screenshot": "current/14-finance-menu/03-override-sheet.png",
           "hash": "#/menu/d-demo1",
-          "action": "Record override with a reason",
-          "next": "signoff-ready",
+          "action": "Type a reason, Record override",
+          "next": "terms",
           "branches": [],
-          "notes": "",
+          "notes": "The override needs a typed reason and says plainly that the missing documents remain missing.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35",
+              ".m-close ✕ 30x34"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".fm-rowname Credit application <>  Resolve Deal Jacket blocker",
+              ".fm-rowsub Approved <>  Resolve Deal Jacket blocker",
+              ".fm-pill Ready <>  Resolve Deal Jacket blocker",
+              ".fm-rowname Test drive <> .m-sheetsub Override records a reason; m",
+              ".fm-rowsub Completed <>  Reason",
+              ".fm-pill Ready <>  Reason",
+              "#fmResolve.fm-btn Resolve Deal Jacket blocker <> #fmReasonGo.fm-btn.fm-btn--primary Record override",
+              "#fmApprove.fm-btn.fm-btn--primary Approve finance menu <> .fm-btn Cancel"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 844,
-            "pageHeight": 1075
+            "height": 940,
+            "pageHeight": 940
           },
           "scrollShot": null,
           "issues": []
         },
         {
           "step": 4,
-          "key": "signoff-ready",
-          "screen": "Sign-off — ready",
-          "screenshot": "current/14-finance-menu/04-signoff-ready.png",
+          "key": "terms",
+          "screen": "Stage 1 — Review the deal terms",
+          "screenshot": "current/14-finance-menu/04-terms.png",
           "hash": "#/menu/d-demo1",
-          "action": "Tap ✍ Manager Sign-Off",
-          "next": "purchase-terms",
+          "action": "Tap View on Taxes & fees",
+          "next": "terms-fees",
           "branches": [],
-          "notes": "",
+          "notes": "The payment comparison leads the card; the agreed and qualified figures sit on one line.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".fm-say “Earlier we agreed to $709.3 <>  Step 1 of 4",
+              ".fm-say “Earlier we agreed to $709.3 <>  Terms",
+              ".fm-say “Earlier we agreed to $709.3 <> #fmNext.fm-dockbtn Mark presented"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 887,
-            "pageHeight": 887
+            "height": 844,
+            "pageHeight": 989
           },
-          "scrollShot": null,
+          "scrollShot": "current/14-finance-menu/04-terms.scroll.png",
           "issues": []
         },
         {
           "step": 5,
-          "key": "purchase-terms",
-          "screen": "Step 1 — Purchase Terms",
-          "screenshot": "current/14-finance-menu/05-purchase-terms.png",
+          "key": "terms-fees",
+          "screen": "Taxes & fees (sheet)",
+          "screenshot": "current/14-finance-menu/05-terms-fees.png",
           "hash": "#/menu/d-demo1",
-          "action": "Open and present every box",
-          "next": "purchase-terms-presented",
+          "action": "Close, tap Mark presented",
+          "next": "options",
           "branches": [],
-          "notes": "",
+          "notes": "The itemisation lives here, not on the page.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35",
+              ".m-close ✕ 34x34"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".fm-cardtitle Payment comparison <>  Taxes & fees",
+              ".fm-cardtitle Payment comparison <> .m-close ✕",
+              ".fm-quoteamt $709.33 <>  New York State Tax @ 4.00%",
+              ".fm-quotesub 60 mo @ 3.5% <>  Queens County Tax @ 4.50%",
+              ".fm-quoteamt $716.33 <>  $1,076.80",
+              ".fm-quotesub 60 mo @ 3.9% <>  $1,211.40",
+              ".fm-splittitle Taxes & fees <>  Transit Tax @ 0.375%",
+              ".fm-splitsub new york state tax, queens c <>  Documentation Fee"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1179,
-            "pageHeight": 1179
+            "height": 844,
+            "pageHeight": 989
           },
-          "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-006",
-              "severity": "Minor",
-              "issue": "The five-step menu stepper wraps into three rows of pills on a phone.",
-              "observation": "It still reads correctly; a horizontally scrolling stepper or numbers-only pills would keep it to one row.",
-              "area": ".stepper at ≤720px"
-            }
-          ]
+          "scrollShot": "current/14-finance-menu/05-terms-fees.scroll.png",
+          "issues": []
         },
         {
           "step": 6,
-          "key": "purchase-terms-presented",
-          "screen": "Purchase Terms — all boxes presented",
-          "screenshot": "current/14-finance-menu/06-purchase-terms-presented.png",
+          "key": "options",
+          "screen": "Stage 2 — Choose a protection package",
+          "screenshot": "current/14-finance-menu/06-options.png",
           "hash": "#/menu/d-demo1",
-          "action": "Tap Next →",
-          "next": "presentation/product-rail",
-          "branches": [],
-          "notes": "",
+          "action": "Tap Custom; move a product across",
+          "next": "options-custom",
+          "branches": [
+            {
+              "action": "Present each product",
+              "to": "presentation/product-rail"
+            },
+            {
+              "action": "No products",
+              "to": "finance-menu/decline-sheet"
+            }
+          ],
+          "notes": "The four package pills fit one row; the payment sits directly beneath them, above the product list.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".fm-prodtick ✓ <>  Step 2 of 4",
+              ".fm-prodmain GAP Coverage — Full loan ter <>  Step 2 of 4",
+              ".fm-prodmain GAP Coverage — Full loan ter <>  Preferred",
+              ".fm-prodmain GAP Coverage — Full loan ter <> #fmAccept.fm-dockbtn Accept Preferred",
+              ".fm-prodprice · $995 <> #fmAccept.fm-dockbtn Accept Preferred",
+              ".fm-move → Custom <> #fmAccept.fm-dockbtn Accept Preferred",
+              ".fm-move → Custom <> #fmNone.fm-docklink No products"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1554,
-            "pageHeight": 1554
+            "height": 844,
+            "pageHeight": 1500
           },
-          "scrollShot": null,
+          "scrollShot": "current/14-finance-menu/06-options.scroll.png",
           "issues": []
         },
         {
           "step": 7,
-          "key": "repayment-options",
-          "screen": "Step 3 — Repayment Options (Preferred)",
-          "screenshot": "current/14-finance-menu/07-repayment-options.png",
+          "key": "options-custom",
+          "screen": "Custom package — figure withheld",
+          "screenshot": "current/14-finance-menu/07-options-custom.png",
           "hash": "#/menu/d-demo1",
-          "action": "Tap Custom; move a product → Custom",
-          "next": "repayment-custom",
-          "branches": [
-            {
-              "action": "Standard / Budget tabs",
-              "to": "finance-menu/repayment-options"
-            },
-            {
-              "action": "Continue without products",
-              "to": "finance-menu/decline-confirm"
-            }
-          ],
-          "notes": "",
+          "action": "Tap Show custom payment, then Accept",
+          "next": "accept-initials",
+          "branches": [],
+          "notes": "Custom withholds its payment until the advisor reveals it, and the dock does not leak it either. The first product moved sets the custom column's rate and term.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".fm-splittitle Product presentation <>  Step 2 of 4",
+              ".fm-splittitle Product presentation <>  Custom",
+              ".fm-splittitle Product presentation <> #fmAccept.fm-dockbtn Accept Custom",
+              ".fm-splitsub Present each product before  <>  Custom",
+              ".fm-splitsub Present each product before  <> #fmAccept.fm-dockbtn Accept Custom",
+              ".fm-view Present <> #fmNone.fm-docklink No products"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1135,
-            "pageHeight": 1135
+            "height": 844,
+            "pageHeight": 997
           },
-          "scrollShot": null,
+          "scrollShot": "current/14-finance-menu/07-options-custom.scroll.png",
           "issues": []
         },
         {
           "step": 8,
-          "key": "repayment-custom",
-          "screen": "Custom package — products moved, payment toggled",
-          "screenshot": "current/14-finance-menu/08-repayment-custom.png",
+          "key": "accept-initials",
+          "screen": "Accept package — client initials",
+          "screenshot": "current/14-finance-menu/08-accept-initials.png",
           "hash": "#/menu/d-demo1",
-          "action": "Tap Accept Custom Package →",
-          "next": "initials-modal",
+          "action": "Enter initials, Accept package",
+          "next": "forms",
           "branches": [],
           "notes": "",
           "status": "ok",
@@ -3535,71 +3580,89 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35",
+              ".m-close ✕ 34x34"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".fm-prodtick ✓ <>  Accept Custom",
+              ".fm-prodmain Vehicle Service Contract — 7 <>  Accept Custom",
+              ".fm-prodmain Vehicle Service Contract — 7 <> .m-sheetsub $771.34 per month",
+              ".fm-prodprice · $2,750 <> .m-sheetsub $771.34 per month",
+              ".fm-move Remove <> .m-close ✕",
+              ".fm-splitsub Present each product before  <> #fmAccept.fm-dockbtn Accept Custom",
+              ".fm-splitsub Present each product before  <> #fmIniGo.fm-btn.fm-btn--primary Accept package",
+              " Step 2 of 4 <> #fmIniGo.fm-btn.fm-btn--primary Accept package"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 844
+            "pageHeight": 923
           },
-          "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-009",
-              "severity": "Minor",
-              "issue": "The Toggle Payment control sits below the Accept Custom Package CTA and the 'Continue without products' link, so the reveal of the custom payment comes after the decision it informs.",
-              "observation": "Order of operations on the phone layout; desktop keeps it inside the column.",
-              "area": "step2() phone layout, #togglePay placement"
-            }
-          ]
+          "scrollShot": "current/14-finance-menu/08-accept-initials.scroll.png",
+          "issues": []
         },
         {
           "step": 9,
-          "key": "initials-modal",
-          "screen": "Client initials",
-          "screenshot": "current/14-finance-menu/09-initials-modal.png",
+          "key": "decline-sheet",
+          "screen": "Continue without products",
+          "screenshot": "current/14-finance-menu/09-decline-sheet.png",
           "hash": "#/menu/d-demo1",
-          "action": "Enter initials, Accept",
-          "next": "package-accepted",
+          "action": "Enter initials, Continue without products",
+          "next": "forms",
           "branches": [],
-          "notes": "",
+          "notes": "Declining is a recorded choice with initials, and it clears the custom box rather than refusing with a blocked toast.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35",
+              ".m-close ✕ 34x34"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".fm-paysub 60 mo @ 3.90% <>  Continue without products",
+              ".fm-paysub 60 mo @ 3.90% <> .m-close ✕",
+              ".fm-prodtick ✓ <>  Client initials",
+              ".fm-prodmain Vehicle Service Contract — 7 <>  Client initials",
+              ".fm-move Remove <>  Client initials",
+              ".fm-splittitle Product presentation <> .jk2-privacy The benefits acknowledgement",
+              ".fm-splitsub Present each product before  <> #fmAccept.fm-dockbtn Accept Custom",
+              ".fm-splitsub Present each product before  <> .jk2-privacy The benefits acknowledgement"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 844
+            "pageHeight": 923
           },
-          "scrollShot": null,
+          "scrollShot": "current/14-finance-menu/09-decline-sheet.scroll.png",
           "issues": []
         },
         {
           "step": 10,
-          "key": "package-accepted",
-          "screen": "Package accepted",
-          "screenshot": "current/14-finance-menu/10-package-accepted.png",
+          "key": "forms",
+          "screen": "Stage 3 — Disclosures & forms",
+          "screenshot": "current/14-finance-menu/10-forms.png",
           "hash": "#/menu/d-demo1",
-          "action": "Tap Next →",
-          "next": "disclosure-forms",
+          "action": "Tap Choose on Additional deal forms",
+          "next": "forms-catalog",
           "branches": [],
-          "notes": "",
+          "notes": "Continue stays disabled until the benefits acknowledgement is signed.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35"
+            ],
             "clipped": [],
             "overlaps": []
           },
@@ -3614,196 +3677,112 @@
         },
         {
           "step": 11,
-          "key": "decline-blocked",
-          "screen": "Continue without products — custom box must be initialed",
-          "screenshot": "current/14-finance-menu/11-decline-blocked.png",
+          "key": "forms-catalog",
+          "screen": "Additional deal forms (sheet)",
+          "screenshot": "current/14-finance-menu/11-forms-catalog.png",
           "hash": "#/menu/d-demo1",
-          "action": "Clear the custom box, tap Continue without products",
-          "next": "decline-confirm",
+          "action": "Close, sign the acknowledgement",
+          "next": "final-review",
           "branches": [],
-          "notes": "Guard: with products sitting in the Custom box, declining is refused until the box is initialed or emptied (toast).",
+          "notes": "Anything the trade requires is selected and locked here.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35",
+              ".m-close ✕ 34x34"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".fm-title Disclosures & forms <>  Additional deal forms",
+              ".fm-chip Deal #48201 <> .m-sheetsub Anything the trade requires ",
+              ".fm-chip John Smith <> .m-sheetsub Anything the trade requires ",
+              ".fm-chip 2022 Hyundai Santa Fe <> .fm-grouplab Delivery Forms",
+              ".fm-chip.fm-chip--link Jacket 4/18 <> .fm-grouplab Delivery Forms",
+              ".fm-stage.fm-stage--done ✓ Terms <> .fm-formmain Privacy Policy",
+              ".fm-stage.fm-stage--done ✓ Terms <> .fm-formmain Personalized Setting Sheet",
+              ".fm-stage.fm-stage--done ✓ Options <> .fm-formmain Privacy Policy"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 984,
-            "pageHeight": 984
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
         },
         {
           "step": 12,
-          "key": "decline-confirm",
-          "screen": "Continue without products — confirm",
-          "screenshot": "current/14-finance-menu/12-decline-confirm.png",
+          "key": "final-review",
+          "screen": "Stage 4 — Final review",
+          "screenshot": "current/14-finance-menu/12-final-review.png",
           "hash": "#/menu/d-demo1",
-          "action": "Cancel",
-          "next": "disclosure-forms",
-          "branches": [],
-          "notes": "Declining every product is confirmed explicitly.",
+          "action": "Tap Finalize deal",
+          "next": "deal-finalized",
+          "branches": [
+            {
+              "action": "Print centre",
+              "to": "print-center/print-center"
+            }
+          ],
+          "notes": "Five readiness rows summarise the journey, then the repayment summary. One dominant action — the DMS push is part of finalizing, not a second button.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".fm-rowsub 4 / 18 · override recorded <>  Step 4 of 4",
+              ".fm-rowsub 4 / 18 · override recorded <> #fmFinal.fm-dockbtn Finalize deal",
+              ".fm-tick ✓ <> #fmFinal.fm-dockbtn Finalize deal"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1135
+            "pageHeight": 1256
           },
-          "scrollShot": null,
+          "scrollShot": "current/14-finance-menu/12-final-review.scroll.png",
           "issues": []
         },
         {
           "step": 13,
-          "key": "disclosure-forms",
-          "screen": "Step 4 — Disclosure Forms",
-          "screenshot": "current/14-finance-menu/13-disclosure-forms.png",
-          "hash": "#/menu/d-demo1",
-          "action": "Tap ✍ Client signs acknowledgement",
-          "next": "disclosure-signed",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 1833,
-            "pageHeight": 1833
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 14,
-          "key": "disclosure-signed",
-          "screen": "Acknowledgement signed, forms selected",
-          "screenshot": "current/14-finance-menu/14-disclosure-signed.png",
-          "hash": "#/menu/d-demo1",
-          "action": "Tap Continue →",
-          "next": "financial-contracts",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 1889,
-            "pageHeight": 1889
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 15,
-          "key": "financial-contracts",
-          "screen": "Step 5 — Financial Contracts",
-          "screenshot": "current/14-finance-menu/15-financial-contracts.png",
-          "hash": "#/menu/d-demo1",
-          "action": "Tap Finalize Deal",
-          "next": "deal-finalized",
-          "branches": [
-            {
-              "action": "🖨 Print Center",
-              "to": "print-center/print-center"
-            },
-            {
-              "action": "DMS Push (Team Lead)",
-              "to": "finance-menu/financial-contracts"
-            }
-          ],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 1544,
-            "pageHeight": 1544
-          },
-          "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-008",
-              "severity": "Minor",
-              "issue": "In the Repayment Options printable, a long product line (Key Replacement — 3 yr — lost or damaged remotes) wraps its price onto its own line, left-aligned under the label, breaking the money column.",
-              "observation": "Only on long labels at phone width; the amount stays readable.",
-              "area": ".doc .lines li wrapping at ≤720px (overflow-wrap rule)"
-            }
-          ]
-        },
-        {
-          "step": 16,
           "key": "deal-finalized",
           "screen": "Deal finalized",
-          "screenshot": "current/14-finance-menu/16-deal-finalized.png",
+          "screenshot": "current/14-finance-menu/13-deal-finalized.png",
           "hash": "#/menu/d-demo1",
-          "action": "Return to Deals List",
+          "action": "Return to Deals",
           "next": "home/advisor-completed",
           "branches": [],
-          "notes": "",
+          "notes": "The DMS push is recorded against the Team Lead who approved the deal.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#mRole.m-rolebtn Team Lead 82x35"
+            ],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1544,
-            "pageHeight": 1544
+            "height": 865,
+            "pageHeight": 865
           },
           "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-007",
-              "severity": "Minor",
-              "issue": "The finalize toast says the deal \"now shows dark blue in the Deals list\" — copy from the retired deals table. Since the deals-queue redesign a finalized deal leaves the active list into the folded Archived section.",
-              "observation": "Stale copy, not a functional problem; the Deals screen itself is correct.",
-              "area": "menu route #finalize toast text"
-            }
-          ]
+          "issues": []
         }
       ]
     },
@@ -3816,8 +3795,8 @@
         "from": "discovery/question-1",
         "action": "Tap 📁 Jacket in the crumbs"
       },
-      "capturedAt": "2026-08-29T22:04:48.745Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:17:59.623Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -4067,8 +4046,8 @@
             {
               "id": "RP-UI-025",
               "severity": "Minor",
-              "issue": "The sheet's close control is squeezed to 28×40 — the long title plus the flexible header row shrink it below its own 40px box, under the touch floor.",
-              "observation": "The automated small-target check measured .m-close at 28x40 on this sheet only; every other jacket sheet keeps 40x40. The header row needs flex: none on the close (or a min-width), so a long title wraps instead of eating the control.",
+              "issue": "The master bottom sheet's close control (.m-close) is squeezed to 28x40 in the jacket and measures 30x34 to 34x34 elsewhere — under the 40px touch floor. Measured across the v012 capture set it appears on 7 of the 20 flows, in every master sheet.",
+              "observation": "Not a trap — every sheet also dismisses on the scrim and on Escape — but it is a small target on a frequent control, and the jacket's long sheet titles squeeze it further.",
               "area": "portal.css .m-sheettop / #jkSheet .m-close"
             }
           ]
@@ -4093,14 +4072,13 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".price PRICE <> .jk2-rowtitle Privacy Policy",
-              ".m-dealno Deal #48201 <> .jk2-rowtitle Privacy Policy",
-              "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
               ".jk2-sectitle Completed <>  Funding sign-off",
+              ".jk2-sectitle Completed <>  11 items remaining",
               ".jk2-sectitle Completed <> #jkSignoff.jk2-dockbtn Not ready",
               ".jk2-secsub Already in the jacket <>  11 items remaining",
               ".jk2-secsub Already in the jacket <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-badge.jk2-badge--good 4 <> #jkSignoff.jk2-dockbtn Not ready"
+              ".jk2-badge.jk2-badge--good 4 <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-chev.jk2-chev--open ⌄ <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
@@ -4196,8 +4174,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-08-29T22:04:59.646Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:18:11.136Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -4303,7 +4281,7 @@
               " 3 items need the customer. <>  Customer request",
               ".jk2-sectitle Waiting on customer <> .jk2-dot ✓",
               ".jk2-sectitle Waiting on customer <>  Link sent",
-              ".jk2-sectitle Waiting on customer <>  Aug 29, 6:05 PM",
+              ".jk2-sectitle Waiting on customer <>  Aug 30, 3:18 AM",
               ".jk2-secsub 3 documents <> .jk2-dot ✓",
               ".jk2-secsub 3 documents <>  Delivered"
             ]
@@ -4328,8 +4306,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-08-29T22:05:03.692Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:18:15.536Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -4661,8 +4639,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-08-29T22:05:16.278Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:18:28.755Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -4808,8 +4786,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-08-29T22:05:20.183Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:18:32.943Z",
+      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
       "screens": [
         {
           "step": 1,
@@ -4852,11 +4830,11 @@
       "title": "Print Center & Printables",
       "description": "The deal's printable documents as tiles, and the print preview (the MV-82 recreation carries the TRAINING SAMPLE treatment). Phone-reachable; built for paper.",
       "entry": {
-        "from": "finance-menu/financial-contracts",
-        "action": "Tap 🖨 Print Center"
+        "from": "finance-menu/final-review",
+        "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-08-29T22:05:22.205Z",
-      "appCommit": "eed2fa48cf8ce77071d0e5b424446bb728bcec3c",
+      "capturedAt": "2026-08-30T07:31:06.127Z",
+      "appCommit": "54b7b7311242a061e2aca56ab0c2d8f2beb747e0",
       "screens": [
         {
           "step": 1,
@@ -4920,8 +4898,8 @@
           "screen": "Print preview — MV-82 (training sample)",
           "screenshot": "current/20-print-center/03-print-mv82.png",
           "hash": "#/print/d-demo1/form-reg",
-          "action": null,
-          "next": null,
+          "action": "Back; open Repayment Options",
+          "next": "print-repayment",
           "branches": [],
           "notes": "",
           "status": "ok",
@@ -4950,6 +4928,42 @@
           },
           "scrollShot": null,
           "issues": []
+        },
+        {
+          "step": 4,
+          "key": "print-repayment",
+          "screen": "Print preview — Repayment Options",
+          "screenshot": "current/20-print-center/04-print-repayment.png",
+          "hash": "#/print/d-demo1/repayment",
+          "action": null,
+          "next": null,
+          "branches": [],
+          "notes": "The menu record: what was purchased, what was declined, and the customer's acknowledgement signature. RP-UI-008 lives on this page — it was previously filed against a finance-menu screen that no longer exists.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 1574,
+            "pageHeight": 1574
+          },
+          "scrollShot": null,
+          "issues": [
+            {
+              "id": "RP-UI-008",
+              "severity": "Minor",
+              "issue": "On the Repayment Options printable, a product line long enough to wrap drops its price onto its own line, left-aligned under the label, breaking the money column. Re-measured on the v012 capture: 6 of the 7 purchased rows wrap this way — only \"GAP Coverage — Full loan term\" keeps its amount on the line. The original filing understated this as one long label.",
+              "observation": "The amounts stay readable but no longer form a column, so the document cannot be scanned down the right edge — the one thing a price list is for. Previously filed against a finance-menu screen that the V3 rewrite removed.",
+              "area": ".doc .lines li wrapping at ≤720px (overflow-wrap rule)"
+            }
+          ]
         }
       ]
     }

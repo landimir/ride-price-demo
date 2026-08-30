@@ -1,12 +1,12 @@
-# Ride Price Mobile UI — UX Audit (v011)
+# Ride Price Mobile UI — UX Audit (v012)
 
-Captured 2026-08-29T22:02:41.282Z · viewport 390×844 · app eed2fa48cf8ce77071d0e5b424446bb728bcec3c
+Captured 2026-08-30T07:15:47.361Z · viewport 390×844 · app e0a75607ed7b835f9c57228a6cad0127b7daeed6
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 0 |
-| Minor | 9 |
+| Minor | 6 |
 | Observation | 2 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
@@ -19,7 +19,7 @@ _None recorded._
 
 _None recorded._
 
-## Minor (9)
+## Minor (6)
 
 ### RP-UI-005 — Discovery Session · Discovery — question 1
 
@@ -28,33 +28,12 @@ _None recorded._
 - **Observation:** Consistent, but it costs a sixth of the phone screen before the content starts. A single compact row (icon buttons, or the back link folded into the title) would recover it.
 - **Suggested area to investigate:** dealTitle() crumb markup; .crumb-btn / #pageActions wrapping at ≤720px
 
-### RP-UI-006 — Finance Menu · Step 1 — Purchase Terms
+### RP-UI-008 — Print Center & Printables · Print preview — Repayment Options
 
-- **Screenshot:** `current/14-finance-menu/05-purchase-terms.png`
-- **Issue:** The five-step menu stepper wraps into three rows of pills on a phone.
-- **Observation:** It still reads correctly; a horizontally scrolling stepper or numbers-only pills would keep it to one row.
-- **Suggested area to investigate:** .stepper at ≤720px
-
-### RP-UI-007 — Finance Menu · Deal finalized
-
-- **Screenshot:** `current/14-finance-menu/16-deal-finalized.png`
-- **Issue:** The finalize toast says the deal "now shows dark blue in the Deals list" — copy from the retired deals table. Since the deals-queue redesign a finalized deal leaves the active list into the folded Archived section.
-- **Observation:** Stale copy, not a functional problem; the Deals screen itself is correct.
-- **Suggested area to investigate:** menu route #finalize toast text
-
-### RP-UI-008 — Finance Menu · Step 5 — Financial Contracts
-
-- **Screenshot:** `current/14-finance-menu/15-financial-contracts.png`
-- **Issue:** In the Repayment Options printable, a long product line (Key Replacement — 3 yr — lost or damaged remotes) wraps its price onto its own line, left-aligned under the label, breaking the money column.
-- **Observation:** Only on long labels at phone width; the amount stays readable.
+- **Screenshot:** `current/20-print-center/04-print-repayment.png`
+- **Issue:** On the Repayment Options printable, a product line long enough to wrap drops its price onto its own line, left-aligned under the label, breaking the money column. Re-measured on the v012 capture: 6 of the 7 purchased rows wrap this way — only "GAP Coverage — Full loan term" keeps its amount on the line. The original filing understated this as one long label.
+- **Observation:** The amounts stay readable but no longer form a column, so the document cannot be scanned down the right edge — the one thing a price list is for. Previously filed against a finance-menu screen that the V3 rewrite removed.
 - **Suggested area to investigate:** .doc .lines li wrapping at ≤720px (overflow-wrap rule)
-
-### RP-UI-009 — Finance Menu · Custom package — products moved, payment toggled
-
-- **Screenshot:** `current/14-finance-menu/08-repayment-custom.png`
-- **Issue:** The Toggle Payment control sits below the Accept Custom Package CTA and the 'Continue without products' link, so the reveal of the custom payment comes after the decision it informs.
-- **Observation:** Order of operations on the phone layout; desktop keeps it inside the column.
-- **Suggested area to investigate:** step2() phone layout, #togglePay placement
 
 ### RP-UI-012 — Training Licenses & Registrations · Training Registrations
 
@@ -70,28 +49,28 @@ _None recorded._
 - **Observation:** Also 34px zoom / page buttons on the client review screen and the advisor document review.
 - **Suggested area to investigate:** .sa-thumb__x, .dr-zoom button, .dr-pagetools button sizing at ≤720px
 
-### RP-UI-024 — Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+### RP-UI-024 — All (app-wide) · Customer identified (advisor)
 
 - **Screenshot:** `current/02-customer-onboarding/09-remote-ready.png`
-- **Issue:** The role pill in the master deal header (.m-rolebtn) is 65x35px — under the 40px small-variant touch floor the phone layout documents.
-- **Observation:** It opens the drawer, so it is a real target, not decoration. Introduced with the master deal header (PR #51) and now visible on far more screens because the resolver, credit and agreement all use that header. Raising it to 40px is a one-line change in the .m-rolebtn padding.
+- **Issue:** The role pill in the master deal header (.m-rolebtn) is 65x35 to 82x35px — under the 40px small-variant touch floor the phone layout documents. Measured across the v012 capture set it appears on 8 of the 20 flows, on every master-canvas screen.
+- **Observation:** Height only; the width is fine. It is the control that switches Advisor and Team Lead, so it is tapped constantly in training.
 - **Suggested area to investigate:** portal.css .m-rolebtn
 
-### RP-UI-025 — Deal Jacket & Compliance · Add optional document
+### RP-UI-025 — All (app-wide) · Add optional document
 
 - **Screenshot:** `current/15-deal-jacket/06-add-optional.png`
-- **Issue:** The sheet's close control is squeezed to 28×40 — the long title plus the flexible header row shrink it below its own 40px box, under the touch floor.
-- **Observation:** The automated small-target check measured .m-close at 28x40 on this sheet only; every other jacket sheet keeps 40x40. The header row needs flex: none on the close (or a min-width), so a long title wraps instead of eating the control.
+- **Issue:** The master bottom sheet's close control (.m-close) is squeezed to 28x40 in the jacket and measures 30x34 to 34x34 elsewhere — under the 40px touch floor. Measured across the v012 capture set it appears on 7 of the 20 flows, in every master sheet.
+- **Observation:** Not a trap — every sheet also dismisses on the scrim and on Escape — but it is a small target on a frequent control, and the jacket's long sheet titles squeeze it further.
 - **Suggested area to investigate:** portal.css .m-sheettop / #jkSheet .m-close
 
 ## Observation (2)
 
-### RP-UI-022 — Finance Menu · Team Lead sign-off required — Advisor view
+### RP-UI-022 — Finance Menu · Manager sign-off — Advisor view
 
 - **Screenshot:** `current/14-finance-menu/01-signoff-gate-advisor.png`
-- **Issue:** The advisor's dead end here is intentional (the note says to switch to Team Lead), but the role switch it refers to is the unlabelled segmented control in the app bar.
-- **Observation:** A trainee who has not used the app bar switch may not connect the instruction to the control.
-- **Suggested area to investigate:** sign-off gate note copy / role switch affordance
+- **Issue:** The Advisor's gate is a deliberate dead end — four statuses and the line "Waiting for Team Lead." — but it offers no next action at all. V3 removed the older note that told the reader to switch roles, so nothing on the screen connects the wait to the role control in the top bar.
+- **Observation:** The role control is now a labelled pill ("Advisor" / "Team Lead"), which is a real improvement on the unlabelled segmented control this was first filed against. What remains is that a trainee reading the gate is not told where the handoff happens.
+- **Suggested area to investigate:** menu route gate(), .fm-note copy
 
 ### RP-UI-023 — Home — Deals Queue & Navigation · My Deals (landing — Advisor)
 
@@ -102,4 +81,4 @@ _None recorded._
 
 ## Automated checks per screen
 
-The capture run measures each screen for horizontal overflow, elements beyond the viewport, clipped text, text overlap and small touch targets (<36px — the automated hint threshold, set a little under the 40px floor the audit holds small variants to, so a finding below 40px comes from the eye, not the script). These are hints that were reviewed by eye; the findings above are the reviewed result. Raw values live in `flow-manifest.json` under each screen's `checks`.
+The capture run measures each screen for horizontal overflow, elements beyond the viewport, clipped text, text overlap and small touch targets. Two thresholds are in play and they are not the same: the script flags anything under **36px**, while the audit holds small variants to a **40px** floor. So a target in the 36-39px band is reported only by the eye, and anything under 36px is caught by both. These are hints that were reviewed by eye; the findings above are the reviewed result. Raw values live in `flow-manifest.json` under each screen's `checks`.

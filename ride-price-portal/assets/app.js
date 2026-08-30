@@ -7123,7 +7123,7 @@ route("forms/:id", ({ id }) => {
         <span class="icon">${esc(d.icon)}</span><h3>${esc(d.label)}</h3><p>${esc(d.note)}</p>
         <span class="go">Preview &amp; print →</span></a>`).join("")}
     </div>
-    <h3 style="color:var(--navy);margin:26px 0 10px">Selected deal forms (from Disclosure Forms step)</h3>
+    <h3 style="color:var(--navy);margin:26px 0 10px">Selected deal forms (from the menu&rsquo;s Forms stage)</h3>
     ${selected.length ? `<div class="grid grid--3">
       ${selected.map(f => `<a class="card card--link" href="#/print/${esc(deal.id)}/form-${esc(f.id)}">
         <span class="icon">📄</span><h3>${esc(f.label)}</h3><p>${esc(f.group)}</p>

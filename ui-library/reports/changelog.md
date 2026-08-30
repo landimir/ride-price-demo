@@ -1,5 +1,82 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v012 — 2026-08-30
+
+App commit: e0a7560 · 20 flows · 126 screens · previous: v011
+
+### Added
+- Finance Menu — Sign-Off Gate and Four Stages · Resolve Deal Jacket blocker
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Accept package — client initials
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 3 — Disclosures & forms
+- Finance Menu — Sign-Off Gate and Four Stages · Additional deal forms (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · No license available — manual fallback
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1
+- Discovery Session · Discovery — mid-interview
+- Discovery Session · Discovery — last question
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Test Drive Agreement · End Test Drive — odometer
+- Desking — Calculate Payments · Calculate Payments — Cash
+- Base Payment Agreement · Agreement — ready to sign
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Print Center & Printables · Print preview — Base Payment Agreement
+- Print Center & Printables · Print preview — MV-82 (training sample)
+
+### Removed
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Override the jacket lock
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Sign-off — ready
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Step 1 — Purchase Terms
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Purchase Terms — all boxes presented
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Step 3 — Repayment Options (Preferred)
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Custom package — products moved, payment toggled
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Client initials
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Package accepted
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Continue without products — custom box must be initialed
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Continue without products — confirm
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Step 4 — Disclosure Forms
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Acknowledgement signed, forms selected
+- Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts · Step 5 — Financial Contracts
+
+### New issues
+- none
+
+### Resolved issues
+- RP-UI-006 (Minor) — The five-step menu stepper wraps into three rows of pills on a phone.
+- RP-UI-007 (Minor) — The finalize toast says the deal "now shows dark blue in the Deals list" — copy from the retired deals table. Since the deals-queue redesign a finalized deal leaves the active list into the folded Archived section.
+- RP-UI-009 (Minor) — The Toggle Payment control sits below the Accept Custom Package CTA and the 'Continue without products' link, so the reveal of the custom payment comes after the decision it informs.
+
+### Amended issues (kept, but re-filed or reworded)
+- RP-UI-008 — re-filed against current/20-print-center/04-print-repayment.png; wording corrected
+- RP-UI-022 — wording corrected
+- RP-UI-024 — wording corrected
+- RP-UI-025 — wording corrected
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v011 — 2026-08-29
 
 App commit: eed2fa4 · 20 flows · 129 screens · previous: v010

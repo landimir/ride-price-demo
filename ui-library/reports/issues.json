@@ -10,44 +10,14 @@
     "area": "dealTitle() crumb markup; .crumb-btn / #pageActions wrapping at ≤720px"
   },
   {
-    "id": "RP-UI-006",
-    "severity": "Minor",
-    "flow": "Finance Menu",
-    "screen": "Step 1 — Purchase Terms",
-    "screenshot": "current/14-finance-menu/05-purchase-terms.png",
-    "issue": "The five-step menu stepper wraps into three rows of pills on a phone.",
-    "observation": "It still reads correctly; a horizontally scrolling stepper or numbers-only pills would keep it to one row.",
-    "area": ".stepper at ≤720px"
-  },
-  {
-    "id": "RP-UI-007",
-    "severity": "Minor",
-    "flow": "Finance Menu",
-    "screen": "Deal finalized",
-    "screenshot": "current/14-finance-menu/16-deal-finalized.png",
-    "issue": "The finalize toast says the deal \"now shows dark blue in the Deals list\" — copy from the retired deals table. Since the deals-queue redesign a finalized deal leaves the active list into the folded Archived section.",
-    "observation": "Stale copy, not a functional problem; the Deals screen itself is correct.",
-    "area": "menu route #finalize toast text"
-  },
-  {
     "id": "RP-UI-008",
     "severity": "Minor",
-    "flow": "Finance Menu",
-    "screen": "Step 5 — Financial Contracts",
-    "screenshot": "current/14-finance-menu/15-financial-contracts.png",
-    "issue": "In the Repayment Options printable, a long product line (Key Replacement — 3 yr — lost or damaged remotes) wraps its price onto its own line, left-aligned under the label, breaking the money column.",
-    "observation": "Only on long labels at phone width; the amount stays readable.",
+    "flow": "Print Center & Printables",
+    "screen": "Print preview — Repayment Options",
+    "screenshot": "current/20-print-center/04-print-repayment.png",
+    "issue": "On the Repayment Options printable, a product line long enough to wrap drops its price onto its own line, left-aligned under the label, breaking the money column. Re-measured on the v012 capture: 6 of the 7 purchased rows wrap this way — only \"GAP Coverage — Full loan term\" keeps its amount on the line. The original filing understated this as one long label.",
+    "observation": "The amounts stay readable but no longer form a column, so the document cannot be scanned down the right edge — the one thing a price list is for. Previously filed against a finance-menu screen that the V3 rewrite removed.",
     "area": ".doc .lines li wrapping at ≤720px (overflow-wrap rule)"
-  },
-  {
-    "id": "RP-UI-009",
-    "severity": "Minor",
-    "flow": "Finance Menu",
-    "screen": "Custom package — products moved, payment toggled",
-    "screenshot": "current/14-finance-menu/08-repayment-custom.png",
-    "issue": "The Toggle Payment control sits below the Accept Custom Package CTA and the 'Continue without products' link, so the reveal of the custom payment comes after the decision it informs.",
-    "observation": "Order of operations on the phone layout; desktop keeps it inside the column.",
-    "area": "step2() phone layout, #togglePay placement"
   },
   {
     "id": "RP-UI-012",
@@ -73,11 +43,11 @@
     "id": "RP-UI-022",
     "severity": "Observation",
     "flow": "Finance Menu",
-    "screen": "Team Lead sign-off required — Advisor view",
+    "screen": "Manager sign-off — Advisor view",
     "screenshot": "current/14-finance-menu/01-signoff-gate-advisor.png",
-    "issue": "The advisor's dead end here is intentional (the note says to switch to Team Lead), but the role switch it refers to is the unlabelled segmented control in the app bar.",
-    "observation": "A trainee who has not used the app bar switch may not connect the instruction to the control.",
-    "area": "sign-off gate note copy / role switch affordance"
+    "issue": "The Advisor's gate is a deliberate dead end — four statuses and the line \"Waiting for Team Lead.\" — but it offers no next action at all. V3 removed the older note that told the reader to switch roles, so nothing on the screen connects the wait to the role control in the top bar.",
+    "observation": "The role control is now a labelled pill (\"Advisor\" / \"Team Lead\"), which is a real improvement on the unlabelled segmented control this was first filed against. What remains is that a trainee reading the gate is not told where the handoff happens.",
+    "area": "menu route gate(), .fm-note copy"
   },
   {
     "id": "RP-UI-023",
@@ -92,21 +62,21 @@
   {
     "id": "RP-UI-024",
     "severity": "Minor",
-    "flow": "Customer Onboarding — the Customer Resolver",
+    "flow": "All (app-wide)",
     "screen": "Customer identified (advisor)",
     "screenshot": "current/02-customer-onboarding/09-remote-ready.png",
-    "issue": "The role pill in the master deal header (.m-rolebtn) is 65x35px — under the 40px small-variant touch floor the phone layout documents.",
-    "observation": "It opens the drawer, so it is a real target, not decoration. Introduced with the master deal header (PR #51) and now visible on far more screens because the resolver, credit and agreement all use that header. Raising it to 40px is a one-line change in the .m-rolebtn padding.",
+    "issue": "The role pill in the master deal header (.m-rolebtn) is 65x35 to 82x35px — under the 40px small-variant touch floor the phone layout documents. Measured across the v012 capture set it appears on 8 of the 20 flows, on every master-canvas screen.",
+    "observation": "Height only; the width is fine. It is the control that switches Advisor and Team Lead, so it is tapped constantly in training.",
     "area": "portal.css .m-rolebtn"
   },
   {
     "id": "RP-UI-025",
     "severity": "Minor",
-    "flow": "Deal Jacket & Compliance",
+    "flow": "All (app-wide)",
     "screen": "Add optional document",
     "screenshot": "current/15-deal-jacket/06-add-optional.png",
-    "issue": "The sheet's close control is squeezed to 28×40 — the long title plus the flexible header row shrink it below its own 40px box, under the touch floor.",
-    "observation": "The automated small-target check measured .m-close at 28x40 on this sheet only; every other jacket sheet keeps 40x40. The header row needs flex: none on the close (or a min-width), so a long title wraps instead of eating the control.",
+    "issue": "The master bottom sheet's close control (.m-close) is squeezed to 28x40 in the jacket and measures 30x34 to 34x34 elsewhere — under the 40px touch floor. Measured across the v012 capture set it appears on 7 of the 20 flows, in every master sheet.",
+    "observation": "Not a trap — every sheet also dismisses on the scrim and on Escape — but it is a small target on a frequent control, and the jacket's long sheet titles squeeze it further.",
     "area": "portal.css .m-sheettop / #jkSheet .m-close"
   }
 ]
