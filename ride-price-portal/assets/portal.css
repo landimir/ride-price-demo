@@ -2611,6 +2611,10 @@ select.jk2-input { appearance: auto; }
 }
 a.jk2-sheetbtn { display: grid; place-items: center; text-decoration: none; }
 body[data-canvas="master"] {
+  /* Discovery V2 keeps the package theme.css question surface — the one
+     dark presentation object on an otherwise light canvas */
+  --dv-surface: #1D194B;
+  --dv-accent: #FFB340;
   --fm-ok: #168A62;
   --fm-ok-bg: #EAF7F2;
   --fm-warn: #8A5A00;
@@ -2793,4 +2797,77 @@ body[data-screen="menu"] .m-app { padding-bottom: calc(92px + env(safe-area-inse
 @media print {
   .pc-toolbar { display: none !important; }
   .pc-paperwrap { padding: 0; }
+}
+
+/* ---------- Discovery Session V2 (owner's replication package, 2026-08-31)
+   Customer-first: the screen shows the customer and the stage, and nothing
+   about a vehicle until one has actually been selected. Geometry from the
+   golden — a 58px shell, one 46px context row where three stacked rows used
+   to be (RP-UI-005), a 4px progress line, then the question on the dark
+   presentation surface the package keeps. ---------- */
+.dv-top { height: 58px; background: #fff; border-bottom: 1px solid #ececec; display: flex; align-items: center; gap: 10px; padding: 0 14px; position: sticky; top: 0; z-index: 20; }
+.dv-back { width: 44px; height: 44px; border: 0; background: transparent; border-radius: 50%; font-size: 28px; line-height: 1; color: var(--ink); cursor: pointer; }
+.dv-brand { font-size: 18px; font-weight: 800; letter-spacing: -.2px; }
+.dv-brand span { color: var(--accent); }
+.dv-spacer { flex: 1; }
+.dv-role { min-height: 40px; border: 1px solid #d5d5d5; background: #fff; border-radius: 999px; padding: 0 13px; font: inherit; font-weight: 700; color: var(--ink); cursor: pointer; }
+
+.dv-main { padding: 20px 16px 28px; }
+.dv-eyebrow { font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.dv-title { font-size: 30px; font-weight: 750; letter-spacing: -.6px; line-height: 1.06; margin: 5px 0 12px; }
+
+/* ONE row, replacing the deal line + Buyer + Jacket + Deals-list stack */
+.dv-context { min-height: 46px; border: 1px solid var(--line); background: #fff; border-radius: 16px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 14px; margin-bottom: 16px; }
+.dv-ctxmain { flex: 1; min-width: 0; min-height: 44px; border: 0; background: none; text-align: left; padding: 10px 0; font: inherit; color: var(--ink); cursor: pointer; display: flex; align-items: baseline; gap: 7px; }
+.dv-ctxmain strong { font-size: 14px; font-weight: 750; white-space: nowrap; }
+.dv-ctxmain span { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Package rule 5 asks for a 44px+ tap target; the golden's own CSS sets
+   .jacket to height:40px. Same answer as RP-UI-015: the visible chip keeps the
+   golden's geometry exactly, the anchor around it carries the touch floor. */
+.dv-jacket { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; flex: none; border-radius: 12px; }
+.dv-jacket__box { min-width: 46px; height: 40px; background: var(--surface-2); border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 800; color: var(--ink); padding: 0 9px; }
+.dv-jacket:focus-visible { outline: none; }
+.dv-jacket:focus-visible .dv-jacket__box { outline: 2px solid var(--ink); outline-offset: 2px; }
+.dv-jacket svg { width: 17px; height: 17px; fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+.dv-progress { height: 4px; background: #e7e7e7; border-radius: 999px; overflow: hidden; margin: 0 0 18px; }
+.dv-progress > span { display: block; height: 100%; background: var(--grad); border-radius: 999px; transition: width .2s ease; }
+
+/* the approved dark presentation surface for the question itself */
+.dv-question { background: var(--dv-surface); color: #fff; border-radius: 24px; padding: 24px 20px 18px; box-shadow: var(--shadow-lg); }
+.dv-cats { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--dv-accent); line-height: 1.5; margin-bottom: 22px; }
+.dv-qtitle { font-size: 27px; line-height: 1.12; letter-spacing: -.4px; margin: 0 0 8px; }
+.dv-qhint { margin: 0 0 20px; font-size: 15px; line-height: 1.4; color: #d6d3ed; }
+.dv-answer { width: 100%; min-height: 120px; resize: vertical; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; border-radius: 16px; padding: 15px; font: inherit; font-size: 16px; line-height: 1.45; outline: none; }
+.dv-answer::placeholder { color: #aaa6c7; }
+.dv-answer:focus { border-color: rgba(255,255,255,.55); }
+.dv-autosave { display: flex; align-items: center; gap: 8px; margin-top: 13px; font-size: 12px; color: #aaa6c7; }
+.dv-autosave i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex: none; }
+.dv-qactions { display: flex; align-items: center; gap: 10px; margin-top: 18px; }
+.dv-grow { flex: 1; }
+.dv-secondary { min-height: 50px; border: 1px solid rgba(255,255,255,.75); background: #fff; color: var(--dv-surface); border-radius: 16px; padding: 0 18px; font: inherit; font-weight: 750; cursor: pointer; }
+.dv-primary { min-height: 50px; border: 0; background: var(--grad); color: #fff; border-radius: 16px; padding: 0 20px; font: inherit; font-weight: 800; cursor: pointer; box-shadow: 0 10px 24px rgba(255,56,92,.22); }
+
+/* Visit details — everything the old crumb row shouted, on demand */
+.dv-sheettitle { font-size: 24px; font-weight: 780; letter-spacing: -.4px; margin: 0 0 16px; }
+.dv-sheetsay { font-size: 15px; line-height: 1.5; color: var(--muted); margin: 0 0 4px; }
+.dv-seclab { font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 22px 0 8px; }
+.dv-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
+.dv-row:last-child { border-bottom: 0; }
+.dv-rowmain { flex: 1; min-width: 0; }
+.dv-rowname { font-size: 16px; font-weight: 750; }
+.dv-rowsub { font-size: 14px; color: var(--muted); margin-top: 2px; }
+.dv-rowval { font-size: 15px; color: var(--muted); }
+.dv-rowval--strong { color: var(--ink); font-weight: 750; }
+.dv-status { flex: none; font-size: 12px; font-weight: 750; border-radius: 999px; padding: 7px 10px; color: var(--green); background: var(--fm-ok-bg); }
+.dv-status--wait { color: var(--fm-warn); background: var(--fm-warn-bg); }
+.dv-actions { display: grid; gap: 10px; margin-top: 18px; }
+.dv-sheetbtn { min-height: 52px; border-radius: 16px; border: 1.5px solid var(--ink); background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 750; cursor: pointer; display: grid; place-items: center; text-decoration: none; }
+.dv-sheetbtn--primary { background: var(--grad); color: #fff; border-color: transparent; }
+
+@media (max-width: 390px) {
+  .dv-main { padding-left: 14px; padding-right: 14px; }
+  .dv-title { font-size: 28px; }
+  .dv-question { padding: 22px 18px 17px; }
+  .dv-qtitle { font-size: 25px; }
 }

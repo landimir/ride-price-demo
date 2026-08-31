@@ -2352,43 +2352,183 @@ route("regprops", () => {
 /* ============================================================
    VIEW: Discovery Session
    ============================================================ */
+/* ============================================================
+   VIEW: Discovery Session V2 — owner's replication package, 2026-08-31.
+
+   The package's product rule is one sentence: DISCOVERY IS CUSTOMER-FIRST.
+   Nothing about a vehicle — year, make, model, trim, VIN, stock, payment —
+   may appear before a vehicle has actually been selected. The old screen
+   opened with `Deal #48201 · John Smith · 2022 Hyundai Santa Fe` on a visit
+   that had chosen no vehicle at all, which is the app claiming to know
+   something the workflow has not established yet.
+
+   That line, the Buyer pill, the Jacket pill and the Deals-list button were
+   three stacked rows (RP-UI-005). They collapse to ONE: the customer and the
+   stage on the left, compact Jacket access on the right. Everything else —
+   visit number, co-buyer, identity, registration address, and the fact that
+   no vehicle is chosen — moves into the Visit details sheet, on demand.
+
+   The early object is a VISIT in user-facing language. A deal id still
+   exists underneath; it is simply not what the advisor is shown.
+   ============================================================ */
 route("discovery/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const c = Store.customer(deal.customerId);
   const qs = RIDE_PRICE_DATA.discoveryQuestions;
+  /* a vehicle may legitimately exist if one was selected upstream — the rule
+     is that Discovery never invents one, not that it hides a real choice */
+  const v = deal.stock ? Store.vehicle(deal.stock) : null;
+  const jkc = jacketCounts(deal);
+  const custName = `${c.first} ${c.last}`;
   let idx = 0;
 
-  renderChrome("Discovery Session", dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/deals">Deals list</a>`);
+  /* the golden's shell: back, wordmark, role. No crumb block. */
+  const dvTop = () => `<div class="dv-top">
+    <button type="button" class="dv-back" id="dvBack" aria-label="Back">‹</button>
+    <div class="dv-brand"><span>Ride</span> PRICE</div>
+    <span class="dv-spacer"></span>
+    <button type="button" class="dv-role" id="dvRole">${isTeamLead() ? "Team Lead" : "Advisor"}</button>
+  </div>`;
+
+  /* ONE row. The left half opens Visit details; the right is Jacket. Both
+     clear the 40px floor. Stage-aware per the package: the vehicle appears
+     here only once one has actually been selected. */
+  const contextRow = () => `<div class="dv-context">
+    <button type="button" class="dv-ctxmain" id="dvVisit">
+      <strong>${esc(custName)}</strong>
+      <span>${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Discovery"}</span>
+    </button>
+    <a class="dv-jacket" href="#/jacket/${esc(deal.id)}" aria-label="Deal Jacket${jkc.missing ? ` — ${jkc.missing} of ${jkc.total} documents still outstanding` : " — all documents in"}">
+      <span class="dv-jacket__box">${rpIcon("folder")}${jkc.missing ? `<b>${jkc.missing}</b>` : ""}</span>
+    </a>
+  </div>`;
+
+  let sheetKey = null;
+  const closeSheet = () => {
+    const sc = $("#dvScrim"); if (sc) sc.classList.remove("show");
+    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+  };
+  const teardown = () => { closeSheet(); window.removeEventListener("hashchange", teardown); };
+  window.addEventListener("hashchange", teardown);
+  const openSheet = (html, onMount) => {
+    const sh = $("#dvSheet"); if (!sh) return;
+    sh.innerHTML = `<div class="m-handle"></div>${html}`;
+    $("#dvScrim").classList.add("show");
+    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
+    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
+    document.addEventListener("keydown", sheetKey, true);
+    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
+    if (onMount) onMount(sh);
+  };
+
+  /* everything the old crumb row shouted, disclosed on demand instead */
+  function visitSheet() {
+    const co = deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
+    const addr = c.onboard && c.onboard.address && c.onboard.address.confirmedAt;
+    const idOk = deal.identity && deal.identity.verifiedAt;
+    openSheet(`
+      <h2 class="dv-sheettitle">Visit details</h2>
+      <div class="dv-seclab">Customer</div>
+      <div class="dv-row">
+        <div class="dv-rowmain"><div class="dv-rowname">${esc(custName)}</div>
+          <div class="dv-rowsub">Primary buyer</div></div>
+        <span class="dv-status${idOk ? "" : " dv-status--wait"}">${idOk ? "Identity confirmed" : "Identity not verified"}</span>
+      </div>
+      <div class="dv-row">
+        <div class="dv-rowmain"><div class="dv-rowname">Co-buyer</div></div>
+        <span class="dv-rowval">${co ? esc(`${co.first} ${co.last}`) : "None added"}</span>
+      </div>
+      <div class="dv-seclab">Visit</div>
+      <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Stage</div></div>
+        <span class="dv-rowval dv-rowval--strong">Discovery</span></div>
+      <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Visit #</div></div>
+        <span class="dv-rowval dv-rowval--strong">V${esc(deal.dealNo || "—")}</span></div>
+      <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Registration address</div></div>
+        <span class="dv-rowval dv-rowval--strong">${addr ? "Confirmed" : "Not confirmed"}</span></div>
+      <div class="dv-seclab">Vehicle</div>
+      ${v ? `<div class="dv-row"><div class="dv-rowmain">
+          <div class="dv-rowname">${esc(`${v.year} ${v.make} ${v.model}`)}</div>
+          <div class="dv-rowsub">Selected before this session</div></div></div>`
+        : `<div class="dv-row"><div class="dv-rowmain">
+            <div class="dv-rowname">No vehicle selected</div>
+            <div class="dv-rowsub">Vehicle context appears after Discovery.</div></div></div>`}
+      <div class="dv-actions"><button type="button" class="dv-sheetbtn" data-sheet-close>Done</button></div>`);
+  }
 
   function render() {
     const q = qs[idx];
     const saved = deal.discovery.answers[q.key] || "";
+    const last = idx === qs.length - 1;
+    const pct = Math.round(((idx + 1) / qs.length) * 100);
+
+    /* no crumbs: dealTitle() would build the Deal #/"no vehicle yet" line this
+       screen exists to remove. The master canvas hides .pagebar anyway, but
+       not building it is the guarantee that survives a CSS change. */
+    renderChrome("Discovery Session", "", "");
+    document.body.dataset.canvas = "master";
+    document.body.dataset.screen = "discovery";
+
     view().innerHTML = `
-      <div class="disco-progress">${qs.map((_, i) => `<i class="${i <= idx ? "on" : ""}"></i>`).join("")}</div>
-      <div class="disco">
-        <span class="steps">Trips · Family · Pets · Activities · Commute · Drive</span>
-        <h2>${esc(q.title)}</h2>
-        <span class="hint">${esc(q.hint)}</span>
-        <textarea id="ans" placeholder="Capture the conversation — this pushes to the CRM…">${esc(saved)}</textarea>
-        <div class="nav">
-          <button class="btn btn--ghost" id="backBtn" ${idx === 0 ? `disabled style="visibility:hidden"` : ""}>← Back</button>
-          <button class="btn btn--grad" id="nextBtn">${idx === qs.length - 1 ? "Pick Vehicle →" : "Next →"}</button>
-        </div>
+      <div class="m-app">
+        ${dvTop()}
+        <main class="dv-main">
+          <div class="dv-eyebrow">Customer discovery</div>
+          <h1 class="dv-title">Discovery Session</h1>
+          ${contextRow()}
+          <div class="dv-progress"><span style="width:${pct}%"></span></div>
+
+          <section class="dv-question">
+            <div class="dv-cats">Trips · Family · Pets · Activities · Commute · Drive</div>
+            <h2 class="dv-qtitle">${esc(q.title)}</h2>
+            <p class="dv-qhint">${esc(q.hint)}</p>
+            <textarea class="dv-answer" id="dvAns" placeholder="Capture the conversation in their words…">${esc(saved)}</textarea>
+            <div class="dv-autosave"><i></i><span id="dvSaved">Autosaved to customer discovery</span></div>
+            <div class="dv-qactions">
+              ${idx === 0 ? "" : `<button type="button" class="dv-secondary" id="dvBackQ">← Back</button>`}
+              <span class="dv-grow"></span>
+              <button type="button" class="dv-primary" id="dvNext">${last ? "Find vehicles →" : "Next →"}</button>
+            </div>
+          </section>
+        </main>
       </div>
-      <p class="note">Build rapport and keep it an organic conversation. Fact-find, confirm, and enter it here — it will be pushed into the CRM.</p>`;
-    $("#ans").focus();
-    $("#backBtn").onclick = () => { saveAns(); idx--; render(); };
-    $("#nextBtn").onclick = () => {
+      <div class="m-scrim" id="dvScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="dvSheet"></div></div>`;
+
+    $("#dvBack").onclick = () => history.back();
+    $("#dvRole").onclick = () => $("#hamburgerBtn").click();
+    $("#dvVisit").onclick = visitSheet;
+    const scrim = $("#dvScrim");
+    if (scrim) scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
+
+    const ans = $("#dvAns");
+    ans.focus();
+    /* autosave is the package's word, so it has to be true: every keystroke
+       persists, not just the Next tap */
+    ans.oninput = () => { saveAns(); };
+
+    const back = $("#dvBackQ");
+    if (back) back.onclick = () => { saveAns(); idx--; render(); };
+    $("#dvNext").onclick = () => {
       saveAns();
-      if (idx === qs.length - 1) {
-        deal.discovery.done = true;
-        if (deal.stage === "discovery") deal.stage = "vehicle";
-        Store.save();
-        navigate(`#/vehicles/${deal.id}`);
-      } else { idx++; render(); }
+      if (!last) { idx++; render(); return; }
+      deal.discovery.done = true;
+      if (deal.stage === "discovery") deal.stage = "vehicle";
+      Store.save();
+      /* the package: the hand-off must say plainly that no vehicle is chosen
+         yet, rather than implying one exists */
+      openSheet(`
+        <h2 class="dv-sheettitle">Discovery complete</h2>
+        <p class="dv-sheetsay">${esc(custName)}&rsquo;s answers are saved to the visit.
+          ${v ? "" : "No vehicle has been selected yet — the next step matches inventory to what they told you."}</p>
+        <div class="dv-actions">
+          <a class="dv-sheetbtn dv-sheetbtn--primary" href="#/vehicles/${esc(deal.id)}">Find matching vehicles</a>
+          <button type="button" class="dv-sheetbtn" data-sheet-close>Back to questions</button>
+        </div>`);
     };
   }
-  function saveAns() { deal.discovery.answers[qs[idx].key] = $("#ans").value; Store.save(); }
+  function saveAns() {
+    const el = $("#dvAns"); if (!el) return;
+    deal.discovery.answers[qs[idx].key] = el.value; Store.save();
+  }
   render();
 });
 
