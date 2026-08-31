@@ -668,7 +668,7 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
 .dl-empty--act { padding: 0 0 30px; margin-top: -18px; }
 .dl-archive { margin-top: 18px; }
 .dl-archive summary { cursor: pointer; font-size: 13px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
-/* the phone touch floor (ui-context: ≥44px at ≤720px, small variants ≥40px),
+/* the phone touch floor (ui-context: ≥40px at ≤720px, every control),
    and the header stays ONE row — title left, action right — instead of the
    generic full-width action stack (owner refinement). One row is enforced,
    not hoped for: the bar may not wrap, the title box may shrink (and its
@@ -1592,7 +1592,8 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
     font-size: 16px;
   }
 
-  /* 44px touch floor — a car lot is not a desk with a mouse */
+  /* the 40px touch floor — a car lot is not a desk with a mouse. The
+     ordinary button sits well above it at 44; .btn--sm meets it exactly. */
   .btn { padding: 10px 14px; min-height: 44px; }
   .btn--sm { padding: 6px 12px; min-height: 40px; }
   .seg__opt { min-height: 40px; }

@@ -109,7 +109,7 @@ App commit: 5ad39ea · 20 flows · 129 screens · previous: v013
 - none
 
 ### New issues
-- RP-UI-028 (Minor) — ui-context documents TWO floors — buttons >=44px at <=720px, and >=40px only for small variants. The small-variant floor is now met everywhere (PR #59). The general floor is not: 23 ordinary controls sit at 40-43px, including the standard small button (.btn--sm) used across the crumb bars, the drawer's navigation rows at 42px, #drawerReset, the two props print buttons, and .dr-clientadd at 43 wide.
+- RP-UI-029 (Minor) — The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measures 14 real shortfalls: the desking accessory checkbox rows at 20px (eight of them), the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, the client-link demo option row at 30, and #mMaxPrice at 38.
 
 ### Resolved issues
 - RP-UI-015 (Minor) — The per-thumbnail remove controls (×) are 24×24px, under the phone touch floor (≥40px for small variants).
