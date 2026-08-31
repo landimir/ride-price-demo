@@ -1,5 +1,126 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v014 — 2026-08-31
+
+App commit: 5ad39ea · 20 flows · 129 screens · previous: v013
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · My deals (landing — Advisor)
+- Home — Active Floor & Navigation · More sheet — secondary navigation
+- Home — Active Floor & Navigation · Reset demo data — confirm
+- Home — Active Floor & Navigation · Switch demo role
+- Home — Active Floor & Navigation · Active floor (Team Lead)
+- Home — Active Floor & Navigation · Stage filter — no match
+- Home — Active Floor & Navigation · Date range / history sheet
+- Home — Active Floor & Navigation · Funded history in range
+- Home — Active Floor & Navigation · Advisor — completed deal ends the list
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · Find customer — the resolver
+- Customer Onboarding — the Customer Resolver · Search results
+- Customer Onboarding — the Customer Resolver · Customer found — confirm + registration address
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Customer Onboarding — the Customer Resolver · Search results — no match
+- Customer Onboarding — the Customer Resolver · No license available — manual fallback
+- Customer Onboarding — the Customer Resolver · Send secure upload link (sheet)
+- Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1
+- Discovery Session · Discovery — mid-interview
+- Discovery Session · Discovery — last question
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · Vehicle details sheet
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Desking — Calculate Payments · Base Payment Huddle
+- Desking — Calculate Payments · Calculate Payments — Finance
+- Desking — Calculate Payments · Calculate Payments — Lease
+- Desking — Calculate Payments · Calculate Payments — Cash
+- Desking — Calculate Payments · Compare payments — sheet
+- Desking — Calculate Payments · Payment Comparison — full page
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Agreement — signed
+- Base Payment Agreement · Void signature and redesk? (sheet)
+- Credit Application (Lending Lane) · Verify your identity (pre-application gate)
+- Credit Application (Lending Lane) · Identity verified
+- Credit Application (Lending Lane) · Step 1 — Application type & applicant
+- Credit Application (Lending Lane) · Joint — co-buyer needed
+- Credit Application (Lending Lane) · Send co-buyer link (sheet)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Credit Application (Lending Lane) · Invalid submit — inline summary
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Credit Application (Lending Lane) · Approved (simulated)
+- Buyers on the Deal (Co-Buyer) · Buyers on this deal
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — the resolver's entries
+- Buyers on the Deal (Co-Buyer) · Co-buyer attached
+- Buyers on the Deal (Co-Buyer) · Co-buyer — contextual actions
+- Buyers on the Deal (Co-Buyer) · Remove — second tap confirms
+- Buyers on the Deal (Co-Buyer) · Team Lead — Change roles visible
+- Buyers on the Deal (Co-Buyer) · Change buyer roles? — confirmation
+- F&I Product Presentation · Presentation — Rate
+- F&I Product Presentation · Vehicle service contract
+- F&I Product Presentation · Mileage changes the warranty window
+- F&I Product Presentation · Advisor script (sheet)
+- F&I Product Presentation · Monthly / daily budget (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Resolve Deal Jacket blocker
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Accept package — client initials
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 3 — Disclosures & forms
+- Finance Menu — Sign-Off Gate and Four Stages · Additional deal forms (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Deal Jacket — funding readiness
+- Deal Jacket & Compliance · Advisor script sheet
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Document row — contextual actions
+- Deal Jacket & Compliance · Mark received — a person's word
+- Deal Jacket & Compliance · Add optional document
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Deal Jacket & Compliance · Driver's License — back still needed
+- Deal Jacket & Compliance · Jacket complete — the dock unlocks
+- Customer document request (from the jacket) · Request documents — secure link
+- Customer document request (from the jacket) · Jacket after sending — Requested
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Client Document Upload (customer's phone) · What we need — bottom sheet
+- Client Document Upload (customer's phone) · Review capture — 2 pages
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Documents — Print Center & Printables · Print full packet (sheet)
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- RP-UI-028 (Minor) — ui-context documents TWO floors — buttons >=44px at <=720px, and >=40px only for small variants. The small-variant floor is now met everywhere (PR #59). The general floor is not: 23 ordinary controls sit at 40-43px, including the standard small button (.btn--sm) used across the crumb bars, the drawer's navigation rows at 42px, #drawerReset, the two props print buttons, and .dr-clientadd at 43 wide.
+
+### Resolved issues
+- RP-UI-015 (Minor) — The per-thumbnail remove controls (×) are 24×24px, under the phone touch floor (≥40px for small variants).
+- RP-UI-024 (Minor) — The role pill in the master deal header (.m-rolebtn) is 65x35 to 82x35px — under the 40px small-variant touch floor the phone layout documents. Measured across the v013 capture set it appears on 8 of the 20 flows, on every master-canvas screen.
+- RP-UI-025 (Minor) — The master bottom sheet's close control (.m-close) is squeezed to 28x40 in the jacket and measures 30x34 to 34x34 elsewhere — under the 40px touch floor. Measured across the v013 capture set it appears on 8 of the 20 flows, in every master sheet — including the new Print full packet sheet.
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v013 — 2026-08-31
 
 App commit: 3e6afbb · 20 flows · 129 screens · previous: v012

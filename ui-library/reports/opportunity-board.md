@@ -48,4 +48,4 @@ Updated 2026-08-28 · 2 of 20 product areas reviewed · 21 recommendations so fa
 
 1. Scan Driver's License is REVIEWED (area 2 of 20 in review order) via the first external-draft intake: 14 recommendations, two owner questions answered (Q1 summary-first verify vs decision 11; Q2 the scanner's shell), four external items killed on invariants/decisions — see the area's intake record.
 2. Build order once the owner answers: RP-IMP-012 + 013 (the identity screens), RP-IMP-008 (the tear-down bug + guidance), RP-IMP-011 (CTA outcomes), then the Q1/Q2-dependent work.
-3. Still open from Home: where + New Customer Visit lives on phones (RP-IMP-001); the Team Lead Archived row's touch target (RP-UI-017).
+3. Still open from Home: where + New Customer Visit lives on phones (RP-IMP-001). (RP-UI-017, the Team Lead Archived row's touch target, was listed here as still open long after it was retired at v009 — the 20px Archived fold is gone and funded contracts live behind the Team Lead date/history sheet. Corrected 2026-08-31.)

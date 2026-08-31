@@ -1,12 +1,12 @@
-# Ride Price Mobile UI — UX Audit (v013)
+# Ride Price Mobile UI — UX Audit (v014)
 
-Captured 2026-08-31T03:00:32.356Z · viewport 390×844 · app 3e6afbbbc5788969846336be6db09ffa9334cd6d
+Captured 2026-08-31T15:38:56.125Z · viewport 390×844 · app 5ad39ea0726b18e7f904c60bdd7214a0c0579821
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 0 |
-| Minor | 5 |
+| Minor | 3 |
 | Observation | 2 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
@@ -19,7 +19,7 @@ _None recorded._
 
 _None recorded._
 
-## Minor (5)
+## Minor (3)
 
 ### RP-UI-005 — Discovery Session · Discovery — question 1
 
@@ -35,26 +35,12 @@ _None recorded._
 - **Observation:** By recorded decision the props are never scaled (they must print at true size); on a phone the grid scrolls horizontally, but nothing says so.
 - **Suggested area to investigate:** .props-grid horizontal scroll hint at ≤720px
 
-### RP-UI-015 — Snap All — burst capture · Three shots taken
+### RP-UI-028 — All (app-wide) · Crumb bars, drawer navigation, props printables
 
-- **Screenshot:** `current/18-snap-all/02-thumbs.png`
-- **Issue:** The per-thumbnail remove controls (×) are 24×24px, under the phone touch floor (≥40px for small variants).
-- **Observation:** Also 34px zoom / page buttons on the client review screen and the advisor document review.
-- **Suggested area to investigate:** .sa-thumb__x, .dr-zoom button, .dr-pagetools button sizing at ≤720px
-
-### RP-UI-024 — All (app-wide) · Customer identified (advisor)
-
-- **Screenshot:** `current/02-customer-onboarding/09-remote-ready.png`
-- **Issue:** The role pill in the master deal header (.m-rolebtn) is 65x35 to 82x35px — under the 40px small-variant touch floor the phone layout documents. Measured across the v013 capture set it appears on 8 of the 20 flows, on every master-canvas screen.
-- **Observation:** Height only; the width is fine. It is the control that switches Advisor and Team Lead, so it is tapped constantly in training.
-- **Suggested area to investigate:** portal.css .m-rolebtn
-
-### RP-UI-025 — All (app-wide) · Add optional document
-
-- **Screenshot:** `current/15-deal-jacket/06-add-optional.png`
-- **Issue:** The master bottom sheet's close control (.m-close) is squeezed to 28x40 in the jacket and measures 30x34 to 34x34 elsewhere — under the 40px touch floor. Measured across the v013 capture set it appears on 8 of the 20 flows, in every master sheet — including the new Print full packet sheet.
-- **Observation:** Not a trap — every sheet also dismisses on the scrim and on Escape — but it is a small target on a frequent control, and the jacket's long sheet titles squeeze it further.
-- **Suggested area to investigate:** portal.css .m-sheettop / #jkSheet .m-close
+- **Screenshot:** `current/01-home-and-navigation/01-deals-queue.png`
+- **Issue:** ui-context documents TWO floors — buttons >=44px at <=720px, and >=40px only for small variants. The small-variant floor is now met everywhere (PR #59). The general floor is not: 23 ordinary controls sit at 40-43px, including the standard small button (.btn--sm) used across the crumb bars, the drawer's navigation rows at 42px, #drawerReset, the two props print buttons, and .dr-clientadd at 43 wide.
+- **Observation:** Not a regression — this is the pre-existing scale of the app's small button, and it predates the touch-floor pass. Lifting it changes visual weight on many screens at once, so it is an owner decision rather than a bug fix. harness/touchfloor.mjs pins the count at 23: it may shrink, never grow, and a new member fails the run.
+- **Suggested area to investigate:** portal.css .btn--sm, .drawer__nav a, #drawerReset, .dr-clientadd
 
 ## Observation (2)
 

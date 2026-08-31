@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-08-31T03:00:32.356Z",
-  "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+  "capturedAt": "2026-08-31T15:38:56.125Z",
+  "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-08-31T03:00:32.367Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:38:56.135Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -46,7 +46,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dqRole.m-rolebtn Advisor ▾ 79x35",
               "#dealSearch  239x25"
             ],
             "clipped": [],
@@ -68,6 +67,13 @@
               "issue": "No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet on the queue top bar standing in for identity.",
               "observation": "By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.",
               "area": "n/a"
+            },
+            {
+              "id": "RP-UI-028",
+              "severity": "Minor",
+              "issue": "ui-context documents TWO floors — buttons >=44px at <=720px, and >=40px only for small variants. The small-variant floor is now met everywhere (PR #59). The general floor is not: 23 ordinary controls sit at 40-43px, including the standard small button (.btn--sm) used across the crumb bars, the drawer's navigation rows at 42px, #drawerReset, the two props print buttons, and .dr-clientadd at 43 wide.",
+              "observation": "Not a regression — this is the pre-existing scale of the app's small button, and it predates the touch-floor pass. Lifting it changes visual weight on many screens at once, so it is an owner decision rather than a bug fix. harness/touchfloor.mjs pins the count at 23: it may shrink, never grow, and a new member fails the run.",
+              "area": "portal.css .btn--sm, .drawer__nav a, #drawerReset, .dr-clientadd"
             }
           ]
         },
@@ -104,20 +110,18 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dqRole.m-rolebtn Advisor ▾ 79x35",
-              "#dealSearch  239x25",
-              ".m-close ✕ 34x34"
+              "#dealSearch  239x25"
             ],
             "clipped": [],
             "overlaps": [
               ".dq-name John Smith <> .dq-stage.dq-stage--desking DESKING",
               ".dq-name John Smith <> .m-sheettitle More",
               ".dq-stage.dq-stage--desking DESKING <> .m-close ✕",
-              ".dq-veh 2022 Hyundai Santa Fe <> .m-sheettitle More",
               " VIN 5NMS4DAL4NH457995 <> .ob-sheetdesc Secondary tools stay out of ",
               " 5NMS4DAL4NH457995 <> .ob-sheetdesc Secondary tools stay out of ",
               " STK 7H21313 <> .ob-sheetdesc Secondary tools stay out of ",
-              " 7H21313 <> .ob-sheetdesc Secondary tools stay out of "
+              " 7H21313 <> .ob-sheetdesc Secondary tools stay out of ",
+              ".dq-chev › <> .ob-sheetdesc Secondary tools stay out of "
             ]
           },
           "error": null,
@@ -173,9 +177,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dqRole.m-rolebtn Advisor ▾ 79x35",
-              "#dealSearch  239x25",
-              ".m-close ✕ 34x34"
+              "#dealSearch  239x25"
             ],
             "clipped": [],
             "overlaps": [
@@ -207,7 +209,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dqRole.m-rolebtn Team Lead ▾ 96x35",
               "#dealSearch  239x25"
             ],
             "clipped": [],
@@ -240,7 +241,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dqRole.m-rolebtn Team Lead ▾ 96x35",
               "#dealSearch  239x25"
             ],
             "clipped": [],
@@ -250,7 +250,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 849
+            "pageHeight": 855
           },
           "scrollShot": "current/01-home-and-navigation/06-stage-filter-empty.scroll.png",
           "issues": []
@@ -271,9 +271,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dqRole.m-rolebtn Team Lead ▾ 96x35",
-              "#dealSearch  239x25",
-              ".m-close ✕ 34x34"
+              "#dealSearch  239x25"
             ],
             "clipped": [],
             "overlaps": [
@@ -312,7 +310,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dqRole.m-rolebtn Team Lead ▾ 96x35",
               "#dealSearch  239x25"
             ],
             "clipped": [],
@@ -329,7 +326,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1032
+            "pageHeight": 1038
           },
           "scrollShot": "current/01-home-and-navigation/08-funded-history.scroll.png",
           "issues": []
@@ -350,7 +347,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dqRole.m-rolebtn Advisor ▾ 79x35",
               "#dealSearch  239x25"
             ],
             "clipped": [],
@@ -383,7 +379,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dqRole.m-rolebtn Advisor ▾ 79x35",
               "#dealSearch  239x25"
             ],
             "clipped": [],
@@ -411,8 +406,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-08-31T03:00:45.458Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:39:08.327Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -442,17 +437,15 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1082,
-            "pageHeight": 1082
+            "height": 1087,
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -472,17 +465,15 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1000,
-            "pageHeight": 1000
+            "height": 1005,
+            "pageHeight": 1005
           },
           "scrollShot": null,
           "issues": []
@@ -511,9 +502,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [
               ".ob-rowsub Existing Ride Price customer 173>155"
             ],
@@ -522,8 +511,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 970,
-            "pageHeight": 970
+            "height": 976,
+            "pageHeight": 976
           },
           "scrollShot": null,
           "issues": []
@@ -543,10 +532,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
-              ".m-close ✕ 34x34"
-            ],
+            "tinyTargets": [],
             "clipped": [
               ".ob-rowsub Existing Ride Price customer 173>155"
             ],
@@ -558,14 +544,14 @@
               ".ob-addressnote Ride Price carries this addr <> .ca-lab Search address",
               "#obConfirm.ob-primary Confirm address & start visi <> #obSheetHint.ob-helper Type the address as street, ",
               "#obOtherAddr.sc2-textbtn.ob-center Use a different address <> #obSheetHint.ob-helper Type the address as street, ",
-              "#obBack.sc2-textbtn.ob-center Not the right customer? Sear <>  12 Main St, Astoria, NY 1110"
+              "#obBack.sc2-textbtn.ob-center Not the right customer? Sear <>  Use this standardized addres"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 970,
-            "pageHeight": 970
+            "height": 976,
+            "pageHeight": 976
           },
           "scrollShot": null,
           "issues": []
@@ -585,17 +571,15 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 997,
-            "pageHeight": 997
+            "height": 1002,
+            "pageHeight": 1002
           },
           "scrollShot": null,
           "issues": []
@@ -615,17 +599,15 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1029,
-            "pageHeight": 1029
+            "height": 1034,
+            "pageHeight": 1034
           },
           "scrollShot": null,
           "issues": []
@@ -645,13 +627,10 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
-              ".m-close ✕ 34x34"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".ob-pill Start new customer visit <> .m-sheettitle Send secure upload link",
+              ".ob-lead Search the CRM, scan a physi <> .m-close ✕",
               ".ob-pill Start new customer visit <> .ob-sheetdesc The customer uploads the lic",
               "#searchBtn.ob-searchbtn Search <>  Email",
               ".ob-helper Ride Price searches existing <> .ca-lab Customer mobile",
@@ -664,8 +643,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1082,
-            "pageHeight": 1082
+            "height": 1087,
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -685,17 +664,15 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1038,
-            "pageHeight": 1038
+            "height": 1043,
+            "pageHeight": 1043
           },
           "scrollShot": null,
           "issues": []
@@ -715,9 +692,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [
               ".ob-rowsub Remote secure upload · new c 236>85"
             ],
@@ -726,19 +701,11 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1193,
-            "pageHeight": 1193
+            "height": 1199,
+            "pageHeight": 1199
           },
           "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-024",
-              "severity": "Minor",
-              "issue": "The role pill in the master deal header (.m-rolebtn) is 65x35 to 82x35px — under the 40px small-variant touch floor the phone layout documents. Measured across the v013 capture set it appears on 8 of the 20 flows, on every master-canvas screen.",
-              "observation": "Height only; the width is fine. It is the control that switches Advisor and Team Lead, so it is tapped constantly in training.",
-              "area": "portal.css .m-rolebtn"
-            }
-          ]
+          "issues": []
         }
       ]
     },
@@ -751,8 +718,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-08-31T03:01:00.464Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:39:25.099Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -777,7 +744,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1082
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -805,7 +772,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1082
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -847,7 +814,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1082
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -883,7 +850,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1082
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -925,7 +892,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1082
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -962,7 +929,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1082
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -990,7 +957,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1082
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -1018,7 +985,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1082
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -1064,7 +1031,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1082
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -1091,7 +1058,7 @@
               " 4102 Bell Blvd, Bayside, NY  <>  Ask the guest to read back t",
               " Email <> .sc2-demo Demo: nothing leaves this de",
               " Email <>  Demo:",
-              " Email <>  513994",
+              " Email <>  905491",
               ".sc2-micro Phone and email are required <> .sc2-primary Verify & link",
               ".sc2-micro Phone and email are required <> .sc2-textbtn Cancel",
               ".demo-note Demo tool — sample data only <> .sc2-textbtn Cancel"
@@ -1101,7 +1068,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1082
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -1134,7 +1101,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1082
+            "pageHeight": 1087
           },
           "scrollShot": null,
           "issues": []
@@ -1150,8 +1117,8 @@
         "from": "home/more-sheet",
         "action": "Training licenses / Training registrations"
       },
-      "capturedAt": "2026-08-31T03:01:22.946Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:39:46.415Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -1259,15 +1226,15 @@
         "from": "onboarding/customer-found",
         "action": "Start Visit → (creates the deal)"
       },
-      "capturedAt": "2026-08-31T03:01:26.712Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:39:49.321Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-3v32yab",
+          "hash": "#/discovery/d-rufr32d",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1312,7 +1279,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-3v32yab",
+          "hash": "#/discovery/d-rufr32d",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1340,7 +1307,7 @@
           "key": "question-last",
           "screen": "Discovery — last question",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-3v32yab",
+          "hash": "#/discovery/d-rufr32d",
           "action": "Tap Pick Vehicle →",
           "next": "vehicles/inventory",
           "branches": [],
@@ -1374,15 +1341,15 @@
         "from": "discovery/question-last",
         "action": "Tap Pick Vehicle →"
       },
-      "capturedAt": "2026-08-31T03:01:32.961Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:39:56.743Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
           "screen": "Vehicle Search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-4uc156z",
+          "hash": "#/vehicles/d-6yifyji",
           "action": "Tap the Used chip",
           "next": "inventory-filtered",
           "branches": [],
@@ -1393,8 +1360,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21",
-              "#mSort.m-sort Price: high to low 91x24"
+              "#mSearch  288x21"
             ],
             "clipped": [],
             "overlaps": []
@@ -1403,7 +1369,7 @@
           "size": {
             "width": 390,
             "height": 3200,
-            "pageHeight": 5570
+            "pageHeight": 5572
           },
           "scrollShot": null,
           "issues": []
@@ -1413,7 +1379,7 @@
           "key": "inventory-filtered",
           "screen": "Inventory — Used only",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-4uc156z",
+          "hash": "#/vehicles/d-6yifyji",
           "action": "Open Filters, cap the price at $1,000",
           "next": "inventory-no-match",
           "branches": [],
@@ -1424,8 +1390,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21",
-              "#mSort.m-sort Price: high to low 91x24"
+              "#mSearch  288x21"
             ],
             "clipped": [],
             "overlaps": []
@@ -1433,8 +1398,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 926,
-            "pageHeight": 926
+            "height": 928,
+            "pageHeight": 928
           },
           "scrollShot": null,
           "issues": []
@@ -1444,7 +1409,7 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-4uc156z",
+          "hash": "#/vehicles/d-6yifyji",
           "action": "Clear all filters; tap a vehicle",
           "next": "vehicle-details",
           "branches": [],
@@ -1455,8 +1420,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21",
-              "#mSort.m-sort Price: high to low 91x24"
+              "#mSearch  288x21"
             ],
             "clipped": [],
             "overlaps": []
@@ -1475,7 +1439,7 @@
           "key": "vehicle-details",
           "screen": "Vehicle details sheet",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-4uc156z",
+          "hash": "#/vehicles/d-6yifyji",
           "action": "Tap Choose this vehicle",
           "next": "next-steps",
           "branches": [],
@@ -1486,9 +1450,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21",
-              "#mSort.m-sort Price: high to low 91x24",
-              ".m-close ✕ 34x34"
+              "#mSearch  288x21"
             ],
             "clipped": [],
             "overlaps": [
@@ -1506,7 +1468,7 @@
           "size": {
             "width": 390,
             "height": 3200,
-            "pageHeight": 5570
+            "pageHeight": 5572
           },
           "scrollShot": null,
           "issues": []
@@ -1516,7 +1478,7 @@
           "key": "next-steps",
           "screen": "What's next? — after choosing",
           "screenshot": "current/06-vehicle-selection/05-next-steps.png",
-          "hash": "#/vehicles/d-4uc156z",
+          "hash": "#/vehicles/d-6yifyji",
           "action": "Tap Test Drive",
           "next": "test-drive/authorization",
           "branches": [
@@ -1540,9 +1502,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21",
-              "#mSort.m-sort Price: high to low 91x24",
-              ".m-close ✕ 34x34"
+              "#mSearch  288x21"
             ],
             "clipped": [],
             "overlaps": [
@@ -1560,7 +1520,7 @@
           "size": {
             "width": 390,
             "height": 3200,
-            "pageHeight": 5570
+            "pageHeight": 5572
           },
           "scrollShot": null,
           "issues": []
@@ -1570,7 +1530,7 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-4uc156z",
+          "hash": "#/vehicles/d-6yifyji",
           "action": null,
           "next": null,
           "branches": [],
@@ -1581,27 +1541,25 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21",
-              "#mSort.m-sort Price: high to low 91x24",
-              ".m-close ✕ 34x34"
+              "#mSearch  288x21"
             ],
             "clipped": [],
             "overlaps": [
+              ".m-restitle Available vehicles <> .m-sheettitle Quote",
               ".m-resmeta 12 vehicles <> .m-sheettitle Quote",
               "#mSort.m-sort Price: high to low <> .m-close ✕",
               ".m-cardtitle 2022 BMW 7 Series <> .m-summeta $91,460 · Stock B220331",
               ".m-cardmeta Stock B220331 · 10 mi · Carb <> .m-primary Save quote for follow-up",
               ".m-price $91,460 <> .m-primary Save quote for follow-up",
               ".m-msrp MSRP $97,615 <> .m-primary Save quote for follow-up",
-              " View vehicle details <> .m-textbtn Back to next steps",
-              " › <> .m-textbtn Back to next steps"
+              " View vehicle details <> .m-textbtn Back to next steps"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 3200,
-            "pageHeight": 5570
+            "pageHeight": 5572
           },
           "scrollShot": null,
           "issues": []
@@ -1622,9 +1580,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21",
-              "#mSort.m-sort Price: high to low 91x24",
-              ".m-close ✕ 34x34"
+              "#mSearch  288x21"
             ],
             "clipped": [],
             "overlaps": [
@@ -1642,7 +1598,7 @@
           "size": {
             "width": 390,
             "height": 3200,
-            "pageHeight": 5664
+            "pageHeight": 5668
           },
           "scrollShot": null,
           "issues": []
@@ -1658,8 +1614,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-08-31T03:01:42.641Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:40:07.911Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -1878,8 +1834,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-08-31T03:01:49.262Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:40:14.572Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -2004,8 +1960,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-08-31T03:01:55.163Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:40:20.228Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -2022,17 +1978,15 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1503,
-            "pageHeight": 1503
+            "height": 1511,
+            "pageHeight": 1511
           },
           "scrollShot": null,
           "issues": []
@@ -2066,7 +2020,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
               "#dkHuddleLink.dk-linkbtn Huddle 45x24",
               ".dk-linkbtn Import Trade 80x21"
             ],
@@ -2086,7 +2039,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1823
+            "pageHeight": 1831
           },
           "scrollShot": "current/09-desking/02-pencil-finance.scroll.png",
           "issues": []
@@ -2107,16 +2060,15 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
               "#dkHuddleLink.dk-linkbtn Huddle 45x24",
               ".dk-linkbtn Import Trade 80x21"
             ],
             "clipped": [],
             "overlaps": [
               " Selling price <>  Estimated payment",
+              " Selling price <>  $376.78",
               ".amt $41,431.00 <> #deskContinueSticky.btn.btn--grad Continue",
               " Included options <>  $376.78",
-              " Included options <> .desk-sticky__unit / mo",
               ".amt $395.00 <> #deskContinueSticky.btn.btn--grad Continue",
               " All-Season Floor Mats <>  Trade & rebates $500 rebate",
               " $195 <>  Trade & rebates $500 rebate",
@@ -2127,7 +2079,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 2035
+            "pageHeight": 2042
           },
           "scrollShot": "current/09-desking/03-pencil-lease.scroll.png",
           "issues": []
@@ -2148,7 +2100,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
               "#dkHuddleLink.dk-linkbtn Huddle 45x24",
               ".dk-linkbtn Import Trade 80x21"
             ],
@@ -2168,7 +2119,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1597
+            "pageHeight": 1604
           },
           "scrollShot": "current/09-desking/04-pencil-cash.scroll.png",
           "issues": []
@@ -2189,10 +2140,8 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
               "#dkHuddleLink.dk-linkbtn Huddle 45x24",
               ".dk-linkbtn Import Trade 80x21",
-              "#dkSheetClose.dk-close × 34x34",
               ".dk-linkbtn Full comparison — all four d 227x21"
             ],
             "clipped": [],
@@ -2200,18 +2149,18 @@
               " Calculate payments <>  Compare payments",
               ".dk-meta John Smith · 2022 Hyundai Sa <>  Compare payments",
               " John Smith <>  Compare payments",
+              "#dkHuddleLink.dk-linkbtn Huddle <> #dkSheetClose.dk-close ×",
               ".dk-chip Buyer <>  Compare the two primary deal",
               ".dk-chip Jacket 11 <>  Compare the two primary deal",
               " 11 <>  Compare the two primary deal",
-              ".active Finance <>  Compare the two primary deal",
-              " Lease <>  Compare the two primary deal"
+              ".active Finance <>  Compare the two primary deal"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1823
+            "pageHeight": 1831
           },
           "scrollShot": "current/09-desking/05-compare-sheet.scroll.png",
           "issues": []
@@ -2231,25 +2180,15 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
-              ".m-chip.dk-typechip Finance 69x34",
-              ".m-chip.dk-typechip Lease 57x34",
-              ".m-chip.dk-typechip Cash 52x34",
-              ".m-chip.dk-typechip One Pay 72x34",
-              ".m-chip.dk-typechip Finance 69x34",
-              ".m-chip.dk-typechip Lease 57x34",
-              ".m-chip.dk-typechip Cash 52x34",
-              ".m-chip.dk-typechip One Pay 72x34"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1956,
-            "pageHeight": 1956
+            "height": 1974,
+            "pageHeight": 1974
           },
           "scrollShot": null,
           "issues": []
@@ -2265,8 +2204,8 @@
         "from": "desking/compare-payments",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-31T03:02:01.697Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:40:26.642Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -2283,21 +2222,18 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               " Deal type <>  $709.33",
-              " Finance <> #bpDockGo.btn.btn--grad Sign agreement",
-              " Term / APR <> .desk-sticky__sub Ready for acknowledgement"
+              " Finance <> #bpDockGo.btn.btn--grad Sign agreement"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1924
+            "pageHeight": 1932
           },
           "scrollShot": "current/10-base-payment-agreement/01-agreement-unsigned.scroll.png",
           "issues": []
@@ -2326,21 +2262,18 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               " Deal type <>  $709.33",
-              " Finance <> #bpDockGo.btn.btn--grad Continue",
-              " Term / APR <> .desk-sticky__sub Credit application unlocked"
+              " Finance <> #bpDockGo.btn.btn--grad Continue"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 2013
+            "pageHeight": 2020
           },
           "scrollShot": "current/10-base-payment-agreement/02-agreement-signed.scroll.png",
           "issues": []
@@ -2360,27 +2293,24 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
-              "#bpSheetClose.m-close ✕ 34x34"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".bp-pmeta (718) 555-0134jsmithtest@tes <> .m-sheettitle Void signature and redesk?",
               ".bp-pmeta (718) 555-0134jsmithtest@tes <> #bpSheetClose.m-close ✕",
+              ".bp-pmeta (718) 555-0134jsmithtest@tes <> .bp-sheetcopy Redesking voids the signed b",
               ".bp-pname Ashley Collins — Ride Price  <> .bp-sheetcopy Redesking voids the signed b",
               ".bp-pmeta (718) 555-0188321 Northern B <>  $709.33 / month",
+              ".bp-pmeta (718) 555-0188321 Northern B <>  60 months · 3.5% APR · Finan",
               " Deal type <>  $709.33",
-              " Deal type <> #bpSheetCancel.m-ghost Cancel",
-              " Finance <> #bpDockGo.btn.btn--grad Continue",
-              " Finance <> #bpRedeskGo.bp-danger Void & redesk"
+              " Deal type <> #bpSheetCancel.m-ghost Cancel"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 2013
+            "pageHeight": 2020
           },
           "scrollShot": "current/10-base-payment-agreement/03-redesk-confirm.scroll.png",
           "issues": []
@@ -2396,8 +2326,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-31T03:02:05.434Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:40:30.762Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -2420,7 +2350,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
               ".ca-linkbtn Cancel 46x33"
             ],
             "clipped": [],
@@ -2434,7 +2363,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1291
+            "pageHeight": 1297
           },
           "scrollShot": "current/11-credit-application/01-identity-gate.scroll.png",
           "issues": []
@@ -2455,7 +2384,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
               ".ca-linkbtn Cancel 46x33"
             ],
             "clipped": [],
@@ -2469,7 +2397,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1223
+            "pageHeight": 1229
           },
           "scrollShot": "current/11-credit-application/02-identity-verified.scroll.png",
           "issues": []
@@ -2490,22 +2418,19 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
               ".ca-linkbtn Base Payment 98x33"
             ],
             "clipped": [],
             "overlaps": [
-              " Finish on customer’s phone <>  Next",
               " Finish on customer’s phone <>  Residence",
-              " Finish on customer’s phone <> #caGo.mp-primary Continue →",
-              " Send John a secure link to c <> #caGo.mp-primary Continue →"
+              " Finish on customer’s phone <> #caGo.mp-primary Continue →"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 2396
+            "pageHeight": 2404
           },
           "scrollShot": "current/11-credit-application/03-applicant-step.scroll.png",
           "issues": []
@@ -2535,12 +2460,10 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
               ".ca-linkbtn Base Payment 98x33"
             ],
             "clipped": [],
             "overlaps": [
-              " Co-buyer needed <>  Next",
               " Co-buyer needed <>  Residence",
               ".ca-notpill Not attached <> #caGo.mp-primary Continue →"
             ]
@@ -2549,7 +2472,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 2523
+            "pageHeight": 2531
           },
           "scrollShot": "current/11-credit-application/04-joint-remote.scroll.png",
           "issues": []
@@ -2570,27 +2493,25 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
-              ".ca-linkbtn Base Payment 98x33",
-              ".m-close ✕ 34x34"
+              ".ca-linkbtn Base Payment 98x33"
             ],
             "clipped": [],
             "overlaps": [
-              ".dk-chip Buyer <> .m-sheettitle Send co-buyer link",
+              ".ca-subtitle Deal #48201 · John Smith2022 <> .m-sheettitle Send co-buyer link",
+              ".ca-subtitle Deal #48201 · John Smith2022 <> .m-close ✕",
+              " 2022 Hyundai Santa Fe <> .m-sheettitle Send co-buyer link",
               ".dk-chip Buyer <> .ca-sheetsub The co-buyer can complete th",
-              "#caDealSum.dk-chip Deal summary <> .m-sheettitle Send co-buyer link",
               "#caDealSum.dk-chip Deal summary <> .ca-sheetsub The co-buyer can complete th",
               ".dk-chip Jacket 11 <> .m-close ✕",
               ".dk-chip Jacket 11 <> .ca-sheetsub The co-buyer can complete th",
-              ".ca-cardsub Choose how the customer want <> .ca-lab Phone number",
-              " Individual application <> .ca-lab Email"
+              " 11 <> .ca-sheetsub The co-buyer can complete th"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 2523
+            "pageHeight": 2531
           },
           "scrollShot": "current/11-credit-application/05-send-cobuyer-link.scroll.png",
           "issues": []
@@ -2611,27 +2532,25 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
-              ".ca-linkbtn Base Payment 98x33",
-              ".m-close ✕ 34x34"
+              ".ca-linkbtn Base Payment 98x33"
             ],
             "clipped": [],
             "overlaps": [
               ".ca-subtitle Deal #48201 · John Smith2022 <> .m-sheettitle Send co-buyer link",
               ".ca-subtitle Deal #48201 · John Smith2022 <> .m-close ✕",
+              " Deal #48201 <> .m-sheettitle Send co-buyer link",
               " 2022 Hyundai Santa Fe <> .m-sheettitle Send co-buyer link",
               ".dk-chip Buyer <> .ca-sheetsub The co-buyer can complete th",
               "#caDealSum.dk-chip Deal summary <> .ca-sheetsub The co-buyer can complete th",
               ".dk-chip Jacket 11 <> .ca-sheetsub The co-buyer can complete th",
-              " 11 <> .ca-sheetsub The co-buyer can complete th",
-              " Applicant <>  Recipient"
+              " 11 <> .ca-sheetsub The co-buyer can complete th"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 2523
+            "pageHeight": 2531
           },
           "scrollShot": "current/11-credit-application/06-link-sent-status.scroll.png",
           "issues": []
@@ -2652,21 +2571,19 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
               ".ca-linkbtn Base Payment 98x33"
             ],
             "clipped": [],
             "overlaps": [
               " Joint application <>  Residence",
-              " Joint application <> #caGo.mp-primary Continue →",
-              " A co-buyer will apply togeth <> #caGo.mp-primary Continue →"
+              " Joint application <> #caGo.mp-primary Continue →"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 2636
+            "pageHeight": 2643
           },
           "scrollShot": "current/11-credit-application/07-validation-errors.scroll.png",
           "issues": []
@@ -2687,20 +2604,18 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
               ".ca-linkbtn Base Payment 98x33",
-              ".m-close ✕ 34x34",
               ".ca-managelink Edit 24x24"
             ],
             "clipped": [],
             "overlaps": [
               " Applicant <> .m-sheettitle Deal summary",
               " Step 1 of 4 <> .m-close ✕",
-              ".ca-cardtitle Application type <> .ca-wstitle Deal summary",
               ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 11:",
               ".ca-cardtitle Application type <> .ca-managelink Edit",
               ".ca-cardsub Choose how the customer want <>  Vehicle",
               ".ca-cardsub Choose how the customer want <>  2022 Hyundai Santa Fe · 7H21",
+              ".ca-alerticon ! <>  Cash Price",
               " 7 required items need attent <>  Cash Price"
             ]
           },
@@ -2708,7 +2623,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 2636
+            "pageHeight": 2643
           },
           "scrollShot": "current/11-credit-application/08-deal-summary-sheet.scroll.png",
           "issues": []
@@ -2729,7 +2644,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
               ".ca-linkbtn Base Payment 98x33"
             ],
             "clipped": [],
@@ -2742,7 +2656,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1078
+            "pageHeight": 1086
           },
           "scrollShot": "current/11-credit-application/09-approved.scroll.png",
           "issues": []
@@ -2758,8 +2672,8 @@
         "from": "discovery/question-1",
         "action": "Tap 👤 Buyer in the crumbs"
       },
-      "capturedAt": "2026-08-31T03:02:16.741Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:40:43.683Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -2781,26 +2695,21 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".dk-h2 How are they paying? <>  Buyers on this deal",
               ".dk-h2 How are they paying? <> .by2-sub One primary buyer. Add a co-",
               ".dk-subline This choice unlocks the firs <> .by2-sub One primary buyer. Add a co-",
-              " Finance <> .by2-seclab Primary buyer",
-              " Lease <> .by2-seclab Primary buyer",
-              " Cash <> .by2-avatar JS",
-              " One Pay <> .by2-rowsub (718) 555-0134",
-              "#hPayTrack.dk-notice Discovery questionIs there a <> #byAdd.by2-cta Add co-buyer"
+              "#hPayTrack.dk-notice Discovery questionIs there a <>  One action opens the Custome",
+              "#hPayTrack.dk-notice Discovery questionIs there a <>  Search CRM, scan a license, ",
+              " Discovery question <>  One action opens the Custome"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1503,
-            "pageHeight": 1503
+            "height": 1511,
+            "pageHeight": 1511
           },
           "scrollShot": null,
           "issues": []
@@ -2829,9 +2738,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".dk-h2 What was the answer to the t <>  Add co-buyer",
@@ -2841,14 +2748,14 @@
               ".dk-h2 How are they paying? <> .by2-rowname Cheri Bridwell",
               ".dk-h2 How are they paying? <> .by2-rowsub (347) 555-1212 · Existing cu",
               ".dk-h2 How are they paying? <> .by2-go ›",
-              "#hPayTrack.dk-notice Discovery questionIs there a <>  Manual creation appears only"
+              " Lease <> .by2-rowname Scan physical license"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1503,
-            "pageHeight": 1503
+            "height": 1511,
+            "pageHeight": 1511
           },
           "scrollShot": null,
           "issues": []
@@ -2868,9 +2775,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".dk-h2 How are they paying? <>  Buyers on this deal",
@@ -2878,16 +2783,16 @@
               ".dk-subline This choice unlocks the firs <> .by2-sub One primary buyer. Add a co-",
               " Finance <> .by2-seclab Primary buyer",
               " Lease <> .by2-seclab Primary buyer",
-              " Cash <> .by2-avatar JS",
-              " One Pay <> .by2-rowsub (718) 555-0134",
-              "#hPayTrack.dk-notice Discovery questionIs there a <> .by2-avatar CB"
+              "#hPayTrack.dk-notice Discovery questionIs there a <> .by2-avatar CB",
+              "#hPayTrack.dk-notice Discovery questionIs there a <> .by2-rowname Cheri Bridwell",
+              "#hPayTrack.dk-notice Discovery questionIs there a <> .by2-rowsub (347) 555-1212"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1503,
-            "pageHeight": 1503
+            "height": 1511,
+            "pageHeight": 1511
           },
           "scrollShot": null,
           "issues": []
@@ -2907,11 +2812,10 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
+              " Cash <>  Cheri Bridwell",
               "#hPayTrack.dk-notice Discovery questionIs there a <> #byView.by2-actionbtn View customer profile",
               "#hPayTrack.dk-notice Discovery questionIs there a <> #byRemove.by2-actionbtn.by2-actionbtn--danger Remove from deal",
               " Discovery question <> #byView.by2-actionbtn View customer profile"
@@ -2920,8 +2824,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1503,
-            "pageHeight": 1503
+            "height": 1511,
+            "pageHeight": 1511
           },
           "scrollShot": null,
           "issues": []
@@ -2941,9 +2845,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               " Cash <> .by2-sub Second tap confirms",
@@ -2957,8 +2859,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1503,
-            "pageHeight": 1503
+            "height": 1511,
+            "pageHeight": 1511
           },
           "scrollShot": null,
           "issues": []
@@ -2979,7 +2881,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35",
               "#dkHuddleLink.dk-linkbtn Huddle 45x24",
               ".dk-linkbtn Import Trade 80x21"
             ],
@@ -2999,7 +2900,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1823
+            "pageHeight": 1831
           },
           "scrollShot": "current/12-buyers-and-co-buyer/06-team-lead-roles.scroll.png",
           "issues": []
@@ -3020,7 +2921,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35",
               "#dkHuddleLink.dk-linkbtn Huddle 45x24",
               ".dk-linkbtn Import Trade 80x21"
             ],
@@ -3032,15 +2932,15 @@
               " Vehicle price <>  John Smith will become the c",
               " MSRP <>  John Smith will become the c",
               ".amt $42,910.00 <>  John Smith will become the c",
-              " Included options <>  $709.33",
-              " Included options <> .desk-sticky__unit / mo"
+              " Selling price <> #byCancel.by2-actionbtn Cancel",
+              ".amt $41,431.00 <> #byRolesGo.by2-actionbtn.by2-actionbtn--primary Change roles"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1823
+            "pageHeight": 1831
           },
           "scrollShot": "current/12-buyers-and-co-buyer/07-change-roles-confirm.scroll.png",
           "issues": []
@@ -3056,8 +2956,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-08-31T03:02:25.853Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:40:52.395Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -3175,7 +3075,7 @@
               ".mp-miletitle Your driving changes the war <> .mp-docklab Now presenting · 2 of 9",
               ".mp-miletitle Your driving changes the war <> #mpNext.mp-primary Next: Maintenance",
               "#mpMileVal.mp-milevalue 25,000 mi/yr <> #mpNext.mp-primary Next: Maintenance",
-              " 10 years / 120,000 miles <> .mp-good June 2031"
+              " 10 years / 120,000 miles <> .mp-good July 2031"
             ]
           },
           "error": null,
@@ -3212,8 +3112,7 @@
               "  [463..475]"
             ],
             "tinyTargets": [
-              "#mpMiles.mp-range  282x16",
-              ".m-close ✕ 34x34"
+              "#mpMiles.mp-range  282x16"
             ],
             "clipped": [],
             "overlaps": [
@@ -3261,8 +3160,7 @@
               "  [463..475]"
             ],
             "tinyTargets": [
-              "#mpMiles.mp-range  282x16",
-              ".m-close ✕ 34x34"
+              "#mpMiles.mp-range  282x16"
             ],
             "clipped": [],
             "overlaps": [
@@ -3296,8 +3194,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-08-31T03:02:30.989Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:40:57.510Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -3314,17 +3212,15 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 874,
-            "pageHeight": 874
+            "height": 880,
+            "pageHeight": 880
           },
           "scrollShot": null,
           "issues": [
@@ -3352,17 +3248,15 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 940,
-            "pageHeight": 940
+            "height": 946,
+            "pageHeight": 946
           },
           "scrollShot": null,
           "issues": []
@@ -3382,27 +3276,24 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35",
-              ".m-close ✕ 30x34"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".fm-rowname Credit application <>  Resolve Deal Jacket blocker",
               ".fm-rowsub Approved <>  Resolve Deal Jacket blocker",
+              ".fm-rowsub Approved <> .m-sheetsub Override records a reason; m",
               ".fm-pill Ready <>  Resolve Deal Jacket blocker",
-              ".fm-rowname Test drive <> .m-sheetsub Override records a reason; m",
+              ".fm-pill Ready <> .m-close ✕",
               ".fm-rowsub Completed <>  Reason",
               ".fm-pill Ready <>  Reason",
-              "#fmResolve.fm-btn Resolve Deal Jacket blocker <> #fmReasonGo.fm-btn.fm-btn--primary Record override",
-              "#fmApprove.fm-btn.fm-btn--primary Approve finance menu <> .fm-btn Cancel"
+              "#fmResolve.fm-btn Resolve Deal Jacket blocker <> #fmReasonGo.fm-btn.fm-btn--primary Record override"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 940,
-            "pageHeight": 940
+            "height": 946,
+            "pageHeight": 946
           },
           "scrollShot": null,
           "issues": []
@@ -3422,9 +3313,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".fm-say “Earlier we agreed to $709.3 <>  Step 1 of 4",
@@ -3436,7 +3325,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 989
+            "pageHeight": 995
           },
           "scrollShot": "current/14-finance-menu/04-terms.scroll.png",
           "issues": []
@@ -3456,27 +3345,24 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35",
-              ".m-close ✕ 34x34"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".fm-cardtitle Payment comparison <>  Taxes & fees",
+              ".fm-cardtitle Payment comparison <> .m-sheetsub New York · itemised",
               ".fm-cardtitle Payment comparison <> .m-close ✕",
               ".fm-quoteamt $709.33 <>  New York State Tax @ 4.00%",
               ".fm-quotesub 60 mo @ 3.5% <>  Queens County Tax @ 4.50%",
               ".fm-quoteamt $716.33 <>  $1,076.80",
               ".fm-quotesub 60 mo @ 3.9% <>  $1,211.40",
-              ".fm-splittitle Taxes & fees <>  Transit Tax @ 0.375%",
-              ".fm-splitsub new york state tax, queens c <>  Documentation Fee"
+              ".fm-splittitle Taxes & fees <>  Transit Tax @ 0.375%"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 989
+            "pageHeight": 995
           },
           "scrollShot": "current/14-finance-menu/05-terms-fees.scroll.png",
           "issues": []
@@ -3505,9 +3391,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".fm-prodtick ✓ <>  Step 2 of 4",
@@ -3523,7 +3407,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1500
+            "pageHeight": 1505
           },
           "scrollShot": "current/14-finance-menu/06-options.scroll.png",
           "issues": []
@@ -3543,9 +3427,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".fm-splittitle Product presentation <>  Step 2 of 4",
@@ -3560,7 +3442,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 997
+            "pageHeight": 1002
           },
           "scrollShot": "current/14-finance-menu/07-options-custom.scroll.png",
           "issues": []
@@ -3580,10 +3462,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35",
-              ".m-close ✕ 34x34"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".fm-prodtick ✓ <>  Accept Custom",
@@ -3591,16 +3470,16 @@
               ".fm-prodmain Vehicle Service Contract — 7 <> .m-sheetsub $771.34 per month",
               ".fm-prodprice · $2,750 <> .m-sheetsub $771.34 per month",
               ".fm-move Remove <> .m-close ✕",
+              ".fm-splitsub Present each product before  <>  Step 2 of 4",
               ".fm-splitsub Present each product before  <> #fmAccept.fm-dockbtn Accept Custom",
-              ".fm-splitsub Present each product before  <> #fmIniGo.fm-btn.fm-btn--primary Accept package",
-              " Step 2 of 4 <> #fmIniGo.fm-btn.fm-btn--primary Accept package"
+              ".fm-splitsub Present each product before  <> #fmIniGo.fm-btn.fm-btn--primary Accept package"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 923
+            "pageHeight": 928
           },
           "scrollShot": "current/14-finance-menu/08-accept-initials.scroll.png",
           "issues": []
@@ -3620,27 +3499,24 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35",
-              ".m-close ✕ 34x34"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
+              ".fm-payamt $771.34/mo <>  Continue without products",
+              " /mo <>  Continue without products",
               ".fm-paysub 60 mo @ 3.90% <>  Continue without products",
               ".fm-paysub 60 mo @ 3.90% <> .m-close ✕",
               ".fm-prodtick ✓ <>  Client initials",
               ".fm-prodmain Vehicle Service Contract — 7 <>  Client initials",
               ".fm-move Remove <>  Client initials",
-              ".fm-splittitle Product presentation <> .jk2-privacy The benefits acknowledgement",
-              ".fm-splitsub Present each product before  <> #fmAccept.fm-dockbtn Accept Custom",
-              ".fm-splitsub Present each product before  <> .jk2-privacy The benefits acknowledgement"
+              ".fm-splittitle Product presentation <> .jk2-privacy The benefits acknowledgement"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 923
+            "pageHeight": 928
           },
           "scrollShot": "current/14-finance-menu/09-decline-sheet.scroll.png",
           "issues": []
@@ -3660,9 +3536,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
@@ -3690,10 +3564,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35",
-              ".m-close ✕ 34x34"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".fm-title Disclosures & forms <>  Additional deal forms",
@@ -3735,9 +3606,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".fm-rowsub 4 / 18 · override recorded <>  Step 4 of 4",
@@ -3749,7 +3618,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1256
+            "pageHeight": 1261
           },
           "scrollShot": "current/14-finance-menu/12-final-review.scroll.png",
           "issues": []
@@ -3769,17 +3638,15 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Team Lead 82x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 865,
-            "pageHeight": 865
+            "height": 870,
+            "pageHeight": 870
           },
           "scrollShot": null,
           "issues": []
@@ -3795,8 +3662,8 @@
         "from": "discovery/question-1",
         "action": "Tap 📁 Jacket in the crumbs"
       },
-      "capturedAt": "2026-08-31T03:14:31.376Z",
-      "appCommit": "c10339a1e3ed53a21137ad5e71a6c21f52be02e0",
+      "capturedAt": "2026-08-31T15:41:14.844Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -3830,9 +3697,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               "#jkRequest.jk2-primary Request 3 documents <>  Funding sign-off",
@@ -3844,7 +3709,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1265
+            "pageHeight": 1270
           },
           "scrollShot": "current/15-deal-jacket/01-jacket-overview.scroll.png",
           "issues": []
@@ -3864,26 +3729,24 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".jk2-rowsub Needed for registration <>  Advisor script",
               ".jk2-rowtitle Auto Insurance Card (Binder) <> .m-sheetsub Use only when you need a qui",
+              ".jk2-rowtitle Auto Insurance Card (Binder) <>  “I'm going to send you one s",
               ".jk2-rowsub Needed for delivery <>  “I'm going to send you one s",
               ".jk2-status Needed <>  “I'm going to send you one s",
               ".jk2-rowtitle Proof of Income (Paystub) <>  “Upload them straight from y",
               ".jk2-rowsub Bank requirement <>  “Upload them straight from y",
-              ".jk2-status Needed <>  “Upload them straight from y",
-              "#jkRequest.jk2-primary Request 3 documents <>  Funding sign-off"
+              ".jk2-status Needed <>  “Upload them straight from y"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1265
+            "pageHeight": 1270
           },
           "scrollShot": "current/15-deal-jacket/02-advisor-script.scroll.png",
           "issues": []
@@ -3903,24 +3766,24 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
+              ".price PRICE <> .jk2-rowtitle Driver's License",
+              ".m-dealno Deal #48201 <> .jk2-rowtitle Driver's License",
+              "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
               ".jk2-rowtitle Signed Matching Credit App <>  Funding sign-off",
-              ".jk2-rowtitle Signed Matching Credit App <>  11 items remaining",
               ".jk2-rowtitle Signed Matching Credit App <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-rowsub Lender match <>  Funding sign-off",
               ".jk2-rowsub Lender match <>  11 items remaining",
-              ".jk2-rowsub Lender match <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-status Needed <> #jkSignoff.jk2-dockbtn Not ready"
+              ".jk2-rowsub Lender match <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1984
+            "pageHeight": 1989
           },
           "scrollShot": "current/15-deal-jacket/03-deal-forms.scroll.png",
           "issues": []
@@ -3940,18 +3803,16 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".jk2-rowtitle Driver's License <>  Privacy Policy",
-              ".jk2-rowsub Needed for registration <>  Privacy Policy",
               ".jk2-rowsub Needed for registration <> .m-sheetsub Handed to every client at de",
               ".jk2-status Needed <> .m-close ✕",
               ".jk2-rowtitle Auto Insurance Card (Binder) <>  Scan the document",
               ".jk2-rowsub Needed for delivery <>  Reads the marker strip Ride ",
               ".jk2-status Needed <>  Scan the document",
+              ".jk2-status Needed <>  Reads the marker strip Ride ",
               ".jk2-status Needed <> .jk2-go ›"
             ]
           },
@@ -3959,7 +3820,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1984
+            "pageHeight": 1989
           },
           "scrollShot": "current/15-deal-jacket/04-document-actions.scroll.png",
           "issues": []
@@ -3979,26 +3840,24 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".jk2-sectitle Waiting on customer <>  Mark received",
               ".jk2-sectitle Waiting on customer <> .m-sheetsub Privacy Policy",
-              ".jk2-secsub 3 documents <> .m-sheetsub Privacy Policy",
               ".jk2-badge.jk2-badge--warn 3 needed <> .m-close ✕",
-              ".jk2-rowtitle Driver's License <>  Source or note (optional)",
               ".jk2-rowsub Needed for delivery <> .jk2-privacy Recorded against this deal a",
               ".jk2-rowtitle Proof of Income (Paystub) <> .jk2-privacy Recorded against this deal a",
-              ".jk2-rowsub Bank requirement <> .jk2-privacy Recorded against this deal a"
+              ".jk2-rowsub Bank requirement <> .jk2-privacy Recorded against this deal a",
+              ".jk2-status Needed <> .jk2-privacy Recorded against this deal a",
+              "#jkRequest.jk2-primary Request 3 documents <>  Funding sign-off"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1984
+            "pageHeight": 1989
           },
           "scrollShot": "current/15-deal-jacket/05-mark-received.scroll.png",
           "issues": []
@@ -4018,10 +3877,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35",
-              ".m-close ✕ 28x40"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".jk2-rowtitle Auto Insurance Card (Binder) <> .m-sheetsub Add only what this deal genu",
@@ -4038,18 +3894,10 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1984
+            "pageHeight": 1989
           },
           "scrollShot": "current/15-deal-jacket/06-add-optional.scroll.png",
-          "issues": [
-            {
-              "id": "RP-UI-025",
-              "severity": "Minor",
-              "issue": "The master bottom sheet's close control (.m-close) is squeezed to 28x40 in the jacket and measures 30x34 to 34x34 elsewhere — under the 40px touch floor. Measured across the v013 capture set it appears on 8 of the 20 flows, in every master sheet — including the new Print full packet sheet.",
-              "observation": "Not a trap — every sheet also dismisses on the scrim and on Escape — but it is a small target on a frequent control, and the jacket's long sheet titles squeeze it further.",
-              "area": "portal.css .m-sheettop / #jkSheet .m-close"
-            }
-          ]
+          "issues": []
         },
         {
           "step": 7,
@@ -4066,26 +3914,23 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".price PRICE <> .jk2-rowtitle Signed Contracts",
-              ".m-dealno Deal #48201 <> .jk2-rowtitle Signed Contracts",
+              ".price PRICE <> .jk2-rowtitle Privacy Policy",
+              ".m-dealno Deal #48201 <> .jk2-rowtitle Privacy Policy",
               "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
-              ".jk2-rowtitle Transfer Plates Registration <>  Funding sign-off",
-              ".jk2-rowtitle Transfer Plates Registration <>  11 items remaining",
-              ".jk2-rowtitle Transfer Plates Registration <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-rowsub Marked received by Ashley Co <>  11 items remaining",
-              ".jk2-rowsub Marked received by Ashley Co <> #jkSignoff.jk2-dockbtn Not ready"
+              ".jk2-secsub Already in the jacket <>  Funding sign-off",
+              ".jk2-secsub Already in the jacket <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-badge.jk2-badge--good 4 <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-chev.jk2-chev--open ⌄ <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 2393
+            "pageHeight": 2398
           },
           "scrollShot": "current/15-deal-jacket/07-completed-bucket.scroll.png",
           "issues": []
@@ -4105,9 +3950,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".jk2-rowtitle Auto Insurance Card (Binder) <>  Finish driver's license",
@@ -4116,15 +3959,15 @@
               ".jk2-rowtitle Proof of Income (Paystub) <> .jk2-inline.jk2-inline--warn The front is already saved. ",
               ".jk2-rowsub Bank requirement <> .jk2-inline.jk2-inline--warn The front is already saved. ",
               ".jk2-status Needed <> .jk2-inline.jk2-inline--warn The front is already saved. ",
-              "#jkRequest.jk2-primary Request 3 documents <>  Funding sign-off",
-              "#jkRequest.jk2-primary Request 3 documents <>  11 items remaining"
+              "#jkRequest.jk2-primary Request 3 documents <>  11 items remaining",
+              "#jkRequest.jk2-primary Request 3 documents <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1281
+            "pageHeight": 1287
           },
           "scrollShot": "current/15-deal-jacket/08-license-back-needed.scroll.png",
           "issues": []
@@ -4144,9 +3987,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               "#jkScript.jk2-smalllink Advisor script <>  Jacket complete",
@@ -4158,7 +3999,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 961
+            "pageHeight": 966
           },
           "scrollShot": "current/15-deal-jacket/09-jacket-complete.scroll.png",
           "issues": []
@@ -4174,8 +4015,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-08-31T03:02:57.542Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:41:27.413Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -4192,9 +4033,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".jk2-note 3 items need the customer. T <>  Request documents",
@@ -4202,8 +4041,8 @@
               ".jk2-note 3 items need the customer. T <> .m-close ✕",
               " 3 items need the customer. <>  Request documents",
               ".jk2-sectitle Waiting on customer <>  Needed for registration",
+              ".jk2-secsub 3 documents <>  Auto Insurance Card (Binder)",
               ".jk2-badge.jk2-badge--warn 3 needed <>  Needed for registration",
-              ".jk2-rowtitle Driver's License <>  Needed for delivery",
               ".jk2-rowsub Needed for registration <>  Proof of Income (Paystub)"
             ]
           },
@@ -4211,7 +4050,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1265
+            "pageHeight": 1270
           },
           "scrollShot": "current/16-document-request/01-request-sheet.scroll.png",
           "issues": []
@@ -4231,9 +4070,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".jk2-inline ✓ Secure request sent · 3 do <>  Funding sign-off",
@@ -4246,7 +4083,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1367
+            "pageHeight": 1373
           },
           "scrollShot": "current/16-document-request/02-request-sent.scroll.png",
           "issues": []
@@ -4271,26 +4108,24 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              "#mRole.m-rolebtn Advisor 65x35"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".jk2-note 3 items need the customer. T <>  Customer request",
+              ".jk2-note 3 items need the customer. T <> .m-sheetsub Sent to John Smith · (718) 5",
               ".jk2-note 3 items need the customer. T <> .m-close ✕",
               " 3 items need the customer. <>  Customer request",
               ".jk2-sectitle Waiting on customer <> .jk2-dot ✓",
               ".jk2-sectitle Waiting on customer <>  Link sent",
-              ".jk2-sectitle Waiting on customer <>  Aug 30, 11:03 PM",
-              ".jk2-secsub 3 documents <> .jk2-dot ✓",
-              ".jk2-secsub 3 documents <>  Delivered"
+              ".jk2-sectitle Waiting on customer <>  Aug 31, 11:41 AM",
+              ".jk2-secsub 3 documents <> .jk2-dot ✓"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1367
+            "pageHeight": 1373
           },
           "scrollShot": "current/16-document-request/03-request-tracking.scroll.png",
           "issues": []
@@ -4306,8 +4141,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-08-31T03:03:03.051Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:41:31.592Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -4539,7 +4374,6 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              ".dr-sheet__x × 34x34",
               ".dr-linkbtn Other income type 106x27",
               ".dr-linkbtn See a good example 115x27"
             ],
@@ -4579,13 +4413,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              ".dr-back ‹ 34x34",
-              " − 34x34",
-              " ＋ 34x34",
-              " ← 38x34",
-              " → 38x34"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
@@ -4639,8 +4467,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-08-31T03:03:16.174Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:41:45.427Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -4685,11 +4513,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              ".sa-thumb__x × 24x24",
-              ".sa-thumb__x × 24x24",
-              ".sa-thumb__x × 24x24"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
@@ -4700,15 +4524,7 @@
             "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-015",
-              "severity": "Minor",
-              "issue": "The per-thumbnail remove controls (×) are 24×24px, under the phone touch floor (≥40px for small variants).",
-              "observation": "Also 34px zoom / page buttons on the client review screen and the advisor document review.",
-              "area": ".sa-thumb__x, .dr-zoom button, .dr-pagetools button sizing at ≤720px"
-            }
-          ]
+          "issues": []
         },
         {
           "step": 3,
@@ -4786,8 +4602,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-08-31T03:03:20.274Z",
-      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
+      "capturedAt": "2026-08-31T15:41:50.084Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -4804,12 +4620,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              " − 34x34",
-              " ＋ 34x34",
-              " ← 38x34",
-              " → 38x34"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
@@ -4833,8 +4644,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-08-31T03:15:00.676Z",
-      "appCommit": "c10339a1e3ed53a21137ad5e71a6c21f52be02e0",
+      "capturedAt": "2026-08-31T15:41:52.056Z",
+      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
       "screens": [
         {
           "step": 1,
@@ -4884,9 +4695,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              ".m-close ✕ 34x34"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": [
               ".pc-rowmeta Completed <>  Print full packet",
