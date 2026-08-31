@@ -6525,8 +6525,8 @@ route("docreview/:id/:docId", ({ id, docId }) => {
         <div class="dr-reviewhead"><b>${esc(d.label)}</b>
           <span>${done ? "System verified " + esc(jacketStamp(done.at)) : r && r.receivedAt ? "Received " + esc(drStamp(r.receivedAt)) : "Nothing on file yet"} · ${pages} page${pages === 1 ? "" : "s"}</span></div>
         <div class="dr-stage">${u ? `<img class="dr-photo" src="${esc(u)}" alt="Document page" style="transform:scale(${st.zoom})">` : `<div class="dr-photoart" style="transform:scale(${st.zoom})"></div>`}
-          <div class="dr-zoom"><button data-zoom="-">−</button><button data-zoom="+">＋</button></div></div>
-        <div class="dr-pagetools"><button data-page="-" ${st.page === 0 ? "disabled" : ""}>←</button><b>Page ${st.page + 1} of ${pages}</b><button data-page="+" ${st.page >= pages - 1 ? "disabled" : ""}>→</button></div>
+          <div class="dr-zoom"><button type="button" data-zoom="-" aria-label="Zoom out">−</button><button type="button" data-zoom="+" aria-label="Zoom in">＋</button></div></div>
+        <div class="dr-pagetools"><button type="button" data-page="-" ${st.page === 0 ? "disabled" : ""} aria-label="Previous page">←</button><b>Page ${st.page + 1} of ${pages}</b><button type="button" data-page="+" ${st.page >= pages - 1 ? "disabled" : ""} aria-label="Next page">→</button></div>
         ${u ? "" : `<p class="hint" style="text-align:center">The photo lived only in the session that captured it — the record is what the jacket keeps.</p>`}
         ${statusBox}
         <a class="btn btn--ghost dr-donereturn" href="#/jacket/${esc(deal.id)}">← Back to Deal Jacket</a>
@@ -6659,7 +6659,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
         ${st.retakeNote ? `<p class="sa-retakenote">${esc(st.retakeNote)}</p>` : ""}
         ${n ? `<div class="sa-thumbs">${st.shots.map((s, i) => `
           <span class="sa-thumb"><img src="${esc(s.url)}" alt="Captured photo ${i + 1}">
-            <button type="button" class="sa-thumb__x" data-unshot="${esc(s.id)}" aria-label="Remove photo ${i + 1}">×</button></span>`).join("")}</div>` : ""}
+            <button type="button" class="sa-thumb__x" data-unshot="${esc(s.id)}" aria-label="Remove photo ${i + 1}"><i>×</i></button></span>`).join("")}</div>` : ""}
         <div class="sa-controls">
           <button type="button" class="sa-gallery" id="saGallery"><span aria-hidden="true">🖼️</span>Gallery</button>
           <button type="button" class="sa-shutter" id="saShutter" aria-label="Snap photo"><span></span></button>
