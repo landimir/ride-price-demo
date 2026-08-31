@@ -1,8 +1,58 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v013 — 2026-08-31
+
+App commit: 3e6afbb · 20 flows · 129 screens · previous: v012
+
+### Added
+- Documents — Print Center & Printables · Print full packet (sheet)
+- Documents — Print Center & Printables · Documents — two documents not ready
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Customer Onboarding — the Customer Resolver · No license available — manual fallback
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1
+- Discovery Session · Discovery — mid-interview
+- Discovery Session · Discovery — last question
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Test Drive Agreement · End Test Drive — odometer
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Buyers on the Deal (Co-Buyer) · Remove — second tap confirms
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Documents — Print Center & Printables · Documents
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- RP-UI-008 (Minor) — On the Repayment Options printable, a product line long enough to wrap drops its price onto its own line, left-aligned under the label, breaking the money column. Re-measured on the v012 capture: 6 of the 7 purchased rows wrap this way — only "GAP Coverage — Full loan term" keeps its amount on the line. The original filing understated this as one long label.
+
+### Amended issues (kept, but re-filed or reworded)
+- RP-UI-024 — wording corrected
+- RP-UI-025 — wording corrected
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v012 — 2026-08-30
 
-App commit: e0a7560 · 20 flows · 126 screens · previous: v011
+App commit: e0a7560 · 20 flows · 127 screens · previous: v011
 
 ### Added
 - Finance Menu — Sign-Off Gate and Four Stages · Resolve Deal Jacket blocker
@@ -16,6 +66,7 @@ App commit: e0a7560 · 20 flows · 126 screens · previous: v011
 - Finance Menu — Sign-Off Gate and Four Stages · Additional deal forms (sheet)
 - Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
 
+- Print Center & Printables · Print preview — Repayment Options
 ### Changed (screenshot bytes differ from the previous version)
 - Home — Active Floor & Navigation · In showroom — an active visit
 - Customer Onboarding — the Customer Resolver · No license available — manual fallback

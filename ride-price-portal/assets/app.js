@@ -6927,10 +6927,10 @@ function printDocs(deal) {
     return shell("Repayment Options", `
       <h3 class="pd-h3">Purchased products</h3>
       <ul class="lines">
-        ${purchased.length ? purchased.map(pid => { const p = RIDE_PRICE_CALC.productById(pid); return `<li><span>${p.name} — ${p.detail}</span><b class="amt">${money(p.price)}</b></li>`; }).join("") : `<li><span>No products selected</span><b class="amt">$0.00</b></li>`}
+        ${purchased.length ? purchased.map(pid => { const p = RIDE_PRICE_CALC.productById(pid); return `<li><span>${esc(p.name)} — ${esc(p.detail)}</span><b class="amt">${money(p.price)}</b></li>`; }).join("") : `<li><span>No products selected</span><b class="amt">${money(0)}</b></li>`}
       </ul>
       <h3 class="pd-h3">Declined products</h3>
-      <p class="pd-note">${declined.length ? declined.map(pid => RIDE_PRICE_CALC.productById(pid).name + " (" + RIDE_PRICE_CALC.productById(pid).detail + ")").join(" · ") : "None"}</p>
+      <p class="pd-note">${declined.length ? declined.map(pid => { const p = RIDE_PRICE_CALC.productById(pid); return esc(p.name) + " (" + esc(p.detail) + ")"; }).join(" · ") : "None"}</p>
       <p class="pd-note">The benefits and protection option(s) available have been explained to me/us and I/we choose the option(s) initialed (${esc(deal.menu.initials || "—")}). I/We hold the Dealer harmless for my/our refusal of any optional benefit or protection.</p>
       ${sig(deal.menu.ackSigned ? (deal.menu.ackName || c.first + " " + c.last) : "", "Customer")}`, "repayment");
   };
@@ -7099,60 +7099,196 @@ function printDocs(deal) {
   return docs;
 }
 
+/* ============================================================
+   VIEW: Documents (Print Center V2) — owner's replication package,
+   2026-08-30. A print centre is a document utility, not a dashboard.
+
+   The old screen gave every printable a standalone card with its own
+   "Preview & print →" link and a "Ready" badge, which made nine documents
+   read as nine decisions. The package's shape is a compact grouped list:
+   one dominant packet action, two groups, and rows that are themselves the
+   tap target. Status appears only where a document is NOT ready — repeating
+   "Ready" nine times says nothing.
+
+   Locked by the package: the Documents → Preview → Print/PDF architecture,
+   the two groups, fully tappable rows, the single packet action, sparse
+   preview chrome, the right-aligned repayment price column, and the MV-82
+   training-sample treatment. Colour is the editable variable.
+
+   Two standing owner overrides applied over the golden, as on every package:
+   the signature gradient on the dominant action where the golden draws flat
+   black, and line icons rather than the golden's emoji.
+   ============================================================ */
+/* ONE list of what this deal's packet contains, used by the Documents index,
+   by the "Print full packet · N docs" count, and by the packet itself.
+
+   These were three separate expressions and they disagreed: the index listed
+   a Saved Quote the packet never printed, and it counted a completed test
+   drive that the packet skipped unless it was *signed*. So the button
+   promised more documents than came out of the printer. A label and a list
+   describing the same set get computed once (review lesson 7).
+
+   A row's status is an EXCEPTION or nothing, per the package: `note` is the
+   quiet metadata line, `flag` is the rare pill. */
+function printCentreDocs(deal) {
+  const signedBase = !!(deal.basePayment && deal.basePayment.signedAt);
+  const drove = !!(deal.testDrive.done || deal.testDrive.signed);
+  const core = [
+    { key: "cover", icon: "folder", label: "Deal Cover Sheet", note: "Deal packet" },
+    { key: "agreement", icon: "check", label: "Base Payment Agreement",
+      note: signedBase ? "Signed" : "", flag: signedBase ? null : "Unsigned" },
+    { key: "repayment", icon: "page", label: "Repayment Options",
+      note: deal.menu.selectedProgram ? "Signed · package decision" : "",
+      flag: deal.menu.selectedProgram ? null : "No package chosen" },
+    { key: "testdrive", icon: "car", label: "Test Drive Agreement",
+      note: deal.testDrive.done ? "Completed" : deal.testDrive.signed ? "Signed" : "",
+      flag: drove ? null : "Not started" },
+    { key: "delivery", icon: "box", label: "Delivery Checklist",
+      note: `${deal.forms.selected.length} form${deal.forms.selected.length === 1 ? "" : "s"} selected` }
+  ];
+  if (deal.trade.rebates > 0) core.push({ key: "rebates", icon: "dollar", label: "Applied Rebates", note: `${money(deal.trade.rebates)} applied` });
+  if (deal.quotes && deal.quotes.length) core.push({ key: "quote", icon: "sparkle", label: "Saved Quote", note: `${deal.quotes.length} saved` });
+  const selected = deal.forms.selected.map(fid => RIDE_PRICE_DATA.dealForms.find(f => f.id === fid)).filter(Boolean);
+  return { core, selected };
+}
+
 route("forms/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
-  renderChrome("Print Center", dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/menu/${esc(deal.id)}">← Menu</a>
-     <a class="btn btn--ghost btn--sm" href="#/jacket/${esc(deal.id)}">📁 Deal Jacket</a>
-     <a class="btn btn--grad btn--sm" href="#/print/${esc(deal.id)}/packet">🖨 Print full packet</a>`);
+  const c = Store.customer(deal.customerId);
+  /* A truthy stock number is not a resolved vehicle — a blob saved against
+     inventory that no longer carries that stock leaves Store.vehicle()
+     undefined, and every printable here is built from the vehicle. Offering
+     the rows anyway sent the reader to a blank preview with no way back.
+     Send them where the deal can actually be repaired instead. */
+  const v = deal.stock ? Store.vehicle(deal.stock) : null;
+  if (!v) return redirect(`#/vehicles/${deal.id}`);
+  const jkc = jacketCounts(deal);
 
-  const core = [
-    { key: "cover", icon: "📁", label: "Deal Cover Sheet", note: "Snapshot + required-documentation checklist" },
-    { key: "agreement", icon: "✍️", label: "Base Payment Agreement", note: deal.basePayment && deal.basePayment.signedAt ? "Signed — ready for the deal folder" : "Not signed yet" },
-    { key: "repayment", icon: "📋", label: "Repayment Options", note: deal.menu.selectedProgram ? "Purchased & declined products" : "No program selected yet" },
-    { key: "testdrive", icon: "🚗", label: "Test Drive Agreement", note: deal.testDrive.done ? "Completed" : deal.testDrive.signed ? "Signed" : "Not started" },
-    { key: "delivery", icon: "✅", label: "Delivery Checklist", note: `${deal.forms.selected.length} form(s) selected in the menu` }
-  ];
-  if (deal.trade.rebates > 0) core.push({ key: "rebates", icon: "🏷️", label: "Applied Rebates", note: `${money(deal.trade.rebates)} applied to this deal` });
-  if (deal.quotes && deal.quotes.length) core.push({ key: "quote", icon: "📧", label: "Saved Quote", note: `${deal.quotes.length} saved — latest ${money(deal.quotes[deal.quotes.length - 1].summary)}` });
-  const selected = deal.forms.selected.map(fid => RIDE_PRICE_DATA.dealForms.find(f => f.id === fid)).filter(Boolean);
+  const { core, selected } = printCentreDocs(deal);
+  const total = core.length + selected.length;
+
+  const row = (href, icon, title, note, flag) => `
+    <a class="pc-row" href="${href}">
+      <span class="pc-icon">${rpIcon(icon)}</span>
+      <span class="pc-rowmain">
+        <span class="pc-rowtitle">${esc(title)}</span>
+        ${note ? `<span class="pc-rowmeta">${esc(note)}</span>` : ""}
+      </span>
+      <span class="pc-rowright">
+        ${flag ? `<span class="pc-flag">${esc(flag)}</span>` : ""}
+        <span class="pc-chev" aria-hidden="true">›</span>
+      </span>
+    </a>`;
+
+  /* The package forbids a role switch on the print screens, and deskTop()
+     carries one. This bar is the wordmark alone, as the golden draws it. */
+  const pcTop = () => `<div class="m-topbar"><div class="m-dealrow">
+    <div class="m-wordmark"><span class="rideprice">Ride</span><span class="price">PRICE</span></div>
+  </div></div>`;
+
+  renderChrome("Documents", dealTitle(deal), "");
+  document.body.dataset.canvas = "master";
+  document.body.dataset.screen = "printcentre";
 
   view().innerHTML = `
-    <div class="grid grid--3">
-      ${core.map(d => `<a class="card card--link" href="#/print/${esc(deal.id)}/${esc(d.key)}">
-        <span class="icon">${esc(d.icon)}</span><h3>${esc(d.label)}</h3><p>${esc(d.note)}</p>
-        <span class="go">Preview &amp; print →</span></a>`).join("")}
+    <div class="m-app">
+      ${pcTop()}
+      <main class="pc-main">
+        <div class="pc-eyebrow">${deal.forms.finalized ? "Finance complete" : "Deal in progress"}</div>
+        <h1 class="pc-title">Documents</h1>
+        <div class="pc-meta">
+          <div class="pc-metaline"><strong>${esc(c.first + " " + c.last)}</strong>${v ? " · " + esc(v.year + " " + v.make + " " + v.model) : ""}</div>
+          <div class="pc-metaline">${deal.dealNo ? "Deal #" + esc(deal.dealNo) + " · " : ""}Jacket ${jkc.have}/${jkc.total}</div>
+        </div>
+        <button type="button" class="pc-hero" id="pcPacket">Print full packet · ${total} doc${total === 1 ? "" : "s"}</button>
+
+        <div class="pc-sechead"><h2>Deal packet</h2><span class="pc-count">· ${core.length}</span></div>
+        <div class="pc-group">
+          ${core.map(d => row(`#/print/${esc(deal.id)}/${esc(d.key)}`, d.icon, d.label, d.note, d.flag)).join("")}
+        </div>
+
+        <div class="pc-sechead"><h2>Additional forms</h2><span class="pc-count">· ${selected.length}</span></div>
+        ${selected.length
+          ? `<div class="pc-group">${selected.map(f => row(`#/print/${esc(deal.id)}/form-${esc(f.id)}`, "page", f.label, f.group)).join("")}</div>`
+          : `<div class="pc-empty">No forms selected yet — choose them on the finance menu&rsquo;s <a href="#/menu/${esc(deal.id)}">Forms</a> stage.</div>`}
+      </main>
     </div>
-    <h3 style="color:var(--navy);margin:26px 0 10px">Selected deal forms (from the menu&rsquo;s Forms stage)</h3>
-    ${selected.length ? `<div class="grid grid--3">
-      ${selected.map(f => `<a class="card card--link" href="#/print/${esc(deal.id)}/form-${esc(f.id)}">
-        <span class="icon">📄</span><h3>${esc(f.label)}</h3><p>${esc(f.group)}</p>
-        <span class="go">Preview &amp; print →</span></a>`).join("")}
-    </div>` : `<p class="note">No forms selected yet — choose them on the menu's <a href="#/menu/${esc(deal.id)}">Disclosure Forms</a> step.</p>`}
-    <p class="hint mt">The full packet prints every document with page breaks.</p>`;
+    <div class="m-scrim" id="pcScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="pcSheet"></div></div>`;
+
+  /* one sheet, one listener, torn down with the route */
+  let sheetKey = null;
+  const closeSheet = () => {
+    const sc = $("#pcScrim"); if (sc) sc.classList.remove("show");
+    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+  };
+  const teardown = () => { closeSheet(); window.removeEventListener("hashchange", teardown); };
+  window.addEventListener("hashchange", teardown);
+
+  $("#pcPacket").onclick = () => {
+    const sh = $("#pcSheet");
+    sh.innerHTML = `<div class="m-handle"></div>
+      <div class="m-sheettop"><div><h2>Print full packet</h2>
+        <p class="m-sheetsub">${total} document${total === 1 ? "" : "s"} · page breaks included</p></div>
+        <button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>
+      <div class="pc-actions">
+        <a class="pc-btn pc-btn--primary" href="#/print/${esc(deal.id)}/packet">Open the packet</a>
+        <button type="button" class="pc-btn" data-sheet-close>Cancel</button>
+      </div>`;
+    $("#pcScrim").classList.add("show");
+    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
+    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
+    document.addEventListener("keydown", sheetKey, true);
+    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
+  };
+  const scrim = $("#pcScrim");
+  if (scrim) scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
 });
 
+/* ---------- Print Preview: the paper is the primary object ----------
+   One compact toolbar, one Print / PDF action, and nothing else. No role
+   switch, no Buyer/Jacket chips, no second dock repeating the same action
+   at the bottom — all four are named acceptance failures in the package. */
 route("print/:id/:doc", ({ id, doc }) => {
-  const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  /* the same guard as Documents: printDocs() builds every document from the
+     vehicle, so a stock number that no longer resolves rendered a blank view */
+  if (!deal.stock || !Store.vehicle(deal.stock)) return redirect(`#/vehicles/${deal.id}`);
   const docs = printDocs(deal);
-  renderChrome("Print Preview", dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/forms/${esc(deal.id)}">← Print Center</a>
-     <button class="btn btn--grad btn--sm" id="printNow">🖨 Print / Save as PDF</button>`);
 
   let html = "";
   if (doc === "packet") {
-    html = [docs.cover(), docs.agreement(),
-      deal.trade.rebates > 0 ? docs.rebates() : "", docs.repayment(),
-      deal.testDrive.signed ? docs.testdrive() : "", docs.delivery(),
-      ...deal.forms.selected.map(fid => docs.generic(fid))].join("");
+    /* exactly the documents the index lists and the button counts — see
+       printCentreDocs(). Building this set a second time is what let the
+       count and the packet drift apart. */
+    const { core, selected } = printCentreDocs(deal);
+    html = [...core.map(d => docs[d.key]()), ...selected.map(f => docs.generic(f.id))].join("");
   } else if (doc.startsWith("form-")) {
-    html = docs.generic(doc.slice(5));
+    /* `form-` is a prefix, not a guarantee. docs.generic() falls back to the
+       raw key as the document's title, so an unknown suffix rendered a
+       printable headed "not-a-real-form" — a document describing something
+       that does not exist. Validate against the catalog and redirect. */
+    const fid = doc.slice(5);
+    if (!RIDE_PRICE_DATA.dealForms.some(f => f.id === fid)) return redirect(`#/forms/${deal.id}`);
+    html = docs.generic(fid);
   } else if (docs[doc]) {
     html = docs[doc]();
   } else {
-    return navigate(`#/forms/${deal.id}`);
+    return redirect(`#/forms/${deal.id}`);
   }
-  view().innerHTML = `<div class="print-area">${html}</div>`;
+
+  renderChrome("Print Preview", dealTitle(deal), "");
+  document.body.dataset.canvas = "master";
+  document.body.dataset.screen = "printpreview";
+
+  view().innerHTML = `
+    <div class="m-app">
+      <div class="pc-toolbar">
+        <a class="pc-back" href="#/forms/${esc(deal.id)}">← Documents</a>
+        <span class="pc-toolspacer"></span>
+        <button type="button" class="pc-print" id="printNow">Print / PDF</button>
+      </div>
+      <div class="pc-paperwrap"><div class="print-area">${html}</div></div>
+    </div>`;
   $("#printNow").onclick = () => window.print();
 });
 

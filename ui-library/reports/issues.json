@@ -10,16 +10,6 @@
     "area": "dealTitle() crumb markup; .crumb-btn / #pageActions wrapping at ≤720px"
   },
   {
-    "id": "RP-UI-008",
-    "severity": "Minor",
-    "flow": "Print Center & Printables",
-    "screen": "Print preview — Repayment Options",
-    "screenshot": "current/20-print-center/04-print-repayment.png",
-    "issue": "On the Repayment Options printable, a product line long enough to wrap drops its price onto its own line, left-aligned under the label, breaking the money column. Re-measured on the v012 capture: 6 of the 7 purchased rows wrap this way — only \"GAP Coverage — Full loan term\" keeps its amount on the line. The original filing understated this as one long label.",
-    "observation": "The amounts stay readable but no longer form a column, so the document cannot be scanned down the right edge — the one thing a price list is for. Previously filed against a finance-menu screen that the V3 rewrite removed.",
-    "area": ".doc .lines li wrapping at ≤720px (overflow-wrap rule)"
-  },
-  {
     "id": "RP-UI-012",
     "severity": "Minor",
     "flow": "Training Licenses & Registrations",
@@ -65,7 +55,7 @@
     "flow": "All (app-wide)",
     "screen": "Customer identified (advisor)",
     "screenshot": "current/02-customer-onboarding/09-remote-ready.png",
-    "issue": "The role pill in the master deal header (.m-rolebtn) is 65x35 to 82x35px — under the 40px small-variant touch floor the phone layout documents. Measured across the v012 capture set it appears on 8 of the 20 flows, on every master-canvas screen.",
+    "issue": "The role pill in the master deal header (.m-rolebtn) is 65x35 to 82x35px — under the 40px small-variant touch floor the phone layout documents. Measured across the v013 capture set it appears on 8 of the 20 flows, on every master-canvas screen.",
     "observation": "Height only; the width is fine. It is the control that switches Advisor and Team Lead, so it is tapped constantly in training.",
     "area": "portal.css .m-rolebtn"
   },
@@ -75,7 +65,7 @@
     "flow": "All (app-wide)",
     "screen": "Add optional document",
     "screenshot": "current/15-deal-jacket/06-add-optional.png",
-    "issue": "The master bottom sheet's close control (.m-close) is squeezed to 28x40 in the jacket and measures 30x34 to 34x34 elsewhere — under the 40px touch floor. Measured across the v012 capture set it appears on 7 of the 20 flows, in every master sheet.",
+    "issue": "The master bottom sheet's close control (.m-close) is squeezed to 28x40 in the jacket and measures 30x34 to 34x34 elsewhere — under the 40px touch floor. Measured across the v013 capture set it appears on 8 of the 20 flows, in every master sheet — including the new Print full packet sheet.",
     "observation": "Not a trap — every sheet also dismisses on the scrim and on Escape — but it is a small target on a frequent control, and the jacket's long sheet titles squeeze it further.",
     "area": "portal.css .m-sheettop / #jkSheet .m-close"
   }

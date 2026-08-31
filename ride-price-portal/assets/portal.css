@@ -284,8 +284,19 @@ label.f .seg { display: flex; }
 
 /* money line list */
 .lines { list-style: none; margin: 0; padding: 0; font-size: 14px; }
-.lines li { display: flex; justify-content: space-between; gap: 14px; padding: 6px 0; border-bottom: 1px dashed #ecebf4; }
-.lines li b.amt { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--navy); }
+/* Two columns, not a flex row that wraps (print centre V2, 2026-08-30). A
+   long product label used to push its amount onto the next line, left
+   aligned, and the money column stopped being a column — the one thing a
+   price list is for. The label now wraps inside its own column and the
+   amount stays right-aligned beside it. */
+.lines li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto); gap: 14px; align-items: start; padding: 6px 0; border-bottom: 1px dashed #ecebf4; }
+/* The value column is right-aligned and stays beside its label. It is NOT
+   `white-space: nowrap`: these rows also carry prose values ("2018 Hyundai
+   Tucson · $15,500.00 value"), and forcing those onto one line overflowed
+   the sheet. A money figure has no spaces, so `overflow-wrap: normal` (set
+   for .amt at ≤720px) already stops it breaking mid-number — prose wraps at
+   spaces inside the column, money never wraps at all. */
+.lines li b.amt { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--navy); text-align: right; overflow-wrap: normal; }
 .lines li.total { border-bottom: 0; border-top: 2px solid var(--navy); margin-top: 6px; padding-top: 10px; font-weight: 600; color: var(--navy); font-size: 15px; }
 .lines li.neg b.amt { color: var(--crimson); }
 .lines li.sub { font-size: 12.5px; color: var(--ink); padding-left: 14px; }
@@ -1592,9 +1603,10 @@ body[data-screen="clientlink"] .sa-cam { min-height: 100vh; border-radius: 0; }
     overflow-wrap: anywhere;
   }
   /* …but a figure must never break mid-number ("$195" → "$19 / 5"). A number
-     is a single token, so restoring token wrapping on amounts fixes it: money
-     rows wrap between label and amount, prose amounts wrap at spaces only */
-  .lines li { flex-wrap: wrap; }
+     is a single token, so restoring token wrapping on amounts fixes it.
+     `.lines li { flex-wrap: wrap }` used to live here to let a money row wrap
+     between label and amount; the row is a two-column grid now, so the label
+     wraps inside its column and the amount never leaves the money column. */
   .amt, .vcard .vprice b,
   .credit-bar .cap b, .pay-hero .sub {
     overflow-wrap: normal;
@@ -2709,3 +2721,60 @@ body[data-screen="menu"] .m-app { padding-bottom: calc(92px + env(safe-area-inse
 .fm-formmain { flex: 1; min-width: 0; font-size: 15px; }
 .fm-formlock { font-size: 12px; font-weight: 700; color: var(--fm-warn); background: var(--fm-warn-bg); border-radius: 999px; padding: 4px 9px; margin-left: 8px; white-space: nowrap; }
 .fm-grouplab { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 18px 0 2px; }
+
+/* ---------- Documents / Print Center V2 (owner's replication package,
+   2026-08-30) — a document utility, not a dashboard. Geometry transcribed
+   from the golden: 24px group containers with hairline dividers, 46px icon
+   wells at 14px radius, rows whose height is content-driven, and a preview
+   whose chrome is one compact toolbar so the paper is the primary object.
+
+   The old screen's standalone cards, its per-row "Preview & print" link and
+   its nine repeated "Ready" badges are all named acceptance failures in the
+   package; status now appears only on an exception. ---------- */
+.pc-main { padding: 22px 18px 36px; }
+.pc-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.pc-title { font-size: 32px; font-weight: 780; letter-spacing: -.7px; line-height: 1.06; margin: 6px 0 8px; }
+/* two quiet lines, never a row of chips (locked) */
+.pc-meta { margin: 8px 0 20px; }
+.pc-metaline { font-size: 14px; line-height: 1.45; color: var(--muted); }
+.pc-metaline strong { color: var(--ink); font-weight: 650; }
+
+/* the single dominant action — gradient per the owner's standing override,
+   where the golden draws flat black */
+.pc-hero { width: 100%; min-height: 56px; border: 0; border-radius: 16px; background: var(--grad); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 24px; }
+
+.pc-sechead { display: flex; align-items: baseline; gap: 8px; margin: 22px 2px 8px; }
+.pc-sechead h2 { font-size: 19px; font-weight: 750; letter-spacing: -.3px; margin: 0; }
+.pc-count { font-size: 13px; color: var(--muted); }
+
+.pc-group { background: #fff; border: 1px solid var(--line); border-radius: 24px; overflow: hidden; }
+/* the whole row is the tap target; there is no secondary action inside it */
+.pc-row { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 15px 16px; border-bottom: 1px solid var(--line-soft); text-decoration: none; color: inherit; min-height: 68px; }
+.pc-row:last-child { border-bottom: 0; }
+.pc-row:active { background: var(--surface); }
+.pc-icon { width: 46px; height: 46px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; }
+.pc-icon svg { width: 22px; height: 22px; fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.pc-rowmain { min-width: 0; }
+.pc-rowtitle { display: block; font-size: 16px; font-weight: 700; line-height: 1.3; }
+.pc-rowmeta { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; }
+.pc-rowright { display: flex; align-items: center; gap: 8px; }
+/* status is an exception, never a repeated "Ready" (locked) */
+.pc-flag { font-size: 12px; font-weight: 700; color: var(--fm-warn); background: var(--fm-warn-bg); border-radius: 999px; padding: 6px 9px; white-space: nowrap; }
+.pc-chev { font-size: 24px; line-height: 1; color: #999; padding-left: 6px; }
+.pc-empty { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 20px; font-size: 15px; line-height: 1.5; color: var(--muted); }
+
+.pc-actions { display: grid; gap: 10px; margin-top: 18px; }
+.pc-btn { min-height: 54px; border-radius: 16px; border: 1.5px solid var(--ink); background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; display: grid; place-items: center; text-decoration: none; }
+.pc-btn--primary { background: var(--grad); color: #fff; border-color: transparent; }
+
+/* the preview: one compact toolbar, and never a second dock repeating it */
+.pc-toolbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(247, 247, 247, .97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line-soft); }
+.pc-toolspacer { flex: 1; }
+.pc-back { font-size: 16px; font-weight: 700; color: var(--ink); text-decoration: none; padding: 12px 4px; min-height: 44px; display: inline-flex; align-items: center; }
+.pc-print { border: 0; background: none; font: inherit; font-size: 16px; font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 12px 4px; min-height: 44px; }
+.pc-paperwrap { padding: 18px 14px 34px; }
+
+@media print {
+  .pc-toolbar { display: none !important; }
+  .pc-paperwrap { padding: 0; }
+}

@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-08-30T07:15:47.361Z",
-  "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+  "capturedAt": "2026-08-31T03:00:32.356Z",
+  "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-08-30T07:15:47.373Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:00:32.367Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -411,8 +411,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-08-30T07:16:01.387Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:00:45.458Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -734,7 +734,7 @@
             {
               "id": "RP-UI-024",
               "severity": "Minor",
-              "issue": "The role pill in the master deal header (.m-rolebtn) is 65x35 to 82x35px — under the 40px small-variant touch floor the phone layout documents. Measured across the v012 capture set it appears on 8 of the 20 flows, on every master-canvas screen.",
+              "issue": "The role pill in the master deal header (.m-rolebtn) is 65x35 to 82x35px — under the 40px small-variant touch floor the phone layout documents. Measured across the v013 capture set it appears on 8 of the 20 flows, on every master-canvas screen.",
               "observation": "Height only; the width is fine. It is the control that switches Advisor and Team Lead, so it is tapped constantly in training.",
               "area": "portal.css .m-rolebtn"
             }
@@ -751,8 +751,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-08-30T07:16:15.413Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:01:00.464Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -1091,7 +1091,7 @@
               " 4102 Bell Blvd, Bayside, NY  <>  Ask the guest to read back t",
               " Email <> .sc2-demo Demo: nothing leaves this de",
               " Email <>  Demo:",
-              " Email <>  533812",
+              " Email <>  513994",
               ".sc2-micro Phone and email are required <> .sc2-primary Verify & link",
               ".sc2-micro Phone and email are required <> .sc2-textbtn Cancel",
               ".demo-note Demo tool — sample data only <> .sc2-textbtn Cancel"
@@ -1150,8 +1150,8 @@
         "from": "home/more-sheet",
         "action": "Training licenses / Training registrations"
       },
-      "capturedAt": "2026-08-30T07:16:36.475Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:01:22.946Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -1259,15 +1259,15 @@
         "from": "onboarding/customer-found",
         "action": "Start Visit → (creates the deal)"
       },
-      "capturedAt": "2026-08-30T07:16:39.778Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:01:26.712Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-z5tjrhp",
+          "hash": "#/discovery/d-3v32yab",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1312,7 +1312,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-z5tjrhp",
+          "hash": "#/discovery/d-3v32yab",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1340,7 +1340,7 @@
           "key": "question-last",
           "screen": "Discovery — last question",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-z5tjrhp",
+          "hash": "#/discovery/d-3v32yab",
           "action": "Tap Pick Vehicle →",
           "next": "vehicles/inventory",
           "branches": [],
@@ -1374,15 +1374,15 @@
         "from": "discovery/question-last",
         "action": "Tap Pick Vehicle →"
       },
-      "capturedAt": "2026-08-30T07:16:46.116Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:01:32.961Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
           "screen": "Vehicle Search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-xw8cz2b",
+          "hash": "#/vehicles/d-4uc156z",
           "action": "Tap the Used chip",
           "next": "inventory-filtered",
           "branches": [],
@@ -1413,7 +1413,7 @@
           "key": "inventory-filtered",
           "screen": "Inventory — Used only",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-xw8cz2b",
+          "hash": "#/vehicles/d-4uc156z",
           "action": "Open Filters, cap the price at $1,000",
           "next": "inventory-no-match",
           "branches": [],
@@ -1444,7 +1444,7 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-xw8cz2b",
+          "hash": "#/vehicles/d-4uc156z",
           "action": "Clear all filters; tap a vehicle",
           "next": "vehicle-details",
           "branches": [],
@@ -1475,7 +1475,7 @@
           "key": "vehicle-details",
           "screen": "Vehicle details sheet",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-xw8cz2b",
+          "hash": "#/vehicles/d-4uc156z",
           "action": "Tap Choose this vehicle",
           "next": "next-steps",
           "branches": [],
@@ -1516,7 +1516,7 @@
           "key": "next-steps",
           "screen": "What's next? — after choosing",
           "screenshot": "current/06-vehicle-selection/05-next-steps.png",
-          "hash": "#/vehicles/d-xw8cz2b",
+          "hash": "#/vehicles/d-4uc156z",
           "action": "Tap Test Drive",
           "next": "test-drive/authorization",
           "branches": [
@@ -1570,7 +1570,7 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-xw8cz2b",
+          "hash": "#/vehicles/d-4uc156z",
           "action": null,
           "next": null,
           "branches": [],
@@ -1658,8 +1658,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-08-30T07:16:56.700Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:01:42.641Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -1878,8 +1878,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-08-30T07:17:03.540Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:01:49.262Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -2004,8 +2004,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-08-30T07:17:09.523Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:01:55.163Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -2265,8 +2265,8 @@
         "from": "desking/compare-payments",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-30T07:17:16.135Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:02:01.697Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -2396,8 +2396,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-30T07:17:20.128Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:02:05.434Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -2697,7 +2697,7 @@
               " Applicant <> .m-sheettitle Deal summary",
               " Step 1 of 4 <> .m-close ✕",
               ".ca-cardtitle Application type <> .ca-wstitle Deal summary",
-              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 3:1",
+              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 11:",
               ".ca-cardtitle Application type <> .ca-managelink Edit",
               ".ca-cardsub Choose how the customer want <>  Vehicle",
               ".ca-cardsub Choose how the customer want <>  2022 Hyundai Santa Fe · 7H21",
@@ -2758,8 +2758,8 @@
         "from": "discovery/question-1",
         "action": "Tap 👤 Buyer in the crumbs"
       },
-      "capturedAt": "2026-08-30T07:17:31.611Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:02:16.741Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -3056,8 +3056,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-08-30T07:17:39.943Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:02:25.853Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -3296,8 +3296,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-08-30T07:17:44.530Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:02:30.989Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -3795,8 +3795,8 @@
         "from": "discovery/question-1",
         "action": "Tap 📁 Jacket in the crumbs"
       },
-      "capturedAt": "2026-08-30T07:17:59.623Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:14:31.376Z",
+      "appCommit": "c10339a1e3ed53a21137ad5e71a6c21f52be02e0",
       "screens": [
         {
           "step": 1,
@@ -3908,7 +3908,6 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".price PRICE <> .jk2-rowtitle Driver's License",
               ".jk2-rowtitle Signed Matching Credit App <>  Funding sign-off",
               ".jk2-rowtitle Signed Matching Credit App <>  11 items remaining",
               ".jk2-rowtitle Signed Matching Credit App <> #jkSignoff.jk2-dockbtn Not ready",
@@ -4046,7 +4045,7 @@
             {
               "id": "RP-UI-025",
               "severity": "Minor",
-              "issue": "The master bottom sheet's close control (.m-close) is squeezed to 28x40 in the jacket and measures 30x34 to 34x34 elsewhere — under the 40px touch floor. Measured across the v012 capture set it appears on 7 of the 20 flows, in every master sheet.",
+              "issue": "The master bottom sheet's close control (.m-close) is squeezed to 28x40 in the jacket and measures 30x34 to 34x34 elsewhere — under the 40px touch floor. Measured across the v013 capture set it appears on 8 of the 20 flows, in every master sheet — including the new Print full packet sheet.",
               "observation": "Not a trap — every sheet also dismisses on the scrim and on Escape — but it is a small target on a frequent control, and the jacket's long sheet titles squeeze it further.",
               "area": "portal.css .m-sheettop / #jkSheet .m-close"
             }
@@ -4072,13 +4071,14 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".jk2-sectitle Completed <>  Funding sign-off",
-              ".jk2-sectitle Completed <>  11 items remaining",
-              ".jk2-sectitle Completed <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-secsub Already in the jacket <>  11 items remaining",
-              ".jk2-secsub Already in the jacket <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-badge.jk2-badge--good 4 <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-chev.jk2-chev--open ⌄ <> #jkSignoff.jk2-dockbtn Not ready"
+              ".price PRICE <> .jk2-rowtitle Signed Contracts",
+              ".m-dealno Deal #48201 <> .jk2-rowtitle Signed Contracts",
+              "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
+              ".jk2-rowtitle Transfer Plates Registration <>  Funding sign-off",
+              ".jk2-rowtitle Transfer Plates Registration <>  11 items remaining",
+              ".jk2-rowtitle Transfer Plates Registration <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-rowsub Marked received by Ashley Co <>  11 items remaining",
+              ".jk2-rowsub Marked received by Ashley Co <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
@@ -4093,7 +4093,7 @@
         {
           "step": 8,
           "key": "license-back-needed",
-          "screen": "Driver's licence — back still needed",
+          "screen": "Driver's License — back still needed",
           "screenshot": "current/15-deal-jacket/08-license-back-needed.png",
           "hash": "#/jacket/d-demo1",
           "action": "Tap Capture back",
@@ -4174,8 +4174,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-08-30T07:18:11.136Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:02:57.542Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -4281,7 +4281,7 @@
               " 3 items need the customer. <>  Customer request",
               ".jk2-sectitle Waiting on customer <> .jk2-dot ✓",
               ".jk2-sectitle Waiting on customer <>  Link sent",
-              ".jk2-sectitle Waiting on customer <>  Aug 30, 3:18 AM",
+              ".jk2-sectitle Waiting on customer <>  Aug 30, 11:03 PM",
               ".jk2-secsub 3 documents <> .jk2-dot ✓",
               ".jk2-secsub 3 documents <>  Delivered"
             ]
@@ -4306,8 +4306,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-08-30T07:18:15.536Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:03:03.051Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -4639,8 +4639,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-08-30T07:18:28.755Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:03:16.174Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -4786,8 +4786,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-08-30T07:18:32.943Z",
-      "appCommit": "e0a75607ed7b835f9c57228a6cad0127b7daeed6",
+      "capturedAt": "2026-08-31T03:03:20.274Z",
+      "appCommit": "3e6afbbbc5788969846336be6db09ffa9334cd6d",
       "screens": [
         {
           "step": 1,
@@ -4827,25 +4827,30 @@
     {
       "id": "print-center",
       "area": "20-print-center",
-      "title": "Print Center & Printables",
-      "description": "The deal's printable documents as tiles, and the print preview (the MV-82 recreation carries the TRAINING SAMPLE treatment). Phone-reachable; built for paper.",
+      "title": "Documents — Print Center & Printables",
+      "description": "The owner's Print Center V2 (2026-08-30). A print centre is a document utility, not a dashboard: the deal in two quiet lines, one dominant Print full packet action, then two grouped lists — Deal packet and Additional forms — whose rows are themselves the tap target. Status appears only where a document is NOT ready, so a finished deal shows no badges at all. Preview is deliberately sparse: one toolbar with Back and a single Print / PDF, then the paper. The MV-82 recreation keeps its TRAINING SAMPLE treatment.",
       "entry": {
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-08-30T07:31:06.127Z",
-      "appCommit": "54b7b7311242a061e2aca56ab0c2d8f2beb747e0",
+      "capturedAt": "2026-08-31T03:15:00.676Z",
+      "appCommit": "c10339a1e3ed53a21137ad5e71a6c21f52be02e0",
       "screens": [
         {
           "step": 1,
           "key": "print-center",
-          "screen": "Print Center",
+          "screen": "Documents",
           "screenshot": "current/20-print-center/01-print-center.png",
           "hash": "#/forms/d-demo1",
-          "action": "Tap a document tile",
-          "next": "print-preview",
-          "branches": [],
-          "notes": "",
+          "action": "Tap Print full packet",
+          "next": "packet-sheet",
+          "branches": [
+            {
+              "action": "Tap any document row",
+              "to": "print-center/print-preview"
+            }
+          ],
+          "notes": "Rows are fully tappable — no per-row 'Preview & print' link, and no repeated Ready badge. Every document here is ready, so no status pill appears at all.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -4858,22 +4863,58 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1931,
-            "pageHeight": 1931
+            "height": 1263,
+            "pageHeight": 1263
           },
           "scrollShot": null,
           "issues": []
         },
         {
           "step": 2,
-          "key": "print-preview",
-          "screen": "Print preview — Base Payment Agreement",
-          "screenshot": "current/20-print-center/02-print-preview.png",
-          "hash": "#/print/d-demo1/agreement",
-          "action": "Back; open the MV-82",
-          "next": "print-mv82",
+          "key": "packet-sheet",
+          "screen": "Print full packet (sheet)",
+          "screenshot": "current/20-print-center/02-packet-sheet.png",
+          "hash": "#/forms/d-demo1",
+          "action": "Cancel, then look at a deal with gaps",
+          "next": "documents-exceptions",
           "branches": [],
-          "notes": "",
+          "notes": "The count in the button is the packet: index, count and packet all read one list.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".m-close ✕ 34x34"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".pc-rowmeta Completed <>  Print full packet",
+              ".pc-rowmeta 3 forms selected <> .pc-btn.pc-btn--primary Open the packet",
+              ".pc-rowtitle Applied Rebates <> .pc-btn.pc-btn--primary Open the packet",
+              ".pc-rowmeta $500.00 applied <> .pc-btn Cancel",
+              ".pc-chev › <> .pc-btn Cancel"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 1263,
+            "pageHeight": 1263
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 3,
+          "key": "documents-exceptions",
+          "screen": "Documents — two documents not ready",
+          "screenshot": "current/20-print-center/03-documents-exceptions.png",
+          "hash": "#/forms/d-demo1",
+          "action": "Tap Base Payment Agreement",
+          "next": "print-preview",
+          "branches": [],
+          "notes": "Status is an exception, never a badge on every row: Unsigned and Not started appear, the rest stay quiet.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -4886,17 +4927,45 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1521,
-            "pageHeight": 1521
+            "height": 1263,
+            "pageHeight": 1263
           },
           "scrollShot": null,
           "issues": []
         },
         {
-          "step": 3,
+          "step": 4,
+          "key": "print-preview",
+          "screen": "Preview — Base Payment Agreement",
+          "screenshot": "current/20-print-center/04-print-preview.png",
+          "hash": "#/print/d-demo1/agreement",
+          "action": "Back to Documents; open the MV-82",
+          "next": "print-mv82",
+          "branches": [],
+          "notes": "One compact toolbar and the paper. No role switch, no Buyer/Jacket chips, and no second Print control at the bottom.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 1417,
+            "pageHeight": 1417
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 5,
           "key": "print-mv82",
-          "screen": "Print preview — MV-82 (training sample)",
-          "screenshot": "current/20-print-center/03-print-mv82.png",
+          "screen": "Preview — MV-82 (training sample)",
+          "screenshot": "current/20-print-center/05-print-mv82.png",
           "hash": "#/print/d-demo1/form-reg",
           "action": "Back; open Repayment Options",
           "next": "print-repayment",
@@ -4923,22 +4992,22 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 2528,
-            "pageHeight": 2528
+            "height": 2423,
+            "pageHeight": 2423
           },
           "scrollShot": null,
           "issues": []
         },
         {
-          "step": 4,
+          "step": 6,
           "key": "print-repayment",
-          "screen": "Print preview — Repayment Options",
-          "screenshot": "current/20-print-center/04-print-repayment.png",
+          "screen": "Preview — Repayment Options",
+          "screenshot": "current/20-print-center/06-print-repayment.png",
           "hash": "#/print/d-demo1/repayment",
           "action": null,
           "next": null,
           "branches": [],
-          "notes": "The menu record: what was purchased, what was declined, and the customer's acknowledgement signature. RP-UI-008 lives on this page — it was previously filed against a finance-menu screen that no longer exists.",
+          "notes": "The menu record: what was purchased, what was declined, and the acknowledgement signature. Every price sits in a right-aligned column — a long product label wraps inside the label column and never displaces its amount (RP-UI-008, fixed 2026-08-30).",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -4951,19 +5020,11 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1574,
-            "pageHeight": 1574
+            "height": 1356,
+            "pageHeight": 1356
           },
           "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-008",
-              "severity": "Minor",
-              "issue": "On the Repayment Options printable, a product line long enough to wrap drops its price onto its own line, left-aligned under the label, breaking the money column. Re-measured on the v012 capture: 6 of the 7 purchased rows wrap this way — only \"GAP Coverage — Full loan term\" keeps its amount on the line. The original filing understated this as one long label.",
-              "observation": "The amounts stay readable but no longer form a column, so the document cannot be scanned down the right edge — the one thing a price list is for. Previously filed against a finance-menu screen that the V3 rewrite removed.",
-              "area": ".doc .lines li wrapping at ≤720px (overflow-wrap rule)"
-            }
-          ]
+          "issues": []
         }
       ]
     }
