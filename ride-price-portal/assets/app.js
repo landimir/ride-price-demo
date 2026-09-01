@@ -2208,7 +2208,9 @@ function openScanFlow(opts) {
       if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
       if (c && !mismatch) { c.dob = dob || c.dob; c.license = lic; Store.save(); }
       done();
-      if (o.onDone) o.onDone(c, Object.assign({}, p, { license: lic }));
+      /* samePerson is the name verdict taken BEFORE any field was edited —
+         a caller must not re-derive it from the editable license number */
+      if (o.onDone) o.onDone(c, Object.assign({}, p, { license: lic, samePerson: !mismatch }));
     };
     wire(() => renderVerifyTd(p));
   }
@@ -2921,7 +2923,6 @@ route("testdrive/:id", ({ id }) => {
   if (!v) return redirect(`#/vehicles/${deal.id}`);
   const c = Store.customer(deal.customerId);
   const td = deal.testDrive = deal.testDrive || { done: false };
-  const jkc = jacketCounts(deal);
   const custName = `${c.first} ${c.last}`;
   const vehName = `${v.year} ${v.make} ${v.model}`;
   const LIMIT = td.miles || 20;
@@ -2933,13 +2934,14 @@ route("testdrive/:id", ({ id }) => {
     const lic = c.license;
     if (!lic || !lic.number) return { ok: false, meta: "No license on file", short: "No license on file" };
     if (c.onboard && c.onboard.secondSide === "pending") return { ok: false, meta: "Front received · back still needed", short: "License back pending" };
-    if (lic.expires) {
-      const t = new Date(); t.setHours(0, 0, 0, 0);
-      const d = new Date(lic.expires + "T00:00:00");
-      if (!isNaN(d.getTime()) && d < t) return { ok: false, meta: `Expired ${dateUS(lic.expires)}`, short: "License expired" };
-    }
+    /* "unexpired" is a claim about a date: no date, or one that does not
+       parse, is not ready either (review find) */
+    const d = lic.expires ? new Date(lic.expires + "T00:00:00") : null;
+    if (!d || isNaN(d.getTime())) return { ok: false, meta: "Expiration date not on file", short: "License expiry missing" };
+    const t = new Date(); t.setHours(0, 0, 0, 0);
+    if (d < t) return { ok: false, meta: `Expired ${dateUS(lic.expires)}`, short: "License expired" };
     const last4 = String(lic.number).replace(/\W/g, "").slice(-4);
-    return { ok: true, meta: `${lic.state || "—"} · ending ${last4}${lic.expires ? ` · expires ${dateUS(lic.expires)}` : ""}` };
+    return { ok: true, meta: `${lic.state || "—"} · ending ${last4} · expires ${dateUS(lic.expires)}` };
   }
   const drivers = () => (td.addlDriverIds || []).map(cid => Store.customer(cid)).filter(Boolean);
   const driverNames = () => [custName].concat(drivers().map(d => `${d.first} ${d.last}`));
@@ -2952,7 +2954,9 @@ route("testdrive/:id", ({ id }) => {
     <span class="dv-spacer"></span>
     <button type="button" class="dv-role" id="tdRole">${isTeamLead() ? "Team Lead" : "Advisor"}</button>
   </div>`;
-  const contextRow = () => `<div class="dv-context">
+  /* counted on every render: signing files the agreement, and the badge
+     must say so on the very next paint (review find) */
+  const contextRow = () => { const jkc = jacketCounts(deal); return `<div class="dv-context">
     <button type="button" class="dv-ctxmain" id="tdDeal">
       <strong>${esc(custName)}</strong>
       <span>&middot; ${esc(vehName)}</span>
@@ -2960,7 +2964,7 @@ route("testdrive/:id", ({ id }) => {
     <a class="dv-jacket" href="#/jacket/${esc(deal.id)}" aria-label="Deal Jacket${jkc.missing ? ` — ${esc(jkc.missing)} of ${esc(jkc.total)} documents still outstanding` : " — all documents in"}">
       <span class="dv-jacket__box">${rpIcon("folder")}${jkc.missing ? `<b>${esc(jkc.missing)}</b>` : ""}</span>
     </a>
-  </div>`;
+  </div>`; };
 
   /* one row anatomy for every operational fact: icon · title · meta · a
      status pill or a text action on the right */
@@ -3051,7 +3055,16 @@ route("testdrive/:id", ({ id }) => {
       <div class="td-meta">${esc(vehName)} &middot; ${esc(startOdo.toLocaleString())} &rarr; ${esc(end.toLocaleString())} mi</div>
     </div>
     <section class="tv-card td-list td-list--done">
-      ${row("check", "Agreement signed", "Stored in Deal Jacket", status("ok", "Complete"))}
+      ${(() => {
+        /* the row states what the record can prove: an e-signature made
+           here, a jacket receipt however it arrived, or neither — a drive
+           recorded before this screen (the seed) was never e-signed and
+           must not say it was (review find) */
+        const filed = jacketState(deal, "testdrive");
+        const title = td.signed ? "Agreement signed" : "Test drive recorded";
+        const meta = filed ? (filed.how === "esign" ? "Stored in Deal Jacket" : "In the Deal Jacket") : "Agreement not in the Deal Jacket";
+        return row("check", title, meta, filed ? status("ok", "Complete") : status("warn", "Not filed"));
+      })()}
       ${row("wheel", "Return odometer", `${esc(end.toLocaleString())} mi &middot; ${esc(driven.toLocaleString())} driven${over ? `, over the ${esc(LIMIT)}-mile limit` : ""}`, over ? status("warn", "Over limit") : status("ok", "Recorded"))}
     </section>
     <section class="tv-card">
@@ -3148,7 +3161,7 @@ route("testdrive/:id", ({ id }) => {
            when the card's name matches this customer; a mismatched card is
            reported and changes nothing — the drive cannot borrow someone
            else's license */
-        const matched = cust && cust.license && p && p.license && cust.license.number === p.license.number;
+        const matched = !!(p && p.samePerson === true && cust && cust.license && p.license && cust.license.number === p.license.number);
         if (matched) {
           cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), secondSide: "received" });
           Store.save();
