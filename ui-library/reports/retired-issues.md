@@ -36,3 +36,24 @@ Why each finding left the board, and what holds it fixed.
 ### RP-UI-028, filed and withdrawn inside this same version
 
 - **RP-UI-028** — **Withdrawn by decision, not fixed**, in the version that filed it. It recorded 23 ordinary controls sitting between 40 and 43px against the then-documented 44px general floor. Asked to rule, the owner set the touch floor at **40px for everything** — one number, no small-variant tier. Every control in the app already meets it (a flat 40px floor was measured at zero violations before the rule was written down), so there was nothing to fix and no finding left to hold. `harness/touchfloor.mjs` enforces the single floor across 1026 controls on 22 routes; its tier classifier and pinned baseline went with the rule that needed them. Because it was opened and closed inside v014, the changelog's issue sections net it out to nothing — this entry is the only place the round trip is recorded.
+
+## v015 (2026-09-01, Discovery Session V2, PR #62)
+
+- **RP-UI-005** — The deal crumb block (Deal # · customer · "no vehicle yet",
+  plus Buyer, Jacket and Deals-list controls) stacked into three rows on a
+  phone and appeared before the content of every deal screen. Discovery
+  Session V2 replaced it on `#/discovery/:id` with **one stage-aware context
+  row** — `Customer · Discovery` before a vehicle exists, `Customer · Year
+  Make Model` after — with compact Jacket access on the right; everything
+  else moved into the Visit details sheet, and the route stops building the
+  crumb line at all (it passes `""` to `renderChrome`). Measured: the crumb
+  block was 63px, the context row is 46px, and the first question sits 44px
+  higher. `harness/discovery2.mjs` holds it — the one-row check measures
+  vertical overlap, the crumb slot is asserted empty (not merely unpainted),
+  and both were sabotage-verified. Scope of the retirement: RP-UI-005 was filed against the discovery screen
+  (its `screenshot` anchor), and the library documents screens — the other
+  deal screens named in its text got their crumb relief from their own
+  replication packages (jacket, menu, print centre). The two routes still
+  wearing the previous design end to end (test drive, trade) still render
+  the old chrome wholesale; that is the not-yet-converted state the
+  master-canvas route list records, not a residue of this finding.

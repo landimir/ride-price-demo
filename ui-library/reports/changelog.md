@@ -1,5 +1,58 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v015 — 2026-09-01
+
+App commit: 37c6b9f · 20 flows · 132 screens · previous: v014
+
+### Added
+- Discovery Session · Discovery complete (sheet)
+- Discovery Session · Visit details (sheet)
+- Discovery Session · Stage-aware — a vehicle chosen upstream
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Stage filter — no match
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1, customer-first
+- Discovery Session · Discovery — mid-interview, Back appears
+- Discovery Session · Discovery — the last question is the hand-off
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Test Drive Agreement · Terms signed — Driver One
+- Test Drive Agreement · End Test Drive — odometer
+- Trade-In Evaluation & Proof of Ownership · Evaluated trade value
+- Trade-In Evaluation & Proof of Ownership · Proof of ownership complete
+- Desking — Calculate Payments · Calculate Payments — Lease
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Buyers on the Deal (Co-Buyer) · Co-buyer — contextual actions
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- RP-UI-005 (Minor) — The deal crumb controls (Buyer, Jacket, and the screen's back/forward link) wrap into three rows on a phone, pushing the working area ~120px down. The same row appears on every deal screen (discovery, vehicles, test drive, trade, desking, agreement, credit, menu, print).
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v014 — 2026-08-31
 
 App commit: 5ad39ea · 20 flows · 129 screens · previous: v013

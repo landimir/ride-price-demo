@@ -1,15 +1,5 @@
 [
   {
-    "id": "RP-UI-005",
-    "severity": "Minor",
-    "flow": "Discovery Session",
-    "screen": "Discovery — question 1",
-    "screenshot": "current/05-discovery/01-question-1.png",
-    "issue": "The deal crumb controls (Buyer, Jacket, and the screen's back/forward link) wrap into three rows on a phone, pushing the working area ~120px down. The same row appears on every deal screen (discovery, vehicles, test drive, trade, desking, agreement, credit, menu, print).",
-    "observation": "Consistent, but it costs a sixth of the phone screen before the content starts. A single compact row (icon buttons, or the back link folded into the title) would recover it.",
-    "area": "dealTitle() crumb markup; .crumb-btn / #pageActions wrapping at ≤720px"
-  },
-  {
     "id": "RP-UI-012",
     "severity": "Minor",
     "flow": "Training Licenses & Registrations",

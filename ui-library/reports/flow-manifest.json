@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-08-31T15:38:56.125Z",
-  "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+  "capturedAt": "2026-09-01T02:44:15.719Z",
+  "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-08-31T15:38:56.135Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:44:15.728Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -399,8 +399,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-08-31T15:39:08.327Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:44:31.106Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -711,8 +711,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-08-31T15:39:25.099Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:44:48.473Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -1051,7 +1051,7 @@
               " 4102 Bell Blvd, Bayside, NY  <>  Ask the guest to read back t",
               " Email <> .sc2-demo Demo: nothing leaves this de",
               " Email <>  Demo:",
-              " Email <>  905491",
+              " Email <>  866606",
               ".sc2-micro Phone and email are required <> .sc2-primary Verify & link",
               ".sc2-micro Phone and email are required <> .sc2-textbtn Cancel",
               ".demo-note Demo tool — sample data only <> .sc2-textbtn Cancel"
@@ -1110,8 +1110,8 @@
         "from": "home/more-sheet",
         "action": "Training licenses / Training registrations"
       },
-      "capturedAt": "2026-08-31T15:39:46.415Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:45:13.107Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -1214,33 +1214,33 @@
       "id": "discovery",
       "area": "05-discovery",
       "title": "Discovery Session",
-      "description": "The week-in-the-life interview that opens every visit — one question per screen, answers autosaved, the last question hands off to vehicle selection.",
+      "description": "The week-in-the-life interview, rebuilt customer-first on the owner's V2 replication package (2026-08-31): nothing about a vehicle — year, make, model, VIN, stock or payment — appears before one has actually been selected, and the early object is a VISIT in every user-facing word. One stage-aware context row replaced the old three-row crumb block (RP-UI-005, retired with this version); everything secondary lives in the Visit details sheet. One question per screen, answers persist on every keystroke, and the hand-off states plainly that no vehicle has been selected yet.",
       "entry": {
         "from": "onboarding/customer-found",
-        "action": "Start Visit → (creates the deal)"
+        "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-08-31T15:39:49.321Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T03:32:41.581Z",
+      "appCommit": "f48575b9cda96b1793dc2a95997159697ad725a0",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
-          "screen": "Discovery — question 1",
+          "screen": "Discovery — question 1, customer-first",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-rufr32d",
+          "hash": "#/discovery/d-1ho2edx",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
             {
-              "action": "Tap 👤 Buyer in the crumbs",
-              "to": "buyers/buyers-sheet"
+              "action": "Tap the customer row",
+              "to": "discovery/visit-details"
             },
             {
-              "action": "Tap 📁 Jacket in the crumbs",
+              "action": "Tap the Jacket chip",
               "to": "deal-jacket/jacket-overview"
             }
           ],
-          "notes": "",
+          "notes": "The context is ONE row — `Cheri Bridwell · Discovery` with compact Jacket access — where three stacked rows used to open with a deal number and 'no vehicle yet'. No Deal #, no vehicle, no coaching card; the eyebrow and title carry the hierarchy.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1257,26 +1257,18 @@
             "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-005",
-              "severity": "Minor",
-              "issue": "The deal crumb controls (Buyer, Jacket, and the screen's back/forward link) wrap into three rows on a phone, pushing the working area ~120px down. The same row appears on every deal screen (discovery, vehicles, test drive, trade, desking, agreement, credit, menu, print).",
-              "observation": "Consistent, but it costs a sixth of the phone screen before the content starts. A single compact row (icon buttons, or the back link folded into the title) would recover it.",
-              "area": "dealTitle() crumb markup; .crumb-btn / #pageActions wrapping at ≤720px"
-            }
-          ]
+          "issues": []
         },
         {
           "step": 2,
           "key": "question-mid",
-          "screen": "Discovery — mid-interview",
+          "screen": "Discovery — mid-interview, Back appears",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-rufr32d",
+          "hash": "#/discovery/d-1ho2edx",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
-          "notes": "",
+          "notes": "Back appears only after question 1, and the autosave line names where the words go — typing alone persists the answer; Next is navigation, not a save button.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1298,13 +1290,123 @@
         {
           "step": 3,
           "key": "question-last",
-          "screen": "Discovery — last question",
+          "screen": "Discovery — the last question is the hand-off",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-rufr32d",
-          "action": "Tap Pick Vehicle →",
-          "next": "vehicles/inventory",
+          "hash": "#/discovery/d-1ho2edx",
+          "action": "Tap Find vehicles →",
+          "next": "discovery-complete",
           "branches": [],
-          "notes": "",
+          "notes": "The final CTA is Find vehicles — wording that admits none is chosen yet, replacing 'Pick Vehicle'.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 4,
+          "key": "discovery-complete",
+          "screen": "Discovery complete (sheet)",
+          "screenshot": "current/05-discovery/04-discovery-complete.png",
+          "hash": "#/discovery/d-1ho2edx",
+          "action": "Tap Find matching vehicles",
+          "next": "vehicles/inventory",
+          "branches": [
+            {
+              "action": "Back to questions",
+              "to": "discovery/question-last"
+            }
+          ],
+          "notes": "Status rows, not prose: the real answer count ('7 of 7 discovery answers saved') and a Vehicle row reading Not selected yet. The stage advances on the link that navigates — Back to questions cannot strand the visit in a stage it never entered.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": [
+              "#dvSaved Autosaved to customer discov <> .dv-rowname Cheri Bridwell",
+              "#dvBackQ.dv-secondary ← Back <> .dv-rowsub 7 of 7 discovery answers sav",
+              "#dvBackQ.dv-secondary ← Back <> .dv-rowname Vehicle",
+              "#dvNext.dv-primary Find vehicles → <> .dv-rowsub 7 of 7 discovery answers sav",
+              "#dvNext.dv-primary Find vehicles → <> .dv-status Complete",
+              "#dvNext.dv-primary Find vehicles → <> .dv-rowname Vehicle"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 5,
+          "key": "visit-details",
+          "screen": "Visit details (sheet)",
+          "screenshot": "current/05-discovery/05-visit-details.png",
+          "hash": "#/discovery/d-prkcug1",
+          "action": "Tap Done",
+          "next": "question-1",
+          "branches": [
+            {
+              "action": "Tap Co-buyer",
+              "to": "buyers/buyers-sheet"
+            }
+          ],
+          "notes": "Reached from any question by tapping the customer row. Everything the old crumb block shouted, on demand: the primary buyer with an honest three-state identity status (confirmed / licence photo on file / not verified), co-buyer as a real action, stage, visit number, registration address — and the one place that says No vehicle selected.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": [
+              ".dv-cats Trips · Family · Pets · Acti <> .dv-seclab Customer",
+              ".dv-qtitle Describe a week in the life  <> .dv-rowname Cheri Bridwell",
+              ".dv-qtitle Describe a week in the life  <> .dv-rowsub Primary buyer",
+              ".dv-qtitle Describe a week in the life  <> .dv-status.dv-status--wait Identity not verified",
+              ".dv-qhint Commute, errands, road trips <> .dv-rowname Co-buyer",
+              ".dv-qhint Commute, errands, road trips <> .dv-rowval None added",
+              "#dvNext.dv-primary Next → <> .dv-rowsub Registration address",
+              "#dvNext.dv-primary Next → <> .dv-rowval.dv-rowval--strong Confirmed"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 6,
+          "key": "vehicle-selected",
+          "screen": "Stage-aware — a vehicle chosen upstream",
+          "screenshot": "current/05-discovery/06-vehicle-selected.png",
+          "hash": "#/discovery/d-demo1",
+          "action": null,
+          "next": null,
+          "branches": [],
+          "notes": "The same row reports the workflow's actual state: `John Smith · 2022 Hyundai Santa Fe` once a vehicle exists — and still no VIN, stock number or payment anywhere on the screen.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1331,18 +1433,18 @@
       "title": "Vehicle Selection",
       "description": "Rebuilt on the owner's Master Replication system (2026-08-27): a white canvas, a pill search and a chip rail over large tappable browse objects, with every secondary decision in a bottom sheet. The five-item journey no longer repeats on each card — it appears once, in a next-steps sheet, after a vehicle is chosen.",
       "entry": {
-        "from": "discovery/question-last",
-        "action": "Tap Pick Vehicle →"
+        "from": "discovery/discovery-complete",
+        "action": "Tap Find matching vehicles"
       },
-      "capturedAt": "2026-08-31T15:39:56.743Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:45:30.617Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
           "screen": "Vehicle Search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-6yifyji",
+          "hash": "#/vehicles/d-79zjd1g",
           "action": "Tap the Used chip",
           "next": "inventory-filtered",
           "branches": [],
@@ -1372,7 +1474,7 @@
           "key": "inventory-filtered",
           "screen": "Inventory — Used only",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-6yifyji",
+          "hash": "#/vehicles/d-79zjd1g",
           "action": "Open Filters, cap the price at $1,000",
           "next": "inventory-no-match",
           "branches": [],
@@ -1402,7 +1504,7 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-6yifyji",
+          "hash": "#/vehicles/d-79zjd1g",
           "action": "Clear all filters; tap a vehicle",
           "next": "vehicle-details",
           "branches": [],
@@ -1432,7 +1534,7 @@
           "key": "vehicle-details",
           "screen": "Vehicle details sheet",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-6yifyji",
+          "hash": "#/vehicles/d-79zjd1g",
           "action": "Tap Choose this vehicle",
           "next": "next-steps",
           "branches": [],
@@ -1471,7 +1573,7 @@
           "key": "next-steps",
           "screen": "What's next? — after choosing",
           "screenshot": "current/06-vehicle-selection/05-next-steps.png",
-          "hash": "#/vehicles/d-6yifyji",
+          "hash": "#/vehicles/d-79zjd1g",
           "action": "Tap Test Drive",
           "next": "test-drive/authorization",
           "branches": [
@@ -1523,7 +1625,7 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-6yifyji",
+          "hash": "#/vehicles/d-79zjd1g",
           "action": null,
           "next": null,
           "branches": [],
@@ -1607,8 +1709,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-08-31T15:40:07.911Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:45:44.117Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -1827,8 +1929,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-08-31T15:40:14.572Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:45:54.012Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -1953,8 +2055,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-08-31T15:40:20.228Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:46:00.583Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -2205,8 +2307,8 @@
         "from": "desking/compare-payments",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-31T15:40:26.642Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:46:08.791Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -2327,8 +2429,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-08-31T15:40:30.762Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:46:13.205Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -2612,7 +2714,7 @@
             "overlaps": [
               " Applicant <> .m-sheettitle Deal summary",
               " Step 1 of 4 <> .m-close ✕",
-              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 11:",
+              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 10:",
               ".ca-cardtitle Application type <> .ca-managelink Edit",
               ".ca-cardsub Choose how the customer want <>  Vehicle",
               ".ca-cardsub Choose how the customer want <>  2022 Hyundai Santa Fe · 7H21",
@@ -2670,11 +2772,11 @@
       "title": "Buyers on the Deal (Co-Buyer)",
       "description": "The owner's Buyers on Deal V2 (2026-08-29): one bottom sheet from the Buyer chip — the primary buyer, an optional co-buyer, and one Add co-buyer action that opens the canonical Customer Resolver (search, scan, secure upload; manual creation only after a true no-match). Management is contextual and confirmed: removal keeps the customer profile, and Change roles is Team Lead-only, visible only with two buyers — an Advisor never sees a role control.",
       "entry": {
-        "from": "discovery/question-1",
-        "action": "Tap 👤 Buyer in the crumbs"
+        "from": "discovery/visit-details",
+        "action": "Tap Co-buyer in Visit details"
       },
-      "capturedAt": "2026-08-31T15:40:43.683Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:46:28.143Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -2957,8 +3059,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-08-31T15:40:52.395Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:46:38.456Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -3195,8 +3297,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-08-31T15:40:57.510Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:46:43.696Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -3661,10 +3763,10 @@
       "description": "The owner's Deal Jacket V2 (2026-08-29): compliance complexity behind the interface. One funding-readiness object answers whether the deal can fund, then three buckets — Waiting on customer, Deal forms and Completed, the last two collapsed until the advisor opens them. Rows are whole tap targets that open a contextual sheet; there is no permanent button rail. Requesting customer documents happens in a sheet on this page, so the advisor never leaves the jacket.",
       "entry": {
         "from": "discovery/question-1",
-        "action": "Tap 📁 Jacket in the crumbs"
+        "action": "Tap the Jacket chip in the context row"
       },
-      "capturedAt": "2026-08-31T15:41:14.844Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:47:00.873Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -3770,14 +3872,13 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".price PRICE <> .jk2-rowtitle Driver's License",
+              ".price PRICE <> .jk2-rowsub Needed for registration",
               ".m-dealno Deal #48201 <> .jk2-rowtitle Driver's License",
+              ".m-dealno Deal #48201 <> .jk2-rowsub Needed for registration",
               "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
-              ".jk2-rowtitle Signed Matching Credit App <>  Funding sign-off",
-              ".jk2-rowtitle Signed Matching Credit App <> #jkSignoff.jk2-dockbtn Not ready",
               ".jk2-rowsub Lender match <>  Funding sign-off",
-              ".jk2-rowsub Lender match <>  11 items remaining",
-              ".jk2-rowsub Lender match <> #jkSignoff.jk2-dockbtn Not ready"
+              ".jk2-rowsub Lender match <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-rowtitle Risk-Based Disclosure <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
@@ -3918,13 +4019,11 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".price PRICE <> .jk2-rowtitle Privacy Policy",
-              ".m-dealno Deal #48201 <> .jk2-rowtitle Privacy Policy",
+              ".price PRICE <> .jk2-rowtitle Signed Matching Credit App",
+              ".m-dealno Deal #48201 <> .jk2-rowtitle Signed Matching Credit App",
               "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
-              ".jk2-secsub Already in the jacket <>  Funding sign-off",
-              ".jk2-secsub Already in the jacket <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-badge.jk2-badge--good 4 <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-chev.jk2-chev--open ⌄ <> #jkSignoff.jk2-dockbtn Not ready"
+              ".jk2-rowtitle Odometer Disclosure Statemen <>  11 items remaining",
+              ".jk2-rowtitle Odometer Disclosure Statemen <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
@@ -4016,8 +4115,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-08-31T15:41:27.413Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:47:16.935Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -4118,7 +4217,7 @@
               " 3 items need the customer. <>  Customer request",
               ".jk2-sectitle Waiting on customer <> .jk2-dot ✓",
               ".jk2-sectitle Waiting on customer <>  Link sent",
-              ".jk2-sectitle Waiting on customer <>  Aug 31, 11:41 AM",
+              ".jk2-sectitle Waiting on customer <>  Aug 31, 10:47 PM",
               ".jk2-secsub 3 documents <> .jk2-dot ✓"
             ]
           },
@@ -4142,8 +4241,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-08-31T15:41:31.592Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:47:21.638Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -4468,8 +4567,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-08-31T15:41:45.427Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:47:36.892Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -4603,8 +4702,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-08-31T15:41:50.084Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:47:45.468Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,
@@ -4645,8 +4744,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-08-31T15:41:52.056Z",
-      "appCommit": "5ad39ea0726b18e7f904c60bdd7214a0c0579821",
+      "capturedAt": "2026-09-01T02:47:48.094Z",
+      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
       "screens": [
         {
           "step": 1,

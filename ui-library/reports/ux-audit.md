@@ -1,12 +1,12 @@
-# Ride Price Mobile UI — UX Audit (v014)
+# Ride Price Mobile UI — UX Audit (v015)
 
-Captured 2026-08-31T15:38:56.125Z · viewport 390×844 · app 5ad39ea0726b18e7f904c60bdd7214a0c0579821
+Captured 2026-09-01T02:44:15.719Z · viewport 390×844 · app 37c6b9f7f4c949efb98ea0a75fd6f35d860763da
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 0 |
-| Minor | 3 |
+| Minor | 2 |
 | Observation | 2 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
@@ -19,14 +19,7 @@ _None recorded._
 
 _None recorded._
 
-## Minor (3)
-
-### RP-UI-005 — Discovery Session · Discovery — question 1
-
-- **Screenshot:** `current/05-discovery/01-question-1.png`
-- **Issue:** The deal crumb controls (Buyer, Jacket, and the screen's back/forward link) wrap into three rows on a phone, pushing the working area ~120px down. The same row appears on every deal screen (discovery, vehicles, test drive, trade, desking, agreement, credit, menu, print).
-- **Observation:** Consistent, but it costs a sixth of the phone screen before the content starts. A single compact row (icon buttons, or the back link folded into the title) would recover it.
-- **Suggested area to investigate:** dealTitle() crumb markup; .crumb-btn / #pageActions wrapping at ≤720px
+## Minor (2)
 
 ### RP-UI-012 — Training Licenses & Registrations · Training Registrations
 
@@ -60,4 +53,4 @@ _None recorded._
 
 ## Automated checks per screen
 
-The capture run measures each screen for horizontal overflow, elements beyond the viewport, clipped text, text overlap and small touch targets. Two thresholds are in play and they are not the same: this capture script flags anything under **36px**, while the touch floor itself is **40px for every control** (owner, 2026-08-31 — one number, no small-variant tier). So a target in the 36-39px band is reported only by the eye, and anything under 36px is caught by both. `harness/touchfloor.mjs` is what actually enforces the floor, across every route. These are hints that were reviewed by eye; the findings above are the reviewed result. Raw values live in `flow-manifest.json` under each screen's `checks`.
+The capture run measures each screen for horizontal overflow, elements beyond the viewport, clipped text, text overlap and small touch targets. Two thresholds are in play and they are not the same: this capture script flags anything under **36px**, while the touch floor itself is **40px for every control** (owner, 2026-08-31 — one number, no small-variant tier). So a target in the 36-39px band is reported only by the eye, and anything under 36px is caught by both. `harness/touchfloor.mjs` is what actually enforces the floor across every route — for pressable controls (`button`, links, `role=button`); native form fields sit outside its selector, and their measured shortfalls are RP-UI-029's finding, not this harness's coverage. These are hints that were reviewed by eye; the findings above are the reviewed result. Raw values live in `flow-manifest.json` under each screen's `checks`.
