@@ -3118,7 +3118,17 @@ route("trade/:id", ({ id }) => {
   </div>`;
 
   let sheetKey = null;
+  /* the payoff date saves on change, but Escape, a scrim tap or Close can
+     land before the field ever blurs — flush it on every close path so the
+     autosave claim is true for the one field that is not a button */
+  const flushDate = () => {
+    const g = $("#oGood"); if (!g) return;
+    const o = deal.trade.ownership; if (!o) return;
+    o.payoffGoodThrough = g.value.trim() ? dateISO(g.value.trim()) : "";
+    Store.save();
+  };
   const closeSheet = () => {
+    flushDate();
     const sc = $("#tvScrim"); if (sc) sc.classList.remove("show");
     if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
   };
@@ -3164,23 +3174,23 @@ route("trade/:id", ({ id }) => {
   };
 
   const formCard = () => `<section class="tv-card">
-    <h2 class="tv-cardtitle">${esc(deal.trade.desc || "Trade vehicle")}</h2>
-    ${deal.trade.desc ? `<div class="tv-cardsub">Trade vehicle</div>` : ""}
+    <h2 class="tv-cardtitle">${esc(fld("desc") || "Trade vehicle")}</h2>
+    ${fld("desc") ? `<div class="tv-cardsub">Trade vehicle</div>` : ""}
     <label class="tv-field"><span class="tv-label">Vehicle (year make model)</span>
-      <input type="text" class="tv-input" id="tDesc" value="${esc(deal.trade.desc || "")}" placeholder="2018 Hyundai Tucson"></label>
+      <input type="text" class="tv-input" id="tDesc" value="${esc(fld("desc") || "")}" placeholder="2018 Hyundai Tucson"></label>
     <label class="tv-field"><span class="tv-label">VIN <span class="tv-labnote" id="tVinHint"></span></span>
-      <input type="text" class="tv-input" id="tVin" value="${esc(deal.trade.vin || "")}" placeholder="KM8TRAININGSAMP06" maxlength="17" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
+      <input type="text" class="tv-input" id="tVin" value="${esc(fld("vin") || "")}" placeholder="KM8TRAININGSAMP06" maxlength="17" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
     <div class="tv-grid2">
       <label class="tv-field"><span class="tv-label">Model year</span>
-        <input type="number" class="tv-input" id="tYear" value="${esc(deal.trade.year || 2018)}" min="1998" max="2026"></label>
+        <input type="number" class="tv-input" id="tYear" value="${esc(fld("year") || 2018)}" min="1998" max="2026"></label>
       <label class="tv-field"><span class="tv-label">Mileage</span>
-        <input type="number" class="tv-input" id="tMiles" value="${esc(deal.trade.miles || 60000)}"></label>
+        <input type="number" class="tv-input" id="tMiles" value="${esc(fld("miles") || 60000)}"></label>
     </div>
     <label class="tv-field"><span class="tv-label">Payoff amount (if financed)</span>
-      <input type="number" class="tv-input" id="tPayoff" value="${esc(String(deal.trade.payoff || 0))}" step="100"></label>
+      <input type="number" class="tv-input" id="tPayoff" value="${esc(String(fld("payoff") || 0))}" step="100"></label>
     <div class="tv-field"><span class="tv-label">Condition</span>
       <div class="tv-seg" id="tCond">${["Excellent", "Good", "Fair", "Rough"].map(x =>
-        `<button type="button" data-cond="${x}" class="${(deal.trade.condition || "Good") === x ? "on" : ""}">${x}</button>`).join("")}</div>
+        `<button type="button" data-cond="${x}" class="${(fld("condition") || "Good") === x ? "on" : ""}">${x}</button>`).join("")}</div>
     </div>
     ${deal.trade.has && deal.trade.value && !editing ? heroCard()
       : `<button type="button" class="tv-primary" id="evalBtn">Run evaluation</button>`}
@@ -3190,8 +3200,12 @@ route("trade/:id", ({ id }) => {
      appraisal form from the result state — the golden has no way back into
      the appraisal once reviewed, which would strand a mis-keyed mileage. */
   let editing = false;
+  /* the in-flight appraisal edit, captured by markStale so a render mid-edit
+     rebuilds the form with the advisor's typing rather than the saved values */
+  let draft = null;
   const stateOf = () => !deal.trade.has || !deal.trade.value || editing ? "details"
     : deal.trade.ownershipReviewedAt ? "result" : "value";
+  const fld = (key) => draft && draft[key] != null ? draft[key] : deal.trade[key];
 
   function render() {
     const st = stateOf();
@@ -3285,8 +3299,21 @@ route("trade/:id", ({ id }) => {
   /* an edited appraisal invalidates the number on screen: the hero yields to
      Run evaluation IN PLACE — a re-render here would eat the keystroke that
      caused it — and the dock follows. Nothing typed is validated-then-dropped
-     (review-lessons pattern 2): every field is read back by runEval. */
+     (review-lessons pattern 2): every field is read back by runEval.
+     The staleness is ALSO recorded in route state: without `editing = true`,
+     any later render (saving the ownership sheet, for one) would paint the
+     superseded figure again with the Run evaluation affordance gone — and
+     the draft travels with it, so the render that follows an interleaved
+     ownership save rebuilds the form with what the advisor actually typed,
+     not the last-saved values. */
   function markStale() {
+    editing = true;
+    draft = {
+      desc: ($("#tDesc") || {}).value, vin: ($("#tVin") || {}).value,
+      year: ($("#tYear") || {}).value, miles: ($("#tMiles") || {}).value,
+      payoff: ($("#tPayoff") || {}).value,
+      condition: ($("#tCond button.on") || { dataset: {} }).dataset.cond,
+    };
     const hero = $(".tv-card .tv-hero");
     if (hero) {
       const btn = document.createElement("button");
@@ -3346,6 +3373,7 @@ route("trade/:id", ({ id }) => {
     });
     Store.save();
     editing = false;
+    draft = null;
     toast("Trade value saved to the deal");
     render();
   }
@@ -3374,9 +3402,13 @@ route("trade/:id", ({ id }) => {
     }
     html += row("Is the person trading the titled owner?", "isTitledOwner");
     if (o.isTitledOwner === false) html += row("Trade authorization / power of attorney received?", "authorizationReceived");
+    /* "Close", not "Cancel": every tri tap and the date field already saved
+       (autosave is how the sheet survives its own re-renders), so this
+       button discards nothing — it closes without stamping the review as
+       complete. A label must state what the code does. */
     html += `<div class="tv-sheetactions">
       <button type="button" class="tv-primary" id="ownSave">Save ownership review</button>
-      <button type="button" class="tv-secondary" data-sheet-close>Cancel</button>
+      <button type="button" class="tv-secondary" data-sheet-close>Close</button>
     </div>`;
     openSheet(html, (sh) => {
       $$(".tv-tri button", sh).forEach(b => b.onclick = () => {
@@ -3390,6 +3422,7 @@ route("trade/:id", ({ id }) => {
       const g = $("#oGood", sh);
       if (g) g.onchange = () => { o.payoffGoodThrough = g.value.trim() ? dateISO(g.value.trim()) : ""; Store.save(); };
       $("#ownSave", sh).onclick = () => {
+        flushDate();
         deal.trade.ownershipReviewedAt = new Date().toISOString();
         Store.save();
         closeSheet();
