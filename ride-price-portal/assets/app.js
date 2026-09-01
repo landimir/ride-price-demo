@@ -2936,8 +2936,12 @@ route("testdrive/:id", ({ id }) => {
     if (c.onboard && c.onboard.secondSide === "pending") return { ok: false, meta: "Front received · back still needed", short: "License back pending" };
     /* "unexpired" is a claim about a date: no date, or one that does not
        parse, is not ready either (review find) */
-    const d = lic.expires ? new Date(lic.expires + "T00:00:00") : null;
-    if (!d || isNaN(d.getTime())) return { ok: false, meta: "Expiration date not on file", short: "License expiry missing" };
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(lic.expires || "");
+    const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
+    /* a calendar date that the Date constructor would quietly normalise
+       ("2027-02-30" → March 2) is not a date on file either (review find) */
+    const real = d && !isNaN(d.getTime()) && d.getFullYear() === +m[1] && d.getMonth() === +m[2] - 1 && d.getDate() === +m[3];
+    if (!real) return { ok: false, meta: "Expiration date not on file", short: "License expiry missing" };
     const t = new Date(); t.setHours(0, 0, 0, 0);
     if (d < t) return { ok: false, meta: `Expired ${dateUS(lic.expires)}`, short: "License expired" };
     const last4 = String(lic.number).replace(/\W/g, "").slice(-4);
