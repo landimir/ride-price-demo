@@ -2878,3 +2878,79 @@ body[data-screen="menu"] .m-app { padding-bottom: calc(92px + env(safe-area-inse
   .dv-question { padding: 22px 18px 17px; }
   .dv-qtitle { font-size: 25px; }
 }
+
+/* ============================================================
+   Trade-In Evaluation V2 (tv- family) — owner's replication package,
+   2026-09-01. Rides the master canvas; the header and the compact Deal
+   Context Bar reuse the dv- shell (same component, one definition). The
+   golden's geometry, the house tokens; the two standing owner overrides:
+   the signature gradient on primary actions, line icons over glyphs.
+   ============================================================ */
+body[data-screen="trade"] .m-app { padding-bottom: 104px; }
+.tv-main { padding: 18px 16px 8px; }
+
+.tv-card { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 18px; margin: 14px 0; }
+.tv-cardtitle { font-size: 21px; margin: 0 0 2px; letter-spacing: -.2px; }
+.tv-cardsub { color: var(--muted); font-size: 14px; margin-bottom: 4px; }
+.tv-field { display: block; margin: 15px 0 0; }
+.tv-label { display: block; font-size: 13px; font-weight: 700; margin: 0 0 7px; color: var(--ink); }
+.tv-labnote { font-weight: 500; color: var(--muted); }
+.tv-input { width: 100%; border: 1px solid #d1d1d1; background: #fff; border-radius: 14px; padding: 12px 14px; min-height: 48px; font: inherit; font-size: 16px; color: var(--ink); }
+.tv-input:focus { outline: none; border-color: var(--ink); }
+.tv-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.tv-seg { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid #d5d5d5; border-radius: 14px; overflow: hidden; }
+.tv-seg button { border: 0; border-right: 1px solid #e7e7e7; background: #fff; min-height: 47px; padding: 0 4px; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer; }
+.tv-seg button:last-child { border-right: 0; }
+.tv-seg button.on { background: var(--navy); color: #fff; }
+
+.tv-primary { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 54px; border: 0; border-radius: 16px; background: var(--grad); color: #fff; font: inherit; font-weight: 800; cursor: pointer; text-decoration: none; text-align: center; padding: 0 18px; margin-top: 16px; box-shadow: 0 10px 24px rgba(255,56,92,.22); }
+.tv-secondary { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 54px; border: 1px solid var(--navy); border-radius: 16px; background: #fff; color: var(--navy); font: inherit; font-weight: 750; cursor: pointer; margin-top: 14px; }
+.tv-link { border: 0; background: none; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; padding: 8px 2px; font: inherit; font-weight: 650; color: var(--ink); cursor: pointer; }
+
+.tv-hero { background: var(--navy); color: #fff; border-radius: 22px; padding: 18px; margin: 16px 0 2px; }
+.tv-hero__lab { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #b8b5d1; font-weight: 750; }
+.tv-hero__amt { font-size: 39px; font-weight: 750; letter-spacing: -.8px; margin: 4px 0; font-variant-numeric: tabular-nums; }
+.tv-hero__sub { color: #d7d5e8; font-size: 14px; }
+
+.tv-ownrow { display: flex; align-items: center; gap: 12px; padding: 12px 0 4px; }
+.tv-sicon { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; flex: none; }
+.tv-sicon--ok { background: var(--fm-ok-bg, #eaf7f2); color: var(--green); }
+.tv-sicon--need { background: #fff6e8; color: #9b5c00; }
+.tv-owncopy { flex: 1; min-width: 0; }
+.tv-owncopy b { display: block; font-size: 16px; }
+.tv-owncopy span { display: block; font-size: 12.5px; color: var(--muted); }
+.tv-badge { border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 750; white-space: nowrap; flex: none; }
+.tv-badge--warn { background: #fff6e8; color: #9b5c00; }
+.tv-badge--good { background: var(--fm-ok-bg, #eaf7f2); color: var(--green); }
+.tv-gaps { background: #fff6e8; border-radius: 18px; padding: 12px 14px; margin-top: 12px; }
+.tv-gapitem { display: flex; gap: 10px; padding: 8px 0; font-size: 14px; line-height: 1.35; }
+.tv-gapitem span { color: #9b5c00; font-weight: 800; flex: none; }
+.tv-formsnote { font-size: 12.5px; color: var(--muted); margin: 12px 0 0; line-height: 1.4; }
+
+.tv-dock { position: fixed; z-index: 15; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.97); border-top: 1px solid #e6e6e6; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; }
+.tv-dockmeta { flex: 1; min-width: 0; }
+.tv-dockmeta span { display: block; font-size: 12px; color: var(--muted); }
+.tv-dockmeta b { display: block; font-size: 17px; font-weight: 750; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tv-dock .tv-dockgo { width: auto; min-width: 178px; margin-top: 0; flex: none; }
+
+/* scoped under .m-sheet on purpose: the shared `.m-sheet h2` is (0,1,1)
+   and outranks a lone class — review-lessons pattern 15, caught on the
+   dv- family by review and not repeated here. */
+.m-sheet .tv-sheettitle { font-size: 24px; font-weight: 780; letter-spacing: -.4px; margin: 0 0 8px; }
+.tv-choice { padding: 13px 0; border-bottom: 1px solid #eee; }
+.tv-choice:last-of-type { border-bottom: 0; }
+.tv-choicelabel { font-weight: 700; margin-bottom: 8px; font-size: 15px; }
+.tv-tri { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+.tv-tri button { border: 1px solid #d6d6d6; background: #fff; border-radius: 12px; min-height: 44px; font: inherit; font-size: 14px; font-weight: 700; color: var(--ink); cursor: pointer; }
+.tv-tri button.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+.tv-detlab { font-size: 12px; color: var(--muted); }
+.tv-detval { font-weight: 700; font-size: 16px; margin-top: 2px; }
+.tv-sheetactions { display: grid; gap: 9px; margin-top: 18px; }
+.tv-sheetactions .tv-primary, .tv-sheetactions .tv-secondary { margin-top: 0; }
+
+@media (max-width: 390px) {
+  .tv-main { padding-left: 14px; padding-right: 14px; }
+  .tv-grid2 { grid-template-columns: 1fr; gap: 0; }
+  .tv-dock .tv-dockgo { min-width: 150px; }
+}
+.tv-link--quiet { display: block; margin: 2px auto 0; color: var(--muted); }

@@ -3013,14 +3013,29 @@ route("testdrive/:id", ({ id }) => {
 });
 
 /* ============================================================
-   VIEW: Trade Evaluation
-   ============================================================ */
-/* ---- trade proof of ownership (owner rules, 2026-08-15) ----
-   Every trade needs acceptable proof of ownership: the title, or a duplicate
-   title process under way; a lien release when the title shows a lien and the
-   vehicle is paid off, or a valid payoff when it is not; and authorization
-   when the person trading is not the titled owner.
-   Gaps never block the advisor — they surface to the manager at sign-off. */
+   VIEW: Trade-In Evaluation V2 — owner's replication package, 2026-09-01.
+
+   The package's architecture rule: the appraisal and the full ownership
+   questionnaire are never two long forms on one page. The visible happy
+   path is Trade details → Value → Ownership review → Continue. Ownership
+   questions live in a bottom sheet and are CONDITIONAL — only follow-ups
+   made relevant by previous answers appear. Unanswered stays unrecorded
+   (never silently No), gaps queue for Team Lead sign-off without blocking
+   the advisor, and a stale payoff is its own named gap.
+
+   The data model is untouched: ownOf / tradeOwnershipGaps /
+   requiredTradeForms / payoffExpired and the evaluation formula are the
+   same ones the previous screen wrote. "Not sure" records null — a
+   deliberate unknown; tradeOwnershipGaps already reads anything that is
+   not true/false as "not recorded", so both never-asked (undefined) and
+   not-sure (null) surface to the Team Lead in the same words.
+
+   Two follow-ups the golden does not draw — lien release when the vehicle
+   is paid off, and trade authorization when the person trading is not the
+   titled owner — stay, under the package's own conditional rule: they were
+   recorded compliance answers before this screen, and dropping them would
+   regress sign-off. The context row and header reuse the dv- shell from
+   Discovery V2: same component, one CSS definition. */
 const ownOf = (deal) => (deal.trade && deal.trade.ownership) || {};
 
 function payoffExpired(iso) {
@@ -3075,117 +3090,252 @@ function requiredTradeForms(deal) {
   if (o.isTitledOwner === false) req.push("poa");
   return req;
 }
-
 route("trade/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const c = Store.customer(deal.customerId);
+  const v = deal.stock ? Store.vehicle(deal.stock) : null;
+  const jkc = jacketCounts(deal);
+  const custName = c ? `${c.first} ${c.last}` : "—";
 
-  const o = ownOf(deal);
-  /* tri-state: unrecorded is a real answer here — "we never asked" is not
-     the same as "no", and both are gaps until proven otherwise */
-  const triSel = (id, val) => `<select id="${id}" data-ui="seg">    <option value="" ${val === true || val === false ? "" : "selected"}>—</option>    <option value="yes" ${val === true ? "selected" : ""}>Yes</option>    <option value="no" ${val === false ? "selected" : ""}>No</option></select>`;
+  const tvTop = () => `<div class="dv-top">
+    <button type="button" class="dv-back" id="tvBack" aria-label="Back">‹</button>
+    <div class="dv-brand"><span>Ride</span> PRICE</div>
+    <span class="dv-spacer"></span>
+    <button type="button" class="dv-role" id="tvRole">${isTeamLead() ? "Team Lead" : "Advisor"}</button>
+  </div>`;
 
-  renderChrome("Trade-In Evaluation", dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/desk/${esc(deal.id)}">Skip → Calculate Payment</a>`);
+  /* the compact Deal Context Bar. Vehicle selection has already occurred on
+     this route, so the selected purchase vehicle may appear (package rule);
+     without one the stage label stands in, the Discovery pattern. */
+  const contextRow = () => `<div class="dv-context">
+    <button type="button" class="dv-ctxmain" id="tvDeal">
+      <strong>${esc(custName)}</strong>
+      <span>&middot; ${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Trade-in"}</span>
+    </button>
+    <a class="dv-jacket" href="#/jacket/${esc(deal.id)}" aria-label="Deal Jacket${jkc.missing ? ` — ${esc(jkc.missing)} of ${esc(jkc.total)} documents still outstanding` : " — all documents in"}">
+      <span class="dv-jacket__box">${rpIcon("folder")}${jkc.missing ? `<b>${esc(jkc.missing)}</b>` : ""}</span>
+    </a>
+  </div>`;
 
-  view().innerHTML = `
-    <div class="panel panel--navyhead">
-      <div class="panel__head"><h2>Interactive Trade Evaluation</h2></div>
-      <div class="panel__body">
-        <div class="note note--wt"><span class="lab">Set the stage</span>“We will obtain your vehicle's VIN and the actual mileage. This allows our evaluator to access all book values, auction values, and most importantly, true market values of vehicles for sale just like yours. We invite you to join us for an interactive walk-around of your vehicle and a short drive — after all, who knows your car better than you?”</div>
-        <div class="fields">
-          <label class="f"><span class="lab">Trade vehicle (year make model)</span><input type="text" id="tDesc" value="${esc(deal.trade.desc || "")}" placeholder="2018 Hyundai Tucson"></label>
-          <label class="f"><span class="lab">VIN <span class="lab-note" id="tVinHint"></span></span><input type="text" id="tVin" value="${esc(deal.trade.vin || "")}" placeholder="KM8TRAININGSAMP06" maxlength="17" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
-          <label class="f"><span class="lab">Model year</span><input type="number" id="tYear" value="${deal.trade.year || 2018}" min="1998" max="2026"></label>
-          <label class="f"><span class="lab">Mileage</span><input type="number" id="tMiles" value="${deal.trade.miles || 60000}"></label>
-          <label class="f"><span class="lab">Condition</span><select id="tCond" data-ui="seg">
-            ${["Excellent", "Good", "Fair", "Rough"].map(o => `<option ${deal.trade.condition === o ? "selected" : ""}>${o}</option>`).join("")}</select></label>
-          <label class="f"><span class="lab">Payoff amount (if financed)</span><span class="minput"><input type="number" id="tPayoff" value="${esc(String(deal.trade.payoff || 0))}" step="100"></span></label>
-        </div>
-        <button class="btn btn--primary" id="evalBtn">Run Evaluation</button>
-        <div id="evalOut" class="mt"></div>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="panel__head"><h2>Proof of Ownership</h2></div>
-      <div class="panel__body">
-        <p class="small">The dealership must hold acceptable proof of ownership before it can accept a trade. Anything missing is flagged to a manager at sign-off — it never stops you working the deal.</p>
-        <div class="fields">
-          <label class="f"><span class="lab">Title in hand?</span>${triSel("oTitle", o.titleInHand)}</label>
-          <label class="f" id="wDup"><span class="lab">Duplicate title process started?</span>${triSel("oDup", o.duplicateStarted)}</label>
-          <label class="f"><span class="lab">Does the title show a lienholder?</span>${triSel("oLien", o.lienOnTitle)}</label>
-          <label class="f" id="wPaid"><span class="lab">Is the vehicle paid off?</span>${triSel("oPaid", o.paidOff)}</label>
-          <label class="f" id="wRel"><span class="lab">Lien release received?</span>${triSel("oRel", o.lienReleaseReceived)}</label>
-          <label class="f" id="wPay"><span class="lab">Valid payoff received?</span>${triSel("oPay", o.payoffReceived)}</label>
-          <label class="f" id="wGood"><span class="lab">Payoff good through</span><input type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" id="oGood" value="${esc(dateUS(o.payoffGoodThrough || ""))}"></label>
-          <label class="f"><span class="lab">Is the person trading the titled owner?</span>${triSel("oOwner", o.isTitledOwner)}</label>
-          <label class="f" id="wAuth"><span class="lab">Trade authorization / power of attorney received?</span>${triSel("oAuth", o.authorizationReceived)}</label>
-        </div>
-        <div id="ownOut" class="mt"></div>
-      </div>
-    </div>
-    <p class="note">Transparency wins: keep documents reflecting current market value and any reconditioning needed. Get your manager involved when questions arise.</p>`;
-
-  /* ---- proof of ownership ---- */
-  const triGet = (id) => { const v = $("#" + id).value; return v === "yes" ? true : v === "no" ? false : undefined; };
-  function syncOwnership() {
-    const own = deal.trade.ownership = deal.trade.ownership || {};
-    own.titleInHand = triGet("oTitle");
-    own.duplicateStarted = triGet("oDup");
-    own.lienOnTitle = triGet("oLien");
-    own.paidOff = triGet("oPaid");
-    own.lienReleaseReceived = triGet("oRel");
-    own.payoffReceived = triGet("oPay");
-    own.isTitledOwner = triGet("oOwner");
-    own.authorizationReceived = triGet("oAuth");
-    const gt = $("#oGood").value.trim();
-    own.payoffGoodThrough = gt ? dateISO(gt) : "";
-    Store.save();
-    /* only ask what the previous answer makes relevant */
-    const show = (wrap, on) => { const el = $("#" + wrap); if (el) el.style.display = on ? "" : "none"; };
-    show("wDup", own.titleInHand === false);
-    show("wPaid", own.lienOnTitle === true);
-    show("wRel", own.lienOnTitle === true && own.paidOff === true);
-    show("wPay", own.lienOnTitle === true && own.paidOff === false);
-    show("wGood", own.lienOnTitle === true && own.paidOff === false && own.payoffReceived === true);
-    show("wAuth", own.isTitledOwner === false);
-    renderOwnershipSummary();
-  }
-  function renderOwnershipSummary() {
-    const gaps = deal.trade.has ? tradeOwnershipGaps(deal) : [];
-    const forms = requiredTradeForms(deal);
-    const formNames = forms.map(fid => (RIDE_PRICE_DATA.dealForms.find(f => f.id === fid) || {}).label).filter(Boolean);
-    $("#ownOut").innerHTML = !deal.trade.has
-      ? `<p class="hint">Run the evaluation to record this trade, then these answers count towards sign-off.</p>`
-      : gaps.length
-        ? `<div class="note note--wt"><span class="lab">Flagged to a manager at sign-off</span><ul class="checks">${gaps.map(g => `<li class="bad">${esc(g)}</li>`).join("")}</ul>` +
-          (formNames.length ? `<p class="small" style="margin:10px 0 0">Required paperwork: <b>${formNames.map(esc).join(", ")}</b> — selected and locked on the deal forms step.</p>` : "") + `</div>`
-        : `<div class="note"><ul class="checks"><li>Proof of ownership complete — nothing to flag</li></ul>` +
-          (formNames.length ? `<p class="small" style="margin:10px 0 0">Required paperwork: <b>${formNames.map(esc).join(", ")}</b>.</p>` : "") + `</div>`;
-  }
-  /* the VIN is copied off paper — the title or the printed training
-     registration — so it cleans itself as typed: uppercase, punctuation
-     dropped, and a quiet count while the 17 characters go in. */
-  const vinHint = () => {
-    const n = $("#tVin").value.length;
-    $("#tVinHint").textContent = n === 0 || n === 17 ? "" : `(${n} of 17)`;
+  let sheetKey = null;
+  const closeSheet = () => {
+    const sc = $("#tvScrim"); if (sc) sc.classList.remove("show");
+    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
   };
-  $("#tVin").oninput = () => {
-    const el = $("#tVin");
-    el.value = el.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const teardown = () => { closeSheet(); window.removeEventListener("hashchange", teardown); };
+  window.addEventListener("hashchange", teardown);
+  const openSheet = (html, onMount) => {
+    const sh = $("#tvSheet"); if (!sh) return;
+    sh.innerHTML = `<div class="m-handle"></div>${html}`;
+    $("#tvScrim").classList.add("show");
+    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
+    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
+    document.addEventListener("keydown", sheetKey, true);
+    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
+    if (onMount) onMount(sh);
+  };
+
+  /* the questions currently RELEVANT and unanswered — what the value card
+     counts. Distinct from tradeOwnershipGaps, which speaks manager language
+     about the same facts; both derive from one ownership object. */
+  function openQuestions() {
+    const o = ownOf(deal); let n = 0;
+    const un = (x) => x !== true && x !== false;
+    if (un(o.titleInHand)) n++;
+    if (o.titleInHand === false && un(o.duplicateStarted)) n++;
+    if (un(o.lienOnTitle)) n++;
+    if (o.lienOnTitle === true) {
+      if (un(o.paidOff)) n++;
+      if (o.paidOff === true && un(o.lienReleaseReceived)) n++;
+      if (o.paidOff === false && un(o.payoffReceived)) n++;
+    }
+    if (un(o.isTitledOwner)) n++;
+    if (o.isTitledOwner === false && un(o.authorizationReceived)) n++;
+    return n;
+  }
+
+  const heroCard = () => {
+    const equity = (deal.trade.value || 0) - (deal.trade.payoff || 0);
+    return `<div class="tv-hero">
+      <span class="tv-hero__lab">Evaluated trade value</span>
+      <div class="tv-hero__amt">${esc(money0(deal.trade.value || 0))}</div>
+      <span class="tv-hero__sub">Payoff ${esc(money0(deal.trade.payoff || 0))} &middot; ${equity >= 0 ? "positive" : "negative"} equity ${esc(money0(Math.abs(equity)))}</span>
+    </div>`;
+  };
+
+  const formCard = () => `<section class="tv-card">
+    <h2 class="tv-cardtitle">${esc(deal.trade.desc || "Trade vehicle")}</h2>
+    ${deal.trade.desc ? `<div class="tv-cardsub">Trade vehicle</div>` : ""}
+    <label class="tv-field"><span class="tv-label">Vehicle (year make model)</span>
+      <input type="text" class="tv-input" id="tDesc" value="${esc(deal.trade.desc || "")}" placeholder="2018 Hyundai Tucson"></label>
+    <label class="tv-field"><span class="tv-label">VIN <span class="tv-labnote" id="tVinHint"></span></span>
+      <input type="text" class="tv-input" id="tVin" value="${esc(deal.trade.vin || "")}" placeholder="KM8TRAININGSAMP06" maxlength="17" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
+    <div class="tv-grid2">
+      <label class="tv-field"><span class="tv-label">Model year</span>
+        <input type="number" class="tv-input" id="tYear" value="${esc(deal.trade.year || 2018)}" min="1998" max="2026"></label>
+      <label class="tv-field"><span class="tv-label">Mileage</span>
+        <input type="number" class="tv-input" id="tMiles" value="${esc(deal.trade.miles || 60000)}"></label>
+    </div>
+    <label class="tv-field"><span class="tv-label">Payoff amount (if financed)</span>
+      <input type="number" class="tv-input" id="tPayoff" value="${esc(String(deal.trade.payoff || 0))}" step="100"></label>
+    <div class="tv-field"><span class="tv-label">Condition</span>
+      <div class="tv-seg" id="tCond">${["Excellent", "Good", "Fair", "Rough"].map(x =>
+        `<button type="button" data-cond="${x}" class="${(deal.trade.condition || "Good") === x ? "on" : ""}">${x}</button>`).join("")}</div>
+    </div>
+    ${deal.trade.has && deal.trade.value && !editing ? heroCard()
+      : `<button type="button" class="tv-primary" id="evalBtn">Run evaluation</button>`}
+  </section>`;
+
+  /* which of the three page states this deal is in. `editing` reopens the
+     appraisal form from the result state — the golden has no way back into
+     the appraisal once reviewed, which would strand a mis-keyed mileage. */
+  let editing = false;
+  const stateOf = () => !deal.trade.has || !deal.trade.value || editing ? "details"
+    : deal.trade.ownershipReviewedAt ? "result" : "value";
+
+  function render() {
+    const st = stateOf();
+    renderChrome("Trade-In Evaluation", "", "");
+    document.body.dataset.canvas = "master";
+    document.body.dataset.screen = "trade";
+
+    const gaps = tradeOwnershipGaps(deal);
+    const openQ = openQuestions();
+    const forms = requiredTradeForms(deal)
+      .map(fid => (RIDE_PRICE_DATA.dealForms.find(f => f.id === fid) || {}).label).filter(Boolean);
+
+    let body = "", dock = "";
+    if (st === "details") {
+      body = formCard();
+      dock = `<div class="tv-dockmeta"><span>Trade</span><b>${esc(shortTrade())}</b></div>
+        <button type="button" class="tv-primary tv-dockgo" id="evalDock">Run evaluation</button>`;
+    } else if (st === "value") {
+      body = formCard() + `
+      <section class="tv-card">
+        <h2 class="tv-cardtitle">Proof of ownership</h2>
+        <div class="tv-ownrow">
+          <span class="tv-sicon tv-sicon--need">!</span>
+          <div class="tv-owncopy">
+            <b>${esc(openQ)} ownership answer${openQ === 1 ? "" : "s"} needed</b>
+            <span>Only relevant follow-ups will be shown.</span>
+          </div>
+          <span class="tv-badge tv-badge--warn">Review</span>
+        </div>
+        <button type="button" class="tv-secondary" id="ownBtn">Review ownership</button>
+      </section>`;
+      dock = `<div class="tv-dockmeta"><span>Evaluated value</span><b>${esc(money0(deal.trade.value))}</b></div>
+        <button type="button" class="tv-primary tv-dockgo" id="ownDock">Review ownership</button>`;
+    } else {
+      const done = gaps.length === 0;
+      body = heroCard() + `
+      <section class="tv-card">
+        <h2 class="tv-cardtitle">Ownership review</h2>
+        <div class="tv-ownrow">
+          <span class="tv-sicon ${done ? "tv-sicon--ok" : "tv-sicon--need"}">${done ? "✓" : "!"}</span>
+          <div class="tv-owncopy">
+            <b>${done ? "Ownership review complete" : `${esc(gaps.length)} item${gaps.length === 1 ? "" : "s"} for Team Lead`}</b>
+            <span>${done ? "No unanswered ownership items." : "Advisor can continue."}</span>
+          </div>
+          <span class="tv-badge ${done ? "tv-badge--good" : "tv-badge--warn"}">${done ? "Complete" : "Sign-off"}</span>
+        </div>
+        ${done ? "" : `<div class="tv-gaps">${gaps.map(g => `<div class="tv-gapitem"><span>&bull;</span><div>${esc(g)}</div></div>`).join("")}</div>`}
+        ${forms.length ? `<p class="tv-formsnote">Required paperwork: <b>${forms.map(esc).join(", ")}</b> — selected and locked on the deal forms step.</p>` : ""}
+        <button type="button" class="tv-link" id="ownEdit">${done ? "View answers" : "Edit ownership answers"}</button>
+      </section>
+      <button type="button" class="tv-link tv-link--quiet" id="apprEdit">Edit appraisal</button>`;
+      dock = `<div class="tv-dockmeta"><span>Trade saved</span><b>${esc(money0(deal.trade.value))}</b></div>
+        <a class="tv-primary tv-dockgo" id="toDesk2" href="#/desk/${esc(deal.id)}">Calculate payment</a>`;
+    }
+
+    view().innerHTML = `
+      <div class="m-app">
+        ${tvTop()}
+        <main class="tv-main">
+          <div class="dv-eyebrow">Trade-in</div>
+          <h1 class="dv-title">${st === "details" ? "Evaluate the trade" : st === "value" ? "Trade value" : "Trade ready"}</h1>
+          ${contextRow()}
+          ${body}
+        </main>
+        <div class="tv-dock">${dock}</div>
+      </div>
+      <div class="m-scrim" id="tvScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="tvSheet"></div></div>`;
+
+    $("#tvBack").onclick = () => history.back();
+    $("#tvRole").onclick = () => $("#hamburgerBtn").click();
+    $("#tvDeal").onclick = dealSheet;
+    const scrim = $("#tvScrim");
+    if (scrim) scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
+
+    if (st !== "result") wireForm();
+    const ob = $("#ownBtn"); if (ob) ob.onclick = ownershipSheet;
+    const od = $("#ownDock"); if (od) od.onclick = ownershipSheet;
+    const oe = $("#ownEdit"); if (oe) oe.onclick = ownershipSheet;
+    const ed = $("#evalDock"); if (ed) ed.onclick = runEval;
+    const ae = $("#apprEdit"); if (ae) ae.onclick = () => { editing = true; render(); };
+    const td = $("#toDesk2");
+    if (td) td.onclick = () => { if (["vehicle", "testdrive"].includes(deal.stage)) { deal.stage = "desking"; Store.save(); } };
+  }
+
+  function shortTrade() {
+    const d = ($("#tDesc") ? $("#tDesc").value : deal.trade.desc) || "";
+    const parts = d.trim().split(/\s+/);
+    return parts.length >= 2 ? `${parts[0]} ${parts[parts.length - 1]}` : (d || "Not entered");
+  }
+
+  /* an edited appraisal invalidates the number on screen: the hero yields to
+     Run evaluation IN PLACE — a re-render here would eat the keystroke that
+     caused it — and the dock follows. Nothing typed is validated-then-dropped
+     (review-lessons pattern 2): every field is read back by runEval. */
+  function markStale() {
+    const hero = $(".tv-card .tv-hero");
+    if (hero) {
+      const btn = document.createElement("button");
+      btn.type = "button"; btn.className = "tv-primary"; btn.id = "evalBtn";
+      btn.textContent = "Run evaluation";
+      btn.onclick = runEval;
+      hero.replaceWith(btn);
+    }
+    if (!$("#evalDock")) {
+      const dock = $(".tv-dock");
+      if (dock) {
+        dock.innerHTML = `<div class="tv-dockmeta"><span>Trade</span><b>${esc(shortTrade())}</b></div>
+          <button type="button" class="tv-primary tv-dockgo" id="evalDock">Run evaluation</button>`;
+        $("#evalDock").onclick = runEval;
+      }
+    }
+  }
+
+  function wireForm() {
+    /* the VIN is copied off paper — the title or the printed training
+       registration — so it cleans itself as typed: uppercase, punctuation
+       dropped, and a quiet count while the 17 characters go in. */
+    const vinHint = () => {
+      const n = $("#tVin").value.length;
+      $("#tVinHint").textContent = n === 0 || n === 17 ? "" : `(${n} of 17)`;
+    };
+    $("#tVin").oninput = () => {
+      const el = $("#tVin");
+      el.value = el.value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+      vinHint();
+    };
     vinHint();
-  };
-  vinHint();
+    $$("#tCond button").forEach(b => b.onclick = () => {
+      $$("#tCond button").forEach(x => x.classList.toggle("on", x === b));
+      markStale();
+    });
+    const eb = $("#evalBtn"); if (eb) eb.onclick = runEval;
+    ["tDesc", "tVin", "tYear", "tMiles", "tPayoff"].forEach(fid => {
+      const el = $("#" + fid); if (el) el.addEventListener("input", markStale);
+    });
+    const dm = $(".tv-dockmeta b");
+    const td2 = $("#tDesc"); if (td2 && dm) td2.addEventListener("input", () => { dm.textContent = shortTrade(); });
+  }
 
-  ["oTitle", "oDup", "oLien", "oPaid", "oRel", "oPay", "oOwner", "oAuth"].forEach(id => {
-    const el = $("#" + id); if (el) el.onchange = syncOwnership;
-  });
-  $("#oGood").onchange = syncOwnership;
-  syncOwnership();
-
-  $("#evalBtn").onclick = () => {
+  function runEval() {
     const year = parseInt($("#tYear").value, 10) || 2018;
     const miles = parseInt($("#tMiles").value, 10) || 60000;
-    const cond = $("#tCond").value;
+    const condBtn = $("#tCond button.on");
+    const cond = condBtn ? condBtn.dataset.cond : "Good";
     const factor = { Excellent: 1.06, Good: 1.0, Fair: 0.9, Rough: 0.78 }[cond] || 1;
     const base = Math.max(1500, 30000 - (2026 - year) * 2100 - miles * 0.055);
     const value = Math.round(base * factor / 50) * 50;
@@ -3195,18 +3345,70 @@ route("trade/:id", ({ id }) => {
       rebates: deal.trade.rebates || 0, applyTaxCredit: true
     });
     Store.save();
-    renderOwnershipSummary();
-    const equity = value - payoff;
-    $("#evalOut").innerHTML = `
-      <div class="pay-hero" style="max-width:420px">
-        <span class="lab">Evaluated Trade Value</span>
-        <div class="amt">${money0(value)}</div>
-        <span class="sub">Payoff ${money0(payoff)} → ${equity >= 0 ? "positive equity " + money0(equity) : "negative equity " + money0(equity)}</span>
-      </div>
-      <div class="flex mt"><a class="btn btn--grad" href="#/desk/${esc(deal.id)}" id="toDesk2">Calculate Payment →</a></div>`;
-    $("#toDesk2").onclick = () => { if (["vehicle", "testdrive"].includes(deal.stage)) { deal.stage = "desking"; Store.save(); } };
+    editing = false;
     toast("Trade value saved to the deal");
-  };
+    render();
+  }
+
+  /* ---- proof of ownership: the contextual sheet ---- */
+  /* Yes = true, No = false, Not sure = null (a recorded unknown). Both null
+     and never-asked read as "not recorded" in the manager's gap language. */
+  const triBtns = (key, val) => `<div class="tv-tri" data-key="${key}">${[
+    ["yes", "Yes", val === true], ["no", "No", val === false], ["unsure", "Not sure", val === null]]
+    .map(([k, lab, on]) => `<button type="button" data-tri="${k}" class="${on ? "on" : ""}">${lab}</button>`).join("")}</div>`;
+
+  function ownershipSheet() {
+    const o = deal.trade.ownership = deal.trade.ownership || {};
+    const row = (label, key) => `<div class="tv-choice"><div class="tv-choicelabel">${label}</div>${triBtns(key, o[key])}</div>`;
+    let html = `<h2 class="tv-sheettitle">Proof of ownership</h2>` + row("Title in hand?", "titleInHand");
+    if (o.titleInHand === false) html += row("Duplicate title process started?", "duplicateStarted");
+    html += row("Does the title show a lienholder?", "lienOnTitle");
+    if (o.lienOnTitle === true) {
+      html += row("Is the vehicle paid off?", "paidOff");
+      if (o.paidOff === true) html += row("Lien release received?", "lienReleaseReceived");
+      if (o.paidOff === false) {
+        html += row("Valid payoff received?", "payoffReceived");
+        if (o.payoffReceived === true) html += `<div class="tv-choice"><div class="tv-choicelabel">Payoff good through</div>
+          <input type="text" class="tv-input" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" id="oGood" value="${esc(dateUS(o.payoffGoodThrough || ""))}"></div>`;
+      }
+    }
+    html += row("Is the person trading the titled owner?", "isTitledOwner");
+    if (o.isTitledOwner === false) html += row("Trade authorization / power of attorney received?", "authorizationReceived");
+    html += `<div class="tv-sheetactions">
+      <button type="button" class="tv-primary" id="ownSave">Save ownership review</button>
+      <button type="button" class="tv-secondary" data-sheet-close>Cancel</button>
+    </div>`;
+    openSheet(html, (sh) => {
+      $$(".tv-tri button", sh).forEach(b => b.onclick = () => {
+        const key = b.closest(".tv-tri").dataset.key;
+        o[key] = b.dataset.tri === "yes" ? true : b.dataset.tri === "no" ? false : null;
+        Store.save();
+        /* conditional questions appear immediately after the triggering
+           answer — the sheet re-renders around the same open state */
+        ownershipSheet();
+      });
+      const g = $("#oGood", sh);
+      if (g) g.onchange = () => { o.payoffGoodThrough = g.value.trim() ? dateISO(g.value.trim()) : ""; Store.save(); };
+      $("#ownSave", sh).onclick = () => {
+        deal.trade.ownershipReviewedAt = new Date().toISOString();
+        Store.save();
+        closeSheet();
+        render();
+      };
+    });
+  }
+
+  /* the context row opens deal details — the one place Deal # belongs */
+  function dealSheet() {
+    openSheet(`
+      <h2 class="tv-sheettitle">Deal details</h2>
+      <div class="tv-choice"><div class="tv-detlab">Customer</div><div class="tv-detval">${esc(custName)}</div></div>
+      <div class="tv-choice"><div class="tv-detlab">Selected vehicle</div><div class="tv-detval">${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Not selected yet"}</div></div>
+      <div class="tv-choice"><div class="tv-detlab">Deal</div><div class="tv-detval">#${esc(deal.dealNo || "—")} &middot; ${esc((STAGES[deal.stage] || {}).label || deal.stage)}</div></div>
+      <div class="tv-sheetactions"><button type="button" class="tv-secondary" data-sheet-close>Done</button></div>`);
+  }
+
+  render();
 });
 
 /* ============================================================
