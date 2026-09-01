@@ -2849,17 +2849,24 @@ body[data-screen="menu"] .m-app { padding-bottom: calc(92px + env(safe-area-inse
 .dv-primary { min-height: 50px; border: 0; background: var(--grad); color: #fff; border-radius: 16px; padding: 0 20px; font: inherit; font-weight: 800; cursor: pointer; box-shadow: 0 10px 24px rgba(255,56,92,.22); }
 
 /* Visit details — everything the old crumb row shouted, on demand */
-.dv-sheettitle { font-size: 24px; font-weight: 780; letter-spacing: -.4px; margin: 0 0 16px; }
+/* scoped to .m-sheet on purpose: the shared `.m-sheet h2` is (0,1,1) and
+   outranks a lone class, so an unscoped .dv-sheettitle silently loses its
+   size, margin and tracking — review-lessons pattern 15. */
+.m-sheet .dv-sheettitle { font-size: 24px; font-weight: 780; letter-spacing: -.4px; margin: 0 0 16px; }
 .dv-sheetsay { font-size: 15px; line-height: 1.5; color: var(--muted); margin: 0 0 4px; }
 .dv-seclab { font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 22px 0 8px; }
 .dv-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
-.dv-row:last-child { border-bottom: 0; }
+/* the co-buyer row is the sheet's one tappable row — the golden's linkrow */
+.dv-row--link { width: 100%; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; min-height: 48px; }
+.dv-row--link:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 8px; }
+.dv-chev { flex: none; font-size: 20px; color: var(--muted); line-height: 1; }
 .dv-rowmain { flex: 1; min-width: 0; }
 .dv-rowname { font-size: 16px; font-weight: 750; }
 .dv-rowsub { font-size: 14px; color: var(--muted); margin-top: 2px; }
 .dv-rowval { font-size: 15px; color: var(--muted); }
 .dv-rowval--strong { color: var(--ink); font-weight: 750; }
-.dv-status { flex: none; font-size: 12px; font-weight: 750; border-radius: 999px; padding: 7px 10px; color: var(--green); background: var(--fm-ok-bg); }
+.dv-status { flex: none; font-size: 12px; font-weight: 750; border-radius: 999px; padding: 7px 10px; color: var(--fm-ok); background: var(--fm-ok-bg); }
+.dv-status--scan { color: var(--ink); background: var(--surface-2); }
 .dv-status--wait { color: var(--fm-warn); background: var(--fm-warn-bg); }
 .dv-actions { display: grid; gap: 10px; margin-top: 18px; }
 .dv-sheetbtn { min-height: 52px; border-radius: 16px; border: 1.5px solid var(--ink); background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 750; cursor: pointer; display: grid; place-items: center; text-decoration: none; }

@@ -2358,9 +2358,10 @@ route("regprops", () => {
    The package's product rule is one sentence: DISCOVERY IS CUSTOMER-FIRST.
    Nothing about a vehicle — year, make, model, trim, VIN, stock, payment —
    may appear before a vehicle has actually been selected. The old screen
-   opened with `Deal #48201 · John Smith · 2022 Hyundai Santa Fe` on a visit
-   that had chosen no vehicle at all, which is the app claiming to know
-   something the workflow has not established yet.
+   opened with `Deal #83306 · Cheri Bridwell · no vehicle yet` on a fresh
+   visit — leading with a deal number the advisor never uses at this stage,
+   and volunteering the vehicle's absence where the package wants the
+   absence itself to say it.
 
    That line, the Buyer pill, the Jacket pill and the Deals-list button were
    three stacked rows (RP-UI-005). They collapse to ONE: the customer and the
@@ -2396,10 +2397,10 @@ route("discovery/:id", ({ id }) => {
   const contextRow = () => `<div class="dv-context">
     <button type="button" class="dv-ctxmain" id="dvVisit">
       <strong>${esc(custName)}</strong>
-      <span>${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Discovery"}</span>
+      <span>&middot; ${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Discovery"}</span>
     </button>
-    <a class="dv-jacket" href="#/jacket/${esc(deal.id)}" aria-label="Deal Jacket${jkc.missing ? ` — ${jkc.missing} of ${jkc.total} documents still outstanding` : " — all documents in"}">
-      <span class="dv-jacket__box">${rpIcon("folder")}${jkc.missing ? `<b>${jkc.missing}</b>` : ""}</span>
+    <a class="dv-jacket" href="#/jacket/${esc(deal.id)}" aria-label="Deal Jacket${jkc.missing ? ` — ${esc(jkc.missing)} of ${esc(jkc.total)} documents still outstanding` : " — all documents in"}">
+      <span class="dv-jacket__box">${rpIcon("folder")}${jkc.missing ? `<b>${esc(jkc.missing)}</b>` : ""}</span>
     </a>
   </div>`;
 
@@ -2425,22 +2426,32 @@ route("discovery/:id", ({ id }) => {
   function visitSheet() {
     const co = deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
     const addr = c.onboard && c.onboard.address && c.onboard.address.confirmedAt;
+    /* three identity states, not two (review-lessons pattern 4). Formal
+       verification is deal.identity, recorded by the Lending Lane much
+       later; a licence photographed at onboarding is c.onboard.licensePhotoAt.
+       Reading only the first shows a scanned-in customer as an amber
+       "not verified", which tells the advisor something false. */
     const idOk = deal.identity && deal.identity.verifiedAt;
+    const idScan = c.onboard && c.onboard.licensePhotoAt;
+    const idPill = idOk ? ["", "Identity confirmed"]
+      : idScan ? [" dv-status--scan", "Licence photo on file"]
+      : [" dv-status--wait", "Identity not verified"];
     openSheet(`
       <h2 class="dv-sheettitle">Visit details</h2>
       <div class="dv-seclab">Customer</div>
       <div class="dv-row">
         <div class="dv-rowmain"><div class="dv-rowname">${esc(custName)}</div>
           <div class="dv-rowsub">Primary buyer</div></div>
-        <span class="dv-status${idOk ? "" : " dv-status--wait"}">${idOk ? "Identity confirmed" : "Identity not verified"}</span>
+        <span class="dv-status${idPill[0]}">${idPill[1]}</span>
       </div>
-      <div class="dv-row">
+      <button type="button" class="dv-row dv-row--link" id="dvCoBuyer" data-buyers="${esc(deal.id)}">
         <div class="dv-rowmain"><div class="dv-rowname">Co-buyer</div></div>
-        <span class="dv-rowval">${co ? esc(`${co.first} ${co.last}`) : "None added"}</span>
-      </div>
+        <span class="dv-rowval${co ? " dv-rowval--strong" : ""}">${co ? esc(`${co.first} ${co.last}`) : "None added"}</span>
+        <span class="dv-chev" aria-hidden="true">&rsaquo;</span>
+      </button>
       <div class="dv-seclab">Visit</div>
       <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Stage</div></div>
-        <span class="dv-rowval dv-rowval--strong">Discovery</span></div>
+        <span class="dv-rowval dv-rowval--strong">${esc((STAGES[deal.stage] || {}).label || deal.stage)}</span></div>
       <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Visit #</div></div>
         <span class="dv-rowval dv-rowval--strong">V${esc(deal.dealNo || "—")}</span></div>
       <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Registration address</div></div>
@@ -2452,7 +2463,12 @@ route("discovery/:id", ({ id }) => {
         : `<div class="dv-row"><div class="dv-rowmain">
             <div class="dv-rowname">No vehicle selected</div>
             <div class="dv-rowsub">Vehicle context appears after Discovery.</div></div></div>`}
-      <div class="dv-actions"><button type="button" class="dv-sheetbtn" data-sheet-close>Done</button></div>`);
+      <div class="dv-actions"><button type="button" class="dv-sheetbtn" data-sheet-close>Done</button></div>`, (sh) => {
+      /* the delegated [data-buyers] handler on document opens the buyers
+         sheet; close this one first so they do not stack */
+      const cb = $("#dvCoBuyer", sh);
+      if (cb) cb.addEventListener("click", closeSheet);
+    });
   }
 
   function render() {
@@ -2510,19 +2526,38 @@ route("discovery/:id", ({ id }) => {
     $("#dvNext").onclick = () => {
       saveAns();
       if (!last) { idx++; render(); return; }
+      /* the questions really are answered, so record that now. The STAGE is
+         a different claim: it says where the visit has got to, and the visit
+         has not reached vehicle selection until the advisor goes there. The
+         package's own rule 10 is that context may evolve only after the step
+         actually happens, and "Back to questions" below must not leave a
+         visit sitting in a stage it never entered. Advanced on the link that
+         navigates, the way #toDesk and #toDesk2 already do. */
       deal.discovery.done = true;
-      if (deal.stage === "discovery") deal.stage = "vehicle";
       Store.save();
-      /* the package: the hand-off must say plainly that no vehicle is chosen
-         yet, rather than implying one exists */
+      /* the golden's hand-off is STATUS ROWS, not prose (rule 12: the
+         hierarchy explains the screen), and it must state plainly that no
+         vehicle is chosen yet. The answer count is the real one — the golden
+         hard-codes 7, but an advisor can reach here with blanks. */
+      const answered = qs.filter(q2 => (deal.discovery.answers[q2.key] || "").trim()).length;
       openSheet(`
         <h2 class="dv-sheettitle">Discovery complete</h2>
-        <p class="dv-sheetsay">${esc(custName)}&rsquo;s answers are saved to the visit.
-          ${v ? "" : "No vehicle has been selected yet — the next step matches inventory to what they told you."}</p>
+        <div class="dv-row">
+          <div class="dv-rowmain"><div class="dv-rowname">${esc(custName)}</div>
+            <div class="dv-rowsub">${esc(answered)} of ${esc(qs.length)} discovery answers saved</div></div>
+          <span class="dv-status">Complete</span>
+        </div>
+        <div class="dv-row">
+          <div class="dv-rowmain"><div class="dv-rowname">Vehicle</div>
+            <div class="dv-rowsub">${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Not selected yet"}</div></div>
+        </div>
         <div class="dv-actions">
-          <a class="dv-sheetbtn dv-sheetbtn--primary" href="#/vehicles/${esc(deal.id)}">Find matching vehicles</a>
+          <a class="dv-sheetbtn dv-sheetbtn--primary" id="dvToVehicles" href="#/vehicles/${esc(deal.id)}">Find matching vehicles</a>
           <button type="button" class="dv-sheetbtn" data-sheet-close>Back to questions</button>
-        </div>`);
+        </div>`, (sh) => {
+        const go = $("#dvToVehicles", sh);
+        if (go) go.onclick = () => { if (deal.stage === "discovery") { deal.stage = "vehicle"; Store.save(); } };
+      });
     };
   }
   function saveAns() {
