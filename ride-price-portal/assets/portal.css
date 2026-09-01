@@ -2954,3 +2954,83 @@ body[data-screen="trade"] .m-app { padding-bottom: 104px; }
   .tv-dock .tv-dockgo { min-width: 150px; }
 }
 .tv-link--quiet { display: block; margin: 2px auto 0; color: var(--muted); }
+
+/* ============================================================
+   Test Drive Agreement V2 (td- family) — owner's replication package,
+   2026-09-01. Rides the master canvas; the header and Deal Context Bar are
+   the dv- shell, the card, dock, inputs and sheet actions are the tv-
+   components (same component, one definition). What is new here is the
+   operational row, the terms summary, the callout, the active-session
+   card, the signing pieces and the completion mark — the golden's
+   geometry, the house tokens, and the two standing owner overrides: the
+   signature gradient on primary actions, line icons over glyphs.
+   ============================================================ */
+body[data-screen="testdrive"] .m-app { padding-bottom: 104px; }
+body[data-screen="testdrive"] .m-app.td-nodock { padding-bottom: 40px; }
+.td-list { padding: 0; overflow: hidden; }
+.td-list--sheet { margin: 0 0 4px; }
+.td-row { min-height: 68px; padding: 13px 16px; display: flex; align-items: center; gap: 12px; border-top: 1px solid #ececec; }
+.td-row:first-child { border-top: 0; }
+.td-row--go { width: 100%; border: 0; border-top: 1px solid #ececec; background: #fff; font: inherit; text-align: left; color: var(--ink); cursor: pointer; }
+.td-row--go:first-child { border-top: 0; }
+.td-row--flat { padding-left: 4px; padding-right: 4px; min-height: 56px; }
+.td-rowicon { width: 38px; height: 38px; border-radius: 12px; background: var(--surface-2); display: grid; place-items: center; flex: none; }
+.td-rowicon svg { width: 20px; height: 20px; fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.td-rowmain { min-width: 0; flex: 1; }
+.td-rowtitle { font-size: 15px; font-weight: 650; }
+.td-rowmeta { font-size: 13px; color: var(--muted); margin-top: 3px; }
+.td-status { font-size: 12px; font-weight: 700; padding: 7px 9px; border-radius: 999px; white-space: nowrap; flex: none; }
+.td-status--ok { color: var(--green); background: var(--fm-ok-bg, #eaf7f2); }
+.td-status--warn { color: #9b5c00; background: #fff6e8; }
+.td-link { border: 0; background: none; padding: 8px 2px; min-height: 40px; display: inline-flex; align-items: center; font: inherit; font-weight: 650; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; flex: none; }
+.td-link--wide { width: 100%; justify-content: center; margin-top: 6px; }
+.td-chev { flex: none; font-size: 22px; color: var(--muted); line-height: 1; }
+.td-cardtitle { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
+.td-cardsub { font-size: 13px; color: var(--muted); line-height: 1.4; margin: 0; }
+.td-summary { display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; margin-top: 16px; font-size: 14px; }
+.td-summary .k { color: var(--muted); }
+.td-summary .v { text-align: right; font-weight: 650; }
+.td-callout { padding: 14px 15px; border-radius: 16px; background: var(--surface-2); margin-top: 14px; font-size: 13px; line-height: 1.45; color: var(--muted); }
+.td-callout strong { color: var(--ink); }
+
+/* the active session */
+.td-session { margin-top: 14px; background: #fff; border: 1px solid var(--line); border-radius: 28px; padding: 26px 20px; text-align: center; }
+.td-live { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 999px; background: var(--fm-ok-bg, #eaf7f2); color: var(--green); font-size: 13px; font-weight: 700; }
+.td-live i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
+.td-art { width: 112px; height: 82px; border-radius: 22px; background: #eef4f9; margin: 28px auto 18px; display: grid; place-items: center; }
+.td-art .m-carsvg { width: 86px; }
+.td-herovehicle { font-size: 21px; font-weight: 720; }
+.td-meta { font-size: 14px; color: var(--muted); line-height: 1.5; }
+.td-timer { font-size: 46px; letter-spacing: -1.5px; font-weight: 680; margin: 14px 0 4px; font-variant-numeric: tabular-nums; }
+
+/* signing */
+.m-sheet .td-sheettitle { margin: 0; }
+.td-sheetsub { font-size: 14px; color: var(--muted); line-height: 1.45; margin: -8px 0 14px; }
+.td-terms { font-size: 13px; line-height: 1.5; color: #555; background: var(--surface-2); border-radius: 18px; padding: 14px; margin-top: 4px; }
+.td-terms strong { color: var(--ink); }
+.td-terms p { margin: 6px 0 0; }
+.td-terms ol { padding-left: 20px; margin: 8px 0 0; }
+.td-terms li { margin: 8px 0; }
+.td-check { display: flex; align-items: flex-start; gap: 10px; margin: 15px 0; cursor: pointer; }
+.td-check input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--ink); }
+.td-check span { font-size: 14px; line-height: 1.4; padding-top: 2px; }
+.td-sig { height: 180px; border: 1px dashed #bbb; border-radius: 18px; background: #fafafa; display: flex; align-items: center; justify-content: center; margin: 8px 0 14px; }
+.td-sigline { font-family: "Segoe Script", "Bradley Hand", cursive; font-size: 34px; transform: rotate(-3deg); color: var(--navy-2); }
+
+/* completion */
+.td-doneicon { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: var(--fm-ok-bg, #eaf7f2); margin: 28px auto 18px; }
+.td-doneicon svg { width: 38px; height: 38px; fill: none; stroke: var(--green); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.td-center { text-align: center; }
+.td-list--done { margin-top: 26px; }
+.td-list .td-status, .td-list .td-link { margin-left: auto; }
+
+@media (max-width: 390px) {
+  .td-row { padding-left: 14px; padding-right: 14px; }
+  .td-timer { font-size: 42px; }
+}
+
+/* on a wide screen the fixed dock hugs the 430px column it belongs to
+   instead of stretching across the viewport (shared by the trade screen) */
+@media (min-width: 720px) {
+  .tv-dock { left: 50%; right: auto; width: min(430px, 100%); transform: translateX(-50%); border-left: 1px solid #ececec; border-right: 1px solid #ececec; }
+}
