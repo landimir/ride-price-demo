@@ -1,5 +1,60 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v016 — 2026-09-01
+
+App commit: ed0ea19 · 20 flows · 132 screens · previous: v015
+
+### Added
+- Trade-In Evaluation & Proof of Ownership · Proof of ownership (sheet) — conditional questions
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Stage filter — no match
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · No license available — manual fallback
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1, customer-first
+- Discovery Session · Visit details (sheet)
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Test Drive Agreement · Terms signed — Driver One
+- Test Drive Agreement · End Test Drive — odometer
+- Trade-In Evaluation & Proof of Ownership · Trade value — the appraisal first
+- Trade-In Evaluation & Proof of Ownership · Trade ready — items for Team Lead
+- Trade-In Evaluation & Proof of Ownership · Trade ready — ownership review complete
+- Desking — Calculate Payments · Base Payment Huddle
+- Desking — Calculate Payments · Calculate Payments — Lease
+- Desking — Calculate Payments · Calculate Payments — Cash
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Agreement — signed
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- Trade-In Evaluation & Proof of Ownership · Evaluated trade value
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v015 — 2026-09-01
 
 App commit: 37c6b9f · 20 flows · 132 screens · previous: v014

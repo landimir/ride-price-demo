@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-09-01T02:44:15.719Z",
-  "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+  "capturedAt": "2026-09-01T18:19:57.716Z",
+  "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-09-01T02:44:15.728Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:19:57.724Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -399,8 +399,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-09-01T02:44:31.106Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:20:09.660Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -711,8 +711,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-09-01T02:44:48.473Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:20:25.478Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -1051,7 +1051,7 @@
               " 4102 Bell Blvd, Bayside, NY  <>  Ask the guest to read back t",
               " Email <> .sc2-demo Demo: nothing leaves this de",
               " Email <>  Demo:",
-              " Email <>  866606",
+              " Email <>  822200",
               ".sc2-micro Phone and email are required <> .sc2-primary Verify & link",
               ".sc2-micro Phone and email are required <> .sc2-textbtn Cancel",
               ".demo-note Demo tool — sample data only <> .sc2-textbtn Cancel"
@@ -1110,8 +1110,8 @@
         "from": "home/more-sheet",
         "action": "Training licenses / Training registrations"
       },
-      "capturedAt": "2026-09-01T02:45:13.107Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:20:47.074Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -1219,15 +1219,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-09-01T03:32:41.581Z",
-      "appCommit": "f48575b9cda96b1793dc2a95997159697ad725a0",
+      "capturedAt": "2026-09-01T18:20:50.217Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1, customer-first",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-1ho2edx",
+          "hash": "#/discovery/d-qifhzrs",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1264,7 +1264,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview, Back appears",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-1ho2edx",
+          "hash": "#/discovery/d-qifhzrs",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1292,7 +1292,7 @@
           "key": "question-last",
           "screen": "Discovery — the last question is the hand-off",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-1ho2edx",
+          "hash": "#/discovery/d-qifhzrs",
           "action": "Tap Find vehicles →",
           "next": "discovery-complete",
           "branches": [],
@@ -1320,7 +1320,7 @@
           "key": "discovery-complete",
           "screen": "Discovery complete (sheet)",
           "screenshot": "current/05-discovery/04-discovery-complete.png",
-          "hash": "#/discovery/d-1ho2edx",
+          "hash": "#/discovery/d-qifhzrs",
           "action": "Tap Find matching vehicles",
           "next": "vehicles/inventory",
           "branches": [
@@ -1360,7 +1360,7 @@
           "key": "visit-details",
           "screen": "Visit details (sheet)",
           "screenshot": "current/05-discovery/05-visit-details.png",
-          "hash": "#/discovery/d-prkcug1",
+          "hash": "#/discovery/d-p145tm7",
           "action": "Tap Done",
           "next": "question-1",
           "branches": [
@@ -1436,15 +1436,15 @@
         "from": "discovery/discovery-complete",
         "action": "Tap Find matching vehicles"
       },
-      "capturedAt": "2026-09-01T02:45:30.617Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:21:01.354Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
           "screen": "Vehicle Search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-79zjd1g",
+          "hash": "#/vehicles/d-v3rj3t5",
           "action": "Tap the Used chip",
           "next": "inventory-filtered",
           "branches": [],
@@ -1474,7 +1474,7 @@
           "key": "inventory-filtered",
           "screen": "Inventory — Used only",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-79zjd1g",
+          "hash": "#/vehicles/d-v3rj3t5",
           "action": "Open Filters, cap the price at $1,000",
           "next": "inventory-no-match",
           "branches": [],
@@ -1504,7 +1504,7 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-79zjd1g",
+          "hash": "#/vehicles/d-v3rj3t5",
           "action": "Clear all filters; tap a vehicle",
           "next": "vehicle-details",
           "branches": [],
@@ -1534,7 +1534,7 @@
           "key": "vehicle-details",
           "screen": "Vehicle details sheet",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-79zjd1g",
+          "hash": "#/vehicles/d-v3rj3t5",
           "action": "Tap Choose this vehicle",
           "next": "next-steps",
           "branches": [],
@@ -1573,7 +1573,7 @@
           "key": "next-steps",
           "screen": "What's next? — after choosing",
           "screenshot": "current/06-vehicle-selection/05-next-steps.png",
-          "hash": "#/vehicles/d-79zjd1g",
+          "hash": "#/vehicles/d-v3rj3t5",
           "action": "Tap Test Drive",
           "next": "test-drive/authorization",
           "branches": [
@@ -1625,7 +1625,7 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-79zjd1g",
+          "hash": "#/vehicles/d-v3rj3t5",
           "action": null,
           "next": null,
           "branches": [],
@@ -1709,8 +1709,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-09-01T02:45:44.117Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:21:11.859Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -1924,24 +1924,24 @@
       "id": "trade",
       "area": "08-trade-in",
       "title": "Trade-In Evaluation & Proof of Ownership",
-      "description": "The appraisal fields (with the VIN copied off the registration) plus the tri-state proof-of-ownership questions; gaps flag to the manager at sign-off rather than blocking the advisor.",
+      "description": "Rebuilt customer-flow-first on the owner's V2 replication package (2026-09-01): the appraisal and the full ownership questionnaire are never two long forms on one page. Trade details → Value → Ownership review → Continue, one state at a time; ownership is a conditional bottom sheet asking only what previous answers make relevant, Not sure is a recorded unknown (never silently No), a stale payoff is its own named gap, and gaps queue for Team Lead sign-off while Calculate payment stays live — the advisor is never blocked.",
       "entry": {
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-09-01T02:45:54.012Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:21:18.915Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
           "key": "trade-evaluation",
-          "screen": "Trade-In Evaluation",
+          "screen": "Trade value — the appraisal first",
           "screenshot": "current/08-trade-in/01-trade-evaluation.png",
           "hash": "#/trade/d-demo1",
-          "action": "Answer 'Title in hand?' = No",
-          "next": "ownership-gaps",
+          "action": "Tap Review ownership",
+          "next": "ownership-sheet",
           "branches": [],
-          "notes": "Seed trade: 2018 Hyundai Tucson, VIN filled, ownership questions unanswered.",
+          "notes": "The seed trade is already evaluated, so the screen opens on the value state: the appraisal card with the evaluated-value hero inside it, then a small Proof of ownership card counting the answers still needed. One compact context row (customer · selected purchase vehicle · Jacket); the deal number lives in the details sheet behind it. Editing any appraisal field swaps the hero back to Run evaluation — the number on screen is never one the current inputs did not produce.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1949,27 +1949,34 @@
             "offscreen": [],
             "tinyTargets": [],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              " Excellent <>  Evaluated value",
+              " Excellent <>  $15,500",
+              ".on Good <>  Evaluated value",
+              ".on Good <>  $15,500",
+              " Fair <> #ownDock.tv-primary.tv-dockgo Review ownership",
+              " Rough <> #ownDock.tv-primary.tv-dockgo Review ownership"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1940,
-            "pageHeight": 1940
+            "height": 844,
+            "pageHeight": 1392
           },
-          "scrollShot": null,
+          "scrollShot": "current/08-trade-in/01-trade-evaluation.scroll.png",
           "issues": []
         },
         {
           "step": 2,
-          "key": "ownership-gaps",
-          "screen": "Proof of ownership — gaps flagged",
-          "screenshot": "current/08-trade-in/02-ownership-gaps.png",
+          "key": "ownership-sheet",
+          "screen": "Proof of ownership (sheet) — conditional questions",
+          "screenshot": "current/08-trade-in/02-ownership-sheet.png",
           "hash": "#/trade/d-demo1",
-          "action": "Tap Run Evaluation",
-          "next": "evaluation-result",
+          "action": "Tap Save ownership review",
+          "next": "ownership-gaps",
           "branches": [],
-          "notes": "Unrecorded answers read as 'nobody asked', never as No; an expired payoff shows as its own gap.",
+          "notes": "Three root questions; follow-ups appear only when the triggering answer makes them relevant — title No reveals the duplicate-title question, a lienholder reveals paid-off, not-paid-off reveals the payoff chain. Yes / No / Not sure, and Not sure records an unknown that still reads 'not recorded' at sign-off.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1977,27 +1984,45 @@
             "offscreen": [],
             "tinyTargets": [],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".dv-title Trade value <> .tv-sheettitle Proof of ownership",
+              " John Smith <> .tv-choicelabel Title in hand?",
+              " · 2022 Hyundai Santa Fe <> .tv-choicelabel Title in hand?",
+              " 11 <> .tv-choicelabel Title in hand?",
+              ".tv-cardtitle 2018 Hyundai Tucson <>  Yes",
+              ".tv-cardtitle 2018 Hyundai Tucson <> .on No",
+              ".tv-cardtitle 2018 Hyundai Tucson <>  Not sure",
+              ".tv-cardsub Trade vehicle <> .tv-choicelabel Duplicate title process star"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 2324,
-            "pageHeight": 2324
+            "height": 844,
+            "pageHeight": 1392
           },
-          "scrollShot": null,
+          "scrollShot": "current/08-trade-in/02-ownership-sheet.scroll.png",
           "issues": []
         },
         {
           "step": 3,
-          "key": "evaluation-result",
-          "screen": "Evaluated trade value",
-          "screenshot": "current/08-trade-in/03-evaluation-result.png",
+          "key": "ownership-gaps",
+          "screen": "Trade ready — items for Team Lead",
+          "screenshot": "current/08-trade-in/03-ownership-gaps.png",
           "hash": "#/trade/d-demo1",
-          "action": "Answer the remaining questions",
-          "next": "ownership-complete",
-          "branches": [],
-          "notes": "",
+          "action": "Tap Calculate payment",
+          "next": "desking/huddle-gate",
+          "branches": [
+            {
+              "action": "Edit ownership answers",
+              "to": "trade/ownership-sheet"
+            },
+            {
+              "action": "Edit appraisal",
+              "to": "trade/trade-evaluation"
+            }
+          ],
+          "notes": "The value hero stays visible; each gap is named in the amber list — the expired payoff as its own line with its date — under 'N items for Team Lead / Advisor can continue', and Calculate payment stays live. Required paperwork the answers make mandatory is listed on the card.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -2005,27 +2030,30 @@
             "offscreen": [],
             "tinyTargets": [],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              "#apprEdit.tv-link.tv-link--quiet Edit appraisal <>  $15,500",
+              "#apprEdit.tv-link.tv-link--quiet Edit appraisal <> #toDesk2.tv-primary.tv-dockgo Calculate payment"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 2501,
-            "pageHeight": 2501
+            "height": 844,
+            "pageHeight": 977
           },
-          "scrollShot": null,
+          "scrollShot": "current/08-trade-in/03-ownership-gaps.scroll.png",
           "issues": []
         },
         {
           "step": 4,
           "key": "ownership-complete",
-          "screen": "Proof of ownership complete",
+          "screen": "Trade ready — ownership review complete",
           "screenshot": "current/08-trade-in/04-ownership-complete.png",
           "hash": "#/trade/d-demo1",
-          "action": "Tap Calculate Payment →",
+          "action": "Tap Calculate payment",
           "next": "desking/huddle-gate",
           "branches": [],
-          "notes": "",
+          "notes": "Every root answer recorded and no follow-up left relevant: the card resolves to Ownership review complete with a green Complete badge and a View answers link.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -2038,8 +2066,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1998,
-            "pageHeight": 1998
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -2055,8 +2083,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-09-01T02:46:00.583Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:21:26.802Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -2307,8 +2335,8 @@
         "from": "desking/compare-payments",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-01T02:46:08.791Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:21:32.953Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -2429,8 +2457,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-01T02:46:13.205Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:21:37.181Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -2714,7 +2742,7 @@
             "overlaps": [
               " Applicant <> .m-sheettitle Deal summary",
               " Step 1 of 4 <> .m-close ✕",
-              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 10:",
+              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 2:2",
               ".ca-cardtitle Application type <> .ca-managelink Edit",
               ".ca-cardsub Choose how the customer want <>  Vehicle",
               ".ca-cardsub Choose how the customer want <>  2022 Hyundai Santa Fe · 7H21",
@@ -2775,8 +2803,8 @@
         "from": "discovery/visit-details",
         "action": "Tap Co-buyer in Visit details"
       },
-      "capturedAt": "2026-09-01T02:46:28.143Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:21:49.600Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -3059,8 +3087,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-09-01T02:46:38.456Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:21:57.709Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -3134,14 +3162,14 @@
               ".mp-miletitle Your driving changes the war <> .mp-docklab Now presenting · 2 of 9",
               ".mp-miletitle Your driving changes the war <> #mpNext.mp-primary Next: Maintenance",
               "#mpMileVal.mp-milevalue 12,000 mi/yr <> #mpNext.mp-primary Next: Maintenance",
-              " 10 years / 120,000 miles <> .mp-good August 2036"
+              " 10 years / 120,000 miles <> .mp-good September 2036"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1165
+            "pageHeight": 1183
           },
           "scrollShot": "current/13-fi-presentation/02-service-contract.scroll.png",
           "issues": []
@@ -3297,8 +3325,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-09-01T02:46:43.696Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:22:02.837Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -3765,8 +3793,8 @@
         "from": "discovery/question-1",
         "action": "Tap the Jacket chip in the context row"
       },
-      "capturedAt": "2026-09-01T02:47:00.873Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:22:18.724Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -3872,13 +3900,14 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
+              ".price PRICE <> .jk2-rowtitle Driver's License",
               ".price PRICE <> .jk2-rowsub Needed for registration",
               ".m-dealno Deal #48201 <> .jk2-rowtitle Driver's License",
-              ".m-dealno Deal #48201 <> .jk2-rowsub Needed for registration",
               "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
+              ".jk2-rowtitle Signed Matching Credit App <> #jkSignoff.jk2-dockbtn Not ready",
               ".jk2-rowsub Lender match <>  Funding sign-off",
               ".jk2-rowsub Lender match <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-rowtitle Risk-Based Disclosure <> #jkSignoff.jk2-dockbtn Not ready"
+              ".jk2-status Needed <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
@@ -4019,11 +4048,12 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".price PRICE <> .jk2-rowtitle Signed Matching Credit App",
-              ".m-dealno Deal #48201 <> .jk2-rowtitle Signed Matching Credit App",
-              "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
-              ".jk2-rowtitle Odometer Disclosure Statemen <>  11 items remaining",
-              ".jk2-rowtitle Odometer Disclosure Statemen <> #jkSignoff.jk2-dockbtn Not ready"
+              ".jk2-rowtitle Appraisal Sheet <>  Funding sign-off",
+              ".jk2-rowtitle Appraisal Sheet <>  11 items remaining",
+              ".jk2-rowtitle Appraisal Sheet <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-rowsub Marked received by Ashley Co <>  11 items remaining",
+              ".jk2-rowsub Marked received by Ashley Co <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-status.jk2-status--done In jacket <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
@@ -4115,8 +4145,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-09-01T02:47:16.935Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:22:31.217Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -4217,8 +4247,8 @@
               " 3 items need the customer. <>  Customer request",
               ".jk2-sectitle Waiting on customer <> .jk2-dot ✓",
               ".jk2-sectitle Waiting on customer <>  Link sent",
-              ".jk2-sectitle Waiting on customer <>  Aug 31, 10:47 PM",
-              ".jk2-secsub 3 documents <> .jk2-dot ✓"
+              ".jk2-secsub 3 documents <> .jk2-dot ✓",
+              ".jk2-secsub 3 documents <>  Delivered"
             ]
           },
           "error": null,
@@ -4241,8 +4271,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-09-01T02:47:21.638Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:22:35.718Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -4567,8 +4597,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-09-01T02:47:36.892Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:22:49.454Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -4702,8 +4732,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-09-01T02:47:45.468Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:22:54.069Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
@@ -4744,8 +4774,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-09-01T02:47:48.094Z",
-      "appCommit": "37c6b9f7f4c949efb98ea0a75fd6f35d860763da",
+      "capturedAt": "2026-09-01T18:22:56.304Z",
+      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
       "screens": [
         {
           "step": 1,
