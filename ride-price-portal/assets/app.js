@@ -1143,7 +1143,7 @@ route("customers", () => {
         <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">Customer record</div></div><span class="ob-pill">Required</span></div>
         <div class="ob-addressvalue">${esc(fmtAddr(a))}</div>
         <div class="ob-addressnote">Ride Price carries this address into registration, tax calculations, credit, and deal paperwork so the customer is not asked again.</div>
-        <button type="button" class="ob-primary" id="obConfirm">Confirm address &amp; ${missionDeal ? "attach co-buyer" : "start visit"}</button>
+        <button type="button" class="ob-primary" id="obConfirm">Confirm address &amp; ${missionDeal ? (mission.kind === "driver" ? "add driver" : "attach co-buyer") : "start visit"}</button>
         <button type="button" class="sc2-textbtn ob-center" id="obOtherAddr">Use a different address</button>
       </div>
       <button type="button" class="sc2-textbtn ob-center" id="obBack">Not the right customer? Search again</button>`);
@@ -1203,7 +1203,13 @@ route("customers", () => {
         <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">Confirmed by customer · from the license</div></div><span class="ob-badge">Confirmed</span></div>
         <div class="ob-addressvalue">${esc(fmtAddr(a))}</div>
         <div class="ob-addressnote">Carried into tax calculations, credit, registration, and paperwork.</div>
-        <button type="button" class="ob-primary" id="obAttach">${(session() && session().mission) || missionDeal ? "Attach as co-buyer" : "Start visit"}</button>
+        <button type="button" class="ob-primary" id="obAttach">${(() => {
+          /* the label names what finish() will do with this person: the
+             session's own mission first (it outlives this page), else the
+             page's */
+          const k = ((session() && session().mission) || mission || {}).kind;
+          return k === "driver" ? "Add as driver" : k === "cobuyer" ? "Attach as co-buyer" : "Start visit";
+        })()}</button>
         <button type="button" class="sc2-textbtn ob-center" id="obDiscardSession">Discard this upload</button>
       </div>`);
   }
@@ -2909,6 +2915,10 @@ route("vehicles/:id", ({ id }) => {
 route("testdrive/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
   const v = Store.vehicle(deal.stock);
+  /* a truthy stock is not a resolved vehicle (a catalog change, a hand-edited
+     blob) — the same guard the Documents and print routes carry; everything
+     below is built from the vehicle */
+  if (!v) return redirect(`#/vehicles/${deal.id}`);
   const c = Store.customer(deal.customerId);
   const td = deal.testDrive = deal.testDrive || { done: false };
   const jkc = jacketCounts(deal);
