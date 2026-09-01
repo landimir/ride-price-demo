@@ -657,7 +657,7 @@ function dealNextAction(d) {
   switch (d.stage) {
     case "discovery": return "Discovery Interview In Progress";
     case "vehicle": return "Selecting a Vehicle";
-    case "testdrive": return "Test Drive In Progress";
+    case "testdrive": return d.testDrive && d.testDrive.done ? "Test Drive Complete · Next Step Pending" : "Test Drive In Progress";
     case "desking":
       if (d.trade && d.trade.has && !(Number(d.trade.value) > 0)) return "Pending Trade Appraisal";
       if (!d.huddle || !d.huddle.done) return "Game Plan With the Team Lead";
@@ -3038,6 +3038,12 @@ route("testdrive/:id", ({ id }) => {
 
   function doneBody() {
     const end = td.completedMiles || 0;
+    /* the reading is recorded whatever it is — refusing it would force a
+       false number onto a signed record; a drive past the authorized
+       distance is flagged here instead (the terms already make the customer
+       answerable for it) */
+    const driven = Math.max(0, end - startOdo);
+    const over = driven > LIMIT;
     const hasTrade = !!(deal.trade && deal.trade.has);
     return `<div class="td-doneicon">${rpIcon("check")}</div>
     <div class="td-center">
@@ -3046,7 +3052,7 @@ route("testdrive/:id", ({ id }) => {
     </div>
     <section class="tv-card td-list td-list--done">
       ${row("check", "Agreement signed", "Stored in Deal Jacket", status("ok", "Complete"))}
-      ${row("wheel", "Return odometer", `${esc(end.toLocaleString())} mi`, status("ok", "Recorded"))}
+      ${row("wheel", "Return odometer", `${esc(end.toLocaleString())} mi &middot; ${esc(driven.toLocaleString())} driven${over ? `, over the ${esc(LIMIT)}-mile limit` : ""}`, over ? status("warn", "Over limit") : status("ok", "Recorded"))}
     </section>
     <section class="tv-card">
       <h2 class="td-cardtitle">Next step</h2>
@@ -3230,6 +3236,12 @@ route("testdrive/:id", ({ id }) => {
           miles: LIMIT, startOdo, started: true, startedAt: now
         });
         Store.save();
+        /* the package's rule: the signed agreement is stored in the Deal
+           Jacket by the act of signing — with its own "how", so the jacket
+           still says how it knows (review find: jacketDocs REQUIRED the
+           document after signing while nothing had filed it, so the screen
+           said "attached" while the jacket counted it missing) */
+        jacketReceive(deal, "testdrive", "esign");
         closeSheet();
         render();
       };
@@ -6376,7 +6388,8 @@ route("jacket/:id", ({ id }) => {
     const how = st.how === "scan" ? "Camera scan · verified"
       : st.how === "client" ? "Customer upload · accepted"
         : st.how === "sort" ? "Snap & Sort · auto-filed (demo)"
-          : "Marked received by " + st.by;
+          : st.how === "esign" ? "Signed electronically · filed on signing"
+            : "Marked received by " + st.by;
     return how + " · " + jacketStamp(st.at);
   }
 
@@ -6547,7 +6560,8 @@ route("jacket/:id", ({ id }) => {
       <p class="jk2-privacy">${st.how === "scan" ? "Verified — the app read the marker it printed on this page."
         : st.how === "sort" ? "Auto-filed by Snap &amp; Sort (demo — a simulated check)."
           : st.how === "client" ? "Uploaded by the customer through the secure link and accepted after review."
-            : "Taken in by hand. The jacket keeps the record, not the paper."}${st.note ? " Note: " + esc(st.note) : ""}</p>
+            : st.how === "esign" ? "Signed electronically in the app and filed by the act of signing."
+              : "Taken in by hand. The jacket keeps the record, not the paper."}${st.note ? " Note: " + esc(st.note) : ""}</p>
       <div class="jk2-sheetactions${viewable ? "" : " jk2-sheetactions--single"}">
         ${viewable ? `<a class="jk2-sheetbtn" href="${esc(viewable)}">View</a>` : ""}
         <button type="button" class="jk2-sheetbtn" id="jkUndo">Take back out</button></div>
