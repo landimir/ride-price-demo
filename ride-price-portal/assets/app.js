@@ -657,7 +657,7 @@ function dealNextAction(d) {
   switch (d.stage) {
     case "discovery": return "Discovery Interview In Progress";
     case "vehicle": return "Selecting a Vehicle";
-    case "testdrive": return d.testDrive && d.testDrive.done ? "Test Drive Complete · Next Step Pending" : "Test Drive In Progress";
+    case "testdrive": return "Test Drive In Progress";
     case "desking":
       if (d.trade && d.trade.has && !(Number(d.trade.value) > 0)) return "Pending Trade Appraisal";
       if (!d.huddle || !d.huddle.done) return "Game Plan With the Team Lead";
@@ -957,8 +957,7 @@ route("deals", () => {
       <p class="ob-sheetdesc">Secondary tools stay out of the queue until you need them.</p>
       ${row("#/vehicles/browse", "car", "Inventory", "Browse or search vehicles")}
       ${row("#/customers", "user", "New customer visit", "Open the universal Customer Resolver")}
-      ${row("#/props", "idcard", "Training licenses", "Print the prop licenses to practice scanning")}
-      ${row("#/regprops", "page", "Training registrations", "Print the trade-in registration props")}
+      ${row("#/props", "idcard", "Training documents", "Print the prop licenses and their matching registrations")}
       ${row("../ride-price-training-hub/index.html", "sun", "Training hub", "Guides and practice flows")}
       <button type="button" class="dq-morerow dq-morerow--danger" id="dqReset"><span class="ob-iconwell">${rpIcon("trash")}</span><span class="dq-moremain"><b>Reset demo data</b><small>Return the demo to its original seed state</small></span><span class="sc2-go">›</span></button>`, (sheet) => {
       $("#dqReset", sheet).onclick = () => {
@@ -989,10 +988,7 @@ route("customers", () => {
      resolver runs exactly as it always does, but the person it resolves is
      attached to the deal as the co-buyer instead of starting a visit */
   const mission = resolverMission; resolverMission = null;
-  /* two mission kinds share the resolver: "cobuyer" (the buyers sheet) and
-     "driver" (the test drive's additional driver) — the person is resolved
-     exactly the same way; only what finish() does with them differs */
-  const missionDeal = mission && (mission.kind === "cobuyer" || mission.kind === "driver") ? Store.deal(mission.dealId) : null;
+  const missionDeal = mission && mission.kind === "cobuyer" ? Store.deal(mission.dealId) : null;
   if (missionDeal && mission.open === "manual") st.mode = "manual";
 
   /* the one exit for every resolver path. The dedupe guard is absolute: the
@@ -1002,21 +998,6 @@ route("customers", () => {
      IS the feedback (the package prefers local state over toast spam). */
   function finish(customerId, sessionMission) {
     const m = sessionMission || mission;
-    if (m && m.kind === "driver") {
-      /* the additional test-drive driver: attached to the deal's test drive by
-         customer id (never a typed name), the primary never duplicated — they
-         are already the driver — and a repeat resolve of the same person is
-         idempotent. The name row appearing on the Ready screen is the feedback. */
-      const dDeal = Store.deal(m.dealId);
-      if (!dDeal) { toast("That visit is no longer on the floor"); navigate("#/deals"); return; }
-      if (customerId === dDeal.customerId) { toast("That's the customer on this deal — they're already the driver"); st.mode = "idle"; st.results = null; st.found = null; render(); return; }
-      const dtd = dDeal.testDrive = dDeal.testDrive || { done: false };
-      dtd.addlDriverIds = dtd.addlDriverIds || [];
-      if (!dtd.addlDriverIds.includes(customerId)) dtd.addlDriverIds.push(customerId);
-      Store.save();
-      navigate(m.back || "#/testdrive/" + dDeal.id);
-      return;
-    }
     const mDeal = m && m.kind === "cobuyer" ? Store.deal(m.dealId) : null;
     if (mDeal) {
       if (customerId === mDeal.customerId) { toast("That's the primary buyer — a co-buyer must be a different person"); st.mode = "idle"; st.results = null; st.found = null; render(); return; }
@@ -1052,7 +1033,7 @@ route("customers", () => {
     </div>
     <div class="m-scrim" id="obScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="obSheet"></div></div>`;
   const heroHtml = (eyebrow, title, lead) => `<div class="ca-eyebrow">${eyebrow}</div><h1 class="ob-h1">${title}</h1>${lead ? `<p class="ob-lead">${lead}</p>` : ""}`;
-  const contextPill = () => `<div class="ob-context"><span class="ob-pill"><span class="ob-dot"></span>${missionDeal ? (mission.kind === "driver" ? "Adding a test-drive driver" : "Adding a co-buyer to this deal") : "Start new customer visit"}</span></div>`;
+  const contextPill = () => `<div class="ob-context"><span class="ob-pill"><span class="ob-dot"></span>${missionDeal ? "Adding a co-buyer to this deal" : "Start new customer visit"}</span></div>`;
 
   /* ---- sheets ---- */
   let sheetClose = null;
@@ -1143,7 +1124,7 @@ route("customers", () => {
         <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">Customer record</div></div><span class="ob-pill">Required</span></div>
         <div class="ob-addressvalue">${esc(fmtAddr(a))}</div>
         <div class="ob-addressnote">Ride Price carries this address into registration, tax calculations, credit, and deal paperwork so the customer is not asked again.</div>
-        <button type="button" class="ob-primary" id="obConfirm">Confirm address &amp; ${missionDeal ? (mission.kind === "driver" ? "add driver" : "attach co-buyer") : "start visit"}</button>
+        <button type="button" class="ob-primary" id="obConfirm">Confirm address &amp; ${missionDeal ? "attach co-buyer" : "start visit"}</button>
         <button type="button" class="sc2-textbtn ob-center" id="obOtherAddr">Use a different address</button>
       </div>
       <button type="button" class="sc2-textbtn ob-center" id="obBack">Not the right customer? Search again</button>`);
@@ -1203,13 +1184,7 @@ route("customers", () => {
         <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">Confirmed by customer · from the license</div></div><span class="ob-badge">Confirmed</span></div>
         <div class="ob-addressvalue">${esc(fmtAddr(a))}</div>
         <div class="ob-addressnote">Carried into tax calculations, credit, registration, and paperwork.</div>
-        <button type="button" class="ob-primary" id="obAttach">${(() => {
-          /* the label names what finish() will do with this person: the
-             session's own mission first (it outlives this page), else the
-             page's */
-          const k = ((session() && session().mission) || mission || {}).kind;
-          return k === "driver" ? "Add as driver" : k === "cobuyer" ? "Attach as co-buyer" : "Start visit";
-        })()}</button>
+        <button type="button" class="ob-primary" id="obAttach">${(session() && session().mission) || missionDeal ? "Attach as co-buyer" : "Start visit"}</button>
         <button type="button" class="sc2-textbtn ob-center" id="obDiscardSession">Discard this upload</button>
       </div>`);
   }
@@ -1348,10 +1323,6 @@ route("customers", () => {
          customer's finished session over the advisor's mistake, forcing a
          whole new link (review find). The identity updates written above are
          that person's own data and rightly stay. */
-      if (sMission && sMission.kind === "driver") {
-        const mD = Store.deal(sMission.dealId);
-        if (mD && c.id === mD.customerId) { Store.save(); toast("That's the customer on this deal — they're already the driver"); return; }
-      }
       if (sMission && sMission.kind === "cobuyer") {
         const mD = Store.deal(sMission.dealId);
         if (mD && c.id === mD.customerId) { Store.save(); toast("That's the primary buyer — a co-buyer must be a different person"); return; }
@@ -1387,7 +1358,7 @@ route("customers", () => {
         Store.s.idSession = { id: uid("s"), phone, email, channel, sentAt: new Date().toISOString(), photoAt: null, persona: null, matchId: null, faceAt: null, addressChoice: null, addressConfirmedAt: null, doneAt: null };
         /* a link sent on the buyers sheet's mission attaches as co-buyer when
            it completes — recorded on the session, which outlives this page */
-        if (missionDeal) Store.s.idSession.mission = { kind: mission.kind, dealId: missionDeal.id, back: mission.back };
+        if (missionDeal) Store.s.idSession.mission = { kind: "cobuyer", dealId: missionDeal.id, back: mission.back };
         Store.save();
         closeSheet4();
         st.mode = "waiting"; render(); window.scrollTo(0, 0);
@@ -1420,10 +1391,6 @@ route("customers", () => {
      finished upload with one tap (review find). The advisor decides what
      happens to a session in flight. */
   if (missionDeal && mission.open === "sendlink" && !session()) openSendSheet();
-  /* the test drive's "Scan physical license" door: the resolver's own scan,
-     opened for the advisor, so the scan → confirm → attach path is the one
-     every other scan takes */
-  if (missionDeal && mission.open === "scan") { const sb = $("#scanBtn"); if (sb) sb.click(); }
 });
 
 /* the customer's own secure-upload session (onboarding v3): opened from the
@@ -2208,9 +2175,7 @@ function openScanFlow(opts) {
       if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
       if (c && !mismatch) { c.dob = dob || c.dob; c.license = lic; Store.save(); }
       done();
-      /* samePerson is the name verdict taken BEFORE any field was edited —
-         a caller must not re-derive it from the editable license number */
-      if (o.onDone) o.onDone(c, Object.assign({}, p, { license: lic, samePerson: !mismatch }));
+      if (o.onDone) o.onDone(c, Object.assign({}, p, { license: lic }));
     };
     wire(() => renderVerifyTd(p));
   }
@@ -2219,55 +2184,229 @@ function openScanFlow(opts) {
 }
 
 /* ============================================================
-   VIEW: Training licenses (printable props)
+   VIEW: Training Documents V3 — owner's replication package, 2026-09-02.
+
+   The package's architecture in one line: TRAINING DOCUMENTS → LICENSES /
+   REGISTRATIONS → PAIR ROW → PREVIEW → PRINT. One hub, one segmented
+   control, one dominant Print all 5, and five COMPACT pair rows — never
+   five print-sized documents in the scrolling list. That is what closes
+   RP-UI-012: the 112mm registration was wider than the phone and its right
+   edge was clipped with nothing on screen to say so. A document is now
+   rendered only inside its own preview sheet, scaled to the viewport, while
+   printing still lays it out at true physical size.
+
+   `#/regprops` is kept as an alias onto the registrations tab — the drawer,
+   the More sheet and the flow library all link to it.
+
+   Two things the golden could not decide for this app:
+   - A licence prop is TWO sides. The back carries the barcode, and that
+     barcode is the only thing the scanner can read (invariant 4), so the
+     preview and the print set both carry front and back. The golden draws a
+     single face because its licence is a picture, not a working prop.
+   - The golden prints a registration at 112 x 83mm; ours is the owner's own
+     112 x 140mm recreation of the sample he supplied (2026-08-19), whose
+     fields are laid out for that height. Squashing it would not "preserve
+     true physical dimensions" — it would break the document — so the
+     recreation keeps its size and the difference is stated to him.
    ============================================================ */
-route("props", () => {
-  renderChrome("Training Licenses", "Print, cut out, and practice scanning — every identity is fictional",
-    `<button class="btn btn--grad btn--sm" id="printProps">🖨 Print props</button>`);
-  const F = (l, v) => `<span class="fld">${l}</span>${esc(v)}`;
-  view().innerHTML = `
-    <section class="props-guide">
-      <h2>How to use these cards</h2>
-      <ol class="props-steps">
-        <li><b>Print at 100% scale.</b> Turn <i>off</i> “Fit to page” or “Shrink to fit” in the print dialog.
-          A card should measure 3⅜ × 2⅛ inches — the same as a credit card. The barcode only reads at true size.</li>
-        <li><b>Cut out one person.</b> Each has a front and a back. The <b>back is the side that scans</b> —
-          the front is there so you practise checking the details against it.</li>
-        <li><b>Scan it.</b> Go to <a href="#/customers">Find a Customer</a> and tap <b>Scan license</b>,
-          or start from the Test Drive agreement. Photograph the front, then the back.</li>
-      </ol>
-      <p class="props-guide__foot">These five cards are the only thing the scanner recognises. It cannot read a
-        real driver's licence, and the barcode holds nothing but a card number — no personal details.</p>
-    </section>
-    <div class="props-grid">
-      ${RIDE_PRICE_DATA.licenseProps.map(p => `
-       <div class="prop-pair">
-        <div class="prop-card">
-          <div class="prop-head"><span>NEW YORK · USA</span><b>TRAINING SAMPLE</b></div>
-          <div class="prop-body">
-            <div class="prop-photo">${SCAN_SILHOUETTE}</div>
-            <div class="prop-fields">
-              <div class="prop-name">${esc(p.last)}<br>${esc(p.first)} ${esc(p.middle)}</div>
-              <div>${F("4d DL", p.license.number)} &nbsp; ${F("9 CLS", p.cls)}</div>
-              <div>${F("3 DOB", p.dob)} &nbsp; ${F("4b EXP", p.license.expires)}</div>
-              <div>${F("8", p.address + ", " + p.city + ", " + p.state + " " + p.zip)}</div>
-              <div>${F("15 SEX", p.sex)} ${F("18 EYES", p.eyes)} ${F("16 HGT", p.hgt)} ${F("4a ISS", p.issued)}</div>
+const propField = (l, v) => `<span class="fld">${l}</span>${esc(v)}`;
+
+/* the two faces of a training licence, extracted so the hub can put them in
+   a preview sheet and in the print set from one definition */
+function licPropFront(p) {
+  const F = propField;
+  return `<div class="prop-card">
+    <div class="prop-head"><span>NEW YORK &middot; USA</span><b>TRAINING SAMPLE</b></div>
+    <div class="prop-body">
+      <div class="prop-photo">${SCAN_SILHOUETTE}</div>
+      <div class="prop-fields">
+        <div class="prop-name">${esc(p.last)}<br>${esc(p.first)} ${esc(p.middle)}</div>
+        <div>${F("4d DL", p.license.number)} &nbsp; ${F("9 CLS", p.cls)}</div>
+        <div>${F("3 DOB", p.dob)} &nbsp; ${F("4b EXP", p.license.expires)}</div>
+        <div>${F("8", p.address + ", " + p.city + ", " + p.state + " " + p.zip)}</div>
+        <div>${F("15 SEX", p.sex)} ${F("18 EYES", p.eyes)} ${F("16 HGT", p.hgt)} ${F("4a ISS", p.issued)}</div>
+      </div>
+    </div>
+    <div class="prop-watermark">SAMPLE</div>
+    <div class="prop-foot">TRAINING PROP &mdash; NOT A GOVERNMENT DOCUMENT</div>
+  </div>`;
+}
+function licPropBack(p) {
+  return `<div class="prop-card">
+    <div class="prop-back-top">TRAINING SAMPLE &middot; SCAN THIS SIDE</div>
+    ${RIDE_PRICE_SCAN.barcodeSVG(p.prop, "prop-barcode")}
+    <div class="prop-fine">${esc(p.last.toUpperCase())} &middot; PROP ${esc(p.prop)} OF 5 &middot; This card exists for Ride Price sales
+      training only. The barcode encodes a prop number &mdash; no personal data. It has no value and identifies no one.</div>
+    <div class="prop-foot">NOT A GOVERNMENT DOCUMENT</div>
+  </div>`;
+}
+
+function trainingPairs() {
+  return RIDE_PRICE_DATA.licenseProps.map(p => ({
+    prop: p.prop,
+    id: String(p.prop).padStart(2, "0"),
+    name: `${p.first}${p.middle ? " " + p.middle : ""} ${p.last}`.replace(/\s+/g, " ").trim(),
+    person: p,
+    reg: RIDE_PRICE_DATA.registrationProps.find(r => r.prop === p.prop) || null,
+  }));
+}
+
+function trainingDocsView(tab) {
+  renderChrome("Training Documents", "", "");
+  document.body.dataset.canvas = "master";
+  document.body.dataset.screen = "tdoc";
+
+  const pairs = trainingPairs();
+  let type = /^reg/i.test(tab || "") ? "registration" : "license";
+  let sheetKey = null;
+
+  const closeSheet = () => {
+    const sc = $("#tdocScrim"); if (sc) sc.classList.remove("show");
+    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+    /* the print set returns to the whole tab once no single pair is open */
+    setPrintSet(pairs.map(p => p.prop));
+  };
+  const teardown = () => { closeSheet(); window.removeEventListener("hashchange", teardown); };
+  window.addEventListener("hashchange", teardown);
+  const openSheet = (html, onMount) => {
+    const sh = $("#tdocSheet"); if (!sh) return;
+    sh.innerHTML = `<div class="m-handle"></div>${html}`;
+    $("#tdocScrim").classList.add("show");
+    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
+    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
+    document.addEventListener("keydown", sheetKey, true);
+    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
+    if (onMount) onMount(sh);
+  };
+
+  /* WHAT PRINTS is a rendered set, never a CSS guess: the print root holds
+     exactly the documents the action asked for, at their true millimetre
+     size, and the print stylesheet hides everything else. */
+  function setPrintSet(props) {
+    const root = $("#tdocPrint"); if (!root) return;
+    root.innerHTML = props.map(n => {
+      const pair = pairs.find(x => x.prop === n); if (!pair) return "";
+      return type === "license"
+        ? `<div class="tdoc-page">${licPropFront(pair.person)}${licPropBack(pair.person)}</div>`
+        : pair.reg ? `<div class="tdoc-page">${regPropHtml(pair.reg)}</div>` : "";
+    }).join("");
+  }
+
+  function rowsHtml() {
+    return pairs.map(p => {
+      const meta = type === "license"
+        ? `License ${esc(p.person.license.number)}`
+        : p.reg ? `Registration ${esc(p.reg.docNo)} &middot; ${esc(p.reg.year)} ${esc(p.reg.make)}`
+          : "No registration on file";
+      return `<button type="button" class="tdoc-row" data-pair="${esc(p.prop)}">
+        <span class="tdoc-pair"><small>PAIR</small><b>${esc(p.id)}</b></span>
+        <span class="tdoc-rowmain">
+          <span class="tdoc-name">${esc(p.name)}</span>
+          <span class="tdoc-meta">${meta}</span>
+        </span>
+        <span class="tdoc-chev" aria-hidden="true">&rsaquo;</span>
+      </button>`;
+    }).join("");
+  }
+
+  function render() {
+    view().innerHTML = `
+      <div class="m-app">
+        <div class="dv-top">
+          <button type="button" class="dv-back" id="tdocBack" aria-label="Back">&lsaquo;</button>
+          <div class="dv-brand"><span>Ride</span> PRICE</div>
+          <span class="dv-spacer"></span>
+        </div>
+        <main class="tdoc-main">
+          <div class="dv-eyebrow">Training</div>
+          <h1 class="dv-title">Training documents</h1>
+          <p class="tdoc-context">5 matched fictional pairs &middot; not valid for any purpose</p>
+          <div class="tdoc-toolbar">
+            <div class="tdoc-seg">
+              ${["license", "registration"].map(t => `<button type="button" data-type="${t}"
+                aria-pressed="${type === t}" class="${type === t ? "on" : ""}">${t === "license" ? "Licenses" : "Registrations"}</button>`).join("")}
             </div>
+            <button type="button" class="tdoc-printall" id="tdocPrintAll">Print all 5</button>
           </div>
-          <div class="prop-watermark">SAMPLE</div>
-          <div class="prop-foot">TRAINING PROP — NOT A GOVERNMENT DOCUMENT</div>
+          <div class="tdoc-list">${rowsHtml()}</div>
+          <p class="tdoc-foot">Pair numbers keep each training license matched to its registration.
+            Print at 100% scale &mdash; the barcode only reads at true size.</p>
+        </main>
+      </div>
+      <div class="m-scrim" id="tdocScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="tdocSheet"></div></div>
+      <div class="tdoc-printroot" id="tdocPrint" aria-hidden="true"></div>`;
+
+    $("#tdocBack").onclick = () => history.back();
+    $$(".tdoc-seg button").forEach(b => b.onclick = () => {
+      type = b.dataset.type;
+      /* the tab lives in the URL, so a reload and the alias route both land
+         on the same screen the advisor was looking at */
+      history.replaceState(null, "", type === "license" ? "#/props" : "#/props/registrations");
+      render();
+    });
+    $("#tdocPrintAll").onclick = () => { setPrintSet(pairs.map(p => p.prop)); window.print(); };
+    $$("[data-pair]").forEach(b => b.onclick = () => openPair(Number(b.dataset.pair)));
+    const scrim = $("#tdocScrim");
+    scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
+    setPrintSet(pairs.map(p => p.prop));
+  }
+
+  /* RP-UI-012 in one function. These documents are millimetre-sized because
+     they have to PRINT at true size, so the preview scales them rather than
+     reflowing them. Measure the width the sheet actually gives, divide by
+     the width the document really wants, and never scale UP — a licence
+     already narrower than the sheet is left alone. The wrapper is then given
+     the scaled height, or the transform leaves a hole underneath it. */
+  function fitPreview(sh) {
+    const wrap = $(".tdoc-preview", sh); if (!wrap) return;
+    const docs = $$(".prop-card, .reg-card", wrap);
+    if (!docs.length) return;
+    const pad = 28; /* the wrapper's own left+right padding */
+    const avail = wrap.clientWidth - pad;
+    let widest = 0;
+    docs.forEach(d => { d.style.transform = "none"; widest = Math.max(widest, d.offsetWidth); });
+    const scale = widest > 0 ? Math.min(1, avail / widest) : 1;
+    wrap.style.setProperty("--tdoc-scale", String(scale));
+    docs.forEach(d => { d.style.transform = ""; });
+    let h = 0;
+    docs.forEach((d, i) => { h += d.offsetHeight * scale + (i ? 10 : 0); });
+    wrap.style.height = Math.ceil(h + pad) + "px";
+  }
+
+  function openPair(prop) {
+    const p = pairs.find(x => x.prop === prop); if (!p) return;
+    const doc = type === "license"
+      ? `<div class="tdoc-preview tdoc-preview--lic">${licPropFront(p.person)}${licPropBack(p.person)}</div>`
+      : p.reg ? `<div class="tdoc-preview">${regPropHtml(p.reg)}</div>`
+        : `<p class="tdoc-empty">No training registration exists for this pair.</p>`;
+    openSheet(`
+      <div class="m-sheettop">
+        <div>
+          <h2 class="tv-sheettitle tdoc-sheettitle">${type === "license" ? "Training license" : "Training registration"}</h2>
+          <p class="tdoc-sheetsub">${esc(p.name)} &middot; Pair ${esc(p.id)}</p>
         </div>
-        <div class="prop-card">
-          <div class="prop-back-top">TRAINING SAMPLE · SCAN THIS SIDE</div>
-          ${RIDE_PRICE_SCAN.barcodeSVG(p.prop, "prop-barcode")}
-          <div class="prop-fine">${esc(p.last.toUpperCase())} · PROP ${p.prop} OF 5 · This card exists for Ride Price sales
-            training only. The barcode encodes a prop number — no personal data. It has no value and identifies no one.</div>
-          <div class="prop-foot">NOT A GOVERNMENT DOCUMENT</div>
-        </div>
-       </div>`).join("")}
-    </div>`;
-  $("#printProps").onclick = () => window.print();
-});
+        <button type="button" class="m-close" data-sheet-close aria-label="Close">&#10005;</button>
+      </div>
+      ${doc}
+      <div class="tv-sheetactions">
+        <button type="button" class="tv-primary" id="tdocPrintOne">Print this sample</button>
+        <button type="button" class="tv-secondary" data-sheet-close>Close</button>
+      </div>
+      <p class="tdoc-hint">Printing keeps the document at its true physical size.</p>`, (sh) => {
+      const one = $("#tdocPrintOne", sh);
+      if (one) one.onclick = () => { setPrintSet([prop]); window.print(); };
+      fitPreview(sh);
+    });
+    setPrintSet([prop]);
+  }
+
+  render();
+}
+
+route("props", () => trainingDocsView(""));
+route("props/:tab", ({ tab }) => trainingDocsView(tab));
+/* the old registrations route keeps working */
+route("regprops", () => redirect("#/props/registrations"));
 
 /* ============================================================
    VIEW: Training Registrations (printable trade-in props)
@@ -2357,31 +2496,6 @@ function regPropHtml(r) {
   </div>`;
 }
 
-route("regprops", () => {
-  renderChrome("Training Registrations", "Print, cut out, and practise the trade-in conversation — every identity is fictional",
-    `<button class="btn btn--grad btn--sm" id="printRegProps">🖨 Print registrations</button>`);
-  view().innerHTML = `
-    <section class="props-guide">
-      <h2>How to use these</h2>
-      <ol class="props-steps">
-        <li><b>Print at 100% scale.</b> Turn <i>off</i> “Fit to page” or “Shrink to fit”, the same as the
-          training licences, so the card comes out the size a customer actually hands you.</li>
-        <li><b>Pair each one with its licence.</b> Registration 1 belongs to the same person as
-          <a href="#/props">training licence 1</a> — the names and addresses match, so a trainee can practise
-          checking one document against the other.</li>
-        <li><b>Use it on a trade.</b> Start a deal with a trade-in and work the
-          proof-of-ownership conversation from the paper in your hand.</li>
-      </ol>
-      <p class="props-guide__foot">Nothing here scans. These are for the conversation, not the camera —
-        the app has no way to read a registration, and the strip along the bottom is decorative.
-        The layout follows a real New York registration so the rehearsal looks right; every value on it
-        is invented.</p>
-    </section>
-    <div class="props-grid">
-      ${RIDE_PRICE_DATA.registrationProps.map(regPropHtml).join("")}
-    </div>`;
-  $("#printRegProps").onclick = () => window.print();
-});
 
 /* ============================================================
    VIEW: Discovery Session
@@ -2892,411 +3006,157 @@ route("vehicles/:id", ({ id }) => {
 });
 
 /* ============================================================
-   VIEW: Test Drive Agreement V2 — owner's replication package, 2026-09-01.
-
-   The package's thesis: a short active-session workflow, never a legal
-   form squeezed onto a phone. The visible path is Ready → Review & sign →
-   Drive in progress → End drive → Complete, and the advisor makes three
-   decisions in it: sign, end, and the one context-aware next step.
-
-   Nothing about identity is asked twice. The license is READ from the
-   customer profile (the source of truth since the license-scan decision in
-   architecture.md); when it is missing, front-only or expired the screen
-   opens the canonical Scan License flow in its test-drive mode and comes
-   back — there is no test-drive license form and no second scanner.
-   Additional drivers are resolved through the one Customer Resolver on a
-   "driver" mission, never typed as "Name – license #".
-
-   The per-deal signed record is unchanged: signing snapshots the license,
-   insurance, drivers and mileage limit onto deal.testDrive exactly as the
-   previous screen did, so the printable agreement and the jacket's
-   auto-filed copy read the same fields they always read (a signed document
-   never recomputes). Two fields are additive: `addlDriverIds` (the resolved
-   drivers; `addlDriver` stays the frozen name string the printable prints)
-   and `startedAt` / `endedAt` for the session clock. */
+   VIEW: Test Drive
+   ============================================================ */
 route("testdrive/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
   const v = Store.vehicle(deal.stock);
-  /* a truthy stock is not a resolved vehicle (a catalog change, a hand-edited
-     blob) — the same guard the Documents and print routes carry; everything
-     below is built from the vehicle */
-  if (!v) return redirect(`#/vehicles/${deal.id}`);
   const c = Store.customer(deal.customerId);
-  const td = deal.testDrive = deal.testDrive || { done: false };
-  const custName = `${c.first} ${c.last}`;
-  const vehName = `${v.year} ${v.make} ${v.model}`;
-  const LIMIT = td.miles || 20;
-  const startOdo = td.startOdo != null ? td.startOdo : v.miles;
+  const td = deal.testDrive;
 
-  /* the license as the profile holds it — three ways to be not ready, each
-     named exactly (the package: "show the exact missing item") */
-  function licenseState() {
-    const lic = c.license;
-    if (!lic || !lic.number) return { ok: false, meta: "No license on file", short: "No license on file" };
-    if (c.onboard && c.onboard.secondSide === "pending") return { ok: false, meta: "Front received · back still needed", short: "License back pending" };
-    /* "unexpired" is a claim about a date: no date, or one that does not
-       parse, is not ready either (review find) */
-    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(lic.expires || "");
-    const d = m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
-    /* a calendar date that the Date constructor would quietly normalise
-       ("2027-02-30" → March 2) is not a date on file either (review find) */
-    const real = d && !isNaN(d.getTime()) && d.getFullYear() === +m[1] && d.getMonth() === +m[2] - 1 && d.getDate() === +m[3];
-    if (!real) return { ok: false, meta: "Expiration date not on file", short: "License expiry missing" };
-    const t = new Date(); t.setHours(0, 0, 0, 0);
-    if (d < t) return { ok: false, meta: `Expired ${dateUS(lic.expires)}`, short: "License expired" };
-    const last4 = String(lic.number).replace(/\W/g, "").slice(-4);
-    return { ok: true, meta: `${lic.state || "—"} · ending ${last4} · expires ${dateUS(lic.expires)}` };
+  renderChrome("Test Drive Agreement", dealTitle(deal),
+    `<a class="btn btn--ghost btn--sm" href="#/vehicles/${esc(deal.id)}">← Vehicle Search</a>`);
+
+  function phaseAuth() {
+    view().innerHTML = `
+      <div class="panel panel--navyhead">
+        <div class="panel__head"><h2>Authorization of Electronic Signature</h2></div>
+        <div class="panel__body">
+          <p class="small">As part of the purchase/lease of this vehicle <b>${esc(v.year)} ${esc(v.make)} ${esc(v.model)} / ${esc(v.vin)} / ${esc(v.stock)}</b>, the documents checked below apply to this transaction.</p>
+          <p class="flex"><span class="badge badge--approved">✓ Included</span> <b style="font-size:13.5px">Test Drive Agreement</b></p>
+          <div class="note note--wt"><span class="lab">Word track</span>“You'll find many of the things we do here are different from traditional dealerships; and one of the ways we're different is by using electronic signatures. These are legally binding signatures just like ink signatures, and you're authorizing the use of your electronic signature.”</div>
+          <div class="radio-row">
+            <label><input type="radio" name="docdel"> Email at the following address</label>
+            <label><input type="radio" name="docdel" checked> Printed documents</label>
+          </div>
+          <div class="grid grid--2">
+            <div>
+              <label class="f"><span class="lab">Type buyer name</span><input type="text" id="sigName" value="${esc(c.first + " " + c.last)}"></label>
+              <span class="lab" style="font-size:12px;font-weight:700;color:var(--ink)">Review your signature</span>
+              <div class="sig-box" id="sigPreview">${esc(c.first + " " + c.last)}</div>
+              <label class="opt-row mt">
+                <input type="checkbox" id="sigAck">
+                <span class="opt-row__label">I understand that checking this box constitutes a legal signature confirming that I acknowledge and agree to the above Terms of Acceptance.</span></label>
+            </div>
+          </div>
+          <div class="right mt"><button class="btn btn--grad" id="authNext">Continue →</button></div>
+        </div>
+      </div>`;
+    $("#sigName").oninput = (e) => { $("#sigPreview").textContent = e.target.value; };
+    $("#authNext").onclick = () => {
+      if (!$("#sigAck").checked) return toast("The client must check the acknowledgement box");
+      td.authSigned = true; td.sigName = $("#sigName").value; Store.save(); render();
+    };
   }
-  const drivers = () => (td.addlDriverIds || []).map(cid => Store.customer(cid)).filter(Boolean);
-  const driverNames = () => [custName].concat(drivers().map(d => `${d.first} ${d.last}`));
 
-  const stateOf = () => td.done ? "done" : td.started ? "active" : licenseState().ok ? "ready" : "attention";
-
-  const tdTop = () => `<div class="dv-top">
-    <button type="button" class="dv-back" id="tdBack" aria-label="Back">‹</button>
-    <div class="dv-brand"><span>Ride</span> PRICE</div>
-    <span class="dv-spacer"></span>
-    <button type="button" class="dv-role" id="tdRole">${isTeamLead() ? "Team Lead" : "Advisor"}</button>
-  </div>`;
-  /* counted on every render: signing files the agreement, and the badge
-     must say so on the very next paint (review find) */
-  const contextRow = () => { const jkc = jacketCounts(deal); return `<div class="dv-context">
-    <button type="button" class="dv-ctxmain" id="tdDeal">
-      <strong>${esc(custName)}</strong>
-      <span>&middot; ${esc(vehName)}</span>
-    </button>
-    <a class="dv-jacket" href="#/jacket/${esc(deal.id)}" aria-label="Deal Jacket${jkc.missing ? ` — ${esc(jkc.missing)} of ${esc(jkc.total)} documents still outstanding` : " — all documents in"}">
-      <span class="dv-jacket__box">${rpIcon("folder")}${jkc.missing ? `<b>${esc(jkc.missing)}</b>` : ""}</span>
-    </a>
-  </div>`; };
-
-  /* one row anatomy for every operational fact: icon · title · meta · a
-     status pill or a text action on the right */
-  const row = (icon, title, meta, right) => `<div class="td-row">
-    <span class="td-rowicon">${rpIcon(icon)}</span>
-    <div class="td-rowmain"><div class="td-rowtitle">${title}</div><div class="td-rowmeta">${meta}</div></div>
-    ${right}
-  </div>`;
-  const status = (kind, label) => `<span class="td-status td-status--${kind}">${label}</span>`;
-
-  let sheetKey = null;
-  const closeSheet = () => {
-    const sc = $("#tdScrim"); if (sc) sc.classList.remove("show");
-    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
-  };
-  let timer = null;
-  const stopTimer = () => { if (timer) { clearInterval(timer); timer = null; } };
-  const teardown = () => { closeSheet(); stopTimer(); window.removeEventListener("hashchange", teardown); };
-  window.addEventListener("hashchange", teardown);
-  const openSheet = (html, onMount) => {
-    const sh = $("#tdSheet"); if (!sh) return;
-    sh.innerHTML = `<div class="m-handle"></div>${html}`;
-    $("#tdScrim").classList.add("show");
-    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
-    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
-    document.addEventListener("keydown", sheetKey, true);
-    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
-    if (onMount) onMount(sh);
-  };
-  const sheetHead = (title, sub) => `<div class="m-sheettop"><h2 class="tv-sheettitle td-sheettitle">${title}</h2>
-    <button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>
-    ${sub ? `<p class="td-sheetsub">${sub}</p>` : ""}`;
-
-  /* ---- the states ---- */
-  function readyBody() {
-    const lic = licenseState();
-    return `<section class="tv-card td-list">
-      ${row("idcard", "Driver&rsquo;s license", esc(lic.meta), status("ok", "Ready"))}
-      ${row("umbrella", "Insurance company", td.insurance ? esc(td.insurance) : "Not on file",
-        `<button type="button" class="td-link" id="tdInsurance">${td.insurance ? "Edit" : "Add"}</button>`)}
-      ${row("user", "Drivers", esc(driverNames().join(", ")),
-        `<button type="button" class="td-link" id="tdAddDriver">Add driver</button>`)}
-    </section>
-    <section class="tv-card">
-      <h2 class="td-cardtitle">Test drive terms</h2>
-      <p class="td-cardsub">Key terms are summarized here. The full agreement is shown before signing.</p>
-      <div class="td-summary">
-        <span class="k">Vehicle</span><span class="v">${esc(vehName)}</span>
-        <span class="k">Maximum distance</span><span class="v">${esc(LIMIT)} miles</span>
-        <span class="k">Return condition</span><span class="v">Return at agreed time</span>
-        <span class="k">Agreement storage</span><span class="v">Deal Jacket</span>
+  function phaseAgreement() {
+    view().innerHTML = `
+      <div class="grid grid--2">
+        <div class="panel">
+          <div class="panel__head"><h2>Customer Info</h2>
+            <div class="right"><button class="btn btn--sm btn--ghost" id="tdScan">🪪 Scan license</button></div></div>
+          <div class="panel__body">
+            <div class="fields">
+              <label class="f"><span class="lab">Driver's License # <i class="req">*</i></span><input type="text" id="dl" value="${esc(td.license || (c.license && c.license.number) || "")}" placeholder="987654321"></label>
+              <label class="f"><span class="lab">Issuing State</span><input type="text" id="dlState" value="${esc(td.issuingState || (c.license && c.license.state) || c.state)}"></label>
+              <label class="f"><span class="lab">Expiration Date</span><input type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" id="dlExp" value="${esc(dateUS(td.expDate || (c.license && c.license.expires) || ""))}"></label>
+              <label class="f"><span class="lab">Additional Driver(s)</span><input type="text" id="addl" value="${esc(td.addlDriver || "")}" placeholder="Name – license #"></label>
+              <label class="f"><span class="lab">Insurance Company</span><input type="text" id="ins" value="${esc(td.insurance || "")}" placeholder="Ask for auto insurance co."></label>
+              <label class="f"><span class="lab">Mileage you will be driving</span><input type="number" id="tdMiles" value="${td.miles || 20}"></label>
+            </div>
+            <h2 style="font-size:13px;text-transform:uppercase;color:var(--navy);letter-spacing:.5px">Return Agreement</h2>
+            <div class="flex mt">
+              <button class="btn btn--primary btn--sm" id="drv1">Sign &amp; Accept Terms — Driver One</button>
+              <span id="drv1ok" class="badge badge--approved" style="display:${td.signed ? "inline-block" : "none"}">Signed</span>
+            </div>
+            <label class="f mt"><span class="lab">Advisor signature</span></label>
+            <div class="sig-box">${esc(Store.s.advisor)}</div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel__head"><h2>Terms &amp; Conditions</h2></div>
+          <div class="panel__body small" style="max-height:430px;overflow:auto">
+            <p>I have requested that the Dealership permit me to test drive the above-described vehicle for demonstration purposes, subject to the following terms and conditions:</p>
+            <ol>${RIDE_PRICE_DATA.testDriveTerms.map(t => `<li style="margin:8px 0">${esc(t)}</li>`).join("")}</ol>
+          </div>
+        </div>
       </div>
-    </section>`;
+      <div class="flex mt">
+        <button class="btn btn--ghost" id="printTd">🖨 Print for extended drive</button>
+        <div class="push"></div>
+        <button class="btn btn--grad" id="tdNext">Next →</button>
+      </div>
+      <p class="note">Verify client information against their driver license. Ensure the address is current, and add their auto insurance company to the agreement.</p>`;
+    $("#tdScan").onclick = () => openScanFlow({
+      mode: "testdrive", deal,
+      onDone: (cust, persona) => {
+        const dl = $("#dl"); if (!dl) return; /* view navigated away mid-scan */
+        dl.value = persona.license.number;
+        $("#dlState").value = persona.license.state;
+        $("#dlExp").value = dateUS(persona.license.expires);
+        toast("License captured — verify the details against the card");
+      }
+    });
+    $("#drv1").onclick = () => {
+      if (!$("#dl").value.trim()) return toast("Enter the driver's license #");
+      td.signed = true; $("#drv1ok").style.display = "inline-block"; Store.save(); toast("Terms signed & accepted");
+    };
+    $("#printTd").onclick = () => window.print();
+    $("#tdNext").onclick = () => {
+      if (!td.signed) return toast("Driver One must sign & accept the terms first");
+      const expText = $("#dlExp").value.trim();
+      const expDate = expText ? dateISO(expText) : "";
+      if (expText && !expDate) return toast("Enter a valid expiration date (MM/DD/YYYY)");
+      td.license = $("#dl").value; td.issuingState = $("#dlState").value; td.expDate = expDate;
+      td.addlDriver = $("#addl").value; td.insurance = $("#ins").value; td.miles = parseInt($("#tdMiles").value, 10) || 20;
+      td.started = true; Store.save(); render();
+    };
   }
 
-  function attentionBody() {
-    const lic = licenseState();
-    return `<section class="tv-card td-list">
-      ${row("idcard", "Driver&rsquo;s license", esc(lic.meta), status("warn", "Incomplete"))}
-    </section>
-    <div class="td-callout"><strong>Required before the drive.</strong> A complete, unexpired license on the customer profile. Nothing else about the customer is asked again.</div>`;
+  function phaseDrive() {
+    view().innerHTML = `
+      <div class="panel panel--navyhead">
+        <div class="panel__head"><h2>Test Drive In Progress</h2><div class="right"><span class="badge badge--prog">🚗 out on the road</span></div></div>
+        <div class="panel__body center" style="padding:44px 20px">
+          <div style="font-size:64px">${v.emoji}</div>
+          <h3 style="color:var(--navy);margin:8px 0 2px">${esc(v.year)} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</h3>
+          <p class="small">Stock ${esc(v.stock)} · started odometer ${esc(v.miles.toLocaleString())} mi</p>
+          <button class="btn btn--grad" id="endBtn" style="margin-top:14px">End Test Drive</button>
+        </div>
+      </div>`;
+    $("#endBtn").onclick = () => {
+      modal("End Test Drive", `
+        <label class="f"><span class="lab">Current odometer reading</span><input type="number" id="endMiles" value="${v.miles + (td.miles || 20)}"></label>`,
+        `<button class="btn btn--ghost" data-close>Cancel</button><button class="btn btn--primary" id="completeTd">Complete Test Drive</button>`);
+      $("#completeTd").onclick = () => {
+        td.completedMiles = parseInt($("#endMiles").value, 10) || 0;
+        td.done = true; Store.save(); closeModal(); render();
+      };
+    };
   }
 
-  function activeBody() {
-    return `<section class="td-session">
-      <span class="td-live"><i></i>Out on the road</span>
-      <div class="td-art">${mCarSvg(v)}</div>
-      <div class="td-herovehicle">${esc(`${vehName} ${v.trim || ""}`.trim())}</div>
-      <div class="td-meta">Stock ${esc(v.stock)} &middot; agreement signed</div>
-      <div class="td-timer" id="tdTimer" aria-label="Elapsed">${esc(elapsed())}</div>
-      <div class="td-meta">Started odometer ${esc(startOdo.toLocaleString())} mi &middot; up to ${esc(LIMIT)} miles</div>
-    </section>
-    <div class="td-callout"><strong>Deal Jacket updated automatically.</strong> The signed Test Drive Agreement is already attached; there is nothing else to file.</div>`;
-  }
-
-  function doneBody() {
-    const end = td.completedMiles || 0;
-    /* the reading is recorded whatever it is — refusing it would force a
-       false number onto a signed record; a drive past the authorized
-       distance is flagged here instead (the terms already make the customer
-       answerable for it) */
-    const driven = Math.max(0, end - startOdo);
-    const over = driven > LIMIT;
-    const hasTrade = !!(deal.trade && deal.trade.has);
-    return `<div class="td-doneicon">${rpIcon("check")}</div>
-    <div class="td-center">
-      <div class="td-herovehicle">${esc(custName)} is back</div>
-      <div class="td-meta">${esc(vehName)} &middot; ${esc(startOdo.toLocaleString())} &rarr; ${esc(end.toLocaleString())} mi</div>
-    </div>
-    <section class="tv-card td-list td-list--done">
-      ${(() => {
-        /* the row states what the record can prove: an e-signature made
-           here, a jacket receipt however it arrived, or neither — a drive
-           recorded before this screen (the seed) was never e-signed and
-           must not say it was (review find) */
-        const filed = jacketState(deal, "testdrive");
-        const title = td.signed ? "Agreement signed" : "Test drive recorded";
-        const meta = filed ? (filed.how === "esign" ? "Stored in Deal Jacket" : "In the Deal Jacket") : "Agreement not in the Deal Jacket";
-        return row("check", title, meta, filed ? status("ok", "Complete") : status("warn", "Not filed"));
-      })()}
-      ${row("wheel", "Return odometer", `${esc(end.toLocaleString())} mi &middot; ${esc(driven.toLocaleString())} driven${over ? `, over the ${esc(LIMIT)}-mile limit` : ""}`, over ? status("warn", "Over limit") : status("ok", "Recorded"))}
-    </section>
-    <section class="tv-card">
-      <h2 class="td-cardtitle">Next step</h2>
-      <p class="td-cardsub">${hasTrade ? "This deal has a trade to evaluate first." : "No trade on this deal — go straight to the payment."}</p>
-      ${hasTrade
-        ? `<a class="tv-primary" id="tdNext" href="#/trade/${esc(deal.id)}">Start trade evaluation</a>
-           <a class="td-link td-link--wide" id="tdToDesk" href="#/desk/${esc(deal.id)}">Calculate payment instead</a>`
-        : `<a class="tv-primary" id="tdNext" href="#/desk/${esc(deal.id)}">Calculate payment</a>
-           <a class="td-link td-link--wide" id="tdTrade" href="#/trade/${esc(deal.id)}">Customer has a trade</a>`}
-    </section>`;
-  }
-
-  function elapsed() {
-    if (!td.startedAt) return "00:00";
-    const s = Math.max(0, Math.floor((Date.now() - new Date(td.startedAt).getTime()) / 1000));
-    const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
-    const two = (n) => String(n).padStart(2, "0");
-    return h ? `${h}:${two(m)}:${two(sec)}` : `${two(m)}:${two(sec)}`;
+  function phaseDone() {
+    view().innerHTML = `
+      <div class="panel">
+        <div class="panel__head"><h2>Test Drive Complete</h2><div class="right"><span class="badge badge--approved">✓ Completed</span></div></div>
+        <div class="panel__body center" style="padding:36px 20px">
+          <p>How did they like the <b>${esc(v.year)} ${esc(v.make)} ${esc(v.model)}</b>?</p>
+          <div class="note note--wt" style="text-align:left"><span class="lab">Next move</span>Give a proper introduction to your team lead. If there is a trade, run the trade evaluation — otherwise go straight to Calculate Payment.</div>
+          <div class="flex" style="justify-content:center;margin-top:18px">
+            <a class="btn btn--primary" href="#/trade/${esc(deal.id)}">Trade Evaluation</a>
+            <a class="btn btn--grad" href="#/desk/${esc(deal.id)}" id="toDesk">Calculate Payment →</a>
+          </div>
+        </div>
+      </div>`;
+    $("#toDesk").onclick = () => { if (deal.stage === "testdrive") { deal.stage = "desking"; Store.save(); } };
   }
 
   function render() {
-    const st = stateOf();
-    renderChrome("Test Drive Agreement", "", "");
-    document.body.dataset.canvas = "master";
-    document.body.dataset.screen = "testdrive";
-    stopTimer();
-
-    /* a drive already in progress from before the clock existed: the session
-       started when the agreement was signed; start counting from now rather
-       than showing nothing */
-    if (st === "active" && !td.startedAt) { td.startedAt = new Date().toISOString(); Store.save(); }
-
-    const eyebrow = st === "active" ? "Active session" : "Test drive";
-    const title = { ready: "Ready to test drive", attention: "License needs attention", active: "Test drive in progress", done: "Test drive complete" }[st];
-    const body = { ready: readyBody, attention: attentionBody, active: activeBody, done: doneBody }[st]();
-    const dock = st === "ready" ? `<div class="tv-dockmeta"><span>Next</span><b>Agreement review</b></div>
-        <button type="button" class="tv-primary tv-dockgo" id="tdSign">Review &amp; sign</button>`
-      : st === "attention" ? `<div class="tv-dockmeta"><span>Required before drive</span><b>${esc(licenseState().short)}</b></div>
-        <button type="button" class="tv-primary tv-dockgo" id="tdFixLicense">Complete license</button>`
-      : st === "active" ? `<div class="tv-dockmeta"><span>Session</span><b>Test drive in progress</b></div>
-        <button type="button" class="tv-primary tv-dockgo" id="tdEnd">End drive</button>`
-      : "";
-
-    view().innerHTML = `
-      <div class="m-app${dock ? "" : " td-nodock"}">
-        ${tdTop()}
-        <main class="tv-main">
-          <div class="dv-eyebrow">${eyebrow}</div>
-          <h1 class="dv-title">${title}</h1>
-          ${contextRow()}
-          ${body}
-        </main>
-        ${dock ? `<div class="tv-dock">${dock}</div>` : ""}
-      </div>
-      <div class="m-scrim" id="tdScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="tdSheet"></div></div>`;
-
-    $("#tdBack").onclick = () => history.back();
-    $("#tdRole").onclick = () => $("#hamburgerBtn").click();
-    $("#tdDeal").onclick = dealSheet;
-    const scrim = $("#tdScrim");
-    scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
-
-    const ins = $("#tdInsurance"); if (ins) ins.onclick = insuranceSheet;
-    const ad = $("#tdAddDriver"); if (ad) ad.onclick = driverSheet;
-    const sg = $("#tdSign"); if (sg) sg.onclick = signSheet;
-    const fx = $("#tdFixLicense"); if (fx) fx.onclick = completeLicense;
-    const en = $("#tdEnd"); if (en) en.onclick = endSheet;
-    /* the navigating links advance the stage, the #toDesk pattern */
-    const advance = () => { if (["vehicle", "testdrive"].includes(deal.stage)) { deal.stage = "desking"; Store.save(); } };
-    ["tdToDesk", "tdNext"].forEach(bid => {
-      const el = $("#" + bid);
-      if (el && /#\/desk\//.test(el.getAttribute("href"))) el.onclick = advance;
-    });
-
-    if (st === "active") {
-      /* the clock dies with its element: a render or a navigation that
-         removes #tdTimer stops the interval rather than ticking a detached
-         node forever (review-lessons pattern 5) */
-      timer = setInterval(() => {
-        const el = $("#tdTimer");
-        if (!el) return stopTimer();
-        el.textContent = elapsed();
-      }, 1000);
-    }
+    if (!td.authSigned) phaseAuth();
+    else if (!td.started) phaseAgreement();
+    else if (!td.done) phaseDrive();
+    else phaseDone();
   }
-
-  /* ---- exception: the canonical scan flow, then back here ---- */
-  function completeLicense() {
-    openScanFlow({
-      mode: "testdrive", deal,
-      onDone: (cust, p) => {
-        /* the scan's test-drive mode writes the license onto the profile only
-           when the card's name matches this customer; a mismatched card is
-           reported and changes nothing — the drive cannot borrow someone
-           else's license */
-        const matched = !!(p && p.samePerson === true && cust && cust.license && p.license && cust.license.number === p.license.number);
-        if (matched) {
-          cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), secondSide: "received" });
-          Store.save();
-        } else {
-          toast("The card reads a different name — this customer's license was not changed");
-        }
-        if (location.hash === `#/testdrive/${deal.id}`) render();
-      }
-    });
-  }
-
-  /* ---- sheets ---- */
-  function insuranceSheet() {
-    openSheet(`${sheetHead("Insurance company", "One field, carried onto the agreement.")}
-      <label class="tv-field"><span class="tv-label">Company</span>
-        <input type="text" class="tv-input" id="tdInsInput" value="${esc(td.insurance || "")}" placeholder="Ask for the auto insurance company" autocomplete="off"></label>
-      <div class="tv-sheetactions">
-        <button type="button" class="tv-primary" id="tdInsSave">Save</button>
-        <button type="button" class="tv-secondary" data-sheet-close>Cancel</button>
-      </div>`, (sh) => {
-      const inp = $("#tdInsInput", sh);
-      inp.focus();
-      const save = () => { td.insurance = inp.value.trim(); Store.save(); closeSheet(); render(); };
-      $("#tdInsSave", sh).onclick = save;
-      inp.onkeydown = (e) => { if (e.key === "Enter") save(); };
-    });
-  }
-
-  /* three rows, three doors into the SAME resolver — a name and license
-     number are never typed here */
-  function driverSheet() {
-    const added = drivers();
-    const door = (icon, title, sub, open) => `<button type="button" class="td-row td-row--go" data-open="${open}">
-      <span class="td-rowicon">${rpIcon(icon)}</span>
-      <div class="td-rowmain"><div class="td-rowtitle">${title}</div><div class="td-rowmeta">${sub}</div></div>
-      <span class="td-chev" aria-hidden="true">&rsaquo;</span>
-    </button>`;
-    openSheet(`${sheetHead("Add another driver", "Identify the driver through the Customer Resolver.")}
-      <section class="tv-card td-list td-list--sheet">
-        ${door("user", "Find existing customer", "Search by name, phone, email, or license.", "search")}
-        ${door("idcard", "Scan physical license", "Scan, then confirm.", "scan")}
-        ${door("upload", "Send secure upload link", "The customer uploads directly into Ride Price.", "sendlink")}
-      </section>
-      ${added.length ? `<div class="dv-seclab">Added drivers</div>${added.map(d => `<div class="td-row td-row--flat">
-          <div class="td-rowmain"><div class="td-rowtitle">${esc(`${d.first} ${d.last}`)}</div><div class="td-rowmeta">Additional driver</div></div>
-          <button type="button" class="td-link" data-remove="${esc(d.id)}">Remove</button></div>`).join("")}` : ""}`, (sh) => {
-      $$("[data-open]", sh).forEach(b => b.onclick = () => {
-        const open = b.dataset.open;
-        resolverMission = { kind: "driver", dealId: deal.id, back: location.hash, open: open === "search" ? null : open };
-        closeSheet(); navigate("#/customers");
-      });
-      $$("[data-remove]", sh).forEach(b => b.onclick = () => {
-        td.addlDriverIds = (td.addlDriverIds || []).filter(x => x !== b.dataset.remove);
-        Store.save(); render(); driverSheet();
-      });
-    });
-  }
-
-  function signSheet() {
-    openSheet(`${sheetHead("Review &amp; sign", "One agreement, one signature, then the drive starts.")}
-      <div class="td-terms"><strong>Test Drive Agreement</strong>
-        <p>I have requested that the Dealership permit me to test drive the above-described vehicle for demonstration purposes, subject to the following terms and conditions:</p>
-        <ol>${RIDE_PRICE_DATA.testDriveTerms.map(t => `<li>${esc(t)}</li>`).join("")}</ol>
-        <a class="td-link" href="#/print/${esc(deal.id)}/testdrive">View full agreement</a>
-      </div>
-      <label class="td-check"><input type="checkbox" id="tdEsign" ${td.authSigned ? "checked" : ""}>
-        <span>I agree to use an electronic signature for this Test Drive Agreement.</span></label>
-      <div class="tv-label">Customer signature</div>
-      <div class="td-sig"><span class="td-sigline">${esc(custName)}</span></div>
-      <div class="tv-sheetactions">
-        <button type="button" class="tv-primary" id="tdSignGo">Sign &amp; start test drive</button>
-      </div>`, (sh) => {
-      /* the authorization is a recorded answer, not a gate that evaporates:
-         it persists the moment it is given (review-lessons pattern 2) */
-      $("#tdEsign", sh).onchange = (e) => { td.authSigned = e.target.checked; Store.save(); };
-      $("#tdSignGo", sh).onclick = () => {
-        if (!$("#tdEsign", sh).checked) { toast("Confirm the electronic signature authorization first"); return; }
-        const lic = licenseState();
-        if (!lic.ok) { closeSheet(); render(); return toast("The license needs attention before the drive"); }
-        const now = new Date().toISOString();
-        Object.assign(td, {
-          authSigned: true, signed: true, sigName: custName, signedAt: now,
-          license: c.license.number, issuingState: c.license.state || "", expDate: c.license.expires || "",
-          insurance: td.insurance || "", addlDriver: drivers().map(d => `${d.first} ${d.last}`).join(", "),
-          miles: LIMIT, startOdo, started: true, startedAt: now
-        });
-        Store.save();
-        /* the package's rule: the signed agreement is stored in the Deal
-           Jacket by the act of signing — with its own "how", so the jacket
-           still says how it knows (review find: jacketDocs REQUIRED the
-           document after signing while nothing had filed it, so the screen
-           said "attached" while the jacket counted it missing) */
-        jacketReceive(deal, "testdrive", "esign");
-        closeSheet();
-        render();
-      };
-    });
-  }
-
-  function endSheet() {
-    openSheet(`${sheetHead("End test drive", "One final odometer reading closes the session.")}
-      <label class="tv-field"><span class="tv-label">Current odometer reading</span>
-        <input type="number" class="tv-input" id="tdEndOdo" inputmode="numeric" min="${esc(startOdo)}" value="${esc(startOdo + LIMIT)}"></label>
-      <div class="tv-sheetactions">
-        <button type="button" class="tv-primary" id="tdComplete">Complete test drive</button>
-      </div>`, (sh) => {
-      $("#tdComplete", sh).onclick = () => {
-        const inp = $("#tdEndOdo", sh);
-        const n = parseInt(inp.value, 10);
-        if (isNaN(n) || n < startOdo) {
-          markMissing(sh, [{ el: inp, msg: `At least the starting ${startOdo.toLocaleString()} mi` }]);
-          return toast("Enter the odometer reading");
-        }
-        td.completedMiles = n; td.done = true; td.endedAt = new Date().toISOString();
-        Store.save();
-        closeSheet();
-        render();
-      };
-    });
-  }
-
-  /* the context row opens deal details — the one place Deal # belongs */
-  function dealSheet() {
-    openSheet(`
-      <h2 class="tv-sheettitle">Deal details</h2>
-      <div class="tv-choice"><div class="tv-detlab">Customer</div><div class="tv-detval">${esc(custName)}</div></div>
-      <div class="tv-choice"><div class="tv-detlab">Vehicle</div><div class="tv-detval">${esc(`${vehName} ${v.trim || ""}`.trim())} &middot; stock ${esc(v.stock)}</div></div>
-      <div class="tv-choice"><div class="tv-detlab">Deal</div><div class="tv-detval">#${esc(deal.dealNo || "—")} &middot; ${esc((STAGES[deal.stage] || {}).label || deal.stage)}</div></div>
-      <div class="tv-sheetactions"><button type="button" class="tv-secondary" data-sheet-close>Done</button></div>`);
-  }
-
   render();
 });
 
@@ -6405,8 +6265,7 @@ route("jacket/:id", ({ id }) => {
     const how = st.how === "scan" ? "Camera scan · verified"
       : st.how === "client" ? "Customer upload · accepted"
         : st.how === "sort" ? "Snap & Sort · auto-filed (demo)"
-          : st.how === "esign" ? "Signed electronically · filed on signing"
-            : "Marked received by " + st.by;
+          : "Marked received by " + st.by;
     return how + " · " + jacketStamp(st.at);
   }
 
@@ -6577,8 +6436,7 @@ route("jacket/:id", ({ id }) => {
       <p class="jk2-privacy">${st.how === "scan" ? "Verified — the app read the marker it printed on this page."
         : st.how === "sort" ? "Auto-filed by Snap &amp; Sort (demo — a simulated check)."
           : st.how === "client" ? "Uploaded by the customer through the secure link and accepted after review."
-            : st.how === "esign" ? "Signed electronically in the app and filed by the act of signing."
-              : "Taken in by hand. The jacket keeps the record, not the paper."}${st.note ? " Note: " + esc(st.note) : ""}</p>
+            : "Taken in by hand. The jacket keeps the record, not the paper."}${st.note ? " Note: " + esc(st.note) : ""}</p>
       <div class="jk2-sheetactions${viewable ? "" : " jk2-sheetactions--single"}">
         ${viewable ? `<a class="jk2-sheetbtn" href="${esc(viewable)}">View</a>` : ""}
         <button type="button" class="jk2-sheetbtn" id="jkUndo">Take back out</button></div>
