@@ -497,5 +497,5 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 14. Customer document request (from the jacket) (3 screens)
 15. Client Document Upload (customer's phone) (10 screens)
 16. Snap All — burst capture (4 screens)
-17. Document Review (advisor) (1 screens)
+17. Document Review (advisor) (1 screen)
 18. Documents — Print Center & Printables (6 screens)
