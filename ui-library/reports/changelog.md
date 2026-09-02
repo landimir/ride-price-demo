@@ -1,5 +1,53 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v018 — 2026-09-02
+
+App commit: 15bf247 · 20 flows · 134 screens · previous: v017
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Stage filter — no match
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — the last question is the hand-off
+- Discovery Session · Discovery complete (sheet)
+- Discovery Session · Visit details (sheet)
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Base Payment Agreement · Void signature and redesk? (sheet)
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Buyers on the Deal (Co-Buyer) · Co-buyer — contextual actions
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v017 — 2026-09-02
 
 App commit: 136b892 · 20 flows · 134 screens · previous: v016
