@@ -1,5 +1,67 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v017 — 2026-09-02
+
+App commit: 136b892 · 20 flows · 134 screens · previous: v016
+
+### Added
+- Training Documents · Licenses
+- Training Documents · License preview — both sides
+- Training Documents · Registrations
+- Training Documents · Registration preview
+- Test Drive Agreement · Ready to test drive
+- Test Drive Agreement · Add another driver
+- Test Drive Agreement · Review & sign
+- Test Drive Agreement · License needs attention
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · More sheet — secondary navigation
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · No license available — manual fallback
+- Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Visit details (sheet)
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Test Drive Agreement · Test drive in progress
+- Test Drive Agreement · End test drive — odometer
+- Test Drive Agreement · Test drive complete
+- Desking — Calculate Payments · Calculate Payments — Cash
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Void signature and redesk? (sheet)
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- Training Licenses & Registrations · Training Licenses
+- Training Licenses & Registrations · Training Registrations
+- Test Drive Agreement · E-signature authorization
+- Test Drive Agreement · License & terms
+- Test Drive Agreement · Scan license (test-drive mode)
+- Test Drive Agreement · Terms signed — Driver One
+
+### New issues
+- none
+
+### Resolved issues
+- RP-UI-012 (Minor) — the 112mm registration card clipped on a phone. Resolved by this version's Training Documents rebuild; recorded by hand after the entry was generated, because the board still carried it at build time. See reports/retired-issues.md for the scope.
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v016 — 2026-09-01
 
 App commit: ed0ea19 · 20 flows · 132 screens · previous: v015

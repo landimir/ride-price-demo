@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Improvement Report
 
-Improvement view v001 · built on flow library v016 (app ed0ea19) · updated 2026-09-01
+Improvement view v001 · built on flow library v017 (app 136b892) · updated 2026-09-02
 
 This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.
 
@@ -78,7 +78,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-001 — The only forward action sits in the hardest thumb zone while 60% of the screen is empty
 
-- **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 06 Stage filter — no match; Home — Active Floor & Navigation · 05 Active floor (Team Lead); Home — Active Floor & Navigation · 08 Funded history in range; Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver; Training Licenses & Registrations · 01 Training Licenses; Training Licenses & Registrations · 02 Training Registrations
+- **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 06 Stage filter — no match; Home — Active Floor & Navigation · 05 Active floor (Team Lead); Home — Active Floor & Navigation · 08 Funded history in range; Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver
 - **Type:** Pattern Opportunity · **Category:** interaction · **Severity:** Major · **Priority:** High · **Fix size:** medium
 
 **A. Current Ride Price screen.** The screen's one gradient action, + New Customer Visit (163×44 at the top-right, y≈75–117), sits in the hardest one-handed reach zone while everything below y≈370 is empty. The same page-top placement repeats on Find a Customer (Scan license / Create Customer at y≈140–180) and on both Training pages (Print at y≈140–195), and the page-bar layout differs between them — home puts the action on the title row, the other pages stack it under the subtitle.
@@ -482,7 +482,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 ## Not yet reviewed — next in line
 
 1. Customer Onboarding — the Customer Resolver (9 screens)
-2. Training Licenses & Registrations (2 screens)
+2. Training Documents (4 screens)
 3. Discovery Session (6 screens)
 4. Vehicle Selection (7 screens)
 5. Test Drive Agreement (7 screens)

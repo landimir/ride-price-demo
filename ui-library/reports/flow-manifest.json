@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-09-01T18:19:57.716Z",
-  "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+  "capturedAt": "2026-09-02T12:09:41.644Z",
+  "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-09-01T18:19:57.724Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:09:41.654Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -88,12 +88,8 @@
               "to": "onboarding/resolver-idle"
             },
             {
-              "action": "Training licenses",
-              "to": "training/training-licenses"
-            },
-            {
-              "action": "Training registrations",
-              "to": "training/training-registrations"
+              "action": "Training documents",
+              "to": "training/licenses"
             }
           ],
           "notes": "Secondary destinations stay out of the queue until asked for. Every row icon is a line icon from the one set.",
@@ -108,12 +104,11 @@
             "clipped": [],
             "overlaps": [
               ".dq-name John Smith <> .dq-stage.dq-stage--desking DESKING",
-              ".dq-name John Smith <> .m-sheettitle More",
-              ".dq-stage.dq-stage--desking DESKING <> .m-close ✕",
-              " VIN 5NMS4DAL4NH457995 <> .ob-sheetdesc Secondary tools stay out of ",
-              " 5NMS4DAL4NH457995 <> .ob-sheetdesc Secondary tools stay out of ",
-              " STK 7H21313 <> .ob-sheetdesc Secondary tools stay out of ",
-              " 7H21313 <> .ob-sheetdesc Secondary tools stay out of ",
+              ".dq-veh 2022 Hyundai Santa Fe <> .m-sheettitle More",
+              " VIN 5NMS4DAL4NH457995 <> .m-sheettitle More",
+              " 5NMS4DAL4NH457995 <> .m-sheettitle More",
+              ".dq-next Next: Game Plan With the Tea <> .ob-sheetdesc Secondary tools stay out of ",
+              ".dq-chev › <> .m-close ✕",
               ".dq-chev › <> .ob-sheetdesc Secondary tools stay out of "
             ]
           },
@@ -399,8 +394,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-09-01T18:20:09.660Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:09:55.125Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -711,8 +706,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-09-01T18:20:25.478Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:10:10.441Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -1051,7 +1046,7 @@
               " 4102 Bell Blvd, Bayside, NY  <>  Ask the guest to read back t",
               " Email <> .sc2-demo Demo: nothing leaves this de",
               " Email <>  Demo:",
-              " Email <>  822200",
+              " Email <>  695642",
               ".sc2-micro Phone and email are required <> .sc2-primary Verify & link",
               ".sc2-micro Phone and email are required <> .sc2-textbtn Cancel",
               ".demo-note Demo tool — sample data only <> .sc2-textbtn Cancel"
@@ -1104,27 +1099,31 @@
     {
       "id": "training",
       "area": "04-training-materials",
-      "title": "Training Licenses & Registrations",
-      "description": "Printable props: five training driver's licenses (the only things the scanner recognises) and five matching training registrations for the trade-in conversation. Millimetre-sized for print; on a phone they scroll inside their grid.",
+      "title": "Training Documents",
+      "description": "One hub for both printable prop sets: five training driver's licenses (the only things the scanner recognises) and their five matching registrations. Compact pair rows, and the document itself only inside its preview sheet — scaled to the phone, printed at true millimetre size.",
       "entry": {
         "from": "home/more-sheet",
-        "action": "Training licenses / Training registrations"
+        "action": "Training documents"
       },
-      "capturedAt": "2026-09-01T18:20:47.074Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:10:32.036Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
-          "key": "training-licenses",
-          "screen": "Training Licenses",
-          "screenshot": "current/04-training-materials/01-training-licenses.png",
+          "key": "licenses",
+          "screen": "Licenses",
+          "screenshot": "current/04-training-materials/01-licenses.png",
           "hash": "#/props",
-          "action": "Drawer → Training Registrations",
-          "next": "training-registrations",
+          "action": "Tap a pair row",
+          "next": "license-preview",
           "branches": [
             {
-              "action": "Print",
-              "to": "training/training-licenses"
+              "action": "Registrations",
+              "to": "training/registrations"
+            },
+            {
+              "action": "Print all 5",
+              "to": "training/licenses"
             }
           ],
           "notes": "",
@@ -1133,44 +1132,66 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              " Find a Customer 97x18"
-            ],
-            "clipped": [
-              ".prop-card NEW YORK · USATRAINING SAMPL 345>322",
-              ".prop-card NEW YORK · USATRAINING SAMPL 345>322",
-              ".prop-card NEW YORK · USATRAINING SAMPL 345>322",
-              ".prop-card NEW YORK · USATRAINING SAMPL 345>322",
-              ".prop-card NEW YORK · USATRAINING SAMPL 345>322"
-            ],
-            "overlaps": [
-              " Scan it. <>  Scan license",
-              " Find a Customer <>  Scan license",
-              " NEW YORK · USA <> .prop-watermark SAMPLE",
-              " TRAINING SAMPLE <> .prop-watermark SAMPLE",
-              ".prop-name SmithJohn A <> .prop-watermark SAMPLE",
-              " 4d DLT-0000101 9 CLSD <> .prop-watermark SAMPLE",
-              ".fld 4d DL <> .prop-watermark SAMPLE",
-              ".fld 9 CLS <> .prop-watermark SAMPLE"
-            ]
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 2995,
-            "pageHeight": 2995
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
         },
         {
           "step": 2,
-          "key": "training-registrations",
-          "screen": "Training Registrations",
-          "screenshot": "current/04-training-materials/02-training-registrations.png",
-          "hash": "#/regprops",
-          "action": null,
-          "next": null,
+          "key": "license-preview",
+          "screen": "License preview — both sides",
+          "screenshot": "current/04-training-materials/02-license-preview.png",
+          "hash": "#/props",
+          "action": "Close",
+          "next": "registrations",
+          "branches": [],
+          "notes": "A licence prop is two sides: the back carries the barcode, and that barcode is the only thing the scanner can read.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [
+              ".prop-card NEW YORK · USATRAINING SAMPL 345>322"
+            ],
+            "overlaps": [
+              ".tdoc-context 5 matched fictional pairs ·  <> .tv-sheettitle.tdoc-sheettitle Training license",
+              ".tdoc-context 5 matched fictional pairs ·  <> .m-close ✕",
+              ".on Licenses <> .tdoc-sheetsub John A Smith · Pair 01",
+              " Registrations <> .tdoc-sheetsub John A Smith · Pair 01",
+              "#tdocPrintAll.tdoc-printall Print all 5 <> .m-close ✕",
+              " PAIR <> .prop-watermark SAMPLE",
+              " 01 <> .prop-watermark SAMPLE",
+              ".tdoc-name John A Smith <> .prop-name SmithJohn A"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 3,
+          "key": "registrations",
+          "screen": "Registrations",
+          "screenshot": "current/04-training-materials/03-registrations.png",
+          "hash": "#/props/registrations",
+          "action": "Tap a pair row",
+          "next": "registration-preview",
           "branches": [],
           "notes": "",
           "status": "ok",
@@ -1180,33 +1201,55 @@
             "offscreen": [],
             "tinyTargets": [],
             "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 4,
+          "key": "registration-preview",
+          "screen": "Registration preview",
+          "screenshot": "current/04-training-materials/04-registration-preview.png",
+          "hash": "#/props/registrations",
+          "action": null,
+          "next": null,
+          "branches": [],
+          "notes": "RP-UI-012 resolved: the 112mm document is scaled to the viewport here, while printing keeps its true physical size.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [
+              ".tdoc-preview Keep this document to show t 451>350"
+            ],
             "overlaps": [
-              ".reg-line TSP1001 <>  SAMPLE",
-              ".reg-line 2016 TOYOTATRANSFERABLE <>  SAMPLE",
-              ".reg-c1 2016 TOYOTA <>  SAMPLE",
-              ".reg-line SUBN BK4T1TRAININGSAMP01 <>  SAMPLE",
-              ".reg-c1 SUBN BK <>  SAMPLE",
-              ".reg-line 003820 G 4TS100001 APR 18 20 <>  SAMPLE",
-              ".reg-c1 003820 G 4 <>  SAMPLE",
-              ".reg-line Wt/SeatsFuel/CylTRN OGTS01 <>  SAMPLE"
+              " Licenses <> .tv-sheettitle.tdoc-sheettitle Training registration",
+              " Licenses <> .tdoc-sheetsub John A Smith · Pair 01",
+              ".on Registrations <> .tv-sheettitle.tdoc-sheettitle Training registration",
+              ".on Registrations <> .tdoc-sheetsub John A Smith · Pair 01",
+              "#tdocPrintAll.tdoc-printall Print all 5 <> .m-close ✕",
+              " 01 <> .reg-form TS-639TR (SAMPLE)",
+              ".tdoc-name John A Smith <> .reg-keep Keep this document to show t",
+              ".tdoc-meta Registration TS100001 · 2016 <>  NEW YORK STATE REGISTRATION "
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 3200,
-            "pageHeight": 3432
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-012",
-              "severity": "Minor",
-              "issue": "The registration cards are print-sized (112mm wide) and wider than the phone; their right-hand side (SAMPLE overprint, amounts, expiry) is cut off in view with no visible scroll affordance.",
-              "observation": "By recorded decision the props are never scaled (they must print at true size); on a phone the grid scrolls horizontally, but nothing says so.",
-              "area": ".props-grid horizontal scroll hint at ≤720px"
-            }
-          ]
+          "issues": []
         }
       ]
     },
@@ -1219,15 +1262,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-09-01T18:20:50.217Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:10:35.938Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1, customer-first",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-qifhzrs",
+          "hash": "#/discovery/d-m2dxgko",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1264,7 +1307,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview, Back appears",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-qifhzrs",
+          "hash": "#/discovery/d-m2dxgko",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1292,7 +1335,7 @@
           "key": "question-last",
           "screen": "Discovery — the last question is the hand-off",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-qifhzrs",
+          "hash": "#/discovery/d-m2dxgko",
           "action": "Tap Find vehicles →",
           "next": "discovery-complete",
           "branches": [],
@@ -1320,7 +1363,7 @@
           "key": "discovery-complete",
           "screen": "Discovery complete (sheet)",
           "screenshot": "current/05-discovery/04-discovery-complete.png",
-          "hash": "#/discovery/d-qifhzrs",
+          "hash": "#/discovery/d-m2dxgko",
           "action": "Tap Find matching vehicles",
           "next": "vehicles/inventory",
           "branches": [
@@ -1360,7 +1403,7 @@
           "key": "visit-details",
           "screen": "Visit details (sheet)",
           "screenshot": "current/05-discovery/05-visit-details.png",
-          "hash": "#/discovery/d-p145tm7",
+          "hash": "#/discovery/d-r73cz4a",
           "action": "Tap Done",
           "next": "question-1",
           "branches": [
@@ -1436,15 +1479,15 @@
         "from": "discovery/discovery-complete",
         "action": "Tap Find matching vehicles"
       },
-      "capturedAt": "2026-09-01T18:21:01.354Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:10:46.812Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
           "screen": "Vehicle Search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-v3rj3t5",
+          "hash": "#/vehicles/d-e7b670m",
           "action": "Tap the Used chip",
           "next": "inventory-filtered",
           "branches": [],
@@ -1474,7 +1517,7 @@
           "key": "inventory-filtered",
           "screen": "Inventory — Used only",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-v3rj3t5",
+          "hash": "#/vehicles/d-e7b670m",
           "action": "Open Filters, cap the price at $1,000",
           "next": "inventory-no-match",
           "branches": [],
@@ -1504,7 +1547,7 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-v3rj3t5",
+          "hash": "#/vehicles/d-e7b670m",
           "action": "Clear all filters; tap a vehicle",
           "next": "vehicle-details",
           "branches": [],
@@ -1534,7 +1577,7 @@
           "key": "vehicle-details",
           "screen": "Vehicle details sheet",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-v3rj3t5",
+          "hash": "#/vehicles/d-e7b670m",
           "action": "Tap Choose this vehicle",
           "next": "next-steps",
           "branches": [],
@@ -1573,9 +1616,9 @@
           "key": "next-steps",
           "screen": "What's next? — after choosing",
           "screenshot": "current/06-vehicle-selection/05-next-steps.png",
-          "hash": "#/vehicles/d-v3rj3t5",
+          "hash": "#/vehicles/d-e7b670m",
           "action": "Tap Test Drive",
-          "next": "test-drive/authorization",
+          "next": "test-drive/ready",
           "branches": [
             {
               "action": "Trade Appraisal",
@@ -1625,7 +1668,7 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-v3rj3t5",
+          "hash": "#/vehicles/d-e7b670m",
           "action": null,
           "next": null,
           "branches": [],
@@ -1704,91 +1747,41 @@
       "id": "test-drive",
       "area": "07-test-drive",
       "title": "Test Drive Agreement",
-      "description": "E-signature authorisation → license and terms → drive in progress → end-of-drive odometer. A license scan can prefill the license fields.",
+      "description": "A short active-session workflow, not a legal form on a phone: Ready → Review & sign → Drive in progress → End drive → Complete. The licence is read from the customer profile and never asked for again; additional drivers come through the one Customer Resolver.",
       "entry": {
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-09-01T18:21:11.859Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:10:57.347Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
-          "key": "authorization",
-          "screen": "E-signature authorization",
-          "screenshot": "current/07-test-drive/01-authorization.png",
+          "key": "ready",
+          "screen": "Ready to test drive",
+          "screenshot": "current/07-test-drive/01-ready.png",
           "hash": "#/testdrive/d-demo1",
-          "action": "Check the acknowledgement, tap Continue →",
-          "next": "license-and-terms",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 1095,
-            "pageHeight": 1095
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 2,
-          "key": "license-and-terms",
-          "screen": "License & terms",
-          "screenshot": "current/07-test-drive/02-license-and-terms.png",
-          "hash": "#/testdrive/d-demo1",
-          "action": "Tap 🪪 Scan license",
-          "next": "scan-license-modal",
+          "action": "Tap Review & sign",
+          "next": "review-sign",
           "branches": [
             {
-              "action": "Sign & Accept Terms — Driver One",
-              "to": "test-drive/terms-signed"
+              "action": "Add driver",
+              "to": "test-drive/add-driver"
+            },
+            {
+              "action": "Complete license (when the profile's licence is missing)",
+              "to": "test-drive/license-exception"
             }
           ],
-          "notes": "",
+          "notes": "The licence row reads the customer profile. There is no test-drive licence form and no second scanner.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 1757,
-            "pageHeight": 1757
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 3,
-          "key": "scan-license-modal",
-          "screen": "Scan license (test-drive mode)",
-          "screenshot": "current/07-test-drive/03-scan-license-modal.png",
-          "hash": "#/testdrive/d-demo1",
-          "action": "Close; enter license #, sign",
-          "next": "terms-signed",
-          "branches": [],
-          "notes": "Same scanner; in this mode only the license number, state, expiry and DOB are taken.",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#tdInsurance.td-link Edit 31x40"
+            ],
             "clipped": [],
             "overlaps": []
           },
@@ -1796,49 +1789,99 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1757
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 2,
+          "key": "add-driver",
+          "screen": "Add another driver",
+          "screenshot": "current/07-test-drive/02-add-driver.png",
+          "hash": "#/testdrive/d-demo1",
+          "action": "Close",
+          "next": "review-sign",
+          "branches": [],
+          "notes": "Three doors into the one Customer Resolver — search, scan, secure upload link. A name and licence number are never typed here.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#tdInsurance.td-link Edit 31x40"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".td-cardsub Key terms are summarized her <> .tv-sheettitle.td-sheettitle Add another driver",
+              ".td-cardsub Key terms are summarized her <> .m-close ✕",
+              ".k Vehicle <> .td-sheetsub Identify the driver through ",
+              ".v 2022 Hyundai Santa Fe <> .td-sheetsub Identify the driver through ",
+              ".k Maximum distance <> .td-rowtitle Find existing customer",
+              ".v 20 miles <> .td-rowtitle Find existing customer",
+              ".k Return condition <> .td-rowmeta Search by name, phone, email",
+              ".v Return at agreed time <> .td-rowmeta Search by name, phone, email"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 3,
+          "key": "review-sign",
+          "screen": "Review & sign",
+          "screenshot": "current/07-test-drive/03-review-sign.png",
+          "hash": "#/testdrive/d-demo1",
+          "action": "Tick the authorization, tap Sign & start test drive",
+          "next": "in-progress",
+          "branches": [],
+          "notes": "One sheet: the agreement's own terms, the electronic-signature authorization and the customer signature.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              "#tdInsurance.td-link Edit 31x40"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".dv-title Ready to test drive <> .tv-sheettitle.td-sheettitle Review & sign",
+              ".dv-title Ready to test drive <> .m-close ✕",
+              " Cheri Bridwell <> .td-sheetsub One agreement, one signature",
+              " · 2022 Hyundai Santa Fe <> .td-sheetsub One agreement, one signature",
+              " 11 <> .m-close ✕",
+              " 11 <> .td-sheetsub One agreement, one signature",
+              ".td-rowtitle Driver’s license <>  Test Drive Agreement",
+              ".td-rowmeta NY · ending 0102 · expires 1 <>  I have requested that the De"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
         },
         {
           "step": 4,
-          "key": "terms-signed",
-          "screen": "Terms signed — Driver One",
-          "screenshot": "current/07-test-drive/04-terms-signed.png",
-          "hash": "#/testdrive/d-demo1",
-          "action": "Tap Next →",
-          "next": "in-progress",
-          "branches": [],
-          "notes": "",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 1757,
-            "pageHeight": 1757
-          },
-          "scrollShot": null,
-          "issues": []
-        },
-        {
-          "step": 5,
           "key": "in-progress",
           "screen": "Test drive in progress",
-          "screenshot": "current/07-test-drive/05-in-progress.png",
+          "screenshot": "current/07-test-drive/04-in-progress.png",
           "hash": "#/testdrive/d-demo1",
-          "action": "Tap End Test Drive",
+          "action": "Tap End drive",
           "next": "end-drive",
           "branches": [],
-          "notes": "",
+          "notes": "Reduced chrome: the vehicle, the live status, the starting odometer, the mileage limit, an elapsed clock and one action. The signed agreement is already in the Deal Jacket.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1858,15 +1901,56 @@
           "issues": []
         },
         {
-          "step": 6,
+          "step": 5,
           "key": "end-drive",
-          "screen": "End Test Drive — odometer",
-          "screenshot": "current/07-test-drive/06-end-drive.png",
+          "screen": "End test drive — odometer",
+          "screenshot": "current/07-test-drive/05-end-drive.png",
           "hash": "#/testdrive/d-demo1",
-          "action": "Tap Complete Test Drive",
+          "action": "Tap Complete test drive",
           "next": "completed",
           "branches": [],
           "notes": "",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": [
+              ".td-callout Deal Jacket updated automati <> .tv-sheettitle.td-sheettitle End test drive",
+              ".td-callout Deal Jacket updated automati <> .m-close ✕",
+              ".td-callout Deal Jacket updated automati <> .td-sheetsub One final odometer reading c",
+              " Deal Jacket updated automati <> .tv-sheettitle.td-sheettitle End test drive",
+              " Session <> #tdComplete.tv-primary Complete test drive",
+              " Test drive in progress <> #tdComplete.tv-primary Complete test drive",
+              "#tdEnd.tv-primary.tv-dockgo End drive <> #tdComplete.tv-primary Complete test drive"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 6,
+          "key": "completed",
+          "screen": "Test drive complete",
+          "screenshot": "current/07-test-drive/06-completed.png",
+          "hash": "#/testdrive/d-demo1",
+          "action": "Tap the one next step",
+          "next": "trade/trade-evaluation",
+          "branches": [
+            {
+              "action": "Calculate payment instead",
+              "to": "desking/huddle-gate"
+            }
+          ],
+          "notes": "One primary action, chosen from the deal: Trade evaluation when there is a trade, Calculate payment when there is not.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1887,19 +1971,14 @@
         },
         {
           "step": 7,
-          "key": "completed",
-          "screen": "Test drive completed",
-          "screenshot": "current/07-test-drive/07-completed.png",
+          "key": "license-exception",
+          "screen": "License needs attention",
+          "screenshot": "current/07-test-drive/07-license-exception.png",
           "hash": "#/testdrive/d-demo1",
-          "action": "Tap Calculate Payment →",
-          "next": "desking/huddle-gate",
-          "branches": [
-            {
-              "action": "Trade Evaluation",
-              "to": "trade/trade-evaluation"
-            }
-          ],
-          "notes": "",
+          "action": "Tap Complete license — the canonical Scan License flow opens and returns here",
+          "next": null,
+          "branches": [],
+          "notes": "The exact missing item is named. Missing, front-only and expired each say which.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1929,8 +2008,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-09-01T18:21:18.915Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:11:04.065Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -2083,8 +2162,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-09-01T18:21:26.802Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:11:11.579Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -2335,8 +2414,8 @@
         "from": "desking/compare-payments",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-01T18:21:32.953Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:11:20.242Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -2457,8 +2536,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-01T18:21:37.181Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:11:25.884Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -2742,7 +2821,7 @@
             "overlaps": [
               " Applicant <> .m-sheettitle Deal summary",
               " Step 1 of 4 <> .m-close ✕",
-              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 2:2",
+              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 8:1",
               ".ca-cardtitle Application type <> .ca-managelink Edit",
               ".ca-cardsub Choose how the customer want <>  Vehicle",
               ".ca-cardsub Choose how the customer want <>  2022 Hyundai Santa Fe · 7H21",
@@ -2803,8 +2882,8 @@
         "from": "discovery/visit-details",
         "action": "Tap Co-buyer in Visit details"
       },
-      "capturedAt": "2026-09-01T18:21:49.600Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:11:40.938Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -3087,8 +3166,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-09-01T18:21:57.709Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:11:50.367Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -3325,8 +3404,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-09-01T18:22:02.837Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:11:56.980Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -3793,8 +3872,8 @@
         "from": "discovery/question-1",
         "action": "Tap the Jacket chip in the context row"
       },
-      "capturedAt": "2026-09-01T18:22:18.724Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:12:14.643Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -3900,13 +3979,10 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".price PRICE <> .jk2-rowtitle Driver's License",
-              ".price PRICE <> .jk2-rowsub Needed for registration",
-              ".m-dealno Deal #48201 <> .jk2-rowtitle Driver's License",
-              "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
+              ".rideprice Ride <> .jk2-secsub 3 documents",
+              ".jk2-rowtitle Signed Matching Credit App <>  Funding sign-off",
+              ".jk2-rowtitle Signed Matching Credit App <>  11 items remaining",
               ".jk2-rowtitle Signed Matching Credit App <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-rowsub Lender match <>  Funding sign-off",
-              ".jk2-rowsub Lender match <> #jkSignoff.jk2-dockbtn Not ready",
               ".jk2-status Needed <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
@@ -4048,12 +4124,13 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".jk2-rowtitle Appraisal Sheet <>  Funding sign-off",
-              ".jk2-rowtitle Appraisal Sheet <>  11 items remaining",
-              ".jk2-rowtitle Appraisal Sheet <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-rowsub Marked received by Ashley Co <>  11 items remaining",
-              ".jk2-rowsub Marked received by Ashley Co <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-status.jk2-status--done In jacket <> #jkSignoff.jk2-dockbtn Not ready"
+              ".price PRICE <> .jk2-rowtitle Privacy Policy",
+              ".m-dealno Deal #48201 <> .jk2-rowtitle Privacy Policy",
+              "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
+              ".jk2-secsub Already in the jacket <>  Funding sign-off",
+              ".jk2-secsub Already in the jacket <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-badge.jk2-badge--good 4 <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-chev.jk2-chev--open ⌄ <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
@@ -4145,8 +4222,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-09-01T18:22:31.217Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:12:25.579Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -4271,8 +4348,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-09-01T18:22:35.718Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:12:29.704Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -4597,8 +4674,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-09-01T18:22:49.454Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:12:42.472Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -4732,8 +4809,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-09-01T18:22:54.069Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:12:46.486Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,
@@ -4774,8 +4851,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-09-01T18:22:56.304Z",
-      "appCommit": "ed0ea19b81b6fc7baf854b6bfc7efd13cd572503",
+      "capturedAt": "2026-09-02T12:12:48.419Z",
+      "appCommit": "136b892bb11f150a4c46ae8524810b257f48feaa",
       "screens": [
         {
           "step": 1,

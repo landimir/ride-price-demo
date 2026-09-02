@@ -10,6 +10,25 @@ Why each finding left the board, and what holds it fixed.
 - **RP-UI-020** — Fixed on PR #51 (2026-08-27). Browse mode no longer carries a per-card menu at all. One page-level banner says what a customer visit unlocks, and the details sheet withholds 'Choose this vehicle' rather than offering an action that cannot complete. masterpages.mjs holds the gate.
 - **RP-UI-021** — Fixed on PR #51 (2026-08-27). The filter panel no longer occupies the first screen: vehicle type is a compact chip rail and everything else lives in a Filters sheet, so inventory is what the phone opens on.
 
+## v017 (2026-09-02, PR #71)
+
+- **RP-UI-012** — The training registration card is 112mm wide, wider than
+  any phone, so its right-hand side (the SAMPLE overprint, the amounts, the
+  expiry) was cut off in view with no scroll affordance. The recorded
+  decision that the props are never scaled — they have to PRINT at true
+  physical size — is what kept it open. Training Documents V3 resolves both
+  at once: the documents are no longer drawn in the list at all, and the
+  single document a pair row opens is scaled to the sheet with a transform,
+  so its layout size (the thing that prints) is untouched. Measured at
+  `harness/tdocs.mjs`: layout 423px at every width, painted 322px on a
+  390px phone and 252px at 320px, wholly inside its wrapper, with the
+  amount paid and the expiry on screen. **Scope of the retirement:**
+  RP-UI-012 was filed against the registration card's clipping on the
+  training-props screen and nothing else. It does not cover the print
+  output (unchanged, and `printcmp` shows 0 of 11 printables differ), and
+  it makes no claim about any other millimetre-sized document elsewhere in
+  the app.
+
 ## v009 (2026-08-28)
 
 - **RP-UI-017** — The 20px grey "Archived — funded contracts" fold is gone. Funded contracts live behind the Team Lead's date/history sheet, so there is no undersized text row standing in for a control. (This one sat on the opportunity board as "still open" for five versions after it was retired; corrected 2026-08-31.)

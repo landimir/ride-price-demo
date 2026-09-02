@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Opportunity Board
 
-Updated 2026-09-01 · 2 of 20 product areas reviewed · 21 recommendations so far. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.
+Updated 2026-09-02 · 2 of 20 product areas reviewed · 21 recommendations so far. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.
 
 ## Top opportunities (by priority, then severity, then how widely they repeat)
 
@@ -26,7 +26,7 @@ Updated 2026-09-01 · 2 of 20 product areas reviewed · 21 recommendations so fa
 
 ## Issues that repeat across screens
 
-- **RP-IMP-001** — The only forward action sits in the hardest thumb zone while 60% of the screen is empty — on 7 screens (Home — Deals Queue & Navigation; Home — Active Floor & Navigation; Customer Onboarding — the Customer Resolver; Training Licenses & Registrations)
+- **RP-IMP-001** — The only forward action sits in the hardest thumb zone while 60% of the screen is empty — on 5 screens (Home — Deals Queue & Navigation; Home — Active Floor & Navigation; Customer Onboarding — the Customer Resolver)
 - **RP-IMP-003** — The card does not say what comes next, and the search-field camera promises the wrong scan — on 4 screens (Home — Deals Queue & Navigation; Home — Active Floor & Navigation)
 - **RP-IMP-004** — The drawer spends the brand gradient on a selected state — on 2 screens (Home — Deals Queue & Navigation; Home — Active Floor & Navigation)
 - **RP-IMP-006** — No login by design — keep the 'who am I' cue consistent — on 2 screens (Home — Deals Queue & Navigation; Home — Active Floor & Navigation)
@@ -51,3 +51,4 @@ Updated 2026-09-01 · 2 of 20 product areas reviewed · 21 recommendations so fa
 3. Still open from Home: where + New Customer Visit lives on phones (RP-IMP-001).
 4. (2026-09-01) The Scan Driver's License rows above predate the owner's scan-v2 package (2026-08-28), which rebuilt the flow and answered both owner questions — at least RP-IMP-012 and RP-IMP-013 describe screens that no longer exist in that form. The area needs a re-review against the built v2 before anything here is picked up; do not build from these rows as written.
 5. (2026-08-31) RP-UI-017 (the Team Lead Archived row's touch target) was listed on this board as still open for five versions after it was retired — the 20px Archived fold is gone and funded contracts live behind the Team Lead date/history sheet. See reports/retired-issues.md. Both corrections now live in screen-improvement-matrix.json, the file this board is generated from, so rebuilding cannot drop them.
+6. (2026-09-02) Training Documents V3 replaced the two prop pages with one hub, so the old training screenshots are gone. RP-IMP-001 listed both as places it also appeared; those two entries are removed rather than repointed, because the finding describes a mostly-empty screen whose only forward action sits in the hard thumb zone, and the new hub is a full list of pair rows — whether it still applies there is a question for the area's own review, not an assumption to carry forward.

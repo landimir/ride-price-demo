@@ -1,12 +1,12 @@
-# Ride Price Mobile UI — UX Audit (v016)
+# Ride Price Mobile UI — UX Audit (v017)
 
-Captured 2026-09-01T18:19:57.716Z · viewport 390×844 · app ed0ea19b81b6fc7baf854b6bfc7efd13cd572503
+Captured 2026-09-02T12:09:41.644Z · viewport 390×844 · app 136b892bb11f150a4c46ae8524810b257f48feaa
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 0 |
-| Minor | 2 |
+| Minor | 1 |
 | Observation | 2 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
@@ -19,14 +19,7 @@ _None recorded._
 
 _None recorded._
 
-## Minor (2)
-
-### RP-UI-012 — Training Licenses & Registrations · Training Registrations
-
-- **Screenshot:** `current/04-training-materials/02-training-registrations.png`
-- **Issue:** The registration cards are print-sized (112mm wide) and wider than the phone; their right-hand side (SAMPLE overprint, amounts, expiry) is cut off in view with no visible scroll affordance.
-- **Observation:** By recorded decision the props are never scaled (they must print at true size); on a phone the grid scrolls horizontally, but nothing says so.
-- **Suggested area to investigate:** .props-grid horizontal scroll hint at ≤720px
+## Minor (1)
 
 ### RP-UI-029 — All (app-wide) · Desking accessories, search fields, filter sheet
 

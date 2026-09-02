@@ -5,7 +5,7 @@
     "libraryVersion": "v009",
     "appCommit": "cc9d1067dc19c05c74f94df222ab05fb73ee1620"
   },
-  "updated": "2026-09-01",
+  "updated": "2026-09-02",
   "method": "Understand the dealership workflow → identify the user role (advisor / Team Lead / customer) → understand volume and frequency → look the needed pattern up on Mobbin → adapt only the useful lesson → verify it against Ride Price's operational requirements (owner's decision rule, 2026-08-23). One product area at a time, in the order the flow library lists them. For each area: read the existing comment cards, look at every screenshot, deepen each card into a diagnosis, add what the screenshots show, then the Mobbin step above, then translate the lesson back into Ride Price's own vocabulary. Severity keeps the audit scale (Critical / Major / Minor / Observation); priority is the order to fix in (High / Medium / Low). findingType: Existing Comment Expanded · Newly Detected UI Issue · Pattern Opportunity.",
   "areas": [
     {
@@ -30,9 +30,7 @@
             "current/01-home-and-navigation/06-stage-filter-empty.png",
             "current/01-home-and-navigation/05-team-lead-floor.png",
             "current/01-home-and-navigation/08-funded-history.png",
-            "current/02-customer-onboarding/01-resolver-idle.png",
-            "current/04-training-materials/01-training-licenses.png",
-            "current/04-training-materials/02-training-registrations.png"
+            "current/02-customer-onboarding/01-resolver-idle.png"
           ],
           "existingComment": null,
           "commentAssessment": null,
@@ -1278,7 +1276,8 @@
       "Build order once the owner answers: RP-IMP-012 + 013 (the identity screens), RP-IMP-008 (the tear-down bug + guidance), RP-IMP-011 (CTA outcomes), then the Q1/Q2-dependent work.",
       "Still open from Home: where + New Customer Visit lives on phones (RP-IMP-001).",
       "(2026-09-01) The Scan Driver's License rows above predate the owner's scan-v2 package (2026-08-28), which rebuilt the flow and answered both owner questions — at least RP-IMP-012 and RP-IMP-013 describe screens that no longer exist in that form. The area needs a re-review against the built v2 before anything here is picked up; do not build from these rows as written.",
-      "(2026-08-31) RP-UI-017 (the Team Lead Archived row's touch target) was listed on this board as still open for five versions after it was retired — the 20px Archived fold is gone and funded contracts live behind the Team Lead date/history sheet. See reports/retired-issues.md. Both corrections now live in screen-improvement-matrix.json, the file this board is generated from, so rebuilding cannot drop them."
+      "(2026-08-31) RP-UI-017 (the Team Lead Archived row's touch target) was listed on this board as still open for five versions after it was retired — the 20px Archived fold is gone and funded contracts live behind the Team Lead date/history sheet. See reports/retired-issues.md. Both corrections now live in screen-improvement-matrix.json, the file this board is generated from, so rebuilding cannot drop them.",
+      "(2026-09-02) Training Documents V3 replaced the two prop pages with one hub, so the old training screenshots are gone. RP-IMP-001 listed both as places it also appeared; those two entries are removed rather than repointed, because the finding describes a mostly-empty screen whose only forward action sits in the hard thumb zone, and the new hub is a full list of pair rows — whether it still applies there is a question for the area's own review, not an assumption to carry forward."
     ]
   }
 }

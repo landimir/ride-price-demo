@@ -1,15 +1,5 @@
 [
   {
-    "id": "RP-UI-012",
-    "severity": "Minor",
-    "flow": "Training Licenses & Registrations",
-    "screen": "Training Registrations",
-    "screenshot": "current/04-training-materials/02-training-registrations.png",
-    "issue": "The registration cards are print-sized (112mm wide) and wider than the phone; their right-hand side (SAMPLE overprint, amounts, expiry) is cut off in view with no visible scroll affordance.",
-    "observation": "By recorded decision the props are never scaled (they must print at true size); on a phone the grid scrolls horizontally, but nothing says so.",
-    "area": ".props-grid horizontal scroll hint at ≤720px"
-  },
-  {
     "id": "RP-UI-022",
     "severity": "Observation",
     "flow": "Finance Menu",
