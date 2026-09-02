@@ -595,8 +595,26 @@ function navigate(hash) { location.hash = hash; }
    so Back returns to it and it forwards again: a loop the user cannot Back
    out of (measured on the retired composer hash — two Backs and still stuck).
    Use this, never navigate(), for any guard or retired route that redirects. */
-function redirect(hash) { location.replace(hash); }
+/* a route that redirects is not a place anyone stood: it must not become
+   the hash Back returns to, or Back lands on the alias, gets redirected
+   forward again, and the advisor is looped on a screen that has no app bar
+   to leave by (review find — my own first fix had exactly this hole). */
+let routerReplacing = false;
+function redirect(hash) { routerReplacing = true; location.replace(hash); }
+/* where a chrome-less screen's back control should go: the screen the router
+   came from, or the queue when this tab opened here. Always a real
+   destination — never a history.back() that can be a no-op. */
+function routerBackHash() {
+  const prev = routerPrevHash;
+  return prev && prev !== location.hash ? prev : "#/deals";
+}
 
+/* the hash this router last rendered. A screen on the master canvas has no
+   app bar, so when it is the FIRST page in a tab its back control has nowhere
+   to go; this is what it falls back to. Deliberately not history.length —
+   that counts entries the fallback itself adds, so a Back that pushed
+   #/deals made the next Back believe there was history to pop. */
+let routerPrevHash = null, routerCurHash = null;
 function router() {
   const hash = location.hash || "#/deals";
   const parts = hash.replace(/^#\//, "").split("/");
@@ -609,7 +627,16 @@ function router() {
       if (seg.startsWith(":")) params[seg.slice(1)] = decodeURIComponent(parts[i]);
       else if (seg !== parts[i]) ok = false;
     });
-    if (ok) { r.fn(params); window.scrollTo(0, 0); return; }
+    if (ok) {
+      if (hash !== routerCurHash) {
+        /* arriving BY a redirect: the hash we are leaving was the alias, so
+           keep whatever was behind it instead of recording the alias */
+        if (!routerReplacing) routerPrevHash = routerCurHash;
+        routerCurHash = hash;
+        routerReplacing = false;
+      }
+      r.fn(params); window.scrollTo(0, 0); return;
+    }
   }
   navigate("#/deals");
 }
@@ -2298,14 +2325,20 @@ function trainingDocsView(tab) {
      mount-time scale would let the 112mm card reach past the sheet again */
   let sheetFit = null;
 
-  const closeSheet = () => {
+  const closeSheet = ({ rearm = true } = {}) => {
     const sc = $("#tdocScrim"); if (sc) sc.classList.remove("show");
     if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
     if (sheetFit) { window.removeEventListener("resize", sheetFit); sheetFit = null; }
     /* the print set returns to the whole tab once no single pair is open */
-    setPrintSet(pairs.map(p => p.prop));
+    if (rearm) setPrintSet(pairs.map(p => p.prop));
   };
-  const teardown = () => { closeSheet(); window.removeEventListener("hashchange", teardown); };
+  /* the router is registered on hashchange before any view is, so on a hash
+     change it renders the NEW view first and this teardown runs after, with a
+     stale closure. Re-arming the print set here would overwrite the new
+     render with the tab the advisor just left, and the browser own print
+     (Ctrl+P, the OS share sheet) would print the wrong documents. Teardown
+     drops listeners and touches nothing else. */
+  const teardown = () => { closeSheet({ rearm: false }); window.removeEventListener("hashchange", teardown); };
   window.addEventListener("hashchange", teardown);
   const openSheet = (html, onMount) => {
     const sh = $("#tdocSheet"); if (!sh) return;
@@ -2375,7 +2408,11 @@ function trainingDocsView(tab) {
       <div class="m-scrim" id="tdocScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="tdocSheet"></div></div>
       <div class="tdoc-printroot" id="tdocPrint" aria-hidden="true"></div>`;
 
-    $("#tdocBack").onclick = () => history.back();
+    /* the master canvas hides the app bar, and this hub can be the FIRST
+       page in a tab — a pasted demo link, a bookmark, or the #/regprops
+       alias, which replaces the only history entry. Back goes to the screen
+       the router actually came from, or to the queue when there was none. */
+    $("#tdocBack").onclick = () => navigate(routerBackHash());
     $$(".tdoc-seg button").forEach(b => b.onclick = () => {
       type = b.dataset.type;
       /* the tab lives in the URL, so a reload and the alias route both land
