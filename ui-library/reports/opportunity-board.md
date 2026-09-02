@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Opportunity Board
 
-Updated 2026-08-28 (corrections appended 2026-08-31 and 2026-09-01 — see the end of *Where to start*) · 2 of 20 product areas reviewed · 21 recommendations so far. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.
+Updated 2026-09-01 · 2 of 20 product areas reviewed · 21 recommendations so far. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.
 
 ## Top opportunities (by priority, then severity, then how widely they repeat)
 
@@ -49,4 +49,5 @@ Updated 2026-08-28 (corrections appended 2026-08-31 and 2026-09-01 — see the e
 1. Scan Driver's License is REVIEWED (area 2 of 20 in review order) via the first external-draft intake: 14 recommendations, two owner questions answered (Q1 summary-first verify vs decision 11; Q2 the scanner's shell), four external items killed on invariants/decisions — see the area's intake record.
 2. Build order once the owner answers: RP-IMP-012 + 013 (the identity screens), RP-IMP-008 (the tear-down bug + guidance), RP-IMP-011 (CTA outcomes), then the Q1/Q2-dependent work.
 3. Still open from Home: where + New Customer Visit lives on phones (RP-IMP-001).
-4. (2026-09-01) The Scan Driver's License rows above predate the owner's scan-v2 package (2026-08-28), which rebuilt the flow and answered both owner questions — at least RP-IMP-012 and RP-IMP-013 describe screens that no longer exist in that form. The area needs a re-review against the built v2 before anything here is picked up; do not build from these rows as written. (RP-UI-017, the Team Lead Archived row's touch target, was listed here as still open long after it was retired at v009 — the 20px Archived fold is gone and funded contracts live behind the Team Lead date/history sheet. Corrected 2026-08-31.)
+4. (2026-09-01) The Scan Driver's License rows above predate the owner's scan-v2 package (2026-08-28), which rebuilt the flow and answered both owner questions — at least RP-IMP-012 and RP-IMP-013 describe screens that no longer exist in that form. The area needs a re-review against the built v2 before anything here is picked up; do not build from these rows as written.
+5. (2026-08-31) RP-UI-017 (the Team Lead Archived row's touch target) was listed on this board as still open for five versions after it was retired — the 20px Archived fold is gone and funded contracts live behind the Team Lead date/history sheet. See reports/retired-issues.md. Both corrections now live in screen-improvement-matrix.json, the file this board is generated from, so rebuilding cannot drop them.

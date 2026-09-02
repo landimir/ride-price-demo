@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Improvement Report
 
-Improvement view v001 · built on flow library v009 (app cc9d106) · updated 2026-08-28
+Improvement view v001 · built on flow library v016 (app ed0ea19) · updated 2026-09-01
 
 This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.
 
@@ -483,19 +483,19 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 1. Customer Onboarding — the Customer Resolver (9 screens)
 2. Training Licenses & Registrations (2 screens)
-3. Discovery Session (3 screens)
+3. Discovery Session (6 screens)
 4. Vehicle Selection (7 screens)
 5. Test Drive Agreement (7 screens)
 6. Trade-In Evaluation & Proof of Ownership (4 screens)
 7. Desking — Calculate Payments (6 screens)
 8. Base Payment Agreement (3 screens)
 9. Credit Application (Lending Lane) (9 screens)
-10. Buyers on the Deal (Co-Buyer) (4 screens)
+10. Buyers on the Deal (Co-Buyer) (7 screens)
 11. F&I Product Presentation (5 screens)
-12. Finance Menu — Sign-Off, Terms, Repayment Options, Forms, Contracts (16 screens)
-13. Deal Jacket & Compliance (11 screens)
-14. Send Text Request (advisor → client) (3 screens)
+12. Finance Menu — Sign-Off Gate and Four Stages (13 screens)
+13. Deal Jacket & Compliance (9 screens)
+14. Customer document request (from the jacket) (3 screens)
 15. Client Document Upload (customer's phone) (10 screens)
 16. Snap All — burst capture (4 screens)
 17. Document Review (advisor) (1 screens)
-18. Print Center & Printables (3 screens)
+18. Documents — Print Center & Printables (6 screens)

@@ -19,7 +19,7 @@ a{color:inherit}
 .main{padding:22px 26px 80px;min-width:0}
 .hero{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 22px;margin-bottom:22px;display:grid;grid-template-columns:1.4fr 1fr;gap:18px}
 .hero h1{margin:0 0 4px;font-size:22px;color:var(--navy)}.hero h1::after{content:"";display:block;height:4px;width:54px;background:var(--grad);border-radius:99px;margin-top:6px}
-.hero p{margin:6px 0;color:var(--ink)}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{background:var(--bg);border-radius:12px;padding:10px 12px}.stat b{display:block;font-size:22px;color:var(--navy)}.stat span{font-size:11.5px;color:var(--muted)}
+.hero p{margin:6px 0;color:var(--ink)}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.stat{background:var(--bg);border-radius:12px;padding:10px 12px}.stat b{display:block;font-size:22px;color:var(--navy)}.stat span:not([class]){font-size:11.5px;color:var(--muted)}
 .sev{display:inline-block;border-radius:99px;padding:2px 9px;font-size:10.5px;font-weight:800;letter-spacing:.4px;color:#fff}.sev--Critical{background:var(--crit)}.sev--Major{background:var(--major)}.sev--Minor{background:var(--minor)}.sev--Observation{background:var(--obs)}
 .flow{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:24px;scroll-margin-top:70px}
 .flow header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}.flow h2{margin:0;font-size:17px;color:var(--navy);text-transform:uppercase;letter-spacing:.6px}.flow h2 small{color:var(--muted);font-weight:600;letter-spacing:0;text-transform:none;margin-left:8px}
@@ -55,6 +55,22 @@ a{color:inherit}
 .map ol{margin:0;padding-left:20px;columns:2;column-gap:30px;font-size:13px}.map li{break-inside:avoid;margin:3px 0}.map li small{color:var(--muted)}
 .hidden{display:none!important}
 @media (max-width:900px){.layout{grid-template-columns:1fr}.side{position:static;height:auto;border-right:0;border-bottom:1px solid var(--line)}.hero{grid-template-columns:1fr}.map ol{columns:1}}
+@media (max-width:720px){
+  .appbar{flex-wrap:wrap;gap:8px 10px;padding:9px 16px}
+  .appbar input{order:3;width:100%;max-width:none}
+  .appbar .ver{order:4;width:100%;margin-left:0;font-size:11px;line-height:1.45}
+  .appbar a.back{order:2}
+  .side{padding:12px 10px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat{min-width:0}
+  .stat b{font-size:19px}
+  .main{padding:16px 14px 64px}
+  .hero{padding:16px 15px}
+  .flow,.map{padding:15px 14px}
+  /* the wrapped bar is taller than the desktop one, and it is sticky — an
+     anchor jump must clear its real height, not the old 70px */
+  .flow,.scr{scroll-margin-top:150px}
+}
 </style></head>
 <body>
 <header class="appbar"><div class="brand"><i>Ride</i><span>PRICE</span></div><span class="chip">UI LIBRARY</span>

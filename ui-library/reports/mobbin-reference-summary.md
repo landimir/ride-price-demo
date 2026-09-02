@@ -1,6 +1,6 @@
 # Ride Price — Mobbin Reference Summary
 
-Updated 2026-08-28. One entry per reference family used by the improvement review so far. Each was looked up on Mobbin for a specific Ride Price problem; the screens are listed so they can be opened, and the lesson is what Ride Price takes — structure and clarity, never the other app's brand. Nothing here says "copy X": the adaptation always re-expresses the pattern in Ride Price's navy, gradient, Poppins and existing components.
+Updated 2026-09-01. One entry per reference family used by the improvement review so far. Each was looked up on Mobbin for a specific Ride Price problem; the screens are listed so they can be opened, and the lesson is what Ride Price takes — structure and clarity, never the other app's brand. Nothing here says "copy X": the adaptation always re-expresses the pattern in Ride Price's navy, gradient, Poppins and existing components.
 
 ## M3 · Work queue / home with one dominant action
 
