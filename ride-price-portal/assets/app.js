@@ -7527,7 +7527,9 @@ route("docreview/:id/:docId", ({ id, docId }) => {
 
     const names = sideNames();
     const have = captured();
-    st.side = Math.min(st.st === undefined ? st.side : st.side, Math.max(0, names.length - 1));
+    /* a document can lose a side (a rejected page is dropped), so the
+       selected index is clamped every render */
+    st.side = Math.min(st.side, Math.max(0, names.length - 1));
     const u = urls()[st.side];
     const s = status();
     const miss = missingIdx();
@@ -7616,6 +7618,14 @@ route("docreview/:id/:docId", ({ id, docId }) => {
         if (!file.files || !file.files.length) return;
         drAddShots(deal, docId, file.files);
         const result = drAutoVerify(deal, docId);
+        /* this sheet captures on THIS device — the advisor’s. Without the
+           marker the jacket counts it as customer activity and the tracking
+           sheet claims they opened the link and uploaded, which they never
+           did. The same fix was already made for the jacket’s camera pick
+           (review find); this capture site was missed. Absent via still
+           means the customer’s own device. */
+        const cr = jacketClient(deal)[docId];
+        if (cr) { cr.via = "advisor"; Store.save(); }
         /* NO blocking toast here (package rule): whatever the outcome, it is
            a state of this document and the card says it. The sheet confirms
            in place rather than sending the advisor to a success page. */

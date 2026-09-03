@@ -1,5 +1,119 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v021 — 2026-09-03
+
+App commit: 24b494e · 20 flows · 136 screens · previous: v020
+
+**Why this version exists.** Two corrections, neither visible as a new screen.
+The transition out of the Add-back sheet was labelled "Scan the back" while
+the screen after it showed the state the OTHER branch produces — the customer
+uploading through the secure link — so the flow promised the advisor path and
+documented the customer one. The label names the branch it actually follows
+now. And a side captured from the viewer’s own sheet is recorded as the
+advisor’s work, so the jacket’s delivery tracking stops crediting it to the
+customer. **RP-UI-030** is filed against this flow’s last screen: the Source
+line reads "Snap & Sort (demo)" for a document the customer uploaded, because
+every automatic acceptance is filed the same way. Most other entries below
+are the clock in the captured screens moving.
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1, customer-first
+- Discovery Session · Visit details (sheet)
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Desking — Calculate Payments · Calculate Payments — Lease
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Upload your documents
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Document Review (advisor) · Front received, back needed
+- Documents — Print Center & Printables · Documents
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
+## v020 — 2026-09-03
+
+App commit: 153b35f · 20 flows · 136 screens · previous: v019
+
+**Why this version exists.** v019 published *Both sides received* as a
+byte-for-byte copy of *Front received, back needed* — the capture step never
+reached the state it documents. Its client-link visit reloaded the page, and
+the captured photos live only in memory, so the front was wiped before the
+back went on; and the file input is a single-file camera input, so two files
+in one event yield one page. Both are corrected, and the screen now shows
+both sides Received with "System Verified (simulated)". `selfcheck.mjs` gained
+the guard that would have caught it: two byte-identical screenshots inside
+one flow, when neither declares a reused screen, mean a step did not advance.
+Most of the other entries below are the clock in the captured screens moving.
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Stage filter — no match
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1, customer-first
+- Discovery Session · Discovery complete (sheet)
+- Discovery Session · Visit details (sheet)
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Test Drive Agreement · Test drive in progress
+- Test Drive Agreement · End test drive — odometer
+- Desking — Calculate Payments · Base Payment Huddle
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Document Review (advisor) · Front received, back needed
+- Document Review (advisor) · Both sides received
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v019 — 2026-09-03
 
 App commit: 838460e · 20 flows · 136 screens · previous: v018
@@ -64,7 +178,9 @@ baseline. `tools/capture.mjs doc-review` was run on its own before
 `update.mjs`, so the working manifest already carried the new steps when
 update archived it as v018 — and the changelog then compared v019 against
 itself for that flow, reporting no additions or removals. `versions/v018`
-has been rebuilt from the commit that shipped it (734941c) and the two lists
+has been rebuilt from the LIBRARY commit that shipped it (734941c — the
+commit that wrote those files; the app they document is 15bf247, which the
+v018 metadata records and which this repair did not touch) and the two lists
 above recomputed. The lesson is the one already written into
 ai-workflow-rules.md: do not leave ad-hoc verification captures in the
 working copy, because the archive is taken from it.

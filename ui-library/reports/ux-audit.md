@@ -1,13 +1,13 @@
-# Ride Price Mobile UI — UX Audit (v019)
+# Ride Price Mobile UI — UX Audit (v021)
 
-Captured 2026-09-03T01:53:36.386Z · viewport 390×844 · app 838460e9a71dc2d186acb3e186e8bc62ff837d28
+Captured 2026-09-03T03:37:50.539Z · viewport 390×844 · app 24b494eb1a3e0ea17f922701aaf86fc6f3e420c6
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 0 |
 | Minor | 1 |
-| Observation | 2 |
+| Observation | 3 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
 
@@ -28,7 +28,7 @@ _None recorded._
 - **Observation:** Found by widening the audit on 2026-08-31 and measured, not estimated. It was not restyled in that change: the job there was to implement the owner's ruling on the NUMBER, and lifting 14 form controls is a design change across desking, inventory search and the filter sheet that deserves its own review. The harness states the scope boundary at its selector rather than implying coverage it does not have.
 - **Suggested area to investigate:** portal.css .opt-row, .switch, .m-search input, #dealSearch, #mMaxPrice
 
-## Observation (2)
+## Observation (3)
 
 ### RP-UI-022 — Finance Menu · Manager sign-off — Advisor view
 
@@ -43,6 +43,13 @@ _None recorded._
 - **Issue:** No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet on the queue top bar standing in for identity.
 - **Observation:** By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.
 - **Suggested area to investigate:** n/a
+
+### RP-UI-030 — Document Review (advisor) · Both sides received
+
+- **Screenshot:** `current/19-document-review/03-complete.png`
+- **Issue:** The Source line contradicts itself across the same document’s own states. Before acceptance it reads “Customer upload”, from the record’s own provenance. After acceptance it reads “Snap & Sort (demo)”, because drAutoVerify files every automatic acceptance with how=“sort” whatever the path was — an advisor camera scan, a capture from this screen, or the customer’s secure link. A trainee reading the finished document is told the wrong thing about where it came from.
+- **Observation:** The value is doing two jobs. “sort” is also what makes the status card say “System Verified (simulated)” — the one phrase the package requires, telling the advisor no machine read the photo — so it cannot simply be changed to “client” without losing that. The clean split is that Source answers where the document came from (the record already knows: via=“advisor” means this device, absent means the customer’s) and the status card answers what checked it. That is a copy decision on a screen from a replication package, so it is filed rather than changed.
+- **Suggested area to investigate:** app.js drAutoVerify() and the viewer’s sourceLine()
 
 ## Automated checks per screen
 

@@ -46,7 +46,7 @@ then read the added/changed screenshots, edit `reports/issues.json`, and run
 owner decisions recorded as they land), then
 `node ride-price-ui-library/tools/build-improvements.mjs` regenerates the
 improvement view and its three reports. `tools/preview-improvements.mjs`
-renders it headless for a visual check. Individual flows: `node ride-price-ui-library/tools/capture.mjs <flowId>` (each flow is stamped with the repo commit at capture time — `RP_COMMIT` from update.mjs, else `git rev-parse HEAD`). After touching the automated checks in `lib.mjs`, run `node ride-price-ui-library/tools/selfcheck.mjs`: it drives the overlap check over `tools/fixtures/overlap.html`, where text scrolled under a pinned dialog footer must NOT count and two texts drawn on top of each other must.
+renders it headless for a visual check. Individual flows: `node ride-price-ui-library/tools/capture.mjs <flowId>` (each flow is stamped with the repo commit at capture time — `RP_COMMIT` from update.mjs, else `git rev-parse HEAD`). After touching the automated checks in `lib.mjs`, run `node ride-price-ui-library/tools/selfcheck.mjs`: it drives the overlap check over `tools/fixtures/overlap.html`, where text scrolled under a pinned dialog footer must NOT count and two texts drawn on top of each other must. It also proves the barcode fixture cache ignores anything captured the old way, and that no flow ships the same image twice — two byte-identical screenshots inside one flow mean a step did not advance, which is how v019 published “Both sides received” as a copy of the screen before it.
 
 ## How the tools work
 `tools/flows.mjs` is the source of truth — a list of flows, each a list of steps with a `do(session)`
