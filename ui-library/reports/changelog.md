@@ -1,5 +1,74 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v019 — 2026-09-03
+
+App commit: 838460e · 20 flows · 136 screens · previous: v018
+
+### Added
+- Document Review (advisor) · Front received, back needed
+- Document Review (advisor) · Add back of driver's license
+- Document Review (advisor) · Both sides received
+
+_Corrected by hand: the generated entry said "none" because the archive it compared against had been polluted. See the note at the end of this entry._
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Stage filter — no match
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Visit details (sheet)
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Test Drive Agreement · Test drive in progress
+- Test Drive Agreement · End test drive — odometer
+- Desking — Calculate Payments · Base Payment Huddle
+- Desking — Calculate Payments · Calculate Payments — Lease
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Buyers on the Deal (Co-Buyer) · Co-buyer — contextual actions
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Upload your documents
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Document Review (advisor) · Front received, back needed
+- Document Review (advisor) · Both sides received
+- Documents — Print Center & Printables · Documents
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- Document Review (advisor) · Review — Driver's License, page 1 of 2
+
+_Corrected by hand, same reason._
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
+
+**Correction (2026-09-03).** This entry was generated against a polluted
+baseline. `tools/capture.mjs doc-review` was run on its own before
+`update.mjs`, so the working manifest already carried the new steps when
+update archived it as v018 — and the changelog then compared v019 against
+itself for that flow, reporting no additions or removals. `versions/v018`
+has been rebuilt from the commit that shipped it (734941c) and the two lists
+above recomputed. The lesson is the one already written into
+ai-workflow-rules.md: do not leave ad-hoc verification captures in the
+working copy, because the archive is taken from it.
+
 ## v018 — 2026-09-02
 
 App commit: 15bf247 · 20 flows · 134 screens · previous: v017

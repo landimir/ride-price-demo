@@ -1,12 +1,12 @@
 # Ride Price Mobile UI Library
 
-Version: v018
-Captured: 2026-09-02T23:22:13.992Z
-App commit: 15bf247f7180d7fe8990849fe49caa1f6071eab8
+Version: v019
+Captured: 2026-09-03T01:53:36.386Z
+App commit: 838460e9a71dc2d186acb3e186e8bc62ff837d28
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 134
+Screens documented: 136
 Branches documented: 75
 
 UX Audit:
@@ -37,7 +37,7 @@ UX Audit:
 | 16 | Customer document request (from the jacket) | 3 | Deal Jacket & Compliance · 01 Deal Jacket — funding readiness — Tap Request N documents |
 | 17 | Client Document Upload (customer's phone) | 10 | Customer document request (from the jacket) · 03 Customer request — delivery status — Open the customer's phone |
 | 18 | Snap All — burst capture | 4 | Deal Jacket & Compliance · 01 Deal Jacket — funding readiness — Tap Capture all here instead |
-| 19 | Document Review (advisor) | 1 | Deal Jacket & Compliance · 07 Completed — already in the jacket — Tap a received customer document, then View |
+| 19 | Document Review (advisor) | 3 | Deal Jacket & Compliance · 07 Completed — already in the jacket — Tap a received customer document, then View |
 | 20 | Documents — Print Center & Printables | 6 | Finance Menu — Sign-Off Gate and Four Stages · 12 Stage 4 — Final review — Tap Open on Print centre |
 
 ## Incomplete or failed captures
