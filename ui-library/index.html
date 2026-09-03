@@ -10,7 +10,7 @@ body{margin:0;font-family:Poppins,system-ui,-apple-system,"Segoe UI",Roboto,sans
 a{color:inherit}
 .appbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:10px 22px;background:linear-gradient(90deg,var(--chrome),var(--chrome-2));color:#fff}
 .brand{font-weight:800;font-size:20px;letter-spacing:.3px}.brand i{font-style:italic;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}.brand span{font-weight:700;font-size:12px;letter-spacing:2px;margin-left:6px;opacity:.9}
-.appbar .ver{margin-left:auto;font-size:12px;opacity:.9}.appbar input{border:0;border-radius:16px;padding:8px 14px;font:inherit;font-size:13px;width:260px;max-width:40vw}
+.appbar .ver{font-size:12px;opacity:.9}.appbar .dlwrap--all{margin-left:auto}.appbar .dl.dl--all{width:auto;min-width:36px;padding:0 12px;font-size:13px;letter-spacing:.2px;white-space:nowrap}.appbar input{border:0;border-radius:16px;padding:8px 14px;font:inherit;font-size:13px;width:260px;max-width:40vw}
 .chip{border:1px solid #f7b733;color:#f7b733;border-radius:99px;padding:2px 10px;font-size:11px;font-weight:800;letter-spacing:1px}
 .layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 52px)}
 .side{background:#fff;border-right:1px solid var(--line);padding:18px 14px;position:sticky;top:52px;height:calc(100vh - 52px);overflow:auto}
@@ -60,6 +60,7 @@ a{color:inherit}
   .appbar input{order:3;width:100%;max-width:none}
   .appbar .ver{order:4;width:100%;margin-left:0;font-size:11px;line-height:1.45}
   .appbar a.back{order:2}
+  .appbar .dlwrap--all{order:2;margin-left:auto}
   .side{padding:12px 10px}
   .stats{grid-template-columns:repeat(2,1fr)}
   .stat{min-width:0}
@@ -75,6 +76,8 @@ a{color:inherit}
 <body>
 <header class="appbar"><div class="brand"><i>Ride</i><span>PRICE</span></div><span class="chip">UI LIBRARY</span>
   <input id="q" type="search" placeholder="Filter screens, flows, issues…" aria-label="Filter">
+  <div class="dlwrap dlwrap--all"><button type="button" class="dl dl--all" aria-haspopup="menu" aria-expanded="false" aria-label="Download the whole library" title="Download the whole library">⬇ All</button>
+    <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="all">Whole library (ZIP)</button></div></div>
   <span class="ver">v021 · captured 2026-09-03 03:37 · viewport 390×844 · app 24b494e</span></header>
 <div class="layout">
   <nav class="side"><h4>Product areas</h4><a href="#home">Home — Active Floor &amp; Navigation<small>10</small></a><a href="#onboarding">Customer Onboarding — the Customer Resolver<small>9</small></a><a href="#license-scan">Scan Driver&#39;s License<small>11</small></a><a href="#training">Training Documents<small>4</small></a><a href="#discovery">Discovery Session<small>6</small></a><a href="#vehicles">Vehicle Selection<small>7</small></a><a href="#test-drive">Test Drive Agreement<small>7</small></a><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership<small>4</small></a><a href="#desking">Desking — Calculate Payments<small>6</small></a><a href="#agreement">Base Payment Agreement<small>3</small></a><a href="#credit">Credit Application (Lending Lane)<small>9</small></a><a href="#buyers">Buyers on the Deal (Co-Buyer)<small>7</small></a><a href="#presentation">F&amp;I Product Presentation<small>5</small></a><a href="#finance-menu">Finance Menu — Sign-Off Gate and Four Stages<small>13</small></a><a href="#deal-jacket">Deal Jacket &amp; Compliance<small>9</small></a><a href="#document-request">Customer document request (from the jacket)<small>3</small></a><a href="#client-upload">Client Document Upload (customer&#39;s phone)<small>10</small></a><a href="#snap-all">Snap All — burst capture<small>4</small></a><a href="#doc-review">Document Review (advisor)<small>3</small></a><a href="#print-center">Documents — Print Center &amp; Printables<small>6</small></a><h4>Reports</h4><a href="reports/ux-audit.md">UX audit</a><a href="reports/flow-manifest.json">Flow manifest</a><a href="reports/changelog.md">Changelog</a><a href="reports/library-summary.md">Summary</a></nav>
@@ -2171,11 +2174,17 @@ small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 88x28; .dr-lin
     return new Blob([...parts, ...central, end], { type: "application/zip" });
   }
   async function flowZip(sec) {
-    const { title, desc, entry } = flowMeta(sec);
+    const { title } = flowMeta(sec);
     const shots = flowScreens(sec);
     const files = [];
     for (const s of shots) { const r = await fetch(s.src); if (!r.ok) throw new Error("could not fetch " + s.src); files.push({ name: slug(title) + "/" + s.file, data: new Uint8Array(await r.arrayBuffer()) }); }
     /* the comments travel with the screenshots */
+    files.push({ name: slug(title) + "/README.md", data: new TextEncoder().encode(flowReadme(sec, shots)) });
+    saveBlob(zip(files), "ride-price-" + slug(title) + ".zip");
+  }
+  /* the flow README, as text — shared by the per-flow ZIP and the whole-library ZIP */
+  function flowReadme(sec, shots) {
+    const { title, desc, entry } = flowMeta(sec);
     const md = ["# " + title, "", document.title, "", desc.trim(), entry.trim(), ""];
     shots.forEach((s, i) => {
       md.push("## " + s.n + " " + s.name, "", "- Screenshot: " + s.file, s.hash ? "- Route: " + s.hash : "", s.act && i < shots.length - 1 ? "- Action to next: " + s.act : "");
@@ -2184,8 +2193,36 @@ small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 88x28; .dr-lin
       for (const is of s.issues) { md.push("- **" + is.sev + " " + is.id + "**: " + is.text[0]); for (const t of is.text.slice(1)) md.push("  - " + t); }
       md.push("");
     });
-    files.push({ name: slug(title) + "/README.md", data: new TextEncoder().encode(md.filter(l => l !== null).join("\n")) });
-    saveBlob(zip(files), "ride-price-" + slug(title) + ".zip");
+    return md.join(String.fromCharCode(10));
+  }
+  /* every flow in one archive. A folder per flow with its screenshots and
+     README (the same files the per-flow ZIP produces), plus a top-level
+     README naming the version and listing the flows, the changelog and the
+     version record. Store-only like the per-flow ZIP; the 136 fetches are
+     the cost, and the note counts them so the wait is not a blank. */
+  async function libraryZip(note) {
+    const secs = [...document.querySelectorAll(".flow")];
+    const ver = (document.querySelector(".appbar .ver") || {}).textContent || "";
+    const root = "ride-price-ui-library-" + (ver.match(/v\d{3}/) || ["current"])[0] + "/";
+    const total = secs.reduce((n, sec) => n + sec.querySelectorAll(".scr").length, 0);
+    const files = []; let done = 0;
+    const top = ["# Ride Price Mobile UI Flow Library", "", ver.trim(), "", "One folder per flow. Each holds that flow's screenshots and a README with the route, the notes, the branch lines and every finding — the same files the per-flow download produces.", "", "## Flows", ""];
+    for (const sec of secs) {
+      const { title } = flowMeta(sec); const shots = flowScreens(sec); const dir = root + slug(title) + "/";
+      top.push("- " + title + " — " + shots.length + " screen" + (shots.length === 1 ? "" : "s") + " (" + slug(title) + "/)");
+      for (const s of shots) {
+        const r = await fetch(s.src); if (!r.ok) throw new Error("could not fetch " + s.src);
+        files.push({ name: dir + s.file, data: new Uint8Array(await r.arrayBuffer()) });
+        done++; if (note) note.textContent = "Preparing… " + done + " of " + total;
+      }
+      files.push({ name: dir + "README.md", data: new TextEncoder().encode(flowReadme(sec, shots)) });
+    }
+    top.push("", "## Reports", "", "- reports/changelog.md — what changed in every version", "- reports/version.json — the capture record for this version", "");
+    files.unshift({ name: root + "README.md", data: new TextEncoder().encode(top.join(String.fromCharCode(10))) });
+    for (const rep of ["changelog.md", "version.json"]) {
+      const r = await fetch("reports/" + rep); if (r.ok) files.push({ name: root + "reports/" + rep, data: new Uint8Array(await r.arrayBuffer()) });
+    }
+    saveBlob(zip(files), root.slice(0, -1) + ".zip");
   }
   document.addEventListener("click", async (e) => {
     const tog = e.target.closest(".dl");
@@ -2197,7 +2234,7 @@ small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 88x28; .dr-lin
     const wrap = tog.closest(".dlwrap"), note = wrap.querySelector(".dlnote");
     /* the menu and the status popover are mutually exclusive: a finished note
        clears when the menu opens; while Preparing… the note IS the state */
-    if (note) { if (note.textContent === "Preparing…") return; note.remove(); }
+    if (note) { if (note.textContent.startsWith("Preparing")) return; note.remove(); }
     const m = tog.nextElementSibling; const open = m.hidden;
     document.querySelectorAll(".dlmenu").forEach(x => { x.hidden = true; x.previousElementSibling.setAttribute("aria-expanded", "false"); });
     m.hidden = !open; tog.setAttribute("aria-expanded", String(open));
@@ -2209,7 +2246,7 @@ small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 88x28; .dr-lin
     menu.hidden = true; menu.previousElementSibling.setAttribute("aria-expanded", "false");
     menu.previousElementSibling.focus(); /* focus returns to the toggle */
     const note = document.createElement("div"); note.className = "dlnote"; note.setAttribute("role", "status"); note.textContent = "Preparing…"; wrap.appendChild(note);
-    try { await (kind === "png" ? flowPng(sec) : flowZip(sec)); }
+    try { await (kind === "all" ? libraryZip(note) : kind === "png" ? flowPng(sec) : flowZip(sec)); }
     catch (err) { note.textContent = location.protocol === "file:" ? "Downloads need the page served from a web address (the public link) — a file opened directly cannot read its own images." : "Could not prepare the download: " + err.message; return; }
     note.remove();
   }

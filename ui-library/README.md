@@ -58,3 +58,15 @@ full-length `.scroll.png`; any other page taller than the phone full-length, cap
 never cropped), and runs automated visual checks (horizontal overflow, off-screen elements, clipped
 text, text overlap, small touch targets). `build.mjs` renders the master page and reports from the
 manifest plus the audited `issues.json`. `update.mjs` wraps it all with versioning and the changelog.
+
+## Downloads
+The master page carries two kinds of download, both built in the browser from the screenshots the
+page already shows (so the page must be served from a web address — the public link — not opened as
+a file). Each flow's header has a **⬇** menu: the flow as one composed image (PNG), or its
+screenshots plus a README with the route, notes, branch lines and findings (ZIP). The app bar's
+**⬇ All** menu downloads the **whole library** as one ZIP: a folder per flow with exactly the files
+the per-flow ZIP produces, a top-level README naming the version and listing the flows, and
+`reports/changelog.md` and `reports/version.json`. The archive is store-only (PNGs are already
+compressed) and written by the same hand-rolled ZIP writer; no library is loaded. At v021 it is
+about 9 MB. `tools/probe-download.mjs` exercises all three in headless Chrome and validates the
+bytes — entry counts against the manifest, not remembered numbers.
