@@ -1355,19 +1355,6 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
 .dr-doneline--blocked b { color: #92400e; }
 .dr-donereturn { width: 100%; justify-content: center; }
 
-/* the prototype's DEBUG strip — counters + jumps between the two "devices" */
-.dr-debug {
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 8px; z-index: 99;
-  width: min(430px, calc(100% - 24px)); background: #111827; color: #e5e7eb;
-  border: 1px solid #334155; border-radius: 12px; padding: 8px 10px;
-  display: flex; align-items: center; gap: 8px; font-size: 10px;
-  box-shadow: 0 8px 30px rgba(15,23,42,.28);
-}
-.dr-debug b { color: #fff; }
-/* the strip floats over the page foot — the screens that carry it keep room */
-body[data-screen="docreq"] #view,
-body[data-screen="snapall"] #view,
-body[data-screen="docreview"] #view { padding-bottom: 56px; }
 /* the client link is the customer's page, not a screen of the advisor tool:
    the app bar, the drawer trigger, the role switch and the DEMO chip all
    belong to staff and are hidden here at every width (owner prototype,
@@ -1376,11 +1363,6 @@ body[data-screen="clientlink"] .appbar,
 body[data-screen="clientlink"] .pagebar { display: none; }
 body[data-screen="clientlink"] #view { padding: 0; max-width: none; }
 body[data-screen="clientlink"] { background: #fff; }
-.dr-debug__sp { flex: 1; }
-.dr-debug button {
-  border: 1px solid #475569; background: #1f2937; color: #fff; border-radius: 8px;
-  padding: 5px 7px; font: inherit; font-size: 9px; font-weight: 600; cursor: pointer;
-}
 
 /* ---- Snap All Documents — burst capture + simulated auto-sort ---- */
 /* the advisor launcher shares the jacket screen's recorded blue-CTA
@@ -3102,4 +3084,72 @@ body[data-screen="tdoc"] .m-app { padding-bottom: 40px; }
   .tdoc-toolbar { grid-template-columns: minmax(0, 1fr) auto; }
   .tdoc-printall { padding: 0 14px; font-size: 14px; }
   .tdoc-seg button { font-size: 13px; }
+}
+
+/* ============================================================
+   Document Review V2 (drv- family) — owner's replication package,
+   2026-09-02. A viewer, not a dashboard: a sticky white header, the
+   document taking the viewport, side controls, one compact status card and
+   a single dock action. The sheet, scrim and primary/secondary buttons are
+   the shared m- and tv- components — same component, one definition.
+   ============================================================ */
+/* no padding-bottom override here: .drv-app reserves the dock's height
+   itself, and body[data-screen] .m-app is the more specific selector — it
+   won, and the fixed dock covered the end of the status card on a short
+   screen (review find). */
+.drv-app { display: flex; flex-direction: column; min-height: 100vh; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+.drv-top { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.98); border-bottom: 1px solid #ececec; padding: 10px 8px; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; }
+.drv-icon { width: 44px; height: 44px; border: 0; background: transparent; border-radius: 50%; font-size: 26px; line-height: 1; color: var(--ink); cursor: pointer; display: grid; place-items: center; }
+.drv-icon:active { background: #f1f1f1; }
+.drv-icon:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+.drv-topcopy { min-width: 0; text-align: center; }
+.drv-title { font-size: 17px; font-weight: 760; letter-spacing: -.2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.drv-meta { margin-top: 2px; font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.drv-page { flex: 1; padding: 14px 16px 18px; display: flex; flex-direction: column; }
+.drv-viewer { background: #111827; border-radius: 24px; min-height: 445px; max-height: 56vh; display: grid; place-items: center; overflow: hidden; position: relative; touch-action: pan-y; }
+.drv-paper { max-width: 84%; max-height: 92%; border-radius: 12px; box-shadow: 0 12px 36px rgba(0,0,0,.3); transition: transform .18s ease; transform-origin: center; }
+.drv-placeholder { width: 84%; aspect-ratio: 1.58/1; background: linear-gradient(180deg,#eef5ff,#fff); border-radius: 14px; padding: 18px; position: relative; display: flex; flex-direction: column; justify-content: center; gap: 8px; box-shadow: 0 12px 36px rgba(0,0,0,.28); }
+.drv-phmark { position: absolute; right: 12px; top: 12px; font-size: 10px; letter-spacing: .08em; color: #6f7b8a; font-weight: 800; }
+.drv-placeholder b { font-size: 13px; font-weight: 800; letter-spacing: .06em; color: #31445c; }
+.drv-placeholder p { margin: 0; font-size: 12px; line-height: 1.4; color: #5b6b7f; }
+
+.drv-sides { display: flex; gap: 8px; margin-top: 14px; }
+.drv-side { flex: 1; min-height: 44px; border: 1px solid var(--line); background: #fff; border-radius: 999px; padding: 10px 12px; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer; }
+.drv-side.on { border-color: var(--navy); background: var(--navy); color: #fff; }
+.drv-side--need { color: #9b5a00; background: #fff5e6; border-color: transparent; }
+.drv-side:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+
+.drv-status { background: #fff; border: 1px solid var(--line); border-radius: 22px; padding: 16px 18px; margin-top: 14px; }
+.drv-statusrow { display: flex; gap: 12px; align-items: flex-start; }
+.drv-dot { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; flex: none; font-weight: 800; font-size: 15px; }
+.drv-dot--good { background: var(--fm-ok-bg, #eaf7f2); color: var(--green); }
+.drv-dot--warn { background: #fff5e6; color: #9b5a00; }
+.drv-dot svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.drv-statuscopy { flex: 1; min-width: 0; }
+.drv-statuscopy strong { font-size: 15px; }
+.drv-statuscopy p { margin: 3px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+.drv-detail { display: flex; justify-content: space-between; gap: 12px; padding: 13px 0 0; border-top: 1px solid var(--line-soft); margin-top: 14px; font-size: 13px; }
+.drv-detail span { color: var(--muted); }
+
+.drv-dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 22; background: rgba(255,255,255,.98); border-top: 1px solid #e7e7e7; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
+.drv-dock .drv-go { margin-top: 0; width: 100%; max-width: 430px; margin-left: auto; margin-right: auto; }
+
+.m-sheet .drv-sheettitle { font-size: 24px; font-weight: 780; letter-spacing: -.4px; margin: 0 0 6px; }
+.drv-choices { margin-top: 8px; }
+.drv-choice { width: 100%; display: flex; align-items: center; gap: 14px; text-align: left; background: #fff; border: 0; border-top: 1px solid var(--line-soft); padding: 15px 2px; font: inherit; color: var(--ink); cursor: pointer; min-height: 64px; }
+.drv-choice:first-child { border-top: 0; }
+.drv-choice:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+.drv-well { width: 44px; height: 44px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; flex: none; }
+.drv-well svg { width: 20px; height: 20px; fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.drv-choicecopy { flex: 1; min-width: 0; }
+.drv-choicecopy strong { display: block; font-size: 16px; }
+.drv-choicecopy span { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; }
+.drv-chev { flex: none; font-size: 24px; color: #9a9a9a; line-height: 1; }
+.drv-note { background: var(--surface-2); border-radius: 16px; padding: 13px 15px; color: var(--muted); font-size: 13px; line-height: 1.45; margin-top: 12px; }
+.drv-received { background: var(--fm-ok-bg, #eaf7f2); color: var(--green); border-radius: 14px; padding: 12px 14px; font-weight: 750; font-size: 13px; margin-bottom: 12px; }
+
+@media (max-width: 390px) {
+  .drv-page { padding-left: 14px; padding-right: 14px; }
+  .drv-viewer { min-height: 420px; }
 }

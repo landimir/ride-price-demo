@@ -6184,6 +6184,22 @@ function jacketLedgers(deal) {
   return { total: docs.length, accepted, received: accepted + landed, missing: docs.length - accepted };
 }
 
+/* One secure request, one ledger. The jacket owned this write; the document
+   viewer's "Send secure upload link" needs exactly the same thing, and a
+   second copy of it is how a removed document once read "Requested" forever
+   (the two-ledger bug the jacket comment describes). One function, two
+   callers. */
+function jacketSendRequest(deal, ids) {
+  const j = jacketOf(deal);
+  const cl = jacketClientOf(deal);
+  const at = new Date().toISOString();
+  j.reqSentAt = at;
+  ids.forEach(qid => {
+    if (!cl[qid] || cl[qid].state === "requested") cl[qid] = { state: "requested", requestedAt: at };
+  });
+  Store.save();
+}
+
 /* the photos a client captures live for THIS session only — a JS map of
    object URLs, never the Store, never localStorage (owner decision + the
    quota measurement). A reload forgets them; the records survive. */
@@ -6655,16 +6671,7 @@ route("jacket/:id", ({ id }) => {
      retake needs. (The old j.req stamp is no longer written: two ledgers
      recording the same send is how a removed document came to read
      "Requested" forever — review find.) */
-  function sendRequest(ids) {
-    const j = jacketOf(deal);
-    const cl = jacketClientOf(deal);
-    const at = new Date().toISOString();
-    j.reqSentAt = at;
-    ids.forEach(qid => {
-      if (!cl[qid] || cl[qid].state === "requested") cl[qid] = { state: "requested", requestedAt: at };
-    });
-    Store.save();
-  }
+  const sendRequest = (ids) => jacketSendRequest(deal, ids);
 
   /* delivery status, local to the jacket — never its own route */
   function trackingSheet(waiting) {
@@ -7021,13 +7028,11 @@ function drLogoMark() {
   return RIDE_PRICE_DATA.dealership.name.split(" ").map(w => w[0]).join("").slice(0, 2).toUpperCase();
 }
 
-/* the prototype's DEBUG strip: live ledger counters plus one-tap jumps
-   between the two "devices" this one browser is playing. Rendered on the
-   document-flow screens, where a deal is in hand. */
-function drDebugStrip(deal) {
-  const led = jacketLedgers(deal);
-  return `<div class="dr-debug"><b>DEBUG</b><span>received ${led.received}/${led.total}</span><span>accepted ${led.accepted}/${led.total}</span><span class="dr-debug__sp"></span><button type="button" data-dbg="advisor">Advisor</button><button type="button" data-dbg="client">Client link</button></div>`;
-}
+/* The prototype's DEBUG strip is gone (Document Review V2, 2026-09-02). The
+   document viewer was its last render site — docreq had already retired and
+   snapall stopped drawing it — and the package forbids developer counters on
+   a screen an advisor reads. drWireDebug stays: the "Demo · advisor view"
+   button on the customer-side screens is still a [data-dbg] control. */
 function drWireDebug(deal) {
   $$("[data-dbg]").forEach(b => b.onclick = () => navigate(b.dataset.dbg === "advisor" ? "#/jacket/" + deal.id : "#/clientlink/" + deal.id));
 }
@@ -7391,54 +7396,263 @@ function drClientLink(id, startScreen) {
    instant and simulated, so there is no second Accept — the screen shows the
    pages, the record, and says plainly that the check was scripted. */
 
+/* ============================================================
+   VIEW: Document Review V2 — owner's replication package, 2026-09-02.
+
+   Its core rule is one sentence: DOCUMENT REVIEW IS A VIEWER, NOT ANOTHER
+   DEAL JACKET SCREEN. The document takes the viewport; the deal context is
+   quiet; a compliance exception appears only when it affects the document
+   actually on screen.
+
+   What the package removes from this screen, and why each was there:
+   - the Advisor / Team Lead switch and the Buyer / Jacket pills (the old app
+     chrome — this is a viewer, not a dashboard),
+   - the DEBUG strip (staff furniture; it stays on the other document-flow
+     screens, where a deal is being worked rather than read),
+   - the second "Back to Deal Jacket" (the header's back arrow and the dock
+     button are one path each, not two labelled duplicates),
+   - the permanent +/- zoom buttons (double-tap and pinch zoom instead; the
+     overflow carries an explicit Zoom for anyone who cannot gesture),
+   - and the blocking toast when a side is missing. A missing side is a
+     STATE OF THIS DOCUMENT, so it is shown inline on the status card and
+     acted on from one dock button.
+
+   Front and back are not a new data model: `clientMeta(docId).minPages` has
+   said 2 for the licence since the client-capture round, and the pages are
+   the captured photos. Front-only is therefore `pages < minPages`, which is
+   exactly the package's "front received, back needed" — and it is never
+   called verified.
+   ============================================================ */
 route("docreview/:id/:docId", ({ id, docId }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
   const d = docMeta(docId); const m = clientMeta(docId);
   if (!d || !m) return navigate("#/jacket/" + id);
-  const st = { zoom: 1, page: 0 };
+  const c = Store.customer(deal.customerId);
 
-  renderChrome(d.label, dealTitle(deal),
-    `<a class="btn btn--ghost btn--sm" href="#/jacket/${esc(deal.id)}">← Deal Jacket</a>`);
-  document.body.dataset.screen = "docreview";
+  /* the viewer's own state: which side is shown, and whether it is zoomed */
+  const st = { side: 0, zoom: 1 };
+  let sheetKey = null;
 
-  function render() {
-    const r = jacketClient(deal)[docId];
-    const done = jacketState(deal, docId);
-    const urls = clientPhotos(deal.id, docId);
-    const pages = Math.max(1, (r && (r.pages || r.draftPages)) || urls.length || 1);
-    st.page = Math.min(st.page, pages - 1);
-    const u = urls[st.page];
-    const statusBox = done
-      ? done.how === "sort"
-        ? `<div class="dr-doneline"><b>✓ System Verified (simulated)</b><p>${esc(m.verifiedSummary || "")} Nothing was read from the photos — the demo scripts this result.</p></div>`
-        : `<div class="dr-doneline"><b>✓ Accepted${done.how === "client" ? " by " + esc(done.by) : ""}</b><p>In the jacket since ${esc(jacketStamp(done.at))}.${done.note ? " Note: " + esc(done.note) : ""}</p></div>`
-      : r && r.state === "rejected"
-        ? `<div class="dr-doneline dr-doneline--blocked"><b>⚠ ${esc(r.rejectedReason || "Needs a new photo")}</b><p>The client link and the jacket queue both offer the retake.</p></div>`
-        : "";
-    view().innerHTML = `
-      <div class="dr-reviewwrap">
-        <div class="dr-reviewhead"><b>${esc(d.label)}</b>
-          <span>${done ? "System verified " + esc(jacketStamp(done.at)) : r && r.receivedAt ? "Received " + esc(drStamp(r.receivedAt)) : "Nothing on file yet"} · ${pages} page${pages === 1 ? "" : "s"}</span></div>
-        <div class="dr-stage">${u ? `<img class="dr-photo" src="${esc(u)}" alt="Document page" style="transform:scale(${st.zoom})">` : `<div class="dr-photoart" style="transform:scale(${st.zoom})"></div>`}
-          <div class="dr-zoom"><button type="button" data-zoom="-" aria-label="Zoom out">−</button><button type="button" data-zoom="+" aria-label="Zoom in">＋</button></div></div>
-        <div class="dr-pagetools"><button type="button" data-page="-" ${st.page === 0 ? "disabled" : ""} aria-label="Previous page">←</button><b>Page ${st.page + 1} of ${pages}</b><button type="button" data-page="+" ${st.page >= pages - 1 ? "disabled" : ""} aria-label="Next page">→</button></div>
-        ${u ? "" : `<p class="hint" style="text-align:center">The photo lived only in the session that captured it — the record is what the jacket keeps.</p>`}
-        ${statusBox}
-        <a class="btn btn--ghost dr-donereturn" href="#/jacket/${esc(deal.id)}">← Back to Deal Jacket</a>
-      </div>`;
-    view().insertAdjacentHTML("beforeend", drDebugStrip(deal));
-    wire();
-    drWireDebug(deal);
-    drPinchZoom($(".dr-stage"), st, render);
+  const rec = () => jacketClient(deal)[docId] || null;
+  const urls = () => clientPhotos(deal.id, docId);
+  /* how many pages have actually ARRIVED. A bare { state: "requested" }
+     record — which is precisely what jacketSendRequest writes — means the
+     customer has been asked and has sent nothing, so it counts as zero. An
+     earlier "|| 1" floor here made the side control say "Front · Received"
+     for a document nobody had uploaded (review find). */
+  const captured = () => {
+    const r = rec();
+    if (!r || r.state === "requested") return 0;
+    return (r.pages || r.draftPages) || urls().length || 0;
+  };
+  /* how many side controls to draw: what arrived, or what the document needs */
+  const pageCount = () => Math.max(1, captured(), m.minPages || 1);
+  /* a licence is the one document whose pages are SIDES; everything else
+     numbers them. Read from the catalog, never from the id. */
+  const sideNames = () => (m.minPages === 2 && /front and back/i.test(m.sub || ""))
+    ? ["Front", "Back"]
+    : Array.from({ length: Math.max(pageCount(), m.minPages || 1) }, (_, i) => `Page ${i + 1}`);
+  /* the exception this screen is allowed to show: a side this document still
+     needs. Not a general compliance state — only what is missing HERE. A
+     document that was merely requested has no exception to show yet. */
+  const missingIdx = () => {
+    const r = rec(); if (!r || r.state === "requested") return -1;
+    const need = m.minPages || 1;
+    return captured() < need ? captured() : -1;
+  };
+
+  const closeSheet = () => {
+    const sc = $("#drvScrim"); if (sc) sc.classList.remove("show");
+    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+  };
+  const teardown = () => { closeSheet(); window.removeEventListener("hashchange", teardown); };
+  window.addEventListener("hashchange", teardown);
+  const openSheet = (html, onMount) => {
+    const sh = $("#drvSheet"); if (!sh) return;
+    sh.innerHTML = `<div class="m-handle"></div>${html}`;
+    $("#drvScrim").classList.add("show");
+    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
+    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
+    document.addEventListener("keydown", sheetKey, true);
+    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
+    if (onMount) onMount(sh);
+  };
+
+  /* one status, derived once and read by both the card and the dock — the
+     label and the action must never describe different states (lesson 7) */
+  function status() {
+    const r = rec(), done = jacketState(deal, docId), miss = missingIdx();
+    if (done) {
+      return done.how === "sort"
+        ? { kind: "good", title: "System Verified (simulated)", body: `${m.verifiedSummary || ""} Nothing was read from the photos — the demo scripts this result.`.trim() }
+        : { kind: "good", title: `Accepted${done.how === "client" ? " by " + done.by : ""}`, body: `In the jacket since ${jacketStamp(done.at)}.${done.note ? " Note: " + done.note : ""}` };
+    }
+    /* ORDER MATTERS. drAutoVerify records a document short of a side as
+       state "rejected" with rejectedReason set to the document's own
+       missingPage title, so a generic rejected-branch first would shadow the
+       specific one and the advisor would never be told WHICH side, or that
+       adding it is the fix (review find). A rejection for any other reason —
+       an unreadable photo, say — still gets the generic language. */
+    if (r && r.state === "rejected" && miss < 0) {
+      return { kind: "warn", title: r.rejectedReason || "Needs a new photo", body: "The client link and the jacket queue both offer the retake." };
+    }
+    if (miss >= 0) {
+      const names = sideNames();
+      const first = r && r.receivedAt ? `${names[0]} received ${drStamp(r.receivedAt)}. ` : "";
+      return { kind: "warn", title: `${names[miss]} of ${d.label} needed`, body: `${first}Add the ${names[miss].toLowerCase()} to complete this document.` };
+    }
+    if (!r || r.state === "requested") {
+      return { kind: "warn", title: "Nothing on file yet", body: "The customer has not sent this document." };
+    }
+    return { kind: "good", title: `${d.label} capture complete`, body: `${captured() > 1 ? "Both sides are" : "It is"} stored in the Deal Jacket.` };
   }
 
-  function wire() {
-    $$("[data-zoom]").forEach(b => b.onclick = () => { st.zoom = b.dataset.zoom === "+" ? Math.min(1.9, st.zoom + .15) : Math.max(.75, st.zoom - .15); render(); });
-    $$("[data-page]").forEach(b => b.onclick = () => {
-      const r = jacketClient(deal)[docId];
-      const urls = clientPhotos(deal.id, docId);
-      const pages = Math.max(1, (r && (r.pages || r.draftPages)) || urls.length || 1);
-      st.page = b.dataset.page === "+" ? Math.min(pages - 1, st.page + 1) : Math.max(0, st.page - 1); render();
+  /* how it got here — the jacket's own honesty line, kept */
+  function sourceLine() {
+    const r = rec(), done = jacketState(deal, docId);
+    if (done) return done.how === "sort" ? "Snap &amp; Sort (demo)" : done.how === "client" ? "Customer upload" : done.how === "scan" ? "Camera scan" : done.how === "esign" ? "Signed in the app" : "Taken in by hand";
+    /* a bare { state: "requested" } record means the customer has been ASKED
+       and has sent nothing — naming them as the source of an upload that has
+       not happened is the same false claim the page count made (review
+       find). No source until something arrives. */
+    if (!r || r.state === "requested") return "&mdash;";
+    if (r.via === "advisor") return "Advisor capture";
+    return "Customer upload";
+  }
+
+  function render() {
+    renderChrome(d.label, "", "");
+    document.body.dataset.canvas = "master";
+    document.body.dataset.screen = "docreview";
+
+    const names = sideNames();
+    const have = captured();
+    st.side = Math.min(st.st === undefined ? st.side : st.side, Math.max(0, names.length - 1));
+    const u = urls()[st.side];
+    const s = status();
+    const miss = missingIdx();
+    const ctx = [c ? `${c.first} ${c.last}` : null, deal.dealNo ? `Deal #${deal.dealNo}` : null].filter(Boolean).join(" · ");
+
+    view().innerHTML = `
+      <div class="m-app drv-app">
+        <header class="drv-top">
+          <button type="button" class="drv-icon" id="drvBack" aria-label="Back to Deal Jacket">&lsaquo;</button>
+          <div class="drv-topcopy">
+            <div class="drv-title">${esc(d.label)}</div>
+            <div class="drv-meta">${esc(ctx)}</div>
+          </div>
+          <button type="button" class="drv-icon" id="drvMore" aria-label="More document actions">&hellip;</button>
+        </header>
+        <main class="drv-page">
+          <div class="drv-viewer" id="drvViewer">
+            ${u
+              ? `<img class="drv-paper${st.zoom > 1 ? " drv-paper--zoom" : ""}" src="${esc(u)}" alt="${esc(d.label)} — ${esc(names[st.side] || "page")}" style="transform:scale(${esc(st.zoom)})">`
+              : `<div class="drv-placeholder"><span class="drv-phmark">TRAINING PREVIEW</span>
+                   <b>${esc(d.label)}${names[st.side] ? " &middot; " + esc(names[st.side].toUpperCase()) : ""}</b>
+                   <p>The photo lived only in the session that captured it. The record is what the jacket keeps.</p></div>`}
+          </div>
+          <div class="drv-sides">
+            ${names.map((n, i) => {
+              const need = i >= have;
+              return `<button type="button" class="drv-side${need ? " drv-side--need" : i === st.side ? " on" : ""}" data-side="${esc(i)}">
+                ${esc(n)} &middot; ${need ? "Needed" : "Received"}</button>`;
+            }).join("")}
+          </div>
+          <section class="drv-status">
+            <div class="drv-statusrow">
+              <span class="drv-dot drv-dot--${esc(s.kind)}">${s.kind === "good" ? rpIcon("check") : "!"}</span>
+              <div class="drv-statuscopy"><strong>${esc(s.title)}</strong><p>${esc(s.body)}</p></div>
+            </div>
+            <div class="drv-detail"><span>Source</span><strong>${sourceLine()}</strong></div>
+          </section>
+        </main>
+        <div class="drv-dock">
+          ${miss >= 0
+            ? `<button type="button" class="tv-primary drv-go" id="drvAdd">Add missing ${esc((names[miss] || "page").toLowerCase())}</button>`
+            : `<a class="tv-primary drv-go" id="drvDone" href="#/jacket/${esc(deal.id)}">Back to Deal Jacket</a>`}
+        </div>
+      </div>
+      <div class="m-scrim" id="drvScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="drvSheet"></div></div>`;
+
+    $("#drvBack").onclick = () => navigate("#/jacket/" + deal.id);
+    $("#drvMore").onclick = moreSheet;
+    const add = $("#drvAdd"); if (add) add.onclick = addSideSheet;
+    $$("[data-side]").forEach(b => b.onclick = () => {
+      const i = Number(b.dataset.side);
+      /* tapping a side that has not arrived offers the way to get it, rather
+         than showing an empty frame */
+      if (i >= captured()) return addSideSheet();
+      st.side = i; st.zoom = 1; render();
+    });
+    const scrim = $("#drvScrim");
+    scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
+    /* gesture zoom, as the package asks: double-tap toggles, pinch is
+       continuous. No permanent +/- buttons on the viewer. */
+    const stage = $("#drvViewer");
+    stage.ondblclick = () => { st.zoom = st.zoom > 1 ? 1 : 1.6; render(); };
+    drPinchZoom(stage, st, render);
+  }
+
+  /* the exception sheet: the two ways this app can actually get a side */
+  function addSideSheet() {
+    const names = sideNames();
+    const miss = Math.max(0, missingIdx());
+    const what = (names[miss] || "page").toLowerCase();
+    const choice = (icon, title, sub, attr) => `<button type="button" class="drv-choice" ${attr}>
+      <span class="drv-well">${rpIcon(icon)}</span>
+      <span class="drv-choicecopy"><strong>${esc(title)}</strong><span>${esc(sub)}</span></span>
+      <span class="drv-chev" aria-hidden="true">&rsaquo;</span></button>`;
+    openSheet(`
+      <h2 class="tv-sheettitle drv-sheettitle">Add ${esc(what)} of ${esc(d.label.toLowerCase())}</h2>
+      <section class="drv-choices">
+        ${choice("camera", "Scan " + what + " now", "Use this device to capture the missing side.", `id="drvScan"`)}
+        ${choice("upload", "Send secure upload link", "Customer uploads directly into Ride Price.", `id="drvLink"`)}
+      </section>
+      <input id="drvFile" class="drv-file" type="file" accept="image/*" capture="environment" hidden>
+      <p class="drv-note">Uploads go directly into Ride Price &mdash; never through the salesperson&rsquo;s phone.</p>`, (sh) => {
+      const file = $("#drvFile", sh);
+      $("#drvScan", sh).onclick = () => { file.value = ""; file.click(); };
+      file.onchange = () => {
+        if (!file.files || !file.files.length) return;
+        drAddShots(deal, docId, file.files);
+        const result = drAutoVerify(deal, docId);
+        /* NO blocking toast here (package rule): whatever the outcome, it is
+           a state of this document and the card says it. The sheet confirms
+           in place rather than sending the advisor to a success page. */
+        st.side = Math.max(0, captured() - 1);
+        render();
+        openSheet(`
+          <div class="drv-received">${result.ok ? "&#10003; " + esc(sideNames()[st.side] || "Page") + " received" : "&#9888; " + esc(result.issue || "Still incomplete")}</div>
+          <h2 class="tv-sheettitle drv-sheettitle">${result.ok ? esc(d.label) + " complete" : esc(d.label) + " still needs a side"}</h2>
+          <div class="tv-sheetactions"><button type="button" class="tv-primary" data-sheet-close>Review document</button></div>`);
+      };
+      $("#drvLink", sh).onclick = () => {
+        jacketSendRequest(deal, [docId]);
+        closeSheet(); render();
+        openSheet(`
+          <div class="drv-received">&#10003; Secure link sent</div>
+          <h2 class="tv-sheettitle drv-sheettitle">Waiting for the customer</h2>
+          <p class="drv-note" style="margin-top:0">The customer uploads straight into Ride Price. Demo &mdash; no message is really sent; the customer view opens on this device.</p>
+          <div class="tv-sheetactions">
+            <a class="tv-primary" href="#/clientlink/${esc(deal.id)}">Open the customer view</a>
+            <button type="button" class="tv-secondary" data-sheet-close>Stay here</button>
+          </div>`);
+      };
+    });
+  }
+
+  /* the overflow: secondary viewer actions only, never a duplicate of the
+     dock's primary (package rule) */
+  function moreSheet() {
+    openSheet(`
+      <h2 class="tv-sheettitle drv-sheettitle">Document actions</h2>
+      <section class="drv-choices">
+        <button type="button" class="drv-choice" id="drvZoom">
+          <span class="drv-well">${rpIcon("radar")}</span>
+          <span class="drv-choicecopy"><strong>${st.zoom > 1 ? "Reset zoom" : "Zoom document"}</strong><span>Double-tap or pinch the document does the same.</span></span>
+          <span class="drv-chev" aria-hidden="true">&rsaquo;</span></button>
+      </section>`, (sh) => {
+      $("#drvZoom", sh).onclick = () => { st.zoom = st.zoom > 1 ? 1 : 1.6; closeSheet(); render(); };
     });
   }
 
