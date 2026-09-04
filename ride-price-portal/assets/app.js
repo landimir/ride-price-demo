@@ -47,13 +47,22 @@ const Store = (function () {
     return n;
   }
 
+  /* 11:38 today, but never ahead of the clock: opened at 09:00 the demo would
+     otherwise say a customer arrived two and a half hours from now. A day back
+     keeps the hour the seed data names and puts it in the past. */
+  function seedArrival() {
+    const d = new Date(); d.setHours(11, 38, 0, 0);
+    if (d.getTime() > Date.now()) d.setDate(d.getDate() - 1);
+    return d.toISOString();
+  }
+
   function seedDeal() {
     return {
       id: "d-demo1", dealNo: 48201, customerId: "c-demo1", stock: "7H21313", dealType: "finance",
       stage: "desking", createdAt: "2026-07-14T17:20:00Z",
       /* SEED-DATA v022: John is in the showroom, arrived 11:38 today — presence
          is this stamp, his deal stays Desking */
-      visit: { arrivedAt: (() => { const d = new Date(); d.setHours(11, 38, 0, 0); return d.toISOString(); })() },
+      visit: { arrivedAt: seedArrival() },
       discovery: { answers: { week: "Daily commute to Midtown, weekend trips upstate.", family: "Two kids, one dog." }, done: true },
       testDrive: { done: true, completedMiles: 12 },
       trade: { has: true, desc: "2018 Hyundai Tucson", vin: "KM8TRAININGSAMP06", miles: 61200, condition: "Good", value: 15500, payoff: 10750, rebates: 500, applyTaxCredit: true },
@@ -130,6 +139,25 @@ const Store = (function () {
     if (seedC && !seedC.license && !seedC.dob && seedC.last === "Bridwell") {
       const src = RIDE_PRICE_DATA.seedCustomers.find(x => x.id === "c-demo2");
       if (src && src.license) { seedC.license = Object.assign({}, src.license); seedC.dob = src.dob; minted = true; }
+    }
+    /* the chrome rule (2026-09-04) put three new things in the seed, and
+       load() is the migration boundary: every browser that had already opened
+       the demo — the owner's phone and every public-demo visitor among them —
+       keeps its saved blob, and without these it gets Home with NO showroom
+       section at all and a Team Lead date control with no funded history.
+       Each is guarded so it stamps once and never overwrites somebody's work. */
+    /* presence: only a deal that has never had a visit at all. An emptied or
+       ended visit is a real state; a delivered deal is off the floor anyway. */
+    if (demo && demo.visit === undefined && demo.stage !== "complete") {
+      demo.visit = { arrivedAt: seedArrival() }; minted = true;
+    }
+    /* the funded contract behind the Team Lead's date control, and the customer
+       it belongs to. Keyed on the id: a blob that still has them is left alone,
+       and one the user deleted is not resurrected under a different id. */
+    if (!state.deals.some(d => d.id === "d-demo2")) { state.deals.push(seedFundedDeal()); minted = true; }
+    if (!state.customers.some(c => c.id === "c-demo3")) {
+      const src = RIDE_PRICE_DATA.seedCustomers.find(c => c.id === "c-demo3");
+      if (src) { state.customers.push(Object.assign({}, src)); minted = true; }
     }
     if (minted) save();
     return state;
@@ -296,7 +324,11 @@ const STAGES = {
   credit: { label: "Credit App", badge: "badge--prog", route: (d) => `#/credit/${d.id}` },
   menu: { label: "Menu", badge: "badge--menu", route: (d) => `#/menu/${d.id}` },
   forms: { label: "Forms", badge: "badge--menu", route: (d) => `#/menu/${d.id}` },
-  complete: { label: "Complete", badge: "badge--done", route: (d) => `#/menu/${d.id}` }
+  /* the finance menu needs a stocked vehicle to price anything and refuses a
+     deal without one, so a funded contract carried by its own snapshot (the
+     v022 seed's unstocked Telluride) was a row that bounced straight back to
+     Home. Its record is the jacket, which needs only the deal. */
+  complete: { label: "Complete", badge: "badge--done", route: (d) => d.stock ? `#/menu/${d.id}` : `#/jacket/${d.id}` }
 };
 
 /* output flows into innerHTML (renderChrome crumbs) — escape here, at the source */
@@ -704,7 +736,12 @@ const SHOWROOM_STAGES = ["discovery", "vehicle", "testdrive"];
    package told us not to invent: a checked-in customer stays listed until
    the code gains a check-out. */
 function inShowroom(d) {
-  if (d.visit) return !!d.visit.arrivedAt && !d.visit.endedAt;
+  /* a funded deal is off the floor on BOTH paths. The stage does not put a
+     customer in the showroom, but it does take a delivered one out of it:
+     without this the stamp outlives the deal and Home reads "In showroom 1 /
+     Arrived 11:38 · Done" beside "0 active" for good, since nothing ends a
+     visit yet. Check-out is still the package's open item. */
+  if (d.visit) return !!d.visit.arrivedAt && !d.visit.endedAt && d.stage !== "complete";
   return SHOWROOM_STAGES.indexOf(d.stage) >= 0 && d.stage !== "complete";
 }
 function arrivedLabel(d) {
@@ -790,19 +827,46 @@ function chShell(opts, content, dockHtml, sheetIds) {
     ${chBanner()}${chTop(opts)}
     <main class="rp-page rp-stack">${content}</main>
     ${dockHtml || ""}${task ? "" : chTabbar(opts.active)}
-    <div class="rp-scrim" id="${ids.scrim}" hidden></div><div class="rp-sheet" id="${ids.sheet}" role="dialog" aria-modal="true" hidden></div>
+    <div class="rp-scrim" id="${ids.scrim}" hidden></div><div class="rp-sheet" id="${ids.sheet}" role="dialog" aria-modal="true" tabindex="-1" hidden></div>
   </div>`;
 }
 /* one sheet opener for the kit's overlay: grab handle, then the screen's html */
 function chSheetOpener(scrimId, sheetId) {
   const scrim = () => $("#" + scrimId), sheet = () => $("#" + sheetId);
-  const close = () => { scrim().hidden = true; sheet().hidden = true; };
+  /* what opened it, and the Escape listener that is only bound while it is up */
+  let opener = null, onKey = null;
+  const close = () => {
+    scrim().hidden = true; sheet().hidden = true;
+    if (onKey) { document.removeEventListener("keydown", onKey); onKey = null; }
+    /* aria-modal hides the page behind the sheet, so a cursor left on the
+       control that opened it has nothing to read and no way out. Put it back
+       where it came from — and only if that control is still on the page. */
+    if (opener && document.contains(opener) && opener.focus) opener.focus();
+    opener = null;
+  };
   const open = (html, onMount) => {
+    /* the screen has ONE sheet node and every sheet reuses it, so its shape is
+       reset here rather than by whoever changed it. chDialog() turns it into a
+       centred dialog and used to change it back in its own two buttons only —
+       the scrim, which closes through this module, restored nothing, and the
+       next sheet on that screen opened as a floating box. One owner, and a
+       later caller cannot forget it. */
+    sheet().className = "rp-sheet";
     sheet().innerHTML = `<div class="rp-sheet__grab"></div>${html}`;
     scrim().hidden = false; sheet().hidden = false;
     scrim().onclick = close;
     $$("[data-sheet-close]", sheet()).forEach(b => b.onclick = close);
     if (onMount) onMount(sheet());
+    /* a dialog with no name is announced as "dialog" and nothing else. It
+       names itself from its own heading, after onMount so chDialog's title
+       is there too; a sheet with no heading carries no stale name. */
+    const t = sheet().querySelector(".rp-sheet__title, .rp-dialog__title");
+    if (t) { if (!t.id) t.id = sheetId + "Title"; sheet().setAttribute("aria-labelledby", t.id); }
+    else sheet().removeAttribute("aria-labelledby");
+    onKey = (e) => { if (e.key === "Escape") close(); };
+    document.addEventListener("keydown", onKey);
+    const first = sheet().querySelector("button, [href], input, select, textarea");
+    (first || sheet()).focus();
   };
   return { open, close };
 }
@@ -829,10 +893,11 @@ function chWireRole(sheets, afterSwitch) {
 function chDialog(sheets, title, body, actionLabel, onConfirm) {
   sheets.open(`<div class="rp-dialog__title">${esc(title)}</div><p class="rp-dialog__body">${esc(body)}</p>
     <div class="rp-dialog__actions"><button type="button" class="rp-dialog__button rp-dialog__button--quiet" data-sheet-close>Cancel</button><button type="button" class="rp-dialog__button rp-dialog__button--destructive" id="chDialogGo">${esc(actionLabel)}</button></div>`, (sheet) => {
+    /* the shape is restored by the opener on the next open, so no dismissal
+       path has to remember to undo this one */
     sheet.classList.add("rp-dialog"); sheet.classList.remove("rp-sheet");
     const grab = sheet.querySelector(".rp-sheet__grab"); if (grab) grab.remove();
-    $("#chDialogGo", sheet).onclick = () => { sheets.close(); sheet.classList.add("rp-sheet"); sheet.classList.remove("rp-dialog"); onConfirm(); };
-    $$("[data-sheet-close]", sheet).forEach(b => b.onclick = () => { sheets.close(); sheet.classList.add("rp-sheet"); sheet.classList.remove("rp-dialog"); });
+    $("#chDialogGo", sheet).onclick = () => { sheets.close(); onConfirm(); };
   });
 }
 const DEAL_BUCKETS = [
@@ -884,7 +949,12 @@ route("deals", () => {
 
   renderChrome(lead ? "Active Floor" : "My Deals", "", "");
   document.body.dataset.screen = "deals";
-  document.body.dataset.canvas = "master";
+  /* "kit", not "master": the two chrome screens need the app bar and the view
+     padding gone, and nothing else. The master canvas also re-declares --ink,
+     --surface and body color, and body[data-canvas] outranks the kit own body
+     rule, so a kit screen was painting in the master ink (#121A35) on the
+     master canvas (#F7F7F7) instead of the kit tokens it is meant to carry. */
+  document.body.dataset.canvas = "kit";
 
   /* one resolver for the vehicle identity a row may show: the deal's own
      snapshot first (survives unstocked units and catalog changes), the
@@ -922,9 +992,15 @@ route("deals", () => {
     }
     return { from: d0, to: null, label: "Today" };
   };
+  /* when a deal funded — the DMS closeout stamp Finalize already writes
+     (`dms.at`, menu V3), not a second field recording the same moment. A deal
+     completed before that stamp existed keeps its opening date, which is the
+     only date it holds; the app never guesses a later one. One definition, so
+     the badge and the date range cannot disagree. */
+  const fundedOnISO = (d) => (d.dms && d.dms.at) || d.createdAt || "";
   const fundedInRange = () => {
     const w = rangeWin();
-    return funded.filter(d => { const at = new Date(d.createdAt || 0); return (!w.from || at >= w.from) && (!w.to || at < w.to); });
+    return funded.filter(d => { const at = new Date(fundedOnISO(d) || 0); return (!w.from || at >= w.from) && (!w.to || at < w.to); });
   };
 
   const counts = {
@@ -942,7 +1018,11 @@ route("deals", () => {
     const hay = [
       c ? c.first + " " + c.last : "", c && c.phone ? c.phone : "",
       v ? v.year + " " + v.make + " " + v.model : "", v ? v.stock : "", v && v.vin ? v.vin : "",
-      d.vehicle ? (d.vehicle.vin || "") + " " + (d.vehicle.stock || "") : "",
+      /* the snapshot's WORDS too, not only its numbers: an unstocked deal
+         (the funded seed's Telluride) shows a vehicle the catalog does not
+         hold, and searching the name the row displays found nothing while the
+         empty state blamed the date range */
+      d.vehicle ? [d.vehicle.year, d.vehicle.make, d.vehicle.model, d.vehicle.vin, d.vehicle.stock].filter(Boolean).join(" ") : "",
       d.dealNo ? "#" + d.dealNo : "", d.trade && d.trade.vin ? d.trade.vin : ""
     ].join(" ").toLowerCase();
     return hay.indexOf(q) >= 0 ||
@@ -968,13 +1048,14 @@ route("deals", () => {
     /* the badge (kit): Title Case as written in the data, never uppercase —
        Desking amber; Done and Funded positive, a funded contract carrying
        the month and day it funded */
-    const fundedOn = d.stage === "complete" && lead && d.createdAt ? " · " + new Date(d.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+    const fundedISO = fundedOnISO(d);
+    const fundedOn = d.stage === "complete" && lead && fundedISO ? " · " + new Date(fundedISO).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
     const chip = d.stage === "complete" ? (lead ? "Funded" + fundedOn : "Done") : b.label;
     const positive = d.stage === "complete";
     /* the "Next:" › is the kit's, generated by CSS — no chevron element */
     return `<a class="rp-card dq-row" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
       <span class="rp-badge${positive ? " rp-badge--positive" : ""}">${esc(chip)}</span>
-      <div class="rp-card__name dq-name">${esc(name)}</div>
+      <div class="rp-card__name">${esc(name)}</div>
       ${veh ? `<div class="rp-card__line">${esc(veh)}</div>` : ""}
       ${ids}
       ${next && b.id !== "done" ? `<div class="rp-card__next">Next: ${esc(dealNextAction(d))}</div>` : ""}
@@ -995,7 +1076,7 @@ route("deals", () => {
     const arrived = arrivedLabel(d);
     return `<a class="rp-row dq-visit" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}">
       <span class="rp-initials">${esc(((c && c.first[0]) || "") + ((c && c.last[0]) || ""))}</span>
-      <span class="rp-row__body"><span class="rp-row__title dq-name--visit">${esc(name)}</span>
+      <span class="rp-row__body"><span class="rp-row__title">${esc(name)}</span>
       <span class="rp-row__sub dq-visitmeta">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)}</span></span>
       <span class="rp-row__chevron"></span>
     </a>`;
@@ -1003,21 +1084,21 @@ route("deals", () => {
 
   function showroomHtml(rows) {
     return `<div class="dq-showroom"><div class="rp-section">In showroom · ${rows.length}</div>
-      ${rows.length ? `<div class="rp-group dq-list">${rows.map(visitRow).join("")}</div>` : `<div class="rp-empty dq-empty"><strong>No showroom visits</strong>${dealsUI.q.trim() ? "None match this search." : "Start a new visit to check a customer in."}</div>`}</div>`;
+      ${rows.length ? `<div class="rp-group">${rows.map(visitRow).join("")}</div>` : `<div class="rp-empty"><strong>No showroom visits</strong>${dealsUI.q.trim() ? "None match this search." : "Start a new visit to check a customer in."}</div>`}</div>`;
   }
 
   view().innerHTML = chShell({ template: "destination", active: "deals" }, `
       <div class="rp-eyebrow">${lead ? "Floor overview" : "Sales floor"}</div>
       <div class="rp-title-row"><h1 class="rp-title dq-title">${lead ? "Active floor" : "My deals"}</h1><a class="rp-pill-primary dq-newvisit" href="#/customers">New visit</a></div>
-      <p class="rp-count dq-count" id="dqCount"></p>
+      <p class="rp-count" id="dqCount"></p>
       <div class="rp-search">${rpGlyph("search")}<input class="rp-search__input" id="dealSearch" placeholder="Search customer, VIN, or stock" aria-label="Search deals" value="${esc(dealsUI.q)}"><button type="button" class="rp-search__scan" id="dealScanBtn" aria-label="Scan a driver's license to start a visit">${rpGlyph("scan")}</button></div>
-      ${lead ? `<div class="rp-filter dq-managermeta">
-        <span class="dq-datesummary" id="dqDateSummary"></span>
-        <button type="button" class="rp-filter__control dq-datebtn" id="dqDateBtn"><span id="dqDateLabel"></span>${rpGlyph("chevron-down")}</button>
+      ${lead ? `<div class="rp-filter">
+        <span id="dqDateSummary"></span>
+        <button type="button" class="rp-filter__control" id="dqDateBtn"><span id="dqDateLabel"></span>${rpGlyph("chevron-down")}</button>
       </div>` : ""}
       <div id="dqShowroom"></div>
       ${lead ? `<div class="rp-section">Deals</div>
-      <div class="rp-chips dq-seg" role="group" aria-label="Filter deals by stage">
+      <div class="rp-chips" role="group" aria-label="Filter deals by stage">
         <button type="button" class="rp-chip dq-chipbtn" data-pipe="all">All ${counts.all}</button>
         <button type="button" class="rp-chip dq-chipbtn" data-pipe="desking"><span class="rp-chip__dot"></span>Desking ${counts.desking}</button>
         <button type="button" class="rp-chip dq-chipbtn" data-pipe="fni"><span class="rp-chip__dot rp-chip__dot--fi"></span>F&amp;I ${counts.fni}</button>
@@ -1031,7 +1112,12 @@ route("deals", () => {
   function paint() {
     if (!lead) dealsUI.pipe = "all";
     const q = dealsUI.q.trim();
+    /* the sets the lists below actually draw, computed ONCE — the summary
+       line used to count the whole floor while the lists counted the search,
+       so a search that matched nothing still read "1 in showroom · 1 active
+       deal" over two empty states (review lesson 7) */
     const showRows = showroom.filter(matches);
+    const actRows = act.filter(matches);
     const searching = !!q;
     /* the showroom section renders for BOTH roles — an advisor's own visit
        must stay reachable even though it is no longer a deal stage */
@@ -1045,34 +1131,38 @@ route("deals", () => {
       const w = rangeWin();
       $("#dqDateLabel").textContent = w.label;
       $("#dqDateSummary").textContent = `${w.label} · ${dealsUI.funded ? "active + funded" : "active floor"}`;
-      $("#dqCount").textContent = `${showroom.length} in showroom · ${act.length} active deal${act.length === 1 ? "" : "s"}`;
+      $("#dqCount").textContent = `${showRows.length} in showroom · ${actRows.length} active deal${actRows.length === 1 ? "" : "s"}`;
       const pool = act.filter(d => dealsUI.pipe === "all" || dealPipe(d) === dealsUI.pipe);
       const rows = pool.filter(matches);
       $("#dealList").innerHTML = rows.length
-        ? `<div class="dq-list">${rows.map(d => dealRow(d, { next: false })).join("")}</div>`
-        : `<div class="rp-empty dq-empty dq-empty--box"><strong>${pool.length ? "No deals match that search" : "No deals in this stage"}</strong>${pool.length ? "Try another name, VIN, or stock number." : "Choose another stage or start a new visit."}</div>`;
+        ? `<div>${rows.map(d => dealRow(d, { next: false })).join("")}</div>`
+        : `<div class="rp-empty"><strong>${pool.length ? "No deals match that search" : "No deals in this stage"}</strong>${pool.length ? "Try another name, VIN, or stock number." : "Choose another stage or start a new visit."}</div>`;
       const hist = fundedInRange().filter(matches);
       $("#dqFunded").innerHTML = dealsUI.funded
-        ? `<div class="rp-section">Funded · ${hist.length} <span class="dq-datesummary">${esc(w.label)}</span></div>
-           ${hist.length ? `<div class="dq-list">${hist.map(d => dealRow(d, { next: false })).join("")}</div>` : `<div class="rp-empty dq-empty"><strong>No funded contracts</strong>None in this range.</div>`}`
+        ? `<div class="rp-section">Funded · ${hist.length} <span>${esc(w.label)}</span></div>
+           ${hist.length ? `<div>${hist.map(d => dealRow(d, { next: false })).join("")}</div>` : `<div class="rp-empty"><strong>No funded contracts</strong>None in this range.</div>`}`
         : "";
     } else {
-      const active = act.filter(matches);
+      const active = actRows;
       const done = funded.filter(matches);
-      $("#dqCount").textContent = `${act.length} active`;
+      $("#dqCount").textContent = `${actRows.length} active`;
       $("#dqSectionLabel").textContent = "In progress";
-      let html = active.length ? `<div class="dq-list">${active.map(d => dealRow(d)).join("")}</div>` : "";
+      let html = active.length ? `<div>${active.map(d => dealRow(d)).join("")}</div>` : "";
       if (!active.length && !done.length && !showRows.length) {
         html = searching
-          ? `<div class="rp-empty dq-empty dq-empty--box"><strong>No deals found</strong>Try another name, VIN, or stock number.<button type="button" class="rp-link" id="dealShowAll">Clear search</button></div>`
-          : `<div class="rp-empty dq-empty dq-empty--box"><strong>No deals in progress</strong>Start a new visit to open one.</div>`;
+          ? `<div class="rp-empty"><strong>No deals found</strong>Try another name, VIN, or stock number.<button type="button" class="rp-link" id="dealShowAll">Clear search</button></div>`
+          : `<div class="rp-empty"><strong>No deals in progress</strong>Start a new visit to open one.</div>`;
       }
       /* v022 Home 09: a completed deal ends the list and In progress shows
-         its empty state rather than vanishing */
-      if (!active.length && done.length && !searching) html = `<div class="rp-empty dq-empty dq-empty--box"><strong>No deals in progress</strong>Start a new visit to open one.</div>`;
+         its empty state rather than vanishing. Not gated on `searching`: a
+         search whose only hit is a completed deal took neither branch and
+         drew the heading over nothing, with Completed straight beneath it. */
+      if (!active.length && html === "") html = searching
+        ? `<div class="rp-empty"><strong>No deals in progress match</strong>The match is under Completed.<button type="button" class="rp-link" id="dealShowAll">Clear search</button></div>`
+        : `<div class="rp-empty"><strong>No deals in progress</strong>Start a new visit to open one.</div>`;
       $("#dealList").innerHTML = html;
       $("#dqFunded").innerHTML = done.length
-        ? `<div class="rp-section">Completed</div><div class="dq-list">${done.map(d => dealRow(d, { next: false })).join("")}</div>`
+        ? `<div class="rp-section">Completed</div><div>${done.map(d => dealRow(d, { next: false })).join("")}</div>`
         : "";
       const sa = $("#dealShowAll");
       if (sa) sa.onclick = () => { dealsUI.q = ""; $("#dealSearch").value = ""; paint(); };
@@ -1127,7 +1217,7 @@ route("deals", () => {
   $("#dqMore").onclick = () => {
     /* flat glyph tiles: a row group is all-flat or all-glass, and this one has
        no family icon for the hub, so it is flat throughout */
-    const row = (href, icon, title, sub) => `<a class="rp-row dq-morerow" href="${href}"${href.indexOf("../") === 0 ? ` target="_blank" rel="noopener"` : ""}><span class="rp-tile">${rpGlyph(icon)}</span><span class="rp-row__body"><span class="rp-row__title">${title}</span><span class="rp-row__sub">${sub}</span></span><span class="rp-row__chevron"></span></a>`;
+    const row = (href, icon, title, sub) => `<a class="rp-row" href="${href}"${href.indexOf("../") === 0 ? ` target="_blank" rel="noopener"` : ""}><span class="rp-tile">${rpGlyph(icon)}</span><span class="rp-row__body"><span class="rp-row__title">${title}</span><span class="rp-row__sub">${sub}</span></span><span class="rp-row__chevron"></span></a>`;
     openSheet5(`${chSheetHead("More")}
       <div class="rp-group">
       ${row("#/vehicles/browse", "inventory", "Inventory", "Browse or search vehicles")}
@@ -1136,7 +1226,7 @@ route("deals", () => {
       ${row("../ride-price-training-hub/index.html", "hub", "Training hub", "Guides and practice flows")}
       </div>
       <div class="rp-group rp-group--spaced">
-      <button type="button" class="rp-row rp-row--destructive dq-morerow dq-morerow--danger" id="dqReset"><span class="rp-tile">${rpGlyph("trash")}</span><span class="rp-row__body"><span class="rp-row__title">Reset demo data</span><span class="rp-row__sub">Return the demo to its original seed state</span></span><span class="rp-row__chevron"></span></button>
+      <button type="button" class="rp-row rp-row--destructive" id="dqReset"><span class="rp-tile">${rpGlyph("trash")}</span><span class="rp-row__body"><span class="rp-row__title">Reset demo data</span><span class="rp-row__sub">Return the demo to its original seed state</span></span><span class="rp-row__chevron"></span></button>
       </div>`, (sheet) => {
       $("#dqReset", sheet).onclick = () => {
         closeSheet5();
@@ -1153,7 +1243,7 @@ route("deals", () => {
 
 route("customers", () => {
   renderChrome("Find a Customer", "", "");
-  document.body.dataset.canvas = "master";
+  document.body.dataset.canvas = "kit";   /* see the deals route */
   document.body.dataset.screen = "resolver";
   /* the unified Customer Resolver (owner's onboarding v3 package, 2026-08-28):
      one resolver for every place Ride Price needs a person. Search first,
@@ -1231,10 +1321,10 @@ route("customers", () => {
   const taskTitle = () => missionDeal ? (mission.kind === "driver" ? "Add driver" : "Add co-buyer") : "New visit";
   const shell = (content, step, dockHtml) => chShell({ template: "task", title: taskTitle(), step }, content, dockHtml, { scrim: "obScrim", sheet: "obSheet" });
   /* no lede under a task title (v022 §5) — the title and the eyebrow carry it */
-  const heroHtml = (eyebrow, title) => `<div class="rp-eyebrow">${eyebrow}</div><h1 class="rp-title ob-h1">${title}</h1>`;
+  const heroHtml = (eyebrow, title) => `<div class="rp-eyebrow">${eyebrow}</div><h1 class="rp-title">${title}</h1>`;
   /* the mission is state the advisor needs, not instruction: shown only when there is one */
   const contextPill = () => missionDeal ? `<div class="rp-notice">${mission.kind === "driver" ? "Adding a test-drive driver" : "Adding a co-buyer to this deal"}</div>` : "";
-  const primaryBtn = (id, label) => `<button type="button" class="rp-primary" id="${id}">${label}</button>`;
+  const primaryBtn = (id, label, off) => `<button type="button" class="rp-primary" id="${id}"${off ? " disabled" : ""}>${label}</button>`;
   const linkBtn = (id, label) => `<button type="button" class="rp-link" id="${id}">${label}</button>`;
 
   /* ---- sheets ---- */
@@ -1258,14 +1348,24 @@ route("customers", () => {
     return null;
   }
   const fmtAddr = (a) => `${a.address}, ${a.city}, ${a.state} ${a.zip}`;
+  /* a CRM record can hold no address at all — the funded seed customer does.
+     fmtAddr would render ", ,  " and the screen would offer to confirm it, so
+     ask first: a registration address needs a street and a town to be one. */
+  const hasAddr = (a) => !!(a && String(a.address).trim() && String(a.city).trim());
 
   /* the one write path for a confirmed registration address — explicit
      choice, never a silent overwrite; the record keeps its single address
      that every downstream surface already reads */
   function confirmAddress(c, a, source) {
+    /* the stamp says a person confirmed a real address. Refuse to write one
+       for an address that is not there, whichever caller asks: a confirmedAt
+       over an empty record would tell every downstream screen the address was
+       checked when nobody was ever shown one. */
+    if (!hasAddr(a)) return false;
     Object.assign(c, { address: a.address, city: a.city, state: a.state, zip: a.zip });
     c.onboard = Object.assign({}, c.onboard, { address: { confirmedAt: new Date().toISOString(), source } });
     Store.save();
+    return true;
   }
 
   /* ---- idle: search, the two license paths, recent customers ---- */
@@ -1290,7 +1390,7 @@ route("customers", () => {
       </div>
       ${st.results ? "" : `
       <div class="rp-section">Recent customers</div><div class="rp-group">
-        ${recent.filter(c => c.first && rowSub(c)).map(c => `<button type="button" class="rp-row ob-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">${esc(rowSub(c))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
+        ${recent.filter(c => c.first && rowSub(c)).map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">${esc(rowSub(c))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
       </div>`}`, "Step 1 of 3");
   }
 
@@ -1300,7 +1400,7 @@ route("customers", () => {
        manual entry as a link, never as a form (v022 Onboarding 05) */
     if (!hits.length) return `<div class="rp-empty"><strong>No matches</strong>Nothing on file matches that search.<button type="button" class="rp-link" id="obManual">No license available · add manually</button></div>`;
     return `<div class="rp-section">Results (${hits.length})</div><div class="rp-group">
-      ${hits.map(c => `<button type="button" class="rp-row ob-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">${esc([c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
+      ${hits.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">${esc([c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
     </div>`;
   }
 
@@ -1308,6 +1408,10 @@ route("customers", () => {
   function foundHtml() {
     const c = st.found;
     const a = { address: c.address, city: c.city, state: c.state, zip: c.zip };
+    /* nothing on file is not an address to confirm: the primary stays off and
+       the link becomes the way to supply one, so no run can stamp
+       "address confirmed" over a record that holds none */
+    const on = hasAddr(a);
     return shell(`
       ${heroHtml("Customer onboarding", "Customer found")}
       ${contextPill()}
@@ -1315,24 +1419,24 @@ route("customers", () => {
         <div class="rp-match__head"><span class="rp-initials">${initials(c)}</span>
           <span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">Existing Ride Price customer</span></span>
           <span class="rp-tag rp-tag--match">CRM match</span></div>
-        <div class="rp-match__kv"><span>Phone</span><span>${esc(c.phone)}</span></div>
-        <div class="rp-match__kv"><span>Email</span><span>${esc(c.email)}</span></div>
+        <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
+        <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
         <div class="rp-match__addr">
           <div class="rp-match__addr-head">Registration address<span class="rp-tag rp-tag--required">Required</span></div>
-          <div class="rp-match__addr-line">${esc(fmtAddr(a))}</div>
+          <div class="rp-match__addr-line">${on ? esc(fmtAddr(a)) : "No address on file"}</div>
         </div>
       </section>`, "Step 2 of 3",
-      chDock(primaryBtn("obConfirm", "Confirm address & " + (missionDeal ? (mission.kind === "driver" ? "add driver" : "attach co-buyer") : "start visit")), linkBtn("obOtherAddr", "Use a different address")));
+      chDock(primaryBtn("obConfirm", "Confirm address & " + (missionDeal ? (mission.kind === "driver" ? "add driver" : "attach co-buyer") : "start visit"), !on), linkBtn("obOtherAddr", on ? "Use a different address" : "Add a registration address")));
   }
 
   /* ---- manual fallback: minimum typing, one address field ---- */
   function manualHtml() {
     return shell(`
       ${heroHtml("Customer onboarding", "No license available")}
-      <div class="rp-field ob-field"><label class="rp-field__label" for="obName">Full name</label><input class="rp-field__input" id="obName" placeholder="First Last"></div>
-      <div class="rp-field ob-field"><label class="rp-field__label" for="obPhone">Mobile phone</label><input class="rp-field__input" id="obPhone" type="tel" placeholder="(555) 555-5555"></div>
-      <div class="rp-field ob-field"><label class="rp-field__label" for="obEmail">Email</label><input class="rp-field__input" id="obEmail" type="email" placeholder="name@testing.com"></div>
-      <div class="rp-field ob-field"><label class="rp-field__label" for="obAddr">Registration address</label><input class="rp-field__input" id="obAddr" placeholder="Street, city, ST 12345">
+      <div class="rp-field"><label class="rp-field__label" for="obName">Full name</label><input class="rp-field__input" id="obName" placeholder="First Last"></div>
+      <div class="rp-field"><label class="rp-field__label" for="obPhone">Mobile phone</label><input class="rp-field__input" id="obPhone" type="tel" placeholder="(555) 555-5555"></div>
+      <div class="rp-field"><label class="rp-field__label" for="obEmail">Email</label><input class="rp-field__input" id="obEmail" type="email" placeholder="name@testing.com"></div>
+      <div class="rp-field"><label class="rp-field__label" for="obAddr">Registration address</label><input class="rp-field__input" id="obAddr" placeholder="Street, city, ST 12345">
         <div id="obAddrHint"></div></div>`, "Step 2 of 3",
       chDock(primaryBtn("obManualSave", "Confirm & start visit"), linkBtn("obBack", "Back to resolver")));
   }
@@ -1340,13 +1444,13 @@ route("customers", () => {
   /* ---- remote session: waiting + ready (advisor side) ---- */
   function waitingHtml() {
     const s = session();
-    const row = (okFlag, label, sub, value) => `<div class="rp-step ob-statusrow"><span class="rp-step__mark${okFlag ? " rp-step__mark--done" : ""} ob-statusicon${okFlag ? "" : " pending"}">${okFlag ? rpGlyph("check") : ""}</span><div><span class="rp-step__title ob-statuslabel">${label}</span>${sub ? `<span class="rp-step__sub">${sub}</span>` : ""}</div><span class="rp-status${okFlag ? " rp-status--positive" : ""} ob-statusvalue${okFlag ? "" : " pending"}">${value}</span></div>`;
+    const row = (okFlag, label, sub, value) => `<div class="rp-step"><span class="rp-step__mark${okFlag ? " rp-step__mark--done" : ""} ob-statusicon${okFlag ? "" : " pending"}">${okFlag ? rpGlyph("check") : ""}</span><div><span class="rp-step__title">${label}</span>${sub ? `<span class="rp-step__sub">${sub}</span>` : ""}</div><span class="rp-status${okFlag ? " rp-status--positive" : ""} ob-statusvalue${okFlag ? "" : " pending"}">${value}</span></div>`;
     /* the channels are what is on record so far; the address arrives with
        the licence (v022 Onboarding 08) */
     return shell(`
       ${heroHtml("Customer onboarding", "Waiting for customer")}
       <div class="rp-notice">Secure link sent · ${esc(s.phone || s.email)} · ${esc(s.channel)}</div>
-      <div class="rp-steps ob-statuslist">
+      <div class="rp-steps">
         ${row(true, "Link sent", "Secure Ride Price session created", "Complete")}
         ${row(!!s.photoAt, "License photo", s.photoAt ? "Read from the training prop" : "Waiting for customer upload", s.photoAt ? "Received" : "Pending")}
         ${row(!!s.faceAt, "Identity photo", s.faceAt ? "Captured on the customer's device" : "Face step follows the upload", s.faceAt ? "Captured" : "Pending")}
@@ -1365,7 +1469,7 @@ route("customers", () => {
     const p = s.persona;
     const linked = s.matchId ? Store.customer(s.matchId) : null;
     const a = s.addressChoice;
-    const row = (okFlag, label, sub, value) => `<div class="rp-step ob-statusrow"><span class="rp-step__mark${okFlag ? " rp-step__mark--done" : ""} ob-statusicon${okFlag ? "" : " pending"}">${okFlag ? rpGlyph("check") : ""}</span><div><span class="rp-step__title ob-statuslabel">${label}</span>${sub ? `<span class="rp-step__sub">${sub}</span>` : ""}</div><span class="rp-status${okFlag ? " rp-status--positive" : ""} ob-statusvalue${okFlag ? "" : " pending"}">${value}</span></div>`;
+    const row = (okFlag, label, sub, value) => `<div class="rp-step"><span class="rp-step__mark${okFlag ? " rp-step__mark--done" : ""} ob-statusicon${okFlag ? "" : " pending"}">${okFlag ? rpGlyph("check") : ""}</span><div><span class="rp-step__title">${label}</span>${sub ? `<span class="rp-step__sub">${sub}</span>` : ""}</div><span class="rp-status${okFlag ? " rp-status--positive" : ""} ob-statusvalue${okFlag ? "" : " pending"}">${value}</span></div>`;
     /* the label names what finish() will do with this person: the session's
        own mission first (it outlives this page), else the page's */
     const k = ((session() && session().mission) || mission || {}).kind;
@@ -1375,7 +1479,7 @@ route("customers", () => {
       <section class="rp-match"><div class="rp-match__head"><span class="rp-initials">${initials(p)}</span>
         <span class="rp-row__body"><span class="rp-row__title">${esc(p.first + " " + p.last)}</span><span class="rp-row__sub">Remote session${linked ? " · existing customer" : ""}</span></span>
         <span class="rp-tag rp-tag--match">Identity captured</span></div></section>
-      <div class="rp-steps ob-statuslist" style="margin-top:14px">
+      <div class="rp-steps" style="margin-top:14px">
         ${row(true, "Secure session", "Opened on the customer's device", "Complete")}
         ${row(true, "Identity photo", "Captured and discarded", "Captured")}
         ${row(true, "License photo", "Read from the upload", "Received")}
@@ -1383,7 +1487,7 @@ route("customers", () => {
       </div>
       <section class="rp-match"><div class="rp-match__addr" style="border-top:0">
         <div class="rp-match__addr-head">Registration address<span class="rp-tag rp-tag--match">Confirmed</span></div>
-        <div class="rp-match__addr-line ob-addressvalue">${esc(fmtAddr(a))}</div>
+        <div class="rp-match__addr-line">${esc(fmtAddr(a))}</div>
         <div class="rp-row__sub">Confirmed by customer from the license</div></div></section>`, "Step 3 of 3",
       chDock(primaryBtn("obAttach", attachLabel), linkBtn("obDiscardSession", "Discard this upload")));
   }
@@ -1461,11 +1565,11 @@ route("customers", () => {
     const confirmBtn = $("#obConfirm");
     if (confirmBtn) confirmBtn.onclick = () => {
       const c = st.found;
-      confirmAddress(c, { address: c.address, city: c.city, state: c.state, zip: c.zip }, "record");
+      if (!confirmAddress(c, { address: c.address, city: c.city, state: c.state, zip: c.zip }, "record")) return;
       finish(c.id);
     };
     const other = $("#obOtherAddr");
-    if (other) other.onclick = () => openAddressSheet((a) => { confirmAddress(st.found, a, "chosen"); finish(st.found.id); });
+    if (other) other.onclick = () => openAddressSheet((a) => { if (confirmAddress(st.found, a, "chosen")) finish(st.found.id); });
 
     const manualSave = $("#obManualSave");
     if (manualSave) manualSave.onclick = () => {
@@ -1552,8 +1656,8 @@ route("customers", () => {
   function openSendSheet() {
     openSheet4(`${sheetHead4("Send secure upload link")}
       <div class="rp-segment" id="obChannel"><button type="button" class="rp-segment__item rp-segment__item--on active" data-ch="Text">Text</button><button type="button" class="rp-segment__item" data-ch="Email">Email</button></div>
-      <div class="rp-field ob-field"><label class="rp-field__label" for="obLinkPhone">Customer mobile</label><input class="rp-field__input" id="obLinkPhone" type="tel" placeholder="(555) 555-5555"></div>
-      <div class="rp-field ob-field"><label class="rp-field__label" for="obLinkEmail">Email</label><input class="rp-field__input" id="obLinkEmail" type="email" placeholder="name@testing.com"></div>
+      <div class="rp-field"><label class="rp-field__label" for="obLinkPhone">Customer mobile</label><input class="rp-field__input" id="obLinkPhone" type="tel" placeholder="(555) 555-5555"></div>
+      <div class="rp-field"><label class="rp-field__label" for="obLinkEmail">Email</label><input class="rp-field__input" id="obLinkEmail" type="email" placeholder="name@testing.com"></div>
       <button type="button" class="rp-primary" id="obSendGo">Send secure link</button>`, (sheet) => {
       let channel = "Text";
       $$("#obChannel button", sheet).forEach(b => b.onclick = () => {
@@ -1581,7 +1685,7 @@ route("customers", () => {
 
   function openAddressSheet(onPick) {
     openSheet4(`${sheetHead4("Use a different address")}
-      <div class="rp-field ob-field"><label class="rp-field__label" for="obSheetAddr">Search address</label><input class="rp-field__input" id="obSheetAddr" placeholder="Street, city, ST 12345"></div>
+      <div class="rp-field"><label class="rp-field__label" for="obSheetAddr">Search address</label><input class="rp-field__input" id="obSheetAddr" placeholder="Street, city, ST 12345"></div>
       <div id="obSheetOut"></div>`, (sheet) => {
       const inp = $("#obSheetAddr", sheet);
       inp.oninput = () => {

@@ -376,9 +376,12 @@ const RIDE_PRICE_DATA = {
       address: "88 Garfield Pl", city: "Brooklyn", state: "NY", zip: "11215", creditScore: 705, createdAt: "2026-07-08T19:30:00Z" },
     /* Priya funded a contract on Aug 14 (chrome rule v022 seed): she exists so
        the Team Lead's history has one funded deal to show behind the date
-       control. Not present on the floor; nothing else about her is on file. */
-    { id: "c-demo3", first: "Priya", last: "Patel", middle: "", email: "", phone: "",
-      address: "", city: "", state: "", zip: "", creditScore: 720, createdAt: "2026-08-14T15:05:00Z" }
+       control. Not present on the floor. Her record is COMPLETE — phone and
+       email are both required on every customer record (owner, 2026-08-23),
+       and a contract does not fund without a registration address. All
+       fictional, like every other identity here. */
+    { id: "c-demo3", first: "Priya", last: "Patel", middle: "", email: "ppatel@testing.com", phone: "(917) 555-0164",
+      address: "41-15 Bell Blvd", city: "Bayside", state: "NY", zip: "11361", creditScore: 720, createdAt: "2026-08-14T15:05:00Z" }
   ],
 
   /* license-scan prop personas — ALL FICTIONAL, printed as training props.

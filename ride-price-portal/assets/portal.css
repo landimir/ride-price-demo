@@ -3,6 +3,8 @@
    Modeled on the Ride Price software screens; brand-matched to hub
    ============================================================ */
 :root {
+  --app-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --navy: #262254;
   --navy-2: #322d6b;
   --navy-3: #1c1940;
@@ -36,10 +38,11 @@ body {
   background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.55;
 }
 /* native system type only (owner rule, 2026-08-27): hierarchy comes from
-   size, weight and spacing — never from a display face. No Google Fonts. */
+   size, weight and spacing — never from a display face. No Google Fonts.
+   The UI kit supersedes this for the MOBILE CHROME only (2026-09-04); one
+   token holds the app face so the printables can ask for it by name. */
 html, body, button, input, select, textarea {
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
-    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--app-font);
 }
 b, strong { font-weight: 600; } /* important, not shouting */
 a { color: var(--blue); text-decoration: none; }
@@ -1711,6 +1714,14 @@ body[data-canvas="master"] {
 body[data-canvas="master"] .appbar,
 body[data-canvas="master"] .pagebar { display: none; }
 body[data-canvas="master"] .view { max-width: none; padding: 0; }
+
+/* The kit canvas: the same three things the master canvas does to the app
+   chrome, and NOT its token block. The 19 kit screens carry the kit own
+   tokens (owner, 2026-09-04 — the kit replaces the app tokens for the mobile
+   chrome), so nothing here may re-declare --ink, --surface or body colour. */
+body[data-canvas="kit"] .appbar,
+body[data-canvas="kit"] .pagebar { display: none; }
+body[data-canvas="kit"] .view { max-width: none; padding: 0; }
 .m-app { width: 100%; max-width: 430px; margin: 0 auto; min-height: 100vh; background: #fff; padding-bottom: 88px; }
 
 /* top bar */
@@ -2354,84 +2365,37 @@ select.ca-input { appearance: auto; }
 .ob-ready h2 { font-size: 28px; margin: 0 0 8px; color: var(--ink); }
 .ob-ready p { color: var(--muted); line-height: 1.45; margin: 0 auto 24px; max-width: 410px; }
 
-/* ---- Deals queue / Active floor (dq- family; owner's home v3 golden,
-   2026-08-28). The queue on the master canvas: showroom visits as their
-   own section, three-stage chips, the Team Lead's date/history sheet,
-   the bottom nav with the More sheet, and the role sheet. Anatomy
-   transcribed verbatim; primaries wear the signature gradient. */
-.dq-app { width: 100%; max-width: 430px; margin: 0 auto; min-height: 100vh; background: #F7F7F7; padding-bottom: 92px; }
-body[data-canvas="master"][data-screen="deals"] { background: #F7F7F7; }
-.dq-topbar { position: sticky; top: 0; z-index: 20; background: rgba(255, 255, 255, .96); backdrop-filter: saturate(180%) blur(18px); -webkit-backdrop-filter: saturate(180%) blur(18px); border-bottom: 1px solid var(--line); padding: 14px 16px 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.dq-topside { display: flex; align-items: center; gap: 10px; }
-.dq-topbar .chip--demo { background: rgba(249, 178, 52, .16); color: #8a6207; border: 0; font-size: 9.5px; font-weight: 600; letter-spacing: .8px; padding: 4px 9px; border-radius: 999px; }
-.dq-content { padding: 22px 16px 26px; }
-.dq-titlerow { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
-.dq-title { font-size: 32px; line-height: 1.05; letter-spacing: -.8px; font-weight: 720; margin: 0; color: var(--ink); }
-.dq-count { font-size: 15px; font-weight: 600; color: var(--muted); margin-top: 7px; }
-.dq-newvisit { border: 0; border-radius: 999px; background: var(--grad); color: #fff; height: 46px; padding: 0 16px; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; text-decoration: none; flex: none; }
-.dq-newvisit:hover { filter: brightness(1.06); }
-.dq-searchwrap { display: flex; align-items: center; gap: 10px; margin-top: 22px; }
-.dq-search { flex: 1; height: 50px; border: 1px solid var(--line); border-radius: 999px; background: #fff; display: flex; align-items: center; padding: 0 14px; gap: 10px; min-width: 0; }
-.dq-search svg { width: 19px; height: 19px; color: var(--muted); flex: none; }
-.dq-search input { border: 0; outline: 0; width: 100%; font: inherit; font-size: 15px; background: transparent; color: var(--ink); }
-.dq-scanbtn { width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--line); background: #fff; display: grid; place-items: center; cursor: pointer; color: var(--ink); flex: none; }
-.dq-scanbtn svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.dq-managermeta { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0 0; }
-.dq-datesummary { font-size: 13px; color: var(--muted); font-weight: 600; }
-.dq-datebtn { height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 999px; background: #fff; color: var(--ink); font: inherit; font-size: 13px; font-weight: 650; display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
-.dq-sectionlabel { margin: 26px 0 10px; font-size: 13px; font-weight: 700; color: var(--muted); }
-.dq-seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; margin-bottom: 12px; }
-.dq-chipbtn { height: 40px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; background: #fff; font: inherit; font-size: 13px; font-weight: 650; color: var(--ink); white-space: nowrap; min-width: 0; cursor: pointer; }
-.dq-chipbtn.active { background: var(--ink); color: #fff; border-color: var(--ink); }
-.dq-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 7px; vertical-align: 1px; }
-.dq-dot--amber { background: #f28b2f; }
-.dq-dot--blue { background: #3b82f6; }
-.dq-list { border: 1px solid var(--line); border-radius: 22px; background: #fff; overflow: hidden; }
-.dq-row { position: relative; display: block; padding: 16px 46px 15px 16px; border-bottom: 1px solid var(--line); min-height: 122px; text-decoration: none; color: var(--ink); }
-.dq-row:last-child { border-bottom: 0; }
-.dq-row:active { background: #fafafa; }
-.dq-name { display: block; font-size: 18px; font-weight: 700; letter-spacing: -.2px; padding-right: 70px; }
-.dq-stage { position: absolute; right: 16px; top: 16px; font-size: 11px; font-weight: 750; padding: 6px 9px; border-radius: 999px; letter-spacing: .02em; }
-.dq-stage--desking { background: #fff5e8; color: #b65c00; }
-.dq-stage--fni { background: #edf3ff; color: #2f6fed; }
-.dq-stage--done { background: #eaf7f2; color: #13795b; }
-.dq-veh { display: block; font-size: 14px; margin-top: 8px; font-weight: 600; }
-.dq-ids { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 5px; color: var(--muted); font-size: 12px; }
-.dq-ids span { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
-.dq-next { display: block; font-size: 13px; margin-top: 9px; color: #b65c00; font-weight: 650; }
-.dq-chev { position: absolute; right: 16px; bottom: 14px; color: #999; font-size: 20px; }
-.dq-showroom { margin-top: 24px; }
-.dq-subhead { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-.dq-subhead b { font-size: 15px; }
-.dq-subhead span { font-size: 12px; color: var(--muted); }
-.dq-visit { position: relative; display: block; padding: 14px 110px 14px 16px; border-bottom: 1px solid var(--line); min-height: 86px; text-decoration: none; color: var(--ink); }
-.dq-visit:last-child { border-bottom: 0; }
-.dq-name--visit { font-size: 16px; padding-right: 0; }
-.dq-visitmeta { display: block; font-size: 12px; color: var(--muted); margin-top: 6px; }
-.dq-showroompill { position: absolute; right: 14px; top: 16px; background: #eaf7f2; color: #13795b; font-size: 10px; font-weight: 750; padding: 6px 9px; border-radius: 999px; }
-.dq-empty { padding: 20px 12px; text-align: center; color: var(--muted); font-size: 14px; }
-.dq-empty--box { padding: 60px 22px; border: 1px solid var(--line); border-radius: 22px; background: #fff; }
-.dq-empty--box h3 { font-size: 18px; color: var(--ink); margin: 0 0 7px; }
-.dq-empty--box p { margin: 0; font-size: 14px; line-height: 1.45; }
-.dq-empty--act { margin-top: 12px; }
-.dq-nav { position: fixed; z-index: 25; left: 50%; bottom: 0; transform: translateX(-50%); width: min(430px, 100vw); height: 78px; padding: 8px 10px max(8px, env(safe-area-inset-bottom)); background: rgba(255, 255, 255, .98); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(4, 1fr); }
-.dq-navbtn { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: 11px; font-weight: 600; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-decoration: none; cursor: pointer; }
-.dq-navbtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.dq-navbtn.active { color: var(--ink); font-weight: 700; }
-.dq-navbtn.active svg { stroke-width: 2.2; }
-.dq-roleopt { width: 100%; border: 1px solid var(--line); border-radius: 18px; background: #fff; padding: 14px 16px; text-align: left; margin-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 12px; font: inherit; color: var(--ink); cursor: pointer; }
-.dq-roleopt.active { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-.dq-roleopt b { display: block; }
-.dq-roleopt small { color: var(--muted); display: block; margin-top: 4px; }
-.dq-check { width: 24px; height: 24px; border-radius: 50%; background: var(--ink); color: #fff; display: grid; place-items: center; font-size: 13px; flex: none; }
-.dq-morerow { width: 100%; min-height: 56px; border: 0; border-top: 1px solid var(--line-soft); background: #fff; display: flex; align-items: center; gap: 12px; text-align: left; padding: 10px 2px; color: var(--ink); font: inherit; cursor: pointer; text-decoration: none; }
-.dq-morerow:first-of-type { border-top: 0; }
-.dq-moremain { flex: 1; min-width: 0; }
-.dq-moremain b { font-size: 15px; }
-.dq-moremain small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
-.dq-morerow--danger { color: var(--crimson); }
-.dq-morerow--danger .ob-iconwell { background: #FFF0ED; color: var(--crimson); }
-@media (max-width: 360px) { .dq-title { font-size: 29px; } .dq-newvisit { padding: 0 13px; } .dq-content { padding-left: 14px; padding-right: 14px; } .dq-ids { gap: 7px; } }
+/* The dq- family (the home v3 chrome, 2026-08-28) is GONE: the UI kit
+   replaced these screens on 2026-09-04, and every dq- class that survived
+   the conversion sat on a kit element — .dq-row put a 122px floor and a
+   border under .rp-card, .dq-list drew a bordered slab around the kit's own
+   cards, .dq-ids re-monospaced the VIN line the kit puts in the text face.
+   That is the restyling the kit rule forbids, so the rules are deleted
+   rather than scoped. A few dq- NAMES stay in app.js as harness hooks and
+   carry no styling; the rest went with these rules, along with the deals
+   screen's master-canvas background — that screen is data-canvas="kit". */
+
+/* REPORTED KIT GAP, covered with the minimum that makes the kit's own class
+   work on the element this app needs — no value the kit sets is changed.
+   components.html draws a deal card as <article class="rp-card">, a block.
+   Home's card OPENS THE DEAL, so ours is an <a>, and an inline anchor
+   collapses the card's padding and surface. The kit has no tappable-card
+   variant; it is named in the PR so v022.3 can carry one and this rule can
+   go. (.rp-row needs nothing — the kit already gives it display:flex.) */
+a.rp-card { display: block; }
+
+/* The kit's `a { color: inherit; text-decoration: none }` dresses its own rows
+   and tabs, and it is loaded after portal.css, so it also erased every plain
+   link in the rest of the app: the Print Center empty state's only action —
+   "choose them on the finance menu's Forms stage" — rendered in the same grey
+   as the sentence around it. Give the app's own links their colour back where
+   the kit does not own the screen; a link that sets its own colour keeps it. */
+body:not([data-canvas="kit"]) a:not([class]) { color: var(--blue); }
+
+/* #999 on the kit's step surface is 2.4:1. The waiting screen is a kit screen
+   now, so the pending value takes a muted that reads on it — the kit's own,
+   which is the token that surface was designed against. */
+.ob-statusvalue.pending, .ob-statusicon.pending { color: var(--rp-muted, #6E6E78); }
 @media (min-width: 431px) {
   body[data-canvas="master"] .ca-app { box-shadow: 0 0 0 1px rgba(0, 0, 0, .04); }
 }
@@ -3156,5 +3120,24 @@ body[data-screen="tdoc"] .m-app { padding-bottom: 40px; }
 
 /* The mobile chrome for Home and the resolver is the owner's UI kit
    (assets/ride-price-mobile.css, v022.2, 2026-09-04): its rp- classes are
-   used as given and never restyled here. The retired dq-/ob- chrome rules
-   below serve screens the kit has not reached. */
+   used as given and never restyled here. That claim is only true because the
+   dq- family was deleted and the ob- names were taken off the kit elements
+   they had been left on — see the note where dq- used to live. The ob- rules
+   that remain dress the client-facing secure-upload screens, which the kit
+   never reached. Three rules below are exceptions and each says why: the app
+   face on paper, the app's link colour off the kit screens, and one reported
+   kit gap (a tappable card). Nothing else in this file may name an rp- class. */
+
+/* Inter is the CHROME's face, not the site's. The kit sets it on `body` with
+   tabular figures, and it is loaded after this file, so unscoped it dressed
+   all 40-odd screens the kit never touched and every printed document with
+   it — the odometer statement rewrapped the dealership phone number across
+   two lines, all eleven printables changed, the jacket's count strip pushed
+   a 320px viewport 4px sideways and its Print Center link fell to 39px.
+   Scoped to the canvas the kit screens set, so the kit still wins where it
+   owns the screen and the rest of the app keeps the native stack it has had
+   since 2026-08-27. No rp- class is named: this is the app taking back its
+   own element defaults. */
+body:not([data-canvas="kit"]) { font-family: var(--app-font); font-feature-settings: normal; }
+/* and paper never takes the kit's face, whatever screen printed it */
+@media print { html, body { font-family: var(--app-font); font-feature-settings: normal; } }
