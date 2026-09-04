@@ -835,9 +835,12 @@ function chShell(opts, content, dockHtml, sheetIds) {
 /* one sheet opener for the kit's overlay: grab handle, then the screen's html */
 function chSheetOpener(scrimId, sheetId) {
   const scrim = () => $("#" + scrimId), sheet = () => $("#" + sheetId);
-  /* what opened it, and the Escape listener that is only bound while it is up */
-  let opener = null, onKey = null;
-  const detach = () => { if (onKey) { document.removeEventListener("keydown", onKey); onKey = null; } };
+  /* what opened it, and the two listeners that are bound only while it is up */
+  let opener = null, onKey = null, onHash = null;
+  const detach = () => {
+    if (onKey) { document.removeEventListener("keydown", onKey); onKey = null; }
+    if (onHash) { window.removeEventListener("hashchange", onHash); onHash = null; }
+  };
   const close = () => {
     detach();
     /* the router can replace #view while a sheet is open — the More sheet's
@@ -875,6 +878,13 @@ function chSheetOpener(scrimId, sheetId) {
     else sheet().removeAttribute("aria-labelledby");
     onKey = (e) => { if (e.key === "Escape") close(); };
     document.addEventListener("keydown", onKey);
+    /* a sheet row can be a LINK — the More sheet's are — so the screen can be
+       replaced without close() ever running. The null guards in close() keep
+       that from throwing, but the listener would still be there, one more per
+       navigation, each holding the element that opened it. The route change
+       takes them off itself. */
+    onHash = () => { detach(); opener = null; };
+    window.addEventListener("hashchange", onHash);
     const first = sheet().querySelector("button, [href], input, select, textarea");
     (first || sheet()).focus();
   };
