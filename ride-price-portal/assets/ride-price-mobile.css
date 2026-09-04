@@ -1,0 +1,321 @@
+/* =========================================================================
+   Ride Price Mobile — UI kit  v022.2
+   Single source for the mobile chrome. Use the classes; do not restyle them.
+   Scale is in px = pt on iOS (1x). Layout is fluid width; height is the viewport.
+   ========================================================================= */
+
+/* ---------- 0. Font (pinned) ---------- */
+@font-face { font-family: "Inter"; src: url("fonts/InterVariable.woff2") format("woff2"); font-weight: 100 900; font-style: normal; font-display: swap; }
+@font-face { font-family: "Inter"; src: url("fonts/InterVariable-Italic.woff2") format("woff2"); font-weight: 100 900; font-style: italic; font-display: swap; }
+
+/* ---------- 1. Tokens ---------- */
+:root {
+  --rp-canvas: #F2F2F7;
+  --rp-surface: #FFFFFF;
+  --rp-ink: #12131B;
+  --rp-muted: #6E6E78;
+  --rp-placeholder: #8B8A99;
+  --rp-separator: rgba(18, 19, 27, .10);
+  --rp-navy: #0B1528;
+  --rp-navy-deep: #070B19;
+  --rp-orange: #FF7A00;
+  --rp-pink: #FF0055;
+  --rp-blue: #3478F6;
+  --rp-green: #168753;
+  --rp-amber: #B25E00;
+  --rp-danger: #E0392C;
+  --rp-eyebrow: #705D55;
+  --rp-section: #4A4860;
+
+  --rp-gradient: linear-gradient(100deg, var(--rp-orange), var(--rp-pink));
+  --rp-gradient-text: linear-gradient(90deg, var(--rp-orange), var(--rp-pink));
+  --rp-primary-shadow: 0 7px 18px rgba(229, 50, 107, .22);
+
+  --rp-r-row: 16px;      /* groups, cards */
+  --rp-r-field: 14px;    /* inputs, option rows */
+  --rp-r-button: 15px;   /* primary */
+  --rp-r-sheet: 28px;
+  --rp-r-tabbar: 25px;
+
+  --rp-inset: 20px;      /* horizontal content inset */
+  --rp-safe-top: env(safe-area-inset-top, 0px);
+  --rp-safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  --rp-font: "Inter", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+}
+
+/* ---------- 2. Base ---------- */
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  font-family: var(--rp-font);
+  font-feature-settings: "cv11", "ss01", "tnum";
+  color: var(--rp-ink);
+  background: var(--rp-canvas);
+  -webkit-font-smoothing: antialiased;
+  -webkit-text-size-adjust: 100%;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { border: 0; background: none; padding: 0; cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+svg { display: block; }
+.rp-icon { width: 24px; height: 24px; }   /* glyph <svg> or <img>; color via currentColor */
+
+/* ---------- 3. Screen shell ---------- */
+/* One .rp-screen per route. Height = viewport. Only .rp-page scrolls. */
+.rp-screen {
+  position: relative;
+  display: flex; flex-direction: column;
+  height: 100vh; height: 100dvh;
+  overflow: hidden;
+  background: var(--rp-canvas);
+}
+.rp-page {
+  flex: 1; min-height: 0;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 10px var(--rp-inset) 0;
+}
+.rp-screen--destination .rp-page { padding-bottom: 104px; } /* clear the floating tab bar */
+.rp-screen--task .rp-page        { padding-bottom: 140px; } /* clear the dock */
+.rp-screen--task.rp-screen--nodock .rp-page { padding-bottom: 34px; }
+
+/* ---------- 4. Banner slot (every screen) ---------- */
+.rp-banner {
+  margin: calc(var(--rp-safe-top) + 6px) 16px 0;
+  height: 28px; border-radius: 9px;
+  display: flex; align-items: center; gap: 8px; padding: 0 10px;
+  font-size: 12px; font-weight: 640; color: #7A3D00; background: #FFF1E3;
+  flex: none;
+}
+.rp-banner__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--rp-danger); flex: none; }
+.rp-banner__tag { font-size: 11px; font-weight: 760; letter-spacing: .06em; }
+.rp-banner__text { color: #4A2A12; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rp-banner__action { margin-left: auto; color: #A54600; font-weight: 720; min-height: 40px; margin-top: -6px; margin-bottom: -6px; padding: 0 4px; display: inline-flex; align-items: center; } /* 40px hit target inside the 28px band */
+
+/* ---------- 5. Top bar ---------- */
+.rp-topbar {
+  flex: none; height: 60px; padding: 0 12px;
+  display: grid; grid-template-columns: 44px 1fr auto; align-items: center;
+  background: rgba(242, 242, 247, .84);
+  -webkit-backdrop-filter: blur(24px) saturate(170%); backdrop-filter: blur(24px) saturate(170%);
+  position: relative; z-index: 10;
+}
+/* Destination: wordmark spans the first two cells */
+.rp-wordmark {
+  grid-column: 1 / 3; justify-self: start; padding-left: 6px;
+  font-family: var(--rp-font); font-size: 23px; font-weight: 840; font-style: italic; letter-spacing: -.035em; line-height: 1;
+  background: var(--rp-gradient-text); -webkit-background-clip: text; background-clip: text; color: transparent;
+  padding-right: 4px; /* keeps the italic overhang inside the clip */
+  user-select: none;
+}
+/* Task: close + title */
+.rp-topbar__close {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: grid; place-items: center; background: rgba(18, 19, 27, .06); color: var(--rp-ink);
+}
+.rp-topbar__close .rp-icon { width: 18px; height: 18px; }
+.rp-topbar__title { text-align: center; font-size: 15px; font-weight: 740; letter-spacing: -.01em; line-height: 1.15; }
+.rp-topbar__title small { display: block; font-size: 11px; font-weight: 600; color: var(--rp-muted); letter-spacing: 0; margin-top: 1px; }
+
+/* Role control (both templates) */
+.rp-role {
+  justify-self: end; height: 36px; border-radius: 999px; position: relative;
+  border: 1px solid var(--rp-separator); background: var(--rp-surface);
+  display: inline-flex; align-items: center; gap: 8px; padding: 0 10px 0 5px;
+  font-size: 13px; font-weight: 700; color: var(--rp-ink);
+}
+.rp-role__avatar {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(145deg, #27365F, var(--rp-navy-deep)); color: #fff;
+  font-size: 11px; font-weight: 760; display: grid; place-items: center;
+}
+.rp-role .rp-icon { width: 14px; height: 14px; color: #8B8A99; }
+.rp-role::before { content: ""; position: absolute; inset: -2px 0; }        /* 40px hit target, 36px visual */
+
+/* ---------- 6. Type ---------- */
+.rp-eyebrow { font-size: 11px; font-weight: 760; letter-spacing: .07em; text-transform: uppercase; color: var(--rp-eyebrow); }
+.rp-title   { font-size: 34px; font-weight: 760; line-height: 1.02; letter-spacing: -.045em; margin: 8px 0 4px; }
+.rp-count   { font-size: 15px; color: var(--rp-muted); margin: 0 0 18px; }
+.rp-title-row { display: flex; align-items: center; justify-content: space-between; }
+.rp-title-row .rp-title { margin-right: 12px; }
+.rp-section { font-size: 13px; font-weight: 720; color: var(--rp-section); margin: 0 0 10px; }
+.rp-stack > * + .rp-section { margin-top: 16px; }
+.rp-title + .rp-search, .rp-title + .rp-card, .rp-title + .rp-group, .rp-title + .rp-notice, .rp-title + .rp-field { margin-top: 18px; }
+
+/* ---------- 7. Buttons ---------- */
+.rp-pill-primary {
+  height: 40px; padding: 0 16px; border-radius: 999px;
+  display: inline-grid; place-items: center; color: #fff; font-size: 14px; font-weight: 740;
+  background: var(--rp-gradient); box-shadow: var(--rp-primary-shadow);
+}
+.rp-primary {
+  width: 100%; height: 52px; border-radius: var(--rp-r-button);
+  display: grid; place-items: center; color: #fff; font-size: 15px; font-weight: 740;
+  background: var(--rp-gradient); box-shadow: var(--rp-primary-shadow);
+}
+.rp-primary:disabled { opacity: .35; box-shadow: none; }
+.rp-link { width: 100%; min-height: 40px; display: grid; place-items: center; color: var(--rp-blue); font-size: 14px; font-weight: 680; margin-top: 2px; }
+.rp-button-navy { height: 36px; padding: 0 14px; border-radius: 999px; background: var(--rp-navy); color: #fff; font-size: 13px; font-weight: 720; display: inline-grid; place-items: center; }
+
+/* ---------- 8. Search ---------- */
+.rp-search {
+  height: 46px; border-radius: var(--rp-r-field); background: var(--rp-surface); border: 1px solid var(--rp-separator);
+  display: flex; align-items: center; gap: 10px; padding: 0 14px; margin-bottom: 22px;
+}
+.rp-search .rp-icon { width: 16px; height: 16px; color: var(--rp-placeholder); flex: none; }
+.rp-search__input { flex: 1; min-width: 0; border: 0; background: none; outline: 0; font-size: 15px; color: var(--rp-ink); }
+.rp-search__input::placeholder { color: var(--rp-placeholder); }
+.rp-search__scan { margin-left: auto; width: 40px; height: 40px; margin-right: -8px; display: grid; place-items: center; color: var(--rp-ink); flex: none; }
+.rp-search__scan .rp-icon { width: 20px; height: 20px; color: var(--rp-ink); }
+.rp-search--action { padding-right: 5px; margin-bottom: 20px; }
+.rp-search--action .rp-button-navy { margin-left: auto; flex: none; }
+
+/* ---------- 9. Groups, rows, tiles ---------- */
+.rp-group { background: var(--rp-surface); border-radius: var(--rp-r-row); overflow: hidden; margin-bottom: 16px; }
+.rp-row { min-height: 52px; display: flex; align-items: center; gap: 12px; padding: 12px 16px; width: 100%; text-align: left; }
+.rp-row + .rp-row { border-top: .5px solid var(--rp-separator); }
+.rp-row__body { flex: 1; min-width: 0; }
+.rp-row__title { display: block; font-size: 15px; font-weight: 680; }
+.rp-row__sub { display: block; font-size: 12px; color: var(--rp-muted); margin-top: 2px; line-height: 1.35; }
+.rp-row__chevron { width: 8px; height: 8px; border-right: 1.8px solid #B5B4C2; border-bottom: 1.8px solid #B5B4C2; transform: rotate(-45deg); flex: none; }
+.rp-row--destructive .rp-row__title { color: var(--rp-danger); }
+.rp-row--destructive .rp-tile { background: #FDECEA; color: var(--rp-danger); }
+
+/* Icon tile: flat glyph (default) or liquid-glass icon (modifier) */
+.rp-tile { width: 36px; height: 36px; border-radius: 11px; background: #ECECF1; display: grid; place-items: center; flex: none; color: var(--rp-ink); }
+.rp-tile .rp-icon { width: 18px; height: 18px; }
+.rp-tile--glass { background: none; border-radius: 0; width: 40px; height: 40px; }
+.rp-tile--glass img, .rp-tile--glass svg { width: 40px; height: 40px; }   /* icons/glass/<mode>/<name>.svg — never inside another glass surface */
+
+.rp-initials { width: 36px; height: 36px; border-radius: 50%; background: #E9EEFC; color: #2B49B3; font-size: 12px; font-weight: 740; display: grid; place-items: center; flex: none; }
+
+/* ---------- 10. Cards ---------- */
+.rp-card { background: var(--rp-surface); border-radius: var(--rp-r-row); padding: 14px 16px; position: relative; margin-bottom: 10px; }
+.rp-card__name { font-size: 16px; font-weight: 720; padding-right: 84px; }
+.rp-card__line { font-size: 13px; margin-top: 6px; }
+.rp-card__meta { font-size: 10.5px; color: var(--rp-muted); margin-top: 4px; letter-spacing: .02em; font-variant-numeric: tabular-nums; } /* text face, tabular — not monospace */
+.rp-card__next { font-size: 12.5px; font-weight: 660; color: var(--rp-amber); margin-top: 10px; }
+.rp-card__next::after { content: " ›"; }   /* the only trailing mark; no separate chevron on the card */
+
+.rp-badge { position: absolute; right: 14px; top: 14px; font-size: 10px; font-weight: 760; letter-spacing: .05em; padding: 4px 7px; border-radius: 6px; background: #FFF1E3; color: #A54600; }
+.rp-badge--positive { background: #E3F5EA; color: #1A6B3D; }
+.rp-badge--neutral { background: #ECECF1; color: #5C5B6B; }
+/* Badge text is Title Case as written in the data ("Desking", "Done", "Funded · Aug 14"). Never text-transform. */
+
+/* Match card (customer found / identified) */
+.rp-match { background: var(--rp-surface); border-radius: var(--rp-r-row); overflow: hidden; }
+.rp-match__head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+.rp-match__kv { display: flex; justify-content: space-between; padding: 11px 16px; border-top: .5px solid var(--rp-separator); font-size: 14px; }
+.rp-match__kv span:first-child { color: var(--rp-muted); }
+.rp-match__kv span:last-child { font-weight: 640; }
+.rp-match__addr { padding: 14px 16px; border-top: .5px solid var(--rp-separator); }
+.rp-match__addr-head { display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 700; }
+.rp-match__addr-line { font-size: 16px; font-weight: 720; margin-top: 8px; }
+.rp-tag { font-size: 10px; font-weight: 760; letter-spacing: .04em; padding: 4px 7px; border-radius: 6px; }
+.rp-tag--required { background: #FFF1E3; color: #A54600; }
+.rp-tag--match { background: #E3F5EA; color: #1A6B3D; margin-left: auto; flex: none; }
+
+/* ---------- 11. Chips + filter ---------- */
+.rp-chips { display: flex; gap: 8px; margin: 14px 0; }
+.rp-chip { position: relative; height: 32px; padding: 0 12px; border-radius: 999px; background: var(--rp-surface); border: 1px solid var(--rp-separator); font-size: 13px; font-weight: 660; display: inline-flex; align-items: center; gap: 6px; }
+.rp-chip::before { content: ""; position: absolute; inset: -4px 0; }          /* 40px hit target, 32px visual */
+.rp-chip--on { background: var(--rp-navy); color: #fff; border-color: var(--rp-navy); }
+.rp-chip__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--rp-amber); }
+.rp-chip__dot--fi { background: #C22D5A; }
+.rp-filter { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: var(--rp-muted); padding: 2px 0 8px; }
+.rp-filter__control { color: var(--rp-ink); font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+.rp-filter__control .rp-icon { width: 14px; height: 14px; }
+
+/* ---------- 12. Empty + notice ---------- */
+.rp-empty { background: var(--rp-surface); border-radius: var(--rp-r-row); padding: 22px 16px; text-align: center; color: var(--rp-muted); font-size: 13px; }
+.rp-empty strong { display: block; color: var(--rp-ink); font-size: 15px; margin-bottom: 4px; }
+.rp-notice { background: #E3F5EA; border-radius: var(--rp-r-field); padding: 12px 14px; font-size: 13px; font-weight: 760; color: #1A6B3D; margin-bottom: 14px; }
+
+/* ---------- 13. Steps ---------- */
+.rp-steps { background: var(--rp-surface); border-radius: var(--rp-r-row); overflow: hidden; margin-bottom: 16px; }
+.rp-step { display: grid; grid-template-columns: 24px 1fr auto; gap: 12px; align-items: center; padding: 13px 16px; }
+.rp-step + .rp-step { border-top: .5px solid var(--rp-separator); }
+.rp-step__mark { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid #C8C8D0; display: grid; place-items: center; color: #fff; }
+.rp-step__mark .rp-icon { width: 12px; height: 12px; }
+.rp-step__mark--done { background: var(--rp-green); border-color: var(--rp-green); }
+.rp-step__title { display: block; font-size: 14px; font-weight: 680; }
+.rp-step__sub { display: block; font-size: 11.5px; color: var(--rp-muted); margin-top: 2px; }
+.rp-status { font-size: 11px; font-weight: 740; padding: 4px 8px; border-radius: 6px; background: #ECECF1; color: #5C5B6B; }
+.rp-status--positive { background: #E3F5EA; color: #1A6B3D; }
+
+/* ---------- 14. Fields ---------- */
+.rp-field { margin-bottom: 12px; }
+.rp-field__label { display: block; font-size: 12px; font-weight: 700; color: var(--rp-section); margin: 0 0 6px; }
+.rp-field__input { width: 100%; height: 46px; border-radius: var(--rp-r-field); background: var(--rp-surface); border: 1px solid var(--rp-separator); padding: 0 14px; font-size: 15px; color: var(--rp-ink); outline: 0; }
+.rp-field__input::placeholder { color: var(--rp-placeholder); }
+.rp-field__input:focus { border: 1.5px solid var(--rp-ink); }
+.rp-segment { display: grid; grid-template-columns: 1fr 1fr; background: #ECECF1; border-radius: 12px; padding: 3px; margin-bottom: 16px; }
+.rp-segment__item { height: 36px; display: grid; place-items: center; font-size: 14px; font-weight: 700; border-radius: 10px; color: var(--rp-muted); }
+.rp-segment__item--on { background: var(--rp-surface); color: var(--rp-ink); box-shadow: 0 1px 4px rgba(0, 0, 0, .08); }
+
+/* ---------- 15. Tab bar (Destination only) ---------- */
+.rp-tabbar {
+  position: absolute; z-index: 20; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--rp-safe-bottom) + 18px);
+  width: min(calc(100% - 24px), 369px); height: 66px; padding: 5px;
+  border-radius: var(--rp-r-tabbar);
+  border: 1px solid rgba(255, 255, 255, .7);
+  background: rgba(250, 250, 252, .86);
+  -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
+  box-shadow: 0 12px 36px rgba(15, 20, 40, .15);
+  display: grid; grid-template-columns: repeat(4, 1fr);
+}
+.rp-tab { border-radius: 19px; color: #777986; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 680; }
+.rp-tab .rp-icon { width: 22px; height: 22px; }
+.rp-tab--active { color: var(--rp-ink); background: var(--rp-surface); box-shadow: 0 3px 12px rgba(20, 24, 42, .08); }
+.rp-screen--task .rp-tabbar { display: none !important; }   /* belt and braces: never on a task */
+
+/* ---------- 16. Action dock (Task only) ---------- */
+.rp-dock {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 20;
+  padding: 16px var(--rp-inset) calc(var(--rp-safe-bottom) + 34px);
+  background: linear-gradient(180deg, rgba(242, 242, 247, 0), rgba(242, 242, 247, .96) 30%, var(--rp-canvas) 60%);
+}
+
+/* ---------- 17. Sheets + dialogs ---------- */
+.rp-scrim { position: absolute; inset: 0; background: rgba(7, 11, 25, .42); z-index: 40; }
+.rp-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 50;
+  background: var(--rp-surface); border-radius: var(--rp-r-sheet) var(--rp-r-sheet) 0 0;
+  padding: 10px var(--rp-inset) calc(var(--rp-safe-bottom) + 34px);
+}
+.rp-sheet__grab { width: 36px; height: 5px; border-radius: 3px; background: #D6D6DD; margin: 0 auto 14px; }
+.rp-sheet__head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.rp-sheet__title { margin: 0; font-size: 20px; font-weight: 760; letter-spacing: -.02em; }
+.rp-sheet__close { position: relative; width: 32px; height: 32px; border-radius: 50%; background: #ECECF1; display: grid; place-items: center; color: var(--rp-ink); }
+.rp-sheet__close .rp-icon { width: 14px; height: 14px; }
+.rp-sheet__close::before { content: ""; position: absolute; inset: -4px; }     /* 40px hit target */
+.rp-sheet .rp-group, .rp-sheet .rp-field__input { background: var(--rp-canvas); }
+.rp-sheet .rp-group--spaced { margin-top: 10px; }
+
+.rp-option { display: grid; grid-template-columns: 1fr 24px; gap: 12px; align-items: center; padding: 13px 16px; background: var(--rp-canvas); border-radius: var(--rp-r-field); margin-bottom: 8px; border: 1.5px solid transparent; width: 100%; text-align: left; }
+.rp-option--on { border-color: var(--rp-ink); background: var(--rp-surface); }
+.rp-option__title { display: block; font-size: 15px; font-weight: 700; }
+.rp-option__sub { display: block; font-size: 12px; color: var(--rp-muted); margin-top: 2px; }
+.rp-radio { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid #C8C8D0; display: grid; place-items: center; color: #fff; }
+.rp-radio .rp-icon { width: 12px; height: 12px; }
+.rp-radio--on { background: var(--rp-ink); border-color: var(--rp-ink); }
+.rp-toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: var(--rp-canvas); border-radius: var(--rp-r-field); margin-top: 6px; font-size: 15px; font-weight: 700; }
+.rp-toggle { width: 44px; height: 26px; border-radius: 13px; background: #D6D6DD; position: relative; flex: none; }
+.rp-toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: left .15s; }
+.rp-toggle--on { background: var(--rp-green); }
+.rp-toggle--on::after { left: 21px; }
+
+.rp-dialog { position: absolute; left: 24px; right: 24px; top: 35%; z-index: 50; background: var(--rp-surface); border-radius: 22px; padding: 20px 20px 16px; }
+.rp-dialog__title { margin: 0 0 8px; font-size: 18px; font-weight: 760; letter-spacing: -.02em; }
+.rp-dialog__body { margin: 0 0 18px; font-size: 14px; line-height: 1.45; color: var(--rp-muted); }
+.rp-dialog__actions { display: flex; justify-content: flex-end; gap: 8px; }
+.rp-dialog__button { height: 40px; padding: 0 16px; border-radius: 12px; display: grid; place-items: center; font-size: 14px; font-weight: 700; }
+.rp-dialog__button--quiet { color: var(--rp-ink); background: var(--rp-canvas); }
+.rp-dialog__button--destructive { color: #fff; background: var(--rp-danger); }
+
+/* ---------- 18. Motion ---------- */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .001ms !important; animation-duration: .001ms !important; } }
+
+/* ---------- 19. Hit-target floor ---------- */
+/* Every interactive element has a 40px minimum hit area. Where the visual is smaller (role pill 36, chips 32, banner Switch 28, sheet close 32) the ::before pseudo-element extends the target without changing the look. */
