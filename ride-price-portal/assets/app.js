@@ -35,8 +35,24 @@ const Store = (function () {
       basePayment: null, creditApp: { approved: true, lender: "US Bank" },
       menu: { step: 4, barsDone: [1, 2, 3, 4], custom: [], customSource: null, selectedProgram: null, initials: "PP", ackSigned: true },
       forms: { selected: [], finalized: true },
-      jacket: { docs: {}, extra: [], req: {} }
+      /* a contract does not fund with an empty jacket. Every document
+         jacketDocs() requires of THIS shape of deal — finance, no trade, no
+         co-buyer, approved credit, no menu program — is filed by hand by the
+         Team Lead at the moment it funded. Enumerated rather than computed:
+         calling jacketDocs() from inside the store at boot would tie the
+         first paint to a function that may one day read the store back, and
+         a boot that cannot start is worse than a seed that drifts. walk2
+         asserts the two agree, so a drift goes red instead of silent. */
+      jacket: { docs: fundedJacketDocs(), extra: [], req: {} }
     };
+  }
+  function fundedJacketDocs() {
+    const at = "2026-08-14T15:05:00Z", by = RIDE_PRICE_DATA.dealership.teamLead;
+    const out = {};
+    ["form-license", "form-privacy", "form-reg", "form-insurance", "form-contracts",
+     "form-creditmatch", "form-riskdisc", "form-paystub", "testdrive", "form-tqi",
+     "form-settings", "delivery"].forEach(id => { out[id] = { how: "hand", by, at }; });
+    return out;
   }
 
   /* the friendly number on the folder tab; ids stay the routing key */
@@ -335,7 +351,13 @@ const STAGES = {
 function dealTitle(deal, bare) {
   const c = Store.customer(deal.customerId);
   const cb = deal.coBuyerId ? Store.customer(deal.coBuyerId) : null; /* missing record = no co-buyer */
-  const v = Store.vehicle(deal.stock);
+  /* the catalog first; then the deal's own snapshot, but only while it agrees
+     with the deal's stock (or the deal has none — the funded seed's Telluride
+     is carried by its snapshot alone). A funded contract must never read
+     "no vehicle yet" on its own jacket. */
+  const catalog = Store.vehicle(deal.stock);
+  const snap = deal.vehicle && (deal.stock ? deal.vehicle.stock === deal.stock : true) && deal.vehicle.make ? deal.vehicle : null;
+  const v = catalog || snap;
   const names = `${c ? esc(c.first + " " + c.last) : "—"}${cb ? " + " + esc(cb.first + " " + cb.last) : ""}`;
   const jkc = jacketCounts(deal);
   const line = `${deal.dealNo ? `<b class="crumb-no">Deal #${esc(deal.dealNo)}</b> · ` : ""}${names} · ${v ? esc(v.year + " " + v.make + " " + v.model) : "no vehicle yet"}`;
@@ -991,7 +1013,7 @@ route("deals", () => {
        re-resolves fresh from the catalog instead of showing the old unit. */
     const snap = d.vehicle && (d.stock ? d.vehicle.stock === d.stock : true) ? d.vehicle : null;
     return {
-      v,
+      v, snap,   /* the VALIDATED snapshot — the row and the search read this, never d.vehicle raw */
       vin: (v && v.vin) || (snap && snap.vin) || null,
       stock: d.stock || (snap && snap.stock) || null
     };
@@ -1036,15 +1058,16 @@ route("deals", () => {
   function matches(d) {
     const q = dealsUI.q.trim().toLowerCase();
     if (!q) return true;
-    const c = Store.customer(d.customerId), v = Store.vehicle(d.stock);
+    const c = Store.customer(d.customerId), { v, snap } = vehicleIds(d);
     const hay = [
       c ? c.first + " " + c.last : "", c && c.phone ? c.phone : "",
       v ? v.year + " " + v.make + " " + v.model : "", v ? v.stock : "", v && v.vin ? v.vin : "",
       /* the snapshot's WORDS too, not only its numbers: an unstocked deal
          (the funded seed's Telluride) shows a vehicle the catalog does not
          hold, and searching the name the row displays found nothing while the
-         empty state blamed the date range */
-      d.vehicle ? [d.vehicle.year, d.vehicle.make, d.vehicle.model, d.vehicle.vin, d.vehicle.stock].filter(Boolean).join(" ") : "",
+         empty state blamed the date range. The VALIDATED snapshot, the same one
+         the row draws — a stale one on a re-stocked deal must not match either. */
+      snap ? [snap.year, snap.make, snap.model, snap.vin, snap.stock].filter(Boolean).join(" ") : "",
       d.dealNo ? "#" + d.dealNo : "", d.trade && d.trade.vin ? d.trade.vin : ""
     ].join(" ").toLowerCase();
     return hay.indexOf(q) >= 0 ||
@@ -1059,10 +1082,10 @@ route("deals", () => {
     const st = STAGES[d.stage] || STAGES.discovery;
     const b = dealBucket(d);
     const name = c ? c.first + " " + c.last : "—";
-    const { v, vin, stock } = vehicleIds(d);
+    const { v, snap, vin, stock } = vehicleIds(d);
     /* the vehicle line reads the deal's own snapshot when the catalog has
        no such unit (the funded seed) */
-    const veh = v ? v.year + " " + v.make + " " + v.model : (d.vehicle && d.vehicle.make ? [d.vehicle.year, d.vehicle.make, d.vehicle.model].filter(Boolean).join(" ") : "");
+    const veh = v ? v.year + " " + v.make + " " + v.model : (snap && snap.make ? [snap.year, snap.make, snap.model].filter(Boolean).join(" ") : "");
     /* the VIN/STK line in the text face with tabular figures (kit) */
     const ids = vin || stock
       ? `<div class="rp-card__meta dq-ids">VIN ${vin ? esc(vin) : "Pending"} · STK ${stock ? esc(stock) : "Pending stock-in"}</div>`
@@ -6806,7 +6829,10 @@ route("jacket/:id", ({ id }) => {
     const docs = jacketDocs(deal);
     const jk = jacketRead(deal);
     const cst = Store.customer(deal.customerId);
-    const veh = Store.vehicle(deal.stock);
+    /* catalog first, then the deal's own snapshot while it agrees with the
+       deal's stock (or the deal has none): a funded contract carried by its
+       snapshot — the seed's Telluride — read "no vehicle yet" on its own jacket */
+    const veh = Store.vehicle(deal.stock) || (deal.vehicle && (deal.stock ? deal.vehicle.stock === deal.stock : true) && deal.vehicle.make ? deal.vehicle : null);
     const ov = jk.override;
 
     const custWaiting = docs.filter(d => isCustomerDoc(d) && !inJacket(d));
@@ -8685,7 +8711,12 @@ route("forms/:id", ({ id }) => {
      the rows anyway sent the reader to a blank preview with no way back.
      Send them where the deal can actually be repaired instead. */
   const v = deal.stock ? Store.vehicle(deal.stock) : null;
-  if (!v) return redirect(`#/vehicles/${deal.id}`);
+  /* the printables price against the catalog unit, so a deal with none is
+     sent to choose one — unless it is COMPLETE. Its vehicle is the snapshot on
+     the record and cannot be priced again, and "choose a vehicle" would offer
+     to hang a catalog unit on a funded contract. That deal's record is its
+     jacket, which needs only the deal. */
+  if (!v) return redirect(deal.stage === "complete" ? `#/jacket/${deal.id}` : `#/vehicles/${deal.id}`);
   const jkc = jacketCounts(deal);
 
   const { core, selected } = printCentreDocs(deal);
@@ -8776,7 +8807,12 @@ route("print/:id/:doc", ({ id, doc }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
   /* the same guard as Documents: printDocs() builds every document from the
      vehicle, so a stock number that no longer resolves rendered a blank view */
-  if (!deal.stock || !Store.vehicle(deal.stock)) return redirect(`#/vehicles/${deal.id}`);
+  /* the printables price against the catalog unit. A deal that has none — or
+     whose unit has left the catalog — is sent to choose one, UNLESS it is
+     complete: its vehicle is the snapshot on the record, nothing can be priced
+     again, and "choose a vehicle" would offer to rewrite a funded contract.
+     Same rule as the Print Center's guard; the jacket is that deal's record. */
+  if (!deal.stock || !Store.vehicle(deal.stock)) return redirect(deal.stage === "complete" ? `#/jacket/${deal.id}` : `#/vehicles/${deal.id}`);
   const docs = printDocs(deal);
 
   let html = "";
