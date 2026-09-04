@@ -783,9 +783,11 @@ const RP_GLYPH = {
   "upload": "<svg class=\"rp-icon\" xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M6 9l6-6 6 6M12 3v12\"/><path d=\"M4 20h16\"/></svg>"
 };
 const rpGlyph = (name) => RP_GLYPH[name] || RP_GLYPH.document;
-/* the liquid-glass family (kit icons/glass/<mode>/), for .rp-tile--glass on
-   white rows and empty states only — never in a bar or a sheet head */
-const rpGlass = (name, mode = "default") => `<img src="assets/icons/glass/${esc(mode)}/${esc(name)}.svg" alt="">`;
+/* The liquid-glass family ships at assets/icons/glass/<mode>/ and NOTHING in
+   the app draws it: a row group wears the flat glyph tile, everywhere (owner,
+   2026-09-04), and the set is kept for the app mark alone. There is no helper
+   for it, because a helper nobody calls is a helper that rots — the files are
+   the asset, and the mark can load one directly when it needs to. */
 const CH_TABS = [["deals", "#/deals", "deals", "Deals"], ["inventory", "#/vehicles/browse", "inventory", "Inventory"], ["customers", "#/customers", "customers", "Customers"], ["more", null, "more", "More"]];
 const roleInitials = () => isTeamLead() ? "TL" : "A";
 /* the banner slot — Advisor: sample data; Team Lead: who is being acted as,
@@ -1410,8 +1412,8 @@ route("customers", () => {
       <div class="rp-search rp-search--action">${rpGlyph("search")}<input class="rp-search__input" id="obSearch" placeholder="Name, phone, email, or license" aria-label="Search customers"><button type="button" class="rp-button-navy" id="searchBtn">Search</button></div>
       ${st.results ? resultsHtml() : ""}
       <div class="rp-group">
-        <button type="button" class="rp-row" id="scanBtn"><span class="rp-tile rp-tile--glass">${rpGlass("scan")}</span><span class="rp-row__body"><span class="rp-row__title">Scan physical license</span><span class="rp-row__sub">Best when the customer has the license in the showroom.</span></span><span class="rp-row__chevron"></span></button>
-        <button type="button" class="rp-row" id="obSendLink"><span class="rp-tile rp-tile--glass">${rpGlass("customer")}</span><span class="rp-row__body"><span class="rp-row__title">Send secure upload link</span><span class="rp-row__sub">Customer has a license photo on their phone. It uploads directly to Ride Price.</span></span><span class="rp-row__chevron"></span></button>
+        <button type="button" class="rp-row" id="scanBtn"><span class="rp-tile">${rpGlyph("license")}</span><span class="rp-row__body"><span class="rp-row__title">Scan physical license</span><span class="rp-row__sub">Best when the customer has the license in the showroom.</span></span><span class="rp-row__chevron"></span></button>
+        <button type="button" class="rp-row" id="obSendLink"><span class="rp-tile">${rpGlyph("upload")}</span><span class="rp-row__body"><span class="rp-row__title">Send secure upload link</span><span class="rp-row__sub">Customer has a license photo on their phone. It uploads directly to Ride Price.</span></span><span class="rp-row__chevron"></span></button>
       </div>
       ${st.results ? "" : `
       <div class="rp-section">Recent customers</div><div class="rp-group">
