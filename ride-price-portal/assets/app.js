@@ -175,8 +175,10 @@ const Store = (function () {
       demo.visit = { arrivedAt: seedArrival() }; minted = true;
     }
     /* the funded contract behind the Team Lead's date control, and the customer
-       it belongs to. Keyed on the id: a blob that still has them is left alone,
-       and one the user deleted is not resurrected under a different id. */
+       it belongs to. Keyed on the id: a blob that already holds them is left
+       alone. Absence can only mean a blob saved before 2026-09-04 — the app has
+       no path that deletes a customer or a deal, and Store.reset() re-seeds by
+       design — so absence is the whole guard; a tombstone would guard nothing. */
     if (!state.deals.some(d => d.id === "d-demo2")) { state.deals.push(seedFundedDeal()); minted = true; }
     if (!state.customers.some(c => c.id === "c-demo3")) {
       const src = RIDE_PRICE_DATA.seedCustomers.find(c => c.id === "c-demo3");
@@ -1418,7 +1420,12 @@ route("customers", () => {
      String(undefined) is the seven characters "undefined", which trims to
      something truthy and would wave through the very record this guards. */
   const str = (x) => typeof x === "string" ? x.trim() : "";
-  const hasAddr = (a) => !!(a && str(a.address) && str(a.city));
+  /* all four: a record with a street and a town but no state or ZIP would
+     otherwise be offered for confirmation and stamped confirmedAt with holes
+     in it. Manual entry already requires the ZIP (customerMissing) and
+     parseAddress() never yields one without the other two, so nothing that
+     reaches this screen honestly is turned away by it. */
+  const hasAddr = (a) => !!(a && str(a.address) && str(a.city) && str(a.state) && str(a.zip));
 
   /* the one write path for a confirmed registration address — explicit
      choice, never a silent overwrite; the record keeps its single address
