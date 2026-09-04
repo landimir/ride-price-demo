@@ -3061,7 +3061,10 @@ body[data-screen="tdoc"] .m-app { padding-bottom: 40px; }
    itself, and body[data-screen] .m-app is the more specific selector — it
    won, and the fixed dock covered the end of the status card on a short
    screen (review find). */
-.drv-app { display: flex; flex-direction: column; min-height: 100vh; padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
+.drv-app { display: flex; flex-direction: column; min-height: 100vh; }
+/* V3: the dock exists only while an exception needs an action, so the
+   reservation for it does too — a complete document ends at its card */
+.drv-app--dock { padding-bottom: calc(84px + env(safe-area-inset-bottom)); }
 .drv-top { position: sticky; top: 0; z-index: 20; background: rgba(255,255,255,.98); border-bottom: 1px solid #ececec; padding: 10px 8px; display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; }
 .drv-icon { width: 44px; height: 44px; border: 0; background: transparent; border-radius: 50%; font-size: 26px; line-height: 1; color: var(--ink); cursor: pointer; display: grid; place-items: center; }
 .drv-icon:active { background: #f1f1f1; }
@@ -3095,6 +3098,10 @@ body[data-screen="tdoc"] .m-app { padding-bottom: 40px; }
 .drv-statuscopy p { margin: 3px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
 .drv-detail { display: flex; justify-content: space-between; gap: 12px; padding: 13px 0 0; border-top: 1px solid var(--line-soft); margin-top: 14px; font-size: 13px; }
 .drv-detail span { color: var(--muted); }
+.drv-detail strong { text-align: right; }
+.drv-waiting { display: flex; align-items: center; gap: 9px; margin-top: 14px; padding: 12px 14px; border-radius: 14px; background: #fff5e6; color: #9b5a00; font-size: 13px; font-weight: 700; }
+.drv-waiting svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.drv-note a { color: var(--ink); font-weight: 700; }
 
 .drv-dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 22; background: rgba(255,255,255,.98); border-top: 1px solid #e7e7e7; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); }
 .drv-dock .drv-go { margin-top: 0; width: 100%; max-width: 430px; margin-left: auto; margin-right: auto; }

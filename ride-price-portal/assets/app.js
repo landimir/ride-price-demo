@@ -6445,7 +6445,8 @@ const RP_ICON = {
   dots: `<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>`,
   trash: `<path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13.5h9l1-13.5M10 10.5v7M14 10.5v7"/>`,
   upload: `<path d="M12 16.5V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4.5 15v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15"/>`,
-  close: `<path d="M6 6l12 12M18 6 6 18"/>`
+  close: `<path d="M6 6l12 12M18 6 6 18"/>`,
+  clock: `<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>`
 };
 const rpIcon = (k) => `<svg viewBox="0 0 24 24">${RP_ICON[k] || RP_ICON.file}</svg>`;
 /* the customer's document rows, keyed by the document they stand for */
@@ -6617,14 +6618,55 @@ function drPreviewUrl(file) {
 /* an upload replaces the document's pages, except while the block is a
    missing page — then new shots append, so front + back can arrive one at
    a time (the prototype's preserving rule) */
+/* V3 — provenance is PER SIDE. Stamp the pages a single capture event added
+   (indices from `before` up to the current count) with who took them. The
+   customer paths must write "customer" explicitly: a whole-document
+   via:"advisor" (an advisor scanned the front after the link went out) would
+   otherwise claim a back the customer uploaded afterwards (review find). */
+/* who took each side, resolved: an explicit sideVia entry wins; otherwise
+   the whole-document via ("advisor" means every side), else the customer. */
+function drSideVia(r, n) {
+  return Array.from({ length: n }, (_, i) => (r.sideVia && r.sideVia[i]) || (r.via === "advisor" ? "advisor" : "customer"));
+}
+/* did the CUSTOMER do anything with this record — upload any side? The
+   tracking sheet reports what the customer did with the link, so a document
+   the advisor started but the customer retook counts as theirs (review find). */
+function drCustomerTouched(r) {
+  if (!r) return false;
+  const n = Math.max(r.pages || 0, r.draftPages || 0, (r.sideVia || []).length);
+  return drSideVia(r, n).some(v => v === "customer");
+}
+function drStampSides(deal, docId, indices, via) {
+  const r = jacketClient(deal)[docId]; if (!r) return;
+  r.sideVia = r.sideVia || [];
+  for (const i of indices) r.sideVia[i] = via;
+  Store.save();
+}
+/* the indices from `from` to the end of the current set */
+function drSidesFrom(deal, docId, from) {
+  const n = clientPhotos(deal.id, docId).length;
+  return Array.from({ length: Math.max(0, n - from) }, (_, k) => from + k);
+}
+/* returns the index the new pages START at: 0 when the set was replaced (a
+   retake), the old length when a missing page was appended. A retake that
+   replaces one page with one page leaves the count unchanged, so "count
+   before" cannot tell the caller which pages are new — this can (review find). */
 function drAddShots(deal, docId, files) {
   const m = clientMeta(docId);
   const r = jacketClient(deal)[docId];
   const preserving = r && r.state === "rejected" && m.missingPage && r.rejectedReason === m.missingPage.title;
   if (!preserving) clientPhotosClear(deal.id, docId);
   const urls = clientPhotos(deal.id, docId).slice();
+  /* photos live only in the session that captured them (owner decision);
+     after a reload the record still says one page arrived but the set is
+     empty. Keep the record's count as empty slots — every renderer already
+     shows a placeholder for a missing image — so the new side lands where
+     it belongs and the count reaches what the document needs. */
+  if (preserving) while (urls.length < (r.pages || 0)) urls.push(null);
+  const from = urls.length;
   Array.from(files).forEach(f => urls.push(drPreviewUrl(f)));
   clientPhotosSet(deal.id, docId, urls);
+  return from;
 }
 
 /* remove a hand-added document from the deal entirely — computed ones stay */
@@ -6978,7 +7020,7 @@ route("jacket/:id", ({ id }) => {
        sheet reports what the CUSTOMER did with the link, and an in-showroom
        scan is not the customer opening or uploading anything (review find). */
     const cl = jacketClient(deal);
-    const asked = CLIENT_QUEUE_IDS.filter(qid => cl[qid] && cl[qid].via !== "advisor");
+    const asked = CLIENT_QUEUE_IDS.filter(qid => cl[qid] && (cl[qid].state === "requested" ? cl[qid].via !== "advisor" : drCustomerTouched(cl[qid])));
     const uploaded = asked.filter(qid => cl[qid].state !== "requested");
     openSheet(`${sheetHead("Customer request", cst ? "Sent to " + cst.first + " " + cst.last + (cst.phone ? " · " + cst.phone : "") : "")}
       <div class="jk2-track">
@@ -7178,15 +7220,23 @@ route("jacket/:id", ({ id }) => {
 
     const onPick = (inp) => () => {
       if (!inp.files || !inp.files.length || !camDoc) return;
-      drAddShots(deal, camDoc, inp.files);
+      const from = drAddShots(deal, camDoc, inp.files);
       const result = drAutoVerify(deal, camDoc);
       /* the record says WHO captured it: without this, an in-showroom scan
          made the tracking sheet claim the customer opened the link and
          uploaded — actions they never took (review find). Absent via means
          the customer's own device, so records from before this field — and
-         every real client upload — keep counting as theirs. */
+         every real client upload — keep counting as theirs.
+         V3: the flag is whole-document, so it is set only when this capture
+         REPLACED the set. Appending a missing side to a front the customer
+         sent stamps that side alone — the customer keeps the front (review
+         find, the same defect from the jacket's side). */
       const rec = jacketClient(deal)[camDoc];
-      if (rec) { rec.via = "advisor"; Store.save(); }
+      if (rec) {
+        if (from === 0) { rec.via = "advisor"; rec.sideVia = []; }
+        drStampSides(deal, camDoc, drSidesFrom(deal, camDoc, from), "advisor");
+        Store.save();
+      }
       toast(result.ok ? "✓ Verified. Moved to Completed." : "Blocked: " + result.issue);
       camDoc = null;
       render();
@@ -7568,8 +7618,27 @@ function drClientLink(id, startScreen) {
   }
 
   /* commit whatever the review holds, through the one verification engine */
+  /* provenance travels WITH the draft pages. st.draftVia is parallel to the
+     photo set: one entry per page, "customer" for a page this device took,
+     the record's own value for a page kept from before. Every operation that
+     reorders the set — retake, add, delete, move — reorders this too, and
+     commit writes it in final order. An index set could not survive a move
+     (review find: moving a customer's back ahead of the advisor's front
+     stamped the advisor's page as the customer's). */
+  const draftSeed = () => {
+    const r = jacketClient(deal)[st.docId] || {};
+    return drSideVia(r, clientPhotos(deal.id, st.docId).length);
+  };
+  const draftAfterAdd = (from) => {
+    const n = clientPhotos(deal.id, st.docId).length;
+    const kept = (st.draftVia || draftSeed()).slice(0, from);
+    st.draftVia = kept.concat(Array.from({ length: n - from }, () => "customer"));
+  };
   function useCapture() {
     const result = drAutoVerify(deal, st.docId);
+    const r = jacketClient(deal)[st.docId];
+    if (r) { r.sideVia = (st.draftVia || draftSeed()).slice(); Store.save(); }
+    st.draftVia = null;
     toast(result.ok ? "✓ Verified instantly and added to the Deal Jacket." : "Upload blocked: " + result.issue);
     st.screen = "landing"; st.zoom = 1; st.page = 0; render();
   }
@@ -7611,8 +7680,9 @@ function drClientLink(id, startScreen) {
     $$("[data-upload-input]").forEach(inp => inp.onchange = () => {
       if (!inp.files || !inp.files.length) return;
       const docId = inp.dataset.uploadInput;
-      drAddShots(deal, docId, inp.files);
+      const from = drAddShots(deal, docId, inp.files);
       const result = drAutoVerify(deal, docId);
+      drStampSides(deal, docId, drSidesFrom(deal, docId, from), "customer");
       toast(result.ok ? "✓ Verified instantly and added to the Deal Jacket." : "Upload blocked: " + result.issue);
       render();
     });
@@ -7640,7 +7710,8 @@ function drClientLink(id, startScreen) {
         if (!inp.files || !inp.files.length) return;
         /* a fresh capture replaces the working set, except while the block
            is a missing page — then it adds to it (same rule as the fast path) */
-        drAddShots(deal, st.docId, inp.files);
+        const from = drAddShots(deal, st.docId, inp.files);
+        draftAfterAdd(from);
         st.page = Math.max(0, clientPhotos(deal.id, st.docId).length - 1);
         st.zoom = 1; st.screen = "review"; render();
       };
@@ -7650,10 +7721,13 @@ function drClientLink(id, startScreen) {
       if (!more.files || !more.files.length) return;
       const urls = clientPhotos(deal.id, st.docId).slice();
       const add = Array.from(more.files).map(drPreviewUrl);
+      const via = st.draftVia || draftSeed();
       if (more.dataset.replace === "1") {
         try { URL.revokeObjectURL(urls[st.page]); } catch (e) {}
         urls.splice(st.page, 1, ...add);
-      } else { urls.push(...add); st.page = urls.length - 1; }
+        via.splice(st.page, 1, ...add.map(() => "customer"));
+      } else { urls.push(...add); via.push(...add.map(() => "customer")); st.page = urls.length - 1; }
+      st.draftVia = via;
       more.dataset.replace = "";
       clientPhotosSet(deal.id, st.docId, urls);
       render();
@@ -7661,6 +7735,7 @@ function drClientLink(id, startScreen) {
     $$("[data-retake]").forEach(b => b.onclick = () => { if (more) { more.dataset.replace = "1"; more.value = ""; more.click(); } });
     $$("[data-add-page]").forEach(b => b.onclick = () => { if (more) { more.dataset.replace = ""; more.value = ""; more.click(); } });
     $$("[data-del-page]").forEach(b => b.onclick = () => {
+      const via = st.draftVia || draftSeed(); via.splice(st.page, 1); st.draftVia = via;
       clientPhotoDrop(deal.id, st.docId, st.page);
       st.page = Math.max(0, st.page - 1); render();
     });
@@ -7669,6 +7744,7 @@ function drClientLink(id, startScreen) {
       const to = b.dataset.move === "+" ? st.page + 1 : st.page - 1;
       if (to < 0 || to >= urls.length) return;
       [urls[st.page], urls[to]] = [urls[to], urls[st.page]];
+      const via = st.draftVia || draftSeed(); [via[st.page], via[to]] = [via[to], via[st.page]]; st.draftVia = via;
       clientPhotosSet(deal.id, st.docId, urls);
       st.page = to; render();
     });
@@ -7778,8 +7854,10 @@ route("docreview/:id/:docId", ({ id, docId }) => {
   function status() {
     const r = rec(), done = jacketState(deal, docId), miss = missingIdx();
     if (done) {
+      /* V3: the disclosure is one short sentence. What checked it is the
+         Verification row under the card, not this title. */
       return done.how === "sort"
-        ? { kind: "good", title: "System Verified (simulated)", body: `${m.verifiedSummary || ""} Nothing was read from the photos — the demo scripts this result.`.trim() }
+        ? { kind: "good", title: "System verified (simulated)", body: "Demo result only. No image data was read." }
         : { kind: "good", title: `Accepted${done.how === "client" ? " by " + done.by : ""}`, body: `In the jacket since ${jacketStamp(done.at)}.${done.note ? " Note: " + done.note : ""}` };
     }
     /* ORDER MATTERS. drAutoVerify records a document short of a side as
@@ -7793,8 +7871,9 @@ route("docreview/:id/:docId", ({ id, docId }) => {
     }
     if (miss >= 0) {
       const names = sideNames();
-      const first = r && r.receivedAt ? `${names[0]} received ${drStamp(r.receivedAt)}. ` : "";
-      return { kind: "warn", title: `${names[miss]} of ${d.label} needed`, body: `${first}Add the ${names[miss].toLowerCase()} to complete this document.` };
+      /* V3 copy rule: name exactly what is missing — no timestamp, no coaching */
+      const first = r && r.receivedAt ? `${names[0]} received. ` : "";
+      return { kind: "warn", title: `${names[miss]} of ${d.label.toLowerCase()} needed`, body: `${first}Add the ${names[miss].toLowerCase()} to complete this document.` };
     }
     if (!r || r.state === "requested") {
       return { kind: "warn", title: "Nothing on file yet", body: "The customer has not sent this document." };
@@ -7802,17 +7881,34 @@ route("docreview/:id/:docId", ({ id, docId }) => {
     return { kind: "good", title: `${d.label} capture complete`, body: `${captured() > 1 ? "Both sides are" : "It is"} stored in the Deal Jacket.` };
   }
 
-  /* how it got here — the jacket's own honesty line, kept */
+  /* V3 — SOURCE is where the sides came from; VERIFICATION is what checked
+     them. They were one line before, and every automatic acceptance was
+     filed as "Snap & Sort", so a customer's own upload changed its story the
+     moment it was accepted (RP-UI-030, closed by this package). The record
+     keeps one flag per side: sideVia[i] is "advisor" when that side was
+     captured on this device, "customer" otherwise; a whole-document
+     via:"advisor" (the jacket's camera pick, an advisor-side burst) covers
+     every side. Absent means the customer's own device, as it always has. */
+  const sideVia = (r) => drSideVia(r, captured());
   function sourceLine() {
-    const r = rec(), done = jacketState(deal, docId);
-    if (done) return done.how === "sort" ? "Snap &amp; Sort (demo)" : done.how === "client" ? "Customer upload" : done.how === "scan" ? "Camera scan" : done.how === "esign" ? "Signed in the app" : "Taken in by hand";
+    const r = rec();
     /* a bare { state: "requested" } record means the customer has been ASKED
        and has sent nothing — naming them as the source of an upload that has
        not happened is the same false claim the page count made (review
        find). No source until something arrives. */
-    if (!r || r.state === "requested") return "&mdash;";
-    if (r.via === "advisor") return "Advisor capture";
-    return "Customer upload";
+    if (!r || r.state === "requested" || !captured()) return "&mdash;";
+    const v = sideVia(r);
+    const adv = v.filter(x => x === "advisor").length;
+    if (adv === 0) return "Customer upload";
+    if (adv === v.length) return "Advisor capture";
+    return "Customer upload + advisor capture";
+  }
+  /* what checked it, in plain words. "Simulated" is the demo's honesty line:
+     nothing here reads a photo. */
+  function verificationLine() {
+    const done = jacketState(deal, docId); if (!done) return null;
+    return done.how === "sort" ? "Simulated" : done.how === "scan" ? "Marker read" : done.how === "esign" ? "Signed in the app"
+      : done.how === "client" ? "Reviewed" : "Marked received";
   }
 
   function render() {
@@ -7828,10 +7924,15 @@ route("docreview/:id/:docId", ({ id, docId }) => {
     const u = urls()[st.side];
     const s = status();
     const miss = missingIdx();
+    /* the link was sent from this screen and the side has not landed yet.
+       V3: once complete, the dock goes and the top-left Back is the only
+       way out — a second labelled Back was the duplicate the package bans. */
+    const r0 = rec();
+    const waiting = miss >= 0 && !!(r0 && r0.linkSentAt);
     const ctx = [c ? `${c.first} ${c.last}` : null, deal.dealNo ? `Deal #${deal.dealNo}` : null].filter(Boolean).join(" · ");
 
     view().innerHTML = `
-      <div class="m-app drv-app">
+      <div class="m-app drv-app${miss >= 0 ? " drv-app--dock" : ""}">
         <header class="drv-top">
           <button type="button" class="drv-icon" id="drvBack" aria-label="Back to Deal Jacket">&lsaquo;</button>
           <div class="drv-topcopy">
@@ -7861,13 +7962,13 @@ route("docreview/:id/:docId", ({ id, docId }) => {
               <div class="drv-statuscopy"><strong>${esc(s.title)}</strong><p>${esc(s.body)}</p></div>
             </div>
             <div class="drv-detail"><span>Source</span><strong>${sourceLine()}</strong></div>
+            ${verificationLine() ? `<div class="drv-detail"><span>Verification</span><strong>${esc(verificationLine())}</strong></div>` : ""}
+            ${waiting ? `<div class="drv-waiting">${rpIcon("clock")} Link sent &middot; waiting for customer upload</div>` : ""}
           </section>
         </main>
-        <div class="drv-dock">
-          ${miss >= 0
-            ? `<button type="button" class="tv-primary drv-go" id="drvAdd">Add missing ${esc((names[miss] || "page").toLowerCase())}</button>`
-            : `<a class="tv-primary drv-go" id="drvDone" href="#/jacket/${esc(deal.id)}">Back to Deal Jacket</a>`}
-        </div>
+        ${miss >= 0 ? `<div class="drv-dock">
+          <button type="button" class="tv-primary drv-go" id="drvAdd">${waiting ? "Manage" : "Add"} missing ${esc((names[miss] || "page").toLowerCase())}</button>
+        </div>` : ""}
       </div>
       <div class="m-scrim" id="drvScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="drvSheet"></div></div>`;
 
@@ -7906,12 +8007,13 @@ route("docreview/:id/:docId", ({ id, docId }) => {
         ${choice("upload", "Send secure upload link", "Customer uploads directly into Ride Price.", `id="drvLink"`)}
       </section>
       <input id="drvFile" class="drv-file" type="file" accept="image/*" capture="environment" hidden>
-      <p class="drv-note">Uploads go directly into Ride Price &mdash; never through the salesperson&rsquo;s phone.</p>`, (sh) => {
+      <p class="drv-note">Uploads go directly into Ride Price &mdash; never through the salesperson&rsquo;s phone.${(rec() || {}).linkSentAt
+        ? ` Link already sent &mdash; demo: <a href="#/clientlink/${esc(deal.id)}">open the customer view</a> on this device.` : ""}</p>`, (sh) => {
       const file = $("#drvFile", sh);
       $("#drvScan", sh).onclick = () => { file.value = ""; file.click(); };
       file.onchange = () => {
         if (!file.files || !file.files.length) return;
-        drAddShots(deal, docId, file.files);
+        const from = drAddShots(deal, docId, file.files);
         const result = drAutoVerify(deal, docId);
         /* this sheet captures on THIS device — the advisor’s. Without the
            marker the jacket counts it as customer activity and the tracking
@@ -7920,28 +8022,32 @@ route("docreview/:id/:docId", ({ id, docId }) => {
            (review find); this capture site was missed. Absent via still
            means the customer’s own device. */
         const cr = jacketClient(deal)[docId];
-        if (cr) { cr.via = "advisor"; Store.save(); }
-        /* NO blocking toast here (package rule): whatever the outcome, it is
-           a state of this document and the card says it. The sheet confirms
-           in place rather than sending the advisor to a success page. */
-        st.side = Math.max(0, captured() - 1);
+        if (cr) {
+          /* V3: provenance is PER SIDE. Only the side captured here is the
+             advisor's; the front the customer sent stays theirs, so Source
+             can read "Customer upload + advisor capture" instead of
+             rewriting the whole document's history. via:"advisor" is NOT
+             set here — that flag means every side. */
+          drStampSides(deal, docId, drSidesFrom(deal, docId, from), "advisor");
+          delete cr.linkSentAt;
+          Store.save();
+        }
+        void result;
+        /* V3: no success sheet, no toast. The viewer switches to the side
+           that just arrived and the card says what the document now is. */
+        closeSheet();
+        st.side = Math.max(0, captured() - 1); st.zoom = 1;
         render();
-        openSheet(`
-          <div class="drv-received">${result.ok ? "&#10003; " + esc(sideNames()[st.side] || "Page") + " received" : "&#9888; " + esc(result.issue || "Still incomplete")}</div>
-          <h2 class="tv-sheettitle drv-sheettitle">${result.ok ? esc(d.label) + " complete" : esc(d.label) + " still needs a side"}</h2>
-          <div class="tv-sheetactions"><button type="button" class="tv-primary" data-sheet-close>Review document</button></div>`);
       };
       $("#drvLink", sh).onclick = () => {
         jacketSendRequest(deal, [docId]);
+        /* jacketSendRequest leaves a record that already holds a side
+           alone, so the front stays on file; this marker is what the card's
+           waiting strip and the dock's "Manage" label read */
+        const cr = jacketClient(deal)[docId];
+        if (cr) { cr.linkSentAt = new Date().toISOString(); Store.save(); }
+        /* V3: no confirmation sheet — the card shows the waiting state */
         closeSheet(); render();
-        openSheet(`
-          <div class="drv-received">&#10003; Secure link sent</div>
-          <h2 class="tv-sheettitle drv-sheettitle">Waiting for the customer</h2>
-          <p class="drv-note" style="margin-top:0">The customer uploads straight into Ride Price. Demo &mdash; no message is really sent; the customer view opens on this device.</p>
-          <div class="tv-sheetactions">
-            <a class="tv-primary" href="#/clientlink/${esc(deal.id)}">Open the customer view</a>
-            <button type="button" class="tv-secondary" data-sheet-close>Stay here</button>
-          </div>`);
       };
     });
   }
@@ -8047,6 +8153,10 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       /* an advisor-side burst is not customer activity — the jacket's
          delivery tracking must not credit it to the customer's phone */
       if (origin === "advisor") rec.via = "advisor";
+      /* V3: a burst REPLACES every page, so the per-side record is rewritten
+         whole — stale entries from an earlier capture would otherwise outrank
+         the burst’s own origin (review find) */
+      rec.sideVia = r.shots.map(() => origin === "advisor" ? "advisor" : "customer");
       rec.tries = (rec.tries || 0) + 1; /* a burst pass counts as an attempt, so a later per-row retake is not re-flagged */
       if (r.status === "verified") {
         rec.state = "accepted"; rec.acceptedAt = at; rec.rejectedReason = null;
