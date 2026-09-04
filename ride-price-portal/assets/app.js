@@ -747,7 +747,9 @@ function inShowroom(d) {
 function arrivedLabel(d) {
   const at = d.visit && d.visit.arrivedAt ? d.visit.arrivedAt : d.createdAt;
   /* "Arrived 11:38" — the hour and minute, as the package writes it */
-  return at ? new Date(at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: false }) : "";
+  /* h23 explicitly: hour12:false may resolve to h24 on some engines, and a
+     visit five minutes after midnight would read "Arrived 24:05" */
+  return at ? new Date(at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: false, hourCycle: "h23" }) : "";
 }
 
 /* ============================================================
@@ -835,9 +837,16 @@ function chSheetOpener(scrimId, sheetId) {
   const scrim = () => $("#" + scrimId), sheet = () => $("#" + sheetId);
   /* what opened it, and the Escape listener that is only bound while it is up */
   let opener = null, onKey = null;
+  const detach = () => { if (onKey) { document.removeEventListener("keydown", onKey); onKey = null; } };
   const close = () => {
-    scrim().hidden = true; sheet().hidden = true;
-    if (onKey) { document.removeEventListener("keydown", onKey); onKey = null; }
+    detach();
+    /* the router can replace #view while a sheet is open — the More sheet's
+       rows are links — so the scrim and the sheet may be gone by the time a
+       later Escape reaches this. Closing what is no longer there is a no-op,
+       not a TypeError, and the listener has already taken itself off. */
+    const sc = scrim(), sh = sheet();
+    if (sc) sc.hidden = true;
+    if (sh) sh.hidden = true;
     /* aria-modal hides the page behind the sheet, so a cursor left on the
        control that opened it has nothing to read and no way out. Put it back
        where it came from — and only if that control is still on the page. */
@@ -845,6 +854,7 @@ function chSheetOpener(scrimId, sheetId) {
     opener = null;
   };
   const open = (html, onMount) => {
+    detach();   /* a second open without a close in between must not leak the first listener */
     /* the screen has ONE sheet node and every sheet reuses it, so its shape is
        reset here rather than by whoever changed it. chDialog() turns it into a
        centred dialog and used to change it back in its own two buttons only —
@@ -1348,10 +1358,13 @@ route("customers", () => {
     return null;
   }
   const fmtAddr = (a) => `${a.address}, ${a.city}, ${a.state} ${a.zip}`;
-  /* a CRM record can hold no address at all — the funded seed customer does.
-     fmtAddr would render ", ,  " and the screen would offer to confirm it, so
-     ask first: a registration address needs a street and a town to be one. */
-  const hasAddr = (a) => !!(a && String(a.address).trim() && String(a.city).trim());
+  /* a CRM record can hold no address at all. fmtAddr would render ", ,  " and
+     the screen would offer to confirm it, so ask first: a registration address
+     needs a street and a town to be one. Read the fields BEFORE coercing —
+     String(undefined) is the seven characters "undefined", which trims to
+     something truthy and would wave through the very record this guards. */
+  const str = (x) => typeof x === "string" ? x.trim() : "";
+  const hasAddr = (a) => !!(a && str(a.address) && str(a.city));
 
   /* the one write path for a confirmed registration address — explicit
      choice, never a silent overwrite; the record keeps its single address
@@ -1372,8 +1385,10 @@ route("customers", () => {
   function idleHtml() {
     const s = session();
     const recent = Store.s.customers.slice().sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 5);
-    /* recent customers: those with a name on file and a place to show —
-       the funded seed has neither, and an empty sub-line is not a row */
+    /* recent customers: those with a name on file and a place to show. Every
+       seeded record now carries both, so this filter is defending against an
+       imported or half-typed record rather than a seed — an empty sub-line is
+       not a row. */
     const rowSub = (c) => [c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
     return shell(`
       ${heroHtml("Customer onboarding", "Find customer")}

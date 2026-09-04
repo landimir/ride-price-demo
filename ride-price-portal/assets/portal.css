@@ -3139,5 +3139,8 @@ body[data-screen="tdoc"] .m-app { padding-bottom: 40px; }
    since 2026-08-27. No rp- class is named: this is the app taking back its
    own element defaults. */
 body:not([data-canvas="kit"]) { font-family: var(--app-font); font-feature-settings: normal; }
-/* and paper never takes the kit's face, whatever screen printed it */
-@media print { html, body { font-family: var(--app-font); font-feature-settings: normal; } }
+/* And paper never takes the kit's face, whatever screen printed it. `html
+   body` rather than `body`: the kit is loaded after this file, so a plain
+   `body` selector ties on specificity and LOSES — this belt has to be able
+   to hold on its own, not only behind the scoped rule above. */
+@media print { html body { font-family: var(--app-font); font-feature-settings: normal; } }
