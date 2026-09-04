@@ -1321,8 +1321,7 @@ route("customers", () => {
           <div class="rp-match__addr-head">Registration address<span class="rp-tag rp-tag--required">Required</span></div>
           <div class="rp-match__addr-line">${esc(fmtAddr(a))}</div>
         </div>
-      </section>
-      <button type="button" class="rp-link" id="obBack">Not the right customer? Search again</button>`, "Step 2 of 3",
+      </section>`, "Step 2 of 3",
       chDock(primaryBtn("obConfirm", "Confirm address & " + (missionDeal ? (mission.kind === "driver" ? "add driver" : "attach co-buyer") : "start visit")), linkBtn("obOtherAddr", "Use a different address")));
   }
 
@@ -1401,7 +1400,14 @@ route("customers", () => {
       : idleHtml();
     /* the Task template's Close returns to the launching screen: the
        mission's own way back when there is one, else the queue */
-    const close = $("#chClose"); if (close) close.onclick = () => navigate((mission && mission.back) || "#/deals");
+    /* the board captions read "Close -> 01": a step inside the task returns to
+       the resolver's first step; from the first step, Close returns to the
+       launching screen — the mission's own way back when there is one, else
+       the queue. The board has no "search again" link; Close is that path. */
+    const close = $("#chClose"); if (close) close.onclick = () => {
+      if (st.mode === "found" || st.mode === "manual") { st.mode = "idle"; st.results = null; st.found = null; render(); return; }
+      navigate((mission && mission.back) || "#/deals");
+    };
     chWireRole(obSheets, () => render());
     wire();
   }
