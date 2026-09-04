@@ -141,9 +141,16 @@ const Store = (function () {
        still resolves are stamped once; a deal whose stock no longer resolves
        keeps what it has — the app never invents a value. */
     state.deals.forEach(d => {
+      const v = d.stock ? RIDE_PRICE_DATA.inventory.find(x => x.stock === d.stock) : null;
       if (!d.vehicle && d.stock) {
-        const v = RIDE_PRICE_DATA.inventory.find(x => x.stock === d.stock);
-        if (v) { d.vehicle = { vin: v.vin, stock: v.stock }; minted = true; }
+        if (v) { d.vehicle = { vin: v.vin, stock: v.stock, year: v.year, make: v.make, model: v.model }; minted = true; }
+      } else if (v && d.vehicle && d.vehicle.stock === d.stock && d.vehicle.make === undefined) {
+        /* the snapshot gained year/make/model on 2026-09-04 so the row and the
+           search can still name the unit after it leaves the catalog. A blob
+           saved before then is filled in now, while the catalog can still say
+           — and only a snapshot that agrees with the deal's stock: a stale
+           one is left for vehicleIds() to reject, exactly as before. */
+        d.vehicle.year = v.year; d.vehicle.make = v.make; d.vehicle.model = v.model; minted = true;
       }
     });
     /* the second seed customer gained a licence and date of birth on
@@ -340,11 +347,14 @@ const STAGES = {
   credit: { label: "Credit App", badge: "badge--prog", route: (d) => `#/credit/${d.id}` },
   menu: { label: "Menu", badge: "badge--menu", route: (d) => `#/menu/${d.id}` },
   forms: { label: "Forms", badge: "badge--menu", route: (d) => `#/menu/${d.id}` },
-  /* the finance menu needs a stocked vehicle to price anything and refuses a
-     deal without one, so a funded contract carried by its own snapshot (the
-     v022 seed's unstocked Telluride) was a row that bounced straight back to
-     Home. Its record is the jacket, which needs only the deal. */
-  complete: { label: "Complete", badge: "badge--done", route: (d) => d.stock ? `#/menu/${d.id}` : `#/jacket/${d.id}` }
+  /* the finance menu needs a vehicle it can PRICE — a catalog unit — and
+     refuses a deal without one, so a funded contract carried by its own
+     snapshot (the v022 seed's unstocked Telluride) was a row that bounced
+     straight back to Home. The same is true of a stock number the catalog no
+     longer holds: truthy, but nothing to price. Either way the deal's record
+     is its jacket, which needs only the deal — the rule the two print entries
+     already apply. */
+  complete: { label: "Complete", badge: "badge--done", route: (d) => d.stock && Store.vehicle(d.stock) ? `#/menu/${d.id}` : `#/jacket/${d.id}` }
 };
 
 /* output flows into innerHTML (renderChrome crumbs) — escape here, at the source */
@@ -3365,7 +3375,9 @@ route("vehicles/:id", ({ id }) => {
       const stock = b.dataset.choose;
       const vsel = Store.vehicle(stock);
       deal.stock = stock;
-      deal.vehicle = vsel ? { vin: vsel.vin, stock: vsel.stock } : { vin: null, stock };
+      /* the words too: the row and the search draw year/make/model from this
+         snapshot once the catalog no longer holds the unit (review, #79) */
+      deal.vehicle = vsel ? { vin: vsel.vin, stock: vsel.stock, year: vsel.year, make: vsel.make, model: vsel.model } : { vin: null, stock };
       Store.save();
       ui.sheet = { kind: "next", stock };
       render();
