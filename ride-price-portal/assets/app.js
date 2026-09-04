@@ -358,6 +358,15 @@ const STAGES = {
 };
 
 /* output flows into innerHTML (renderChrome crumbs) — escape here, at the source */
+/* THE rule for reading a deal's vehicle snapshot, in one place: it speaks
+   only while it agrees with the deal's current stock (exact match), or when
+   the deal has no stock at all — the unstocked case the funded seed lives in.
+   A snapshot that disagrees is not a vehicle; the catalog re-resolves instead,
+   so a stale unit is never paired with a new stock number (review, PR #44).
+   Every reader — vehicleIds(), dealTitle(), the jacket header — comes here. */
+function vehicleSnapshot(deal) {
+  return deal.vehicle && (deal.stock ? deal.vehicle.stock === deal.stock : true) ? deal.vehicle : null;
+}
 function dealTitle(deal, bare) {
   const c = Store.customer(deal.customerId);
   const cb = deal.coBuyerId ? Store.customer(deal.coBuyerId) : null; /* missing record = no co-buyer */
@@ -366,8 +375,8 @@ function dealTitle(deal, bare) {
      is carried by its snapshot alone). A funded contract must never read
      "no vehicle yet" on its own jacket. */
   const catalog = Store.vehicle(deal.stock);
-  const snap = deal.vehicle && (deal.stock ? deal.vehicle.stock === deal.stock : true) && deal.vehicle.make ? deal.vehicle : null;
-  const v = catalog || snap;
+  const snap = vehicleSnapshot(deal); /* the words may be absent on a blob from before 2026-09-04 */
+  const v = catalog || (snap && snap.make ? snap : null);
   const names = `${c ? esc(c.first + " " + c.last) : "—"}${cb ? " + " + esc(cb.first + " " + cb.last) : ""}`;
   const jkc = jacketCounts(deal);
   const line = `${deal.dealNo ? `<b class="crumb-no">Deal #${esc(deal.dealNo)}</b> · ` : ""}${names} · ${v ? esc(v.year + " " + v.make + " " + v.model) : "no vehicle yet"}`;
@@ -1021,7 +1030,7 @@ route("deals", () => {
        that stock stops resolving, the row would pair the old unstocked VIN
        with the new stock number (review, PR #44). A stale snapshot
        re-resolves fresh from the catalog instead of showing the old unit. */
-    const snap = d.vehicle && (d.stock ? d.vehicle.stock === d.stock : true) ? d.vehicle : null;
+    const snap = vehicleSnapshot(d);
     return {
       v, snap,   /* the VALIDATED snapshot — the row and the search read this, never d.vehicle raw */
       vin: (v && v.vin) || (snap && snap.vin) || null,
@@ -6770,6 +6779,10 @@ const jacketStamp = (iso) => {
    Lead's recorded override still honoured. */
 route("jacket/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  /* the printables price against a catalog unit, and both print entries send a
+     deal without one back HERE — so an action that opens one from this screen
+     would be a link to the screen it is on. The same test the guards use. */
+  const printable = !!Store.vehicle(deal.stock);
   /* both internal buckets start collapsed — progressive disclosure is locked
      by the package, and the advisor opens Deal forms only to work them */
   const ui = { formsOpen: false, completedOpen: false };
@@ -6844,7 +6857,7 @@ route("jacket/:id", ({ id }) => {
     /* catalog first, then the deal's own snapshot while it agrees with the
        deal's stock (or the deal has none): a funded contract carried by its
        snapshot — the seed's Telluride — read "no vehicle yet" on its own jacket */
-    const veh = Store.vehicle(deal.stock) || (deal.vehicle && (deal.stock ? deal.vehicle.stock === deal.stock : true) && deal.vehicle.make ? deal.vehicle : null);
+    const veh = Store.vehicle(deal.stock) || (vehicleSnapshot(deal) && vehicleSnapshot(deal).make ? vehicleSnapshot(deal) : null);
     const ov = jk.override;
 
     const custWaiting = docs.filter(d => isCustomerDoc(d) && !inJacket(d));
@@ -6963,7 +6976,9 @@ route("jacket/:id", ({ id }) => {
           ${ov && rem ? `<div class="jk2-inline jk2-inline--warn jk2-inline--bare">Sign-off unlocked by override — ${esc(ov.by)}: “${esc(ov.reason)}”</div>` : ""}
 
           <button type="button" class="jk2-smalllink" id="jkScript">Advisor script</button>
-          <a class="jk2-smalllink" href="#/forms/${esc(deal.id)}">Print Center</a>
+          ${printable
+            ? `<a class="jk2-smalllink" href="#/forms/${esc(deal.id)}">Print Center</a>`
+            : `<span class="jk2-inline jk2-inline--bare">Printing needs the unit in inventory — this contract's vehicle is on the record only.</span>`}
         </main>
 
         <div class="jk2-dock">
@@ -7146,8 +7161,10 @@ route("jacket/:id", ({ id }) => {
   /* what the jacket holds for something already in — and the way back out */
   function recordSheet(d) {
     const st = jacketState(deal, d.id); if (!st) return;
+    /* a deal form opens as a printable, which needs the catalog unit — with
+       none, the print route would only send the reader back to this jacket */
     const viewable = d.origin !== "outside"
-      ? `#/print/${esc(deal.id)}/${esc(d.id)}`
+      ? (printable ? `#/print/${esc(deal.id)}/${esc(d.id)}` : null)
       : (st.how === "client" || st.how === "sort") && CLIENT_QUEUE_IDS.includes(d.id)
         ? `#/docreview/${esc(deal.id)}/${esc(d.id)}` : null;
     openSheet(`${sheetHead(d.label, receivedLine(d))}
