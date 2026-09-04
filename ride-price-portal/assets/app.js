@@ -12,9 +12,30 @@ const Store = (function () {
   function fresh() {
     return {
       customers: RIDE_PRICE_DATA.seedCustomers.map(c => Object.assign({}, c)),
-      deals: [seedDeal()],
+      deals: [seedDeal(), seedFundedDeal()],
       advisor: RIDE_PRICE_DATA.dealership.advisor,
       role: "advisor"
+    };
+  }
+
+  /* the funded contract in the seed (chrome rule v022): Priya Patel, a 2023
+     Kia Telluride the catalog does not stock — the deal's own vehicle
+     snapshot carries it. Complete, finalized, dated Aug 14, so it appears
+     only behind the Team Lead's date control with funded included. */
+  function seedFundedDeal() {
+    return {
+      id: "d-demo2", dealNo: 48044, customerId: "c-demo3", stock: null, dealType: "finance",
+      vehicle: { vin: "5XYP3DHC4PG312907", stock: "7K11842", year: 2023, make: "Kia", model: "Telluride" },
+      /* the Team Lead handled it, so the advisor's own list never shows it —
+         the seed says it is visible only behind the date control */
+      stage: "complete", createdAt: "2026-08-14T15:05:00Z", advisor: RIDE_PRICE_DATA.dealership.teamLead,
+      discovery: { answers: {}, done: true }, testDrive: { done: true }, huddle: { done: true },
+      trade: { has: false, value: 0, payoff: 0, rebates: 0, applyTaxCredit: true },
+      desk: { term: 72, apr: 4.9, downPayment: 2500, leaseTerm: 36, milesPerYear: 12000, leaseFactor: 0.0015, dueAtSigning: 2500, accessories: [], daysToFirst: 45 },
+      basePayment: null, creditApp: { approved: true, lender: "US Bank" },
+      menu: { step: 4, barsDone: [1, 2, 3, 4], custom: [], customSource: null, selectedProgram: null, initials: "PP", ackSigned: true },
+      forms: { selected: [], finalized: true },
+      jacket: { docs: {}, extra: [], req: {} }
     };
   }
 
@@ -671,6 +692,96 @@ const dealPipe = (d) => d.stage === "complete" ? "funded" : (FNI_STAGES.indexOf(
    everywhere: DESKING, F&I, DONE. The five-chip advisor vocabulary of
    2026-08-23 is superseded by this package. */
 const SHOWROOM_STAGES = ["discovery", "vehicle", "testdrive"];
+/* "In showroom" is a STATE the advisor sets (chrome rule v022 §10): the
+   resolver's start-visit actions check the customer in, stamping the deal's
+   visit with an arrival time. The deal's stage never changes the showroom
+   count — John can be Desking and in the showroom at once. Deals from before
+   the field keep the old reading (an early stage meant "on the floor"), so
+   nothing saved earlier disappears. How a visit ENDS is an open item the
+   package told us not to invent: a checked-in customer stays listed until
+   the code gains a check-out. */
+function inShowroom(d) {
+  if (d.visit) return !!d.visit.arrivedAt && !d.visit.endedAt;
+  return SHOWROOM_STAGES.indexOf(d.stage) >= 0 && d.stage !== "complete";
+}
+function arrivedLabel(d) {
+  const at = d.visit && d.visit.arrivedAt ? d.visit.arrivedAt : d.createdAt;
+  /* "Arrived 11:38" — the hour and minute, as the package writes it */
+  return at ? new Date(at).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: false }) : "";
+}
+
+/* ============================================================
+   CHROME RULE (owner's handoff v022, 2026-09-04) — two templates, one
+   definition each, for the 19 mobile screens of Home and the resolver.
+   DESTINATION: wordmark left, role control right, floating tab bar.
+   TASK: close left, task name + step centred, the same role control, an
+   action dock or nothing. The banner slot under the status bar is the only
+   place the environment and impersonation appear — the DEMO chip and the
+   floating "Now acting as" pill are gone. Sheets open over either template
+   without changing it.
+   ============================================================ */
+const CH_TABS = [["deals", "#/deals", "page", "Deals"], ["inventory", "#/vehicles/browse", "car", "Inventory"], ["customers", "#/customers", "user", "Customers"], ["more", null, "dots", "More"]];
+const roleInitials = () => (roleName() || "").split(/\s+/).map(w => w[0] || "").join("").slice(0, 2).toUpperCase();
+/* the banner slot — Advisor: sample data; Team Lead: who is being acted as,
+   with the inline Switch that opens the role sheet */
+function chBanner() {
+  return isTeamLead()
+    ? `<div class="ch-env"><i class="ch-envdot"></i><b>DEMO</b><span class="ch-envwho">Acting as ${esc(roleName())}</span><button type="button" class="ch-envswitch" data-role-open>Switch</button></div>`
+    : `<div class="ch-env"><i class="ch-envdot"></i><b>DEMO</b><span>Sample data only</span></div>`;
+}
+/* the role control — identical on both templates; tapping opens the role sheet */
+const chRole = () => `<button type="button" class="ch-role" data-role-open aria-label="Switch role"><span class="ch-avatar">${roleInitials()}</span><span>${isTeamLead() ? "Team Lead" : "Advisor"}</span><span class="ch-chev" aria-hidden="true"></span></button>`;
+/* the wordmark: the words "Ride Price", one gradient across the whole block —
+   never "ride", never "PRICE" (the package's rule; the gradient is ours) */
+const chWordmark = () => `<a class="ch-wordmark" href="#/deals" aria-label="Ride Price — Deals">Ride Price</a>`;
+/* the top bar for either template */
+function chTop(opts) {
+  if (opts.template === "task") {
+    return `<header class="ch-top ch-top--task">
+      <button type="button" class="ch-close" id="chClose" aria-label="Close">${rpIcon("close")}</button>
+      <div class="ch-title"><div>${esc(opts.title)}</div>${opts.step ? `<small>${esc(opts.step)}</small>` : ""}</div>
+      ${chRole()}</header>`;
+  }
+  return `<header class="ch-top"><div class="ch-mark">${chWordmark()}</div>${chRole()}</header>`;
+}
+/* the floating tab bar — Destination only; absent (not hidden) on a Task */
+function chTabbar(active) {
+  return `<nav class="ch-nav" aria-label="Primary">${CH_TABS.map(([key, href, icon, label]) => {
+    const on = key === active;
+    if (!href) return `<button type="button" class="ch-navitem" id="dqMore">${rpIcon(icon)}<span>${label}</span></button>`;
+    return on ? `<span class="ch-navitem active" aria-current="page">${rpIcon(icon)}<span>${label}</span></span>`
+              : `<a class="ch-navitem" href="${href}">${rpIcon(icon)}<span>${label}</span></a>`;
+  }).join("")}</nav>`;
+}
+/* the action dock — Task only: one primary, at most one text link under it */
+const chDock = (primaryHtml, linkHtml) => `<div class="ch-dock">${primaryHtml}${linkHtml || ""}</div>`;
+/* the whole frame. Content scrolls INSIDE the frame; the page never grows. */
+function chShell(opts, content, dockHtml) {
+  return `<div class="ch-app${opts.template === "task" ? " ch-app--task" : ""}${dockHtml ? " ch-app--dock" : ""}">
+    ${chBanner()}${chTop(opts)}
+    <div class="ch-page">${content}</div>
+    ${dockHtml || ""}${opts.template === "task" ? "" : chTabbar(opts.active)}
+  </div>`;
+}
+/* the role sheet — one definition, opened from the role control or the
+   banner's Switch on any of the 19 screens. Takes the screen's own sheet
+   opener so it lands in that screen's scrim. */
+function chRoleSheet(openSheet, closeSheet, afterSwitch) {
+  const lead = isTeamLead();
+  const opt = (key, title, sub, on) => `<button type="button" class="ch-opt${on ? " on" : ""}" data-role="${key}"><span><strong>${title}</strong><small>${sub}</small></span><span class="ch-radio${on ? " on" : ""}">${on ? rpIcon("check") : ""}</span></button>`;
+  openSheet(`<div class="ch-sheethead"><h2>Switch role</h2><button type="button" class="ch-x" data-sheet-close aria-label="Close">${rpIcon("close")}</button></div>
+    ${opt("advisor", "Advisor", "Guided queue with the next action on each deal", !lead)}
+    ${opt("teamlead", "Team Lead", "Active floor, showroom visits, and date-based history", lead)}`, (sheet) => {
+    $$("[data-role]", sheet).forEach(b => b.onclick = () => {
+      Store.s.role = b.dataset.role === "teamlead" ? "teamlead" : "advisor";
+      Store.save(); closeSheet();
+      if (afterSwitch) afterSwitch();
+    });
+  });
+}
+function chWireRole(openSheet, closeSheet, afterSwitch) {
+  $$("[data-role-open]").forEach(b => b.onclick = () => chRoleSheet(openSheet, closeSheet, afterSwitch));
+}
 const DEAL_BUCKETS = [
   { id: "desking", label: "Desking", chip: "DESKING", badge: "badge--prog", stages: ["discovery", "vehicle", "testdrive", "desking"] },
   { id: "fni", label: "F&I", chip: "F&I", badge: "badge--new", stages: ["signed", "credit", "menu", "forms"] },
@@ -712,8 +823,10 @@ route("deals", () => {
   const mine = Store.s.deals.filter(d => lead || !d.advisor || d.advisor === Store.s.advisor);
   const bySeen = (a, b) => (b.createdAt || "").localeCompare(a.createdAt || "");
   /* v3: In showroom is a separate active-visits section, not a deal stage */
-  const showroom = mine.filter(d => SHOWROOM_STAGES.indexOf(d.stage) >= 0).sort(bySeen);
-  const act = mine.filter(d => SHOWROOM_STAGES.indexOf(d.stage) < 0 && d.stage !== "complete").sort(bySeen);
+  /* v022: presence is its own list and never moves a deal out of the deal
+     list — a customer in the showroom with a desking deal is in BOTH */
+  const showroom = mine.filter(inShowroom).sort(bySeen);
+  const act = mine.filter(d => d.stage !== "complete").sort(bySeen);
   const funded = mine.filter(d => d.stage === "complete").sort(bySeen);
 
   renderChrome(lead ? "Active Floor" : "My Deals", "", "");
@@ -792,13 +905,20 @@ route("deals", () => {
     const b = dealBucket(d);
     const name = c ? c.first + " " + c.last : "—";
     const { v, vin, stock } = vehicleIds(d);
+    /* the vehicle line reads the deal's own snapshot when the catalog has
+       no such unit (the funded seed) */
+    const veh = v ? v.year + " " + v.make + " " + v.model : (d.vehicle && d.vehicle.make ? [d.vehicle.year, d.vehicle.make, d.vehicle.model].filter(Boolean).join(" ") : "");
     const ids = vin || stock
       ? `<span class="dq-ids"><span>VIN ${vin ? `<b>${esc(vin)}</b>` : "Pending"}</span><span>STK ${stock ? `<b>${esc(stock)}</b>` : "Pending stock-in"}</span></span>`
       : "";
+    /* the badge (v022 §5): Desking amber; Done and Funded green — a funded
+       contract carries the month and day it funded */
+    const fundedOn = d.stage === "complete" && lead && d.createdAt ? " · " + new Date(d.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
+    const chip = d.stage === "complete" ? (lead ? "Funded" + fundedOn : "Done") : b.chip;
     return `<a class="dq-row" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
       <span class="dq-name">${esc(name)}</span>
-      <span class="dq-stage dq-stage--${esc(b.id)}">${esc(b.chip)}</span>
-      ${v ? `<span class="dq-veh">${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}
+      <span class="dq-stage dq-stage--${esc(b.id)}">${esc(chip)}</span>
+      ${veh ? `<span class="dq-veh">${esc(veh)}</span>` : ""}
       ${ids}
       ${next && b.id !== "done" ? `<span class="dq-next">Next: ${esc(dealNextAction(d))} →</span>` : ""}
       <span class="dq-chev" aria-hidden="true">›</span>
@@ -808,64 +928,53 @@ route("deals", () => {
   /* showroom visit row — never a vehicle placeholder (owner rule 2026-08-23,
      reasserted on the v3 reference 2026-08-28): the meta is the vehicle when
      one is chosen and the arrival time, nothing else */
+  /* the presence row (v022 §10): initials, name, "Arrived HH:MM · <stage>".
+     Never a vehicle placeholder (owner rule 2026-08-23); the stage is the
+     deal's, read alongside, and it never moves the row. */
   function visitRow(d) {
     const c = Store.customer(d.customerId);
     const st = STAGES[d.stage] || STAGES.discovery;
-    const { v } = vehicleIds(d);
-    const arrived = d.createdAt ? new Date(d.createdAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) : "";
-    const meta = [v ? v.year + " " + v.make + " " + v.model : null, arrived ? "arrived " + arrived : null].filter(Boolean).join(" · ");
-    return `<a class="dq-visit" href="${esc(st.route(d))}" aria-label="Open ${esc(c ? c.first + " " + c.last : "visit")}">
-      <span class="dq-name dq-name--visit">${esc(c ? c.first + " " + c.last : "—")}</span>
-      <span class="dq-visitmeta">${esc(meta)}</span>
-      <span class="dq-showroompill">IN SHOWROOM</span>
+    const b = dealBucket(d);
+    const name = c ? c.first + " " + c.last : "—";
+    const arrived = arrivedLabel(d);
+    return `<a class="dq-visit" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}">
+      <span class="ch-initials">${esc(((c && c.first[0]) || "") + ((c && c.last[0]) || ""))}</span>
+      <span class="dq-visitcopy"><span class="dq-name dq-name--visit">${esc(name)}</span>
+      <span class="dq-visitmeta">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)}</span></span>
+      <span class="dq-chev dq-chev--visit" aria-hidden="true">›</span>
     </a>`;
   }
 
   function showroomHtml(rows) {
-    return `<div class="dq-showroom"><div class="dq-subhead"><b>In showroom · ${rows.length}</b><span>Active visits</span></div>
+    return `<div class="dq-showroom"><div class="ch-sectiontitle">In showroom · ${rows.length}</div>
       ${rows.length ? `<div class="dq-list">${rows.map(visitRow).join("")}</div>` : `<p class="dq-empty">No showroom visits${dealsUI.q.trim() ? " match this search" : ""}.</p>`}</div>`;
   }
 
-  view().innerHTML = `
-  <div class="dq-app">
-    <div class="dq-topbar">
-      <div class="m-wordmark"><span class="rideprice">Ride</span><span class="price">PRICE</span></div>
-      <div class="dq-topside"><span class="chip--demo">DEMO</span>
-        <button type="button" class="m-rolebtn" id="dqRole">${lead ? "Team Lead" : "Advisor"} ▾</button></div>
-    </div>
-    <div class="dq-content">
+  view().innerHTML = chShell({ template: "destination", active: "deals" }, `
       <div class="dq-titlerow">
-        <div><div class="ca-eyebrow" style="margin-bottom:5px">${lead ? "Floor overview" : "Sales floor"}</div>
-          <h1 class="dq-title">${lead ? "Active floor" : "My deals"}</h1>
-          <div class="dq-count" id="dqCount"></div></div>
-        <a class="dq-newvisit" href="#/customers">New visit</a>
+        <div><div class="ch-eyebrow">${lead ? "Floor overview" : "Sales floor"}</div>
+          <h1 class="ch-h1 dq-title">${lead ? "Active floor" : "My deals"}</h1></div>
+        <a class="ch-pill dq-newvisit" href="#/customers">New visit</a>
       </div>
+      <div class="ch-count dq-count" id="dqCount"></div>
       <div class="dq-searchwrap">
         <label class="dq-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><input id="dealSearch" placeholder="Search customer, VIN, or stock" aria-label="Search deals" value="${esc(dealsUI.q)}"></label>
         <button type="button" class="dq-scanbtn" id="dealScanBtn" aria-label="Scan a driver's license to start a visit">${rpIcon("idcard")}</button>
       </div>
       ${lead ? `<div class="dq-managermeta">
         <div class="dq-datesummary" id="dqDateSummary"></div>
-        <button type="button" class="dq-datebtn" id="dqDateBtn"><span id="dqDateLabel"></span> ▾</button>
+        <button type="button" class="dq-datebtn" id="dqDateBtn"><span id="dqDateLabel"></span><span class="ch-chev" aria-hidden="true"></span></button>
       </div>` : ""}
       <div id="dqShowroom"></div>
-      ${lead ? `<div class="dq-sectionlabel">Deals</div>
+      ${lead ? `<div class="ch-sectiontitle">Deals</div>
       <div class="dq-seg" role="group" aria-label="Filter deals by stage">
         <button type="button" class="dq-chipbtn" data-pipe="all">All ${counts.all}</button>
         <button type="button" class="dq-chipbtn" data-pipe="desking"><i class="dq-dot dq-dot--amber"></i>Desking ${counts.desking}</button>
         <button type="button" class="dq-chipbtn" data-pipe="fni"><i class="dq-dot dq-dot--blue"></i>F&amp;I ${counts.fni}</button>
-      </div>` : `<div class="dq-sectionlabel" id="dqSectionLabel">In progress</div>`}
+      </div>` : `<div class="ch-sectiontitle" id="dqSectionLabel">In progress</div>`}
       <div id="dealList"></div>
-      <div id="dqFunded"></div>
-    </div>
-    <nav class="dq-nav" aria-label="Primary">
-      <span class="dq-navbtn active" aria-current="page">${rpIcon("page")}<span>Deals</span></span>
-      <a class="dq-navbtn" href="#/vehicles/browse">${rpIcon("car")}<span>Inventory</span></a>
-      <a class="dq-navbtn" href="#/customers">${rpIcon("user")}<span>Customers</span></a>
-      <button type="button" class="dq-navbtn" id="dqMore">${rpIcon("dots")}<span>More</span></button>
-    </nav>
-  </div>
-  <div class="m-scrim" id="dqScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="dqSheet"></div></div>`;
+      <div id="dqFunded"></div>`) +
+  `<div class="m-scrim" id="dqScrim"><div class="m-sheet ch-sheet" role="dialog" aria-modal="true" id="dqSheet"></div></div>`;
 
   const openSheet5 = (html, onMount) => { $("#dqSheet").innerHTML = `<div class="m-handle"></div>${html}`; $("#dqScrim").classList.add("show"); if (onMount) onMount($("#dqSheet")); };
   const closeSheet5 = () => $("#dqScrim").classList.remove("show");
@@ -893,26 +1002,29 @@ route("deals", () => {
       const rows = pool.filter(matches);
       $("#dealList").innerHTML = rows.length
         ? `<div class="dq-list">${rows.map(d => dealRow(d, { next: false })).join("")}</div>`
-        : `<div class="dq-empty dq-empty--box"><h3>${pool.length ? "No deals match that search" : "No deals in this stage"}</h3><p>${pool.length ? "Try another customer name, VIN, or stock number." : "Choose another stage or start a new customer visit."}</p></div>`;
+        : `<div class="dq-empty dq-empty--box"><h3>${pool.length ? "No deals match that search" : "No deals in this stage"}</h3><p>${pool.length ? "Try another name, VIN, or stock number." : "Choose another stage or start a new visit."}</p></div>`;
       const hist = fundedInRange().filter(matches);
       $("#dqFunded").innerHTML = dealsUI.funded
-        ? `<div class="dq-subhead" style="margin-top:26px"><b>Funded · ${hist.length}</b><span>${esc(w.label)}</span></div>
+        ? `<div class="ch-sectiontitle" style="margin-top:22px">Funded · ${hist.length} <span class="ch-sectionsub">${esc(w.label)}</span></div>
            ${hist.length ? `<div class="dq-list">${hist.map(d => dealRow(d, { next: false })).join("")}</div>` : `<p class="dq-empty">No funded contracts in this range.</p>`}`
         : "";
     } else {
       const active = act.filter(matches);
       const done = funded.filter(matches);
       $("#dqCount").textContent = `${act.length} active`;
-      $("#dqSectionLabel").textContent = active.length ? "In progress" : "Completed";
+      $("#dqSectionLabel").textContent = "In progress";
       let html = active.length ? `<div class="dq-list">${active.map(d => dealRow(d)).join("")}</div>` : "";
       if (!active.length && !done.length && !showRows.length) {
         html = searching
-          ? `<div class="dq-empty dq-empty--box"><h3>No deals found</h3><p>Try another customer name, VIN, or stock number.</p><p class="dq-empty--act"><button type="button" class="sc2-textbtn" id="dealShowAll">Clear search</button></p></div>`
-          : `<div class="dq-empty dq-empty--box"><h3>No active deals</h3><p>Start a new customer visit to begin.</p></div>`;
+          ? `<div class="dq-empty dq-empty--box"><h3>No deals found</h3><p>Try another name, VIN, or stock number.</p><p class="dq-empty--act"><button type="button" class="sc2-textbtn" id="dealShowAll">Clear search</button></p></div>`
+          : `<div class="dq-empty dq-empty--box"><h3>No deals in progress</h3><p>Start a new visit to open one.</p></div>`;
       }
+      /* v022 Home 09: a completed deal ends the list and In progress shows
+         its empty state rather than vanishing */
+      if (!active.length && done.length && !searching) html = `<div class="dq-empty dq-empty--box"><h3>No deals in progress</h3><p>Start a new visit to open one.</p></div>`;
       $("#dealList").innerHTML = html;
       $("#dqFunded").innerHTML = done.length
-        ? `<div class="dq-sectionlabel" style="margin-top:28px">Completed</div><div class="dq-list">${done.map(d => dealRow(d, { next: false })).join("")}</div>`
+        ? `<div class="ch-sectiontitle" style="margin-top:22px">Completed</div><div class="dq-list">${done.map(d => dealRow(d, { next: false })).join("")}</div>`
         : "";
       const sa = $("#dealShowAll");
       if (sa) sa.onclick = () => { dealsUI.q = ""; $("#dealSearch").value = ""; paint(); };
@@ -929,31 +1041,17 @@ route("deals", () => {
     startVisit(cust.id);
   } });
 
-  /* role sheet (v3): the switch lives on the queue's own chrome */
-  $("#dqRole").onclick = () => {
-    const opt = (key, title, sub, on) => `<button type="button" class="dq-roleopt${on ? " active" : ""}" data-role="${key}"><span><b>${title}</b><small>${sub}</small></span>${on ? `<span class="dq-check">✓</span>` : ""}</button>`;
-    openSheet5(`<div class="m-sheettop"><div class="m-sheettitle">Switch demo role</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>
-      <p class="ob-sheetdesc">This demo has no sign-in. Choose the floor view you want to preview.</p>
-      ${opt("advisor", "Advisor", "Guided queue with the next action on each deal", !lead)}
-      ${opt("teamlead", "Team Lead", "Compact active pipeline, showroom visits, and date-based history", lead)}`, (sheet) => {
-      $$("[data-role]", sheet).forEach(b => b.onclick = () => {
-        Store.s.role = b.dataset.role === "teamlead" ? "teamlead" : "advisor";
-        dealsUI.pipe = "all"; Store.save();
-        closeSheet5();
-        toast("Now acting as " + (isTeamLead() ? RIDE_PRICE_DATA.dealership.teamLead : Store.s.advisor));
-        router();
-      });
-    });
-  };
+  /* the role sheet (v022): one definition, opened from the role control or
+     the banner's Switch. No toast — the banner now says who is acting. */
+  chWireRole(openSheet5, closeSheet5, () => { dealsUI.pipe = "all"; router(); });
 
   /* date/history sheet — Team Lead only (v3): history windows plus the
      funded toggle; funded left the active chips for good */
   const dateBtn = $("#dqDateBtn");
   if (dateBtn) dateBtn.onclick = () => {
     const options = [["today", "Today", "Default active-floor view"], ["yesterday", "Yesterday", "Review floor activity in this period"], ["7d", "Last 7 days", "Review floor activity in this period"], ["30d", "Last 30 days", "Review floor activity in this period"], ["custom", "Custom range", "Choose a specific start and end date"]];
-    openSheet5(`<div class="m-sheettop"><div class="m-sheettitle">Date range</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>
-      <p class="ob-sheetdesc">Team Lead only. Keep the everyday queue on Today and expand the funded history only when needed.</p>
-      ${options.map(([key, label, sub]) => `<button type="button" class="dq-roleopt${dealsUI.range === key ? " active" : ""}" data-range="${key}"><span><b>${label}</b><small>${sub}</small></span>${dealsUI.range === key ? `<span class="dq-check">✓</span>` : ""}</button>`).join("")}
+    openSheet5(`<div class="ch-sheethead"><h2>Date range</h2><button type="button" class="ch-x" data-sheet-close aria-label="Close">${rpIcon("close")}</button></div>
+      ${options.map(([key, label, sub]) => `<button type="button" class="ch-opt${dealsUI.range === key ? " on" : ""}" data-range="${key}"><span><strong>${label}</strong><small>${sub}</small></span><span class="ch-radio${dealsUI.range === key ? " on" : ""}">${dealsUI.range === key ? rpIcon("check") : ""}</span></button>`).join("")}
       <div id="dqCustomWrap"${dealsUI.range === "custom" ? "" : " hidden"} style="margin-top:12px">
         <div class="ca-fieldrow">
           <div><label class="ca-lab" for="dqFrom">From</label><input class="ca-input" id="dqFrom" type="date" value="${esc(dealsUI.from)}"></div>
@@ -961,7 +1059,7 @@ route("deals", () => {
         </div>
         <button type="button" class="ob-primary" id="dqApplyRange">Apply range</button>
       </div>
-      <button type="button" class="dq-roleopt${dealsUI.funded ? " active" : ""}" id="dqFundedToggle"><span><b>Include funded contracts</b><small>Historical deals stay out of the active-stage chips</small></span>${dealsUI.funded ? `<span class="dq-check">✓</span>` : ""}</button>`, (sheet) => {
+      <button type="button" class="ch-togglerow" id="dqFundedToggle" role="switch" aria-checked="${dealsUI.funded ? "true" : "false"}"><strong>Include funded contracts</strong><span class="ch-toggle${dealsUI.funded ? " on" : ""}"></span></button>`, (sheet) => {
       $$("[data-range]", sheet).forEach(b => b.onclick = () => {
         dealsUI.range = b.dataset.range;
         if (dealsUI.range === "custom") { $("#dqCustomWrap", sheet).hidden = false; return; }
@@ -980,16 +1078,19 @@ route("deals", () => {
   /* More sheet (v3): secondary destinations stay out of the queue */
   $("#dqMore").onclick = () => {
     const row = (href, icon, title, sub, extra) => `<a class="dq-morerow${extra || ""}" href="${href}"${href.indexOf("../") === 0 ? ` target="_blank" rel="noopener"` : ""}><span class="ob-iconwell">${rpIcon(icon)}</span><span class="dq-moremain"><b>${title}</b><small>${sub}</small></span><span class="sc2-go">›</span></a>`;
-    openSheet5(`<div class="m-sheettop"><div class="m-sheettitle">More</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>
-      <p class="ob-sheetdesc">Secondary tools stay out of the queue until you need them.</p>
+    openSheet5(`<div class="ch-sheethead"><h2>More</h2><button type="button" class="ch-x" data-sheet-close aria-label="Close">${rpIcon("close")}</button></div>
+      <div class="ch-group">
       ${row("#/vehicles/browse", "car", "Inventory", "Browse or search vehicles")}
-      ${row("#/customers", "user", "New customer visit", "Open the universal Customer Resolver")}
-      ${row("#/props", "idcard", "Training documents", "Print the prop licenses and their matching registrations")}
+      ${row("#/customers", "user", "New customer visit", "Open the customer resolver")}
+      ${row("#/props", "idcard", "Training documents", "Prop licenses and registrations")}
       ${row("../ride-price-training-hub/index.html", "sun", "Training hub", "Guides and practice flows")}
-      <button type="button" class="dq-morerow dq-morerow--danger" id="dqReset"><span class="ob-iconwell">${rpIcon("trash")}</span><span class="dq-moremain"><b>Reset demo data</b><small>Return the demo to its original seed state</small></span><span class="sc2-go">›</span></button>`, (sheet) => {
+      </div>
+      <div class="ch-group ch-group--danger">
+      <button type="button" class="dq-morerow dq-morerow--danger" id="dqReset"><span class="ob-iconwell">${rpIcon("trash")}</span><span class="dq-moremain"><b>Reset demo data</b><small>Return the demo to its original seed state</small></span><span class="sc2-go">›</span></button>
+      </div>`, (sheet) => {
       $("#dqReset", sheet).onclick = () => {
         closeSheet5();
-        confirmModal("Reset demo data", "Reset all portal data back to the demo seed? Every deal and customer you created will be gone.", "Reset demo data", () => {
+        confirmModal("Reset demo data?", "All deals and customers you created will be removed and the demo returns to its seed state.", "Reset demo data", () => {
           Store.reset(); navigate("#/deals"); router(); toast("Demo data reset");
         });
       };
@@ -1002,6 +1103,7 @@ route("deals", () => {
 route("customers", () => {
   renderChrome("Find a Customer", "", "");
   document.body.dataset.canvas = "master";
+  document.body.dataset.screen = "resolver";
   /* the unified Customer Resolver (owner's onboarding v3 package, 2026-08-28):
      one resolver for every place Ride Price needs a person. Search first,
      then a physical-license scan or a secure self-upload; manual entry is
@@ -1071,14 +1173,19 @@ route("customers", () => {
   const session = () => Store.s.idSession || null;
 
   const initials = (c) => esc(((c.first || " ")[0] + (c.last || " ")[0]).toUpperCase());
-  const shell = (content) => `
-    <div class="ca-app" style="max-width:600px">
-      ${deskTop({ dealNo: null })}
-      <div class="ob-main">${content}</div>
-    </div>
-    <div class="m-scrim" id="obScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="obSheet"></div></div>`;
-  const heroHtml = (eyebrow, title, lead) => `<div class="ca-eyebrow">${eyebrow}</div><h1 class="ob-h1">${title}</h1>${lead ? `<p class="ob-lead">${lead}</p>` : ""}`;
-  const contextPill = () => `<div class="ob-context"><span class="ob-pill"><span class="ob-dot"></span>${missionDeal ? (mission.kind === "driver" ? "Adding a test-drive driver" : "Adding a co-buyer to this deal") : "Start new customer visit"}</span></div>`;
+  /* the Task template (chrome rule v022): Close on the left, the task name and
+     its step in the centre, the same role control on the right; the primary
+     action in a dock at the bottom, its alternative as a text link. The step
+     is the resolver's own: 1 find, 2 confirm, 3 the customer's session. */
+  const taskTitle = () => missionDeal ? (mission.kind === "driver" ? "Add driver" : "Add co-buyer") : "New visit";
+  const shell = (content, step, dockHtml) => chShell({ template: "task", title: taskTitle(), step }, content, dockHtml) +
+    `<div class="m-scrim" id="obScrim"><div class="m-sheet ch-sheet" role="dialog" aria-modal="true" id="obSheet"></div></div>`;
+  /* no lede under a task title (v022 §5) — the title and the eyebrow carry it */
+  const heroHtml = (eyebrow, title) => `<div class="ch-eyebrow">${eyebrow}</div><h1 class="ch-h1 ob-h1">${title}</h1>`;
+  /* the mission is state the advisor needs, not instruction: shown only when there is one */
+  const contextPill = () => missionDeal ? `<div class="ob-context"><span class="ob-pill"><span class="ob-dot"></span>${mission.kind === "driver" ? "Adding a test-drive driver" : "Adding a co-buyer to this deal"}</span></div>` : "";
+  const primaryBtn = (id, label) => `<button type="button" class="ch-primary" id="${id}">${label}</button>`;
+  const linkBtn = (id, label) => `<button type="button" class="ch-link" id="${id}">${label}</button>`;
 
   /* ---- sheets ---- */
   let sheetClose = null;
@@ -1088,7 +1195,8 @@ route("customers", () => {
     if (onMount) onMount($("#obSheet"));
   };
   const closeSheet4 = () => $("#obScrim").classList.remove("show");
-  const sheetHead4 = (title, sub) => `<div class="m-sheettop"><div class="m-sheettitle">${esc(title)}</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>${sub ? `<p class="ob-sheetdesc">${sub}</p>` : ""}`;
+  /* sheet heads carry no helper sentence (v022 §5) */
+  const sheetHead4 = (title) => `<div class="ch-sheethead"><h2>${esc(title)}</h2><button type="button" class="ch-x" data-sheet-close aria-label="Close">${rpIcon("close")}</button></div>`;
 
   /* one address parser for the single-field rule: "street, city, ST 12345",
      or "street, 12345" completed from the demo ZIP table. Never a guess —
@@ -1119,33 +1227,36 @@ route("customers", () => {
   function idleHtml() {
     const s = session();
     const recent = Store.s.customers.slice().sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 5);
+    /* recent customers: those with a name on file and a place to show —
+       the funded seed has neither, and an empty sub-line is not a row */
+    const rowSub = (c) => [c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
     return shell(`
-      ${heroHtml("Customer onboarding", "Find customer", "Search the CRM, scan a physical license, or let the customer securely upload a license photo from their own phone.")}
+      ${heroHtml("Customer onboarding", "Find customer")}
       ${contextPill()}
       ${s ? `<button type="button" class="ob-session" id="obSession">
         <span class="ob-sessiondot${s.doneAt ? " done" : ""}"></span>
         <span class="ob-sessioncopy"><b>${s.doneAt ? "Customer finished the secure upload" : "Waiting for the customer's upload"}</b><small>${esc(s.phone || s.email)}</small></span>
         <span class="sc2-go">›</span></button>` : ""}
-      <div class="ob-search"><span class="ob-searchicon">${rpIcon("user")}</span><input id="obSearch" placeholder="Name, phone, email, or license #" aria-label="Search customers"><button type="button" class="ob-searchbtn" id="searchBtn">Search</button></div>
-      <div class="ob-helper">Ride Price searches existing profiles before any new customer is created.</div>
-      <div class="ob-or">or identify from a license</div>
-      <div>
-        <button type="button" class="ob-action" id="scanBtn"><span class="ob-iconwell">${rpIcon("idcard")}</span><span class="ob-actionmain"><span class="ob-actiontitle">Scan physical license</span><span class="ob-actionsub">Best when the customer has the license in the showroom.</span></span><span class="sc2-go">›</span></button>
-        <button type="button" class="ob-action" id="obSendLink"><span class="ob-iconwell">${rpIcon("swap")}</span><span class="ob-actionmain"><span class="ob-actiontitle">Send secure upload link</span><span class="ob-actionsub">Customer has a license photo on their phone. The image uploads directly to Ride Price.</span></span><span class="sc2-go">›</span></button>
+      <div class="ob-search ch-search"><input id="obSearch" placeholder="Name, phone, email, or license" aria-label="Search customers"><button type="button" class="ob-searchbtn ch-searchbtn" id="searchBtn">Search</button></div>
+      ${st.results ? resultsHtml() : ""}
+      <div class="ch-group">
+        <button type="button" class="ob-action ch-row" id="scanBtn"><span class="ob-iconwell ch-ic">${rpIcon("idcard")}</span><span class="ob-actionmain"><span class="ob-actiontitle">Scan physical license</span><span class="ob-actionsub">Best when the customer has the license in the showroom.</span></span><span class="ch-chev" aria-hidden="true"></span></button>
+        <button type="button" class="ob-action ch-row" id="obSendLink"><span class="ob-iconwell ch-ic">${rpIcon("upload")}</span><span class="ob-actionmain"><span class="ob-actiontitle">Send secure upload link</span><span class="ob-actionsub">Customer has a license photo on their phone. It uploads directly to Ride Price.</span></span><span class="ch-chev" aria-hidden="true"></span></button>
       </div>
-      ${st.results ? resultsHtml() : `
-      <section class="ob-section"><div class="ob-sectiontitle">Recent customers</div><div class="ob-rows">
-        ${recent.map(c => `<button type="button" class="ob-row" data-found="${esc(c.id)}"><span class="ob-avatar">${initials(c)}</span><span class="ob-rowmain"><span class="ob-rowtitle">${esc(c.first + " " + c.last)}</span><span class="ob-rowsub">${esc(c.phone)} · ${esc(c.city)}, ${esc(c.state)}</span></span><span class="sc2-go">›</span></button>`).join("")}
-      </div></section>`}`);
+      ${st.results ? "" : `
+      <section class="ob-section"><div class="ch-sectiontitle">Recent customers</div><div class="ch-group">
+        ${recent.filter(c => c.first && rowSub(c)).map(c => `<button type="button" class="ob-row ch-row" data-found="${esc(c.id)}"><span class="ch-initials">${initials(c)}</span><span class="ob-rowmain"><span class="ob-rowtitle">${esc(c.first + " " + c.last)}</span><span class="ob-rowsub">${esc(rowSub(c))}</span></span><span class="ch-chev" aria-hidden="true"></span></button>`).join("")}
+      </div></section>`}`, "Step 1 of 3");
   }
 
   function resultsHtml() {
     const hits = st.results;
-    if (!hits.length) return `<section class="ob-section"><div class="ob-sectiontitle">No matches</div>
-      <p class="ob-helper" style="margin-top:0">Nothing on file matches that search. Scan the license, send a secure upload link, or add the customer manually.</p>
-      <button type="button" class="sc2-textbtn" id="obManual">No license available · add manually</button></section>`;
-    return `<section class="ob-section"><div class="ob-sectiontitle">Results (${hits.length})</div><div class="ob-rows">
-      ${hits.map(c => `<button type="button" class="ob-row" data-found="${esc(c.id)}"><span class="ob-avatar">${initials(c)}</span><span class="ob-rowmain"><span class="ob-rowtitle">${esc(c.first + " " + c.last)}</span><span class="ob-rowsub">${esc(c.phone)} · ${esc(c.city)}, ${esc(c.state)}</span></span><span class="sc2-go">›</span></button>`).join("")}
+    /* a miss names the other paths — the licence rows stay below — and offers
+       manual entry as a link, never as a form (v022 Onboarding 05) */
+    if (!hits.length) return `<section class="ob-section ch-nomatch"><strong>No matches</strong>
+      <button type="button" class="ch-link" id="obManual">No license available · add manually</button></section>`;
+    return `<section class="ob-section ob-section--results"><div class="ch-sectiontitle">Results (${hits.length})</div><div class="ch-group">
+      ${hits.map(c => `<button type="button" class="ob-row ch-row" data-found="${esc(c.id)}"><span class="ch-initials">${initials(c)}</span><span class="ob-rowmain"><span class="ob-rowtitle">${esc(c.first + " " + c.last)}</span><span class="ob-rowsub">${esc([c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))}</span></span><span class="ch-chev" aria-hidden="true"></span></button>`).join("")}
     </div></section>`;
   }
 
@@ -1154,58 +1265,58 @@ route("customers", () => {
     const c = st.found;
     const a = { address: c.address, city: c.city, state: c.state, zip: c.zip };
     return shell(`
-      ${heroHtml("Customer onboarding", "Customer found", "Confirm the customer and the address Ride Price should use for registration and tax calculations.")}
+      ${heroHtml("Customer onboarding", "Customer found")}
       ${contextPill()}
-      <div class="ob-card">
-        <div class="ob-resulthead"><span class="ob-avatar">${initials(c)}</span>
+      <div class="ob-card ch-card">
+        <div class="ob-resulthead"><span class="ch-initials">${initials(c)}</span>
           <div><div class="ob-rowtitle">${esc(c.first + " " + c.last)}</div><div class="ob-rowsub">Existing Ride Price customer</div></div>
-          <span class="ob-badge">CRM match</span></div>
-        <div class="ob-facts">
+          <span class="ob-badge ch-badge">CRM match</span></div>
+        <div class="ob-facts ch-kv">
           <div class="ob-fact"><span>Phone</span><strong>${esc(c.phone)}</strong></div>
           <div class="ob-fact"><span>Email</span><strong>${esc(c.email)}</strong></div>
         </div>
+        <div class="ob-addr ch-addr">
+          <div class="ob-addresshead"><div class="ob-addresstitle">Registration address</div><span class="ch-req">Required</span></div>
+          <div class="ob-addressvalue">${esc(fmtAddr(a))}</div>
+        </div>
       </div>
-      <div class="ob-addresscard">
-        <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">Customer record</div></div><span class="ob-pill">Required</span></div>
-        <div class="ob-addressvalue">${esc(fmtAddr(a))}</div>
-        <div class="ob-addressnote">Ride Price carries this address into registration, tax calculations, credit, and deal paperwork so the customer is not asked again.</div>
-        <button type="button" class="ob-primary" id="obConfirm">Confirm address &amp; ${missionDeal ? (mission.kind === "driver" ? "add driver" : "attach co-buyer") : "start visit"}</button>
-        <button type="button" class="sc2-textbtn ob-center" id="obOtherAddr">Use a different address</button>
-      </div>
-      <button type="button" class="sc2-textbtn ob-center" id="obBack">Not the right customer? Search again</button>`);
+      <button type="button" class="ch-link" id="obBack">Not the right customer? Search again</button>`, "Step 2 of 3",
+      chDock(primaryBtn("obConfirm", "Confirm address & " + (missionDeal ? (mission.kind === "driver" ? "add driver" : "attach co-buyer") : "start visit")), linkBtn("obOtherAddr", "Use a different address")));
   }
 
   /* ---- manual fallback: minimum typing, one address field ---- */
   function manualHtml() {
     return shell(`
-      ${heroHtml("Customer onboarding", "No license available", "Use this only when the customer has neither a physical license nor a usable photo.")}
-      <div class="ob-notice"><span>!</span><div><strong>Fallback only</strong>If a license or license photo becomes available, use it instead so Ride Price can read the identity and address automatically.</div></div>
+      ${heroHtml("Customer onboarding", "No license available")}
       <div class="ob-field"><label class="ca-lab" for="obName">Full name</label><input class="ca-input" id="obName" placeholder="First Last"></div>
-      <div class="ob-field"><label class="ca-lab" for="obPhone">Mobile phone</label><input class="ca-input" id="obPhone" type="tel" placeholder="(718) 555-5555"></div>
+      <div class="ob-field"><label class="ca-lab" for="obPhone">Mobile phone</label><input class="ca-input" id="obPhone" type="tel" placeholder="(555) 555-5555"></div>
       <div class="ob-field"><label class="ca-lab" for="obEmail">Email</label><input class="ca-input" id="obEmail" type="email" placeholder="name@testing.com"></div>
       <div class="ob-field"><label class="ca-lab" for="obAddr">Registration address</label><input class="ca-input" id="obAddr" placeholder="Street, city, ST 12345">
-        <div id="obAddrHint"></div></div>
-      <p class="ob-helper">Both phone and email are required on every customer record. <span class="demo-note">Demo tool — sample data only.</span></p>
-      <button type="button" class="ob-primary" id="obManualSave">Confirm &amp; start visit</button>
-      <button type="button" class="sc2-textbtn ob-center" id="obBack">Back to resolver</button>`);
+        <div id="obAddrHint"></div></div>`, "Step 2 of 3",
+      chDock(primaryBtn("obManualSave", "Confirm & start visit"), linkBtn("obBack", "Back to resolver")));
   }
 
   /* ---- remote session: waiting + ready (advisor side) ---- */
   function waitingHtml() {
     const s = session();
     const row = (okFlag, label, sub, value) => `<div class="ob-statusrow"><span class="ob-statusicon${okFlag ? "" : " pending"}">${okFlag ? "✓" : "•"}</span><div><div class="ob-statuslabel">${label}</div>${sub ? `<div class="ob-statussub">${sub}</div>` : ""}</div><span class="ob-statusvalue${okFlag ? "" : " pending"}">${value}</span></div>`;
+    /* the channels are what is on record so far; the address arrives with
+       the licence (v022 Onboarding 08) */
     return shell(`
-      ${heroHtml("Customer onboarding", "Waiting for customer", "The secure Ride Price session is ready. The customer uploads their license photo from their own phone — never by texting it to the salesperson.")}
-      <div class="ob-notice"><span>✓</span><div><strong>Secure link prepared</strong>${esc(s.phone || s.email)} · ${esc(s.channel)}<br><b>Demo — no text or email is really sent; open the customer view on this device to play the customer.</b></div></div>
-      <div class="ob-statuslist">
+      ${heroHtml("Customer onboarding", "Waiting for customer")}
+      <div class="ch-notice">Secure link sent · ${esc(s.phone || s.email)} · ${esc(s.channel)}</div>
+      <div class="ob-statuslist ch-steps">
         ${row(true, "Link sent", "Secure Ride Price session created", "Complete")}
         ${row(!!s.photoAt, "License photo", s.photoAt ? "Read from the training prop" : "Waiting for customer upload", s.photoAt ? "Received" : "Pending")}
         ${row(!!s.faceAt, "Identity photo", s.faceAt ? "Captured on the customer's device" : "Face step follows the upload", s.faceAt ? "Captured" : "Pending")}
         ${row(!!s.addressConfirmedAt, "Registration address", s.addressConfirmedAt ? "Confirmed by the customer" : "Customer confirms the extracted address", s.addressConfirmedAt ? "Confirmed" : "Pending")}
       </div>
-      <a class="ob-primary ob-linkbtn" href="#/idverify">Open customer view</a>
-      <button type="button" class="sc2-textbtn ob-center" id="obBack">Back to customer resolver</button>
-      <button type="button" class="sc2-textbtn ob-center" id="obCancelSession">Cancel this secure link</button>`);
+      <div class="ch-sectiontitle">Channels</div>
+      <div class="ch-group ch-kvgroup">
+        <div class="ob-fact ch-kvrow"><span>${esc(s.phone || "—")}</span><strong>${s.phone ? "Mobile · required" : "Not on record yet"}</strong></div>
+        <div class="ob-fact ch-kvrow"><span>${esc(s.email || "Email")}</span><strong>${s.email ? "Email" : "Not on record yet"}</strong></div>
+      </div>`, "Step 3 of 3",
+      chDock(`<a class="ch-primary" href="#/idverify">Open customer view</a>`, linkBtn("obCancelSession", "Cancel this secure link")));
   }
 
   function remoteReadyHtml() {
@@ -1214,30 +1325,25 @@ route("customers", () => {
     const linked = s.matchId ? Store.customer(s.matchId) : null;
     const a = s.addressChoice;
     const row = (okFlag, label, sub, value) => `<div class="ob-statusrow"><span class="ob-statusicon${okFlag ? "" : " pending"}">${okFlag ? "✓" : "•"}</span><div><div class="ob-statuslabel">${label}</div>${sub ? `<div class="ob-statussub">${sub}</div>` : ""}</div><span class="ob-statusvalue${okFlag ? "" : " pending"}">${value}</span></div>`;
+    /* the label names what finish() will do with this person: the session's
+       own mission first (it outlives this page), else the page's */
+    const k = ((session() && session().mission) || mission || {}).kind;
+    const attachLabel = k === "driver" ? "Add as driver" : k === "cobuyer" ? "Attach as co-buyer" : "Start visit";
     return shell(`
-      ${heroHtml("Customer onboarding", "Customer identified", `${esc(p.first)} completed the secure phone flow. Start the visit now — the second license side stays a specific pending item instead of blocking everything.`)}
-      <div class="ob-card"><div class="ob-resulthead"><span class="ob-avatar">${initials(p)}</span>
-        <div><div class="ob-rowtitle">${esc(p.first + " " + p.last)}</div><div class="ob-rowsub">Remote secure upload${linked ? " · existing customer" : " · new customer"}</div></div>
-        <span class="ob-badge">Identity photo captured</span></div></div>
-      <div class="ob-statuslist" style="margin-top:14px">
-        ${row(true, "Secure session", "Opened on this device (demo)", "Complete")}
-        ${row(true, "Identity photo", "Demo — captured and discarded; no real biometric match", "Captured")}
-        ${row(true, "License photo", "Read from the training prop", "Received")}
-        ${row(false, "Second license side", "Request later only when a workflow needs the full document", "Pending")}
+      ${heroHtml("Customer onboarding", "Customer identified")}
+      <div class="ob-card ch-card"><div class="ob-resulthead"><span class="ch-initials">${initials(p)}</span>
+        <div><div class="ob-rowtitle">${esc(p.first + " " + p.last)}</div><div class="ob-rowsub">Remote session${linked ? " · existing customer" : ""}</div></div>
+        <span class="ob-badge ch-badge">Identity captured</span></div></div>
+      <div class="ob-statuslist ch-steps" style="margin-top:14px">
+        ${row(true, "Secure session", "Opened on the customer's device", "Complete")}
+        ${row(true, "Identity photo", "Captured and discarded", "Captured")}
+        ${row(true, "License photo", "Read from the upload", "Received")}
+        ${row(false, "Second license side", "Request later only when a workflow needs it", "Pending")}
       </div>
-      <div class="ob-addresscard">
-        <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">Confirmed by customer · from the license</div></div><span class="ob-badge">Confirmed</span></div>
-        <div class="ob-addressvalue">${esc(fmtAddr(a))}</div>
-        <div class="ob-addressnote">Carried into tax calculations, credit, registration, and paperwork.</div>
-        <button type="button" class="ob-primary" id="obAttach">${(() => {
-          /* the label names what finish() will do with this person: the
-             session's own mission first (it outlives this page), else the
-             page's */
-          const k = ((session() && session().mission) || mission || {}).kind;
-          return k === "driver" ? "Add as driver" : k === "cobuyer" ? "Attach as co-buyer" : "Start visit";
-        })()}</button>
-        <button type="button" class="sc2-textbtn ob-center" id="obDiscardSession">Discard this upload</button>
-      </div>`);
+      <div class="ch-sectiontitle">Registration address</div>
+      <div class="ch-group ch-addrgroup"><div class="ob-fact ch-kvrow"><span class="ob-addressvalue ch-addrvalue">${esc(fmtAddr(a))}</span><strong class="ch-badge">Confirmed</strong></div>
+        <div class="ob-source ch-source">Confirmed by customer from the license</div></div>`, "Step 3 of 3",
+      chDock(primaryBtn("obAttach", attachLabel), linkBtn("obDiscardSession", "Discard this upload")));
   }
 
   /* ---- render + wiring ---- */
@@ -1250,7 +1356,10 @@ route("customers", () => {
       : st.mode === "waiting" ? waitingHtml()
       : st.mode === "remote-ready" ? remoteReadyHtml()
       : idleHtml();
-    wireDeskTop();
+    /* the Task template's Close returns to the launching screen: the
+       mission's own way back when there is one, else the queue */
+    const close = $("#chClose"); if (close) close.onclick = () => navigate((mission && mission.back) || "#/deals");
+    chWireRole(openSheet4, closeSheet4, () => render());
     wire();
   }
 
@@ -1392,13 +1501,11 @@ route("customers", () => {
   }
 
   function openSendSheet() {
-    openSheet4(`${sheetHead4("Send secure upload link", "The customer uploads the license directly to Ride Price — never by texting or emailing it to the salesperson.")}
-      <div class="ob-channel" id="obChannel"><button type="button" class="active" data-ch="Text">Text</button><button type="button" data-ch="Email">Email</button></div>
-      <div class="ob-field"><label class="ca-lab" for="obLinkPhone">Customer mobile</label><input class="ca-input" id="obLinkPhone" type="tel" placeholder="(718) 555-5555"></div>
+    openSheet4(`${sheetHead4("Send secure upload link")}
+      <div class="ob-channel ch-seg" id="obChannel"><button type="button" class="active" data-ch="Text">Text</button><button type="button" data-ch="Email">Email</button></div>
+      <div class="ob-field"><label class="ca-lab" for="obLinkPhone">Customer mobile</label><input class="ca-input" id="obLinkPhone" type="tel" placeholder="(555) 555-5555"></div>
       <div class="ob-field"><label class="ca-lab" for="obLinkEmail">Email</label><input class="ca-input" id="obLinkEmail" type="email" placeholder="name@testing.com"></div>
-      <div class="ob-privacy"><strong>Private by design:</strong> the upload link creates a secure Ride Price session. The salesperson receives status, not a copy in personal messages. <b>Demo — no text or email is really sent; the customer view opens on this device.</b></div>
-      <p class="ob-helper" style="margin:0 0 4px">Both channels are kept on the record — phone and email are required on every customer profile.</p>
-      <button type="button" class="ob-primary" id="obSendGo">Send secure link</button>`, (sheet) => {
+      <button type="button" class="ch-primary" id="obSendGo">Send secure link</button>`, (sheet) => {
       let channel = "Text";
       $$("#obChannel button", sheet).forEach(b => b.onclick = () => {
         channel = b.dataset.ch;
@@ -1406,9 +1513,12 @@ route("customers", () => {
       });
       $("#obSendGo", sheet).onclick = () => {
         const phone = $("#obLinkPhone", sheet).value.trim(), email = $("#obLinkEmail", sheet).value.trim();
+        /* v022: the link goes through ONE channel, so that channel's field
+           is what is required; the other is kept if given. The seed's
+           Marcus has a mobile and no email on record. */
         const bad = [];
-        if (!phone) bad.push({ el: $("#obLinkPhone", sheet), msg: "Required" });
-        if (!email) bad.push({ el: $("#obLinkEmail", sheet), msg: "Required" });
+        if (channel === "Text" && !phone) bad.push({ el: $("#obLinkPhone", sheet), msg: "Required" });
+        if (channel === "Email" && !email) bad.push({ el: $("#obLinkEmail", sheet), msg: "Required" });
         if (markMissing(sheet, bad)) return;
         Store.s.idSession = { id: uid("s"), phone, email, channel, sentAt: new Date().toISOString(), photoAt: null, persona: null, matchId: null, faceAt: null, addressChoice: null, addressConfirmedAt: null, doneAt: null };
         /* a link sent on the buyers sheet's mission attaches as co-buyer when
@@ -1422,9 +1532,8 @@ route("customers", () => {
   }
 
   function openAddressSheet(onPick) {
-    openSheet4(`${sheetHead4("Use a different address", "One address search field — no separate street, city, state and ZIP typing.")}
+    openSheet4(`${sheetHead4("Use a different address")}
       <div class="ob-field"><label class="ca-lab" for="obSheetAddr">Search address</label><input class="ca-input" id="obSheetAddr" placeholder="Street, city, ST 12345"></div>
-      <div id="obSheetHint" class="ob-helper" style="margin-top:0">Type the address as street, city, ST 12345 — the demo standardizes against its ZIP table.</div>
       <div id="obSheetOut"></div>`, (sheet) => {
       const inp = $("#obSheetAddr", sheet);
       inp.oninput = () => {
@@ -1603,6 +1712,12 @@ function startVisit(customerId) {
   const tier = RIDE_PRICE_CALC.creditTier(cust.creditScore || 700);
   deal.desk.apr = tier.agreedApr;
   deal.desk.leaseFactor = tier.leaseFactor;
+  /* check-in (chrome rule v022 §10): finishing the resolver — a confirmed
+     customer, a scanned licence, a manual entry — is the advisor bringing
+     the customer in. Presence is this stamp, not the deal's stage. Whether a
+     secure-link session counts as present before arrival is an open item;
+     the code keeps doing what it did (it checks in). */
+  deal.visit = { arrivedAt: deal.createdAt };
   Store.s.deals.push(deal); Store.save();
   navigate(`#/discovery/${deal.id}`);
 }
@@ -6151,7 +6266,7 @@ const RP_ICON = {
   dots: `<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>`,
   trash: `<path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13.5h9l1-13.5M10 10.5v7M14 10.5v7"/>`,
   upload: `<path d="M12 16.5V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4.5 15v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15"/>`,
-  clock: `<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>`
+  close: `<path d="M6 6l12 12M18 6 6 18"/>`
 };
 const rpIcon = (k) => `<svg viewBox="0 0 24 24">${RP_ICON[k] || RP_ICON.file}</svg>`;
 /* the customer's document rows, keyed by the document they stand for */
@@ -7484,10 +7599,8 @@ route("docreview/:id/:docId", ({ id, docId }) => {
   function status() {
     const r = rec(), done = jacketState(deal, docId), miss = missingIdx();
     if (done) {
-      /* V3: the disclosure is one short sentence. What checked it is the
-         Verification row under the card, not this title. */
       return done.how === "sort"
-        ? { kind: "good", title: "System verified (simulated)", body: "Demo result only. No image data was read." }
+        ? { kind: "good", title: "System Verified (simulated)", body: `${m.verifiedSummary || ""} Nothing was read from the photos — the demo scripts this result.`.trim() }
         : { kind: "good", title: `Accepted${done.how === "client" ? " by " + done.by : ""}`, body: `In the jacket since ${jacketStamp(done.at)}.${done.note ? " Note: " + done.note : ""}` };
     }
     /* ORDER MATTERS. drAutoVerify records a document short of a side as
@@ -7501,9 +7614,8 @@ route("docreview/:id/:docId", ({ id, docId }) => {
     }
     if (miss >= 0) {
       const names = sideNames();
-      /* V3 copy rule: name exactly what is missing — no timestamp, no coaching */
-      const first = r && r.receivedAt ? `${names[0]} received. ` : "";
-      return { kind: "warn", title: `${names[miss]} of ${d.label.toLowerCase()} needed`, body: `${first}Add the ${names[miss].toLowerCase()} to complete this document.` };
+      const first = r && r.receivedAt ? `${names[0]} received ${drStamp(r.receivedAt)}. ` : "";
+      return { kind: "warn", title: `${names[miss]} of ${d.label} needed`, body: `${first}Add the ${names[miss].toLowerCase()} to complete this document.` };
     }
     if (!r || r.state === "requested") {
       return { kind: "warn", title: "Nothing on file yet", body: "The customer has not sent this document." };
@@ -7511,35 +7623,17 @@ route("docreview/:id/:docId", ({ id, docId }) => {
     return { kind: "good", title: `${d.label} capture complete`, body: `${captured() > 1 ? "Both sides are" : "It is"} stored in the Deal Jacket.` };
   }
 
-  /* V3 — SOURCE is where the sides came from; VERIFICATION is what checked
-     them. They were one line before, and every automatic acceptance was
-     filed as "Snap & Sort", so a customer's own upload changed its story the
-     moment it was accepted (RP-UI-030, closed by this package). The record
-     keeps one flag per side: sideVia[i] is "advisor" when that side was
-     captured on this device, "customer" otherwise; a whole-document
-     via:"advisor" (the jacket's camera pick, an advisor-side burst) covers
-     every side. Absent means the customer's own device, as it always has. */
-  const sideVia = (r) => Array.from({ length: captured() }, (_, i) =>
-    (r.sideVia && r.sideVia[i]) || (r.via === "advisor" ? "advisor" : "customer"));
+  /* how it got here — the jacket's own honesty line, kept */
   function sourceLine() {
-    const r = rec();
+    const r = rec(), done = jacketState(deal, docId);
+    if (done) return done.how === "sort" ? "Snap &amp; Sort (demo)" : done.how === "client" ? "Customer upload" : done.how === "scan" ? "Camera scan" : done.how === "esign" ? "Signed in the app" : "Taken in by hand";
     /* a bare { state: "requested" } record means the customer has been ASKED
        and has sent nothing — naming them as the source of an upload that has
        not happened is the same false claim the page count made (review
        find). No source until something arrives. */
-    if (!r || r.state === "requested" || !captured()) return "&mdash;";
-    const v = sideVia(r);
-    const adv = v.filter(x => x === "advisor").length;
-    if (adv === 0) return "Customer upload";
-    if (adv === v.length) return "Advisor capture";
-    return "Customer upload + advisor capture";
-  }
-  /* what checked it, in plain words. "Simulated" is the demo's honesty line:
-     nothing here reads a photo. */
-  function verificationLine() {
-    const done = jacketState(deal, docId); if (!done) return null;
-    return done.how === "sort" ? "Simulated" : done.how === "scan" ? "Marker read" : done.how === "esign" ? "Signed in the app"
-      : done.how === "client" ? "Reviewed" : "Marked received";
+    if (!r || r.state === "requested") return "&mdash;";
+    if (r.via === "advisor") return "Advisor capture";
+    return "Customer upload";
   }
 
   function render() {
@@ -7555,15 +7649,10 @@ route("docreview/:id/:docId", ({ id, docId }) => {
     const u = urls()[st.side];
     const s = status();
     const miss = missingIdx();
-    /* the link was sent from this screen and the side has not landed yet.
-       V3: once complete, the dock goes and the top-left Back is the only
-       way out — a second labelled Back was the duplicate the package bans. */
-    const r0 = rec();
-    const waiting = miss >= 0 && !!(r0 && r0.linkSentAt);
     const ctx = [c ? `${c.first} ${c.last}` : null, deal.dealNo ? `Deal #${deal.dealNo}` : null].filter(Boolean).join(" · ");
 
     view().innerHTML = `
-      <div class="m-app drv-app${miss >= 0 ? " drv-app--dock" : ""}">
+      <div class="m-app drv-app">
         <header class="drv-top">
           <button type="button" class="drv-icon" id="drvBack" aria-label="Back to Deal Jacket">&lsaquo;</button>
           <div class="drv-topcopy">
@@ -7593,13 +7682,13 @@ route("docreview/:id/:docId", ({ id, docId }) => {
               <div class="drv-statuscopy"><strong>${esc(s.title)}</strong><p>${esc(s.body)}</p></div>
             </div>
             <div class="drv-detail"><span>Source</span><strong>${sourceLine()}</strong></div>
-            ${verificationLine() ? `<div class="drv-detail"><span>Verification</span><strong>${esc(verificationLine())}</strong></div>` : ""}
-            ${waiting ? `<div class="drv-waiting">${rpIcon("clock")} Link sent &middot; waiting for customer upload</div>` : ""}
           </section>
         </main>
-        ${miss >= 0 ? `<div class="drv-dock">
-          <button type="button" class="tv-primary drv-go" id="drvAdd">${waiting ? "Manage" : "Add"} missing ${esc((names[miss] || "page").toLowerCase())}</button>
-        </div>` : ""}
+        <div class="drv-dock">
+          ${miss >= 0
+            ? `<button type="button" class="tv-primary drv-go" id="drvAdd">Add missing ${esc((names[miss] || "page").toLowerCase())}</button>`
+            : `<a class="tv-primary drv-go" id="drvDone" href="#/jacket/${esc(deal.id)}">Back to Deal Jacket</a>`}
+        </div>
       </div>
       <div class="m-scrim" id="drvScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="drvSheet"></div></div>`;
 
@@ -7638,8 +7727,7 @@ route("docreview/:id/:docId", ({ id, docId }) => {
         ${choice("upload", "Send secure upload link", "Customer uploads directly into Ride Price.", `id="drvLink"`)}
       </section>
       <input id="drvFile" class="drv-file" type="file" accept="image/*" capture="environment" hidden>
-      <p class="drv-note">Uploads go directly into Ride Price &mdash; never through the salesperson&rsquo;s phone.${(rec() || {}).linkSentAt
-        ? ` Link already sent &mdash; demo: <a href="#/clientlink/${esc(deal.id)}">open the customer view</a> on this device.` : ""}</p>`, (sh) => {
+      <p class="drv-note">Uploads go directly into Ride Price &mdash; never through the salesperson&rsquo;s phone.</p>`, (sh) => {
       const file = $("#drvFile", sh);
       $("#drvScan", sh).onclick = () => { file.value = ""; file.click(); };
       file.onchange = () => {
@@ -7653,33 +7741,28 @@ route("docreview/:id/:docId", ({ id, docId }) => {
            (review find); this capture site was missed. Absent via still
            means the customer’s own device. */
         const cr = jacketClient(deal)[docId];
-        if (cr) {
-          /* V3: provenance is PER SIDE. Only the side captured here is the
-             advisor's; the front the customer sent stays theirs, so Source
-             can read "Customer upload + advisor capture" instead of
-             rewriting the whole document's history. via:"advisor" is NOT
-             set here — that flag means every side. */
-          cr.sideVia = cr.sideVia || [];
-          cr.sideVia[Math.max(0, captured() - 1)] = "advisor";
-          delete cr.linkSentAt;
-          Store.save();
-        }
-        void result;
-        /* V3: no success sheet, no toast. The viewer switches to the side
-           that just arrived and the card says what the document now is. */
-        closeSheet();
-        st.side = Math.max(0, captured() - 1); st.zoom = 1;
+        if (cr) { cr.via = "advisor"; Store.save(); }
+        /* NO blocking toast here (package rule): whatever the outcome, it is
+           a state of this document and the card says it. The sheet confirms
+           in place rather than sending the advisor to a success page. */
+        st.side = Math.max(0, captured() - 1);
         render();
+        openSheet(`
+          <div class="drv-received">${result.ok ? "&#10003; " + esc(sideNames()[st.side] || "Page") + " received" : "&#9888; " + esc(result.issue || "Still incomplete")}</div>
+          <h2 class="tv-sheettitle drv-sheettitle">${result.ok ? esc(d.label) + " complete" : esc(d.label) + " still needs a side"}</h2>
+          <div class="tv-sheetactions"><button type="button" class="tv-primary" data-sheet-close>Review document</button></div>`);
       };
       $("#drvLink", sh).onclick = () => {
         jacketSendRequest(deal, [docId]);
-        /* jacketSendRequest leaves a record that already holds a side
-           alone, so the front stays on file; this marker is what the card's
-           waiting strip and the dock's "Manage" label read */
-        const cr = jacketClient(deal)[docId];
-        if (cr) { cr.linkSentAt = new Date().toISOString(); Store.save(); }
-        /* V3: no confirmation sheet — the card shows the waiting state */
         closeSheet(); render();
+        openSheet(`
+          <div class="drv-received">&#10003; Secure link sent</div>
+          <h2 class="tv-sheettitle drv-sheettitle">Waiting for the customer</h2>
+          <p class="drv-note" style="margin-top:0">The customer uploads straight into Ride Price. Demo &mdash; no message is really sent; the customer view opens on this device.</p>
+          <div class="tv-sheetactions">
+            <a class="tv-primary" href="#/clientlink/${esc(deal.id)}">Open the customer view</a>
+            <button type="button" class="tv-secondary" data-sheet-close>Stay here</button>
+          </div>`);
       };
     });
   }
