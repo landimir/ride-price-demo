@@ -1451,12 +1451,18 @@ route("customers", () => {
   /* ---- idle: search, the two license paths, recent customers ---- */
   function idleHtml() {
     const s = session();
-    const recent = Store.s.customers.slice().sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || "")).slice(0, 5);
     /* recent customers: those with a name on file and a place to show. Every
-       seeded record now carries both, so this filter is defending against an
-       imported or half-typed record rather than a seed — an empty sub-line is
-       not a row. */
+       seeded record now carries both, so this is defending against an imported
+       or half-typed record rather than a seed — an empty sub-line is not a row,
+       and a record with no LAST name rendered as "First undefined".
+       Filtered BEFORE the limit: slicing to five first meant one unusable
+       record hid a usable older one instead of taking its own place. rowSub is
+       declared above the list because the filter calls it. */
     const rowSub = (c) => [c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
+    const recent = Store.s.customers.slice()
+      .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
+      .filter(c => str(c.first) && str(c.last) && rowSub(c))
+      .slice(0, 5);
     return shell(`
       ${heroHtml("Customer onboarding", "Find customer")}
       ${contextPill()}
@@ -1472,7 +1478,7 @@ route("customers", () => {
       </div>
       ${st.results ? "" : `
       <div class="rp-section">Recent customers</div><div class="rp-group">
-        ${recent.filter(c => c.first && rowSub(c)).map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">${esc(rowSub(c))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
+        ${recent.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">${esc(rowSub(c))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
       </div>`}`, "Step 1 of 3");
   }
 
