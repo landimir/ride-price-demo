@@ -32,6 +32,7 @@ a{color:inherit}
 .dlmenu{display:flex;gap:6px;align-items:center}.dlmenu[hidden]{display:none}
 .dlmenu button{border:1px solid var(--line);background:#fff;font:inherit;font-size:12.5px;font-weight:700;color:var(--navy);padding:8px 13px;border-radius:99px;cursor:pointer;white-space:nowrap}
 .dlmenu button:hover,.dlmenu button:focus-visible{border-color:var(--navy);background:var(--bg);outline:none}.dlnote{color:var(--muted);font-size:12px;padding:6px 4px;white-space:nowrap}
+.appbar .dlnote{color:#fff;opacity:.92} /* the same note on the navy bar — the muted grey fell to 3:1 there */
 .lbdl{position:absolute;right:18px;bottom:10px;color:#fff;font-weight:700;text-decoration:none;border:1.5px solid rgba(255,255,255,.7);border-radius:99px;padding:6px 12px;font-size:12.5px}.lbdl:hover{background:rgba(255,255,255,.15)}
 .flow .desc{margin:4px 0 10px;color:var(--ink)}.entry{font-size:12.5px;color:var(--muted);margin:0 0 12px}.entry a{color:var(--navy);font-weight:700}
 .strip{display:flex;gap:0;overflow-x:auto;padding:6px 2px 14px;align-items:flex-start}
@@ -61,6 +62,7 @@ a{color:inherit}
   .appbar .ver{order:4;width:100%;margin-left:0;font-size:11px;line-height:1.45}
   .appbar a.back{order:2}
   .appbar .dlwrap--all{order:2;margin-left:auto}
+  .appbar .dlnote{white-space:normal} /* an error message wraps on its own row rather than pushing the bar sideways */
   .side{padding:12px 10px}
   .stats{grid-template-columns:repeat(2,1fr)}
   .stat{min-width:0}
@@ -76,7 +78,7 @@ a{color:inherit}
 <body>
 <header class="appbar"><div class="brand"><i>Ride</i><span>PRICE</span></div><span class="chip">UI LIBRARY</span>
   <input id="q" type="search" placeholder="Filter screens, flows, issues…" aria-label="Filter">
-  <div class="dlwrap dlwrap--all"><button type="button" class="dl dl--all" aria-haspopup="menu" aria-expanded="false" aria-label="Download the whole library" title="Download the whole library">⬇ All</button>
+  <div class="dlwrap dlwrap--all"><button type="button" class="dl dl--all" aria-haspopup="menu" aria-expanded="false" aria-label="All: download the whole library" title="Download the whole library">⬇ All</button>
     <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="all">Whole library (ZIP)</button></div></div>
   <span class="ver">v021 · captured 2026-09-03 03:37 · viewport 390×844 · app 24b494e</span></header>
 <div class="layout">
@@ -2198,8 +2200,8 @@ small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 88x28; .dr-lin
   /* every flow in one archive. A folder per flow with its screenshots and
      README (the same files the per-flow ZIP produces), plus a top-level
      README naming the version and listing the flows, the changelog and the
-     version record. Store-only like the per-flow ZIP; the 136 fetches are
-     the cost, and the note counts them so the wait is not a blank. */
+     version record. Store-only like the per-flow ZIP; one fetch per screenshot
+     is the cost, and the note counts them so the wait is not a blank. */
   async function libraryZip(note) {
     const secs = [...document.querySelectorAll(".flow")];
     const ver = (document.querySelector(".appbar .ver") || {}).textContent || "";
@@ -2213,14 +2215,20 @@ small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 88x28; .dr-lin
       for (const s of shots) {
         const r = await fetch(s.src); if (!r.ok) throw new Error("could not fetch " + s.src);
         files.push({ name: dir + s.file, data: new Uint8Array(await r.arrayBuffer()) });
-        done++; if (note) note.textContent = "Preparing… " + done + " of " + total;
+        done++;
+        /* the count is for eyes — a live region rewritten once per screenshot
+           would read every number aloud, so the note is busy while it counts
+           and the screen reader hears the outcome */
+        if (note) { note.setAttribute("aria-busy", "true"); note.textContent = "Preparing… " + done + " of " + total; }
       }
       files.push({ name: dir + "README.md", data: new TextEncoder().encode(flowReadme(sec, shots)) });
     }
     top.push("", "## Reports", "", "- reports/changelog.md — what changed in every version", "- reports/version.json — the capture record for this version", "");
     files.unshift({ name: root + "README.md", data: new TextEncoder().encode(top.join(String.fromCharCode(10))) });
     for (const rep of ["changelog.md", "version.json"]) {
-      const r = await fetch("reports/" + rep); if (r.ok) files.push({ name: root + "reports/" + rep, data: new Uint8Array(await r.arrayBuffer()) });
+      /* the top README names both, so an archive without one would lie */
+      const r = await fetch("reports/" + rep); if (!r.ok) throw new Error("could not fetch reports/" + rep);
+      files.push({ name: root + "reports/" + rep, data: new Uint8Array(await r.arrayBuffer()) });
     }
     saveBlob(zip(files), root.slice(0, -1) + ".zip");
   }
@@ -2247,7 +2255,7 @@ small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 88x28; .dr-lin
     menu.previousElementSibling.focus(); /* focus returns to the toggle */
     const note = document.createElement("div"); note.className = "dlnote"; note.setAttribute("role", "status"); note.textContent = "Preparing…"; wrap.appendChild(note);
     try { await (kind === "all" ? libraryZip(note) : kind === "png" ? flowPng(sec) : flowZip(sec)); }
-    catch (err) { note.textContent = location.protocol === "file:" ? "Downloads need the page served from a web address (the public link) — a file opened directly cannot read its own images." : "Could not prepare the download: " + err.message; return; }
+    catch (err) { note.removeAttribute("aria-busy"); note.textContent = location.protocol === "file:" ? "Downloads need the page served from a web address (the public link) — a file opened directly cannot read its own images." : "Could not prepare the download: " + err.message; return; }
     note.remove();
   }
   /* touch and pen act on pointerup — a zoomable desktop-width page on a phone
@@ -2267,8 +2275,12 @@ small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 88x28; .dr-lin
   });
   /* the open menu (and any finished note) closes on a tap ANYWHERE outside it.
      pointerdown, not click: mobile browsers do not reliably deliver document-
-     level clicks from taps on non-interactive page content. */
-  const closeMenus = () => { document.querySelectorAll(".dlmenu").forEach(x => { x.hidden = true; x.previousElementSibling.setAttribute("aria-expanded", "false"); }); document.querySelectorAll(".dlnote").forEach(x => { if (x.textContent !== "Preparing…") x.remove(); }); };
+     level clicks from taps on non-interactive page content. A note that is
+     still counting stays — the same test toggleMenu uses, because the text
+     moves on from the bare "Preparing…" at the first screenshot, and a note
+     removed mid-way would let a second run start over the first and lose
+     the error the first one ends in. */
+  const closeMenus = () => { document.querySelectorAll(".dlmenu").forEach(x => { x.hidden = true; x.previousElementSibling.setAttribute("aria-expanded", "false"); }); document.querySelectorAll(".dlnote").forEach(x => { if (!x.textContent.startsWith("Preparing")) x.remove(); }); };
   document.addEventListener("pointerdown", (e) => {
     /* a touch tap on these controls activates on pointerup below — cancel the
        compatibility click at the source so it cannot ghost-activate whatever

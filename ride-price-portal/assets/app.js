@@ -903,6 +903,12 @@ function chSheetOpener(scrimId, sheetId) {
   };
   const open = (html, onMount) => {
     detach();   /* a second open without a close in between must not leak the first listener */
+    /* remember what opened it BEFORE focus moves into the sheet — close()
+       hands focus back to this, and had nothing to hand it to. A second
+       open from inside the sheet (a dialog raised over it) keeps the first
+       opener: the control on the page is still the way back. */
+    const from = document.activeElement;
+    if (from && from !== document.body && !(sheet() && sheet().contains(from))) opener = from;
     /* the screen has ONE sheet node and every sheet reuses it, so its shape is
        reset here rather than by whoever changed it. chDialog() turns it into a
        centred dialog and used to change it back in its own two buttons only —
