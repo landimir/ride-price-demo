@@ -72,6 +72,7 @@ const RIDE_PRICE_DATA = {
     "11361": { city: "Bayside", state: "NY", county: "Queens" },
     "11375": { city: "Forest Hills", state: "NY", county: "Queens" },
     "11215": { city: "Brooklyn", state: "NY", county: "Kings" },
+    "11238": { city: "Brooklyn", state: "NY", county: "Kings" },
     "11201": { city: "Brooklyn", state: "NY", county: "Kings" },
     "10001": { city: "New York", state: "NY", county: "New York" },
     "10461": { city: "Bronx", state: "NY", county: "Bronx" },
@@ -373,7 +374,7 @@ const RIDE_PRICE_DATA = {
        and its side-by-side comparison. */
     { id: "c-demo2", first: "Cheri", last: "Bridwell", middle: "", email: "cbridwell@testing.com", phone: "(347) 555-1212",
       dob: "1990-11-02", license: { number: "T-0000102", state: "NY", expires: "2028-11-02" },
-      address: "88 Garfield Pl", city: "Brooklyn", state: "NY", zip: "11215", creditScore: 705, createdAt: "2026-07-08T19:30:00Z" },
+      address: "1 Grand Army Plaza", city: "Brooklyn", state: "NY", zip: "11238", creditScore: 705, createdAt: "2026-07-08T19:30:00Z" },
     /* Priya funded a contract on Aug 14 (chrome rule v022 seed): she exists so
        the Team Lead's history has one funded deal to show behind the date
        control. Not present on the floor. Her record is COMPLETE — phone and
@@ -381,7 +382,15 @@ const RIDE_PRICE_DATA = {
        and a contract does not fund without a registration address. All
        fictional, like every other identity here. */
     { id: "c-demo3", first: "Priya", last: "Patel", middle: "", email: "ppatel@testing.com", phone: "(917) 555-0164",
-      address: "41-15 Bell Blvd", city: "Bayside", state: "NY", zip: "11361", creditScore: 720, createdAt: "2026-08-14T15:05:00Z" }
+      address: "41-15 Bell Blvd", city: "Bayside", state: "NY", zip: "11361", creditScore: 720, createdAt: "2026-08-14T15:05:00Z" },
+    /* Marcus exists BEFORE any scan (scan-license seed v023): the profile his
+       secure upload link created — phone and email on record, no licence, no
+       date of birth, and no address until a licence supplies one. createdVia
+       says so, and the scanner reads it: his name is claimed, not verified,
+       so prop 3 finds no match, the typed number reaches the conflict sheet,
+       and the verified code links the scanned licence onto this very record. */
+    { id: "c-demo4", first: "Marcus", last: "Alvarez", middle: "", email: "malvarez@testing.com", phone: "(646) 555-0900",
+      createdVia: "link", creditScore: 700, createdAt: "2026-09-04T15:38:00Z" }
   ],
 
   /* license-scan prop personas — ALL FICTIONAL, printed as training props.
@@ -395,8 +404,8 @@ const RIDE_PRICE_DATA = {
       address: "31-14 Broadway", city: "Astoria", state: "NY", zip: "11106",
       issued: "2025-03-14", cls: "D", sex: "M", eyes: "BRO", hgt: "5'-11\"" },
     { prop: 2, first: "Cheri", middle: "L", last: "Bridwell", dob: "1990-11-02",
-      license: { number: "T-0000102", state: "NY", expires: "2028-11-02" },
-      address: "88 Garfield Pl", city: "Brooklyn", state: "NY", zip: "11215",
+      license: { number: "T-0000102", state: "NY", expires: "2031-11-02" },
+      address: "1 Grand Army Plaza", city: "Brooklyn", state: "NY", zip: "11238",
       issued: "2024-11-02", cls: "D", sex: "F", eyes: "GRN", hgt: "5'-06\"" },
     { prop: 3, first: "Marcus", middle: "", last: "Alvarez", dob: "1995-06-21",
       license: { number: "T-0000103", state: "NY", expires: "2030-06-21" },

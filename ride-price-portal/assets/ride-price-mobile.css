@@ -1,5 +1,5 @@
 /* =========================================================================
-   Ride Price Mobile — UI kit  v022.2
+   Ride Price Mobile — UI kit  v022.6
    Single source for the mobile chrome. Use the classes; do not restyle them.
    Scale is in px = pt on iOS (1x). Layout is fluid width; height is the viewport.
    ========================================================================= */
@@ -144,7 +144,7 @@ svg { display: block; }
 
 /* ---------- 7. Buttons ---------- */
 .rp-pill-primary {
-  height: 40px; padding: 0 16px; border-radius: 999px;
+  height: 40px; padding: 0 16px; border-radius: 999px; white-space: nowrap; flex: none;
   display: inline-grid; place-items: center; color: #fff; font-size: 14px; font-weight: 740;
   background: var(--rp-gradient); box-shadow: var(--rp-primary-shadow);
 }
@@ -319,3 +319,101 @@ svg { display: block; }
 
 /* ---------- 19. Hit-target floor ---------- */
 /* Every interactive element has a 40px minimum hit area. Where the visual is smaller (role pill 36, chips 32, banner Switch 28, sheet close 32) the ::before pseudo-element extends the target without changing the look. */
+
+/* ---------- 20. Additions v022.6 ---------- */
+/* Key/value list — generic, reusable outside the match card */
+.rp-kv { background: var(--rp-surface); border-radius: var(--rp-r-row); overflow: hidden; margin-bottom: 16px; }
+.rp-kv__row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 16px; font-size: 14px; }
+.rp-kv__row + .rp-kv__row { border-top: .5px solid var(--rp-separator); }
+.rp-kv__row span:first-child { color: var(--rp-muted); flex: none; }
+.rp-kv__row span:last-child { font-weight: 640; text-align: right; }
+.rp-kv__head { padding: 12px 16px 4px; font-size: 13px; font-weight: 720; color: var(--rp-section); }
+
+/* Camera capture card */
+.rp-capture { background: var(--rp-surface); border-radius: var(--rp-r-row); padding: 16px; margin-bottom: 16px; }
+.rp-capture__frame { position: relative; aspect-ratio: 1.586; border: 1.5px dashed #C8C8D0; border-radius: 14px; display: grid; place-items: center; overflow: hidden; }
+.rp-capture__frame::before, .rp-capture__frame::after { content: ""; position: absolute; width: 22px; height: 22px; border: 2.5px solid var(--rp-ink); }
+.rp-capture__frame::before { top: 10px; left: 10px; border-right: 0; border-bottom: 0; border-radius: 4px 0 0 0; }
+.rp-capture__frame::after { bottom: 10px; right: 10px; border-left: 0; border-top: 0; border-radius: 0 0 4px 0; }
+.rp-capture__card { width: 72%; aspect-ratio: 1.586; border-radius: 8px; background: #F6F6F9; border: 1px solid var(--rp-separator); display: grid; grid-template-columns: 34% 1fr; gap: 10px; padding: 12px; align-items: center; }
+.rp-capture__portrait { aspect-ratio: 1; border-radius: 8px; background: #E9EEFC; display: grid; place-items: center; color: #2B49B3; }
+.rp-capture__lines { display: grid; gap: 7px; }
+.rp-capture__lines i { display: block; height: 5px; border-radius: 3px; background: #D9D9E0; }
+.rp-capture__lines i:nth-child(2) { width: 70%; } .rp-capture__lines i:nth-child(3) { width: 85%; }
+.rp-capture__barcode { width: 72%; aspect-ratio: 1.586; border-radius: 8px; background: #F6F6F9; border: 1px solid var(--rp-separator); display: grid; place-items: center; }
+.rp-capture__barcode i { display: block; width: 80%; height: 54%; background: repeating-linear-gradient(90deg, var(--rp-ink) 0 2px, transparent 2px 4px, var(--rp-ink) 4px 5px, transparent 5px 8px, var(--rp-ink) 8px 11px, transparent 11px 13px); }
+.rp-capture__hint { text-align: center; font-size: 14px; font-weight: 700; margin: 14px 0 0; }
+.rp-capture__state { margin-top: 12px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--rp-canvas); border-radius: var(--rp-r-field); font-size: 13px; font-weight: 680; }
+.rp-capture__state .rp-step__mark { width: 20px; height: 20px; }
+
+/* Six-digit code entry */
+.rp-code { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin: 4px 0 18px; }
+.rp-code__box { aspect-ratio: .9; border-radius: 12px; border: 1px solid var(--rp-separator); background: var(--rp-surface); display: grid; place-items: center; font-size: 22px; font-weight: 700; }
+.rp-code__box--active { border: 1.5px solid var(--rp-ink); }
+
+/* Success notice + conflict notice */
+.rp-notice--success { display: flex; align-items: center; gap: 10px; }
+.rp-notice--success .rp-step__mark { width: 20px; height: 20px; flex: none; }
+.rp-notice--conflict { background: #FDECEA; color: #8A1C12; font-weight: 640; }
+.rp-notice--conflict strong { display: block; font-size: 15px; font-weight: 740; color: var(--rp-danger); margin-bottom: 2px; }
+
+/* Two-field row (license # + state) */
+.rp-field-row { display: grid; grid-template-columns: 1fr 88px; gap: 8px; }
+
+/* ---------- 21. Additions v022.6 ---------- */
+.rp-tile--label { font-size: 11px; font-weight: 760; letter-spacing: .04em; color: var(--rp-section); }   /* text tile, e.g. pair number */
+.rp-sheet__sub { margin: -8px 0 14px; font-size: 13px; color: var(--rp-muted); }
+
+/* ---------- 22. Additions v022.6 — inventory ---------- */
+.rp-chips--rail { overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--rp-inset)) 14px; padding: 0 var(--rp-inset); }
+.rp-chips--rail::-webkit-scrollbar { display: none; }
+.rp-chips--rail .rp-chip { flex: none; }
+.rp-chip__count { min-width: 18px; height: 18px; border-radius: 9px; background: var(--rp-ink); color: #fff; font-size: 11px; font-weight: 740; display: grid; place-items: center; padding: 0 5px; }
+.rp-chip--on .rp-chip__count { background: #fff; color: var(--rp-ink); }
+.rp-listhead { display: flex; justify-content: space-between; align-items: baseline; margin: 0 0 12px; }
+.rp-listhead .rp-section { margin: 0; }
+.rp-listhead__meta { font-size: 12px; color: var(--rp-muted); }
+.rp-sort { font-size: 12px; font-weight: 700; color: var(--rp-ink); display: inline-flex; align-items: center; gap: 4px; }
+.rp-sort .rp-icon { width: 12px; height: 12px; }
+
+.rp-vehicle { display: block; width: 100%; text-align: left; background: var(--rp-surface); border-radius: var(--rp-r-row); overflow: hidden; margin-bottom: 12px; }
+.rp-vehicle__media { position: relative; aspect-ratio: 16 / 9; display: grid; place-items: center; background: #E6ECF5; }
+.rp-vehicle__media .rp-icon { width: 46%; height: auto; opacity: .9; }
+.rp-vehicle__tag { position: absolute; top: 10px; left: 10px; font-size: 10px; font-weight: 760; letter-spacing: .06em; padding: 4px 7px; border-radius: 6px; background: rgba(18,19,27,.85); color: #fff; }
+.rp-vehicle__body { padding: 12px 14px 14px; }
+.rp-vehicle__name { font-size: 15px; font-weight: 720; }
+.rp-vehicle__trim { font-size: 13px; margin-top: 2px; }
+.rp-vehicle__meta { font-size: 11px; color: var(--rp-muted); margin-top: 4px; }
+.rp-vehicle__price { display: flex; align-items: baseline; gap: 8px; margin-top: 8px; }
+.rp-vehicle__price strong { font-size: 16px; font-weight: 760; }
+.rp-vehicle__price s { font-size: 11px; color: var(--rp-muted); }
+.rp-vehicle--sheet { margin: 0 0 14px; }
+.rp-vehicle--sheet .rp-vehicle__media { border-radius: 12px; }
+
+.rp-choice { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--rp-canvas); border-radius: var(--rp-r-field); margin-bottom: 14px; }
+.rp-choice__thumb { width: 48px; height: 36px; border-radius: 8px; background: #E6ECF5; display: grid; place-items: center; flex: none; }
+.rp-choice__thumb .rp-icon { width: 26px; height: 26px; }
+.rp-choice__title { font-size: 14px; font-weight: 720; }
+.rp-choice__sub { font-size: 12px; color: var(--rp-muted); margin-top: 2px; }
+
+/* ---------- 23. Additions v022.6 — vehicle contention ---------- */
+/* Two informational states. Neither blocks selection. */
+.rp-vstatus { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 11.5px; font-weight: 680; padding: 4px 8px; border-radius: 6px; }
+.rp-vstatus::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.rp-vstatus--working { background: #FFF1E3; color: #A54600; }
+.rp-vstatus--reserved { background: #FDECEA; color: #B3261E; }
+.rp-vehicle__body .rp-vstatus, .rp-card .rp-vstatus { display: inline-flex; }
+.rp-card .rp-vstatus { margin-top: 10px; }
+/* Same states as a full-width notice inside the details sheet */
+.rp-notice--working { background: #FFF1E3; color: #7A3D00; font-weight: 640; }
+.rp-notice--reserved { background: #FDECEA; color: #8A1C12; font-weight: 640; }
+.rp-notice--working strong, .rp-notice--reserved strong { display: block; font-size: 14px; font-weight: 740; margin-bottom: 2px; }
+.rp-notice--working strong { color: #A54600; } .rp-notice--reserved strong { color: #B3261E; }
+/* In-app notification card (top of a destination list) */
+.rp-alert { position: relative; background: var(--rp-surface); border-radius: var(--rp-r-row); padding: 14px 44px 14px 16px; margin-bottom: 16px; border-left: 4px solid #B3261E; }
+.rp-alert--working { border-left-color: #A54600; }
+.rp-alert__title { font-size: 14px; font-weight: 740; }
+.rp-alert__body { font-size: 12.5px; color: var(--rp-muted); margin-top: 3px; line-height: 1.4; }
+.rp-alert__action { display: inline-block; margin-top: 8px; font-size: 13px; font-weight: 700; color: var(--rp-blue); min-height: 40px; line-height: 40px; margin-bottom: -12px; }
+.rp-alert__close { position: absolute; right: 8px; top: 8px; width: 40px; height: 40px; display: grid; place-items: center; color: #8B8A99; }
+.rp-alert__close .rp-icon { width: 14px; height: 14px; }

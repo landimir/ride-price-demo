@@ -709,13 +709,6 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
    Before this a tall form — Create Customer on a phone — pushed Save and
    Cancel below the fold with no hint that they existed (RP-UI-003). */
 .modal { background: #fff; border-radius: 16px; box-shadow: var(--shadow-lg); width: min(720px, 100%); overflow: hidden; display: flex; flex-direction: column; max-height: 100%; }
-/* the scan journey owns the phone screen (owner, 2026-08-23 — the external
-   draft's shell): no backdrop margin, no radius, full height. Desktop keeps
-   the wide centred dialog — the journey is a phone concept. */
-@media screen and (max-width: 720px) {
-  .modal-back.modal-back--journey { padding: 0; }
-  .modal-back.modal-back--journey .modal--journey { width: 100%; height: 100%; max-height: 100%; border-radius: 0; }
-}
 .modal__head, .modal__foot { flex-shrink: 0; }
 .modal__body { overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
 .modal__head { background: var(--navy); color: #fff; padding: 14px 22px; display: flex; align-items: center; }
@@ -865,24 +858,19 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
   .mv-w3, .mv-w4 { grid-column: span 2; }
 }
 
-/* ---------- license scan flow (master simplified v2, 2026-08-28) ----------
-   The journey rides the master palette inside its own modal shell; every
-   screen style lives in the sc2- family further down. This block keeps the
-   shell: the navy modal head hidden, the master tokens scoped onto the
-   modal (the underlying page may not be on the master canvas), the phone
-   full-screen rule above, and the training chip — the demo marker's one
-   home in the journey (standing rule). ---------- */
+/* ---------- license scan flow (owner's scan-license package v023) ----------
+   The scan is a kit Task screen drawn INSIDE the app's modal: the modal is
+   only the shell that carries the entry point's callbacks, so it becomes the
+   phone frame — no backdrop padding, no radius, no head, the body without
+   padding — and the kit's .rp-screen inside it is the viewport, at every
+   width (on a desktop a phone-wide column, which is what the journey is).
+   Every screen style is the kit's; nothing here dresses a kit class. The
+   sc2- rules that follow further down serve the customer's own secure
+   upload screens (#/idverify), which this package did not touch. ---------- */
+.modal-back.modal-back--journey { padding: 0; }
+.modal-back--journey .modal--journey { width: min(430px, 100%); height: 100%; max-height: 100%; border-radius: 0; background: var(--rp-canvas, #F2F2F7); }
 .modal--journey .modal__head { display: none; }
-.modal--journey {
-  --ink: #121A35; --muted: #6A6A6A; --muted-2: #8F8F8F; --line: #DDDDDD;
-  --line-soft: #EBEBEB; --surface: #F7F7F7; --surface-2: #F1F1F1; --accent: #FF6A2A;
-  background: #fff; color: var(--ink);
-}
-.modal-back--journey .modal--journey { width: min(430px, 100%); }
-.modal--journey .chip--demo {
-  flex: none; background: rgba(249, 178, 52, .16); color: #8a6207; border: 0;
-  font-size: 9.5px; font-weight: 600; letter-spacing: .8px; padding: 4px 9px; border-radius: 999px;
-}
+.modal--journey .modal__body { padding: 0; overflow: hidden; }
 
 /* ---------- Buyers on the deal V2 (owner's replication package, 2026-08-29)
    One bottom sheet on the master grammar; geometry transcribed from the
@@ -2154,27 +2142,11 @@ select.ca-input { appearance: auto; }
 .ca-statusitem { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; }
 .ca-statusitem span:last-child { color: var(--muted); }
 
-/* ---- Scan Driver's License (sc2- family; owner's simplified v2 golden,
-   2026-08-28). Two decisions — Scan, then Confirm — with exceptions in
-   bottom sheets. Anatomy transcribed verbatim; rides the master tokens
-   scoped on .modal--journey; primaries wear the signature gradient
-   (standing ruling). */
-.sc2-top { position: sticky; top: 0; z-index: 30; background: rgba(255, 255, 255, .96); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line-soft); padding: 12px 20px 13px; }
-.sc2-brandrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.sc2-brand { font-size: 18px; font-weight: 760; letter-spacing: -.03em; color: var(--ink); }
-.sc2-brand span { color: var(--accent); }
-.sc2-context { display: flex; gap: 10px; align-items: center; }
-.sc2-close { width: 38px; height: 38px; margin: -6px -8px -6px 0; border: 0; border-radius: 50%; background: none; font-size: 22px; color: var(--ink); cursor: pointer; display: grid; place-items: center; }
-.sc2-close:hover { background: var(--surface); }
-.sc2-progress { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.sc2-step { font-size: 12px; font-weight: 650; color: var(--muted); padding-top: 9px; border-top: 3px solid #E4E4E4; }
-.sc2-step.active, .sc2-step.done { color: var(--ink); border-top-color: var(--ink); }
-.sc2-page { padding: 28px 20px 32px; }
-.sc2-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-.sc2-h1 { font-size: 32px; line-height: 1.05; font-weight: 720; letter-spacing: -.045em; margin: 0; color: var(--ink); }
-.sc2-sub { font-size: 15px; line-height: 1.45; color: var(--muted); margin: 10px 0 0; max-width: 360px; }
+/* ---- sc2- family, what remains of it: the customer's own secure upload
+   screens (#/idverify — the capture card, its status line, the two-button
+   action stack) and the resolver's session row chevron. The advisor's scan
+   journey left this family for the kit with the scan-license package (v023). */
 .sc2-capture { margin-top: 26px; border: 1px solid var(--line); border-radius: 26px; background: var(--surface); padding: 18px; }
-.sc2-capture--busy { display: flex; flex-direction: column; align-items: center; min-height: 320px; justify-content: center; }
 .sc2-frame { aspect-ratio: 1.58/1; border-radius: 20px; background: #fff; border: 1.5px dashed #BDBDBD; display: grid; place-items: center; position: relative; overflow: hidden; }
 .sc2-frame::before, .sc2-frame::after { content: ""; position: absolute; width: 34px; height: 34px; border-style: solid; border-color: var(--ink); }
 .sc2-frame::before { top: 13px; left: 13px; border-width: 2px 0 0 2px; border-radius: 10px 0 0 0; }
@@ -2186,89 +2158,18 @@ select.ca-input { appearance: auto; }
 .sc2-cardlines i { display: block; height: 6px; border-radius: 999px; background: #D7D7D7; margin: 8px 0; }
 .sc2-cardlines i:nth-child(2) { width: 72%; }
 .sc2-cardlines i:nth-child(3) { width: 48%; }
-.sc2-barcode { width: 84%; height: 92px; background: repeating-linear-gradient(90deg, #222 0, #222 2px, #fff 2px, #fff 5px, #222 5px, #222 6px, #fff 6px, #fff 10px); border: 10px solid #fff; border-radius: 9px; box-shadow: 0 0 0 1px #D9D9D9; }
 .sc2-captitle { text-align: center; font-size: 17px; font-weight: 700; margin: 18px 0 5px; color: var(--ink); }
 .sc2-captip { text-align: center; color: var(--muted); font-size: 13px; line-height: 1.4; margin: 0; }
 .sc2-status { margin-top: 16px; border-radius: 16px; background: #fff; border: 1px solid var(--line-soft); padding: 13px 14px; display: flex; align-items: center; gap: 11px; font-size: 13px; width: 100%; }
 .sc2-status span { color: var(--muted); }
 .sc2-statusicon { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: #EAF7F2; color: #168A62; font-weight: 800; flex: 0 0 auto; }
-.sc2-spin { width: 56px; height: 56px; border-radius: 50%; border: 3px solid #E5E5E5; border-top-color: var(--accent); animation: sc2spin .85s linear infinite; }
-@keyframes sc2spin { to { transform: rotate(360deg); } }
 .sc2-actions { display: grid; gap: 10px; margin-top: 18px; }
 .sc2-primary, .sc2-secondary { min-height: 54px; width: 100%; border-radius: 14px; font: inherit; font-weight: 720; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 .sc2-primary { border: 0; background: var(--grad); color: #fff; }
 .sc2-primary:hover { filter: brightness(1.06); }
 .sc2-secondary { border: 1px solid var(--ink); background: #fff; color: var(--ink); }
-.sc2-textbtn { border: 0; background: none; color: var(--ink); font: inherit; font-size: 14px; font-weight: 650; text-decoration: underline; text-underline-offset: 4px; padding: 11px; cursor: pointer; }
-.sc2-micro { font-size: 12px; line-height: 1.45; color: var(--muted); text-align: center; margin: 12px 0 0; }
-.sc2-micro b { color: var(--ink); font-weight: 650; }
-.sc2-found { margin-top: 24px; border: 1px solid var(--line); border-radius: 24px; overflow: hidden; }
-.sc2-foundhead { padding: 18px; display: flex; align-items: center; gap: 13px; }
-.sc2-person { width: 48px; height: 48px; border-radius: 50%; background: #EEF2F6; display: grid; place-items: center; color: #52708a; flex: 0 0 auto; }
-.sc2-person svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.sc2-person--init { font-size: 14px; font-weight: 750; color: var(--ink); background: var(--surface-2); width: 42px; height: 42px; }
-.sc2-foundhead h2 { font-size: 20px; letter-spacing: -.025em; margin: 0 0 4px; font-weight: 720; color: var(--ink); }
-.sc2-foundhead p { font-size: 13px; color: var(--muted); margin: 0; }
-.sc2-badge { margin-left: auto; font-size: 11px; font-weight: 700; padding: 7px 9px; border-radius: 999px; background: #EAF7F2; color: #168A62; white-space: nowrap; flex: none; }
-.sc2-checks { border-top: 1px solid var(--line-soft); padding: 4px 18px; }
-.sc2-checkrow { display: flex; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--line-soft); font-size: 13px; }
-.sc2-checkrow:last-child { border-bottom: 0; }
-.sc2-checkmark { color: #168A62; font-weight: 900; }
-.sc2-checkmark--off { color: var(--muted); }
-.sc2-checkrow span:last-child { margin-left: auto; color: var(--muted); font-size: 12px; text-align: right; }
-.sc2-update { margin-top: 16px; border-radius: 18px; background: var(--surface); padding: 16px; }
-.sc2-updatehead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.sc2-updatehead b { font-size: 14px; }
-.sc2-updatehead span { font-size: 12px; color: var(--muted); text-align: right; }
-.sc2-delta { margin-top: 14px; border-top: 1px solid var(--line); }
-.sc2-deltarow { padding: 13px 0; display: grid; grid-template-columns: 90px 1fr; gap: 12px; align-items: start; }
-.sc2-deltalabel { font-size: 12px; color: var(--muted); }
-.sc2-deltavalues { font-size: 13px; line-height: 1.45; }
-.sc2-old { color: var(--muted); text-decoration: line-through; }
-.sc2-arrow { color: var(--muted); padding: 0 5px; }
-.sc2-new { font-weight: 650; color: var(--ink); }
-.sc2-newtag { font-size: 11px; font-weight: 700; color: #168A62; background: #EAF7F2; border-radius: 999px; padding: 2px 7px; margin-right: 6px; }
-.sc2-newsummary { margin-top: 20px; border: 1px solid var(--line); border-radius: 22px; padding: 17px; }
-.sc2-sumhead { font-size: 13px; font-weight: 700; color: var(--muted); padding-bottom: 6px; }
-.sc2-sumrow { display: flex; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: 1px solid var(--line-soft); font-size: 13px; }
-.sc2-sumrow:last-child { border-bottom: 0; }
-.sc2-sumrow span { color: var(--muted); }
-.sc2-sumrow b { text-align: right; max-width: 65%; font-weight: 650; }
-.sc2-fields { display: grid; gap: 15px; margin-top: 20px; }
-.sc2-field label { font-size: 13px; font-weight: 650; display: block; margin-bottom: 7px; color: var(--ink); }
-.sc2-req { color: var(--accent); }
-.sc2-input { width: 100%; height: 52px; border: 1px solid var(--line); border-radius: 13px; background: #fff; padding: 0 14px; font: inherit; font-size: 16px; color: var(--ink); outline: none; }
-.sc2-input:focus { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-.sc2-successbar { margin: 0 0 20px; border-radius: 17px; background: #EAF7F2; padding: 14px 15px; display: flex; align-items: center; gap: 11px; color: #168A62; font-size: 14px; font-weight: 700; }
 .sc2-successbar .sc2-statusicon { background: #fff; }
-.sc2-sheetback { position: fixed; inset: 0; background: rgba(0, 0, 0, .34); z-index: 120; display: flex; align-items: flex-end; justify-content: center; }
-.sc2-sheet { width: 100%; max-width: 430px; background: #fff; border-radius: 28px 28px 0 0; padding: 10px 20px calc(22px + env(safe-area-inset-bottom)); box-shadow: 0 -18px 48px rgba(0, 0, 0, .18); max-height: 84vh; overflow: auto; }
-.sc2-handle { width: 42px; height: 5px; border-radius: 999px; background: #D2D2D2; margin: 2px auto 18px; }
-.sc2-sheethead { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
-.sc2-sheethead h2 { font-size: 23px; line-height: 1.08; letter-spacing: -.035em; margin: 0; color: var(--ink); }
-.sc2-sheethead p { font-size: 14px; line-height: 1.45; color: var(--muted); margin: 8px 0 0; }
-.sc2-sheetx { width: 38px; height: 38px; border: 0; border-radius: 50%; background: var(--surface); font-size: 24px; color: var(--ink); flex: 0 0 auto; cursor: pointer; display: grid; place-items: center; }
-.sc2-sheetactions { display: grid; gap: 10px; margin-top: 22px; }
-.sc2-sheethint { font-size: 12px; color: var(--muted); line-height: 1.45; margin: 12px 0 0; }
-.sc2-searchbox { margin-top: 20px; display: flex; gap: 9px; }
-.sc2-searchbox .sc2-input { flex: 1; min-width: 0; }
-.sc2-input--state { flex: 0 0 64px; text-transform: uppercase; }
-.sc2-searchgo { width: 92px; min-height: 52px; flex: none; }
-.sc2-result { margin-top: 14px; border: 1px solid var(--line); border-radius: 18px; padding: 14px; display: flex; align-items: center; gap: 12px; width: 100%; background: #fff; font: inherit; text-align: left; color: var(--ink); }
-.sc2-result--pick { cursor: pointer; }
-.sc2-result b { display: block; font-size: 14px; }
-.sc2-result span { font-size: 12px; color: var(--muted); display: block; margin-top: 3px; }
-.sc2-use { margin-left: auto; border: 0; background: var(--ink); color: #fff; border-radius: 11px; padding: 10px 12px; font: inherit; font-weight: 650; font-size: 12px; cursor: pointer; flex: none; }
 .sc2-go { margin-left: auto; font-size: 20px; color: var(--muted); }
-.sc2-noresult { font-size: 13px; color: var(--muted); margin: 14px 0 0; }
-.sc2-conflict { margin-top: 20px; border-radius: 18px; background: #FFF1F0; padding: 16px; }
-.sc2-conflict > b { display: block; font-size: 14px; color: #B42318; }
-.sc2-conflict p { font-size: 13px; color: #7D3328; line-height: 1.45; margin: 7px 0 0; }
-.sc2-code { margin-top: 22px; display: grid; grid-template-columns: repeat(6, 1fr); gap: 7px; }
-.sc2-code input { width: 100%; height: 52px; border: 1px solid var(--line); border-radius: 11px; text-align: center; font-size: 20px; font-weight: 700; font-family: inherit; outline: none; }
-.sc2-code input:focus { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-.sc2-demo { margin-top: 14px; border-radius: 14px; background: #FFF5E8; padding: 12px 13px; font-size: 12px; line-height: 1.4; color: #9A5B13; }
-@media (max-width: 360px) { .sc2-h1 { font-size: 29px; } .sc2-page { padding-left: 16px; padding-right: 16px; } }
 
 /* ---- Unified Customer Resolver (ob- family; owner's onboarding v3
    golden, 2026-08-28). One resolver for every entry point: search, the
@@ -2383,6 +2284,11 @@ select.ca-input { appearance: auto; }
    variant; it is named in the PR so v022.3 can carry one and this rule can
    go. (.rp-row needs nothing — the kit already gives it display:flex.) */
 a.rp-card { display: block; }
+
+/* an input that has to exist and must not be seen: the verify sheet's real
+   six-digit field sits under the kit's six display boxes (.rp-code__box is
+   drawn as a static cell), and the phone keyboard opens for it */
+.sr-only { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
 
 /* The kit's `a { color: inherit; text-decoration: none }` dresses its own rows
    and tabs, and it is loaded after portal.css, so it also erased every plain
