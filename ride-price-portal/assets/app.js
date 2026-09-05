@@ -713,14 +713,6 @@ function navigate(hash) { location.hash = hash; }
    to leave by (review find — my own first fix had exactly this hole). */
 let routerReplacing = false;
 function redirect(hash) { routerReplacing = true; location.replace(hash); }
-/* where a chrome-less screen's back control should go: the screen the router
-   came from, or the queue when this tab opened here. Always a real
-   destination — never a history.back() that can be a no-op. */
-function routerBackHash() {
-  const prev = routerPrevHash;
-  return prev && prev !== location.hash ? prev : "#/deals";
-}
-
 /* the hash this router last rendered. A screen on the master canvas has no
    app bar, so when it is the FIRST page in a tab its back control has nowhere
    to go; this is what it falls back to. Deliberately not history.length —
@@ -871,7 +863,9 @@ function chTop(opts) {
 function chTabbar(active) {
   return `<nav class="rp-tabbar" aria-label="Primary">${CH_TABS.map(([key, href, icon, label]) => {
     const on = key === active;
-    if (!href) return `<button type="button" class="rp-tab" id="dqMore">${rpGlyph(icon)}${label}</button>`;
+    /* More is a button, not a link — and on a sub-destination (Training
+       documents) it is the active tab, whose tap reopens its sheet */
+    if (!href) return `<button type="button" class="rp-tab${on ? " rp-tab--active" : ""}" id="dqMore"${on ? ' aria-current="page"' : ""}>${rpGlyph(icon)}${label}</button>`;
     return on ? `<span class="rp-tab rp-tab--active" aria-current="page">${rpGlyph(icon)}${label}</span>`
               : `<a class="rp-tab" href="${href}">${rpGlyph(icon)}${label}</a>`;
   }).join("")}</nav>`;
@@ -891,7 +885,11 @@ function chShell(opts, content, dockHtml, sheetIds) {
   </div>`;
 }
 /* one sheet opener for the kit's overlay: grab handle, then the screen's html */
-function chSheetOpener(scrimId, sheetId) {
+/* onClose, when given, runs after a sheet that was open is closed — by the
+   scrim, Escape, a data-sheet-close control or close() itself — so a screen
+   whose state follows the sheet (the training hub's print set) has one place
+   to hear it. Not on a navigation: the route change only detaches. */
+function chSheetOpener(scrimId, sheetId, onClose) {
   const scrim = () => $("#" + scrimId), sheet = () => $("#" + sheetId);
   /* what opened it, and the two listeners that are bound only while it is up */
   let opener = null, onKey = null, onHash = null;
@@ -906,8 +904,10 @@ function chSheetOpener(scrimId, sheetId) {
        later Escape reaches this. Closing what is no longer there is a no-op,
        not a TypeError, and the listener has already taken itself off. */
     const sc = scrim(), sh = sheet();
+    const wasOpen = !!(sh && !sh.hidden);
     if (sc) sc.hidden = true;
     if (sh) sh.hidden = true;
+    if (wasOpen && onClose) onClose();
     /* aria-modal hides the page behind the sheet, so a cursor left on the
        control that opened it has nothing to read and no way out. Put it back
        where it came from — and only if that control is still on the page. */
@@ -988,6 +988,38 @@ function chDialog(sheets, title, body, actionLabel, onConfirm) {
     sheet.classList.add("rp-dialog"); sheet.classList.remove("rp-sheet");
     const grab = sheet.querySelector(".rp-sheet__grab"); if (grab) grab.remove();
     $("#chDialogGo", sheet).onclick = () => { sheets.close(); onConfirm(); };
+  });
+}
+/* the More sheet: secondary destinations, and the reset behind the kit's
+   dialog. One definition — opened from the tab bar on Home and on every
+   sub-destination that carries the More tab (Training documents, v024).
+   The row for the screen already on show closes the sheet instead of
+   navigating nowhere. */
+function chMoreSheet(sheets) {
+  /* flat glyph tiles: a row group is all-flat or all-glass, and this one has
+     no family icon for the hub, so it is flat throughout */
+  const row = (href, icon, title, sub) => {
+    const here = href === (location.hash || "#/deals").split("/registrations")[0];
+    return `<a class="rp-row" href="${href}"${href.indexOf("../") === 0 ? ` target="_blank" rel="noopener"` : ""}${here ? ` aria-current="page" data-here` : ""}><span class="rp-tile">${rpGlyph(icon)}</span><span class="rp-row__body"><span class="rp-row__title">${title}</span><span class="rp-row__sub">${sub}</span></span><span class="rp-row__chevron"></span></a>`;
+  };
+  sheets.open(`${chSheetHead("More")}
+    <div class="rp-group">
+    ${row("#/vehicles/browse", "inventory", "Inventory", "Browse or search vehicles")}
+    ${row("#/customers", "customers", "New customer visit", "Open the customer resolver")}
+    ${row("#/props", "document", "Training documents", "Prop licenses and registrations")}
+    ${row("../ride-price-training-hub/index.html", "hub", "Training hub", "Guides and practice flows")}
+    </div>
+    <div class="rp-group rp-group--spaced">
+    <button type="button" class="rp-row rp-row--destructive" id="dqReset"><span class="rp-tile">${rpGlyph("trash")}</span><span class="rp-row__body"><span class="rp-row__title">Reset demo data</span><span class="rp-row__sub">Return the demo to its original seed state</span></span><span class="rp-row__chevron"></span></button>
+    </div>`, (sheet) => {
+    $$("[data-here]", sheet).forEach(a => a.onclick = (e) => { e.preventDefault(); sheets.close(); });
+    $("#dqReset", sheet).onclick = () => {
+      sheets.close();
+      /* the kit's dialog, in place of the app-wide confirm (Home 03) */
+      chDialog(sheets, "Reset demo data?", "All deals and customers you created will be removed and the demo returns to its seed state.", "Reset demo data", () => {
+        Store.reset(); navigate("#/deals"); router(); toast("Demo data reset");
+      });
+    };
   });
 }
 const DEAL_BUCKETS = [
@@ -1304,30 +1336,9 @@ route("deals", () => {
     });
   };
 
-  /* More sheet (v3): secondary destinations stay out of the queue */
-  $("#dqMore").onclick = () => {
-    /* flat glyph tiles: a row group is all-flat or all-glass, and this one has
-       no family icon for the hub, so it is flat throughout */
-    const row = (href, icon, title, sub) => `<a class="rp-row" href="${href}"${href.indexOf("../") === 0 ? ` target="_blank" rel="noopener"` : ""}><span class="rp-tile">${rpGlyph(icon)}</span><span class="rp-row__body"><span class="rp-row__title">${title}</span><span class="rp-row__sub">${sub}</span></span><span class="rp-row__chevron"></span></a>`;
-    openSheet5(`${chSheetHead("More")}
-      <div class="rp-group">
-      ${row("#/vehicles/browse", "inventory", "Inventory", "Browse or search vehicles")}
-      ${row("#/customers", "customers", "New customer visit", "Open the customer resolver")}
-      ${row("#/props", "document", "Training documents", "Prop licenses and registrations")}
-      ${row("../ride-price-training-hub/index.html", "hub", "Training hub", "Guides and practice flows")}
-      </div>
-      <div class="rp-group rp-group--spaced">
-      <button type="button" class="rp-row rp-row--destructive" id="dqReset"><span class="rp-tile">${rpGlyph("trash")}</span><span class="rp-row__body"><span class="rp-row__title">Reset demo data</span><span class="rp-row__sub">Return the demo to its original seed state</span></span><span class="rp-row__chevron"></span></button>
-      </div>`, (sheet) => {
-      $("#dqReset", sheet).onclick = () => {
-        closeSheet5();
-        /* the kit's dialog, in place of the app-wide confirm (Home 03) */
-        chDialog(sheets, "Reset demo data?", "All deals and customers you created will be removed and the demo returns to its seed state.", "Reset demo data", () => {
-          Store.reset(); navigate("#/deals"); router(); toast("Demo data reset");
-        });
-      };
-    });
-  };
+  /* More sheet (v3): secondary destinations stay out of the queue — one
+     definition, shared with the sub-destinations that carry the tab */
+  $("#dqMore").onclick = () => chMoreSheet(sheets);
 
   paint();
 });
@@ -1989,6 +2000,9 @@ function startVisit(customerId) {
 /* the capture card's portrait: the kit's glyph set carries no person glyph,
    so the board's own is carried here in the glyph set's own terms — stroke,
    currentColor, the rp-icon box (reported as a kit gap with v023) */
+/* the printed prop face keeps its own silhouette — the licence artwork the
+   training documents render and print, untouched by the scan chrome */
+const SCAN_SILHOUETTE = `<svg viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="20" cy="15" r="9"/><path d="M4 48c0-10 7-16 16-16s16 6 16 16z"/></svg>`;
 const SCAN_PORTRAIT = `<svg class="rp-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`;
 
 /* Certain matches apply silently; ambiguous ones (`ask` set) get a confirmation
@@ -2679,42 +2693,34 @@ function trainingPairs() {
 
 function trainingDocsView(tab) {
   renderChrome("Training Documents", "", "");
-  document.body.dataset.canvas = "master";
+  document.body.dataset.canvas = "kit";
   document.body.dataset.screen = "tdoc";
+  /* a sub-destination under More (owner's training-documents package v024):
+     the Destination skeleton with the More tab active — wordmark, role
+     control, the DEMO band, the floating tab bar as the way around. No back
+     chevron: the tab bar leaves, and More reopens its sheet. The prop
+     renderer and the print pipeline are exactly what V3 built (RP-UI-012
+     stays closed); only the hub and the sheet chrome moved onto the kit. */
 
   const pairs = trainingPairs();
   let type = /^reg/i.test(tab || "") ? "registration" : "license";
-  let sheetKey = null;
   /* the scale is a function of the sheet's width, so it has to be recomputed
      when that width changes — rotate the phone with a preview open and a
      mount-time scale would let the 112mm card reach past the sheet again */
-  let sheetFit = null;
-
-  const closeSheet = ({ rearm = true } = {}) => {
-    const sc = $("#tdocScrim"); if (sc) sc.classList.remove("show");
-    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+  let sheetFit = null, rearm = true;
+  /* the print set returns to the whole tab once no single pair is open —
+     through the opener's close hook, so the scrim, Escape and the × all
+     re-arm it. The hashchange teardown turns the hook off FIRST: the router
+     is registered before any view, so by then it has rendered the new view,
+     and a stale closure re-arming the print set would prime the browser's
+     own print (Ctrl+P, the OS share sheet) with the tab the advisor just
+     left. Teardown drops listeners and touches nothing else. */
+  const sheets = chSheetOpener("tdocScrim", "tdocSheet", () => {
     if (sheetFit) { window.removeEventListener("resize", sheetFit); sheetFit = null; }
-    /* the print set returns to the whole tab once no single pair is open */
     if (rearm) setPrintSet(pairs.map(p => p.prop));
-  };
-  /* the router is registered on hashchange before any view is, so on a hash
-     change it renders the NEW view first and this teardown runs after, with a
-     stale closure. Re-arming the print set here would overwrite the new
-     render with the tab the advisor just left, and the browser own print
-     (Ctrl+P, the OS share sheet) would print the wrong documents. Teardown
-     drops listeners and touches nothing else. */
-  const teardown = () => { closeSheet({ rearm: false }); window.removeEventListener("hashchange", teardown); };
+  });
+  const teardown = () => { rearm = false; sheets.close(); window.removeEventListener("hashchange", teardown); };
   window.addEventListener("hashchange", teardown);
-  const openSheet = (html, onMount) => {
-    const sh = $("#tdocSheet"); if (!sh) return;
-    sh.innerHTML = `<div class="m-handle"></div>${html}`;
-    $("#tdocScrim").classList.add("show");
-    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
-    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
-    document.addEventListener("keydown", sheetKey, true);
-    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
-    if (onMount) onMount(sh);
-  };
 
   /* WHAT PRINTS is a rendered set, never a CSS guess: the print root holds
      exactly the documents the action asked for, at their true millimetre
@@ -2735,50 +2741,23 @@ function trainingDocsView(tab) {
         ? `License ${esc(p.person.license.number)}`
         : p.reg ? `Registration ${esc(p.reg.docNo)} &middot; ${esc(p.reg.year)} ${esc(p.reg.make)}`
           : "No registration on file";
-      return `<button type="button" class="tdoc-row" data-pair="${esc(p.prop)}">
-        <span class="tdoc-pair"><small>PAIR</small><b>${esc(p.id)}</b></span>
-        <span class="tdoc-rowmain">
-          <span class="tdoc-name">${esc(p.name)}</span>
-          <span class="tdoc-meta">${meta}</span>
-        </span>
-        <span class="tdoc-chev" aria-hidden="true">&rsaquo;</span>
-      </button>`;
+      return `<button type="button" class="rp-row" data-pair="${esc(p.prop)}"><span class="rp-tile rp-tile--label">${esc(p.id)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(p.name)}</span><span class="rp-row__sub">${meta}</span></span><span class="rp-row__chevron"></span></button>`;
     }).join("");
   }
 
   function render() {
-    view().innerHTML = `
-      <div class="m-app">
-        <div class="dv-top">
-          <button type="button" class="dv-back" id="tdocBack" aria-label="Back">&lsaquo;</button>
-          <div class="dv-brand"><span>Ride</span> PRICE</div>
-          <span class="dv-spacer"></span>
-        </div>
-        <main class="tdoc-main">
-          <div class="dv-eyebrow">Training</div>
-          <h1 class="dv-title">Training documents</h1>
-          <p class="tdoc-context">5 matched fictional pairs &middot; not valid for any purpose</p>
-          <div class="tdoc-toolbar">
-            <div class="tdoc-seg">
-              ${["license", "registration"].map(t => `<button type="button" data-type="${t}"
-                aria-pressed="${type === t}" class="${type === t ? "on" : ""}">${t === "license" ? "Licenses" : "Registrations"}</button>`).join("")}
-            </div>
-            <button type="button" class="tdoc-printall" id="tdocPrintAll">Print all 5</button>
-          </div>
-          <div class="tdoc-list">${rowsHtml()}</div>
-          <p class="tdoc-foot">Pair numbers keep each training license matched to its registration.
-            Print at 100% scale &mdash; the barcode only reads at true size.</p>
-        </main>
-      </div>
-      <div class="m-scrim" id="tdocScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="tdocSheet"></div></div>
-      <div class="tdoc-printroot" id="tdocPrint" aria-hidden="true"></div>`;
+    /* the print root sits beside the screen, not inside it: the kit's screen
+       is the viewport and hides its overflow, and in print it is the screen
+       that disappears */
+    view().innerHTML = chShell({ template: "destination", active: "more" }, `
+      <div class="rp-eyebrow">Training</div>
+      <div class="rp-title-row"><h1 class="rp-title">Training documents</h1><button type="button" class="rp-pill-primary" id="tdocPrintAll">Print all ${pairs.length}</button></div>
+      <p class="rp-count">${pairs.length} matched pairs</p>
+      <div class="rp-segment">${["license", "registration"].map(t => `<button type="button" class="rp-segment__item${type === t ? " rp-segment__item--on" : ""}" data-type="${t}" aria-pressed="${type === t}">${t === "license" ? "Licenses" : "Registrations"}</button>`).join("")}</div>
+      <div class="rp-group">${rowsHtml()}</div>`, null, { scrim: "tdocScrim", sheet: "tdocSheet" })
+      + `<div class="tdoc-printroot" id="tdocPrint" aria-hidden="true"></div>`;
 
-    /* the master canvas hides the app bar, and this hub can be the FIRST
-       page in a tab — a pasted demo link, a bookmark, or the #/regprops
-       alias, which replaces the only history entry. Back goes to the screen
-       the router actually came from, or to the queue when there was none. */
-    $("#tdocBack").onclick = () => navigate(routerBackHash());
-    $$(".tdoc-seg button").forEach(b => b.onclick = () => {
+    $$(".rp-segment [data-type]").forEach(b => b.onclick = () => {
       type = b.dataset.type;
       /* the tab lives in the URL, so a reload and the alias route both land
          on the same screen the advisor was looking at */
@@ -2787,8 +2766,8 @@ function trainingDocsView(tab) {
     });
     $("#tdocPrintAll").onclick = () => { setPrintSet(pairs.map(p => p.prop)); window.print(); };
     $$("[data-pair]").forEach(b => b.onclick = () => openPair(Number(b.dataset.pair)));
-    const scrim = $("#tdocScrim");
-    scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
+    $("#dqMore").onclick = () => chMoreSheet(sheets);
+    chWireRole(sheets, render);
     setPrintSet(pairs.map(p => p.prop));
   }
 
@@ -2814,33 +2793,26 @@ function trainingDocsView(tab) {
     wrap.style.height = Math.ceil(h + pad) + "px";
   }
 
+  /* the preview sheet: the pair as its subtitle, the document, one primary.
+     The × is the close; the true-size sentence lives with the print, not on
+     the screen (v024). */
   function openPair(prop) {
     const p = pairs.find(x => x.prop === prop); if (!p) return;
     const doc = type === "license"
       ? `<div class="tdoc-preview tdoc-preview--lic">${licPropFront(p.person)}${licPropBack(p.person)}</div>`
       : p.reg ? `<div class="tdoc-preview">${regPropHtml(p.reg)}</div>`
         : `<p class="tdoc-empty">No training registration exists for this pair.</p>`;
-    openSheet(`
-      <div class="m-sheettop">
-        <div>
-          <h2 class="tv-sheettitle tdoc-sheettitle">${type === "license" ? "Training license" : "Training registration"}</h2>
-          <p class="tdoc-sheetsub">${esc(p.name)} &middot; Pair ${esc(p.id)}</p>
-        </div>
-        <button type="button" class="m-close" data-sheet-close aria-label="Close">&#10005;</button>
-      </div>
+    sheets.open(`${chSheetHead(type === "license" ? "Training license" : "Training registration")}
+      <p class="rp-sheet__sub">${esc(p.name)} &middot; Pair ${esc(p.id)}</p>
       ${doc}
-      <div class="tv-sheetactions">
-        <button type="button" class="tv-primary" id="tdocPrintOne">Print this sample</button>
-        <button type="button" class="tv-secondary" data-sheet-close>Close</button>
-      </div>
-      <p class="tdoc-hint">Printing keeps the document at its true physical size.</p>`, (sh) => {
-      const one = $("#tdocPrintOne", sh);
-      if (one) one.onclick = () => { setPrintSet([prop]); window.print(); };
+      <div style="height:6px"></div>
+      <button type="button" class="rp-primary" id="tdocPrintOne">Print this sample</button>`, (sh) => {
+      $("#tdocPrintOne", sh).onclick = () => { setPrintSet([prop]); window.print(); };
       fitPreview(sh);
       if (sheetFit) window.removeEventListener("resize", sheetFit);
       /* guarded on the sheet still being open: a resize after close must not
          resurrect a measurement on a hidden element */
-      sheetFit = () => { const sc = $("#tdocScrim"); if (sc && sc.classList.contains("show")) fitPreview(sh); };
+      sheetFit = () => { const sc = $("#tdocScrim"); if (sc && !sc.hidden) fitPreview(sh); };
       window.addEventListener("resize", sheetFit);
     });
     setPrintSet([prop]);
