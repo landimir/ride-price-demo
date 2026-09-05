@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-09-03T03:37:50.539Z",
-  "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+  "capturedAt": "2026-09-05T11:26:36.556Z",
+  "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-09-03T03:37:50.550Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:55:55.181Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -39,18 +39,19 @@
               "to": "vehicles/inventory-browse"
             }
           ],
-          "notes": "The Advisor's guided view: the mono VIN + STK line under the name, the vehicle, the stage chip, and a 'Next: …' line read from real deal state. The DEMO chip rides the top bar as the standing demo marker.",
+          "notes": "The Advisor's guided view: the VIN + STK line under the name in the text face with tabular figures, the vehicle, the stage chip, and a 'Next: …' line read from real deal state. The DEMO chip rides the top bar as the standing demo marker.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dealSearch  239x25"
+              ".rp-wordmark Ride Price 116x23",
+              "#dealSearch.rp-search__input  252x25"
             ],
             "clipped": [],
             "overlaps": [
-              ".dq-name John Smith <> .dq-stage.dq-stage--desking DESKING"
+              ".rp-badge Desking <> .rp-card__name John Smith"
             ]
           },
           "error": null,
@@ -67,6 +68,20 @@
               "issue": "No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet on the queue top bar standing in for identity.",
               "observation": "By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.",
               "area": "n/a"
+            },
+            {
+              "id": "RP-UI-031",
+              "severity": "Minor",
+              "issue": "Three gaps in the owner UI kit (v022.2) that the 19 chrome screens inherit: the wordmark (.rp-wordmark, 116x23) and the resolver search action (.rp-button-navy, 73x36) carry no 40px hit extension — and the Team Lead's date control (.rp-filter__control, 58x20), the only way into the date range / funded history sheet, has none either, where v021 drew it as a 40px pill — against the kit comment that every interactive element has one and the 40px floor for everything (owner, 2026-08-31); .rp-page reserves a flat 104px on a destination and 140px on a task beside bars whose height grows with env(safe-area-inset-bottom), masked today only because index.html carries no viewport-fit=cover; and .rp-search__input drops its outline with no :focus-within on the field, so keyboard focus on the search is invisible. harness/touchfloor.mjs exits 1 on the first two, deliberately.",
+              "observation": "Reported, not patched: the kit is the owner design asset and is never restyled in this repo (CLAUDE.md), so these wait for kit v022.3 — two ::before hit-extension rules and one focus ring close all three. The wordmark shows on every Home screen; the search action on the resolver (current/02-customer-onboarding/01-resolver-idle.png). Filed with library v022, the first version captured on the kit. harness/touchfloor.mjs walks its routes as the Advisor, so the Team Lead's date control is outside what it measures; the library's own check flags it on four Home screens.",
+              "area": "ride-price-portal/assets/ride-price-mobile.css (the owner UI kit) — v022.3, never here"
+            },
+            {
+              "id": "RP-UI-037",
+              "severity": "Observation",
+              "issue": "The VIN + STK identifier line is the smallest and lightest text on the deal card — 10.5px in the muted grey (rgb 115,115,125 on white, about 4.7:1, AA by a hair and marginal in sunlight) — while the flow calls VIN and stock two of the four load-bearing identifiers on every row, and the standing rule is that load-bearing text is ink because the app is used outdoors. v021 drew it darker and in mono.",
+              "observation": "The kit's .rp-card__meta draws it this way on purpose (text face, tabular figures, muted) and the kit is the binding artifact, never restyled here — so this is a question for the kit's next revision, not a portal.css change. The flow note that still called the line mono was corrected with v022.",
+              "area": "ride-price-mobile.css .rp-card__meta (the owner UI kit) — a kit decision"
             }
           ]
         },
@@ -99,17 +114,20 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dealSearch  239x25"
+              ".rp-wordmark Ride Price 116x23",
+              "#dealSearch.rp-search__input  252x25",
+              ".rp-sheet__close  32x32"
             ],
             "clipped": [],
             "overlaps": [
-              ".dq-name John Smith <> .dq-stage.dq-stage--desking DESKING",
-              ".dq-veh 2022 Hyundai Santa Fe <> .m-sheettitle More",
-              " VIN 5NMS4DAL4NH457995 <> .m-sheettitle More",
-              " 5NMS4DAL4NH457995 <> .m-sheettitle More",
-              ".dq-next Next: Game Plan With the Tea <> .ob-sheetdesc Secondary tools stay out of ",
-              ".dq-chev › <> .m-close ✕",
-              ".dq-chev › <> .ob-sheetdesc Secondary tools stay out of "
+              "#dqSectionLabel.rp-section In progress <> #dqSheetTitle.rp-sheet__title More",
+              ".rp-badge Desking <> .rp-card__name John Smith",
+              ".rp-card__line 2022 Hyundai Santa Fe <> .rp-row__title Inventory",
+              ".rp-card__meta.dq-ids VIN 5NMS4DAL4NH457995 · STK  <> .rp-row__sub Browse or search vehicles",
+              ".rp-card__next Next: Game Plan With the Tea <> .rp-row__title New customer visit",
+              ".rp-tab.rp-tab--active Deals <> .rp-row__sub Return the demo to its origi",
+              ".rp-tab Inventory <> .rp-row__sub Return the demo to its origi",
+              ".rp-tab Customers <> .rp-row__sub Return the demo to its origi"
             ]
           },
           "error": null,
@@ -136,9 +154,21 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              ".rp-wordmark Ride Price 116x23",
+              "#dealSearch.rp-search__input  252x25"
+            ],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".rp-initials JS <> #dqSheetTitle.rp-dialog__title Reset demo data?",
+              ".rp-initials JS <> .rp-dialog__body All deals and customers you ",
+              ".rp-row__title John Smith <> #dqSheetTitle.rp-dialog__title Reset demo data?",
+              ".rp-row__sub.dq-visitmeta Arrived 11:38 · Desking <> .rp-dialog__body All deals and customers you ",
+              "#dqSectionLabel.rp-section In progress <> .rp-dialog__body All deals and customers you ",
+              ".rp-badge Desking <> .rp-card__name John Smith",
+              ".rp-badge Desking <> #chDialogGo.rp-dialog__button.rp-dialog__button--destructive Reset demo data",
+              ".rp-card__name John Smith <> .rp-dialog__button.rp-dialog__button--quiet Cancel"
+            ]
           },
           "error": null,
           "size": {
@@ -152,24 +182,30 @@
         {
           "step": 4,
           "key": "role-sheet",
-          "screen": "Switch demo role",
+          "screen": "Switch role",
           "screenshot": "current/01-home-and-navigation/04-role-sheet.png",
           "hash": "#/deals",
           "action": "Choose Team Lead",
           "next": "team-lead-floor",
           "branches": [],
-          "notes": "The demo has no sign-in; the role sheet on the queue's top bar is where the floor view is chosen.",
+          "notes": "Opens from the role control in the top bar — the same control on every destination and task (chrome rule v022). The floating ‘Now acting as’ pill is gone; the banner slot says who is acting.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dealSearch  239x25"
+              ".rp-wordmark Ride Price 116x23",
+              "#dealSearch.rp-search__input  252x25",
+              ".rp-sheet__close  32x32"
             ],
             "clipped": [],
             "overlaps": [
-              ".dq-name John Smith <> .dq-stage.dq-stage--desking DESKING"
+              ".rp-badge Desking <> .rp-card__name John Smith",
+              ".rp-tab.rp-tab--active Deals <> .rp-option__sub Active floor, showroom visit",
+              ".rp-tab Inventory <> .rp-option__sub Active floor, showroom visit",
+              ".rp-tab Customers <> .rp-option__sub Active floor, showroom visit",
+              "#dqMore.rp-tab More <> .rp-option__sub Active floor, showroom visit"
             ]
           },
           "error": null,
@@ -197,11 +233,16 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dealSearch  239x25"
+              ".rp-wordmark Ride Price 116x23",
+              "#dealSearch.rp-search__input  252x25",
+              "#dqDateBtn.rp-filter__control Today 58x20",
+              ".rp-chip.dq-chipbtn All 1 54x32",
+              ".rp-chip.dq-chipbtn Desking 1 103x32",
+              ".rp-chip.dq-chipbtn F&I 0 72x32"
             ],
             "clipped": [],
             "overlaps": [
-              ".dq-name John Smith <> .dq-stage.dq-stage--desking DESKING"
+              ".rp-badge Desking <> .rp-card__name John Smith"
             ]
           },
           "error": null,
@@ -229,7 +270,12 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dealSearch  239x25"
+              ".rp-wordmark Ride Price 116x23",
+              "#dealSearch.rp-search__input  252x25",
+              "#dqDateBtn.rp-filter__control Today 58x20",
+              ".rp-chip.dq-chipbtn All 1 54x32",
+              ".rp-chip.dq-chipbtn Desking 1 103x32",
+              ".rp-chip.dq-chipbtn F&I 0 72x32"
             ],
             "clipped": [],
             "overlaps": []
@@ -238,9 +284,9 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 855
+            "pageHeight": 844
           },
-          "scrollShot": "current/01-home-and-navigation/06-stage-filter-empty.scroll.png",
+          "scrollShot": null,
           "issues": []
         },
         {
@@ -259,18 +305,24 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dealSearch  239x25"
+              ".rp-wordmark Ride Price 116x23",
+              "#dealSearch.rp-search__input  252x25",
+              "#dqDateBtn.rp-filter__control Today 58x20",
+              ".rp-chip.dq-chipbtn All 1 54x32",
+              ".rp-chip.dq-chipbtn Desking 1 103x32",
+              ".rp-chip.dq-chipbtn F&I 0 72x32",
+              ".rp-sheet__close  32x32"
             ],
             "clipped": [],
             "overlaps": [
-              "#dqDateSummary.dq-datesummary Today · active floor <> .ob-sheetdesc Team Lead only. Keep the eve",
-              "#dqDateBtn.dq-datebtn Today ▾ <> .ob-sheetdesc Team Lead only. Keep the eve",
-              "#dqDateLabel Today <> .ob-sheetdesc Team Lead only. Keep the eve",
-              " In showroom · 0 <>  Today",
-              " Active visits <> .dq-check ✓",
-              ".dq-empty No showroom visits. <>  Default active-floor view",
-              ".dq-empty No showroom visits. <>  Yesterday",
-              ".dq-sectionlabel Deals <>  Review floor activity in thi"
+              ".rp-section In showroom · 1 <> #dqSheetTitle.rp-sheet__title Date range",
+              ".rp-initials JS <> .rp-option__title Today",
+              ".rp-row__sub.dq-visitmeta Arrived 11:38 · Desking <> .rp-option__title Today",
+              ".rp-chip.dq-chipbtn All 1 <> .rp-option__title Yesterday",
+              ".rp-chip.dq-chipbtn All 1 <> .rp-option__sub Review floor activity in thi",
+              ".rp-chip.dq-chipbtn Desking 1 <> .rp-option__title Yesterday",
+              ".rp-chip.dq-chipbtn Desking 1 <> .rp-option__sub Review floor activity in thi",
+              ".rp-chip.dq-chipbtn F&I 0 <> .rp-option__title Yesterday"
             ]
           },
           "error": null,
@@ -298,25 +350,25 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dealSearch  239x25"
+              ".rp-wordmark Ride Price 116x23",
+              "#dealSearch.rp-search__input  252x25",
+              "#dqDateBtn.rp-filter__control Today 58x20",
+              ".rp-chip.dq-chipbtn All 0 54x32",
+              ".rp-chip.dq-chipbtn Desking 0 103x32",
+              ".rp-chip.dq-chipbtn F&I 0 72x32"
             ],
             "clipped": [],
             "overlaps": [
-              ".dq-name John Smith <> .dq-stage.dq-stage--done DONE",
-              ".dq-name John Smith <>  Deals",
-              ".dq-name John Smith <>  Inventory",
-              ".dq-name John Smith <>  Customers",
-              ".dq-name John Smith <>  More",
-              ".dq-stage.dq-stage--done DONE <>  More"
+              ".rp-badge.rp-badge--positive Funded · Sep 5 <> .rp-card__name John Smith"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1038
+            "pageHeight": 844
           },
-          "scrollShot": "current/01-home-and-navigation/08-funded-history.scroll.png",
+          "scrollShot": null,
           "issues": []
         },
         {
@@ -335,11 +387,12 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dealSearch  239x25"
+              ".rp-wordmark Ride Price 116x23",
+              "#dealSearch.rp-search__input  252x25"
             ],
             "clipped": [],
             "overlaps": [
-              ".dq-name John Smith <> .dq-stage.dq-stage--done DONE"
+              ".rp-badge.rp-badge--positive Done <> .rp-card__name John Smith"
             ]
           },
           "error": null,
@@ -360,18 +413,20 @@
           "action": "Tap the showroom row",
           "next": "discovery/question-1",
           "branches": [],
-          "notes": "A guest who has been logged in but has not chosen a vehicle shows ONLY the name and arrival time — no vehicle placeholder, ever (owner rule 2026-08-23, reasserted 2026-08-28). The section is separate from the deal stages and appears for both roles.",
+          "notes": "A second guest, logged in with no vehicle chosen: her row reads the name and the arrival and nothing else — no vehicle placeholder, ever (owner rule 2026-08-23, reasserted 2026-08-28). Presence is a state the advisor sets by finishing the resolver, never the deal’s stage (chrome rule v022 §10): John is in the showroom AND his deal is Desking, so he appears in both lists.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#dealSearch  239x25"
+              ".rp-wordmark Ride Price 116x23",
+              "#dealSearch.rp-search__input  252x25"
             ],
             "clipped": [],
             "overlaps": [
-              ".dq-name John Smith <> .dq-stage.dq-stage--desking DESKING"
+              ".rp-badge Desking <> .rp-card__name Cheri Bridwell",
+              ".rp-badge Desking <> .rp-card__name John Smith"
             ]
           },
           "error": null,
@@ -394,8 +449,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-09-03T03:38:02.872Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:56:14.177Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -425,15 +480,17 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#obSearch.rp-search__input  220x25"
+            ],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1087,
-            "pageHeight": 1087
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -453,15 +510,17 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#obSearch.rp-search__input  220x25"
+            ],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1005,
-            "pageHeight": 1005
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -478,29 +537,23 @@
             {
               "action": "Use a different address",
               "to": "onboarding/address-sheet"
-            },
-            {
-              "action": "Not the right customer? Search again",
-              "to": "onboarding/resolver-idle"
             }
           ],
-          "notes": "The customer and the registration address are confirmed in ONE decision region. The address is marked Required with its source named, because it feeds registration, tax calculations, credit and paperwork — confirming here means nobody is asked to type it again.",
+          "notes": "The customer and the registration address are confirmed in ONE decision region; the way back is the task's close control. The address is marked Required — and named as the CRM's when it came from a match — because it feeds registration, tax calculations, credit and paperwork — confirming here means nobody is asked to type it again.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [],
-            "clipped": [
-              ".ob-rowsub Existing Ride Price customer 173>155"
-            ],
+            "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 976,
-            "pageHeight": 976
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -520,26 +573,20 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [
-              ".ob-rowsub Existing Ride Price customer 173>155"
+            "tinyTargets": [
+              ".rp-sheet__close  32x32"
             ],
+            "clipped": [],
             "overlaps": [
-              ".ob-addresstitle Registration address <> .m-sheettitle Use a different address",
-              ".ob-source Customer record <> .m-sheettitle Use a different address",
-              ".ob-pill Required <> .m-close ✕",
-              ".ob-addressvalue 31-14 Broadway, Astoria, NY  <> .ob-sheetdesc One address search field — n",
-              ".ob-addressnote Ride Price carries this addr <> .ca-lab Search address",
-              "#obConfirm.ob-primary Confirm address & start visi <> #obSheetHint.ob-helper Type the address as street, ",
-              "#obOtherAddr.sc2-textbtn.ob-center Use a different address <> #obSheetHint.ob-helper Type the address as street, ",
-              "#obBack.sc2-textbtn.ob-center Not the right customer? Sear <>  Use this standardized addres"
+              "#obConfirm.rp-primary Confirm address & start visi <> .rp-row__title 12 Main St, Astoria, NY 1110",
+              "#obOtherAddr.rp-link Use a different address <> .rp-row__sub Use this standardized addres"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 976,
-            "pageHeight": 976
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -559,15 +606,17 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#obSearch.rp-search__input  220x25"
+            ],
             "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1002,
-            "pageHeight": 1002
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -581,7 +630,7 @@
           "action": "Fill the four fields, tap Confirm & start visit",
           "next": "discovery/question-1",
           "branches": [],
-          "notes": "Explicitly labelled fallback-only: if a license or a license photo turns up, use it instead so Ride Price can read the identity and address rather than asking anyone to type them. Both contact channels are still required.",
+          "notes": "The task title and four fields — no helper copy on the kit (chrome rule v022). The two rules hold in validation rather than on the screen: use a license or a license photo if one turns up, and both contact channels are required (RP-UI-043 records the copy that left).",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -594,11 +643,19 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1034,
-            "pageHeight": 1034
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-043",
+              "severity": "Observation",
+              "issue": "The manual fallback is now the task title and four bare fields. The note that made it fallback-only (“if a license or license photo becomes available, use it instead”) and the line that both phone and email are required are gone, and no field is marked required until validation says so.",
+              "observation": "The chrome rule removed helper copy from the 19 screens by design; the two rules still hold in validation (customerMissing requires first, last, phone, email, address and ZIP). Whether the fallback-only rule needs a line on the screen is the package's call — filed so the change is on record, since the library's step note used to describe the copy.",
+              "area": "app.js — the resolver's manual fallback on the kit"
+            }
+          ]
         },
         {
           "step": 7,
@@ -609,30 +666,33 @@
           "action": "Enter phone and email, tap Send secure link",
           "next": "waiting-for-customer",
           "branches": [],
-          "notes": "The customer uploads their license directly into Ride Price — the UI never asks anyone to text or email an ID image to a salesperson. Both channels are required. The demo says plainly that no text or email is really sent.",
+          "notes": "The customer uploads their license directly into Ride Price — the UI never asks anyone to text or email an ID image to a salesperson. Both channels are required. Nothing on the kit screen says the demo sends no text or email (RP-UI-032).",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#obSearch.rp-search__input  220x25",
+              ".rp-sheet__close  32x32"
+            ],
             "clipped": [],
             "overlaps": [
-              ".ob-lead Search the CRM, scan a physi <> .m-close ✕",
-              ".ob-pill Start new customer visit <> .ob-sheetdesc The customer uploads the lic",
-              "#searchBtn.ob-searchbtn Search <>  Email",
-              ".ob-helper Ride Price searches existing <> .ca-lab Customer mobile",
-              ".ob-actiontitle Scan physical license <> .ca-lab Email",
-              ".ob-actiontitle Send secure upload link <> .ob-privacy Private by design: the uploa",
-              ".ob-actiontitle Send secure upload link <>  Private by design:",
-              ".ob-actionsub Customer has a license photo <> .ob-privacy Private by design: the uploa"
+              ".rp-initials PP <> #obSheetTitle.rp-sheet__title Send secure upload link",
+              ".rp-row__title Priya Patel <> #obSheetTitle.rp-sheet__title Send secure upload link",
+              ".rp-row__sub (917) 555-0164 · Bayside, NY <> #obSheetTitle.rp-sheet__title Send secure upload link",
+              ".rp-initials JS <> .rp-segment__item.rp-segment__item--on Text",
+              ".rp-row__title John Smith <> .rp-segment__item.rp-segment__item--on Text",
+              ".rp-row__title John Smith <> .rp-segment__item Email",
+              ".rp-row__sub (718) 555-0134 · Astoria, NY <> .rp-segment__item.rp-segment__item--on Text",
+              ".rp-row__sub (718) 555-0134 · Astoria, NY <> .rp-segment__item Email"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1087,
-            "pageHeight": 1087
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -646,7 +706,7 @@
           "action": "Tap Open customer view",
           "next": "onboarding/remote-ready",
           "branches": [],
-          "notes": "Four separate states — link sent, license photo, identity photo, registration address — never collapsed into one binary 'verified' badge. The demo has no network, so the customer view opens on this device and the screen says so.",
+          "notes": "Four separate states — link sent, license photo, identity photo, registration address — never collapsed into one binary 'verified' badge. The demo has no network, so the customer view opens on this device; the banner reads as a real send (RP-UI-032).",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -659,11 +719,26 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1043,
-            "pageHeight": 1043
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-032",
+              "severity": "Major",
+              "issue": "The link path now says the link went out and nothing says the demo did not send anything. The banner reads “Secure link sent · (646) 555-0900 · Text”; the send sheet before it (07) dropped “Demo — no text or email is really sent; the customer view opens on this device”; and the customer-identified screen after it (09) describes a real remote session — “Secure session · Opened on the customer's device”, “License photo · Read from the upload” — where v021 said “Opened on this device (demo)” and “Read from the training prop”. A trainee is told a text was sent and a customer uploaded, and neither happened.",
+              "observation": "The chrome rule (v022) removed lede and helper copy from the 19 screens and made the banner slot the one place DEMO appears; the Advisor banner says “Sample data only”, which covers the data, not the sending. The demo is a training tool with no network (architecture invariant), so a screen that claims a send needs one honest line somewhere on the path — the banner slot is the package's own place for it. Copy decision on package screens, so filed rather than changed.",
+              "area": "app.js — the resolver's link path (obSendGo / waiting status / remote-ready) on the kit; the banner slot"
+            },
+            {
+              "id": "RP-UI-033",
+              "severity": "Minor",
+              "issue": "The task's step counter skips a step on the link path: the send sheet opens over “Step 1 of 3” and the next screen reads “Step 3 of 3” — step 2 never appears — while the found-customer and manual paths show “Step 2 of 3” before they leave the task.",
+              "observation": "The Task template's “task name + step” line is part of the chrome rule; the three paths through the resolver number their steps differently. Either the link path has a second step to show, or the counter should read the path's own length.",
+              "area": "app.js — the resolver's Task header step index"
+            }
+          ]
         },
         {
           "step": 9,
@@ -681,16 +756,14 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [],
-            "clipped": [
-              ".ob-rowsub Remote secure upload · new c 236>85"
-            ],
+            "clipped": [],
             "overlaps": []
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 1199,
-            "pageHeight": 1199
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -706,8 +779,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-09-03T03:38:19.395Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:27:05.222Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -732,7 +805,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1087
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -760,7 +833,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1087
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -802,7 +875,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1087
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -830,15 +903,14 @@
               ".sc2-primary.sc2-cap Capture back <> .sc2-sheetx ×",
               ".sc2-secondary.sc2-cap Choose photo <>  Search the CRM by license nu",
               ".sc2-secondary.sc2-cap Choose photo <> #mnGo.sc2-primary.sc2-searchgo Search",
-              ".sc2-micro Photos are read on this devi <> #mnGo.sc2-primary.sc2-searchgo Search",
-              " 5 printed training licenses <> #mnGo.sc2-primary.sc2-searchgo Search"
+              ".sc2-micro Photos are read on this devi <> #mnGo.sc2-primary.sc2-searchgo Search"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1087
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -880,7 +952,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1087
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -917,10 +989,18 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1087
+            "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-034",
+              "severity": "Minor",
+              "issue": "The identity column on the customer card is squeezed beside the “License match” pill: the name “Cheri Bridwell” breaks onto two lines and the one-sentence subtitle “Existing customer · license ending 0102” onto four. In v021 both fit on one line each. The kit's Inter is wider than the device face the screen was laid out for, and the card gives the pill its full width first.",
+              "observation": "A layout on a kit screen, not the kit: the pill could wrap under the identity, or take a fixed width and let the column keep the rest. The only one of the eleven scan screens the face change hurt.",
+              "area": "app.js / portal.css — the scan flow's confirm card (identity column vs. match pill)"
+            }
+          ]
         },
         {
           "step": 7,
@@ -945,7 +1025,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1087
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -973,10 +1053,25 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1087
+            "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-035",
+              "severity": "Observation",
+              "issue": "The primary “Create customer” button is cut in half at the bottom edge of the viewport: the new-customer form lays its call to action inline below the fields rather than in the Task template's pinned action dock, so on a phone the advisor scrolls, or dismisses the keyboard, to reach it.",
+              "observation": "The chrome rule gives every task an action dock for exactly this control; the scan flow's form still keeps its own. Below the fold the library cannot show it either (see the v022 changelog on kit-screen captures).",
+              "area": "app.js — the scan flow's new-customer form; the Task template's dock"
+            },
+            {
+              "id": "RP-UI-036",
+              "severity": "Observation",
+              "issue": "The helper line “Demo tool — sample data only.” under the Email field is set in the red danger colour although nothing is wrong yet, so an untouched, empty form reads as if it already failed validation.",
+              "observation": "A note is muted or ink; red is the validation voice on every other screen. Same field family as the resolver's fallback form.",
+              "area": "app.js / portal.css — the scan flow's new-customer form helper"
+            }
+          ]
         },
         {
           "step": 9,
@@ -1019,7 +1114,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1087
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -1042,21 +1137,21 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
+              " Date of birth <>  Verify the phone number",
+              " 06/21/1995 <>  Verify the phone number",
               " Address <>  Ask the guest to read back t",
               " 4102 Bell Blvd, Bayside, NY  <>  Ask the guest to read back t",
               " Email <> .sc2-demo Demo: nothing leaves this de",
-              " Email <>  Demo:",
-              " Email <>  984334",
+              " Email <>  260007",
               ".sc2-micro Phone and email are required <> .sc2-primary Verify & link",
-              ".sc2-micro Phone and email are required <> .sc2-textbtn Cancel",
-              ".demo-note Demo tool — sample data only <> .sc2-textbtn Cancel"
+              ".sc2-micro Phone and email are required <> .sc2-textbtn Cancel"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1087
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -1089,7 +1184,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1087
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -1105,8 +1200,8 @@
         "from": "home/more-sheet",
         "action": "Training documents"
       },
-      "capturedAt": "2026-09-03T03:38:41.168Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:27:25.614Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -1262,15 +1357,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-09-03T03:38:46.294Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:27:29.575Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1, customer-first",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-a97ev1a",
+          "hash": "#/discovery/d-r10acm7",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1307,7 +1402,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview, Back appears",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-a97ev1a",
+          "hash": "#/discovery/d-r10acm7",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1335,7 +1430,7 @@
           "key": "question-last",
           "screen": "Discovery — the last question is the hand-off",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-a97ev1a",
+          "hash": "#/discovery/d-r10acm7",
           "action": "Tap Find vehicles →",
           "next": "discovery-complete",
           "branches": [],
@@ -1363,7 +1458,7 @@
           "key": "discovery-complete",
           "screen": "Discovery complete (sheet)",
           "screenshot": "current/05-discovery/04-discovery-complete.png",
-          "hash": "#/discovery/d-a97ev1a",
+          "hash": "#/discovery/d-r10acm7",
           "action": "Tap Find matching vehicles",
           "next": "vehicles/inventory",
           "branches": [
@@ -1403,7 +1498,7 @@
           "key": "visit-details",
           "screen": "Visit details (sheet)",
           "screenshot": "current/05-discovery/05-visit-details.png",
-          "hash": "#/discovery/d-yp6rfo1",
+          "hash": "#/discovery/d-g7f2ler",
           "action": "Tap Done",
           "next": "question-1",
           "branches": [
@@ -1479,15 +1574,15 @@
         "from": "discovery/discovery-complete",
         "action": "Tap Find matching vehicles"
       },
-      "capturedAt": "2026-09-03T03:38:57.591Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:27:40.349Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
           "screen": "Vehicle Search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-wx2m7j7",
+          "hash": "#/vehicles/d-82ol3vq",
           "action": "Tap the Used chip",
           "next": "inventory-filtered",
           "branches": [],
@@ -1498,7 +1593,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21"
+              "#mSearch  288x24"
             ],
             "clipped": [],
             "overlaps": []
@@ -1517,7 +1612,7 @@
           "key": "inventory-filtered",
           "screen": "Inventory — Used only",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-wx2m7j7",
+          "hash": "#/vehicles/d-82ol3vq",
           "action": "Open Filters, cap the price at $1,000",
           "next": "inventory-no-match",
           "branches": [],
@@ -1528,7 +1623,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21"
+              "#mSearch  288x24"
             ],
             "clipped": [],
             "overlaps": []
@@ -1547,7 +1642,7 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-wx2m7j7",
+          "hash": "#/vehicles/d-82ol3vq",
           "action": "Clear all filters; tap a vehicle",
           "next": "vehicle-details",
           "branches": [],
@@ -1558,7 +1653,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21"
+              "#mSearch  288x24"
             ],
             "clipped": [],
             "overlaps": []
@@ -1577,7 +1672,7 @@
           "key": "vehicle-details",
           "screen": "Vehicle details sheet",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-wx2m7j7",
+          "hash": "#/vehicles/d-82ol3vq",
           "action": "Tap Choose this vehicle",
           "next": "next-steps",
           "branches": [],
@@ -1588,7 +1683,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21"
+              "#mSearch  288x24"
             ],
             "clipped": [],
             "overlaps": [
@@ -1616,7 +1711,7 @@
           "key": "next-steps",
           "screen": "What's next? — after choosing",
           "screenshot": "current/06-vehicle-selection/05-next-steps.png",
-          "hash": "#/vehicles/d-wx2m7j7",
+          "hash": "#/vehicles/d-82ol3vq",
           "action": "Tap Test Drive",
           "next": "test-drive/ready",
           "branches": [
@@ -1640,7 +1735,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21"
+              "#mSearch  288x24"
             ],
             "clipped": [],
             "overlaps": [
@@ -1668,7 +1763,7 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-wx2m7j7",
+          "hash": "#/vehicles/d-82ol3vq",
           "action": null,
           "next": null,
           "branches": [],
@@ -1679,7 +1774,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21"
+              "#mSearch  288x24"
             ],
             "clipped": [],
             "overlaps": [
@@ -1718,7 +1813,7 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x21"
+              "#mSearch  288x24"
             ],
             "clipped": [],
             "overlaps": [
@@ -1752,8 +1847,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-09-03T03:39:08.884Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:27:49.587Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -2008,8 +2103,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-09-03T03:39:15.983Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:27:56.183Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -2162,8 +2257,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-09-03T03:39:24.226Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:56:47.132Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -2414,8 +2509,8 @@
         "from": "desking/compare-payments",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-03T03:39:31.551Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:57:02.834Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -2536,8 +2631,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-03T03:39:35.809Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:57:15.609Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -2746,14 +2841,14 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".ca-subtitle Deal #48201 · John Smith2022 <> .m-sheettitle Send co-buyer link",
-              ".ca-subtitle Deal #48201 · John Smith2022 <> .m-close ✕",
-              " Deal #48201 <> .m-sheettitle Send co-buyer link",
-              " 2022 Hyundai Santa Fe <> .m-sheettitle Send co-buyer link",
-              ".dk-chip Buyer <> .ca-sheetsub The co-buyer can complete th",
-              "#caDealSum.dk-chip Deal summary <> .ca-sheetsub The co-buyer can complete th",
-              ".dk-chip Jacket 11 <> .ca-sheetsub The co-buyer can complete th",
-              " 11 <> .ca-sheetsub The co-buyer can complete th"
+              ".dk-chip Buyer <> .m-sheettitle Co-buyer link sent",
+              "#caDealSum.dk-chip Deal summary <> .m-sheettitle Co-buyer link sent",
+              ".dk-chip Jacket 11 <> .m-close ✕",
+              " 11 <> .m-close ✕",
+              ".ca-cardtitle Application type <>  Sent successfully",
+              ".ca-cardtitle Application type <>  The co-buyer can verify thei",
+              ".ca-cardsub Choose how the customer want <>  The co-buyer can verify thei",
+              " Joint application <>  Application submitted"
             ]
           },
           "error": null,
@@ -2821,7 +2916,7 @@
             "overlaps": [
               " Applicant <> .m-sheettitle Deal summary",
               " Step 1 of 4 <> .m-close ✕",
-              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 11:",
+              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 7:5",
               ".ca-cardtitle Application type <> .ca-managelink Edit",
               ".ca-cardsub Choose how the customer want <>  Vehicle",
               ".ca-cardsub Choose how the customer want <>  2022 Hyundai Santa Fe · 7H21",
@@ -2882,8 +2977,8 @@
         "from": "discovery/visit-details",
         "action": "Tap Co-buyer in Visit details"
       },
-      "capturedAt": "2026-09-03T03:39:48.608Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:28:24.118Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -3166,8 +3261,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-09-03T03:39:58.167Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:28:31.416Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -3404,8 +3499,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-09-03T03:40:03.332Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:57:35.733Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -3872,8 +3967,8 @@
         "from": "discovery/question-1",
         "action": "Tap the Jacket chip in the context row"
       },
-      "capturedAt": "2026-09-03T03:40:23.450Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:28:50.564Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -3979,13 +4074,13 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".price PRICE <> .jk2-rowsub Needed for registration",
-              ".m-dealno Deal #48201 <> .jk2-rowtitle Driver's License",
-              ".m-dealno Deal #48201 <> .jk2-rowsub Needed for registration",
               "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
-              ".jk2-rowsub Lender match <>  Funding sign-off",
+              ".jk2-rowtitle Signed Matching Credit App <>  Funding sign-off",
+              ".jk2-rowtitle Signed Matching Credit App <>  11 items remaining",
+              ".jk2-rowtitle Signed Matching Credit App <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-rowsub Lender match <>  11 items remaining",
               ".jk2-rowsub Lender match <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-rowtitle Risk-Based Disclosure <> #jkSignoff.jk2-dockbtn Not ready"
+              ".jk2-status Needed <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
@@ -4126,12 +4221,13 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".jk2-rowtitle Appraisal Sheet <>  Funding sign-off",
-              ".jk2-rowtitle Appraisal Sheet <>  11 items remaining",
-              ".jk2-rowtitle Appraisal Sheet <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-rowsub Marked received by Ashley Co <>  11 items remaining",
-              ".jk2-rowsub Marked received by Ashley Co <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-status.jk2-status--done In jacket <> #jkSignoff.jk2-dockbtn Not ready"
+              ".price PRICE <> .jk2-rowtitle Privacy Policy",
+              ".m-dealno Deal #48201 <> .jk2-rowtitle Privacy Policy",
+              "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
+              ".jk2-secsub Already in the jacket <>  Funding sign-off",
+              ".jk2-secsub Already in the jacket <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-badge.jk2-badge--good 4 <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-chev.jk2-chev--open ⌄ <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
@@ -4223,8 +4319,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-09-03T03:40:35.866Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:29:01.603Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -4349,8 +4445,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-09-03T03:40:40.355Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:29:05.706Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -4380,7 +4476,15 @@
             "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-041",
+              "severity": "Minor",
+              "issue": "The only way into the customer's flow is a 144x19 inline text link inside the message bubble — under the 40px touch floor, on the one screen that a customer, not an advisor, taps.",
+              "observation": "The simulated text is a demo prop, but the tap target is real: a link-styled block with a 40px hit area keeps the bubble's look.",
+              "area": "app.js / portal.css — the client link's simulated SMS bubble"
+            }
+          ]
         },
         {
           "step": 2,
@@ -4413,8 +4517,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1027,
-            "pageHeight": 1027
+            "height": 1003,
+            "pageHeight": 1003
           },
           "scrollShot": null,
           "issues": []
@@ -4441,8 +4545,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1075,
-            "pageHeight": 1075
+            "height": 1051,
+            "pageHeight": 1051
           },
           "scrollShot": null,
           "issues": []
@@ -4469,8 +4573,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1101,
-            "pageHeight": 1101
+            "height": 1077,
+            "pageHeight": 1077
           },
           "scrollShot": null,
           "issues": []
@@ -4499,8 +4603,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1170,
-            "pageHeight": 1170
+            "height": 1146,
+            "pageHeight": 1146
           },
           "scrollShot": null,
           "issues": []
@@ -4527,8 +4631,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1005,
-            "pageHeight": 1005
+            "height": 981,
+            "pageHeight": 981
           },
           "scrollShot": null,
           "issues": []
@@ -4555,8 +4659,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 912,
-            "pageHeight": 912
+            "height": 888,
+            "pageHeight": 888
           },
           "scrollShot": null,
           "issues": []
@@ -4600,11 +4704,19 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1027,
-            "pageHeight": 1027
+            "height": 1003,
+            "pageHeight": 1003
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-042",
+              "severity": "Minor",
+              "issue": "Two link buttons on the sheet are 27px tall, under the 40px touch floor: “Other income type” (106x27) and “See a good example” (115x27).",
+              "observation": "Same family as RP-UI-029's native controls and the Snap All links: link-styled buttons the floor harness does not reach. A ::before hit extension or a 40px min-height closes both.",
+              "area": "portal.css — the client upload sheet's link buttons"
+            }
+          ]
         },
         {
           "step": 9,
@@ -4628,8 +4740,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 912,
-            "pageHeight": 912
+            "height": 888,
+            "pageHeight": 888
           },
           "scrollShot": null,
           "issues": []
@@ -4658,8 +4770,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 1153,
-            "pageHeight": 1153
+            "height": 1129,
+            "pageHeight": 1129
           },
           "scrollShot": null,
           "issues": []
@@ -4675,8 +4787,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-09-03T03:40:53.593Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:29:18.310Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -4704,7 +4816,15 @@
             "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-038",
+              "severity": "Minor",
+              "issue": "The Gallery button uses an emoji glyph, against the standing rule that every icon slot carries a line icon from the one set, never emoji (owner ruling; RP_ICON).",
+              "observation": "Snap All predates the icon ruling and has not been through a replication package; the glyph is the last emoji the library can find in a control.",
+              "area": "app.js — Snap All capture screen, the Gallery control"
+            }
+          ]
         },
         {
           "step": 2,
@@ -4764,7 +4884,15 @@
             "pageHeight": 951
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-040",
+              "severity": "Minor",
+              "issue": "Three “Accept anyway” link buttons measure 88x28, under the 40px touch floor, and the fixed action column squeezes the row titles into fragments — “Driver's / License” and “Proof of / Income / (Paystub)” wrap to two and three lines.",
+              "observation": "harness/touchfloor.mjs walks routes as the Advisor and does not reach the results state behind a scan, so it never measures this control; measure it there or give the links the same 40px hit extension the app's other link buttons carry. The title column needs the width the action column is taking.",
+              "area": "app.js / portal.css — Snap All results rows (.dr-linkbtn.sa-override)"
+            }
+          ]
         },
         {
           "step": 4,
@@ -4797,7 +4925,15 @@
             "pageHeight": 980
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-039",
+              "severity": "Minor",
+              "issue": "The demo note is hidden behind the sticky Confirm button — the automated overlap check flags it (.dr-demonote against #saSave) and the capture shows it: the note's last line sits under the button.",
+              "observation": "The page reserves no room for its own sticky control; the note needs the same bottom reservation the deal screens give their docks.",
+              "area": "portal.css — Snap All results, bottom reservation beside the sticky Confirm"
+            }
+          ]
         }
       ]
     },
@@ -4810,8 +4946,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-09-03T03:40:57.997Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:29:22.325Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,
@@ -4861,8 +4997,8 @@
             "overlaps": [
               ".drv-side.on Front · Received <> .tv-sheettitle.drv-sheettitle Add back of driver's license",
               ".drv-side.drv-side--need Back · Needed <> .tv-sheettitle.drv-sheettitle Add back of driver's license",
-              " Back of Driver's License nee <>  Scan back now",
-              " Front received 11:40 PM. Add <>  Use this device to capture t",
+              " Back of driver's license nee <>  Scan back now",
+              " Front received. Add the back <>  Use this device to capture t",
               " Customer upload <>  Send secure upload link",
               "#drvAdd.tv-primary.drv-go Add missing back <> .drv-note Uploads go directly into Rid"
             ]
@@ -4898,19 +5034,11 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 844,
-            "pageHeight": 857
+            "height": 855,
+            "pageHeight": 855
           },
-          "scrollShot": "current/19-document-review/03-complete.scroll.png",
-          "issues": [
-            {
-              "id": "RP-UI-030",
-              "severity": "Observation",
-              "issue": "The Source line contradicts itself across the same document’s own states. Before acceptance it reads “Customer upload”, from the record’s own provenance. After acceptance it reads “Snap & Sort (demo)”, because drAutoVerify files every automatic acceptance with how=“sort” whatever the path was — an advisor camera scan, a capture from this screen, or the customer’s secure link. A trainee reading the finished document is told the wrong thing about where it came from.",
-              "observation": "The value is doing two jobs. “sort” is also what makes the status card say “System Verified (simulated)” — the one phrase the package requires, telling the advisor no machine read the photo — so it cannot simply be changed to “client” without losing that. The clean split is that Source answers where the document came from (the record already knows: via=“advisor” means this device, absent means the customer’s) and the status card answers what checked it. That is a copy decision on a screen from a replication package, so it is filed rather than changed.",
-              "area": "app.js drAutoVerify() and the viewer’s sourceLine()"
-            }
-          ]
+          "scrollShot": null,
+          "issues": []
         }
       ]
     },
@@ -4923,8 +5051,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-09-03T03:41:06.943Z",
-      "appCommit": "24b494eb1a3e0ea17f922701aaf86fc6f3e420c6",
+      "capturedAt": "2026-09-05T11:29:30.829Z",
+      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
       "screens": [
         {
           "step": 1,

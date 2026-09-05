@@ -1,0 +1,42 @@
+[
+  {
+    "id": "RP-UI-022",
+    "severity": "Observation",
+    "flow": "Finance Menu",
+    "screen": "Manager sign-off — Advisor view",
+    "screenshot": "current/14-finance-menu/01-signoff-gate-advisor.png",
+    "issue": "The Advisor's gate is a deliberate dead end — four statuses and the line \"Waiting for Team Lead.\" — but it offers no next action at all. V3 removed the older note that told the reader to switch roles, so nothing on the screen connects the wait to the role control in the top bar.",
+    "observation": "The role control is now a labelled pill (\"Advisor\" / \"Team Lead\"), which is a real improvement on the unlabelled segmented control this was first filed against. What remains is that a trainee reading the gate is not told where the handoff happens.",
+    "area": "menu route gate(), .fm-note copy"
+  },
+  {
+    "id": "RP-UI-023",
+    "severity": "Observation",
+    "flow": "Home — Deals Queue & Navigation",
+    "screen": "My Deals (landing — Advisor)",
+    "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
+    "issue": "No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet on the queue top bar standing in for identity.",
+    "observation": "By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.",
+    "area": "n/a"
+  },
+  {
+    "id": "RP-UI-029",
+    "severity": "Minor",
+    "flow": "All (app-wide)",
+    "screen": "Desking accessories, search fields, filter sheet",
+    "screenshot": "current/09-desking/02-pencil-finance.png",
+    "issue": "The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measures 14 real shortfalls: the desking accessory checkbox rows at 20px (eight of them), the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, the client-link demo option row at 30, and #mMaxPrice at 38.",
+    "observation": "Found by widening the audit on 2026-08-31 and measured, not estimated. It was not restyled in that change: the job there was to implement the owner's ruling on the NUMBER, and lifting 14 form controls is a design change across desking, inventory search and the filter sheet that deserves its own review. The harness states the scope boundary at its selector rather than implying coverage it does not have.",
+    "area": "portal.css .opt-row, .switch, .m-search input, #dealSearch, #mMaxPrice"
+  },
+  {
+    "id": "RP-UI-030",
+    "severity": "Observation",
+    "flow": "Document Review (advisor)",
+    "screen": "Both sides received",
+    "screenshot": "current/19-document-review/03-complete.png",
+    "issue": "The Source line contradicts itself across the same document’s own states. Before acceptance it reads “Customer upload”, from the record’s own provenance. After acceptance it reads “Snap & Sort (demo)”, because drAutoVerify files every automatic acceptance with how=“sort” whatever the path was — an advisor camera scan, a capture from this screen, or the customer’s secure link. A trainee reading the finished document is told the wrong thing about where it came from.",
+    "observation": "The value is doing two jobs. “sort” is also what makes the status card say “System Verified (simulated)” — the one phrase the package requires, telling the advisor no machine read the photo — so it cannot simply be changed to “client” without losing that. The clean split is that Source answers where the document came from (the record already knows: via=“advisor” means this device, absent means the customer’s) and the status card answers what checked it. That is a copy decision on a screen from a replication package, so it is filed rather than changed.",
+    "area": "app.js drAutoVerify() and the viewer’s sourceLine()"
+  }
+]

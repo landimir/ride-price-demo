@@ -1,5 +1,154 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v022 — 2026-09-05
+
+App commit: 17c4a3b · 20 flows · 136 screens · previous: v021
+
+**Why this version exists.** The first version captured on the owner's UI
+kit: with #79 merged, the 30 screens of Home, the Customer Resolver and the
+licence scan are the kit's chrome now — Inter, the wordmark, the floating
+tab bar, the task template with its close control and action dock, the
+banner slot — so every one of them differs from v021 by design; the
+remaining entries in the list below are the clock in the captured screens
+moving. **RP-UI-030 is retired**: Document Review V3 (#78) split Source from
+Verification on the viewer's status card, and this flow's completed step is
+the first in the library that ASSERTS what its screen shows — the two rows,
+`Source: Customer upload` and `Verification: Simulated` — through the new
+`expect` hook in `tools/capture.mjs`; a capture that shows something else
+is recorded as a failure with the reason, never filed as the state it was
+meant to document. **RP-UI-031 is filed** against the Home landing for the
+three gaps the chrome inherits from the kit itself (the wordmark and the
+resolver's search action under the 40px floor, the flat page reservation
+beside safe-area bars, the search field's invisible focus), reported not
+patched, for kit v022.3. #80 added the library page's own whole-collection
+download (⬇ All), which is the page these screenshots are read on, not a
+screen in them. One capture step moved with the chrome: the home flow's
+role-sheet step closed the old `#modalBack` modal, and the reset confirm is
+`chDialog()` in the shared sheet now.
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · My deals (landing — Advisor)
+- Home — Active Floor & Navigation · More sheet — secondary navigation
+- Home — Active Floor & Navigation · Reset demo data — confirm
+- Home — Active Floor & Navigation · Switch role
+- Home — Active Floor & Navigation · Active floor (Team Lead)
+- Home — Active Floor & Navigation · Stage filter — no match
+- Home — Active Floor & Navigation · Date range / history sheet
+- Home — Active Floor & Navigation · Funded history in range
+- Home — Active Floor & Navigation · Advisor — completed deal ends the list
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · Find customer — the resolver
+- Customer Onboarding — the Customer Resolver · Search results
+- Customer Onboarding — the Customer Resolver · Customer found — confirm + registration address
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Customer Onboarding — the Customer Resolver · Search results — no match
+- Customer Onboarding — the Customer Resolver · No license available — manual fallback
+- Customer Onboarding — the Customer Resolver · Send secure upload link (sheet)
+- Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Scan Driver's License · Scan — front of license
+- Scan Driver's License · Scan — flip to the back
+- Scan Driver's License · Couldn't read the license (sheet)
+- Scan Driver's License · Find customer manually (sheet)
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Confirm customer (certain match)
+- Scan Driver's License · Confirm customer (ambiguous — prop 1)
+- Scan Driver's License · New customer (prop 3)
+- Scan Driver's License · Phone already in use (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Scan Driver's License · Customer ready
+- Training Documents · License preview — both sides
+- Training Documents · Registration preview
+- Discovery Session · Visit details (sheet)
+- Vehicle Selection · Vehicle Search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · Vehicle details sheet
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Test Drive Agreement · Add another driver
+- Test Drive Agreement · Review & sign
+- Test Drive Agreement · End test drive — odometer
+- Desking — Calculate Payments · Calculate Payments — Finance
+- Desking — Calculate Payments · Calculate Payments — Lease
+- Desking — Calculate Payments · Calculate Payments — Cash
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Agreement — signed
+- Base Payment Agreement · Void signature and redesk? (sheet)
+- Credit Application (Lending Lane) · Send co-buyer link (sheet)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- F&I Product Presentation · Presentation — Rate
+- F&I Product Presentation · Vehicle service contract
+- F&I Product Presentation · Mileage changes the warranty window
+- F&I Product Presentation · Advisor script (sheet)
+- F&I Product Presentation · Monthly / daily budget (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Resolve Deal Jacket blocker
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Accept package — client initials
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Additional deal forms (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Advisor script sheet
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Document row — contextual actions
+- Deal Jacket & Compliance · Mark received — a person's word
+- Deal Jacket & Compliance · Add optional document
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Deal Jacket & Compliance · Driver's License — back still needed
+- Customer document request (from the jacket) · Request documents — secure link
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Text message with the link
+- Client Document Upload (customer's phone) · Upload your documents
+- Client Document Upload (customer's phone) · Row blocked — back of license missing
+- Client Document Upload (customer's phone) · Row verified
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · All documents verified
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Client Document Upload (customer's phone) · What we need — bottom sheet
+- Client Document Upload (customer's phone) · Review capture — 2 pages
+- Client Document Upload (customer's phone) · Too blurry to read — refused on the row
+- Snap All — burst capture · Snap All — camera
+- Snap All — burst capture · Three shots taken
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Document Review (advisor) · Front received, back needed
+- Document Review (advisor) · Both sides received
+- Documents — Print Center & Printables · Print full packet (sheet)
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- RP-UI-031 (Minor) — Three gaps in the owner UI kit (v022.2) that the 19 chrome screens inherit: the wordmark (.rp-wordmark, 116x23) and the resolver search action (.rp-button-navy, 73x36) carry no 40px hit extension — and the Team Lead's date control (.rp-filter__control, 58x20), the only way into the date range / funded history sheet, has none either, where v021 drew it as a 40px pill — against the kit comment that every interactive element has one and the 40px floor for everything (owner, 2026-08-31); .rp-page reserves a flat 104px on a destination and 140px on a task beside bars whose height grows with env(safe-area-inset-bottom), masked today only because index.html carries no viewport-fit=cover; and .rp-search__input drops its outline with no :focus-within on the field, so keyboard focus on the search is invisible. harness/touchfloor.mjs exits 1 on the first two, deliberately.
+- RP-UI-032 (Major) — The link path now says the link went out and nothing says the demo did not send anything. The banner reads “Secure link sent · (646) 555-0900 · Text”; the send sheet before it (07) dropped “Demo — no text or email is really sent; the customer view opens on this device”; and the customer-identified screen after it (09) describes a real remote session — “Secure session · Opened on the customer's device”, “License photo · Read from the upload” — where v021 said “Opened on this device (demo)” and “Read from the training prop”. A trainee is told a text was sent and a customer uploaded, and neither happened.
+- RP-UI-033 (Minor) — The task's step counter skips a step on the link path: the send sheet opens over “Step 1 of 3” and the next screen reads “Step 3 of 3” — step 2 never appears — while the found-customer and manual paths show “Step 2 of 3” before they leave the task.
+- RP-UI-034 (Minor) — The identity column on the customer card is squeezed beside the “License match” pill: the name “Cheri Bridwell” breaks onto two lines and the one-sentence subtitle “Existing customer · license ending 0102” onto four. In v021 both fit on one line each. The kit's Inter is wider than the device face the screen was laid out for, and the card gives the pill its full width first.
+- RP-UI-035 (Observation) — The primary “Create customer” button is cut in half at the bottom edge of the viewport: the new-customer form lays its call to action inline below the fields rather than in the Task template's pinned action dock, so on a phone the advisor scrolls, or dismisses the keyboard, to reach it.
+- RP-UI-036 (Observation) — The helper line “Demo tool — sample data only.” under the Email field is set in the red danger colour although nothing is wrong yet, so an untouched, empty form reads as if it already failed validation.
+- RP-UI-037 (Observation) — The VIN + STK identifier line is the smallest and lightest text on the deal card — 10.5px in the muted grey (rgb 115,115,125 on white, about 4.7:1, AA by a hair and marginal in sunlight) — while the flow calls VIN and stock two of the four load-bearing identifiers on every row, and the standing rule is that load-bearing text is ink because the app is used outdoors. v021 drew it darker and in mono.
+- RP-UI-038 (Minor) — The Gallery button uses an emoji glyph, against the standing rule that every icon slot carries a line icon from the one set, never emoji (owner ruling; RP_ICON).
+- RP-UI-039 (Minor) — The demo note is hidden behind the sticky Confirm button — the automated overlap check flags it (.dr-demonote against #saSave) and the capture shows it: the note's last line sits under the button.
+- RP-UI-040 (Minor) — Three “Accept anyway” link buttons measure 88x28, under the 40px touch floor, and the fixed action column squeezes the row titles into fragments — “Driver's / License” and “Proof of / Income / (Paystub)” wrap to two and three lines.
+- RP-UI-041 (Minor) — The only way into the customer's flow is a 144x19 inline text link inside the message bubble — under the 40px touch floor, on the one screen that a customer, not an advisor, taps.
+- RP-UI-042 (Minor) — Two link buttons on the sheet are 27px tall, under the 40px touch floor: “Other income type” (106x27) and “See a good example” (115x27).
+- RP-UI-043 (Observation) — The manual fallback is now the task title and four bare fields. The note that made it fallback-only (“if a license or license photo becomes available, use it instead”) and the line that both phone and email are required are gone, and no field is marked required until validation says so.
+
+### Resolved issues
+- RP-UI-030 (Observation) — The Source line contradicts itself across the same document’s own states. Before acceptance it reads “Customer upload”, from the record’s own provenance. After acceptance it reads “Snap & Sort (demo)”, because drAutoVerify files every automatic acceptance with how=“sort” whatever the path was — an advisor camera scan, a capture from this screen, or the customer’s secure link. A trainee reading the finished document is told the wrong thing about where it came from.
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v021 — 2026-09-03
 
 App commit: 24b494e · 20 flows · 136 screens · previous: v020

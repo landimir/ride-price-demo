@@ -76,3 +76,26 @@ Why each finding left the board, and what holds it fixed.
   wearing the previous design end to end (test drive, trade) still render
   the old chrome wholesale; that is the not-yet-converted state the
   master-canvas route list records, not a residue of this finding.
+
+## v022 (2026-09-05, Document Review V3, PR #78)
+
+- **RP-UI-030** — The viewer's Source line contradicted itself across one
+  document's own states: "Customer upload" before acceptance, from the
+  record's provenance, and "Snap & Sort (demo)" after it, because
+  `drAutoVerify()` filed every automatic acceptance with `how: "sort"`
+  whatever the path had been — so a trainee reading a finished document was
+  told the wrong thing about where it came from. Filed rather than changed
+  in v021 because the value was doing two jobs (it also made the status card
+  say the one phrase the package requires). **Document Review V3 (#78,
+  `2cae2ea`) made the split the finding asked for:** Source is where the
+  sides came from, read from a new per-side flag on the client record
+  (`sideVia[i]`) — all customer reads *Customer upload*, all advisor
+  *Advisor capture*, mixed *Customer upload + advisor capture* — and
+  Verification is what checked them, read from the jacket's `how` and shown
+  on its own row as *Simulated* for the demo check. A customer's upload is
+  never relabelled by the routine that accepted it, and the viewer's own
+  capture sets only its side, so the customer keeps the front.
+  `harness/docreview2.mjs` holds it (80 checks: the two rows, the
+  mixed-source line, per-side provenance), and the library's document-review
+  flow now asserts both rows on its completed screen, which is this
+  finding's screenshot anchor.
