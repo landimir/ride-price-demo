@@ -5738,6 +5738,11 @@ route("present/:id", ({ id }) => {
 route("menu/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
   const v = Store.vehicle(deal.stock);
+  /* a truthy stock is not a resolved vehicle. chips() reads v.year directly, so
+     a bookmark or a history entry for a deal whose unit has left the catalog
+     used to throw on render. Same destination as the Documents and print
+     guards: a completed deal's record is its jacket, an open one picks a unit. */
+  if (!v) return redirect(deal.stage === "complete" ? `#/jacket/${deal.id}` : `#/vehicles/${deal.id}`);
   const c = Store.customer(deal.customerId);
   const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
   const isCash = deal.dealType === "cash";
