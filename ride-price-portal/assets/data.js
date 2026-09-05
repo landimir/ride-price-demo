@@ -13,6 +13,15 @@ const RIDE_PRICE_DATA = {
     phone: "(718) 555-0188"
   },
 
+  /* other advisors — they appear in vehicle-contention states only (seed
+     v025); names chosen not to collide with customers or props */
+  otherAdvisors: ["Nadia R.", "Omar D."],
+  /* the seed's contention example (vehicle selection, screen 08): a later
+     moment than the rest of the seed — Nadia R.'s buyer's order on 7H21313
+     is signed at 2:14 — so the demo enters it on purpose, through
+     #/demo/vehicle-reserved, and Reset clears it */
+  contentionExample: { stock: "7H21313", by: "Nadia R.", time: "14:14" },
+
   /* New York City tax + fee structure. Total 8.875% — the combined rate for
      all five boroughs, which is why the ZIP directory below is NYC-only:
      one table can only be correct for one jurisdiction. */

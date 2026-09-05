@@ -1181,6 +1181,7 @@ route("deals", () => {
       <div class="rp-card__name">${esc(name)}</div>
       ${veh ? `<div class="rp-card__line">${esc(veh)}</div>` : ""}
       ${ids}
+      ${vehicleStatusHtml(d)}
       ${next && b.id !== "done" ? `<div class="rp-card__next">Next: ${esc(dealNextAction(d))}</div>` : ""}
     </a>`;
   }
@@ -1214,6 +1215,7 @@ route("deals", () => {
       <div class="rp-eyebrow">${lead ? "Floor overview" : "Sales floor"}</div>
       <div class="rp-title-row"><h1 class="rp-title dq-title">${lead ? "Active floor" : "My deals"}</h1><a class="rp-pill-primary dq-newvisit" href="#/customers">New visit</a></div>
       <p class="rp-count" id="dqCount"></p>
+      <div id="dqAlerts"></div>
       <div class="rp-search">${rpGlyph("search")}<input class="rp-search__input" id="dealSearch" placeholder="Search customer, VIN, or stock" aria-label="Search deals" value="${esc(dealsUI.q)}"><button type="button" class="rp-search__scan" id="dealScanBtn" aria-label="Scan a driver's license to start a visit">${rpGlyph("scan")}</button></div>
       ${lead ? `<div class="rp-filter">
         <span id="dqDateSummary"></span>
@@ -1244,6 +1246,19 @@ route("deals", () => {
     const searching = !!q;
     /* the showroom section renders for BOTH roles — an advisor's own visit
        must stay reachable even though it is no longer a deal stage */
+    /* vehicle contention (§14): the alerts at the top of My deals, for the
+       advisor's own open deals — one real action, × dismisses and the
+       card's status stays. The Team Lead's floor carries the status on the
+       cards and no alert. */
+    $("#dqAlerts").innerHTML = lead ? "" : myAlerts().map(a => `<div class="rp-alert${a.kind === "working" ? " rp-alert--working" : ""}" data-alert="${esc(a.id)}">
+      <div class="rp-alert__title">${esc(a.title)}</div><div class="rp-alert__body">${esc(a.body)}</div>
+      <a class="rp-alert__action" href="#/vehicles/${esc(a.dealId)}">Choose another vehicle</a>
+      <button type="button" class="rp-alert__close" data-alert-close="${esc(a.id)}" aria-label="Dismiss">${rpGlyph("close")}</button></div>`).join("");
+    $$("[data-alert-close]").forEach(b => b.onclick = () => {
+      const al = (Store.s.alerts || []).find(x => x.id === b.dataset.alertClose);
+      if (al) { al.dismissed = true; Store.save(); }
+      paint();
+    });
     $("#dqShowroom").innerHTML = (showroom.length || lead) ? showroomHtml(showRows) : "";
     if (lead) {
       $$(".dq-chipbtn").forEach(p => {
@@ -3162,9 +3177,9 @@ function wireDeskTop() {
   if (r) r.onclick = () => $("#hamburgerBtn").click(); /* the drawer carries nav and the role switch */
 }
 /* the golden example's flat car illustration, coloured from the vehicle's hue */
-function mCarSvg(v) {
+function mCarSvg(v, cls) {
   const color = `hsl(${esc(v.hue)}, 58%, 52%)`;
-  return `<svg class="m-carsvg" viewBox="0 0 260 130" aria-hidden="true">
+  return `<svg class="${cls || "m-carsvg"}" viewBox="0 0 260 130" aria-hidden="true">
     <ellipse cx="130" cy="106" rx="94" ry="10" fill="rgba(0,0,0,.09)"/>
     <path d="M45 78h18l18-31c5-9 14-14 25-14h49c12 0 23 5 31 14l24 31h13c9 0 16 7 16 16v7H28v-7c0-9 7-16 17-16Z" fill="${color}"/>
     <path d="M93 45h60c7 0 12 2 17 7l20 24H70l14-24c3-5 5-7 9-7Z" fill="#D8EFF6"/>
@@ -3176,17 +3191,96 @@ function mCarSvg(v) {
   </svg>`;
 }
 
+/* ============================================================
+   VEHICLE CONTENTION — chrome rule §14 (vehicle-selection package v025)
+
+   Several customers may have the same vehicle on their worksheets. Two
+   informational states, and neither blocks Choose this vehicle:
+   - Working is DERIVED: every open deal that carries the stock. When a
+     second advisor chooses a car already on an open deal, the advisors
+     already on it are told (noteWorking).
+   - Reserved is RECORDED: the buyer's order signed by customer and manager
+     (Desking / F&I, not drawn yet) calls reserveVehicle(); funded or voided
+     calls releaseVehicle(). Every advisor with the car on an open deal gets
+     the alert at the top of My deals — and the push, which this demo
+     delivers as a toast.
+   Nothing is drawn in inventory or the details sheet; only deal cards
+   (My deals, Active floor) and the alert carry a state.
+   ============================================================ */
+const dealOpen = (d) => d.stage !== "complete";
+/* the advisor a deal belongs to: the seed deal carries none (it predates the
+   field), and a deal with no advisor is the demo advisor's own */
+const dealAdvisor = (d) => d.advisor || Store.s.advisor;
+/* "2:14" — the hour and minute as the package writes them on an alert */
+const clockLabel = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).replace(/\s?[AP]M$/i, "");
+function vehicleHold(stock) { return stock && Store.s.holds ? Store.s.holds[stock] || null : null; }
+function workingDeals(stock, exceptId) { return Store.s.deals.filter(d => d.stock === stock && dealOpen(d) && d.id !== exceptId); }
+const vehicleLabel = (stock) => { const v = Store.vehicle(stock); return v ? `${v.year} ${v.make} ${v.model}` : stock; };
+const custOf = (d) => { const c = Store.customer(d.customerId); return c ? `${c.first} ${c.last}` : "the customer"; };
+/* addressed to the deal's advisor, so a Team Lead acting as one sees theirs */
+function pushAlert(a) {
+  Store.s.alerts = Store.s.alerts || [];
+  Store.s.alerts.push(Object.assign({ id: uid("n"), at: new Date().toISOString(), dismissed: false }, a));
+}
+function reserveVehicle(stock, by, atISO) {
+  const at = atISO || new Date().toISOString();
+  Store.s.holds = Store.s.holds || {};
+  Store.s.holds[stock] = { state: "reserved", by, at };
+  workingDeals(stock).forEach(d => pushAlert({ kind: "reserved", stock, dealId: d.id, advisor: dealAdvisor(d), title: "Vehicle reserved",
+    body: `${vehicleLabel(stock)} · ${stock} — buyer’s order signed ${clockLabel(at)} by ${by}${/.$/.test(by) ? "" : "."} Your deal for ${custOf(d)} stays open.` }));
+  Store.save();
+}
+function releaseVehicle(stock) {
+  if (Store.s.holds && Store.s.holds[stock]) { delete Store.s.holds[stock]; Store.save(); }
+}
+function noteWorking(stock, deal) {
+  workingDeals(stock, deal.id).filter(o => dealAdvisor(o) !== dealAdvisor(deal)).forEach(o => pushAlert({ kind: "working", stock, dealId: o.id, advisor: dealAdvisor(o), title: "Also selected",
+    body: `${dealAdvisor(deal)} also selected ${vehicleLabel(stock)} · ${stock}, for ${custOf(deal)}. Your deal for ${custOf(o)} stays open.` }));
+}
+/* the alerts for the advisor on this device — undismissed, on deals still on file */
+function myAlerts() { return (Store.s.alerts || []).filter(a => !a.dismissed && a.advisor === Store.s.advisor && Store.deal(a.dealId)); }
+/* the card's status line: Reserved outranks Working; nothing when neither */
+function vehicleStatusHtml(d) {
+  if (!d.stock || !dealOpen(d)) return "";
+  const hold = vehicleHold(d.stock);
+  if (hold) return `<div><span class="rp-vstatus rp-vstatus--reserved">Reserved by another deal · ${esc(hold.by)}</span></div>`;
+  const other = workingDeals(d.stock, d.id).find(o => dealAdvisor(o) !== dealAdvisor(d));
+  return other ? `<div><span class="rp-vstatus rp-vstatus--working">Also selected by ${esc(dealAdvisor(other))}</span></div>` : "";
+}
+/* the seed's contention example (SEED-DATA v025, screen 08): a later moment
+   than the rest of the seed, so the demo enters it on purpose. Reset clears it. */
+route("demo/vehicle-reserved", () => {
+  const ex = RIDE_PRICE_DATA.contentionExample;
+  const at = new Date(); const [h, m] = ex.time.split(":").map(Number); at.setHours(h, m, 0, 0);
+  reserveVehicle(ex.stock, ex.by, at.toISOString());
+  toast(`Vehicle reserved — ${ex.by} signed on ${ex.stock}`);
+  redirect("#/deals");
+});
+
 route("vehicles/:id", ({ id }) => {
   const deal = id === "browse" ? null : Store.deal(id);
   if (id !== "browse" && !deal) return navigate("#/deals");
-  renderChrome("Vehicle Search", "", "");
-  document.body.dataset.canvas = "master";
+  renderChrome(deal ? "Vehicle Selection" : "Inventory", "", "");
+  document.body.dataset.canvas = "kit";
+  document.body.dataset.screen = "vehicles";
+  /* vehicle selection on the kit (owner's package v025, r5): inside a visit
+     it is a Task whose top bar carries the customer's full name and nothing
+     else — no step, no status, no deal number (numbers exist only after
+     F&I) — and Close returns to the visit; without a visit it is the
+     Inventory destination. The frame is fixed and the list scrolls inside
+     .rp-page; the whole card is the tap target; every secondary decision is
+     the kit's sheet with one primary. Contention (§14) is never drawn here —
+     not on a card, not in the details sheet. Routes, filter logic and the
+     five next-step targets are unchanged. */
 
   const makes = [...new Set(RIDE_PRICE_DATA.inventory.map(v => v.make))];
   const bodies = [...new Set(RIDE_PRICE_DATA.inventory.map(v => v.body))];
   const cust = deal ? Store.customer(deal.customerId) : null;
   /* the browse state survives sheet opens but resets on route entry */
   const ui = { type: "All", make: "All", body: "All", maxPrice: null, sort: "hi", search: "", sheet: null };
+  /* the sheet's own closes — scrim, Escape, the × — report back, so the
+     next render does not raise the sheet again */
+  const sheets = chSheetOpener("vsScrim", "vsSheet", () => { ui.sheet = null; });
 
   function filtered() {
     let list = RIDE_PRICE_DATA.inventory.slice();
@@ -3200,186 +3294,128 @@ route("vehicles/:id", ({ id }) => {
     return list;
   }
   const filterCount = () => (ui.make !== "All" ? 1 : 0) + (ui.body !== "All" ? 1 : 0) + (ui.maxPrice ? 1 : 0);
+  const clearAll = () => { ui.type = "All"; ui.make = "All"; ui.body = "All"; ui.maxPrice = null; ui.search = ""; };
 
-  /* the golden's journey rows, carried over with the app's line icons */
+  /* the five next steps — unchanged targets, the board's words */
   const JOURNEY = [
-    { act: "test", icon: "car", t: "Test Drive", d: "Start the customer test-drive flow" },
-    { act: "trade", icon: "swap", t: "Trade Appraisal", d: "Evaluate a trade and proof of ownership" },
-    { act: "calc", icon: "dollar", t: "Calculate Payment", d: "Open desking with this vehicle selected" },
-    { act: "quote", icon: "page", t: "Quote", d: "Quick Quote is follow-up only during a visit" },
-    { act: "savequote", icon: "check", t: "Save Quote", d: "Save this structure for follow-up" }
+    { act: "test", icon: "car", t: "Test drive", d: "Start the customer test-drive flow" },
+    { act: "trade", icon: "swap", t: "Trade appraisal", d: "Evaluate a trade and proof of ownership" },
+    { act: "calc", icon: "dollar", t: "Calculate payment", d: "Open desking with this vehicle" },
+    { act: "quote", icon: "page", t: "Quote", d: "Follow-up only during a visit" },
+    { act: "savequote", icon: "check", t: "Save quote", d: "Save this structure for follow-up" }
   ];
 
-  const cardHtml = (v) => `
-    <div class="m-vcard" data-detail="${esc(v.stock)}" role="button" tabindex="0" aria-label="${esc(v.year + " " + v.make + " " + v.model)} details">
-      <div class="m-photo" style="background:linear-gradient(145deg,hsl(${esc(v.hue)},42%,94%),hsl(${esc(v.hue)},36%,86%))">
-        <span class="m-badge">${esc(v.type.toUpperCase())}</span>${mCarSvg(v)}
-      </div>
-      <div class="m-cardbody">
-        <div class="m-cardtitle">${esc(v.year)} ${esc(v.make)} ${esc(v.model)}</div>
-        <div class="m-cardtrim">${esc(v.trim)}</div>
-        <div class="m-cardmeta">Stock ${esc(v.stock)} · ${esc(v.miles.toLocaleString())} mi · ${esc(v.ext)} · ${esc(v.drive)}</div>
-        <div class="m-pricerow"><span class="m-price">${money0(v.selling)}</span>${v.msrp !== v.selling ? `<span class="m-msrp">MSRP ${money0(v.msrp)}</span>` : ""}</div>
-        <div class="m-cardhint"><span>View vehicle details</span><span>›</span></div>
-      </div>
-    </div>`;
-
-  const summaryHtml = (v) => `
-    <div class="m-summary">
-      <div class="m-thumb" style="background:linear-gradient(145deg,hsl(${esc(v.hue)},42%,94%),hsl(${esc(v.hue)},36%,86%))">${mCarSvg(v)}</div>
-      <div><div class="m-sumtitle">${esc(v.year)} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)}</div>
-        <div class="m-summeta">${money0(v.selling)} · Stock ${esc(v.stock)}</div></div>
-    </div>`;
+  /* the app's vehicle images stay: the flat car on the vehicle's own tint */
+  const tint = (v) => `background:linear-gradient(145deg,hsl(${esc(v.hue)},42%,94%),hsl(${esc(v.hue)},36%,86%))`;
+  const vName = (v) => `${v.year} ${v.make} ${v.model}`;
+  const vMeta = (v) => `Stock ${v.stock} · ${v.miles.toLocaleString()} mi · ${v.ext} · ${v.drive}`;
+  /* the kit's vehicle card: a button in the list — the whole card is the
+     tap target, no "View vehicle details" line — and a plain block in the
+     details sheet */
+  const vehicleHtml = (v, inSheet) => {
+    const body = `<div class="rp-vehicle__media" style="${tint(v)}"><span class="rp-vehicle__tag">${esc(v.type.toUpperCase())}</span>${mCarSvg(v, "rp-icon")}</div>
+      <div class="rp-vehicle__body">
+        <div class="rp-vehicle__name">${esc(vName(v))}</div>
+        <div class="rp-vehicle__trim">${esc(v.trim)}</div>
+        <div class="rp-vehicle__meta">${esc(vMeta(v))}</div>
+        <div class="rp-vehicle__price"><strong>${money0(v.selling)}</strong>${v.msrp !== v.selling ? `<s>MSRP ${money0(v.msrp)}</s>` : ""}</div>
+      </div>`;
+    return inSheet ? `<div class="rp-vehicle rp-vehicle--sheet">${body}</div>`
+      : `<button type="button" class="rp-vehicle" data-detail="${esc(v.stock)}" aria-label="${esc(vName(v))} details">${body}</button>`;
+  };
+  const choiceHtml = (v) => `<div class="rp-choice"><span class="rp-choice__thumb" style="${tint(v)}">${mCarSvg(v, "rp-icon")}</span><span><div class="rp-choice__title">${esc(vName(v) + " " + v.trim)}</div><div class="rp-choice__sub">${money0(v.selling)} · Stock ${esc(v.stock)} · on the deal</div></span></div>`;
+  /* both cells are markup by contract — callers esc() their own values */
+  const kvRow = (labelHtml, valueHtml) => `<div class="rp-kv__row"><span>${labelHtml}</span><span>${valueHtml}</span></div>`;
 
   function sheetHtml() {
     const sh = ui.sheet;
-    if (!sh) return "";
     if (sh.kind === "details") {
       const v = Store.vehicle(sh.stock);
-      return `
-      <div class="m-sheettop"><div class="m-sheettitle">Vehicle details</div><button class="m-close" data-sheet-close aria-label="Close">✕</button></div>
-      <div class="m-sheetphoto" style="background:linear-gradient(145deg,hsl(${esc(v.hue)},42%,94%),hsl(${esc(v.hue)},36%,86%))">${mCarSvg(v)}</div>
-      <h2>${esc(v.year)} ${esc(v.make)} ${esc(v.model)}</h2>
-      <div class="m-sheetsub">${esc(v.trim)} · ${esc(v.ext)} · ${esc(v.drive)}</div>
-      <div class="m-specgroup">
-        <div class="m-specrow"><span>MSRP</span><strong>${money(v.msrp)}</strong></div>
-        <div class="m-specrow"><span>Selling price</span><strong>${money(v.selling)}</strong></div>
-        ${v.includedOptions ? `<div class="m-specrow"><span>Included options</span><strong>${money(v.includedOptions)}</strong></div>` : ""}
-      </div>
-      <p class="m-desc">${esc(v.blurb)}</p>
-      <p class="m-desc" style="margin-top:0">VIN ${esc(v.vin)} · ${esc(v.engine)} · ${esc(v.mpg)} MPG · ${esc(v.int)} interior · ${esc(v.miles.toLocaleString())} miles</p>
-      <div class="m-sheetactions">
-        ${deal ? `<button class="m-primary" data-choose="${esc(v.stock)}">Choose this vehicle</button>` : ""}
-        <button class="m-ghost" data-sheet-close>Back to inventory</button>
-      </div>`;
+      /* one primary, and only inside a visit — browsing has no deal to put
+         the car on, so the sheet simply has no Choose */
+      return `${chSheetHead("Vehicle details")}
+        ${vehicleHtml(v, true)}
+        <div class="rp-kv">${kvRow("MSRP", money0(v.msrp))}${kvRow("Selling price", money0(v.selling))}${v.includedOptions ? kvRow("Included options", money0(v.includedOptions)) : ""}</div>
+        <div class="rp-kv">${kvRow("VIN", esc(v.vin))}${kvRow("Engine", esc(v.engine + " · " + v.mpg + " MPG"))}${kvRow("Interior", esc(v.int + " · " + v.miles.toLocaleString() + " mi"))}</div>
+        ${deal ? `<button type="button" class="rp-primary" data-choose="${esc(v.stock)}">Choose this vehicle</button>` : ""}`;
     }
     if (sh.kind === "next") {
       const v = Store.vehicle(sh.stock);
-      return `
-      <div class="m-sheettop"><div class="m-sheettitle">What&rsquo;s next?</div><button class="m-close" data-sheet-close aria-label="Close">✕</button></div>
-      ${summaryHtml(v)}
-      <div class="m-jlist">
-        ${JOURNEY.map(j => `<button class="m-jrow" data-act="${j.act}" data-stock="${esc(v.stock)}">
-          <span class="m-actionicon">${rpIcon(j.icon)}</span>
-          <span><strong>${j.t}</strong><small>${j.d}</small></span>
-          <span class="m-chev">›</span></button>`).join("")}
-      </div>`;
+      return `${chSheetHead("What’s next?")}${choiceHtml(v)}
+        <div class="rp-group">${JOURNEY.map(j => `<button type="button" class="rp-row" data-act="${j.act}" data-stock="${esc(v.stock)}"><span class="rp-tile">${rpIconGlyph(j.icon)}</span><span class="rp-row__body"><span class="rp-row__title">${j.t}</span><span class="rp-row__sub">${j.d}</span></span><span class="rp-row__chevron"></span></button>`).join("")}</div>`;
     }
     if (sh.kind === "quote") {
       const v = Store.vehicle(sh.stock);
-      return `
-      <div class="m-sheettop"><div class="m-sheettitle">Quote</div><button class="m-close" data-sheet-close aria-label="Close">✕</button></div>
-      <div class="m-quoteicon">${rpIcon("page")}</div>
-      <h2>Quick Quote is for follow-up only</h2>
-      <p class="m-quotecopy">During an active client visit, keep the conversation in the guided deal flow. You can save this ${esc(v.year)} ${esc(v.make)} ${esc(v.model)} structure now and send a quote later.</p>
-      ${summaryHtml(v)}
-      <div class="m-sheetactions">
-        <button class="m-primary" data-act="savequote" data-stock="${esc(v.stock)}">Save quote for follow-up</button>
-        <button class="m-textbtn" data-back-next="${esc(v.stock)}">Back to next steps</button>
-      </div>`;
+      return `${chSheetHead("Quote")}<p class="rp-sheet__sub">Quotes are sent after the visit, from the deal.</p>${choiceHtml(v)}
+        <button type="button" class="rp-primary" data-act="savequote" data-stock="${esc(v.stock)}">Save quote for follow-up</button>
+        <button type="button" class="rp-link" data-back-next="${esc(v.stock)}">Back to next steps</button>`;
     }
-    /* filters */
-    const opt = (group, val, label) => `<button class="m-opt${ui[group] === val ? " selected" : ""}" data-opt="${esc(group)}" data-val="${esc(val)}">${esc(label)}</button>`;
-    return `
-      <div class="m-sheettop"><div class="m-sheettitle">Filters</div><button class="m-close" data-sheet-close aria-label="Close">✕</button></div>
-      <div class="m-fsection"><h3>Make</h3><div class="m-optgrid">${opt("make", "All", "All")}${makes.map(m => opt("make", m, m)).join("")}</div></div>
-      <div class="m-fsection"><h3>Body style</h3><div class="m-optgrid">${opt("body", "All", "All")}${bodies.map(b => opt("body", b, b)).join("")}</div></div>
-      <div class="m-fsection"><h3>Max price</h3>
-        <div class="m-priceinput"><span>$</span><input type="number" id="mMaxPrice" step="1000" placeholder="No limit" value="${esc(ui.maxPrice || "")}"></div></div>
-      <div class="m-fsection"><h3>Sort</h3><div class="m-optgrid">${opt("sort", "hi", "Price: high to low")}${opt("sort", "lo", "Price: low to high")}</div></div>
-      <div class="m-ffoot"><button class="m-clearlink" id="mClearAll">Clear all</button><button class="m-primary" data-sheet-close>Show ${filtered().length} vehicle${filtered().length === 1 ? "" : "s"}</button></div>`;
+    /* filters: the same four controls, as the kit's chips and a field */
+    const chip = (group, val, label) => `<button type="button" class="rp-chip${ui[group] === val ? " rp-chip--on" : ""}" data-opt="${esc(group)}" data-val="${esc(val)}">${esc(label)}</button>`;
+    const n = filtered().length;
+    return `${chSheetHead("Filters")}
+      <div class="rp-section">Make</div><div class="rp-chips">${chip("make", "All", "All")}${makes.map(m => chip("make", m, m)).join("")}</div>
+      <div class="rp-section">Body style</div><div class="rp-chips">${chip("body", "All", "All")}${bodies.map(b => chip("body", b, b)).join("")}</div>
+      <div class="rp-field"><label class="rp-field__label" for="mMaxPrice">Max price</label><input class="rp-field__input" id="mMaxPrice" type="number" inputmode="numeric" step="1000" placeholder="No limit" value="${esc(ui.maxPrice || "")}"></div>
+      <div class="rp-section">Sort</div><div class="rp-chips">${chip("sort", "hi", "Price: high to low")}${chip("sort", "lo", "Price: low to high")}</div>
+      <div style="height:8px"></div>
+      <button type="button" class="rp-primary" data-sheet-close>Show ${n} vehicle${n === 1 ? "" : "s"}</button>
+      <button type="button" class="rp-link" id="mClearAll">Clear all</button>`;
   }
 
   function render() {
     const list = filtered();
     const fc = filterCount();
-    view().innerHTML = `
-    <div class="m-app">
-      ${masterTop()}
-      <div class="m-hero">
-        <div class="m-eyebrow">${deal ? "VEHICLE SELECTION" : "INVENTORY"}</div>
-        <h1 class="m-h1">${deal ? "Choose a vehicle" : "Browse inventory"}</h1>
+    const content = `
+      <div class="rp-eyebrow">${deal ? "Vehicle selection" : "Inventory"}</div>
+      <h1 class="rp-title">${deal ? "Choose a vehicle" : "Browse inventory"}</h1>
+      <div class="rp-search">${rpGlyph("search")}<input class="rp-search__input" id="vsSearch" placeholder="Make, model, stock or VIN" value="${esc(ui.search)}" aria-label="Search inventory"></div>
+      <div class="rp-chips rp-chips--rail" role="group" aria-label="Vehicle type">
+        ${["All", "New", "Used", "CPO"].map(t => `<button type="button" class="rp-chip${ui.type === t ? " rp-chip--on" : ""}" data-type="${t}" aria-pressed="${ui.type === t}">${t}</button>`).join("")}
+        <button type="button" class="rp-chip" id="vsFilters" aria-label="More filters">Filters${fc ? `<span class="rp-chip__count">${fc}</span>` : ""}</button>
       </div>
-      ${deal ? `
-      <div class="m-context">
-        <div class="m-context-copy">
-          <div class="m-context-name">${esc(cust.first + " " + cust.last)}</div>
-          <div class="m-context-meta">Deal #${esc(deal.dealNo)} · ${deal.stock ? esc(drVehicleShort(Store.vehicle(deal.stock))) + " selected" : "No vehicle selected"}</div>
-        </div>
-        <span class="m-rolepill">Buyer</span>
-      </div>` : `
-      <div class="m-banner">
-        <strong>Browsing without a visit</strong>
-        <p>Test drives, trades, and payments unlock after you start a customer visit — inventory stays open for a look around.</p>
-        <button class="m-smallbtn" data-nav="#/customers">Start a customer visit</button>
-      </div>`}
-      <div class="m-searchwrap">
-        <div class="m-search">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path></svg>
-          <input id="mSearch" placeholder="Make, model, stock or VIN" value="${esc(ui.search)}" aria-label="Search inventory">
-        </div>
-      </div>
-      <div class="m-chips" role="tablist" aria-label="Vehicle type">
-        ${["All", "New", "Used", "CPO"].map(t => `<button class="m-chip${ui.type === t ? " active" : ""}" data-type="${t}" role="tab" aria-selected="${ui.type === t}">${t}</button>`).join("")}
-        <button class="m-chip${fc ? " filter-active" : ""}" id="mFilters" aria-label="More filters">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"></path></svg>
-          Filters${fc ? ` <span class="m-chipcount">${fc}</span>` : ""}
-        </button>
-      </div>
-      <div class="m-results">
-        <div><div class="m-restitle">Available vehicles</div><div class="m-resmeta">${list.length} vehicle${list.length === 1 ? "" : "s"}</div></div>
-        <button class="m-sort" id="mSort">Price: ${ui.sort === "hi" ? "high to low" : "low to high"}</button>
-      </div>
-      ${list.length ? `<div class="m-inv">${list.map(cardHtml).join("")}</div>` : `
-      <div class="m-empty">
-        <div class="m-emptyicon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg></div>
-        <h2>No vehicles match</h2>
-        <p>Nothing in stock fits those filters. Loosen one and the lot opens back up.</p>
-        <button class="m-smallbtn" id="mClearEmpty">Clear all filters</button>
-      </div>`}
-      <div class="m-scrim${ui.sheet ? " show" : ""}" id="mScrim"><div class="m-sheet" role="dialog" aria-modal="true"><div class="m-handle"></div>${sheetHtml()}</div></div>
-    </div>`;
+      <div class="rp-listhead"><div><div class="rp-section">Available vehicles</div><div class="rp-listhead__meta">${list.length} vehicle${list.length === 1 ? "" : "s"}</div></div>
+        <button type="button" class="rp-sort" id="vsSort">Price: ${ui.sort === "hi" ? "high to low" : "low to high"}${rpGlyph("chevron-down")}</button></div>
+      ${list.length ? list.map(v => vehicleHtml(v, false)).join("") : `<div class="rp-empty"><strong>No vehicles match</strong>Nothing in stock fits those filters.<div style="height:12px"></div><button type="button" class="rp-button-navy" id="vsClearEmpty">Clear all filters</button></div>`}`;
+    const ids = { scrim: "vsScrim", sheet: "vsSheet" };
+    if (!ui.sheet) sheets.close(); /* a sheet the last render left up takes its listeners with it */
+    view().innerHTML = deal
+      ? chShell({ template: "task", title: `${cust.first} ${cust.last}`, closeId: "vsClose" }, content, null, ids)
+      : chShell({ template: "destination", active: "inventory" }, content, null, ids);
     wire();
+    if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
   }
 
-  const clearAll = () => { ui.type = "All"; ui.make = "All"; ui.body = "All"; ui.maxPrice = null; ui.search = ""; };
-
   function wire() {
-    wireMasterTop();
-    const search = $("#mSearch");
+    /* Close returns to the visit — the discovery screen, whose next steps
+       sent the advisor here */
+    const close = $("#vsClose"); if (close) close.onclick = () => navigate(`#/discovery/${deal.id}`);
+    const more = $("#dqMore"); if (more) more.onclick = () => chMoreSheet(sheets);
+    chWireRole(sheets, render);
+    const search = $("#vsSearch");
     search.oninput = () => {
       ui.search = search.value;
       /* re-render everything below without stealing the keyboard focus */
       const pos = search.selectionStart;
       render();
-      const s2 = $("#mSearch"); s2.focus(); s2.setSelectionRange(pos, pos);
+      const s2 = $("#vsSearch"); s2.focus(); s2.setSelectionRange(pos, pos);
     };
-    $$(".m-chip[data-type]").forEach(b => b.onclick = () => { ui.type = b.dataset.type; render(); });
-    /* [data-nav] is bound once at boot, so anything a route renders needs its
-       own binding — the browse banner's button was dead without this */
-    $$("[data-nav]", view()).forEach(b => b.onclick = (e) => { e.preventDefault(); navigate(b.dataset.nav); });
-    $("#mFilters").onclick = () => { ui.sheet = { kind: "filters" }; render(); };
-    $("#mSort").onclick = () => { ui.sort = ui.sort === "hi" ? "lo" : "hi"; render(); };
-    $$("[data-detail]").forEach(el => {
-      el.onclick = () => { ui.sheet = { kind: "details", stock: el.dataset.detail }; render(); };
-      el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); el.click(); } };
-    });
-    const clearEmpty = $("#mClearEmpty");
+    $$(".rp-chip[data-type]").forEach(b => b.onclick = () => { ui.type = b.dataset.type; render(); });
+    $("#vsFilters").onclick = () => { ui.sheet = { kind: "filters" }; render(); };
+    $("#vsSort").onclick = () => { ui.sort = ui.sort === "hi" ? "lo" : "hi"; render(); };
+    $$("[data-detail]").forEach(el => el.onclick = () => { ui.sheet = { kind: "details", stock: el.dataset.detail }; render(); });
+    const clearEmpty = $("#vsClearEmpty");
     if (clearEmpty) clearEmpty.onclick = () => { clearAll(); render(); };
+  }
 
-    /* sheet wiring */
-    const scrim = $("#mScrim");
-    if (scrim) {
-      scrim.onclick = (e) => { if (e.target === scrim) { ui.sheet = null; render(); } };
-      $$("[data-sheet-close]").forEach(b => b.onclick = () => { ui.sheet = null; render(); });
-    }
-    $$("[data-opt]").forEach(b => b.onclick = () => { ui[b.dataset.opt] = b.dataset.opt === "sort" ? b.dataset.val : (ui[b.dataset.opt] === b.dataset.val ? "All" : b.dataset.val); render(); });
-    const mp = $("#mMaxPrice");
+  function wireSheet(sheet) {
+    $$("[data-opt]", sheet).forEach(b => b.onclick = () => { ui[b.dataset.opt] = b.dataset.opt === "sort" ? b.dataset.val : (ui[b.dataset.opt] === b.dataset.val ? "All" : b.dataset.val); render(); });
+    const mp = $("#mMaxPrice", sheet);
     if (mp) mp.onchange = () => { ui.maxPrice = parseFloat(mp.value) || null; render(); };
-    const clearAllBtn = $("#mClearAll");
+    const clearAllBtn = $("#mClearAll", sheet);
     if (clearAllBtn) clearAllBtn.onclick = () => { clearAll(); render(); };
 
-    $$("[data-choose]").forEach(b => b.onclick = () => {
+    $$("[data-choose]", sheet).forEach(b => b.onclick = () => {
       /* the deal keeps its own vehicle identity from the moment of attachment,
          so the queue's VIN survives an unstocked unit or a catalog change */
       const stock = b.dataset.choose;
@@ -3388,14 +3424,17 @@ route("vehicles/:id", ({ id }) => {
       /* the words too: the row and the search draw year/make/model from this
          snapshot once the catalog no longer holds the unit (review, #79) */
       deal.vehicle = vsel ? { vin: vsel.vin, stock: vsel.stock, year: vsel.year, make: vsel.make, model: vsel.model } : { vin: null, stock };
+      /* contention (§14): the advisors already working this car are told;
+         nobody is blocked, and nothing about it is drawn here */
+      noteWorking(stock, deal);
       Store.save();
       ui.sheet = { kind: "next", stock };
       render();
     });
-    const backNext = $("[data-back-next]");
+    const backNext = $("[data-back-next]", sheet);
     if (backNext) backNext.onclick = () => { ui.sheet = { kind: "next", stock: backNext.dataset.backNext }; render(); };
 
-    $$("[data-act]").forEach(btn => btn.onclick = () => {
+    $$("[data-act]", sheet).forEach(btn => btn.onclick = () => {
       const stock = btn.dataset.stock, act = btn.dataset.act;
       if (!deal) return;
       if (act === "quote") { ui.sheet = { kind: "quote", stock }; render(); return; }
@@ -3417,12 +3456,6 @@ route("vehicles/:id", ({ id }) => {
     });
   }
   render();
-  /* Escape closes whichever sheet is up; the listener leaves with the route
-     (the leak pattern review caught twice on the client sheets) */
-  const mOnKey = (e) => { if (e.key === 'Escape' && ui.sheet) { ui.sheet = null; render(); } };
-  document.addEventListener('keydown', mOnKey);
-  const mCleanup = () => { document.removeEventListener('keydown', mOnKey); window.removeEventListener('hashchange', mCleanup); };
-  window.addEventListener('hashchange', mCleanup);
 });
 
 /* ============================================================
@@ -6499,6 +6532,11 @@ const RP_ICON = {
   clock: `<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>`
 };
 const rpIcon = (k) => `<svg viewBox="0 0 24 24">${RP_ICON[k] || RP_ICON.file}</svg>`;
+/* the same icons in the glyph set's own terms — stroke, currentColor, the
+   rp-icon box — for a kit tile the glyph files do not cover (the next-step
+   rows of vehicle selection: car, swap, dollar, page, check). Reported with
+   v025 as a kit gap. */
+const rpIconGlyph = (k) => `<svg class="rp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${RP_ICON[k] || RP_ICON.file}</svg>`;
 /* the customer's document rows, keyed by the document they stand for */
 const DR_ROW_ICON = {
   "form-insurance": rpIcon("shield"),
