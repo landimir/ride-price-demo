@@ -12,7 +12,7 @@ Branches documented: 74
 UX Audit:
 - Critical: 0
 - Major: 1
-- Minor: 12
+- Minor: 13
 - Observation: 9
 
 ## Flows

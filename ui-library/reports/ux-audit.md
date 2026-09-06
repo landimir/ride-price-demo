@@ -6,7 +6,7 @@ Captured 2026-09-06T04:36:33.182Z · viewport 390×844 · app 970beb47ebf27cef58
 |---|---|
 | Critical | 0 |
 | Major | 1 |
-| Minor | 12 |
+| Minor | 13 |
 | Observation | 9 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
@@ -24,7 +24,7 @@ _None recorded._
 - **Observation:** The chrome rule (v022) removed lede and helper copy from the 19 screens and made the banner slot the one place DEMO appears; the Advisor banner says “Sample data only”, which covers the data, not the sending. The demo is a training tool with no network (architecture invariant), so a screen that claims a send needs one honest line somewhere on the path — the banner slot is the package's own place for it. Copy decision on package screens, so filed rather than changed.
 - **Suggested area to investigate:** app.js — the resolver's link path (obSendGo / waiting status / remote-ready) on the kit; the banner slot
 
-## Minor (12)
+## Minor (13)
 
 ### RP-UI-029 — All (app-wide) · Desking accessories, search fields, filter sheet
 
@@ -109,6 +109,13 @@ _None recorded._
 - **Issue:** The details sheet reports the odometer under a label that means something else: the last spec row reads "Interior — Gray · 5 mi". The sheet has no mileage row of its own, so the only place mileage appears is folded into the interior line.
 - **Observation:** The board's own sheet has three spec rows (VIN, Engine, Interior) and no mileage row, and the app pairs the interior with the odometer to keep the count — so the screen matches the board while saying something the label does not mean. The card above already carries the mileage in its meta line, so the honest fix is to drop it from the row rather than invent a fourth.
 - **Suggested area to investigate:** app.js — the vehicle details sheet's second rp-kv group
+
+### RP-UI-050 — Vehicle Selection · Inventory — sort and segmented controls
+
+- **Screenshot:** `current/06-vehicle-selection/01-inventory.png`
+- **Issue:** Two more kit controls sit under the 40px touch floor at 390px, and neither is covered by RP-UI-031: the inventory sort control (.rp-sort, 117x19) and the segmented control on the training-documents screens (.rp-segment__item, 172x36, on both Licenses and Registrations). The sort control is the smaller breach by far — 19px tall is under half the floor, and it is the only way to reorder the list. RP-UI-031 filed the same class of gap for .rp-wordmark (116x23) and .rp-button-navy (73x36) at library v022 and noted that harness/touchfloor.mjs exits 1 on them deliberately; these two arrived later, with the vehicle-selection and training-documents packages, and were never added. touchfloor now reports five, of which only two were on the list.
+- **Observation:** Reported, not patched: the kit is the owner's design asset and its classes are never restyled in this repo (CLAUDE.md), so this waits for a kit revision alongside RP-UI-031 — the same two ::before hit-extension rules would close all four. Measured by harness/touchfloor.mjs across 769 painted controls on 22 routes at 390px; the fifth control it reports, .rp-wordmark, is already in RP-UI-031.
+- **Suggested area to investigate:** Touch targets
 
 ## Observation (9)
 
