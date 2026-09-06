@@ -2100,7 +2100,6 @@ select.ca-input { appearance: auto; }
 .sc2-primary { border: 0; background: var(--grad); color: #fff; }
 .sc2-primary:hover { filter: brightness(1.06); }
 .sc2-secondary { border: 1px solid var(--ink); background: #fff; color: var(--ink); }
-.sc2-successbar .sc2-statusicon { background: #fff; }
 .sc2-go { margin-left: auto; font-size: 20px; color: var(--muted); }
 
 /* ---- Unified Customer Resolver (ob- family; owner's onboarding v3

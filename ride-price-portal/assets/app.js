@@ -1745,11 +1745,26 @@ route("customers", () => {
       const sMission = s.mission || null;
       const p = s.persona, a = s.addressChoice;
       let c = s.matchId ? Store.customer(s.matchId) : null;
+      /* the licence number is the strong match, and a profile the link itself
+         created has none (seed v023: Marcus, phone and email on record, no
+         licence) — so a completed session would write a SECOND record with
+         the same number. Fall back to the profile that already holds this
+         session's phone, and only while it carries no licence of its own:
+         a record with a different licence is a different person who happens
+         to share a number, and that case still creates. */
+      if (!c) {
+        const dig = (x) => String(x || "").replace(/\D/g, "");
+        c = Store.s.customers.find(x => dig(x.phone) && dig(x.phone) === dig(s.phone) && !(x.license && x.license.number)) || null;
+      }
       if (c) {
         Object.assign(c, {
           first: p.first, middle: p.middle || "", last: p.last, dob: p.dob || c.dob,
           license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
         });
+        /* the session's channels fill a gap, never overwrite: the advisor typed
+           them into the link sheet, and a record's own email is the customer's */
+        if (!c.phone && s.phone) c.phone = s.phone;
+        if (!c.email && s.email) c.email = s.email;
       } else {
         c = {
           id: uid("c"), first: p.first, middle: p.middle || "", last: p.last, dob: p.dob || "",
@@ -2012,13 +2027,9 @@ function startVisit(customerId) {
    Recognition is simulated: only the 5 printed training props
    can ever resolve (see assets/scan.js). Photos are never stored.
    ============================================================ */
-/* the capture card's portrait: the kit's glyph set carries no person glyph,
-   so the board's own is carried here in the glyph set's own terms — stroke,
-   currentColor, the rp-icon box (reported as a kit gap with v023) */
 /* the printed prop face keeps its own silhouette — the licence artwork the
    training documents render and print, untouched by the scan chrome */
 const SCAN_SILHOUETTE = `<svg viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="20" cy="15" r="9"/><path d="M4 48c0-10 7-16 16-16s16 6 16 16z"/></svg>`;
-const SCAN_PORTRAIT = `<svg class="rp-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`;
 
 /* Certain matches apply silently; ambiguous ones (`ask` set) get a confirmation
    prompt in the scan flow. Name+DOB-differs falls through: that's a different person. */
@@ -2046,7 +2057,7 @@ function findLicenseMatch(p) {
 
 function openScanFlow(opts) {
   const o = Object.assign({ mode: "customer" }, opts);
-  const st = { frontDone: false, persona: null, match: null, render: null, saved: false, manNum: "", manState: "NY", stage: "front", sv: null, pick: null };
+  const st = { frontDone: false, persona: null, match: null, render: null, saved: false, manNum: "", manState: "NY", stage: "front", sv: null, pick: null, fields: {}, procFile: null };
   modal("Scan Driver's License", `<div id="scanBody"></div>`);
   const body = $("#scanBody");
   /* the scan is a Task on the kit (owner's scan-license package v023): two
@@ -2112,6 +2123,9 @@ function openScanFlow(opts) {
   /* no lede under a task title (chrome rule §5) — the eyebrow and the title carry it */
   const hero = (titleHtml) => `<div class="rp-eyebrow">${EYEBROW}</div><h1 class="rp-title">${titleHtml}</h1>`;
   const initials = (first, last) => esc(((first || " ")[0] + (last || " ")[0]).toUpperCase().trim() || "?");
+  /* everything that belongs to the guest just scanned — cleared wherever a
+     fresh scan starts, so nothing leaks into the next guest's journey */
+  const resetGuest = () => { st.frontDone = false; st.persona = null; st.match = null; st.sv = null; st.pick = null; st.fields = {}; st.procFile = null; };
   const doneMark = () => `<span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>`;
   /* both cells are markup by contract — callers esc() their own values */
   const kvRow = (labelHtml, valueHtml) => `<div class="rp-kv__row"><span>${labelHtml}</span><span>${valueHtml}</span></div>`;
@@ -2124,8 +2138,14 @@ function openScanFlow(opts) {
   const dateField = (id, label, value) => `<div class="rp-field"><label class="rp-field__label" for="${id}">${label}</label><input class="rp-field__input" id="${id}" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(value || "")}"></div>`;
   /* the kit's option row (title, sub, radio) — one on at a time */
   const option = (key, titleHtml, subHtml, on) => `<button type="button" class="rp-option${on ? " rp-option--on" : ""}" data-opt="${key}"><span><span class="rp-option__title">${titleHtml}</span><span class="rp-option__sub">${subHtml}</span></span><span class="rp-radio${on ? " rp-radio--on" : ""}">${on ? rpGlyph("check") : ""}</span></button>`;
+  /* the role control repaints whichever screen is up, so a pick already made
+     has to survive it: keep st.pick when this surface actually offers it (the
+     confirm's same/new and the conflict sheet's link/separate are disjoint
+     sets), else start at the surface's own default. Review lesson 6 — a
+     re-render must not undo what the user set. */
   function wireOptions(root, initial) {
-    st.pick = initial;
+    const offered = $$("[data-opt]", root).map(b => b.dataset.opt);
+    st.pick = offered.indexOf(st.pick) >= 0 ? st.pick : initial;
     $$("[data-opt]", root).forEach(b => b.onclick = () => {
       st.pick = b.dataset.opt;
       $$("[data-opt]", root).forEach(x => {
@@ -2133,7 +2153,20 @@ function openScanFlow(opts) {
         x.classList.toggle("rp-option--on", on); r.classList.toggle("rp-radio--on", on); r.innerHTML = on ? rpGlyph("check") : "";
       });
     });
+    /* the initial state has to agree with st.pick after the line above kept
+       an earlier one — otherwise the radio says "Same person" while the pick
+       is "new" */
+    $$("[data-opt]", root).forEach(x => {
+      const on = x.dataset.opt === st.pick, r = $(".rp-radio", x);
+      x.classList.toggle("rp-option--on", on); r.classList.toggle("rp-radio--on", on); r.innerHTML = on ? rpGlyph("check") : "";
+    });
   }
+  /* what the advisor has typed but not yet saved, across a repaint: the role
+     switch rebuilds every field from state, so the live values are snapshotted
+     by id first and put back after (review lesson 6). Cleared with the working
+     values whenever a new guest's scan starts. */
+  const syncFields = () => { $$("input[id]", body).forEach(i => { st.fields[i.id] = i.value; }); };
+  const restoreFields = () => { $$("input[id]", body).forEach(i => { if (st.fields[i.id] !== undefined) i.value = st.fields[i.id]; }); };
   /* every screen is the kit's Task skeleton inside the modal; a sheet left
      open by the screen before is closed with it, listeners and all */
   function screen(content, dockHtml) {
@@ -2151,7 +2184,7 @@ function openScanFlow(opts) {
     });
     $$("[data-cap-btn]", body).forEach(b => b.onclick = () => { const inp = $(`[data-cap][data-src="${b.dataset.capBtn}"]`, body); if (inp) inp.click(); });
     const close = $("#scClose", body); if (close) close.onclick = requestClose;
-    chWireRole(sheets, () => { if (st.render) st.render(); }, body);
+    chWireRole(sheets, () => { if (!st.render) return; syncFields(); st.render(); restoreFields(); }, body);
   }
   const openSheet = (html, onMount) => sheets.open(html, (sheet) => { if (onMount) onMount(sheet, sheets.close); });
 
@@ -2168,7 +2201,7 @@ function openScanFlow(opts) {
       <div class="rp-capture">
         <div class="rp-capture__frame">${isBack
           ? `<div class="rp-capture__barcode" aria-hidden="true"><i></i></div>`
-          : `<div class="rp-capture__card" aria-hidden="true"><div class="rp-capture__portrait">${SCAN_PORTRAIT}</div><div class="rp-capture__lines"><i></i><i></i><i></i></div></div>`}</div>
+          : `<div class="rp-capture__card" aria-hidden="true"><div class="rp-capture__portrait">${rpGlyph("customers")}</div><div class="rp-capture__lines"><i></i><i></i><i></i></div></div>`}</div>
         <p class="rp-capture__hint">${isBack ? "Flip to the back" : "Position the front inside the frame"}</p>
         ${isBack ? `<div class="rp-capture__state">${doneMark()}Front captured · ready for the back</div>` : ""}
       </div>${CAPTURE_INPUTS}`,
@@ -2206,7 +2239,10 @@ function openScanFlow(opts) {
         <div class="rp-capture__state">${doneMark()}Front and back captured</div>
       </div>`);
     /* a repaint (the role switch) re-reads the same file: a new generation, the old resolve discarded */
-    wire(() => renderProcessing(st.procFile, st.persona || personaAlready));
+    /* only the persona THIS call was given — st.persona may still hold the
+       previous guest's (the block screen's rescan leaves it), and a repaint
+       that reused it would resolve the new capture to the old identity */
+    wire(() => renderProcessing(st.procFile, personaAlready));
     const settle = (p) => { if (!mine()) return; if (p) { st.persona = p; afterRecognize(); } else renderReject(); };
     if (personaAlready) { setTimeout(() => settle(personaAlready), 700); return; }
     RIDE_PRICE_SCAN.recognizeFile(file).then((res) => {
@@ -2290,7 +2326,7 @@ function openScanFlow(opts) {
         ? "This license resolves to the person already attached as the co-buyer."
         : "A person can&rsquo;t co-sign their own loan — the co-buyer must be a different guest."}</div>`,
       chDock(primary("data-rescan", "Scan a different license"), link("data-cancel", "Cancel")));
-    $("[data-rescan]", body).onclick = () => { st.frontDone = false; renderScan("front"); };
+    $("[data-rescan]", body).onclick = () => { resetGuest(); renderScan("front"); };
     $("[data-cancel]", body).onclick = () => done();
     wire(() => renderBlock(kind));
   }
@@ -2486,8 +2522,8 @@ function openScanFlow(opts) {
      second record for the same person is written — never merged silently */
   function renderDuplicates(cands, vals, mkNew) {
     openSheet(`${chSheetHead("Possible duplicate")}
-      <p class="rp-sheet__sub">Similar customers are on file. Choose one, or create a second record.</p>
       <div class="rp-group">${cands.map((c2, i) => `<button type="button" class="rp-row" data-pik="${i}"><span class="rp-initials">${initials(c2.first, c2.last)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(fullName(c2))}</span><span class="rp-row__sub">${esc(c2.phone || c2.email || "No contact on file")}</span></span><span class="rp-row__chevron"></span></button>`).join("")}</div>
+      <p class="rp-sheet__sub">Creating new adds a second record with this name.</p>
       ${primary("data-none", "Create new customer")}`, (sheet, close) => {
       $$("[data-pik]", sheet).forEach(b => b.onclick = () => {
         close();
@@ -2593,8 +2629,8 @@ function openScanFlow(opts) {
     /* a fresh scan needs a clean slate: the old persona, working values and
        match must not leak into the next guest's journey */
     $("[data-more]", body).onclick = () => {
-      st.frontDone = false; st.persona = null; st.match = null;
-      st.sv = null; st.saved = false; st.manNum = ""; st.manState = "NY"; st.pick = null;
+      resetGuest();
+      st.saved = false; st.manNum = ""; st.manState = "NY";
       renderScan("front");
     };
     wire(() => renderDone(cust, wasExisting));
@@ -2610,7 +2646,7 @@ function openScanFlow(opts) {
     screen(`${hero(mismatch ? "Check the name" : "License read")}
       ${mismatch
         ? `<div class="rp-notice rp-notice--conflict"><strong>${esc(p.first + " " + p.last)}</strong>The license reads a different name from this deal&rsquo;s customer, ${esc(c.first + " " + c.last)}. The name on file won&rsquo;t be changed here.</div>`
-        : c ? `<div class="rp-notice">For ${esc(c.first + " " + c.last)}</div>` : ""}
+        : ""}
       ${field("svDl", "License number", "text", p.license.number)}
       ${field("svDlState", "Issuing state", "text", p.license.state)}
       ${dateField("svDlExp", "Expires", dateUS(p.license.expires))}
