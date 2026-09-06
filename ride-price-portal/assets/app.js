@@ -3263,7 +3263,7 @@ function reserveVehicle(stock, by, atISO) {
   Store.s.holds = Store.s.holds || {};
   Store.s.holds[stock] = { state: "reserved", by, at };
   workingDeals(stock).forEach(d => pushAlert({ kind: "reserved", stock, dealId: d.id, advisor: dealAdvisor(d), title: "Vehicle reserved",
-    body: `${vehicleLabel(stock)} · ${stock} — buyer’s order signed ${clockLabel(at)} by ${by}${/.$/.test(by) ? "" : "."} Your deal for ${custOf(d)} stays open.` }));
+    body: `${vehicleLabel(stock)} · ${stock} — buyer’s order signed ${clockLabel(at)} by ${by}${by.slice(-1) === "." ? "" : "."} Your deal for ${custOf(d)} stays open.` }));
   Store.save();
 }
 function releaseVehicle(stock) {
