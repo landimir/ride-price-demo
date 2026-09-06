@@ -1,5 +1,58 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v023 — 2026-09-06
+
+App commit: e310f57 · 20 flows · 137 screens · previous: v022
+
+### Added
+- Vehicle Selection · Notification — vehicle reserved
+
+### Changed (screenshot bytes differ from the previous version)
+- Customer Onboarding — the Customer Resolver · Find customer — the resolver
+- Scan Driver's License · Scan — front of license
+- Scan Driver's License · Scan — flip to the back
+- Scan Driver's License · Couldn't read the license (sheet)
+- Scan Driver's License · Find customer manually (sheet)
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Confirm customer (certain match)
+- Scan Driver's License · Confirm customer (ambiguous — prop 1)
+- Scan Driver's License · New customer (prop 3)
+- Scan Driver's License · Phone already in use (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Scan Driver's License · Customer ready
+- Training Documents · Licenses
+- Training Documents · License preview — both sides
+- Training Documents · Registrations
+- Training Documents · Registration preview
+- Discovery Session · Visit details (sheet)
+- Vehicle Selection · Vehicle search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · Vehicle details — sheet
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v022 — 2026-09-05
 
 App commit: 17c4a3b · 20 flows · 136 screens · previous: v021

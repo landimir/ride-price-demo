@@ -1,13 +1,13 @@
-# Ride Price Mobile UI — UX Audit (v022)
+# Ride Price Mobile UI — UX Audit (v023)
 
-Captured 2026-09-05T11:26:36.556Z · viewport 390×844 · app 17c4a3b9de28ae0e75d9ed7a6e588dea673f325f
+Captured 2026-09-06T02:40:17.580Z · viewport 390×844 · app e310f5785e28015350f1b967e91a3ae9e59cfb92
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 1 |
-| Minor | 9 |
-| Observation | 6 |
+| Minor | 12 |
+| Observation | 9 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
 
@@ -24,12 +24,12 @@ _None recorded._
 - **Observation:** The chrome rule (v022) removed lede and helper copy from the 19 screens and made the banner slot the one place DEMO appears; the Advisor banner says “Sample data only”, which covers the data, not the sending. The demo is a training tool with no network (architecture invariant), so a screen that claims a send needs one honest line somewhere on the path — the banner slot is the package's own place for it. Copy decision on package screens, so filed rather than changed.
 - **Suggested area to investigate:** app.js — the resolver's link path (obSendGo / waiting status / remote-ready) on the kit; the banner slot
 
-## Minor (9)
+## Minor (12)
 
 ### RP-UI-029 — All (app-wide) · Desking accessories, search fields, filter sheet
 
 - **Screenshot:** `current/09-desking/02-pencil-finance.png`
-- **Issue:** The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measures 14 real shortfalls: the desking accessory checkbox rows at 20px (eight of them), the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, the client-link demo option row at 30, and #mMaxPrice at 38.
+- **Issue:** The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measures 14 real shortfalls: the desking accessory checkbox rows at 20px (eight of them), the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, the client-link demo option row at 30, and #mMaxPrice at 38 — the last of which closed with the vehicle-selection package (v025), where the filter sheet's price cap became the kit's 46px field.
 - **Observation:** Found by widening the audit on 2026-08-31 and measured, not estimated. It was not restyled in that change: the job there was to implement the owner's ruling on the NUMBER, and lifting 14 form controls is a design change across desking, inventory search and the filter sheet that deserves its own review. The harness states the scope boundary at its selector rather than implying coverage it does not have.
 - **Suggested area to investigate:** portal.css .opt-row, .switch, .m-search input, #dealSearch, #mMaxPrice
 
@@ -89,7 +89,28 @@ _None recorded._
 - **Observation:** Same family as RP-UI-029's native controls and the Snap All links: link-styled buttons the floor harness does not reach. A ::before hit extension or a 40px min-height closes both.
 - **Suggested area to investigate:** portal.css — the client upload sheet's link buttons
 
-## Observation (6)
+### RP-UI-044 — Scan Driver's License · Confirm customer (ambiguous — prop 1)
+
+- **Screenshot:** `current/03-license-scan/07-scan-ambiguous.png`
+- **Issue:** On a PAGE the kit's unselected option row is invisible as a control. `.rp-option` fills with `--rp-canvas` and carries a transparent border, and `.rp-page` is that same canvas — so "Different guest — create new" has no edge and no fill of its own, and a pixel scan across the row's band returns one uniform #F2F2F7. The selected row reads as a card and the unselected one as loose text beside a circle, which is the wrong signal for the single question this screen exists to ask: same person, or a different guest?
+- **Observation:** A kit matter, not this app's: the owner's board draws screen 07's option rows directly on the page too, so the app matches the board exactly and no override belongs in portal.css. Inside a sheet the pair reads correctly, because a sheet is `--rp-surface` and the canvas fill separates from it. Closing it needs one rule in the kit — a border or a surface fill for `.rp-option` when it is not on a surface — so it is filed for the kit's next revision.
+- **Suggested area to investigate:** ride-price-mobile.css .rp-option (the owner UI kit) — never here
+
+### RP-UI-045 — Scan Driver's License · Manual search — customer found
+
+- **Screenshot:** `current/03-license-scan/05-scan-manual-result.png`
+- **Issue:** The "Results (1)" section label sits flush under the gradient Search button, inside the button's own pink shadow: the button's fill ends at y=696 and rows 698–705 are its glow, with the label starting immediately after. The label reads as part of the button rather than as the heading of the list below it.
+- **Observation:** The kit gives `.rp-section` a bottom margin and no top margin, and `.rp-stack` adds the gap between siblings — but the sheet lays these out itself, so nothing separates the primary from the label that follows. Measured on the capture, not estimated.
+- **Suggested area to investigate:** app.js — the scan's manual-search sheet, the gap between the primary and the results label
+
+### RP-UI-047 — Vehicle Selection · Vehicle details — sheet
+
+- **Screenshot:** `current/06-vehicle-selection/04-vehicle-details.png`
+- **Issue:** The details sheet reports the odometer under a label that means something else: the last spec row reads "Interior — Gray · 5 mi". The sheet has no mileage row of its own, so the only place mileage appears is folded into the interior line.
+- **Observation:** The board's own sheet has three spec rows (VIN, Engine, Interior) and no mileage row, and the app pairs the interior with the odometer to keep the count — so the screen matches the board while saying something the label does not mean. The card above already carries the mileage in its meta line, so the honest fix is to drop it from the row rather than invent a fourth.
+- **Suggested area to investigate:** app.js — the vehicle details sheet's second rp-kv group
+
+## Observation (9)
 
 ### RP-UI-022 — Finance Menu · Manager sign-off — Advisor view
 
@@ -132,6 +153,27 @@ _None recorded._
 - **Issue:** The manual fallback is now the task title and four bare fields. The note that made it fallback-only (“if a license or license photo becomes available, use it instead”) and the line that both phone and email are required are gone, and no field is marked required until validation says so.
 - **Observation:** The chrome rule removed helper copy from the 19 screens by design; the two rules still hold in validation (customerMissing requires first, last, phone, email, address and ZIP). Whether the fallback-only rule needs a line on the screen is the package's call — filed so the change is on record, since the library's step note used to describe the copy.
 - **Suggested area to investigate:** app.js — the resolver's manual fallback on the kit
+
+### RP-UI-046 — Training Documents · License preview — both sides
+
+- **Screenshot:** `current/04-training-materials/02-license-preview.png`
+- **Issue:** The prop now renders on screen in the kit's Inter while it still PRINTS in the app font, so the preview sheet — a screen whose only job is to show what will come out of the printer — no longer matches the paper. With byte-identical prop data the card reflows between the two: the field line that breaks one way on screen breaks another way in print.
+- **Observation:** Both halves are deliberate and both are right on their own. The hub is a kit screen, so `body[data-canvas="kit"]` gives it Inter; `@media print` forces `--app-font` on paper, which is what keeps every printable byte-identical to main (printcmp, 0 of 11 differ). What nobody decided is that a preview may disagree with its own print. The fix is a decision, not a patch: either the prop artwork pins its own face in both media, or the preview is stated to be indicative.
+- **Suggested area to investigate:** portal.css — the prop families (prop-card, reg-card) and the print face
+
+### RP-UI-048 — Vehicle Selection · Notification — vehicle reserved
+
+- **Screenshot:** `current/06-vehicle-selection/08-vehicle-reserved.png`
+- **Issue:** On the reserved alert every load-bearing word is muted grey: the title "Vehicle reserved" samples the kit's ink, but the body that carries the vehicle, the stock number, who signed, at what time and that this deal stays open is `.rp-alert__body` at 12.5px in `--rp-muted` (#6E6E78). The standing rule is that load-bearing text is ink, because the app is used outdoors.
+- **Observation:** The kit defines the component that way and the app uses it as given, so this is the kit's decision to revisit — the same shape as RP-UI-037 on the deal card's VIN line. Worth pairing with that one when the palette is settled.
+- **Suggested area to investigate:** ride-price-mobile.css .rp-alert__body (the owner UI kit) — a kit decision
+
+### RP-UI-049 — Credit Application (Lending Lane) · Deal summary (contextual sheet)
+
+- **Screenshot:** `current/11-credit-application/08-deal-summary-sheet.png`
+- **Issue:** The customer-facing Deal summary lists Cash Price, Sales Tax, Cash Down and Trade-In Amount and then an Amount Financed that the four of them cannot produce: the trade is shown GROSS while the financed figure is computed from the trade NET of its payoff, and neither the payoff, the rebates nor the fees appear as lines. A customer adding up what is on the screen gets a different number from the one printed under it.
+- **Observation:** Pre-existing and outside the three kit packages — surfaced because this capture re-read the screen beside its twin. The screen is honest about every number it shows; what is missing is the two lines that would make them reconcile.
+- **Suggested area to investigate:** app.js — the credit application's deal-summary sheet
 
 ## Automated checks per screen
 

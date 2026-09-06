@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-09-05T11:26:36.556Z",
-  "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+  "capturedAt": "2026-09-06T02:40:17.580Z",
+  "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-09-05T11:55:55.181Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:40:17.589Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -449,8 +449,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-09-05T11:56:14.177Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:40:29.698Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -678,14 +678,14 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-initials PP <> #obSheetTitle.rp-sheet__title Send secure upload link",
-              ".rp-row__title Priya Patel <> #obSheetTitle.rp-sheet__title Send secure upload link",
-              ".rp-row__sub (917) 555-0164 · Bayside, NY <> #obSheetTitle.rp-sheet__title Send secure upload link",
-              ".rp-initials JS <> .rp-segment__item.rp-segment__item--on Text",
-              ".rp-row__title John Smith <> .rp-segment__item.rp-segment__item--on Text",
-              ".rp-row__title John Smith <> .rp-segment__item Email",
-              ".rp-row__sub (718) 555-0134 · Astoria, NY <> .rp-segment__item.rp-segment__item--on Text",
-              ".rp-row__sub (718) 555-0134 · Astoria, NY <> .rp-segment__item Email"
+              ".rp-initials MA <> #obSheetTitle.rp-sheet__title Send secure upload link",
+              ".rp-row__title Marcus Alvarez <> #obSheetTitle.rp-sheet__title Send secure upload link",
+              ".rp-row__sub (646) 555-0900 <> #obSheetTitle.rp-sheet__title Send secure upload link",
+              ".rp-initials PP <> .rp-segment__item.rp-segment__item--on Text",
+              ".rp-row__title Priya Patel <> .rp-segment__item.rp-segment__item--on Text",
+              ".rp-row__title Priya Patel <> .rp-segment__item Email",
+              ".rp-row__sub (917) 555-0164 · Bayside, NY <> .rp-segment__item.rp-segment__item--on Text",
+              ".rp-row__sub (917) 555-0164 · Bayside, NY <> .rp-segment__item Email"
             ]
           },
           "error": null,
@@ -774,13 +774,13 @@
       "id": "license-scan",
       "area": "03-license-scan",
       "title": "Scan Driver's License",
-      "description": "The prop-license scanner as the owner's simplified v2 (2026-08-28): the advisor experiences two decisions — capture the license, then confirm the customer — and everything else is automation or an exception sheet. Front and back are phases of one capture screen; reading and CRM matching are inline system states, not journey steps. Only the five printed training props can ever be recognised. Prop 1 matches a seed customer by name (ambiguous → the explicit same-person question), prop 2 carries a license on file (certain match), 3–5 create new customers. Phone AND email are both required on every record; the scan asks for no credit score.",
+      "description": "The prop-license scanner on the owner's UI kit (package v023, 2026-09-05): eleven screens as a kit Task inside New visit — Close returns to the resolver, the title carries the two-part step, and the DEMO band is the only environment marker. The advisor still experiences two decisions — capture the license, then confirm the customer — and everything else is automation or an exception sheet in the kit's own sheet. Only the five printed training props can ever be recognised. Prop 1 matches a seed customer by name (ambiguous → the same-person question as two option rows), prop 2 carries a license on file (certain match), 3–5 create new customers. Phone AND email are both required on every record; the scan asks for no credit score.",
       "entry": {
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-09-05T11:27:05.222Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:40:44.181Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -791,7 +791,7 @@
           "action": "Take / choose the front photo",
           "next": "scan-back",
           "branches": [],
-          "notes": "Two-part progress — Scan, then Confirm. The capture card owns the screen: a dashed frame with corner marks and the license drawn inside it. Camera capture is the primary action, the photo library secondary. The honest line states that photos are read on the device and discarded, and that only the five printed props can be recognised.",
+          "notes": "The kit's Task: Close returns to the resolver, the title is 'Scan license' and the second line is the two-part step. The capture card owns the screen — a dashed frame with corner marks and the license drawn inside it — and the dock carries one gradient primary with one text link. No lede, no device disclaimer, no demo sentence: the DEMO band in the banner slot is the only environment marker.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -819,7 +819,7 @@
           "action": "Capture the back",
           "next": "scan-reject",
           "branches": [],
-          "notes": "The SAME screen flips to its back phase — front and back belong to one session, never two journey steps. 'Front captured' confirms inline and the frame now draws the barcode side, which is the side the recognizer actually reads.",
+          "notes": "The SAME screen flips to its back phase — front and back belong to one session, never two journey steps. 'Front captured · ready for the back' is an inline state chip and the frame now draws the barcode side, which is the side the recognizer actually reads.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -852,23 +852,19 @@
               "to": "license-scan/scan-back"
             }
           ],
-          "notes": "A failed read is an exception SHEET over the capture screen — the advisor never leaves the scanner to recover. Escape and an outside tap both close it, and the screen underneath is untouched.",
+          "notes": "A failed read is an exception sheet over the capture screen — the advisor never leaves the scanner to recover. One line of camera guidance, the only functional guidance this flow keeps, because the board draws one here. Escape and an outside tap both close it, and the screen underneath is untouched.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              ".rp-sheet__close  32x32"
+            ],
             "clipped": [],
             "overlaps": [
-              ".sc2-statusicon ✓ <>  We couldn’t read the license",
-              ".sc2-statusicon ✓ <>  We couldn’t find the barcode",
-              " Front captured <>  We couldn’t read the license",
-              " Ready for the back <>  We couldn’t find the barcode",
-              ".sc2-primary.sc2-cap Capture back <> .sc2-sheethint Only the 5 printed training ",
-              ".sc2-primary.sc2-cap Capture back <> .sc2-primary Try again",
-              ".sc2-secondary.sc2-cap Choose photo <> .sc2-primary Try again",
-              ".sc2-secondary.sc2-cap Choose photo <> .sc2-secondary Find customer manually"
+              ".rp-primary Capture back <> .rp-primary Try again",
+              ".rp-link Choose from library <> .rp-link Find customer manually"
             ]
           },
           "error": null,
@@ -889,21 +885,19 @@
           "action": "Type a license number, tap Search",
           "next": "scan-manual-result",
           "branches": [],
-          "notes": "A CRM SEARCH by license number and issuing state — never a card read. Nothing typed here is treated as data recovered from a license, and no persona is invented.",
+          "notes": "A CRM SEARCH by license number and issuing state — never a card read. Two fields in the kit's field row, one primary; nothing typed here is treated as data recovered from a license, and no persona is invented.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              ".rp-sheet__close  32x32"
+            ],
             "clipped": [],
             "overlaps": [
-              ".sc2-primary.sc2-cap Capture back <>  Find customer",
-              ".sc2-primary.sc2-cap Capture back <>  Search the CRM by license nu",
-              ".sc2-primary.sc2-cap Capture back <> .sc2-sheetx ×",
-              ".sc2-secondary.sc2-cap Choose photo <>  Search the CRM by license nu",
-              ".sc2-secondary.sc2-cap Choose photo <> #mnGo.sc2-primary.sc2-searchgo Search",
-              ".sc2-micro Photos are read on this devi <> #mnGo.sc2-primary.sc2-searchgo Search"
+              ".rp-primary Capture back <> #mnGo.rp-primary Search",
+              ".rp-link Choose from library <> #mnGo.rp-primary Search"
             ]
           },
           "error": null,
@@ -929,23 +923,23 @@
               "to": "onboarding/manual-fallback"
             }
           ],
-          "notes": "A hit offers the record; a miss says plainly that nothing on file carries that number and offers the create path. Use hands the found customer straight to the visit — the licence was never read, so there is nothing to confirm against it.",
+          "notes": "A hit is a result row with the kit's navy Use action; a miss is the kit's empty state saying plainly that nothing on file carries that number, with the create path under it. Use hands the found customer straight to the visit — the licence was never read, so there is nothing to confirm against it.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              ".rp-sheet__close  32x32"
+            ],
             "clipped": [],
             "overlaps": [
-              ".sc2-statusicon ✓ <>  Find customer",
-              ".sc2-statusicon ✓ <>  Search the CRM by license nu",
-              " Front captured <>  Find customer",
-              " Ready for the back <>  Search the CRM by license nu",
-              ".sc2-primary.sc2-cap Capture back <> #mnGo.sc2-primary.sc2-searchgo Search",
-              ".sc2-secondary.sc2-cap Choose photo <>  Cheri Bridwell",
-              ".sc2-secondary.sc2-cap Choose photo <> .sc2-use Use",
-              ".sc2-micro Photos are read on this devi <>  T-0000102 · NY"
+              ".rp-primary Capture back <> .rp-initials CB",
+              ".rp-primary Capture back <> .rp-row__title Cheri Bridwell",
+              ".rp-primary Capture back <> .rp-button-navy Use",
+              ".rp-link Choose from library <> .rp-initials CB",
+              ".rp-link Choose from library <> .rp-row__sub T-0000102 · NY",
+              ".rp-link Choose from library <> .rp-button-navy Use"
             ]
           },
           "error": null,
@@ -955,7 +949,15 @@
             "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-045",
+              "severity": "Minor",
+              "issue": "The \"Results (1)\" section label sits flush under the gradient Search button, inside the button's own pink shadow: the button's fill ends at y=696 and rows 698–705 are its glow, with the label starting immediately after. The label reads as part of the button rather than as the heading of the list below it.",
+              "observation": "The kit gives `.rp-section` a bottom margin and no top margin, and `.rp-stack` adds the gap between siblings — but the sheet lays these out itself, so nothing separates the primary from the label that follows. Measured on the capture, not estimated.",
+              "area": "app.js — the scan's manual-search sheet, the gap between the primary and the results label"
+            }
+          ]
         },
         {
           "step": 6,
@@ -963,19 +965,15 @@
           "screen": "Confirm customer (certain match)",
           "screenshot": "current/03-license-scan/06-scan-confirm.png",
           "hash": "#/customers",
-          "action": "Tap Update & continue",
+          "action": "Tap Confirm & continue",
           "next": "scan-done",
           "branches": [
             {
-              "action": "This isn't them",
+              "action": "This isn't Cheri",
               "to": "license-scan/scan-new-customer"
-            },
-            {
-              "action": "Search manually",
-              "to": "license-scan/scan-manual"
             }
           ],
-          "notes": "The customer identity is the hero; the badge states the REAL match basis, never an invented confidence. Contact completeness is summarized, and the update card lists ONLY what the license changes — when nothing changed, there is no card at all.",
+          "notes": "Identity is the hero and the tag states the REAL match basis, never an invented confidence. Contact completeness is a step row. The updates group lists ONLY what the license changes: the seed gives Cheri's record the prop's own address and number, so the single update is the renewed expiry — when nothing changed at all, there is no group.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1008,10 +1006,10 @@
           "screen": "Confirm customer (ambiguous — prop 1)",
           "screenshot": "current/03-license-scan/07-scan-ambiguous.png",
           "hash": "#/customers",
-          "action": "Tap 'Different guest — create new'",
+          "action": "Choose 'Different guest — create new', tap Continue",
           "next": "scan-new-customer",
           "branches": [],
-          "notes": "When the match is only a guess the screen asks the same-person question outright and shows the scanned license beside the record, so the two can actually be compared. Nothing is ever merged silently.",
+          "notes": "When the match is only a guess the screen asks the same-person question outright, as two option rows over one Continue, and shows the scanned license beside the record so the two can actually be compared. Nothing is ever merged silently.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1028,7 +1026,15 @@
             "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-044",
+              "severity": "Minor",
+              "issue": "On a PAGE the kit's unselected option row is invisible as a control. `.rp-option` fills with `--rp-canvas` and carries a transparent border, and `.rp-page` is that same canvas — so \"Different guest — create new\" has no edge and no fill of its own, and a pixel scan across the row's band returns one uniform #F2F2F7. The selected row reads as a card and the unselected one as loose text beside a circle, which is the wrong signal for the single question this screen exists to ask: same person, or a different guest?",
+              "observation": "A kit matter, not this app's: the owner's board draws screen 07's option rows directly on the page too, so the app matches the board exactly and no override belongs in portal.css. Inside a sheet the pair reads correctly, because a sheet is `--rp-surface` and the canvas fill separates from it. Closing it needs one rule in the kit — a border or a surface fill for `.rp-option` when it is not on a surface — so it is filed for the kit's next revision.",
+              "area": "ride-price-mobile.css .rp-option (the owner UI kit) — never here"
+            }
+          ]
         },
         {
           "step": 8,
@@ -1036,10 +1042,10 @@
           "screen": "New customer (prop 3)",
           "screenshot": "current/03-license-scan/08-scan-new-customer.png",
           "hash": "#/customers",
-          "action": "Type a phone already on file, tap Create customer",
+          "action": "Type the number already on file, tap Create customer",
           "next": "scan-conflict",
           "branches": [],
-          "notes": "Identity is a READ-ONLY summary from the license — the advisor never retypes card data. The only asks are what a license cannot say: phone and email, both required. No credit score at the door; the record starts at the neutral default.",
+          "notes": "Identity is a READ-ONLY summary from the license — the advisor never retypes card data. The only asks are what a license cannot say: phone and email. No credit score at the door; the record starts at the neutral default.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1079,7 +1085,7 @@
           "screen": "Phone already in use (sheet)",
           "screenshot": "current/03-license-scan/09-scan-conflict.png",
           "hash": "#/customers",
-          "action": "Tap Verify number & link",
+          "action": "Keep 'Verify the number and link this license', tap Continue",
           "next": "scan-verify-code",
           "branches": [
             {
@@ -1091,23 +1097,22 @@
               "to": "license-scan/scan-new-customer"
             }
           ],
-          "notes": "No license carries a phone number, so this compares the number just TYPED against the record already holding it. Nothing merges until the number is verified — the sheet says so before offering any action.",
+          "notes": "No license carries a phone number, so this compares the number just TYPED against the record already holding it — and the seed makes that record Marcus's own, created by the secure upload link he completed before any scan. The notice says whose profile it is and where it came from; two option rows and one primary follow. Nothing merges until the number is verified.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              ".rp-sheet__close  32x32"
+            ],
             "clipped": [],
             "overlaps": [
-              " License <>  This phone number is already",
-              " T-0000103 · NY · exp 06/21/2 <>  This phone number is already",
-              " Date of birth <>  This phone number is already",
-              " 06/21/1995 <>  This phone number is already",
-              " Address <>  Verify ownership before link",
-              " 4102 Bell Blvd, Bayside, NY  <>  Verify ownership before link",
-              " Mobile phone <>  This number is currently on ",
-              " Email <> .sc2-primary Verify number & link"
+              ".rp-field__label Mobile phone <> #scSheetTitle.rp-sheet__title This number is already in us",
+              ".rp-field__label Email <> .rp-notice.rp-notice--conflict (646) 555-0900On Marcus Alva",
+              ".rp-field__label Email <>  (646) 555-0900",
+              ".rp-primary Create customer <> .rp-primary Continue",
+              ".rp-primary Create customer <> .rp-link Use a different number"
             ]
           },
           "error": null,
@@ -1125,26 +1130,23 @@
           "screen": "Verify the phone number (sheet)",
           "screenshot": "current/03-license-scan/10-scan-verify-code.png",
           "hash": "#/customers",
-          "action": "Read the code back, tap Verify & link",
+          "action": "Tap Verify & link",
           "next": "scan-done",
           "branches": [],
-          "notes": "Linking overwrites an existing record off a typed number, so it is gated: six boxes, and a wrong code merges nothing. The demo has no network path, so the sheet states that no text was really sent and shows the code the guest would have received — the rehearsal stays the real one.",
+          "notes": "Linking overwrites an existing record off a typed number, so it is gated: six boxes, and a wrong code merges nothing. In demo mode the text 'arrives' about a second after the sheet opens and the boxes fill themselves — the code is shown nowhere else, and the rehearsal reads like the real thing (owner's decision, v023).",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              ".rp-sheet__close  32x32",
+              "#svCodeInput.sr-only  1x1"
+            ],
             "clipped": [],
             "overlaps": [
-              " Date of birth <>  Verify the phone number",
-              " 06/21/1995 <>  Verify the phone number",
-              " Address <>  Ask the guest to read back t",
-              " 4102 Bell Blvd, Bayside, NY  <>  Ask the guest to read back t",
-              " Email <> .sc2-demo Demo: nothing leaves this de",
-              " Email <>  260007",
-              ".sc2-micro Phone and email are required <> .sc2-primary Verify & link",
-              ".sc2-micro Phone and email are required <> .sc2-textbtn Cancel"
+              ".rp-primary Create customer <> .rp-primary Verify & link",
+              ".rp-primary Create customer <> .rp-link Resend code"
             ]
           },
           "error": null,
@@ -1170,7 +1172,7 @@
               "to": "license-scan/scan-front"
             }
           ],
-          "notes": "Completion is LOCAL feedback on the confirmation surface — a green bar and the visit as the dominant next action, with no full-screen success ceremony. Scan another restarts in place for the advisor with two guests at the desk.",
+          "notes": "Completion is LOCAL feedback on the confirmation surface — the kit's success notice, the customer, and the visit as the dominant next action, with no full-screen ceremony. The verified code linked the scanned licence onto the profile the link created: one Marcus, his own email kept. Continue to visit is the check-in moment. Scan another restarts in place for the advisor with two guests at the desk.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1195,13 +1197,13 @@
       "id": "training",
       "area": "04-training-materials",
       "title": "Training Documents",
-      "description": "One hub for both printable prop sets: five training driver's licenses (the only things the scanner recognises) and their five matching registrations. Compact pair rows, and the document itself only inside its preview sheet — scaled to the phone, printed at true millimetre size.",
+      "description": "One hub for both printable prop sets, on the owner's UI kit (package v024, 2026-09-05): a sub-destination under More — the Destination skeleton with the More tab active, the wordmark and role control, the DEMO band, and the floating tab bar as the way around. Five training driver's licenses (the only things the scanner recognises) and their five matching registrations, as compact pair rows; the document itself appears only inside its preview sheet — scaled to the phone, printed at true millimetre size.",
       "entry": {
         "from": "home/more-sheet",
         "action": "Training documents"
       },
-      "capturedAt": "2026-09-05T11:27:25.614Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:41:07.848Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -1219,15 +1221,21 @@
             {
               "action": "Print all 5",
               "to": "training/licenses"
+            },
+            {
+              "action": "More reopens its sheet",
+              "to": "home/more-sheet"
             }
           ],
-          "notes": "",
+          "notes": "A place, not a task: the count line replaces the lede, the segmented control is the kit's, Print all 5 is the kit's pill in the title row, and each pair is a row with the pair number as a text tile. The 'not valid' wording stays on the printed props themselves, where it belongs — that is artwork, not interface copy.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              ".rp-wordmark Ride Price 116x23"
+            ],
             "clipped": [],
             "overlaps": []
           },
@@ -1249,25 +1257,28 @@
           "action": "Close",
           "next": "registrations",
           "branches": [],
-          "notes": "A licence prop is two sides: the back carries the barcode, and that barcode is the only thing the scanner can read.",
+          "notes": "A licence prop is two sides: the back carries the barcode, and that barcode is the only thing the scanner can read. The sheet names the person and the pair in its subtitle, shows both faces, and offers one primary — the × is the close.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              ".rp-wordmark Ride Price 116x23",
+              ".rp-sheet__close  32x32"
+            ],
             "clipped": [
               ".prop-card NEW YORK · USATRAINING SAMPL 345>322"
             ],
             "overlaps": [
-              ".tdoc-context 5 matched fictional pairs ·  <> .tv-sheettitle.tdoc-sheettitle Training license",
-              ".tdoc-context 5 matched fictional pairs ·  <> .m-close ✕",
-              ".on Licenses <> .tdoc-sheetsub John A Smith · Pair 01",
-              " Registrations <> .tdoc-sheetsub John A Smith · Pair 01",
-              "#tdocPrintAll.tdoc-printall Print all 5 <> .m-close ✕",
-              " PAIR <> .prop-watermark SAMPLE",
-              " 01 <> .prop-watermark SAMPLE",
-              ".tdoc-name John A Smith <> .prop-name SmithJohn A"
+              ".rp-segment__item.rp-segment__item--on Licenses <> #tdocSheetTitle.rp-sheet__title Training license",
+              ".rp-segment__item.rp-segment__item--on Licenses <> .rp-sheet__sub John A Smith · Pair 01",
+              ".rp-segment__item Registrations <> .rp-sheet__sub John A Smith · Pair 01",
+              ".rp-tile.rp-tile--label 01 <>  NEW YORK · USA",
+              ".rp-tile.rp-tile--label 01 <> .prop-watermark SAMPLE",
+              ".rp-row__title John A Smith <>  NEW YORK · USA",
+              ".rp-row__title John A Smith <>  TRAINING SAMPLE",
+              ".rp-row__title John A Smith <> .prop-watermark SAMPLE"
             ]
           },
           "error": null,
@@ -1277,7 +1288,15 @@
             "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-046",
+              "severity": "Observation",
+              "issue": "The prop now renders on screen in the kit's Inter while it still PRINTS in the app font, so the preview sheet — a screen whose only job is to show what will come out of the printer — no longer matches the paper. With byte-identical prop data the card reflows between the two: the field line that breaks one way on screen breaks another way in print.",
+              "observation": "Both halves are deliberate and both are right on their own. The hub is a kit screen, so `body[data-canvas=\"kit\"]` gives it Inter; `@media print` forces `--app-font` on paper, which is what keeps every printable byte-identical to main (printcmp, 0 of 11 differ). What nobody decided is that a preview may disagree with its own print. The fix is a decision, not a patch: either the prop artwork pins its own face in both media, or the preview is stated to be indicative.",
+              "area": "portal.css — the prop families (prop-card, reg-card) and the print face"
+            }
+          ]
         },
         {
           "step": 3,
@@ -1288,13 +1307,15 @@
           "action": "Tap a pair row",
           "next": "registration-preview",
           "branches": [],
-          "notes": "",
+          "notes": "The same page, second segment: the rows now carry the registration number and the vehicle it belongs to — the customer's current car, a trade-in candidate, never the vehicle in their deal.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              ".rp-wordmark Ride Price 116x23"
+            ],
             "clipped": [],
             "overlaps": []
           },
@@ -1316,25 +1337,28 @@
           "action": null,
           "next": null,
           "branches": [],
-          "notes": "RP-UI-012 resolved: the 112mm document is scaled to the viewport here, while printing keeps its true physical size.",
+          "notes": "RP-UI-012 stays resolved: the 112mm document is scaled to the viewport here — measured, not assumed — while printing keeps its true physical size. The scaling and the print set are all that remains of this screen's own CSS family; the chrome is the kit's.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              ".rp-wordmark Ride Price 116x23",
+              ".rp-sheet__close  32x32"
+            ],
             "clipped": [
               ".tdoc-preview Keep this document to show t 451>350"
             ],
             "overlaps": [
-              " Licenses <> .tv-sheettitle.tdoc-sheettitle Training registration",
-              " Licenses <> .tdoc-sheetsub John A Smith · Pair 01",
-              ".on Registrations <> .tv-sheettitle.tdoc-sheettitle Training registration",
-              ".on Registrations <> .tdoc-sheetsub John A Smith · Pair 01",
-              "#tdocPrintAll.tdoc-printall Print all 5 <> .m-close ✕",
-              " 01 <> .reg-form TS-639TR (SAMPLE)",
-              ".tdoc-name John A Smith <> .reg-keep Keep this document to show t",
-              ".tdoc-meta Registration TS100001 · 2016 <>  NEW YORK STATE REGISTRATION "
+              ".rp-segment__item Licenses <> #tdocSheetTitle.rp-sheet__title Training registration",
+              ".rp-segment__item.rp-segment__item--on Registrations <> #tdocSheetTitle.rp-sheet__title Training registration",
+              ".rp-tile.rp-tile--label 01 <> .reg-keep Keep this document to show t",
+              ".rp-row__sub Registration TS100001 · 2016 <> .reg-keep Keep this document to show t",
+              ".rp-tile.rp-tile--label 02 <> .reg-form TS-639TR (SAMPLE)",
+              ".rp-tile.rp-tile--label 02 <> .reg-line G PAS",
+              ".rp-row__title Cheri L Bridwell <>  NEW YORK STATE REGISTRATION ",
+              ".rp-row__title Cheri L Bridwell <> .reg-sampletag TRAININGSAMPLE"
             ]
           },
           "error": null,
@@ -1357,15 +1381,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-09-05T11:27:29.575Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:41:12.023Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1, customer-first",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-r10acm7",
+          "hash": "#/discovery/d-7h0iyok",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1402,7 +1426,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview, Back appears",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-r10acm7",
+          "hash": "#/discovery/d-7h0iyok",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1430,7 +1454,7 @@
           "key": "question-last",
           "screen": "Discovery — the last question is the hand-off",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-r10acm7",
+          "hash": "#/discovery/d-7h0iyok",
           "action": "Tap Find vehicles →",
           "next": "discovery-complete",
           "branches": [],
@@ -1458,7 +1482,7 @@
           "key": "discovery-complete",
           "screen": "Discovery complete (sheet)",
           "screenshot": "current/05-discovery/04-discovery-complete.png",
-          "hash": "#/discovery/d-r10acm7",
+          "hash": "#/discovery/d-7h0iyok",
           "action": "Tap Find matching vehicles",
           "next": "vehicles/inventory",
           "branches": [
@@ -1498,7 +1522,7 @@
           "key": "visit-details",
           "screen": "Visit details (sheet)",
           "screenshot": "current/05-discovery/05-visit-details.png",
-          "hash": "#/discovery/d-g7f2ler",
+          "hash": "#/discovery/d-179p9ae",
           "action": "Tap Done",
           "next": "question-1",
           "branches": [
@@ -1569,31 +1593,37 @@
       "id": "vehicles",
       "area": "06-vehicle-selection",
       "title": "Vehicle Selection",
-      "description": "Rebuilt on the owner's Master Replication system (2026-08-27): a white canvas, a pill search and a chip rail over large tappable browse objects, with every secondary decision in a bottom sheet. The five-item journey no longer repeats on each card — it appears once, in a next-steps sheet, after a vehicle is chosen.",
+      "description": "Choosing the car on the owner's UI kit (package v025 r5, 2026-09-05). Inside a visit it is a Task whose top bar carries the customer's full name and nothing else — no step, no status, no deal number, because numbers exist only after F&I — and Close returns to the visit; without a visit it is the Inventory destination with the tab bar. The frame is fixed and the list scrolls inside it, the whole card is the tap target, the type chips and Filters ride a rail with the active filter count, and every secondary decision is a sheet with one primary. Vehicle contention (chrome rule §14) is never drawn here: two informational states that appear only on deal cards and in the alert at the top of My deals, and neither blocks a choice.",
       "entry": {
         "from": "discovery/discovery-complete",
         "action": "Tap Find matching vehicles"
       },
-      "capturedAt": "2026-09-05T11:27:40.349Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:41:23.168Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
           "key": "inventory",
-          "screen": "Vehicle Search — inventory",
+          "screen": "Vehicle search — inventory",
           "screenshot": "current/06-vehicle-selection/01-inventory.png",
-          "hash": "#/vehicles/d-82ol3vq",
+          "hash": "#/vehicles/d-demo1",
           "action": "Tap the Used chip",
           "next": "inventory-filtered",
           "branches": [],
-          "notes": "Content first: the customer context is a quiet row, not a hero card, and the filter panel that used to own the first screen is now one Filters chip.",
+          "notes": "Content first: the customer context card is gone — the top bar's name carries it — and the filter panel that used to own the first screen is one Filters chip on the rail. The frame is fixed; only the list scrolls.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x24"
+              "#vsSearch.rp-search__input  294x25",
+              ".rp-chip.rp-chip--on All 43x32",
+              ".rp-chip New 54x32",
+              ".rp-chip Used 59x32",
+              ".rp-chip CPO 54x32",
+              "#vsFilters.rp-chip Filters 66x32",
+              "#vsSort.rp-sort Price: high to low 117x19"
             ],
             "clipped": [],
             "overlaps": []
@@ -1601,8 +1631,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 3200,
-            "pageHeight": 5572
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -1612,18 +1642,24 @@
           "key": "inventory-filtered",
           "screen": "Inventory — Used only",
           "screenshot": "current/06-vehicle-selection/02-inventory-filtered.png",
-          "hash": "#/vehicles/d-82ol3vq",
+          "hash": "#/vehicles/d-demo1",
           "action": "Open Filters, cap the price at $1,000",
           "next": "inventory-no-match",
           "branches": [],
-          "notes": "",
+          "notes": "The chip rail scrolls sideways and the count line under the list heading follows the filter — one used vehicle in the seed.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x24"
+              "#vsSearch.rp-search__input  294x25",
+              ".rp-chip All 43x32",
+              ".rp-chip New 54x32",
+              ".rp-chip.rp-chip--on Used 59x32",
+              ".rp-chip CPO 54x32",
+              "#vsFilters.rp-chip Filters 66x32",
+              "#vsSort.rp-sort Price: high to low 117x19"
             ],
             "clipped": [],
             "overlaps": []
@@ -1631,8 +1667,8 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 928,
-            "pageHeight": 928
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -1642,18 +1678,24 @@
           "key": "inventory-no-match",
           "screen": "Inventory — no vehicles match",
           "screenshot": "current/06-vehicle-selection/03-inventory-no-match.png",
-          "hash": "#/vehicles/d-82ol3vq",
+          "hash": "#/vehicles/d-demo1",
           "action": "Clear all filters; tap a vehicle",
           "next": "vehicle-details",
           "branches": [],
-          "notes": "One quiet recovery object with a single action — not a giant illustration.",
+          "notes": "One quiet recovery object with a single navy action — not a giant illustration. The Filters chip carries the count of what is active.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x24"
+              "#vsSearch.rp-search__input  294x25",
+              ".rp-chip.rp-chip--on All 43x32",
+              ".rp-chip New 54x32",
+              ".rp-chip Used 59x32",
+              ".rp-chip CPO 54x32",
+              "#vsFilters.rp-chip Filters1 90x32",
+              "#vsSort.rp-sort Price: high to low 117x19"
             ],
             "clipped": [],
             "overlaps": []
@@ -1670,57 +1712,72 @@
         {
           "step": 4,
           "key": "vehicle-details",
-          "screen": "Vehicle details sheet",
+          "screen": "Vehicle details — sheet",
           "screenshot": "current/06-vehicle-selection/04-vehicle-details.png",
-          "hash": "#/vehicles/d-82ol3vq",
+          "hash": "#/vehicles/d-demo1",
           "action": "Tap Choose this vehicle",
           "next": "next-steps",
           "branches": [],
-          "notes": "The whole card is the tap target, and the first tap shows the object rather than five competing actions.",
+          "notes": "The whole card is the tap target, and the first tap shows the object rather than five competing actions. Two key/value groups — the money, then the car — one primary, and the × as the close.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x24"
+              "#vsSearch.rp-search__input  294x25",
+              ".rp-chip.rp-chip--on All 43x32",
+              ".rp-chip New 54x32",
+              ".rp-chip Used 59x32",
+              ".rp-chip CPO 54x32",
+              "#vsFilters.rp-chip Filters 66x32",
+              "#vsSort.rp-sort Price: high to low 117x19",
+              ".rp-sheet__close  32x32"
             ],
             "clipped": [],
             "overlaps": [
-              ".m-h1 Choose a vehicle <> .m-sheettitle Vehicle details",
-              ".m-h1 Choose a vehicle <> .m-close ✕",
-              ".m-restitle Available vehicles <>  2022 BMW 7 Series",
-              ".m-resmeta 12 vehicles <>  2022 BMW 7 Series",
-              "#mSort.m-sort Price: high to low <>  2022 BMW 7 Series",
-              ".m-badge NEW <>  MSRP",
-              ".m-cardtitle 2022 BMW 7 Series <> .m-desc VIN WBA7U2C09NCG55107 · 3.0L",
-              ".m-cardtrim 740i xDrive Sedan <> .m-desc VIN WBA7U2C09NCG55107 · 3.0L"
+              ".rp-topbar__title John Smith <> #vsSheetTitle.rp-sheet__title Vehicle details",
+              ".rp-title Choose a vehicle <> .rp-vehicle__tag NEW",
+              ".rp-listhead__meta 12 vehicles <> .rp-vehicle__name 2022 Hyundai Santa Fe",
+              ".rp-vehicle__tag NEW <> .rp-vehicle__trim Limited",
+              ".rp-vehicle__tag NEW <> .rp-vehicle__meta Stock 7H21313 · 5 mi · Twili",
+              ".rp-vehicle__name 2022 BMW 7 Series <>  Included options",
+              ".rp-vehicle__name 2022 BMW 7 Series <>  $395",
+              ".rp-vehicle__meta Stock B220331 · 10 mi · Carb <>  VIN"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 3200,
-            "pageHeight": 5572
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-047",
+              "severity": "Minor",
+              "issue": "The details sheet reports the odometer under a label that means something else: the last spec row reads \"Interior — Gray · 5 mi\". The sheet has no mileage row of its own, so the only place mileage appears is folded into the interior line.",
+              "observation": "The board's own sheet has three spec rows (VIN, Engine, Interior) and no mileage row, and the app pairs the interior with the odometer to keep the count — so the screen matches the board while saying something the label does not mean. The card above already carries the mileage in its meta line, so the honest fix is to drop it from the row rather than invent a fourth.",
+              "area": "app.js — the vehicle details sheet's second rp-kv group"
+            }
+          ]
         },
         {
           "step": 5,
           "key": "next-steps",
           "screen": "What's next? — after choosing",
           "screenshot": "current/06-vehicle-selection/05-next-steps.png",
-          "hash": "#/vehicles/d-82ol3vq",
-          "action": "Tap Test Drive",
+          "hash": "#/vehicles/d-demo1",
+          "action": "Tap Test drive",
           "next": "test-drive/ready",
           "branches": [
             {
-              "action": "Trade Appraisal",
+              "action": "Trade appraisal",
               "to": "trade/trade-evaluation"
             },
             {
-              "action": "Calculate Payment",
+              "action": "Calculate payment",
               "to": "desking/huddle-gate"
             },
             {
@@ -1728,32 +1785,37 @@
               "to": "vehicles/quote-blocked"
             }
           ],
-          "notes": "The chosen vehicle stays visible above the actions, so the next decision keeps its context. The VIN and stock are captured onto the deal at this moment.",
+          "notes": "The chosen vehicle stays visible above the five actions, so the next decision keeps its context. The VIN and stock are captured onto the deal at this moment — and any other advisor already working that car is told, without anyone being blocked.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x24"
+              "#vsSearch.rp-search__input  294x25",
+              ".rp-chip.rp-chip--on All 43x32",
+              ".rp-chip New 54x32",
+              ".rp-chip Used 59x32",
+              ".rp-chip CPO 54x32",
+              "#vsFilters.rp-chip Filters 66x32",
+              "#vsSort.rp-sort Price: high to low 117x19",
+              ".rp-sheet__close  32x32"
             ],
             "clipped": [],
             "overlaps": [
-              ".m-chip.active All <> .m-sheettitle What’s next?",
-              ".m-chip New <> .m-sheettitle What’s next?",
-              "#mFilters.m-chip Filters <> .m-close ✕",
-              ".m-restitle Available vehicles <> .m-sumtitle 2022 BMW 7 Series 740i xDriv",
-              ".m-resmeta 12 vehicles <> .m-sumtitle 2022 BMW 7 Series 740i xDriv",
-              "#mSort.m-sort Price: high to low <> .m-sumtitle 2022 BMW 7 Series 740i xDriv",
-              ".m-cardtrim 740i xDrive Sedan <>  Quote",
-              ".m-cardtrim 740i xDrive Sedan <> .m-chev ›"
+              ".rp-vehicle__tag NEW <> #vsSheetTitle.rp-sheet__title What’s next?",
+              ".rp-vehicle__name 2022 BMW 7 Series <> .rp-row__title Trade appraisal",
+              ".rp-vehicle__name 2022 BMW 7 Series <> .rp-row__sub Evaluate a trade and proof o",
+              ".rp-vehicle__meta Stock B220331 · 10 mi · Carb <> .rp-row__title Calculate payment",
+              " $91,460 <> .rp-row__sub Open desking with this vehic",
+              " MSRP $97,615 <> .rp-row__sub Open desking with this vehic"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 3200,
-            "pageHeight": 5572
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -1763,36 +1825,40 @@
           "key": "quote-blocked",
           "screen": "Quote — follow-up only",
           "screenshot": "current/06-vehicle-selection/06-quote-blocked.png",
-          "hash": "#/vehicles/d-82ol3vq",
+          "hash": "#/vehicles/d-demo1",
           "action": null,
           "next": null,
           "branches": [],
-          "notes": "The restriction is explained in a focused sheet with a real next action (Save quote for follow-up), replacing a toast that disappeared before it could be read.",
+          "notes": "The restriction is one subtitle line with a real next action under it (Save quote for follow-up), replacing a paragraph and a toast that disappeared before it could be read.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x24"
+              "#vsSearch.rp-search__input  294x25",
+              ".rp-chip.rp-chip--on All 43x32",
+              ".rp-chip New 54x32",
+              ".rp-chip Used 59x32",
+              ".rp-chip CPO 54x32",
+              "#vsFilters.rp-chip Filters 66x32",
+              "#vsSort.rp-sort Price: high to low 117x19",
+              ".rp-sheet__close  32x32"
             ],
             "clipped": [],
             "overlaps": [
-              ".m-restitle Available vehicles <> .m-sheettitle Quote",
-              ".m-resmeta 12 vehicles <> .m-sheettitle Quote",
-              "#mSort.m-sort Price: high to low <> .m-close ✕",
-              ".m-cardtitle 2022 BMW 7 Series <> .m-summeta $91,460 · Stock B220331",
-              ".m-cardmeta Stock B220331 · 10 mi · Carb <> .m-primary Save quote for follow-up",
-              ".m-price $91,460 <> .m-primary Save quote for follow-up",
-              ".m-msrp MSRP $97,615 <> .m-primary Save quote for follow-up",
-              " View vehicle details <> .m-textbtn Back to next steps"
+              ".rp-vehicle__name 2022 BMW 7 Series <> #vsSheetTitle.rp-sheet__title Quote",
+              ".rp-vehicle__trim 740i xDrive Sedan <> #vsSheetTitle.rp-sheet__title Quote",
+              ".rp-vehicle__meta Stock B220331 · 10 mi · Carb <> .rp-sheet__sub Quotes are sent after the vi",
+              " $91,460 <> .rp-choice__title 2022 Hyundai Santa Fe Limite",
+              " MSRP $97,615 <> .rp-choice__title 2022 Hyundai Santa Fe Limite"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 3200,
-            "pageHeight": 5572
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
@@ -1806,35 +1872,84 @@
           "action": null,
           "next": null,
           "branches": [],
-          "notes": "Reached from the drawer without a customer visit: one page-level banner says what unlocks, and the details sheet withholds Choose this vehicle rather than showing a dead control on every card.",
+          "notes": "Reached from the Inventory tab without a customer visit. The page-level banner explaining what unlocks is gone: the details sheet simply has no Choose action, rather than a dead control on every card.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              "#mSearch  288x24"
+              ".rp-wordmark Ride Price 116x23",
+              "#vsSearch.rp-search__input  294x25",
+              ".rp-chip.rp-chip--on All 43x32",
+              ".rp-chip New 54x32",
+              ".rp-chip Used 59x32",
+              ".rp-chip CPO 54x32",
+              "#vsFilters.rp-chip Filters 66x32",
+              "#vsSort.rp-sort Price: high to low 117x19",
+              ".rp-sheet__close  32x32"
             ],
             "clipped": [],
             "overlaps": [
-              " Browsing without a visit <> .m-sheettitle Vehicle details",
-              " Browsing without a visit <> .m-close ✕",
-              ".m-chip.active All <>  2022 BMW 7 Series",
-              ".m-chip New <>  2022 BMW 7 Series",
-              ".m-chip Used <>  2022 BMW 7 Series",
-              ".m-chip CPO <>  2022 BMW 7 Series",
-              "#mFilters.m-chip Filters <>  2022 BMW 7 Series",
-              ".m-restitle Available vehicles <> .m-sheetsub 740i xDrive Sedan · Carbon B"
+              ".rp-title Browse inventory <> #vsSheetTitle.rp-sheet__title Vehicle details",
+              ".rp-vehicle__tag NEW <> .rp-vehicle__name 2022 BMW 7 Series",
+              ".rp-vehicle__name 2022 BMW 7 Series <>  Selling price",
+              ".rp-vehicle__name 2022 BMW 7 Series <>  $91,460",
+              ".rp-vehicle__meta Stock B220331 · 10 mi · Carb <>  Included options",
+              ".rp-vehicle__meta Stock B220331 · 10 mi · Carb <>  $1,972",
+              ".rp-tab Deals <>  Interior",
+              ".rp-tab Customers <>  Cognac · 10 mi"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 3200,
-            "pageHeight": 5668
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
           "issues": []
+        },
+        {
+          "step": 8,
+          "key": "vehicle-reserved",
+          "screen": "Notification — vehicle reserved",
+          "screenshot": "current/06-vehicle-selection/08-vehicle-reserved.png",
+          "hash": "#/deals",
+          "action": "Tap Choose another vehicle",
+          "next": "inventory",
+          "branches": [],
+          "notes": "A later moment than the screens above: Nadia R.'s buyer's order on this car is signed, so every advisor with it on an open deal gets one alert at the top of My deals with a single real action, and their deal card carries the same status under the VIN line. Neither state blocks anything — John's deal stays open — and dismissing the alert leaves the card's status where it is.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".rp-wordmark Ride Price 116x23",
+              "#dealSearch.rp-search__input  252x25"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".rp-badge Desking <> .rp-card__name John Smith"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": [
+            {
+              "id": "RP-UI-048",
+              "severity": "Observation",
+              "issue": "On the reserved alert every load-bearing word is muted grey: the title \"Vehicle reserved\" samples the kit's ink, but the body that carries the vehicle, the stock number, who signed, at what time and that this deal stays open is `.rp-alert__body` at 12.5px in `--rp-muted` (#6E6E78). The standing rule is that load-bearing text is ink, because the app is used outdoors.",
+              "observation": "The kit defines the component that way and the app uses it as given, so this is the kit's decision to revisit — the same shape as RP-UI-037 on the deal card's VIN line. Worth pairing with that one when the palette is settled.",
+              "area": "ride-price-mobile.css .rp-alert__body (the owner UI kit) — a kit decision"
+            }
+          ]
         }
       ]
     },
@@ -1847,8 +1962,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-09-05T11:27:49.587Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:41:32.446Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -2103,8 +2218,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-09-05T11:27:56.183Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:41:39.556Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -2257,8 +2372,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-09-05T11:56:47.132Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:41:47.475Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -2343,7 +2458,7 @@
             {
               "id": "RP-UI-029",
               "severity": "Minor",
-              "issue": "The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measures 14 real shortfalls: the desking accessory checkbox rows at 20px (eight of them), the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, the client-link demo option row at 30, and #mMaxPrice at 38.",
+              "issue": "The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measures 14 real shortfalls: the desking accessory checkbox rows at 20px (eight of them), the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, the client-link demo option row at 30, and #mMaxPrice at 38 — the last of which closed with the vehicle-selection package (v025), where the filter sheet's price cap became the kit's 46px field.",
               "observation": "Found by widening the audit on 2026-08-31 and measured, not estimated. It was not restyled in that change: the job there was to implement the owner's ruling on the NUMBER, and lifting 14 form controls is a design change across desking, inventory search and the filter sheet that deserves its own review. The harness states the scope boundary at its selector rather than implying coverage it does not have.",
               "area": "portal.css .opt-row, .switch, .m-search input, #dealSearch, #mMaxPrice"
             }
@@ -2509,8 +2624,8 @@
         "from": "desking/compare-payments",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-05T11:57:02.834Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:41:54.235Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -2631,8 +2746,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-05T11:57:15.609Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:41:58.293Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -2916,7 +3031,7 @@
             "overlaps": [
               " Applicant <> .m-sheettitle Deal summary",
               " Step 1 of 4 <> .m-close ✕",
-              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 7:5",
+              ".ca-cardtitle Application type <> .ca-wssource Updated from worksheet · 10:",
               ".ca-cardtitle Application type <> .ca-managelink Edit",
               ".ca-cardsub Choose how the customer want <>  Vehicle",
               ".ca-cardsub Choose how the customer want <>  2022 Hyundai Santa Fe · 7H21",
@@ -2931,7 +3046,15 @@
             "pageHeight": 2643
           },
           "scrollShot": "current/11-credit-application/08-deal-summary-sheet.scroll.png",
-          "issues": []
+          "issues": [
+            {
+              "id": "RP-UI-049",
+              "severity": "Observation",
+              "issue": "The customer-facing Deal summary lists Cash Price, Sales Tax, Cash Down and Trade-In Amount and then an Amount Financed that the four of them cannot produce: the trade is shown GROSS while the financed figure is computed from the trade NET of its payoff, and neither the payoff, the rebates nor the fees appear as lines. A customer adding up what is on the screen gets a different number from the one printed under it.",
+              "observation": "Pre-existing and outside the three kit packages — surfaced because this capture re-read the screen beside its twin. The screen is honest about every number it shows; what is missing is the two lines that would make them reconcile.",
+              "area": "app.js — the credit application's deal-summary sheet"
+            }
+          ]
         },
         {
           "step": 9,
@@ -2977,8 +3100,8 @@
         "from": "discovery/visit-details",
         "action": "Tap Co-buyer in Visit details"
       },
-      "capturedAt": "2026-09-05T11:28:24.118Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:42:10.629Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -3261,8 +3384,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-09-05T11:28:31.416Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:42:18.443Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -3499,8 +3622,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-09-05T11:57:35.733Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:42:23.778Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -3967,8 +4090,8 @@
         "from": "discovery/question-1",
         "action": "Tap the Jacket chip in the context row"
       },
-      "capturedAt": "2026-09-05T11:28:50.564Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:42:39.223Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -4221,13 +4344,12 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".price PRICE <> .jk2-rowtitle Privacy Policy",
-              ".m-dealno Deal #48201 <> .jk2-rowtitle Privacy Policy",
-              "#mRole.m-rolebtn Advisor <> .jk2-status Needed",
-              ".jk2-secsub Already in the jacket <>  Funding sign-off",
-              ".jk2-secsub Already in the jacket <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-badge.jk2-badge--good 4 <> #jkSignoff.jk2-dockbtn Not ready",
-              ".jk2-chev.jk2-chev--open ⌄ <> #jkSignoff.jk2-dockbtn Not ready"
+              ".jk2-rowtitle Appraisal Sheet <>  Funding sign-off",
+              ".jk2-rowtitle Appraisal Sheet <>  11 items remaining",
+              ".jk2-rowtitle Appraisal Sheet <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-rowsub Marked received by Ashley Co <>  11 items remaining",
+              ".jk2-rowsub Marked received by Ashley Co <> #jkSignoff.jk2-dockbtn Not ready",
+              ".jk2-status.jk2-status--done In jacket <> #jkSignoff.jk2-dockbtn Not ready"
             ]
           },
           "error": null,
@@ -4319,8 +4441,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-09-05T11:29:01.603Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:42:51.598Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -4445,8 +4567,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-09-05T11:29:05.706Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:42:56.280Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -4787,8 +4909,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-09-05T11:29:18.310Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:43:09.459Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -4946,8 +5068,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-09-05T11:29:22.325Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:43:13.822Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,
@@ -5051,8 +5173,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-09-05T11:29:30.829Z",
-      "appCommit": "17c4a3b9de28ae0e75d9ed7a6e588dea673f325f",
+      "capturedAt": "2026-09-06T02:43:22.583Z",
+      "appCommit": "e310f5785e28015350f1b967e91a3ae9e59cfb92",
       "screens": [
         {
           "step": 1,

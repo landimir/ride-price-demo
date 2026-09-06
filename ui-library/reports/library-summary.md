@@ -1,19 +1,19 @@
 # Ride Price Mobile UI Library
 
-Version: v022
-Captured: 2026-09-05T11:26:36.556Z
-App commit: 17c4a3b9de28ae0e75d9ed7a6e588dea673f325f
+Version: v023
+Captured: 2026-09-06T02:40:17.580Z
+App commit: e310f5785e28015350f1b967e91a3ae9e59cfb92
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 136
+Screens documented: 137
 Branches documented: 74
 
 UX Audit:
 - Critical: 0
 - Major: 1
-- Minor: 9
-- Observation: 6
+- Minor: 12
+- Observation: 9
 
 ## Flows
 
@@ -24,7 +24,7 @@ UX Audit:
 | 3 | Scan Driver's License | 11 | Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver — Tap Scan physical license |
 | 4 | Training Documents | 4 | Home — Active Floor & Navigation · 02 More sheet — secondary navigation — Training documents |
 | 5 | Discovery Session | 6 | Customer Onboarding — the Customer Resolver · 03 Customer found — confirm + registration address — Confirm address & start visit |
-| 6 | Vehicle Selection | 7 | Discovery Session · 04 Discovery complete (sheet) — Tap Find matching vehicles |
+| 6 | Vehicle Selection | 8 | Discovery Session · 04 Discovery complete (sheet) — Tap Find matching vehicles |
 | 7 | Test Drive Agreement | 7 | Vehicle Selection · 05 What's next? — after choosing — Tap Test Drive |
 | 8 | Trade-In Evaluation & Proof of Ownership | 4 | Vehicle Selection · 05 What's next? — after choosing — Tap Trade Appraisal |
 | 9 | Desking — Calculate Payments | 6 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap the deal card (Continue) |
