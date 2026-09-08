@@ -5770,8 +5770,8 @@ route("credit/:id", ({ id }) => {
 
   /* ---------------- the kit pieces ---------------- */
   const chipRow = () => `<div class="rp-chiprow">
-    <button type="button" class="rp-chip" data-buyers-open>${rpGlyph("customers")}Buyers · ${1 + (cbRec() ? 1 : 0)}</button>
-    ${r ? `<button type="button" class="rp-chip" data-sheet-open="summary">${rpGlyph("document")}Deal summary</button>` : ""}
+    <button type="button" class="rp-chip" data-buyers-open>Buyers · ${1 + (cbRec() ? 1 : 0)}</button>
+    ${r ? `<button type="button" class="rp-chip" data-sheet-open="summary">Deal summary</button>` : ""}
     ${chJacketChip(deal)}
   </div>`;
 
@@ -6541,7 +6541,6 @@ route("present/:id", ({ id }) => {
         <p class="mp-milecopy" id="mpMileCopy">${mileCopy()}</p>
       </div>` : ""}
       ${t.product ? `<div class="mp-actions">
-        <button type="button" class="mp-dark" id="mpScript">Advisor script</button>
         <button type="button" class="mp-ghost" id="mpBudget">Budget impact</button>
       </div>` : ""}
       <button type="button" class="mp-textbtn" id="mpMore">${t.key === "rate" ? "See why this rate is credible" : "More product details"}</button>
@@ -6616,17 +6615,6 @@ route("present/:id", ({ id }) => {
       miles = parseInt(mpMiles.value, 10);
       $("#mpMileVal").textContent = miles.toLocaleString() + " mi/yr";
       $("#mpMileCopy").innerHTML = mileCopy();
-    };
-
-    const scriptBtn = $("#mpScript");
-    if (scriptBtn) scriptBtn.onclick = () => {
-      const isVsc = sel === "vsc10" || sel === "vsc7";
-      const lead = isVsc ? `<b>&ldquo;${esc(c.first)}, you told me you drive about ${esc(miles.toLocaleString())} miles a year.</b> At that pace the factory comprehensive coverage is gone in about ${mileageMath().factoryMonths} months.&rdquo; ` : "";
-      openSheet2(`${sheetTop("Advisor script")}
-        <div class="mp-script">${lead}${esc(t.body)}</div>
-        <p class="mp-sheetnote">Tie it down to what they told you in discovery — the benefit must make sense to <b>them</b> (WIIFM).</p>
-        <p class="mp-sheetnote"><b>The 300% rule:</b> present every product without attempting to close after each one. Ask which option they choose only after Preferred, Standard, and Budget have all been presented.</p>
-        <button type="button" class="mp-primary mp-wide" data-sheet-close>Back to product</button>`);
     };
 
     const budgetBtn = $("#mpBudget");
@@ -6754,9 +6742,9 @@ route("menu/:id", ({ id }) => {
     const led = jacketLedger(deal);
     const buyersN = 1 + (deal.coBuyerId && Store.customer(deal.coBuyerId) ? 1 : 0);
     return `<div class="rp-chiprow">
-      <button type="button" class="rp-chip" data-sheet-open="buyers">${rpGlyph("customers")}Buyers · ${buyersN}</button>
+      <button type="button" class="rp-chip" data-sheet-open="buyers">Buyers · ${buyersN}</button>
       ${chJacketChip(deal)}
-      <a class="rp-chip" href="#/vehicles/${esc(deal.id)}">${rpGlyph("inventory")}${esc(v.stock)}</a>
+      <a class="rp-chip" href="#/vehicles/${esc(deal.id)}">${esc(v.stock)}</a>
     </div>`;
   };
   const subLine = () => `<p class="rp-count" style="margin-bottom:12px">Deal #${esc(deal.dealNo)} · ${esc(custName)}</p>`;
@@ -7552,7 +7540,7 @@ function jacketChipText(deal) {
   return `${req.filter(d => jacketState(deal, d.id)).length} of ${req.length}`;
 }
 function chJacketChip(deal) {
-  return `<a class="rp-chip" href="#/jacket/${esc(deal.id)}">${rpGlyph("document")}Jacket · ${esc(jacketChipText(deal))}</a>`;
+  return `<a class="rp-chip" href="#/jacket/${esc(deal.id)}">Jacket · ${esc(jacketChipText(deal))}</a>`;
 }
 
 /* a two-sided document that has one side on file: the client pipeline holds
@@ -8189,9 +8177,9 @@ route("jacket/:id", ({ id }) => {
 
     const content = `<div class="rp-crumb">${esc(custName)} <b>·</b> ${esc(vehName)} <b>·</b> Deal jacket</div>
       <div class="rp-chiprow">
-        <button type="button" class="rp-chip" data-sheet-open="buyers">${rpGlyph("customers")}Buyers · ${buyersN}</button>
+        <button type="button" class="rp-chip" data-sheet-open="buyers">Buyers · ${buyersN}</button>
         ${chJacketChip(deal)}
-        ${veh && veh.stock ? `<a class="rp-chip" href="#/vehicles/${esc(deal.id)}">${rpGlyph("inventory")}${esc(veh.stock)}</a>` : ""}
+        ${veh && veh.stock ? `<a class="rp-chip" href="#/vehicles/${esc(deal.id)}">${esc(veh.stock)}</a>` : ""}
       </div>
       <div class="rp-ready">
         <div class="rp-ready__head">
@@ -8212,7 +8200,6 @@ route("jacket/:id", ({ id }) => {
       ${bucket({ id: "jkDoneToggle", title: "Completed", sub: led.optionalFiled ? `Already in the jacket · ${led.optionalFiled} optional` : "Already in the jacket",
         badge: String(done), badgeCls: "rp-bucket__badge--count", open: ui.doneOpen, body: doneBody })}
       ${ov && !led.ready ? `<div class="rp-notice rp-notice--reserved">Sign-off unlocked by override — ${esc(ov.by)}: “${esc(ov.reason)}”</div>` : ""}
-      <button type="button" class="rp-link" id="jkScript">Advisor script</button>
       ${printable ? `<a class="rp-link" href="#/forms/${esc(deal.id)}">Print center</a>`
         : `<p class="rp-count">Printing needs the unit in inventory — this contract's vehicle is on the record only.</p>`}`;
 
@@ -8245,18 +8232,6 @@ route("jacket/:id", ({ id }) => {
   }
 
   /* ---------------- the sheets ---------------- */
-
-  /* 02 — three lines the advisor can read aloud, on demand and nowhere else */
-  function scriptSheet() {
-    sheets.open(`${chSheetHead("Advisor script")}
-      <p class="rp-sheet__sub">Use only when you need a quick word track — never shown to the customer</p>
-      <div class="rp-group">
-        ${["I'm going to send you one secure Ride Price link for the few documents we still need.",
-        "Upload them straight from your phone — you don't need to text or email anything private to me.",
-        "As they arrive, your deal jacket updates on its own, and we keep the delivery date."]
-        .map(line => `<div class="rp-row"><span class="rp-row__body"><span class="rp-row__sub" style="font-size:14px;color:var(--rp-ink);line-height:1.45">“${esc(line)}”</span></span></div>`).join("")}
-      </div>`);
-  }
 
   /* 03 — one secure request carries every customer document still missing.
      The advisor stays here: sending and resending never leave the jacket. */
@@ -8533,7 +8508,6 @@ route("jacket/:id", ({ id }) => {
     if ($("#jkTrack")) $("#jkTrack").onclick = () => trackingSheet(custWaiting);
     if ($("#jkSnapAll")) $("#jkSnapAll").onclick = () => navigate("#/snapall/" + deal.id + "/advisor");
     if ($("#jkAddOpt")) $("#jkAddOpt").onclick = () => addOptSheet(addable);
-    $("#jkScript").onclick = scriptSheet;
     /* one item resolves one item, and one head opens one bucket (§25) */
     $("#jkCustToggle").onclick = () => { ui.custOpen = !(ui.custOpen === null ? custWaiting.length > 0 : ui.custOpen); render(); };
     $("#jkFormsToggle").onclick = () => { ui.formsOpen = !ui.formsOpen; render(); };

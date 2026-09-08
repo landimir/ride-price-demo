@@ -1909,7 +1909,6 @@ button.m-rolepill { font: inherit; cursor: pointer; }
 .mp-good { color: var(--success); }
 .mp-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
 .mp-ghost { height: 48px; border: 1px solid var(--ink); border-radius: 12px; background: #fff; font: inherit; font-weight: 700; font-size: 14px; cursor: pointer; color: var(--ink); }
-.mp-dark { height: 48px; border: 0; border-radius: 12px; background: var(--ink); color: #fff; font: inherit; font-weight: 750; font-size: 14px; cursor: pointer; }
 .mp-textbtn { width: 100%; border: 0; background: transparent; text-decoration: underline; font: inherit; font-weight: 700; font-size: 13px; cursor: pointer; padding: 14px 8px 4px; color: var(--ink); }
 .mp-dock { position: fixed; left: 50%; bottom: 0; transform: translateX(-50%); z-index: 20; width: min(430px, 100%); background: rgba(255, 255, 255, .97); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-top: 1px solid var(--line); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; }
 .mp-dockcopy { min-width: 0; }
@@ -1918,7 +1917,6 @@ button.m-rolepill { font: inherit; cursor: pointer; }
 .mp-primary { height: 52px; border: 0; border-radius: 12px; background: var(--grad); color: #fff; font: inherit; font-weight: 750; font-size: 15px; padding: 0 20px; cursor: pointer; }
 .mp-primary:hover { filter: brightness(1.06); }
 .mp-wide { width: 100%; margin-top: 18px; }
-.mp-script { background: var(--surface); border-radius: 18px; padding: 16px; font-size: 15px; line-height: 1.55; }
 .mp-sheetnote { font-size: 13px; color: var(--muted); line-height: 1.5; margin: 14px 0 0; }
 .mp-budget { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
 .mp-stat { background: var(--surface); border-radius: 16px; padding: 16px; }
