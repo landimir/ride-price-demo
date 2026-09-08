@@ -8179,6 +8179,10 @@ route("jacket/:id", ({ id }) => {
       + `<button type="button" class="rp-doc" id="jkAddOpt" style="justify-content:center">
           <span class="rp-doc__name" style="color:var(--rp-blue)">+ Add optional document</span></button>`;
 
+    /* the Completed badge counts the REQUIRED package, so it and the chip say
+       the same number; the optional documents are listed in the bucket and
+       counted in its sub-line, which is what keeps the rows and the badge from
+       disagreeing (the board reads 15 with one optional named). */
     const doneBody = completed.length
       ? completed.map(docRow).join("")
       : `<div class="rp-doc"><span class="rp-row__body"><span class="rp-doc__why">Nothing is in the jacket yet.</span></span></div>`;
@@ -8205,8 +8209,8 @@ route("jacket/:id", ({ id }) => {
         badge: formsWaiting.length ? `${formsWaiting.length} remaining` : condWaiting.length ? "Conditional only" : "Complete",
         badgeCls: formsWaiting.length ? "" : "rp-bucket__badge--done",
         open: ui.formsOpen, body: formsBody })}
-      ${bucket({ id: "jkDoneToggle", title: "Completed", sub: "Already in the jacket",
-        badge: String(completed.length), badgeCls: "rp-bucket__badge--count", open: ui.doneOpen, body: doneBody })}
+      ${bucket({ id: "jkDoneToggle", title: "Completed", sub: led.optionalFiled ? `Already in the jacket · ${led.optionalFiled} optional` : "Already in the jacket",
+        badge: String(done), badgeCls: "rp-bucket__badge--count", open: ui.doneOpen, body: doneBody })}
       ${ov && !led.ready ? `<div class="rp-notice rp-notice--reserved">Sign-off unlocked by override — ${esc(ov.by)}: “${esc(ov.reason)}”</div>` : ""}
       <button type="button" class="rp-link" id="jkScript">Advisor script</button>
       ${printable ? `<a class="rp-link" href="#/forms/${esc(deal.id)}">Print center</a>`
