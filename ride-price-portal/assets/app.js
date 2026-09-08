@@ -5627,12 +5627,21 @@ route("agreement/:id", ({ id }) => {
    here, where a second entry can find it. A stale one holds an older F and
    writes into a form nobody is looking at. */
 let creditInputOff = null;
+/* what the advisor has typed but not yet marked ready. The route can be
+   re-entered without a hashchange — the buyers sheet calls router() on every
+   change, renderChrome() calls it on a role switch — and F is a fresh object
+   literal each time, so without this the keystrokes since the last save are
+   lost. Kept out here for exactly as long as the route is the current screen;
+   the teardown that removes the input listener clears it too. */
+let creditWorking = null;
 route("credit/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
   /* a truthy stock is not a resolved vehicle, and the approved screen prices
      against the unit — same guard, same destination as the menu, the print
-     centre and the test drive */
-  if (!deal.stock || !Store.vehicle(deal.stock)) return navigate("#/deals");
+     centre and the test drive. It REPLACES rather than pushes: navigate()
+     would leave this hash in the history, so Back would land on it, run the
+     guard again, and add another entry each time (review, #88). */
+  if (!deal.stock || !Store.vehicle(deal.stock)) return redirect("#/deals");
   const c = Store.customer(deal.customerId);
   const app = deal.creditApp;
 
@@ -5682,14 +5691,17 @@ route("credit/:id", ({ id }) => {
     const cb = cbRec(); if (!cb) return;
     Object.assign(F, { coFirst: cb.first, coLast: cb.last, coDob: dateUS(cb.dob || ""), coDl: (cb.license && cb.license.number) || "", coAddr: cb.address || "", coZip: cb.zip || "", coCity: cb.city || "", coState: cb.state || "" });
   };
-  /* a draft the advisor already marked ready comes back the way they left it —
-     and the co-applicant is reseeded AFTER it, because identity prefills from
-     the record and never from typed state. Parking a deal and then replacing
-     the co-buyer would otherwise reopen the application with the new person's
-     name beside the previous person's date of birth, licence and address, and
-     submit() would persist it. */
+  /* a draft the advisor already marked ready comes back the way they left it,
+     and anything typed since then comes back on top of it — a re-entry is not
+     a new visit. The co-applicant is reseeded LAST, because identity prefills
+     from the record and never from typed state: parking a deal and then
+     replacing the co-buyer would otherwise reopen the application with the new
+     person's name beside the previous person's date of birth, licence and
+     address, and submit() would persist it. */
   if (deal.creditApp && deal.creditApp.draft) Object.assign(F, deal.creditApp.draft);
+  if (creditWorking && creditWorking.id === deal.id) Object.assign(F, creditWorking.form);
   seedCo();
+  creditWorking = { id: deal.id, form: F, step: creditWorking && creditWorking.id === deal.id ? creditWorking.step : null };
 
   const STEP_NAMES = ["Applicant", "Residence", "Employment", "Review"];
   const st = { step: 1, err: null };
@@ -6345,6 +6357,10 @@ route("credit/:id", ({ id }) => {
   let buyers = null;
 
   function draw() {
+    /* record where the wizard is, so a router() re-entry — the buyers sheet
+       calls it on every change — puts the advisor back on the step they were
+       working rather than on step 1 */
+    if (creditWorking && creditWorking.id === deal.id) creditWorking.step = st.step;
     if (ui.mode === "approved") return approvedScreen();
     if (ui.mode === "identity") return identityScreen(false);
     if (ui.mode === "identity-ok") return identityScreen(true);
@@ -6385,19 +6401,29 @@ route("credit/:id", ({ id }) => {
   /* the handle lives OUTSIDE the route, because the leak is a second entry
      into the route rather than a second screen: it is cleared on the way in
      above, and on the way out here */
-  const off = () => {
+  /* Two different departures. A RE-ENTRY calls this to take the previous
+     entry's listener off, and must leave the working copy alone — clearing it
+     there is what sent the advisor back to step 1 the moment they attached a
+     co-buyer. Leaving the route for real ends the working copy with it. */
+  const off = (leaving) => {
     const el = view(); if (el) el.removeEventListener("input", onCreditInput);
-    window.removeEventListener("hashchange", off);
+    window.removeEventListener("hashchange", onLeave);
     if (creditInputOff === off) creditInputOff = null;
+    if (leaving && creditWorking && creditWorking.id === deal.id) creditWorking = null;
   };
+  const onLeave = () => off(true);
   creditInputOff = off;
-  window.addEventListener("hashchange", off);
+  window.addEventListener("hashchange", onLeave);
 
   /* the gate comes before the application; an already-approved deal never
      re-gates, and a deal parked on a pending co-buyer opens on Review */
   if (app && app.approved) ui.mode = "approved";
   else if (!(deal.identity && deal.identity.verifiedAt)) ui.mode = "identity";
-  else { ui.mode = "wizard"; if (app && app.status === "pending-cobuyer") st.step = 4; }
+  else {
+    ui.mode = "wizard";
+    if (app && app.status === "pending-cobuyer") st.step = 4;
+    else if (creditWorking && creditWorking.id === deal.id && creditWorking.step) st.step = creditWorking.step;
+  }
   draw();
 });
 
