@@ -1,5 +1,5 @@
 /* =========================================================================
-   Ride Price Mobile — UI kit  v022.18
+   Ride Price Mobile — UI kit  v022.19
    Single source for the mobile chrome. Use the classes; do not restyle them.
    Scale is in px = pt on iOS (1x). Layout is fluid width; height is the viewport.
    ========================================================================= */
@@ -320,7 +320,7 @@ svg { display: block; }
 /* ---------- 19. Hit-target floor ---------- */
 /* Every interactive element has a 40px minimum hit area. Where the visual is smaller (role pill 36, chips 32, banner Switch 28, sheet close 32) the ::before pseudo-element extends the target without changing the look. */
 
-/* ---------- 20. Additions v022.18 ---------- */
+/* ---------- 20. Additions v022.19 ---------- */
 /* Key/value list — generic, reusable outside the match card */
 .rp-kv { background: var(--rp-surface); border-radius: var(--rp-r-row); overflow: hidden; margin-bottom: 16px; }
 .rp-kv__row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 16px; font-size: 14px; }
@@ -360,11 +360,11 @@ svg { display: block; }
 /* Two-field row (license # + state) */
 .rp-field-row { display: grid; grid-template-columns: 1fr 88px; gap: 8px; }
 
-/* ---------- 21. Additions v022.18 ---------- */
+/* ---------- 21. Additions v022.19 ---------- */
 .rp-tile--label { font-size: 11px; font-weight: 760; letter-spacing: .04em; color: var(--rp-section); }   /* text tile, e.g. pair number */
 .rp-sheet__sub { margin: -8px 0 14px; font-size: 13px; color: var(--rp-muted); }
 
-/* ---------- 22. Additions v022.18 — inventory ---------- */
+/* ---------- 22. Additions v022.19 — inventory ---------- */
 .rp-chips--rail { overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--rp-inset)) 14px; padding: 0 var(--rp-inset); }
 .rp-chips--rail::-webkit-scrollbar { display: none; }
 .rp-chips--rail .rp-chip { flex: none; }
@@ -396,7 +396,7 @@ svg { display: block; }
 .rp-choice__title { font-size: 14px; font-weight: 720; }
 .rp-choice__sub { font-size: 12px; color: var(--rp-muted); margin-top: 2px; }
 
-/* ---------- 23. Additions v022.18 — vehicle contention ---------- */
+/* ---------- 23. Additions v022.19 — vehicle contention ---------- */
 /* Two informational states. Neither blocks selection. */
 .rp-vstatus { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-size: 11.5px; font-weight: 680; padding: 4px 8px; border-radius: 6px; }
 .rp-vstatus::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
@@ -418,7 +418,7 @@ svg { display: block; }
 .rp-alert__close { position: absolute; right: 8px; top: 8px; width: 40px; height: 40px; display: grid; place-items: center; color: #8B8A99; }
 .rp-alert__close .rp-icon { width: 14px; height: 14px; }
 
-/* ---------- 24. Additions v022.18 — test drive ---------- */
+/* ---------- 24. Additions v022.19 — test drive ---------- */
 .rp-row__action { margin-left: auto; color: var(--rp-blue); font-size: 13px; font-weight: 700; min-height: 40px; display: inline-flex; align-items: center; padding: 0 4px; flex: none; }
 .rp-choice__tag { margin-left: auto; flex: none; font-size: 11px; font-weight: 740; color: var(--rp-section); background: #ECECF1; padding: 5px 8px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px; }
 .rp-choice__tag .rp-icon { width: 14px; height: 14px; }
@@ -449,7 +449,7 @@ svg { display: block; }
 .rp-hero__title { font-size: 20px; font-weight: 760; letter-spacing: -.02em; }
 .rp-hero__sub { font-size: 13px; color: var(--rp-muted); margin-top: 4px; }
 
-/* ---------- 25. Additions v022.18 — trade-in ---------- */
+/* ---------- 25. Additions v022.19 — trade-in ---------- */
 .rp-value { background: var(--rp-navy); color: #fff; border-radius: var(--rp-r-row); padding: 16px 16px 14px; margin-bottom: 16px; position: relative; }
 .rp-value__eyebrow { font-size: 11px; font-weight: 760; letter-spacing: .07em; text-transform: uppercase; color: rgba(255,255,255,.72); }
 .rp-value__amount { font-size: 34px; font-weight: 760; letter-spacing: -.03em; margin: 6px 0 2px; font-variant-numeric: tabular-nums; }
@@ -473,7 +473,7 @@ svg { display: block; }
 .rp-card__head .rp-status { margin-left: auto; }
 .rp-card__title { font-size: 16px; font-weight: 740; margin-bottom: 12px; }
 
-/* ---------- 26. Additions v022.18 — document-driven answers ---------- */
+/* ---------- 26. Additions v022.19 — document-driven answers ---------- */
 .rp-kv__row--src { flex-wrap: wrap; }
 .rp-kv__src { flex-basis: 100%; font-size: 11px; color: var(--rp-muted); margin-top: 2px; }
 .rp-kv__row--src span:last-child:not(.rp-kv__src) { font-weight: 640; }
@@ -482,7 +482,7 @@ svg { display: block; }
 .rp-status--warn { background: #FFF1E3; color: #A54600; }
 .rp-status--override { background: #E5ECFF; color: #2B49B3; }
 
-/* ---------- 27. Additions v022.18 — desking + present mode ---------- */
+/* ---------- 27. Additions v022.19 — desking + present mode ---------- */
 .rp-price { background: var(--rp-surface); border-radius: var(--rp-r-row); padding: 16px; margin-bottom: 16px; position: relative; }
 .rp-price__label { font-size: 12px; font-weight: 700; color: var(--rp-section); }
 .rp-price__amount { font-size: 38px; font-weight: 760; letter-spacing: -.035em; line-height: 1; margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
@@ -531,7 +531,7 @@ svg { display: block; }
 .rp-choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
 .rp-choice-grid .rp-option { margin: 0; }
 
-/* ---------- 28. Additions v022.18 — interview ---------- */
+/* ---------- 28. Additions v022.19 — interview ---------- */
 .rp-progress { height: 4px; border-radius: 2px; background: rgba(18,19,27,.08); overflow: hidden; margin: 4px 0 18px; }
 .rp-progress__bar { height: 100%; border-radius: 2px; background: var(--rp-gradient); }
 .rp-ask { margin-bottom: 16px; }
@@ -546,7 +546,7 @@ svg { display: block; }
 .rp-dock--split .rp-primary { flex: 1; }
 .rp-back { height: 52px; padding: 0 20px; border-radius: var(--rp-r-button); background: var(--rp-surface); border: 1px solid var(--rp-separator); font-size: 15px; font-weight: 700; display: grid; place-items: center; flex: none; }
 
-/* ---------- 29. Additions v022.18 — guided consultation (Present) ---------- */
+/* ---------- 29. Additions v022.19 — guided consultation (Present) ---------- */
 /* Media-led question. The photograph is content, so type sits on it. Allowed only in Present mode. */
 .rp-media { position: relative; border-radius: var(--rp-r-row); overflow: hidden; margin-bottom: 14px; aspect-ratio: 4 / 3; background: #2A2E3A; }
 .rp-media--tall { aspect-ratio: 1 / 1.06; }
@@ -587,7 +587,7 @@ svg { display: block; }
 .rp-profile__item .rp-icon { width: 14px; height: 14px; color: var(--rp-green); flex: none; margin-top: 2px; }
 .rp-profile__list--wide { grid-template-columns: 1fr; }
 
-/* ---------- 30. Additions v022.18 — consultation stage (three zones) ---------- */
+/* ---------- 30. Additions v022.19 — consultation stage (three zones) ---------- */
 /* Present mode is three zones: stage (video/slides), AI line, voice bar. Nothing else. */
 .rp-screen--stage .rp-page { padding: 8px 14px 116px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
 .rp-stage { flex: 1; min-height: 0; position: relative; border-radius: 26px; overflow: hidden; background: var(--rp-surface); box-shadow: 0 10px 30px rgba(20,24,42,.10); }
@@ -625,7 +625,7 @@ svg { display: block; }
 .rp-voice__label { text-align: center; font-size: 11.5px; font-weight: 660; color: var(--rp-muted); margin-top: 8px; }
 .rp-voice--live .rp-voice__label { color: var(--rp-amber); }
 
-/* ---------- 31. Additions v022.18 — application wizard ---------- */
+/* ---------- 31. Additions v022.19 — application wizard ---------- */
 .rp-steps-bar { display: flex; align-items: center; justify-content: space-between; margin: 2px 0 6px; }
 .rp-steps-bar__name { font-size: 14px; font-weight: 740; }
 .rp-steps-bar__pos { font-size: 12px; color: var(--rp-muted); font-weight: 640; }
@@ -655,7 +655,7 @@ svg { display: block; }
 .rp-approval__rate { font-size: 13px; color: var(--rp-muted); }
 .rp-approval__rate b { color: var(--rp-ink); font-weight: 740; }
 
-/* ---------- 32. Additions v022.18 — joint applications ---------- */
+/* ---------- 32. Additions v022.19 — joint applications ---------- */
 /* Per-applicant panel: one column per person, so what is actionable is never mixed with what is blocked. */
 .rp-appl { background: var(--rp-surface); border-radius: var(--rp-r-row); overflow: hidden; margin-bottom: 12px; }
 .rp-appl__head { display: flex; align-items: center; gap: 12px; padding: 13px 16px; }
@@ -674,14 +674,14 @@ svg { display: block; }
 .rp-appl__bar i { display: block; height: 100%; background: var(--rp-green); }
 .rp-appl__bar--wait i { background: var(--rp-amber); }
 /* Gate note above a dock whose primary is deliberately not "submit" */
-.rp-screen--gate .rp-page { padding-bottom: 250px; }
+.rp-screen--gate .rp-page { padding-bottom: 150px; }
 .rp-screen--gate .rp-dock { padding-top: 12px; background: linear-gradient(180deg, rgba(242,242,247,0) 0%, var(--rp-canvas) 12%, var(--rp-canvas) 100%); }
 .rp-gatenote { font-size: 12px; line-height: 1.35; font-weight: 660; color: var(--rp-muted); text-align: center; margin: 0 0 8px; }
 
-/* v022.18 — sheets that target a person or a deal name it under the title (rp-sheet__sub, v022.4) */
+/* v022.19 — sheets that target a person or a deal name it under the title (rp-sheet__sub, v022.4) */
 .rp-sheet__sub { margin: -8px 0 14px; font-size: 12.5px; color: var(--rp-muted); line-height: 1.4; }
 
-/* ---------- 33. Additions v022.18 — buyers on the deal ---------- */
+/* ---------- 33. Additions v022.19 — buyers on the deal ---------- */
 .rp-buyer { display: flex; align-items: center; gap: 12px; padding: 13px 16px; background: var(--rp-surface); border-radius: var(--rp-r-row); margin-bottom: 10px; width: 100%; text-align: left; }
 .rp-buyer__name { display: block; font-size: 15px; font-weight: 740; }
 .rp-buyer__meta { display: block; font-size: 12px; color: var(--rp-muted); margin-top: 2px; }
@@ -693,7 +693,7 @@ svg { display: block; }
 .rp-consequences strong { display: block; font-size: 13.5px; font-weight: 740; color: #A54600; margin-bottom: 6px; }
 .rp-consequences ul { margin: 0; padding-left: 18px; font-size: 12.5px; line-height: 1.5; color: #4A2A12; }
 
-/* ---------- 34. Additions v022.18 — finance menu ---------- */
+/* ---------- 34. Additions v022.19 — finance menu ---------- */
 .rp-stages { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 0 0 16px; }
 .rp-stage { min-height: 40px; border-radius: 12px; background: var(--rp-surface); border: 1px solid var(--rp-separator); display: grid; place-items: center; font-size: 12.5px; font-weight: 700; color: var(--rp-section); white-space: nowrap; }
 .rp-stage--on { background: var(--rp-navy); color: #fff; border-color: var(--rp-navy); }
@@ -720,3 +720,38 @@ svg { display: block; }
 .rp-withheld__label { font-size: 12px; font-weight: 700; color: var(--rp-section); }
 .rp-withheld__mask { font-size: 34px; font-weight: 760; letter-spacing: .12em; color: #C8C8D0; margin: 6px 0 4px; }
 .rp-initials-box { height: 56px; border-radius: var(--rp-r-field); border: 1.5px solid var(--rp-ink); background: var(--rp-surface); display: grid; place-items: center; font-size: 20px; font-weight: 740; letter-spacing: .18em; margin-bottom: 14px; }
+
+/* ---------- 35. Additions v022.19 — deal jacket ---------- */
+.rp-crumb { font-size: 12px; color: var(--rp-muted); margin: 0 0 10px; }
+.rp-crumb b { color: var(--rp-ink); font-weight: 640; }
+.rp-ready { background: var(--rp-surface); border-radius: var(--rp-r-row); padding: 16px; margin-bottom: 16px; }
+.rp-ready__head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.rp-ready__label { font-size: 11px; font-weight: 760; letter-spacing: .07em; text-transform: uppercase; color: var(--rp-section); }
+.rp-ready__count { font-size: 12px; font-weight: 740; padding: 5px 10px; border-radius: 999px; background: #FFF1E3; color: #A54600; flex: none; }
+.rp-ready__count--done { background: #E3F5EA; color: #1A6B3D; }
+.rp-ready__hero { font-size: 30px; font-weight: 760; letter-spacing: -.03em; line-height: 1.06; margin: 8px 0 12px; }
+.rp-ready__bar { height: 6px; border-radius: 3px; background: rgba(18,19,27,.08); overflow: hidden; margin-bottom: 12px; }
+.rp-ready__bar i { display: block; height: 100%; background: var(--rp-green); }
+.rp-ready__note { font-size: 12.5px; line-height: 1.45; color: var(--rp-muted); }
+.rp-ready__note b { color: var(--rp-ink); font-weight: 700; }
+.rp-bucket { background: var(--rp-surface); border-radius: var(--rp-r-row); overflow: hidden; margin-bottom: 12px; }
+.rp-bucket__head { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+.rp-bucket__title { display: block; font-size: 16px; font-weight: 740; }
+.rp-bucket__sub { display: block; font-size: 12px; color: var(--rp-muted); margin-top: 2px; }
+.rp-bucket__badge { flex: none; font-size: 11.5px; font-weight: 740; padding: 5px 10px; border-radius: 999px; background: #FFF1E3; color: #A54600; }
+.rp-bucket__badge--done { background: #E3F5EA; color: #1A6B3D; }
+.rp-bucket__badge--count { background: #ECECF1; color: var(--rp-section); }
+.rp-bucket__body { border-top: .5px solid var(--rp-separator); }
+.rp-doc { display: flex; align-items: center; gap: 12px; padding: 12px 16px; width: 100%; text-align: left; }
+.rp-doc + .rp-doc { border-top: .5px solid var(--rp-separator); }
+.rp-doc__name { display: block; font-size: 14.5px; font-weight: 700; }
+.rp-doc__why { display: block; font-size: 12px; color: var(--rp-muted); margin-top: 2px; }
+.rp-doc__state { flex: none; font-size: 11.5px; font-weight: 740; padding: 5px 9px; border-radius: 8px; background: #ECECF1; color: var(--rp-section); }
+.rp-doc__state--part { background: #FDECEA; color: #B3261E; }
+.rp-doc__state--done { background: #E3F5EA; color: #1A6B3D; }
+.rp-signoff { position: absolute; left: 0; right: 0; bottom: 0; padding: 12px var(--rp-inset) calc(var(--rp-safe-bottom) + 30px); background: linear-gradient(180deg, rgba(242,242,247,0), var(--rp-canvas) 30%, var(--rp-canvas)); display: flex; align-items: center; gap: 12px; }
+.rp-signoff__label { font-size: 11px; font-weight: 760; letter-spacing: .07em; text-transform: uppercase; color: var(--rp-section); }
+.rp-signoff__state { font-size: 15px; font-weight: 740; margin-top: 2px; }
+.rp-signoff__btn { margin-left: auto; flex: none; height: 48px; padding: 0 18px; border-radius: 15px; font-size: 14.5px; font-weight: 740; display: grid; place-items: center; }
+.rp-signoff__btn--off { background: #ECECF1; color: #9A99A8; }
+.rp-signoff__btn--on { background: var(--rp-gradient); color: #fff; box-shadow: var(--rp-primary-shadow); }

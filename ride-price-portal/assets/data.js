@@ -310,7 +310,7 @@ const RIDE_PRICE_DATA = {
     { id: "contracts", label: "Signed Contracts", group: "Financing Forms", code: 9 },
     { id: "creditmatch", label: "Signed Matching Credit App", group: "Financing Forms", code: 10 },
     { id: "fimenu", label: "F&I Menu Forms", group: "Financing Forms", code: 11 },
-    { id: "riskdisc", label: "Risk-Based Disclosure", group: "Financing Forms", code: 12 },
+    { id: "riskdisc", label: "Risk-Based Pricing Disclosure", group: "Financing Forms", code: 12 },
     { id: "insurance", label: "Auto Insurance Card (Binder)", group: "Financing Forms", code: 13 },
     { id: "title", label: "Sign Title / Duplicate Title Form", group: "Trade-In Forms", code: 14 },
     { id: "lienrel", label: "Lien Release Letter", group: "Trade-In Forms", code: 15 },
@@ -319,6 +319,9 @@ const RIDE_PRICE_DATA = {
        numbers, so new entries always take the next unused number */
     { id: "paystub", label: "Proof of Income (Paystub)", group: "Financing Forms", code: 17 },
     { id: "odometer", label: "Odometer Disclosure Statement", group: "Trade-In Forms", code: 18 },
+    { id: "tradetitle", label: "Trade Title", group: "Trade-In Forms", code: 20 },
+    { id: "tradereg", label: "Trade Registration", group: "Trade-In Forms", code: 21 },
+    { id: "payoff", label: "Payoff Statement", group: "Trade-In Forms", code: 22 },
     { id: "gapwaiver", label: "GAP Waiver / Addendum", group: "Financing Forms", code: 19 }
   ],
 
@@ -375,10 +378,11 @@ const RIDE_PRICE_DATA = {
      each is recorded honestly as taken in by hand, never as a machine
      check. Empty this array to have the demo start with nothing collected. */
   seedJacket: [
-    { id: "testdrive", note: "signed before the drive" },
-    { id: "form-appraisal", note: "" },
-    { id: "form-odometer", note: "" },
-    { id: "form-plates", note: "plates come off the trade" }
+    { id: "form-tradetitle", note: "read from the title he brought in" },
+    { id: "form-tradereg", note: "read from the registration he brought in" },
+    { id: "form-payoff", note: "read — expired 01/01/2025, override recorded" },
+    { id: "idverify-primary", note: "photo captured against the license, then discarded" },
+    { id: "testdrive", note: "signed before the drive — a record, not a funding requirement" }
   ],
 
   /* the documents the portal itself prints — the only ones it can ever
