@@ -6569,591 +6569,660 @@ route("present/:id", ({ id }) => {
 });
 
 /* ============================================================
-   VIEW: Finance Menu V3 (owner's replication package, 2026-08-29)
+   VIEW: Finance menu — the sign-off gate and four stages
+   (owner's package v034, 2026-09-04, on the UI kit v022.18)
    ============================================================
-   Manager sign-off gate, then four stages: Terms → Options → Forms →
-   Finalize. The package's copy rule is structural: no instructional
-   paragraph under an operational page title, so each screen explains
-   itself through labels, state, amounts and one dominant action.
+   Fourteen screens on one route, all of them the kit's Task: the customer's
+   full name in the bar, the deal number in the subtitle — legitimate here,
+   because this is after the F&I push (§16) — and one chip row that does not
+   wrap.
 
-   The persisted `menu.step` keeps its old 1..5 numbering — saved deals in
-   localStorage carry it and there is no migration — while the UI shows the
-   package's four stages. Step 2 remains the product presentation on its own
-   route, reached from Options rather than sitting in the stage row.
+   Four rules shape it, and none of them is cosmetic:
 
-   Every business rule the old five-step menu enforced survives: the gate's
-   required checks, the Team Lead's recorded jacket override, the initials
-   that select a program, the custom box's source column setting rate and
-   term, the withheld custom figure, the decline path's initials rule, the
-   trade-locked forms, the benefits acknowledgement gate, and the DMS push
-   recorded against the Team Lead who approved the deal. */
+   §22 — A CLOSEOUT CANNOT CONTRADICT ITS OWN READINESS. Required and optional
+   documents are different sets, and the finalize gate counts only what is
+   required to fund and deliver. Finalize is UNAVAILABLE while a required
+   document is missing — absent, with the missing documents named — and the
+   only way past it is an attributed Team Lead override that says what it will
+   record. The screen that follows an override says the deal was finalized
+   WITH documents outstanding, and lists them. "Finance complete" and "2
+   outstanding" never stand unqualified on one screen.
+
+   §23 — A DEAD-END SCREEN IS A BUG. The Advisor's gate names who it waits on
+   AND gives the Advisor the actions they have: ask the approver, or park the
+   deal and move to another desk task.
+
+   §24 — TOASTS ARE NOT STATE. "Approved by Jordan Reyes" and "Acknowledgment
+   signed" are rows on the screen, not pills that fade. Nothing that
+   disappears is the record of anything.
+
+   §22a / §22b — the ledger reconciles both ways (required filed of required
+   total, plus optional, and every change has a named cause on the screen that
+   caused it), and product money is derived: a package payment is the agreed
+   payment plus the amortization of the products it contains, so the delta on
+   the row always amortizes back to the products beside it.
+
+   Everything the five-step menu enforced survives: the persisted 1..5 step
+   under four stages, the gate's required three with the test drive advisory,
+   the custom column's withheld figure, its source column setting rate and
+   term, initials selecting a program, a decline being a recorded choice,
+   trade-locked forms, the acknowledgment gate, and the DMS push folded into
+   Finalize and recorded against the Team Lead who approved the deal. */
 route("menu/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
   const v = Store.vehicle(deal.stock);
-  /* a truthy stock is not a resolved vehicle. chips() reads v.year directly, so
-     a bookmark or a history entry for a deal whose unit has left the catalog
-     used to throw on render. Same destination as the Documents and print
-     guards: a completed deal's record is its jacket, an open one picks a unit. */
-  if (!v) return redirect(deal.stage === "complete" ? `#/jacket/${deal.id}` : `#/vehicles/${deal.id}`);
+  /* the menu needs a vehicle it can PRICE — a catalog unit. A deal carried by
+     its own snapshot has nothing to price, and its record is its jacket. */
+  if (!v) return navigate(deal.stage === "complete" ? `#/jacket/${deal.id}` : `#/vehicles/${deal.id}`);
   const c = Store.customer(deal.customerId);
   const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
   const isCash = deal.dealType === "cash";
   const progSet = RIDE_PRICE_DATA.programs[isLease ? "lease" : isCash ? "cash" : "finance"];
   const M = deal.menu;
   migrateMenuV5(deal);
+  const custName = `${c.first} ${c.last}`;
+  const lead = RIDE_PRICE_DATA.dealership.teamLead;
+  const timeUS = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   const colLabel = (key) => key === "custom" ? "Custom" : key === "none" ? "No products" : (progSet[key] || {}).label || key;
 
+  renderChrome("Finance Menu", "", "");
+  document.body.dataset.screen = "menu";
+  document.body.dataset.canvas = "kit";
+
+  const ui = { sheet: null, pack: null, packScroll: 0, taxOpen: false };
+  const sheets = chSheetOpener("fmScrim", "fmSheet", () => { ui.sheet = null; });
+  let buyers = null;
+
   /* ONE definition of a program's spec, so Options and Finalize cannot
-     disagree about what the client initialed — Finalize used to rebuild the
-     custom column with termAdj/aprAdj of 0 and quoted a different payment
-     than the one on the screen the client put their initials on. A program
-     that does not exist on this deal type (a finance deal switched to cash
-     after Budget was selected) resolves to null rather than throwing. */
+     disagree about what the client initialed. A program that does not exist
+     on this deal type resolves to null rather than throwing. */
   const programSpec = (key) => {
     if (key === "custom") {
       const src = M.customSource === "budget" && progSet.budget ? progSet.budget : null;
-      return { label: "Custom", products: M.custom,
-        termAdj: src ? src.termAdj : 0, aprAdj: src ? src.aprAdj : 0 };
+      return { label: "Custom", products: M.custom, termAdj: src ? src.termAdj : 0, aprAdj: src ? src.aprAdj : 0 };
     }
     return progSet[key] || null;
   };
-
-  /* The signed snapshot is frozen at signing time and carries only the fields
-     of the deal type it was calculated for. The desking screens can change
-     `dealType` afterwards without clearing it, and reading a finance snapshot
-     as a one-pay deal printed `$NaN` on the customer-facing card. A snapshot
-     from a different deal type is not this deal's snapshot. */
+  /* a snapshot from a different deal type is not this deal's snapshot */
   const snapshot = () => {
     const s = deal.basePayment && deal.basePayment.snapshot;
     return s && s.dealType === deal.dealType ? s : RIDE_PRICE_CALC.calc(deal, v);
   };
   if ((M.maxStep || 1) < M.step) { M.maxStep = M.step; Store.save(); }
-  /* a deal finalized before sign-off existed keeps its history honest */
   if (!deal.signoff && deal.stage === "complete") {
-    deal.signoff = { by: RIDE_PRICE_DATA.dealership.teamLead, at: deal.createdAt, backfilled: true }; Store.save();
+    deal.signoff = { by: lead, at: deal.createdAt, backfilled: true }; Store.save();
   }
-
-  /* the stage row is four; the persisted step is five. One map, both ways. */
   const STEP_OF = [1, 3, 4, 5];
   const STAGES = ["Terms", "Options", "Forms", "Finalize"];
   const stageOf = (step) => step >= 5 ? 3 : step >= 4 ? 2 : step >= 3 ? 1 : 0;
+  /* the agreed payment is the one the customer actually agreed to — the
+     re-presented figure when the lender moved the rate (§18), which is why
+     the menu prices at the approved rate and the original is history */
+  const agreed = () => {
+    const a = deal.creditApp;
+    const apr = creditLive(deal) && a.approvedApr != null ? a.approvedApr : deal.desk.apr;
+    const r = RIDE_PRICE_CALC.finance(deal, v, { apr, term: deal.desk.term });
+    return { apr, payment: r.payment, result: r };
+  };
 
-  let sheetKey = null;
-  function teardown() {
-    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
-    window.removeEventListener("hashchange", teardown);
-    const sc = $("#fmScrim"); if (sc) sc.classList.remove("show");
-  }
-  window.addEventListener("hashchange", teardown);
+  /* ---------- the kit pieces ---------- */
+  const chipRow = () => {
+    const led = jacketLedger(deal);
+    const buyersN = 1 + (deal.coBuyerId && Store.customer(deal.coBuyerId) ? 1 : 0);
+    return `<div class="rp-chiprow">
+      <button type="button" class="rp-chip" data-sheet-open="buyers">${rpGlyph("customers")}Buyers · ${buyersN}</button>
+      <a class="rp-chip" href="#/jacket/${esc(deal.id)}">${rpGlyph("document")}Jacket · ${led.filed}</a>
+      <a class="rp-chip" href="#/vehicles/${esc(deal.id)}">${rpGlyph("inventory")}${esc(v.stock)}</a>
+    </div>`;
+  };
+  const subLine = () => `<p class="rp-count" style="margin-bottom:12px">Deal #${esc(deal.dealNo)} · ${esc(custName)}</p>`;
+  const stageBar = (cur) => `<div class="rp-stages">${STAGES.map((n, i) => {
+    const done = i < cur;
+    return `<div class="rp-stage${i === cur ? " rp-stage--on" : done ? " rp-stage--done" : ""}">${done ? rpGlyph("check") + esc(n) : `${i + 1} ${esc(n)}`}</div>`;
+  }).join("")}</div>`;
+  const gateRows = (rows) => `<div class="rp-gate">${rows.map(r => `<div class="rp-gate__row">
+    <span class="rp-row__body"><span class="rp-gate__name">${esc(r.name)}</span><span class="rp-gate__sub">${esc(r.sub)}</span></span>
+    <span class="rp-status${r.state === "ok" ? " rp-status--positive" : r.state === "blocked" ? " rp-status--blocked" : ""}">${esc(r.status)}</span></div>`).join("")}</div>`;
+  const kvRow = (label, val, src) => `<div class="rp-kv__row${src ? " rp-kv__row--src" : ""}"><span>${label}</span><span>${val}</span>${src ? `<span class="rp-kv__src">${src}</span>` : ""}</div>`;
+  const kvBlock = (head, rows, foot) => `<div class="rp-kv">${head ? `<div class="rp-kv__head">${esc(head)}</div>` : ""}${rows.join("")}
+    ${foot ? `<div class="rp-kv__row" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">${esc(foot[0])}</span><span style="font-weight:760">${foot[1]}</span></div>` : ""}</div>`;
+  const priceCard = (label, amount, terms, extra) => `<div class="rp-price">
+    <div class="rp-price__label">${esc(label)}</div>
+    <div class="rp-price__amount">${amount}<small>${isCash || deal.dealType === "onepay" ? "total" : "/ mo"}</small></div>
+    <div class="rp-price__terms">${terms}</div>${extra || ""}</div>`;
+  const consequences = (title, items) => `<div class="rp-consequences"><strong>${esc(title)}</strong>
+    <ul>${items.map(x => `<li>${x}</li>`).join("")}</ul></div>`;
+  const doneNotice = (text) => `<div class="rp-notice rp-notice--success"><span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>${esc(text)}</div>`;
 
-  function openSheet(html, onMount) {
-    const sh = $("#fmSheet"); if (!sh) return;
-    sh.innerHTML = `<div class="m-handle"></div>${html}`;
-    $("#fmScrim").classList.add("show");
-    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
-    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
-    document.addEventListener("keydown", sheetKey, true);
-    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
-    if (onMount) onMount(sh);
-  }
-  function closeSheet() {
-    const sc = $("#fmScrim"); if (sc) sc.classList.remove("show");
-    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
-  }
-  const sheetHead = (title, sub) => `<div class="m-sheettop"><div><h2>${esc(title)}</h2>${sub ? `<p class="m-sheetsub">${esc(sub)}</p>` : ""}</div>
-    <button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>`;
-
-  const chips = () => `<div class="fm-chips">
-    ${deal.dealNo ? `<span class="fm-chip">Deal #${esc(deal.dealNo)}</span>` : ""}
-    <span class="fm-chip">${esc(c.first + " " + c.last)}</span>
-    <span class="fm-chip">${esc(v.year + " " + v.make + " " + v.model)}</span>
-    <a class="fm-chip fm-chip--link" href="#/jacket/${esc(deal.id)}">Jacket ${jacketCounts(deal).have}/${jacketCounts(deal).total}</a>
-  </div>`;
-
-  const shell = (eyebrow, title, body, dock) => `
-    <div class="m-app">
-      ${deskTop(deal)}
-      <main class="fm-main">
-        <div class="fm-eyebrow">${esc(eyebrow)}</div>
-        <h1 class="fm-title">${esc(title)}</h1>
-        ${chips()}
-        ${body}
-      </main>
-      ${dock || ""}
-    </div>
-    <div class="m-scrim" id="fmScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="fmSheet"></div></div>`;
-
-  /* the golden names the selected package on Options and the stage word
-     elsewhere — the dock says what you are about to act on */
-  const dock = (stageIdx, btnHtml, strong) => `<div class="fm-dock">
-    <div class="fm-dockcopy"><small>Step ${stageIdx + 1} of 4</small><strong>${esc(strong || STAGES[stageIdx])}</strong></div>
-    ${btnHtml}</div>`;
-
-  const stageRow = (activeIdx) => `<div class="fm-stages">
-    ${STAGES.map((s, i) => {
-      const reached = stageOf(Math.max(M.step, M.maxStep || 1)) >= i || deal.stage === "complete";
-      const cls = i === activeIdx ? "fm-stage fm-stage--on" : i < activeIdx ? "fm-stage fm-stage--done" : "fm-stage";
-      return `<button type="button" class="${cls}" data-stage="${i}"${reached ? "" : " disabled"}>${i < activeIdx ? "✓ " : (i + 1) + " "}${esc(s)}</button>`;
-    }).join("")}</div>`;
-
-  /* ---------- the gate: four upstream statuses, nothing recreated ---------- */
-  function gate() {
-    const jkc = jacketCounts(deal);
+  /* the jacket line every gate shows, in the ledger's own words (§22a) */
+  /* The sign-off override lets APPROVAL past a missing document; it does not
+     let the CLOSEOUT past one, and it never supplies the document. So the row
+     reads Override where that override is what unblocked the screen, and
+     Blocked at the finalize gate, where an earlier reason means nothing and
+     the only way through is its own attributed override (§22). */
+  const jacketRow = (atFinalize) => {
+    const led = jacketLedger(deal);
     const jov = jacketRead(deal).override;
-    const rows = [
-      { name: "Base payment agreement", sub: deal.basePayment && deal.basePayment.signedAt ? "Signed" : "Not signed", ok: !!(deal.basePayment && deal.basePayment.signedAt) },
-      /* a withdrawn application is not a live approval: removing a co-buyer
-         from a submitted joint application withdraws it, and the gate has to
-         read that rather than the approval that once existed (§21) */
-      { name: "Credit application", sub: creditLive(deal) ? "Approved" : deal.creditApp && deal.creditApp.withdrawnAt ? "Withdrawn" : deal.creditApp ? "Submitted" : "Not submitted", ok: creditLive(deal) },
-      { name: "Test drive", sub: deal.testDrive.done ? "Completed" : "Not completed", ok: !!deal.testDrive.done },
-      { name: "Deal Jacket", sub: jkc.missing ? (jov ? `Override recorded by ${jov.by}` : `${jkc.missing} item${jkc.missing === 1 ? "" : "s"} outstanding`) : "Complete", ok: !jkc.missing || !!jov }
-    ];
-    /* the test drive stays advisory, exactly as it always has — the required
-       three are the payment agreement, the credit decision and the jacket */
-    const blockers = rows.filter((r, i) => !r.ok && i !== 2);
-    const ready = blockers.length === 0;
-    const jacketBlocked = jkc.missing && !jov;
+    const excused = !!jov && !atFinalize;
+    return {
+      name: "Deal Jacket",
+      sub: led.ready
+        ? `${led.requiredFiled} of ${led.requiredTotal} required filed · ${led.optionalFiled} optional`
+        : `${led.requiredFiled} of ${led.requiredTotal} required filed · ${led.outstanding.length} outstanding`,
+      status: led.ready ? "Complete" : excused ? "Override" : "Blocked",
+      state: led.ready ? "ok" : excused ? "warn" : "blocked"
+    };
+  };
 
-    renderChrome("Manager Sign-Off", dealTitle(deal), "");
-    document.body.dataset.canvas = "master";
-    document.body.dataset.screen = "menu";
-    view().innerHTML = shell("Finance handoff", "Manager sign-off", `
-      <div class="fm-card">
-        <h2 class="fm-cardtitle">Ready for finance</h2>
-        <div class="fm-rows">
-          ${rows.map(r => `<div class="fm-row">
-            <div class="fm-rowmain"><div class="fm-rowname">${esc(r.name)}</div><div class="fm-rowsub">${esc(r.sub)}</div></div>
-            <span class="fm-pill${r.ok ? "" : " fm-pill--bad"}">${r.ok ? "Ready" : "Blocked"}</span>
-          </div>`).join("")}
-        </div>
-      </div>
-      ${isTeamLead() ? `
-        <div class="fm-actions">
-          ${jacketBlocked ? `<button type="button" class="fm-btn" id="fmResolve">Resolve Deal Jacket blocker</button>` : ""}
-          <button type="button" class="fm-btn fm-btn--primary" id="fmApprove"${ready ? "" : " disabled"}>Approve finance menu</button>
-        </div>`
-        : `<div class="fm-note">Waiting for Team Lead.</div>`}`);
-    wireDeskTop();
+  /* ---------- 01 / 02 / 03 · the sign-off gate ---------- */
+  function gateScreen() {
+    const led = jacketLedger(deal);
+    const jov = jacketRead(deal).override;
+    const a = deal.creditApp;
+    const rows = [
+      { name: "Base payment agreement", sub: deal.basePayment && deal.basePayment.signedAt ? `Signed ${timeUS(deal.basePayment.signedAt)}` : "Not signed",
+        status: deal.basePayment && deal.basePayment.signedAt ? "Ready" : "Blocked", state: deal.basePayment && deal.basePayment.signedAt ? "ok" : "blocked" },
+      { name: "Credit application",
+        sub: creditLive(deal) ? `Approved · ${a.lender} · ${a.approvedApr != null ? a.approvedApr : a.qualifiedApr}% APR`
+          : a && a.withdrawnAt ? "Withdrawn with the co-buyer" : a ? "Submitted" : "Not submitted",
+        status: creditLive(deal) ? "Ready" : "Blocked", state: creditLive(deal) ? "ok" : "blocked" },
+      /* the test drive is recorded and does not block — it is advisory, and
+         the word on the row says so rather than a pill that looks like a gate */
+      { name: "Test drive", sub: deal.testDrive.done ? `Completed${deal.testDrive.completedMiles ? ` · ${deal.testDrive.completedMiles} miles` : ""}` : "Not completed", status: "Advisory", state: "" },
+      jacketRow()
+    ];
+    const blockers = rows.filter((r, i) => r.state === "blocked" && i !== 2);
+    const canApprove = blockers.length === 0 || (blockers.length === 1 && blockers[0].name === "Deal Jacket" && jov);
+    const req = M.approvalRequestedAt;
+
+    const approvalKv = isTeamLead()
+      ? kvBlock("Approval", [
+        kvRow("Requested", req ? `${esc(timeUS(req))} · by the ${esc(M.approvalRequestedBy || "advisor")}` : "Not yet requested"),
+        kvRow("Yours to approve", `${esc(lead)} · Team Lead`)])
+      : kvBlock("Approval", [
+        kvRow("Yours to approve", "No — Advisor"),
+        kvRow("Waiting on", `${esc(lead)} · Team Lead`),
+        ...(req ? [kvRow("Requested", `${esc(timeUS(req))} · by you`)] : [])]);
+
+    const resolveRow = isTeamLead() && !led.ready && !jov ? `<div class="rp-group">
+      <button type="button" class="rp-row" data-sheet-open="override"><span class="rp-tile">${rpGlyph("document")}</span>
+        <span class="rp-row__body"><span class="rp-row__title">Resolve the Deal Jacket blocker</span>
+          <span class="rp-row__sub">${esc(led.outstanding.slice(0, 2).map(d => d.label).join(" · "))}${led.outstanding.length > 2 ? ` · and ${led.outstanding.length - 2} more` : ""}</span></span>
+        <span class="rp-row__chevron"></span></button></div>` : "";
+
+    const content = `<div class="rp-eyebrow">Finance handoff</div>
+      <h1 class="rp-title" style="font-size:26px">Manager sign-off</h1>
+      ${subLine()}${chipRow()}
+      ${gateRows(rows)}
+      ${approvalKv}
+      ${jov ? doneNotice(`Override recorded ${timeUS(jov.at)} by ${jov.by} — ${jov.reason}`) : ""}
+      ${resolveRow}`;
+
+    /* §23: the waiting role gets the actions it actually has */
+    const dock = isTeamLead()
+      ? (canApprove
+        ? chDock(`<button type="button" class="rp-primary" id="fmApprove">Approve finance menu</button>`)
+        : `<div class="rp-dock"><div class="rp-gatenote">Approve stays unavailable while a required document is outstanding</div>
+            <button type="button" class="rp-primary" disabled>Approve finance menu</button></div>`)
+      : `<div class="rp-dock"><div class="rp-gatenote">An Advisor cannot approve the finance menu</div>
+          <button type="button" class="rp-primary" id="fmAsk">${req ? `${esc(lead)} has been asked` : `Ask ${esc(lead)} to approve`}</button>
+          <button type="button" class="rp-link" id="fmPark">Park the deal</button></div>`;
+    paint(content, dock, "rp-screen--gate");
 
     const ap = $("#fmApprove");
-    if (ap && !ap.disabled) ap.onclick = () => {
-      deal.signoff = { by: RIDE_PRICE_DATA.dealership.teamLead, at: new Date().toISOString() };
-      Store.save();
-      toast("Approved by " + RIDE_PRICE_DATA.dealership.teamLead);
-      render();
+    if (ap) ap.onclick = () => {
+      /* the approval is a ROW on the next screen, not a toast (§24) */
+      deal.signoff = { by: lead, at: new Date().toISOString() };
+      Store.save(); draw();
     };
-    const rs = $("#fmResolve");
-    if (rs) rs.onclick = () => openSheet(`${sheetHead("Resolve Deal Jacket blocker", "Override records a reason; missing documents remain missing.")}
-      <div class="fm-field"><label for="fmReason">Reason</label>
-        <textarea class="fm-input" id="fmReason" rows="3" maxlength="160" placeholder="e.g. Lien release confirmed and funding lock reviewed"></textarea></div>
-      <div class="fm-actions">
-        <button type="button" class="fm-btn fm-btn--primary" id="fmReasonGo">Record override</button>
-        <button type="button" class="fm-btn" data-sheet-close>Cancel</button>
-      </div>`, (sh) => {
-        $("#fmReasonGo", sh).onclick = () => {
-          const reason = ($("#fmReason", sh).value || "").trim();
-          if (!reason) { $("#fmReason", sh).style.borderColor = "var(--fm-bad)"; return; }
-          jacketOf(deal).override = { by: RIDE_PRICE_DATA.dealership.teamLead, at: new Date().toISOString(), reason };
-          Store.save(); closeSheet(); toast("Override recorded"); render();
-        };
-      });
+    const ask = $("#fmAsk");
+    if (ask) ask.onclick = () => {
+      M.approvalRequestedAt = M.approvalRequestedAt || new Date().toISOString();
+      M.approvalRequestedBy = "advisor";
+      Store.save(); draw();
+    };
+    const park = $("#fmPark");
+    if (park) park.onclick = () => {
+      M.approvalRequestedAt = M.approvalRequestedAt || new Date().toISOString();
+      M.approvalRequestedBy = "advisor";
+      Store.save(); navigate("#/deals");
+    };
   }
 
-  /* ---------- stage 1: Terms ---------- */
-  function terms() {
+  /* ---------- stage 1 · the terms ---------- */
+  function termsScreen() {
+    const ag = agreed();
     const snap = snapshot();
-    const q = deal.creditApp || {};
-    const qualified = !isCash && !isLease && q.approved
-      ? RIDE_PRICE_CALC.finance(deal, v, { apr: q.qualifiedApr, term: deal.desk.term }) : null;
-    /* cash and lease quote a total, not a monthly payment — the pair is
-       labelled from the deal type, never suffixed blind (calc.js isTotal) */
-    const isOnePay = deal.dealType === "onepay";
-    const agreedAmt = isCash ? snap.totalDue : isOnePay ? snap.onePayTotal : snap.payment;
-    const agreedLab = isCash ? "Cash total" : isOnePay ? "One-pay total" : "Agreed payment";
-    const agreedSub = isCash ? "Total due" : isOnePay ? `Paid in full · ${snap.term} mo lease`
-      : isLease ? `${snap.term} mo lease` : `${snap.term} mo @ ${snap.apr}%`;
-    const feeNames = isLease
-      ? "acquisition fee, cap cost reduction tax, monthly sales tax"
-      /* a summary line, not the itemisation — the rates and the word "fee"
-         belong in the sheet behind View, and carrying them here wrapped the
-         card to twice the golden height */
-      : (snap.taxes && snap.taxes.rows || []).map(t => t.label).concat(RIDE_PRICE_DATA.fees.map(f => f.label))
-          .map(l => l.replace(/\s*@.*$/, "").replace(/\s+fee$/i, "")).join(", ").toLowerCase();
-
-    const say = isCash
-      ? `“The total due is ${money(snap.totalDue)}. If you financed instead, the payment would be ${money(RIDE_PRICE_CALC.finance(deal, v, { apr: deal.desk.apr, term: deal.desk.term }).payment)} a month. Next we'll review your protection choices.”`
-      : isOnePay
-        /* a one-pay lease has no monthly payment — snap.payment is 0 here, so
-           the lease sentence would read "$0.00 a month" */
-        ? `“Your one-pay total is ${money(snap.onePayTotal)}, paid in full at signing for the full ${snap.term} months. The lease-end value is ${money(snap.residual)}. Next we'll review your protection choices.”`
-      : isLease
-        ? `“Your payment is ${money(snap.payment)} a month for ${snap.term} months, including ${money(snap.monthlyTax)} of monthly sales tax. The lease-end value is ${money(snap.residual)}. Next we'll review your protection choices.”`
-        : qualified
-          ? `“Earlier we agreed to ${money(snap.payment)} for ${snap.term} months at ${snap.apr}%. You qualified at ${q.qualifiedApr}%, which changes the base payment to ${money(qualified.payment)}. Next we'll review your protection choices.”`
-          : `“Earlier we agreed to ${money(snap.payment)} for ${snap.term} months at ${snap.apr}%. Once the credit application comes back we'll confirm the qualified payment. Next we'll review your protection choices.”`;
-
-    body(0, `
-      <div class="fm-card">
-        <h2 class="fm-cardtitle">Payment comparison</h2>
-        <div class="fm-pair">
-          <div class="fm-quote"><div class="fm-quotelab">${agreedLab}</div>
-            <div class="fm-quoteamt">${money(agreedAmt)}</div><div class="fm-quotesub">${esc(agreedSub)}</div></div>
-          <div class="fm-quote"><div class="fm-quotelab">Qualified payment</div>
-            <div class="fm-quoteamt">${qualified ? money(qualified.payment) : "—"}</div>
-            <div class="fm-quotesub">${qualified ? `${qualified.term} mo @ ${q.qualifiedApr}%` : isCash || isLease ? "Not applicable" : "Awaiting credit"}</div></div>
-        </div>
-        <div class="fm-split">
-          <div class="fm-splitmain"><div class="fm-splittitle">Taxes &amp; fees</div>
-            <div class="fm-splitsub">${esc(feeNames)}</div></div>
-          <button type="button" class="fm-view" id="fmFees">View</button>
-        </div>
+    const a = deal.creditApp || {};
+    const r = ag.result;
+    const totalOfPayments = RIDE_PRICE_CALC.round2(ag.payment * deal.desk.term);
+    const historyRows = [];
+    if (creditLive(deal) && a.agreedApr != null && a.agreedApr !== ag.apr && a.agreedPayment != null) {
+      historyRows.push(kvRow("Originally presented", `${money(a.agreedPayment)} / mo · ${esc(String(a.agreedApr))}% APR`));
+      historyRows.push(kvRow("Re-presented and agreed", `${esc(a.submitted ? timeUS(a.submitted) : "")} · ${esc(String(ag.apr))}% APR`));
+    }
+    const content = `<div class="rp-eyebrow">Finance menu</div>
+      <h1 class="rp-title" style="font-size:26px">Review the deal terms</h1>
+      ${subLine()}${chipRow()}
+      ${stageBar(0)}
+      ${priceCard("Agreed payment", isCash ? money(snap.totalDue) : money(ag.payment),
+        isCash ? `${esc(v.year + " " + v.model)} · cash, no financing`
+          : `${deal.desk.term} months · ${esc(String(ag.apr))}% APR · ${money0(deal.desk.downPayment)} down`)}
+      ${historyRows.length ? kvBlock("Rate history", historyRows) : ""}
+      <div class="rp-acc">
+        <button type="button" class="rp-acc__head" style="width:100%" data-sheet-open="fees">Taxes &amp; fees
+          <span class="rp-acc__sum">${money(r.fees + r.taxes.total)}</span>${rpGlyph("chevron")}</button>
       </div>
-      <div class="fm-card">
-        <h2 class="fm-cardtitle">Customer explanation</h2>
-        <p class="fm-say">${esc(say)}</p>
-      </div>`,
-      dock(0, `<button type="button" class="fm-dockbtn" id="fmNext">${M.termsPresented ? "Continue" : "Mark presented"}</button>`));
-
-    $("#fmFees").onclick = () => {
-      const rows = isLease
-        /* derive the combined row rather than reading snap.payment: onePay()
-           zeroes payment while keeping the lease-derived components, so
-           reading it printed $0.00 directly under the two figures it is the
-           sum of. lease() defines payment as exactly this sum. */
-        ? [["Monthly base payment", snap.basePayment], ["Sales tax on base payment", snap.monthlyTax],
-           ["Base payment with taxes", RIDE_PRICE_CALC.round2(snap.basePayment + snap.monthlyTax)],
-           ["Acquisition fee", snap.acquisitionFee],
-           ["Sales tax on cap cost reduction", snap.ccrTax]]
-        : (snap.taxes && snap.taxes.rows || []).map(t => [t.label, t.amount]).concat(RIDE_PRICE_DATA.fees.map(f => [f.label, f.amount]));
-      const total = isLease
-        ? ["Total due at signing", deal.dealType === "onepay" ? snap.onePayTotal : deal.desk.dueAtSigning]
-        : [isCash ? "Total due" : "Amount financed", isCash ? snap.totalDue : snap.amountFinanced];
-      openSheet(`${sheetHead("Taxes & fees", esc(RIDE_PRICE_DATA.dealership.state || "New York") + " · itemised")}
-        <ul class="fm-lines">
-          ${rows.map(r => `<li><span>${esc(r[0])}</span><b>${money(r[1])}</b></li>`).join("")}
-          <li class="fm-total"><span>${esc(total[0])}</span><b>${money(total[1])}</b></li>
-        </ul>`);
-    };
+      ${kvBlock("Structure", [
+        kvRow("Amount financed", money(r.amountFinanced)),
+        kvRow("Total of payments", money(totalOfPayments))])}`;
+    const dock = `<div class="rp-dock">
+      ${deal.signoff ? `<div class="rp-gatenote">Approved ${esc(timeUS(deal.signoff.at))} by ${esc(deal.signoff.by)}</div>` : ""}
+      <button type="button" class="rp-primary" id="fmNext">${M.termsPresented ? "Continue" : "Mark presented"}</button></div>`;
+    paint(content, dock, "rp-screen--gate");
     $("#fmNext").onclick = () => {
-      if (!M.termsPresented) { M.termsPresented = true; Store.save(); }
+      if (!M.termsPresented) { M.termsPresented = true; M.termsPresentedAt = new Date().toISOString(); Store.save(); }
       go(1);
     };
   }
 
-  /* ---------- stage 2: Options ---------- */
-  let pack = null, packScroll = 0;
-  function options() {
+  /* ---------- stage 2 · the packages ---------- */
+  function optionsScreen() {
     const cols = Object.entries(progSet).map(([key, p]) => RIDE_PRICE_CALC.menuColumn(deal, v, key, p));
     const customResult = RIDE_PRICE_CALC.menuColumn(deal, v, "custom", programSpec("custom"));
-    if (!pack) pack = M.selectedProgram && M.selectedProgram !== "none" ? M.selectedProgram : cols[0].key;
-    const isCustom = pack === "custom";
-    const col = isCustom ? customResult : (cols.find(x => x.key === pack) || cols[0]);
-    /* Custom withholds its figure until the advisor reveals it — the dock
+    if (!ui.pack) ui.pack = M.selectedProgram && M.selectedProgram !== "none" ? M.selectedProgram : cols[0].key;
+    const isCustom = ui.pack === "custom";
+    const col = isCustom ? customResult : (cols.find(x => x.key === ui.pack) || cols[0]);
+    const ag = agreed();
+    /* Custom withholds its figure until the advisor reveals it, and the dock
        must not leak what the panel is concealing */
     const hidden = isCustom && !M.showCustomPay;
-    const suffix = col.isTotal ? "" : "<small>/mo</small>";
     const shownProducts = isCustom ? M.custom : col.products.filter(pid => !M.custom.includes(pid));
+    const delta = RIDE_PRICE_CALC.round2(col.payment - ag.payment);
 
-    body(1, `
-      <div class="fm-packs">
-        ${[...cols.map(x => ({ key: x.key, label: x.label })), { key: "custom", label: "Custom" }]
-          .map(t => `<button type="button" class="fm-pack${pack === t.key ? " fm-pack--on" : ""}" data-pack="${esc(t.key)}">${esc(t.label)}</button>`).join("")}
-      </div>
-      <div class="fm-card">
-        <div class="fm-paylab">${esc(col.label)} ${col.isTotal ? "total" : "payment"}</div>
-        <div class="fm-payamt">${hidden ? "— — —" : money(col.payment)}${hidden ? "" : suffix}</div>
-        <div class="fm-paysub">${hidden ? "Reveal the payment when you are ready" : esc(col.detail)}</div>
-        ${hidden ? `<div class="fm-actions"><button type="button" class="fm-btn" id="fmReveal">Show custom payment</button></div>` : ""}
-        <div class="fm-prods">
-          ${shownProducts.length ? shownProducts.map(pid => {
-            const p = RIDE_PRICE_CALC.productById(pid);
-            return `<div class="fm-prod">
-              <span class="fm-prodtick">✓</span>
-              <span class="fm-prodmain">${esc(p.name)} — ${esc(p.detail)}<span class="fm-prodprice"> · ${money0(p.price)}</span></span>
-              ${isCustom
-                ? `<button type="button" class="fm-move" data-return="${esc(pid)}">Remove</button>`
-                : `<button type="button" class="fm-move" data-move="${esc(pid)}" data-src="${esc(col.key)}">→ Custom</button>`}
-            </div>`;
-          }).join("") : `<div class="fm-empty">${isCustom
-            ? "Send products here from another package to build a custom program. The first product's package sets the rate and term."
-            : "Every product in this package has been moved to Custom."}</div>`}
-        </div>
-      </div>
-      <div class="fm-card">
-        <div class="fm-split" style="margin-top:0;padding-top:0;border-top:0">
-          <div class="fm-splitmain"><div class="fm-splittitle">Product presentation</div>
-            <div class="fm-splitsub">${M.presented ? "Presented to the customer" : "Present each product before the payment"}</div></div>
-          <a class="fm-view" href="#/present/${esc(deal.id)}">${M.presented ? "Re-present" : "Present"}</a>
-        </div>
-      </div>
-      ${M.selectedProgram && M.selectedProgram !== "none" ? `<div class="fm-card">
-        <h2 class="fm-cardtitle">Accepted</h2>
-        <div class="fm-row"><div class="fm-rowmain"><div class="fm-rowname">${esc(colLabel(M.selectedProgram))}</div>
-          <div class="fm-rowsub">Initials ${esc(M.initials || "—")}</div></div><span class="fm-tick">✓</span></div>
-      </div>` : ""}`,
-      dock(1, `<button type="button" class="fm-dockbtn" id="fmAccept">${M.selectedProgram && M.selectedProgram !== "none" ? "Continue" : `Accept ${esc(col.label)}`}</button>
-        <button type="button" class="fm-docklink" id="fmNone">No products</button>`, col.label));
+    const pkgRow = `<div class="rp-pkg">${[...cols.map(x => ({ key: x.key, label: x.label })), { key: "custom", label: "Custom" }]
+      .map(t => `<button type="button" class="rp-pkg__item${ui.pack === t.key ? " rp-pkg__item--on" : ""}" data-pack="${esc(t.key)}">${esc(t.label)}</button>`).join("")}</div>`;
 
-    /* options() rebuilds the whole view, and the pill row scrolls when the
-       lease programs' long labels overflow it. Without this the row snaps
-       back to the start on every tap and the pill the user just pressed
-       jumps out from under their finger. */
-    const packRow = $(".fm-packs");
-    if (packRow && packScroll) packRow.scrollLeft = packScroll;
+    const payCard = hidden
+      ? `<div class="rp-price"><div class="rp-withheld"><div class="rp-withheld__label">Custom payment</div>
+          <div class="rp-withheld__mask">$&bull;&bull;&bull;.&bull;&bull;</div>
+          <div class="rp-price__terms">Reveal it when you are ready to present</div></div>
+          <div style="height:8px"></div>
+          <button type="button" class="rp-button-navy" style="width:100%;height:44px;border-radius:14px" id="fmReveal">Show custom payment</button></div>`
+      /* every package payment states its difference from the agreed payment,
+         so a bigger number never appears without the delta beside it (§22b) */
+      : priceCard(`${col.label} ${col.isTotal ? "total" : "payment"}`, money(col.payment),
+        `${col.term || deal.desk.term} months · ${esc(String(col.apr != null ? col.apr : ag.apr))}% APR${delta > 0 ? ` · +${money(delta)} over the agreed payment` : delta < 0 ? ` · ${money(delta)} against the agreed payment` : " · the agreed payment"}`);
+
+    const products = shownProducts.length
+      ? `<div class="rp-group">${shownProducts.map(pid => {
+        const p = RIDE_PRICE_CALC.productById(pid);
+        return `<div class="rp-product"><span class="rp-product__tick">${rpGlyph("check")}</span>
+          <span class="rp-row__body"><span class="rp-product__name">${esc(p.name)}</span>
+            <span class="rp-product__terms">${esc(p.detail)} · ${money0(p.price)}</span></span>
+          ${isCustom
+            ? `<button type="button" class="rp-product__action" data-return="${esc(pid)}">Remove</button>`
+            : `<button type="button" class="rp-product__action" data-move="${esc(pid)}" data-src="${esc(col.key)}">&rarr; Custom</button>`}</div>`;
+      }).join("")}</div>`
+      : `<div class="rp-empty"><strong>${isCustom ? "The custom box is empty" : "Everything moved to Custom"}</strong>${isCustom
+        ? "Send products here from another package. The first product's package sets the rate and term."
+        : "Every product in this package has been moved across."}</div>`;
+
+    const content = `<div class="rp-eyebrow">Finance menu</div>
+      <h1 class="rp-title" style="font-size:26px">Choose a protection package</h1>
+      ${subLine()}${chipRow()}
+      ${stageBar(1)}
+      ${M.termsPresentedAt ? doneNotice(`Terms marked presented ${timeUS(M.termsPresentedAt)}`) : ""}
+      ${pkgRow}
+      ${payCard}
+      ${products}
+      <div class="rp-group"><a class="rp-row" href="#/present/${esc(deal.id)}"><span class="rp-tile">${rpGlyph("document")}</span>
+        <span class="rp-row__body"><span class="rp-row__title">${M.presented ? "Re-present the products" : "Present each product"}</span>
+          <span class="rp-row__sub">${M.presented ? "Presented to the customer" : "Before the payment, one at a time"}</span></span>
+        <span class="rp-row__chevron"></span></a></div>
+      ${M.selectedProgram && M.selectedProgram !== "none"
+        ? doneNotice(`Accepted ${colLabel(M.selectedProgram)} · initials ${M.initials || "—"}${M.acceptedAt ? ` · ${timeUS(M.acceptedAt)}` : ""}`)
+        : M.selectedProgram === "none" ? doneNotice(`Continued without products · initials ${M.initials || "—"}`) : ""}`;
+
+    const dock = M.selectedProgram
+      ? chDock(`<button type="button" class="rp-primary" id="fmGo">Continue</button>`)
+      : chDock(`<button type="button" class="rp-primary" id="fmAccept">Accept ${esc(col.label)}</button>`,
+        `<button type="button" class="rp-link" id="fmNone">Continue without products</button>`);
+    paint(content, dock);
+
+    const packRow = $(".rp-pkg");
+    if (packRow && ui.packScroll) packRow.scrollLeft = ui.packScroll;
     $$("[data-pack]").forEach(b => b.onclick = () => {
-      const row = $(".fm-packs");
-      packScroll = row ? row.scrollLeft : 0;
-      pack = b.dataset.pack; options();
+      const row = $(".rp-pkg"); ui.packScroll = row ? row.scrollLeft : 0;
+      ui.pack = b.dataset.pack; draw();
     });
-    const rev = $("#fmReveal"); if (rev) rev.onclick = () => { M.showCustomPay = true; Store.save(); options(); };
+    const rev = $("#fmReveal"); if (rev) rev.onclick = () => { M.showCustomPay = true; Store.save(); draw(); };
     $$("[data-move]").forEach(b => b.onclick = () => {
       const pid = b.dataset.move, src = b.dataset.src;
-      /* the old menu guarded against a cash deal pulling from Budget with a
-         blocked toast. A cash deal has no Budget program to pull from, so the
-         guard could never fire — the absence of the column is the rule now,
-         and a customSource left over from a finance session is neutralised
-         where the adjustment is read, not here. */
       if (!M.custom.length) M.customSource = src;
       if (!M.custom.includes(pid)) M.custom.push(pid);
-      M.showCustomPay = false; Store.save(); options();
+      M.showCustomPay = false; Store.save(); ui.pack = "custom"; draw();
     });
     $$("[data-return]").forEach(b => b.onclick = () => {
       M.custom = M.custom.filter(x => x !== b.dataset.return);
       if (!M.custom.length) M.customSource = null;
-      M.showCustomPay = false; Store.save(); options();
+      M.showCustomPay = false; Store.save(); draw();
     });
-
-    $("#fmAccept").onclick = () => {
-      if (M.selectedProgram && M.selectedProgram !== "none") return go(2);
-      if (isCustom && !M.custom.length) return toast("The custom box is empty — add a product first");
-      openSheet(`${sheetHead("Accept " + col.label, hidden ? "" : money(col.payment) + (col.isTotal ? " total" : " per month"))}
-        <div class="fm-field"><label for="fmIni">Client initials</label>
-          <input class="fm-input" id="fmIni" maxlength="4" placeholder="JS" autocomplete="off"></div>
-        <div class="fm-actions"><button type="button" class="fm-btn fm-btn--primary" id="fmIniGo">Accept package</button></div>`,
-        (sh) => {
-          const inp = $("#fmIni", sh); inp.focus();
-          $("#fmIniGo", sh).onclick = () => {
-            const val = (inp.value || "").trim();
-            if (!val) { inp.style.borderColor = "var(--fm-bad)"; return; }
-            M.selectedProgram = pack; M.initials = val; Store.save();
-            closeSheet(); toast("Client initialed: " + col.label); go(2);
-          };
-        });
+    const go2 = $("#fmGo"); if (go2) go2.onclick = () => go(2);
+    const acc = $("#fmAccept");
+    if (acc) acc.onclick = () => {
+      if (isCustom && !M.custom.length) return;
+      ui.sheet = "accept"; draw();
     };
-    $("#fmNone").onclick = () => {
-      /* one confirmation, and never a blocked toast for the custom box:
-         declining clears what was built rather than refusing (package) */
-      openSheet(`${sheetHead("Continue without products", "The customer declines every optional product.")}
-        <div class="fm-field"><label for="fmDecIni">Client initials</label>
-          <input class="fm-input" id="fmDecIni" maxlength="4" placeholder="JS" autocomplete="off"></div>
-        <p class="jk2-privacy">The benefits acknowledgement on the next step records the refusal.${M.custom.length ? " The custom box is cleared." : ""}</p>
-        <div class="fm-actions"><button type="button" class="fm-btn fm-btn--primary" id="fmDecGo">Continue without products</button></div>`,
-        (sh) => {
-          const inp = $("#fmDecIni", sh); inp.focus();
-          $("#fmDecGo", sh).onclick = () => {
-            const val = (inp.value || "").trim();
-            if (!val) { inp.style.borderColor = "var(--fm-bad)"; return; }
-            M.selectedProgram = "none"; M.initials = val;
-            M.custom = []; M.customSource = null; M.showCustomPay = false;
-            Store.save(); closeSheet(); go(2);
-          };
-        });
-    };
+    const none = $("#fmNone"); if (none) none.onclick = () => { ui.sheet = "decline"; draw(); };
   }
 
-  /* ---------- stage 3: Forms ---------- */
-  function forms() {
+  /* ---------- stage 3 · disclosures and forms ---------- */
+  function formsScreen() {
     const reqForms = requiredTradeForms(deal);
     reqForms.forEach(fid => { if (!deal.forms.selected.includes(fid)) deal.forms.selected.push(fid); });
     if (reqForms.length) Store.save();
     const chosen = deal.forms.selected.length;
-
-    body(2, `
-      <div class="fm-card">
-        <h2 class="fm-cardtitle">Benefits acknowledgement</h2>
-        <p class="fm-say">The benefits and protection options available have been explained, and the customer may choose or refuse optional products.</p>
-        ${M.ackSigned
-          ? `<div class="fm-split"><div class="fm-splitmain"><div class="fm-splittitle">${esc(M.ackName || c.first + " " + c.last)}</div>
-              <div class="fm-splitsub">Signed · initials ${esc(M.initials || "—")}</div></div>
-              <span class="fm-pill">Signed</span></div>`
-          : `<div class="fm-actions"><button type="button" class="fm-btn fm-btn--primary" id="fmSign">Client signs acknowledgement</button></div>`}
-      </div>
-      <div class="fm-card">
-        <div class="fm-split" style="margin-top:0;padding-top:0;border-top:0">
-          <div class="fm-splitmain"><div class="fm-splittitle">Additional deal forms</div>
-            <div class="fm-splitsub">${chosen ? `${chosen} selected` : "None selected"}</div></div>
-          <button type="button" class="fm-view" id="fmForms">Choose</button>
-        </div>
-      </div>`,
-      dock(2, `<button type="button" class="fm-dockbtn" id="fmNext"${M.ackSigned ? "" : " disabled"}>Continue</button>`));
-
-    const sign = $("#fmSign");
-    if (sign) sign.onclick = () => openSheet(`${sheetHead("Benefits acknowledgement", c.first + " " + c.last)}
-      <p class="jk2-privacy">The benefits and protection option(s) available have been explained to me/us and I/we choose the option(s) initialed (${esc(M.initials || "—")}). I/We hold the Dealer harmless for my/our refusal of any optional benefit or protection.</p>
-      <div class="fm-sig">${esc(c.first + " " + c.last)}</div>
-      <div class="fm-actions"><button type="button" class="fm-btn fm-btn--primary" id="fmSignGo">Sign acknowledgement</button></div>`,
-      (sh) => {
-        $("#fmSignGo", sh).onclick = () => {
-          M.ackSigned = true; M.ackName = c.first + " " + c.last; Store.save();
-          closeSheet(); toast("Acknowledgement signed"); forms();
-        };
-      });
-
-    $("#fmForms").onclick = () => {
-      const groups = {};
-      RIDE_PRICE_DATA.dealForms.forEach(f => { (groups[f.group] = groups[f.group] || []).push(f); });
-      openSheet(`${sheetHead("Additional deal forms", "Anything the trade requires is selected and locked.")}
-        ${Object.entries(groups).map(([g, list]) => `
-          <div class="fm-grouplab">${esc(g)}</div>
-          ${list.map(f => { const locked = reqForms.includes(f.id);
-            return `<label class="fm-formrow"><input type="checkbox" data-form="${esc(f.id)}"${deal.forms.selected.includes(f.id) ? " checked" : ""}${locked ? " disabled" : ""}>
-              <span class="fm-formmain">${esc(f.label)}${locked ? `<span class="fm-formlock">required by the trade</span>` : ""}</span></label>`;
-          }).join("")}`).join("")}
-        <div class="fm-actions"><button type="button" class="fm-btn fm-btn--primary" data-sheet-close>Done</button></div>`,
-        (sh) => {
-          $$("[data-form]", sh).forEach(cb => cb.onchange = () => {
-            const picked = $$("[data-form]", sh).filter(x => x.checked).map(x => x.dataset.form);
-            /* locked forms are disabled inputs and never report checked —
-               put them back or the trade's paperwork quietly disappears */
-            reqForms.forEach(fid => { if (!picked.includes(fid)) picked.push(fid); });
-            deal.forms.selected = picked; Store.save();
-          });
-        });
-    };
+    /* required and optional are SEPARATE (§22): the acknowledgment blocks
+       Continue, additional forms never do */
+    const rows = [
+      { name: "Benefits acknowledgment", sub: M.ackSigned ? `Signed${M.ackSignedAt ? ` ${timeUS(M.ackSignedAt)}` : ""} · ${M.ackName || custName}` : "Required · records what was offered and what was refused",
+        status: M.ackSigned ? "Complete" : "Not signed", state: M.ackSigned ? "ok" : "blocked" },
+      { name: "Additional deal forms", sub: chosen ? `Optional · ${chosen} selected` : "Optional · none selected", status: "Optional", state: "" }
+    ];
+    const content = `<div class="rp-eyebrow">Finance menu</div>
+      <h1 class="rp-title" style="font-size:26px">Disclosures &amp; forms</h1>
+      ${subLine()}${chipRow()}
+      ${stageBar(2)}
+      ${gateRows(rows)}
+      <div class="rp-group">
+        ${M.ackSigned ? "" : `<button type="button" class="rp-row" data-sheet-open="ack"><span class="rp-tile">${rpGlyph("document")}</span>
+          <span class="rp-row__body"><span class="rp-row__title">Client signs the acknowledgment</span><span class="rp-row__sub">On this device</span></span>
+          <span class="rp-row__chevron"></span></button>`}
+        <button type="button" class="rp-row" data-sheet-open="catalog"><span class="rp-tile">${rpGlyph("document")}</span>
+          <span class="rp-row__body"><span class="rp-row__title">Choose additional forms</span><span class="rp-row__sub">Anything the trade requires is already selected</span></span>
+          <span class="rp-row__chevron"></span></button>
+      </div>`;
+    const dock = M.ackSigned
+      ? chDock(`<button type="button" class="rp-primary" id="fmNext">Continue</button>`)
+      : `<div class="rp-dock"><div class="rp-gatenote">Continue stays unavailable until the acknowledgment is signed</div>
+          <button type="button" class="rp-primary" disabled>Continue</button></div>`;
+    paint(content, dock, "rp-screen--gate");
     const nx = $("#fmNext");
-    if (nx && !nx.disabled) nx.onclick = () => { deal.stage = "forms"; Store.save(); go(3); };
+    if (nx) nx.onclick = () => { deal.stage = "forms"; Store.save(); go(3); };
   }
 
-  /* ---------- stage 4: Finalize ---------- */
-  function finalize() {
-    if (deal.forms.finalized) return finalized();
+  /* ---------- stage 4 · the closeout ---------- */
+  function finalizeScreen() {
+    if (deal.forms.finalized) return finalizedScreen();
     const selKey = M.selectedProgram;
     const spec = selKey && selKey !== "none" ? programSpec(selKey) : null;
-    const purchased = spec ? spec.products : [];
     const colResult = spec ? RIDE_PRICE_CALC.menuColumn(deal, v, selKey, spec) : null;
-    const snap = snapshot();
-    const jkc = jacketCounts(deal);
-    const jov = jacketRead(deal).override;
-    const ready = [
-      { name: "Manager sign-off", sub: "Complete", ok: true },
-      { name: "Terms presented", sub: M.termsPresented ? "Complete" : "Not presented", ok: !!M.termsPresented },
-      /* a program chosen before the deal type changed no longer exists here;
-         say so rather than reporting a decision that cannot be priced */
+    const led = jacketLedger(deal);
+    const ag = agreed();
+    const rows = [
+      { name: "Manager sign-off", sub: deal.signoff ? `Approved ${timeUS(deal.signoff.at)} · ${deal.signoff.by}` : "Not approved", status: deal.signoff ? "Complete" : "Blocked", state: deal.signoff ? "ok" : "blocked" },
+      { name: "Terms presented", sub: M.termsPresented ? (M.termsPresentedAt ? `Marked ${timeUS(M.termsPresentedAt)}` : "Marked presented") : "Not presented", status: M.termsPresented ? "Complete" : "Blocked", state: M.termsPresented ? "ok" : "blocked" },
       { name: "Protection decision",
         sub: selKey === "none" ? "Declined — no products"
-          : colResult ? `${colLabel(selKey)} · ${money(colResult.payment)}${colResult.isTotal ? "" : "/mo"}`
-          : selKey ? `${colLabel(selKey)} — not offered on this deal type; choose again`
-          : "Not chosen",
-        ok: selKey === "none" || !!colResult },
-      { name: "Benefits acknowledgement", sub: M.ackSigned ? "Signed" : "Not signed", ok: !!M.ackSigned },
-      { name: "Deal Jacket", sub: `${jkc.have} / ${jkc.total}${jkc.missing && jov ? " · override recorded" : ""}`, ok: !jkc.missing || !!jov }
+          : colResult ? `${colLabel(selKey)} · ${money(colResult.payment)}${colResult.isTotal ? "" : " / mo"}`
+          : selKey ? `${colLabel(selKey)} — not offered on this deal type; choose again` : "Not chosen",
+        status: selKey === "none" || colResult ? "Complete" : "Blocked", state: selKey === "none" || colResult ? "ok" : "blocked" },
+      { name: "Benefits acknowledgment", sub: M.ackSigned ? `Signed${M.ackSignedAt ? ` ${timeUS(M.ackSignedAt)}` : ""}` : "Not signed", status: M.ackSigned ? "Complete" : "Blocked", state: M.ackSigned ? "ok" : "blocked" },
+      jacketRow(true)
     ];
-    const canFinalize = ready.every(r => r.ok);
+    const otherBlockers = rows.slice(0, 4).filter(r => r.state === "blocked");
+    const canFinalize = otherBlockers.length === 0 && led.ready;
+    const pay = colResult ? colResult.payment : isCash ? snapshot().totalDue : ag.payment;
+    const totalOfPayments = RIDE_PRICE_CALC.round2(pay * deal.desk.term);
 
-    body(3, `
-      <div class="fm-card">
-        <h2 class="fm-cardtitle">Ready to finalize</h2>
-        <div class="fm-rows">
-          ${ready.map(r => `<div class="fm-row">
-            <div class="fm-rowmain"><div class="fm-rowname">${esc(r.name)}</div><div class="fm-rowsub">${esc(r.sub)}</div></div>
-            <span class="fm-tick${r.ok ? "" : " fm-prodtick--off"}">${r.ok ? "✓" : "•"}</span>
-          </div>`).join("")}
-        </div>
-      </div>
-      <div class="fm-card">
-        <h2 class="fm-cardtitle">Repayment summary</h2>
-        <ul class="fm-lines">
-          ${purchased.length ? purchased.map(pid => { const p = RIDE_PRICE_CALC.productById(pid);
-            return `<li><span>${esc(p.name)}</span><b>${money(p.price)}</b></li>`; }).join("")
-            : `<li><span>No products selected</span><b>${money(0)}</b></li>`}
-          <li class="fm-total"><span>${colResult ? (colResult.isTotal ? "Total due" : "Monthly payment") : isCash ? "Total due" : "Monthly payment"}</span>
-            <b>${money(colResult ? colResult.payment : isCash ? snap.totalDue : deal.dealType === "onepay" ? snap.onePayTotal : snap.payment)}</b></li>
-        </ul>
-        <div class="fm-split">
-          <div class="fm-splitmain"><div class="fm-splittitle">Print centre</div>
-            <div class="fm-splitsub">Repayment options page and the selected forms</div></div>
-          <a class="fm-view" href="#/forms/${esc(deal.id)}">Open</a>
-        </div>
-      </div>`,
-      dock(3, `<button type="button" class="fm-dockbtn" id="fmFinal"${canFinalize ? "" : " disabled"}>Finalize deal</button>`));
+    const content = `<div class="rp-eyebrow">Finance menu</div>
+      <h1 class="rp-title" style="font-size:26px">Final review</h1>
+      ${subLine()}${chipRow()}
+      ${stageBar(3)}
+      ${gateRows(rows)}
+      ${canFinalize
+        ? kvBlock(`Repayment · ${money(pay)}${isCash ? " total" : ` / mo for ${deal.desk.term} months at ${String(ag.apr)}% APR`}`,
+          [kvRow("Total of payments", money(totalOfPayments))])
+        : led.ready ? "" : consequences("Finalizing is unavailable",
+          led.outstanding.map(d => `${esc(d.label)} — ${esc(d.whyShort || d.why || "still outstanding")}`))}`;
+
+    /* §22: Finalize is ABSENT while a required document is missing. The only
+       way past is an attributed override that says what it will record. */
+    const dock = canFinalize
+      ? `<div class="rp-dock"><div class="rp-gatenote">Finalizing pushes the deal to the DMS</div>
+          <button type="button" class="rp-primary" id="fmFinal">Finalize deal</button>
+          <a class="rp-link" href="#/forms/${esc(deal.id)}">Print center</a></div>`
+      : otherBlockers.length
+        ? `<div class="rp-dock"><div class="rp-gatenote">${esc(otherBlockers[0].name)} is still outstanding</div>
+            <button type="button" class="rp-primary" disabled>Finalize deal</button></div>`
+        : `<div class="rp-dock"><div class="rp-gatenote">Override · marked finalized with ${led.outstanding.length} document${led.outstanding.length === 1 ? "" : "s"} missing</div>
+            <button type="button" class="rp-primary" id="fmOverrideFinal">Finalize with documents outstanding</button>
+            <a class="rp-link" href="#/jacket/${esc(deal.id)}">Open the Deal Jacket</a></div>`;
+    paint(content, dock, "rp-screen--gate");
 
     const fb = $("#fmFinal");
-    if (fb && !fb.disabled) fb.onclick = () => {
-      /* one closeout action: the DMS delivery is part of finalizing, not a
-         second primary button (package). The push is recorded against the
-         Team Lead who approved the deal — the dealership's standing rule
-         that a Team Lead is responsible for it, kept without inventing a
-         second gate the package does not describe. */
-      deal.forms.finalized = true; deal.stage = "complete";
-      deal.dms = { at: new Date().toISOString(), by: (deal.signoff && deal.signoff.by) || RIDE_PRICE_DATA.dealership.teamLead };
-      Store.save();
-      render();
+    if (fb) fb.onclick = () => doFinalize([]);
+    const ov = $("#fmOverrideFinal");
+    if (ov) ov.onclick = () => { ui.sheet = "finalize-override"; draw(); };
+  }
+
+  /* the one closeout: the DMS push is folded into Finalize rather than being
+     a second action, and it is recorded against the Team Lead who approved
+     the deal (§22c — a closeout says HOW it happened, not only that it did) */
+  function doFinalize(outstandingIds, reason) {
+    deal.forms.finalized = true; deal.stage = "complete";
+    deal.dms = {
+      at: new Date().toISOString(),
+      by: (deal.signoff && deal.signoff.by) || lead,
+      how: "auto",
+      outstanding: outstandingIds
+    };
+    if (outstandingIds.length) { deal.forms.finalizedOutstanding = true; deal.forms.finalizedReason = reason || ""; }
+    Store.save(); draw();
+  }
+
+  function finalizedScreen() {
+    const led = jacketLedger(deal);
+    const dms = deal.dms || {};
+    const out = (dms.outstanding || []).map(id => (docMeta(id) || {}).label || id);
+    const selKey = M.selectedProgram;
+    const spec = selKey && selKey !== "none" ? programSpec(selKey) : null;
+    const colResult = spec ? RIDE_PRICE_CALC.menuColumn(deal, v, selKey, spec) : null;
+    const pay = colResult ? colResult.payment : isCash ? snapshot().totalDue : agreed().payment;
+    const content = `<div class="rp-eyebrow">Finance menu</div>
+      <h1 class="rp-title" style="font-size:26px">${out.length ? "Deal finalized with documents outstanding" : "Deal finalized"}</h1>
+      ${subLine()}${chipRow()}
+      ${doneNotice(`Pushed to the DMS ${dms.at ? timeUS(dms.at) : ""} · ${dms.by || lead}`)}
+      ${out.length ? consequences(`Finalized with ${out.length} document${out.length === 1 ? "" : "s"} outstanding`,
+        out.map(l => esc(l)).concat(deal.forms.finalizedReason ? [`Override reason — ${esc(deal.forms.finalizedReason)}`] : [])) : ""}
+      ${kvBlock("The push", [
+        kvRow("How", "Automatically, on Finalize"),
+        kvRow("Confirmation", "None — there is no second step"),
+        kvRow("By", esc(dms.by || lead))])}
+      ${kvBlock("What was sent", [
+        kvRow("Deal", `#${esc(deal.dealNo)} · closed`),
+        kvRow("Queue", "Out of the active Deals list"),
+        kvRow("Deal Jacket", `${led.filed} filed · ${led.requiredTotal} required, ${led.optionalTotal} optional${led.ready ? " · none outstanding" : ` · ${led.outstanding.length} outstanding`}`),
+        kvRow("Payment", `${money(pay)}${isCash ? " total" : ` / mo · ${deal.desk.term} months`}`)])}`;
+    paint(content, chDock(`<a class="rp-primary" style="display:grid;place-items:center" href="#/deals">Return to Deals</a>`,
+      `<a class="rp-link" href="#/forms/${esc(deal.id)}">Print center</a>`));
+  }
+
+  /* ---------- the sheets ---------- */
+  function sheetHtml() {
+    const ag = agreed();
+    if (ui.sheet === "fees") {
+      const r = ag.result;
+      const base = RIDE_PRICE_CALC.taxableBase(deal, v);
+      return `${chSheetHead("Taxes & fees")}
+        <p class="rp-sheet__sub">New York · price plus accessories plus the documentation fee, less the trade allowance</p>
+        ${kvBlock(`Sales tax on ${money(base)}`, r.taxes.rows.map(t => kvRow(esc(t.label), money(t.amount))), ["Tax subtotal", money(r.taxes.total)])}
+        ${kvBlock("Fees", RIDE_PRICE_DATA.fees.map(f => kvRow(esc(f.label), money(f.amount))), ["Fee subtotal", money(r.fees)])}
+        ${kvBlock(null, [kvRow("Taxes and fees", money(r.fees + r.taxes.total))], ["Amount financed", money(r.amountFinanced)])}
+        <button type="button" class="rp-primary" data-sheet-close>Done</button>`;
+    }
+    if (ui.sheet === "accept" || ui.sheet === "decline") {
+      const decline = ui.sheet === "decline";
+      const col = ui.pack === "custom"
+        ? RIDE_PRICE_CALC.menuColumn(deal, v, "custom", programSpec("custom"))
+        : RIDE_PRICE_CALC.menuColumn(deal, v, ui.pack, programSpec(ui.pack));
+      const products = (col.products || []).map(pid => RIDE_PRICE_CALC.productById(pid)).filter(Boolean);
+      const productsTotal = col.productsTotal != null ? col.productsTotal : products.reduce((s, p) => s + p.price, 0);
+      const delta = RIDE_PRICE_CALC.round2(col.payment - ag.payment);
+      const termCost = RIDE_PRICE_CALC.round2(delta * deal.desk.term);
+      const financeCharge = RIDE_PRICE_CALC.round2(termCost - productsTotal);
+      if (decline) {
+        return `${chSheetHead("Continue without products")}
+          <p class="rp-sheet__sub">The customer declines every optional product · recorded on the benefits acknowledgment</p>
+          <div class="rp-kv">
+            ${kvRow("Payment", `${money(ag.payment)} / mo`, "the agreed payment, unchanged")}
+            ${M.custom.length ? kvRow("Custom box", "Cleared", "the products already moved across are removed") : ""}
+          </div>
+          <div class="rp-field"><label class="rp-field__label" for="fmDecIni">Client initials</label>
+            <input class="rp-field__input" id="fmDecIni" autofocus maxlength="4" placeholder="JS" autocomplete="off"></div>
+          <button type="button" class="rp-primary" id="fmDecGo">Continue without products</button>`;
+      }
+      /* the sheet states what the customer is agreeing to in their own unit
+         AND over the term, with the finance charge separated (§22b) */
+      return `${chSheetHead(`Accept ${col.label}`)}
+        <p class="rp-sheet__sub">${esc(products.map(p => p.name).join(" · ") || "No products")}</p>
+        <div class="rp-kv"><div class="rp-kv__head">What the customer is agreeing to</div>
+          ${kvRow("Products added", money(productsTotal), esc(products.map(p => `${p.name} ${money(p.price)}`).join(" + ")))}
+          ${kvRow("Agreed payment", `${money(ag.payment)} / mo`)}
+          ${kvRow(`${esc(col.label)} payment`, `${money(col.payment)} / mo`, `${money(productsTotal)} financed over ${deal.desk.term} months at ${esc(String(col.apr != null ? col.apr : ag.apr))}%`)}
+          <div class="rp-kv__row rp-kv__row--src" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Difference</span><span style="font-weight:760">+${money(delta)} / mo</span>
+            <span class="rp-kv__src">+${money(termCost)} over ${deal.desk.term} months — ${money(productsTotal)} of products and ${money(financeCharge)} of finance charge</span></div>
+        </div>
+        <div class="rp-field"><label class="rp-field__label" for="fmIni">Client initials</label>
+          <input class="rp-field__input" id="fmIni" autofocus maxlength="4" placeholder="JS" autocomplete="off"></div>
+        <button type="button" class="rp-primary" id="fmIniGo">Accept package</button>`;
+    }
+    if (ui.sheet === "ack") {
+      return `${chSheetHead("Benefits acknowledgment")}
+        <p class="rp-sheet__sub">Deal #${esc(deal.dealNo)} · ${esc(custName)}</p>
+        <p class="rp-fine" style="text-align:left">The benefits and protection options available have been explained to me/us and I/we choose the options initialed (${esc(M.initials || "—")}). I/We hold the Dealer harmless for my/our refusal of any optional benefit or protection.</p>
+        <div class="rp-field"><span class="rp-field__label">Signature</span>
+          <div class="rp-initials-box" style="letter-spacing:.02em;font-size:18px">${esc(custName)}</div></div>
+        <button type="button" class="rp-primary" id="fmSignGo">Sign acknowledgment</button>`;
+    }
+    if (ui.sheet === "catalog") {
+      const reqForms = requiredTradeForms(deal);
+      const groups = {};
+      RIDE_PRICE_DATA.dealForms.forEach(f => { (groups[f.group] = groups[f.group] || []).push(f); });
+      const picked = deal.forms.selected;
+      const adding = picked.filter(fid => !jacketState(deal, "form-" + fid)).length;
+      return `${chSheetHead("Additional deal forms")}
+        <p class="rp-sheet__sub">Anything the trade requires is selected here and locked to the deal</p>
+        ${Object.entries(groups).map(([g, list]) => `<div class="rp-section">${esc(g)}</div>
+          ${list.map(f => {
+            const locked = reqForms.includes(f.id);
+            const on = picked.includes(f.id);
+            return `<button type="button" class="rp-check" data-form="${esc(f.id)}"${locked ? " disabled" : ""}>
+              <span class="rp-check__box${on ? " rp-check__box--on" : ""}">${on ? rpGlyph("check") : ""}</span>
+              <span>${esc(f.label)}${locked ? " · required by the trade" : ""}</span></button>`;
+          }).join("")}`).join("")}
+        <div style="height:6px"></div>
+        <button type="button" class="rp-primary" id="fmFormsGo">${adding ? `Add ${adding} form${adding === 1 ? "" : "s"} to the jacket` : "Done"}</button>`;
+    }
+    if (ui.sheet === "finalize-override") {
+      const led = jacketLedger(deal);
+      return `${chSheetHead("Finalize with documents outstanding")}
+        <p class="rp-sheet__sub">Deal #${esc(deal.dealNo)} · Team Lead action · attributed to ${esc(lead)}</p>
+        ${consequences("What this records", led.outstanding.map(d => `${esc(d.label)} — still missing after finalizing`)
+          .concat(["The closeout screen will say the deal was finalized with documents outstanding, and name them"]))}
+        <div class="rp-field"><label class="rp-field__label" for="fmFinReason">Reason</label>
+          <input class="rp-field__input" id="fmFinReason" autofocus placeholder="Why the deal is finalized without these"></div>
+        <button type="button" class="rp-primary" id="fmFinGo">Finalize with documents outstanding</button>`;
+    }
+    /* the sign-off override */
+    const led = jacketLedger(deal);
+    return `${chSheetHead("Resolve the Deal Jacket blocker")}
+      <p class="rp-sheet__sub">Deal #${esc(deal.dealNo)} · Team Lead action · attributed to ${esc(lead)}</p>
+      ${consequences("The documents stay missing", led.outstanding.map(d => `${esc(d.label)} — ${esc(d.why || "outstanding")}`)
+        .concat(["An override records a reason; it does not supply the documents"]))}
+      <div class="rp-field"><label class="rp-field__label" for="fmReason">Reason</label>
+        <input class="rp-field__input" id="fmReason" autofocus placeholder="Why the deal proceeds without these"></div>
+      <button type="button" class="rp-primary" id="fmReasonGo">Record override</button>`;
+  }
+
+  function wireSheet(sheet) {
+    const need = (sel) => { const el = $(sel, sheet); if (!el) return null; const val = (el.value || "").trim(); if (!val) { el.classList.add("rp-field__input"); el.style.borderColor = "var(--rp-danger)"; return null; } return val; };
+    const reason = $("#fmReasonGo", sheet);
+    if (reason) reason.onclick = () => {
+      const val = need("#fmReason"); if (!val) return;
+      const led = jacketLedger(deal);
+      jacketOf(deal).override = { by: lead, at: new Date().toISOString(), reason: val, docs: led.outstanding.map(d => d.id) };
+      Store.save(); ui.sheet = null; sheets.close(); draw();
+    };
+    const finGo = $("#fmFinGo", sheet);
+    if (finGo) finGo.onclick = () => {
+      const val = need("#fmFinReason"); if (!val) return;
+      const led = jacketLedger(deal);
+      ui.sheet = null; sheets.close();
+      doFinalize(led.outstanding.map(d => d.id), val);
+    };
+    const iniGo = $("#fmIniGo", sheet);
+    if (iniGo) iniGo.onclick = () => {
+      const val = need("#fmIni"); if (!val) return;
+      M.selectedProgram = ui.pack; M.initials = val; M.acceptedAt = new Date().toISOString();
+      Store.save(); ui.sheet = null; sheets.close(); go(2);
+    };
+    const decGo = $("#fmDecGo", sheet);
+    if (decGo) decGo.onclick = () => {
+      const val = need("#fmDecIni"); if (!val) return;
+      M.selectedProgram = "none"; M.initials = val; M.acceptedAt = new Date().toISOString();
+      M.custom = []; M.customSource = null; M.showCustomPay = false;
+      Store.save(); ui.sheet = null; sheets.close(); go(2);
+    };
+    const signGo = $("#fmSignGo", sheet);
+    if (signGo) signGo.onclick = () => {
+      M.ackSigned = true; M.ackName = custName; M.ackSignedAt = new Date().toISOString();
+      /* the acknowledgment is a DOCUMENT: it files, and the count moves with
+         a named cause on the screen that caused it (§19a, §22a) */
+      jacketReceive(deal, "form-fimenu", "esign", "Signed on this device");
+      Store.save(); ui.sheet = null; sheets.close(); draw();
+    };
+    $$("[data-form]", sheet).forEach(b => b.onclick = () => {
+      const fid = b.dataset.form;
+      const at = deal.forms.selected.indexOf(fid);
+      if (at >= 0) deal.forms.selected.splice(at, 1); else deal.forms.selected.push(fid);
+      Store.save(); draw();
+    });
+    const formsGo = $("#fmFormsGo", sheet);
+    if (formsGo) formsGo.onclick = () => {
+      /* the action states how many are being added, so the chip's new count
+         has a stated cause (§22a) */
+      deal.forms.selected.forEach(fid => { if (!jacketState(deal, "form-" + fid)) jacketReceive(deal, "form-" + fid, "app", "Selected from the catalog"); });
+      Store.save(); ui.sheet = null; sheets.close(); draw();
     };
   }
 
-  function finalized() {
-    const jkc = jacketCounts(deal);
-    renderChrome("Finance Menu", dealTitle(deal), "");
-    document.body.dataset.canvas = "master";
-    document.body.dataset.screen = "menu";
-    view().innerHTML = `
-      <div class="m-app">
-        ${deskTop(deal)}
-        <main class="fm-main">
-          <div class="fm-done">
-            <div class="fm-donetick">✓</div>
-            <div class="fm-eyebrow">Finance complete</div>
-            <h1 class="fm-title">Deal finalized</h1>
-            <p class="fm-donesay">The completed package was pushed to the DMS.${deal.dealNo ? ` Deal #${esc(deal.dealNo)}` : " This deal"} has moved out of the active Deals queue.</p>
-          </div>
-          <div class="fm-card">
-            <div class="fm-rows">
-              <div class="fm-row"><div class="fm-rowmain"><div class="fm-rowname">DMS push</div>
-                <div class="fm-rowsub">Completed${deal.dms && deal.dms.by ? ` · ${esc(deal.dms.by)}` : ""}</div></div><span class="fm-pill">Sent</span></div>
-              <div class="fm-row"><div class="fm-rowmain"><div class="fm-rowname">Deal Jacket</div>
-                <div class="fm-rowsub">${jkc.have} / ${jkc.total}</div></div>
-                <span class="fm-pill${jkc.missing ? " fm-pill--bad" : ""}">${jkc.missing ? jkc.missing + " outstanding" : "Complete"}</span></div>
-            </div>
-          </div>
-          <div class="fm-actions">
-            <a class="fm-btn fm-btn--primary" href="#/deals" style="display:grid;place-items:center;text-decoration:none">Return to Deals</a>
-            <a class="fm-btn" href="#/forms/${esc(deal.id)}" style="display:grid;place-items:center;text-decoration:none">Print centre</a>
-          </div>
-        </main>
-      </div>
-      <div class="m-scrim" id="fmScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="fmSheet"></div></div>`;
-    wireDeskTop();
-  }
-
-  /* ---------- shared frame ---------- */
-  function body(stageIdx, cards, dockHtml) {
-    renderChrome("Finance Menu", dealTitle(deal), "");
-    document.body.dataset.canvas = "master";
-    document.body.dataset.screen = "menu";
-    const titles = ["Review the deal terms", "Choose a protection package", "Disclosures & forms", "Final review"];
-    view().innerHTML = shell("Finance menu", titles[stageIdx],
-      `${stageRow(stageIdx)}${cards}`, dockHtml);
-    wireDeskTop();
-    $$("[data-stage]").forEach(b => { if (!b.disabled) b.onclick = () => go(parseInt(b.dataset.stage, 10)); });
-    const scrim = $("#fmScrim");
-    if (scrim) scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
+  /* ---------- the frame ---------- */
+  function paint(content, dockHtml, cls) {
+    if (!ui.sheet) sheets.close();
+    view().innerHTML = chShell({ template: "task", title: custName, closeId: "fmClose", cls: cls || "" },
+      content, dockHtml, { scrim: "fmScrim", sheet: "fmSheet" });
+    $("#fmClose").onclick = () => navigate("#/deals");
+    chWireRole(sheets, draw);
+    $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; if (b.dataset.sheetOpen === "buyers") buyers = null; draw(); });
+    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, () => draw()); }
+    else if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
   }
 
   function go(stageIdx) {
     M.step = STEP_OF[stageIdx];
     M.maxStep = Math.max(M.maxStep || 1, M.step);
-    Store.save();
-    render();
+    ui.sheet = null;
+    Store.save(); draw();
   }
 
-  function render() {
-    closeSheet();
-    if (!deal.signoff) return gate();
-    if (deal.forms.finalized) return finalized();
-    ({ 0: terms, 1: options, 2: forms, 3: finalize }[stageOf(M.step)] || terms)();
+  function draw() {
+    if (!deal.signoff) return gateScreen();
+    if (deal.forms.finalized) return finalizedScreen();
+    ({ 0: termsScreen, 1: optionsScreen, 2: formsScreen, 3: finalizeScreen }[stageOf(M.step)] || termsScreen)();
   }
-  render();
+  draw();
 });
 
 /* ============================================================
@@ -7297,6 +7366,32 @@ function jacketCounts(deal) {
   const docs = jacketDocs(deal);
   const inJacket = docs.filter(d => jacketState(deal, d.id));
   return { total: docs.length, have: inJacket.length, missing: docs.length - inJacket.length };
+}
+
+/* REQUIRED and OPTIONAL are different sets, and the finalize gate counts only
+   what is required to fund and deliver (§22). The split is not a new field: a
+   document the deal itself produces — worked out from the deal by
+   jacketDocs() — is required, and a document somebody ADDED from the catalogue
+   is optional. That is exactly what `added` already records, so the two
+   cannot drift apart.
+
+   A count is only meaningful with its denominator (§22a), so this returns
+   both, and the outstanding list by name — because "2 outstanding" and a
+   route to each is the difference between a gate an advisor can act on and a
+   number they can only stare at. */
+function jacketLedger(deal) {
+  const docs = jacketDocs(deal);
+  const required = docs.filter(d => !d.added);
+  const optional = docs.filter(d => d.added);
+  const filedIn = (list) => list.filter(d => jacketState(deal, d.id));
+  const outstanding = required.filter(d => !jacketState(deal, d.id));
+  return {
+    requiredTotal: required.length, requiredFiled: filedIn(required).length,
+    optionalTotal: optional.length, optionalFiled: filedIn(optional).length,
+    filed: filedIn(docs).length, total: docs.length,
+    outstanding,
+    ready: outstanding.length === 0
+  };
 }
 
 /* outstanding documents, worded for a manager reading a checklist */

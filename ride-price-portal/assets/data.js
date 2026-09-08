@@ -119,7 +119,8 @@ const RIDE_PRICE_DATA = {
     { id: "vsc7", name: "Vehicle Service Contract", detail: "7 yr / 100,000 mi / $100 ded.", price: 2750, types: ["finance", "cash"] },
     { id: "ppm8", name: "Pre-Paid Maintenance", detail: "8 yr / 96,000 mi", price: 2064, types: ["finance", "cash"] },
     { id: "ppm3", name: "Pre-Paid Maintenance", detail: "3 yr / 36,000 mi", price: 649, types: ["finance", "cash", "lease"] },
-    { id: "gap", name: "GAP Coverage", detail: "Full loan term", price: 995, types: ["finance"] },
+    /* the v034 seed names this price: GAP is $895 on the finance menu board */
+    { id: "gap", name: "GAP Coverage", detail: "Full loan term", price: 895, types: ["finance"] },
     { id: "multi", name: "Multi-Protect Bundle", detail: "7 yr — tire & wheel, dent, key, windshield", price: 2059, types: ["finance", "cash", "lease"] },
     { id: "appear", name: "Appearance Protection", detail: "5 yr — paint & interior", price: 1295, types: ["finance", "cash", "lease"] },
     { id: "lep", name: "Lease-End Protection", detail: "Waives up to $5,000 excess wear & tear", price: 1095, types: ["lease"] },

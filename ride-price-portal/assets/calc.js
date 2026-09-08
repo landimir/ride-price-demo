@@ -181,10 +181,30 @@ const RIDE_PRICE_CALC = (function () {
       const r = cash(deal, vehicle, { products: program.products });
       return { key: programKey, label: program.label, products: program.products, payment: r.totalDue, isTotal: true, detail: "Total due", result: r };
     }
-    const apr = (q ? q.qualifiedApr : deal.desk.apr) + (program.aprAdj || 0);
+    /* the lender's rate is `approvedApr` since the lending lane's package
+       v032; `qualifiedApr` is what blobs saved before it carry, and a record
+       holding neither must not price the whole menu at NaN */
+    const qApr = q ? (q.approvedApr != null ? q.approvedApr : q.qualifiedApr) : null;
+    const apr = (qApr != null ? qApr : deal.desk.apr) + (program.aprAdj || 0);
     const term = deal.desk.term + (program.termAdj || 0);
     const r = finance(deal, vehicle, { products: program.products, apr, term });
-    return { key: programKey, label: program.label, products: program.products, payment: r.payment, term, apr, detail: `${term} mo @ ${apr.toFixed(2)}%`, result: r };
+    /* PRODUCT MONEY IS DERIVED, NEVER ASSERTED (chrome rule §22b): a package
+       payment is the agreed payment plus the amortization of the products it
+       contains, over this deal's term and rate — $4,814.00 over 60 months at
+       3.9% is +$88.44 a month, and the customer can check that. The full
+       recalculation above is kept for `result`, which the print centre and
+       the repayment page still read; what the menu QUOTES is the derived
+       pair, so the delta on the row always amortizes back to the products
+       beside it. */
+    const baseR = finance(deal, vehicle, { apr, term });
+    const products = productsTotal(program.products);
+    const delta = round2(amortize(products, apr, term));
+    const payment = round2(baseR.payment + delta);
+    return {
+      key: programKey, label: program.label, products: program.products, payment, term, apr,
+      basePayment: baseR.payment, productsTotal: products, delta,
+      detail: `${term} mo @ ${apr.toFixed(2)}%`, result: r
+    };
   }
 
   const money = (n) => (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
