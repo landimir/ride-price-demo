@@ -49,9 +49,13 @@ const Store = (function () {
   function fundedJacketDocs() {
     const at = "2026-08-14T15:05:00Z", by = RIDE_PRICE_DATA.dealership.teamLead;
     const out = {};
+    /* a funded contract's jacket holds everything that shape of deal needs,
+       the lending lane's own records included: it was approved and delivered,
+       so the application that went to the lender and the answer that came back
+       are both on file (§19a). walk2 asserts this list against jacketDocs(). */
     ["form-license", "form-privacy", "form-reg", "form-insurance", "form-contracts",
      "form-creditmatch", "form-riskdisc", "form-paystub", "testdrive", "form-tqi",
-     "form-settings", "delivery"].forEach(id => { out[id] = { how: "hand", by, at }; });
+     "form-settings", "delivery", "creditapp", "approval"].forEach(id => { out[id] = { how: "hand", by, at }; });
     return out;
   }
 
@@ -4551,7 +4555,7 @@ route("desk/:id", ({ id }) => {
      markup over the kit canvas. It arrives with that package. */
   const vehicleRow = () => `<div class="rp-choice"><span class="rp-choice__thumb" style="${vehicleTint(v)}">${mCarSvg(v, "rp-icon")}</span>
     <span><div class="rp-choice__title">${esc(vehicleCompact)}</div><div class="rp-choice__sub">Stock ${esc(v.stock)} · ${esc(v.ext)}</div></span>
-    <a class="rp-choice__tag" href="#/jacket/${esc(deal.id)}">${rpGlyph("document")}Jacket · ${jacketCounts(deal).have}</a></div>`;
+    <span class="rp-choice__tag">${rpGlyph("document")}Jacket · ${jacketCounts(deal).have}</span></div>`;
 
   const segment = () => `<div class="rp-segment" style="grid-template-columns:repeat(4,1fr)" role="tablist" aria-label="Deal type">
     ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" class="rp-segment__item${deal.dealType === k ? " rp-segment__item--on" : ""}" data-type="${k}" role="tab" aria-selected="${deal.dealType === k}">${esc(l)}</button>`).join("")}</div>`;
@@ -5158,15 +5162,48 @@ route("agreement/:id", ({ id }) => {
 });
 
 /* ============================================================
-   VIEW: Lending Lane — credit application
-   ============================================================ */
+   VIEW: Credit Application — the lending lane
+   (owner's package v032, 2026-09-04, on the UI kit v022.18)
+   ============================================================
+   Eleven screens on one route, all of them the kit's Task with the customer's
+   full name in the bar. This is the F&I push, so it is where the deal number
+   is assigned and first shown (§16) — nothing before it displays one.
+
+   The wizard's machinery is unchanged: one working copy `F`, `reqForStep()`
+   per step honouring the conditional sections, validation on submit only,
+   nothing saved or sent until every rule passes, the demo SSN rule, the masks,
+   and the payload written field for field. What changed is everything the
+   advisor sees, and three rules that are not cosmetic:
+
+   §18b — verified record data is a READ-ONLY block, never a prefilled input
+   that can fall behind the dock. On step 1 the name, date of birth and the
+   licence verified at the gate collapse into one expandable row, and the SSN
+   is the only field to type.
+
+   §19 — a joint application cannot go to a lender until BOTH applicants have
+   complete fields, verified identity and joint-credit authorization. Internal
+   completion is not lender submission, so the primary action names which one
+   it is: "Fix John's items" with gaps, "Mark John ready · waiting on Cheri"
+   when only his half is done, and "Review & submit to lenders" only when both
+   halves exist. One panel per applicant — one person's actionable items are
+   never mixed with another's blocked ones.
+
+   §17a — a validation summary reviews the whole draft, so it sits at Review ·
+   4 of 4 rather than sending the step indicator backwards; tapping a named
+   item is what navigates to that field's step.
+
+   §17 — the deal summary reconciles on the screen: every line the total
+   depends on is drawn, fees are itemised, the tax names its base, and the
+   approval states the difference in the customer's unit (the payment), with
+   both totals of payments and their arithmetic on their own rows. */
 route("credit/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
   const c = Store.customer(deal.customerId);
   const app = deal.creditApp;
 
-  renderChrome("Lending Lane — Credit Application", dealTitle(deal), "");
-  document.body.dataset.canvas = "master";
+  renderChrome("Credit Application", "", "");
+  document.body.dataset.screen = "credit";
+  document.body.dataset.canvas = "kit";
 
   /* resolve the record, not just the id — a dangling coBuyerId must behave as
      "no co-buyer" here exactly as it does in dealTitle() and the submit guard */
@@ -5174,7 +5211,15 @@ route("credit/:id", ({ id }) => {
 
   const v = deal.stock ? Store.vehicle(deal.stock) : null;
   const r = v ? RIDE_PRICE_CALC.calc(deal, v) : null;
+  const custName = `${c.first} ${c.last}`;
+  /* the legal name is the name as the license reads it — a different field
+     from the display name the chrome uses (§20) */
+  const legalName = [c.first, c.middle, c.last].filter(Boolean).join(" ");
   const scanned = !!(c.dob && c.license && c.license.number);
+  const timeUS = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+
+  const sheets = chSheetOpener("caScrim", "caSheet", () => { ui.sheet = null; });
+  const ui = { sheet: null, recordOpen: false, channel: null, mode: null };
 
   /* the wizard's working copy — inputs write here and submit validates here,
      so a step that is not in the DOM still validates (the golden's own
@@ -5197,35 +5242,43 @@ route("credit/:id", ({ id }) => {
     refsOpen: false, refBank: "", refAcctType: "", refKinName: "", refKinPhone: "", refKinRel: "", refP1: "", refP2: "",
     consent: false
   };
-  /* co-applicant identity prefills from the record, never from typed state —
-     the record is the source of truth, same as the primary's fields */
+  /* co-applicant identity prefills from the record, never from typed state */
   const seedCo = () => {
     const cb = cbRec(); if (!cb) return;
     Object.assign(F, { coFirst: cb.first, coLast: cb.last, coDob: dateUS(cb.dob || ""), coDl: (cb.license && cb.license.number) || "", coAddr: cb.address || "", coZip: cb.zip || "", coCity: cb.city || "", coState: cb.state || "" });
   };
   seedCo();
+  /* a draft the advisor already marked ready comes back the way they left it */
+  if (deal.creditApp && deal.creditApp.draft) Object.assign(F, deal.creditApp.draft);
 
   const STEP_NAMES = ["Applicant", "Residence", "Employment", "Review"];
   const st = { step: 1, err: null };
 
   const under3 = (x) => { const n = parseFloat(x); return !isNaN(n) && n < 3; };
   /* required keys per step, honouring the conditional sections — a section
-     that is not active requires nothing (the same invariant the old
-     render-only-while-active DOM carried) */
+     that is not active requires nothing */
   const reqForStep = (n) => {
     if (n === 1) {
-      const ks = [["first", "First Name"], ["last", "Last Name"], ["dob", "Date of Birth"], ["ssn", "SSN"], ["dl", "Driver License"], ["phone", "Phone"], ["email", "Email"]];
-      if (F.appType === "joint" && cbRec()) ks.push(["coFirst", "Co-Buyer First Name"], ["coLast", "Co-Buyer Last Name"], ["coDob", "Co-Buyer Date of Birth"], ["coDl", "Co-Buyer Driver License"]);
+      /* the SSN is the only field on this step, and that is the point (§18b):
+         name, date of birth and the licence are verified record data shown
+         read-only, so they cannot be required here — a required item with no
+         input to fix it is a dead end, and what is genuinely absent from the
+         record is reported by the identity gate above, whose fix is to scan
+         the licence in the resolver. The co-buyer's identity comes from her
+         own record the same way, so it is required only once she is attached
+         and only as far as her record can answer. */
+      const ks = [["ssn", "Social Security number"]];
+      if (F.appType === "joint" && cbRec()) ks.push(["coFirst", "Co-buyer first name"], ["coLast", "Co-buyer last name"]);
       return ks;
     }
     if (n === 2) {
-      const ks = [["address", "Address"], ["housePmt", "Monthly Rent/Mortgage"], ["resYrs", "Time at Address"]];
-      if (under3(F.resYrs)) ks.push(["prevAddr", "Previous Address"]);
+      const ks = [["address", "Address"], ["housePmt", "Monthly rent or mortgage"], ["resYrs", "Time at address"]];
+      if (under3(F.resYrs)) ks.push(["prevAddr", "Previous address"]);
       return ks;
     }
     if (n === 3) {
-      const ks = [["employer", "Employer"], ["occupation", "Occupation"], ["empYrs", "Time at Employer"], ["income", "Gross Monthly Income"]];
-      if (under3(F.empYrs)) ks.push(["prevEmp", "Previous Employer"]);
+      const ks = [["employer", "Employer"], ["occupation", "Occupation"], ["empYrs", "Time at employer"], ["income", "Gross monthly income"]];
+      if (under3(F.empYrs)) ks.push(["prevEmp", "Previous employer"]);
       if (F.dBk) ks.push(["dBkNote", "Bankruptcy explanation"]);
       if (F.dAlias) ks.push(["dAliasNote", "Alias explanation"]);
       if (F.dRepo) ks.push(["dRepoNote", "Repossession explanation"]);
@@ -5234,354 +5287,617 @@ route("credit/:id", ({ id }) => {
     return [];
   };
   const DATE_KEYS = ["dob", "coDob"];
+  /* MISSING and INVALID are two different states with two different words and
+     two different counts (§19): a field that holds a value is never reported
+     as missing, and the demo's SSN rule produces an invalid, not a gap. */
   const problem = (key) => {
     const val2 = String(F[key] || "").trim();
-    if (!val2) return "Required";
-    /* demo rule: the only SSN this tool ever accepts is the sample one */
-    if (key === "ssn" && val2.replace(/\D/g, "") !== "000000000") return "Demo tool — the SSN is always 000-00-0000";
-    if (DATE_KEYS.includes(key) && !dateISO(val2)) return "Enter MM/DD/YYYY";
+    if (!val2) return { kind: "missing", msg: "Required" };
+    if (key === "ssn" && val2.replace(/\D/g, "") !== "000000000") return { kind: "invalid", msg: "this demo accepts 000-00-0000" };
+    if (DATE_KEYS.includes(key) && !dateISO(val2)) return { kind: "invalid", msg: "enter MM/DD/YYYY" };
     return null;
   };
+  /* every problem on the primary applicant's FIELDS, with the step each lives
+     on. The electronic signature is deliberately not among them: it is not a
+     field the lender asks for, it is the applicant's signature, and mixing it
+     into the tally would make the count disagree with the list beside it
+     (review lesson 7). It is its own row, with its own status. */
+  function johnProblems() {
+    const out = [];
+    for (const n of [1, 2, 3]) for (const [k, label] of reqForStep(n)) {
+      const p = problem(k);
+      if (p) out.push({ k, label, n, kind: p.kind, msg: p.msg });
+    }
+    return out;
+  }
+  const johnFieldsComplete = () => johnProblems().length === 0;
+  const johnComplete = () => johnFieldsComplete() && F.consent;
+  const WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
+  const countWord = (n) => WORDS[n] || String(n);
 
-  /* ---------------- templates (golden anatomy, ca- family) ---------------- */
+  /* the co-buyer's own half, which the advisor cannot fill: her identity, her
+     fields, and the joint-credit authorization only she can give (§19). Absent
+     is Waiting — never false, and never assumed done. */
+  const coState = () => {
+    const rec = (deal.creditRemote && deal.creditRemote.cobuyer) || {};
+    return {
+      rec, sent: !!rec.sentAt, opened: !!rec.openedAt,
+      identity: !!rec.identityAt, fields: !!rec.fieldsAt, authorized: !!rec.authorizedAt,
+      complete: !!(rec.identityAt && rec.fieldsAt && rec.authorizedAt)
+    };
+  };
+  const isJoint = () => F.appType === "joint";
+
+  /* ---------------- the kit pieces ---------------- */
+  const chipRow = () => `<div class="rp-chiprow">
+    <button type="button" class="rp-chip" data-buyers="${esc(deal.id)}">${rpGlyph("customers")}Buyer</button>
+    ${r ? `<button type="button" class="rp-chip" data-sheet-open="summary">${rpGlyph("document")}Deal summary</button>` : ""}
+    <a class="rp-chip" href="#/jacket/${esc(deal.id)}">${rpGlyph("document")}Jacket · ${jacketCounts(deal).have}</a>
+  </div>`;
+
+  const subLine = () => `<p class="rp-count" style="margin-bottom:12px">Deal #${esc(deal.dealNo)}${v ? ` · ${esc(v.year + " " + v.model + (v.trim ? " " + v.trim : ""))}` : ""}</p>`;
+
+  const stepBar = (name, i) => `<div class="rp-steps-bar"><span class="rp-steps-bar__name">${esc(name)}</span><span class="rp-steps-bar__pos">Step ${i} of 4</span></div>
+    <div class="rp-progress"><div class="rp-progress__bar" style="width:${Math.round(i / 4 * 100)}%"></div></div>`;
+
   const fieldErr = (key) => st.err && st.err.keys.has(key);
   const field = (label, key, opts = {}) => `
-    <div><label class="ca-lab" for="ca_${key}">${label}${opts.req ? ` <span class="ca-req">*</span>` : ""}</label>
-      <input class="ca-input${fieldErr(key) ? " error" : ""}" id="ca_${key}" data-key="${key}" ${opts.date ? `data-date maxlength="10" inputmode="numeric"` : ""} ${opts.ssn ? `data-ssn maxlength="11" inputmode="numeric"` : ""} ${opts.zip ? `data-zip="${opts.zip}" maxlength="5" inputmode="numeric"` : ""} ${opts.type ? `type="${opts.type}"` : `type="text"`} ${opts.inputmode && !opts.date && !opts.ssn && !opts.zip ? `inputmode="${opts.inputmode}"` : ""} value="${esc(F[key])}" placeholder="${esc(opts.placeholder || "")}">
-      ${fieldErr(key) ? `<div class="ca-errtext">${esc(st.err.keys.get(key))}</div>` : ""}</div>`;
-  const seg = (options, key, cls) => `<div class="ca-seg ${cls}">${options.map(o => `<button type="button" class="ca-segbtn${F[key] === o ? " active" : ""}" data-seg="${key}" data-val="${esc(o)}">${esc(o)}</button>`).join("")}</div>`;
-  const switchRow = (label, key) => `<div class="ca-switchrow"><span>${label}</span><label class="switch"><input type="checkbox" data-flag="${key}" ${F[key] ? "checked" : ""} aria-label="${label}"><span class="sl"></span></label></div>`;
-  const alertBox = (html) => `<div class="ca-alert"><div class="ca-alerticon">!</div><div>${html}</div></div>`;
-  const stepAlert = (n) => {
-    if (!st.err || st.err.alertStep !== n) return "";
-    return alertBox(st.err.summary);
-  };
+    <div class="rp-field${fieldErr(key) ? " rp-field--error" : ""}">
+      <label class="rp-field__label" for="ca_${key}">${esc(label)}</label>
+      <input class="rp-field__input" id="ca_${key}" data-key="${key}" ${opts.date ? `data-date maxlength="10" inputmode="numeric"` : ""} ${opts.ssn ? `data-ssn maxlength="11" inputmode="numeric"` : ""} ${opts.zip ? `data-zip="${opts.zip}" maxlength="5" inputmode="numeric"` : ""} ${opts.type ? `type="${opts.type}"` : `type="text"`} ${opts.inputmode && !opts.date && !opts.ssn && !opts.zip ? `inputmode="${opts.inputmode}"` : ""} value="${esc(F[key])}" placeholder="${esc(opts.placeholder || "")}">
+      ${fieldErr(key) ? `<div class="rp-field__err">${esc(st.err.keys.get(key))}</div>` : ""}</div>`;
+  const option = (title, sub, on, attrs) => `<button type="button" class="rp-option${on ? " rp-option--on" : ""}" ${attrs}>
+    <span><span class="rp-option__title">${esc(title)}</span>${sub ? `<span class="rp-option__sub">${esc(sub)}</span>` : ""}</span>
+    <span class="rp-radio${on ? " rp-radio--on" : ""}">${on ? rpGlyph("check") : ""}</span></button>`;
+  /* the kit's segment is two columns; a wider one carries the board's own
+     inline template, reported rather than restyled */
+  const segment = (options, key) => `<div class="rp-segment"${options.length !== 2 ? ` style="grid-template-columns:repeat(${options.length},1fr)"` : ""}>
+    ${options.map(o => `<button type="button" class="rp-segment__item${F[key] === o ? " rp-segment__item--on" : ""}" data-seg="${key}" data-val="${esc(o)}">${esc(o)}</button>`).join("")}</div>`;
+  const toggleRow = (label, key) => `<button type="button" class="rp-toggle-row" style="width:100%" data-flag="${key}" aria-pressed="${F[key] ? "true" : "false"}">${esc(label)}
+    <span class="rp-toggle${F[key] ? " rp-toggle--on" : ""}"></span></button>`;
+  const kvRow = (label, val, src) => `<div class="rp-kv__row${src ? " rp-kv__row--src" : ""}"><span>${label}</span><span>${val}</span>${src ? `<span class="rp-kv__src">${src}</span>` : ""}</div>`;
+  const stepRow = (title, sub, status, done) => `<div class="rp-step">
+    <span class="rp-step__mark${done ? " rp-step__mark--done" : ""}">${done ? rpGlyph("check") : ""}</span>
+    <div><span class="rp-step__title">${esc(title)}</span><span class="rp-step__sub">${esc(sub)}</span></div>
+    <span class="rp-status${done ? " rp-status--positive" : ""}">${esc(status)}</span></div>`;
 
-  /* remote completion (v2): the send-link path is simulated honestly — the
-     demo has no network (invariant 2), so the sheet says so plainly and the
-     statuses stay waiting, the same pattern as the scan journey's code
-     verification. Real per-target sends are recorded on deal.creditRemote. */
-  const sentPill = (t) => deal.creditRemote && deal.creditRemote[t] ? `<span class="ca-sentpill">Link sent</span>` : "";
-  function individualRemoteHtml() {
-    return `<div class="ca-remote">
-      <div class="ca-remotetop"><div><strong>Finish on customer&rsquo;s phone</strong><span>Send ${esc(c.first)} a secure link to continue this same application on mobile.</span></div>${sentPill("applicant")}</div>
-      <button type="button" class="ca-linkaction" data-linksheet="applicant"><span class="ca-linkcopy"><strong>Send to ${esc(c.phone)}</strong><span>Starts with identity verification before any credit fields.</span></span><span class="ca-roundarrow">→</span></button></div>`;
-  }
-  function jointRemoteHtml() {
-    return `<div class="ca-remote">
-      <div class="ca-remotetop"><div><strong>Co-buyer needed</strong><span>No co-buyer is attached yet. The fastest option is to send the co-buyer a secure mobile link.</span></div>${deal.creditRemote && deal.creditRemote.cobuyer ? `<span class="ca-sentpill">Link sent</span>` : `<span class="ca-notpill">Not attached</span>`}</div>
-      <button type="button" class="ca-linkaction" data-linksheet="cobuyer"><span class="ca-linkcopy"><strong>Send co-buyer link</strong><span>They verify identity and complete their part remotely.</span></span><span class="ca-roundarrow">→</span></button>
-      <div class="ca-actionrow"><button type="button" class="ca-secondary ca-secondary--soft" id="caCoScan">Scan co-buyer license</button><button type="button" class="ca-secondary ca-secondary--soft" data-buyers="${esc(deal.id)}">Choose existing customer</button></div></div>`;
-  }
-  function attachedCoHtml() {
-    const cb = cbRec();
-    return `<div class="ca-joint">
-      <div class="ca-jointtop"><div><strong>Co-applicant</strong><span>Identity prefilled from <b>${esc(cb.first + " " + cb.last)}</b>&rsquo;s record. Employment and income go on the dealership&rsquo;s paper form.</span></div>
-        <button type="button" class="ca-managelink" data-buyers="${esc(deal.id)}">Manage buyers</button></div>
-      <div class="ca-fieldgrid" style="margin-top:14px">
-        <div><label class="ca-lab" for="ca_coRel">This Person Is A</label><select class="ca-input" id="ca_coRel" data-key="coRel">
-          ${["Joint Applicant", "Spousal Joint Applicant", "Co-signer / Guarantor"].map(o => `<option ${F.coRel === o ? "selected" : ""}>${o}</option>`).join("")}</select></div>
-        <div class="ca-fieldrow">${field("First Name", "coFirst", { req: true })}${field("Last Name", "coLast", { req: true })}</div>
-        <div class="ca-fieldrow">${field("Date of Birth", "coDob", { req: true, date: true, placeholder: "MM/DD/YYYY" })}${field("Driver License", "coDl", { req: true })}</div>
-        ${field("Address", "coAddr")}
-        <div class="ca-fieldrow">${field("ZIP Code", "coZip", { zip: "coCity,coState" })}${field("City", "coCity")}</div>
-        ${field("State", "coState")}
-      </div></div>`;
+  /* one applicant panel. A blocked panel's actions are still drawn — they are
+     the advisor's escape hatches — but none of them is the primary, because
+     none of them is the advisor's own work to do (§19). */
+  function applPanel(o) {
+    const initials = o.name.split(" ").slice(0, 2).map(w => w[0]).join("");
+    const items = (o.items || []).map(x => `<li>${x}</li>`).join("");
+    const ctas = (o.ctas || []).map((x, i) => `<button type="button" class="${i === 0 && !o.blocked ? "rp-appl__cta--primary" : ""}" data-appl-cta="${esc(x.act)}">${esc(x.label)}</button>`).join("");
+    return `<div class="rp-appl${o.blocked ? " rp-appl--blocked" : ""}">
+      <div class="rp-appl__bar${o.ok ? "" : " rp-appl__bar--wait"}"><i style="width:${o.pct}%"></i></div>
+      <div class="rp-appl__head"><span class="rp-initials">${esc(initials)}</span>
+        <span class="rp-row__body"><span class="rp-appl__name">${esc(o.name)}</span><span class="rp-appl__role">${esc(o.role)}</span></span>
+        <span class="rp-status${o.ok ? " rp-status--positive" : ""}">${esc(o.status)}</span></div>
+      ${items || ctas ? `<div class="rp-appl__body">${items ? `<ul>${items}</ul>` : ""}<div class="rp-appl__cta">${ctas}</div></div>` : ""}</div>`;
   }
 
-  function applicantHtml() {
-    return `<div class="ca-card">
-      <h2 class="ca-cardtitle">Application type</h2>
-      <p class="ca-cardsub">Choose how the customer wants to apply. A remote participant can complete their portion from their own phone.</p>
-      ${stepAlert(1)}
-      <div class="ca-choice${F.appType === "individual" ? " active" : ""}" data-atype="individual" role="radio" aria-checked="${F.appType === "individual"}" tabindex="0"><div class="ca-radio"></div><div class="ca-choicetext"><strong>Individual application</strong><span>One applicant completes this application.</span></div></div>
-      <div class="ca-choice${F.appType === "joint" ? " active" : ""}" data-atype="joint" role="radio" aria-checked="${F.appType === "joint"}" tabindex="0"><div class="ca-radio"></div><div class="ca-choicetext"><strong>Joint application</strong><span>A co-buyer will apply together. In accordance with Regulation B, you certify that you are applying for joint credit.</span></div></div>
-      ${F.appType === "joint" ? (cbRec() ? attachedCoHtml() : jointRemoteHtml()) : individualRemoteHtml()}
-      <div class="ca-rule"></div>
-      <label class="ca-lab">Credit Type <span class="ca-req">*</span></label>${seg(["Retail", "Lease", "Balloon"], "creditType", "cols3")}
-      <div style="height:16px"></div>
-      <label class="ca-lab">Primary Use</label>${seg(["Personal, family or household", "Business or commercial"], "primaryUse", "cols2")}
-      <div class="ca-rule"></div>
-      <h2 class="ca-cardtitle" style="font-size:18px">Applicant information</h2>
-      <p class="ca-cardsub">Known customer information is prefilled. Only complete what is missing.</p>
-      <span class="ca-demo">DEMO — sample data only, never real SSNs</span>
-      ${scanned ? `<span class="ca-scanpill">✓ Filled from license scan</span>` : ""}
-      <div class="ca-fieldgrid">
-        <div class="ca-fieldrow">${field("First Name", "first", { req: true })}${field("Middle", "middle")}</div>
-        ${field("Last Name", "last", { req: true })}
-        <div class="ca-fieldrow">${field("Date of Birth", "dob", { req: true, date: true, placeholder: "MM/DD/YYYY" })}${field("SSN", "ssn", { req: true, ssn: true, placeholder: "000-00-0000" })}</div>
-        ${field("Driver License", "dl", { req: true })}
-        <div class="ca-fieldrow">${field("Phone", "phone", { req: true, type: "tel" })}${field("Email", "email", { req: true, type: "email" })}</div>
-        <div><label class="ca-lab">Marital Status</label>${seg(["Married", "Unmarried", "Separated"], "marital", "cols3")}</div>
-      </div></div>`;
-  }
-
-  function residenceHtml() {
-    return `<div class="ca-card">
-      <h2 class="ca-cardtitle">Residence</h2>
-      <p class="ca-cardsub">Current address and housing obligations used by the lender.</p>
-      ${stepAlert(2)}
-      <div class="ca-fieldgrid">
-        ${field("Address", "address", { req: true })}
-        <div class="ca-fieldrow">${field("ZIP Code", "zip", { zip: "city,state" })}${field("City", "city")}</div>
-        ${field("State", "state")}
-        <div><label class="ca-lab">Residential Status <span class="ca-req">*</span></label>${seg(["Own", "Rent", "Buying", "Parents", "Other"], "housing", "cols5")}</div>
-        <div class="ca-fieldrow">${field("Monthly Rent / Mortgage Payment", "housePmt", { req: true, inputmode: "numeric", placeholder: "1,800" })}${field("Time at Address (years)", "resYrs", { req: true, inputmode: "decimal" })}</div>
-        ${under3(F.resYrs) ? field("Previous Full Address (under 3 years at current)", "prevAddr", { req: true, placeholder: "Street, city, state, ZIP" }) : ""}
-        ${switchRow("Mailing address is different", "mailDiff")}
-        ${F.mailDiff ? `${field("Mailing Address", "mailAddr")}
-          <div class="ca-fieldrow">${field("ZIP Code", "mailZip", { zip: "mailCity,mailState" })}${field("City", "mailCity")}</div>
-          ${field("State", "mailState")}` : ""}
-      </div></div>`;
-  }
-
-  function employmentHtml() {
-    return `<div class="ca-card">
-      <h2 class="ca-cardtitle">Employment &amp; income</h2>
-      <p class="ca-cardsub">Employment history and monthly income used for the lending decision.</p>
-      ${stepAlert(3)}
-      <div class="ca-fieldgrid">
-        ${field("Employer", "employer", { req: true, placeholder: "Employer name" })}
-        ${field("Occupation", "occupation", { req: true, placeholder: "e.g. Project manager" })}
-        <div class="ca-fieldrow">${field("Employer Phone", "empPhone", { type: "tel", placeholder: "(000) 000-0000" })}${field("Time at Employer (years)", "empYrs", { req: true, inputmode: "decimal" })}</div>
-        <div class="ca-fieldrow">${field("Gross Monthly Income", "income", { req: true, inputmode: "numeric", placeholder: "6,500" })}${field("Other Monthly Income", "otherIncome", { inputmode: "numeric", placeholder: "0" })}</div>
-        ${field("Other Income Source", "otherSource", { placeholder: "e.g. rental income" })}
-        ${under3(F.empYrs) ? `${field("Previous Employer (under 3 years at current)", "prevEmp", { req: true })}
-          <div class="ca-fieldrow">${field("Previous Occupation", "prevOcc")}${field("Years There", "prevEmpYrs", { inputmode: "decimal" })}</div>` : ""}
-        ${switchRow("Self-Employed", "selfEmp")}
-      </div>
-      <div class="ca-rule"></div>
-      <h3 class="ca-h3">Disclosures</h3>
-      ${switchRow("Filed bankruptcy?", "dBk")}${F.dBk ? field("Please explain", "dBkNote", { req: true }) : ""}
-      ${switchRow("Obtained credit under another name?", "dAlias")}${F.dAlias ? field("Please explain", "dAliasNote", { req: true }) : ""}
-      ${switchRow("Had a vehicle repossessed?", "dRepo")}${F.dRepo ? field("Please explain", "dRepoNote", { req: true }) : ""}
-      <button type="button" class="ca-secondary ca-secondary--soft ca-full" id="caRefsToggle">${F.refsOpen ? "−" : "+"} Optional — bank &amp; references</button>
-      ${F.refsOpen ? `<div class="ca-fieldgrid">
-        ${field("Bank Reference", "refBank", { placeholder: "Bank or credit union name" })}
-        <div><label class="ca-lab" for="ca_refAcctType">Account Type</label><select class="ca-input" id="ca_refAcctType" data-key="refAcctType">
-          <option value="" ${!F.refAcctType ? "selected" : ""} hidden>—</option>${["Checking", "Savings"].map(o => `<option ${F.refAcctType === o ? "selected" : ""}>${o}</option>`).join("")}</select></div>
-        ${field("Nearest Relative Not Living With You", "refKinName", { placeholder: "Name" })}
-        <div class="ca-fieldrow">${field("Relative's Phone", "refKinPhone", { type: "tel", placeholder: "(000) 000-0000" })}${field("Relationship", "refKinRel", { placeholder: "e.g. sister" })}</div>
-        ${field("Personal Reference", "refP1", { placeholder: "Name · phone" })}
-        ${field("Personal Reference 2", "refP2", { placeholder: "Name · phone" })}
-      </div>` : ""}</div>`;
-  }
-
-  function reviewHtml() {
-    return `<div class="ca-card">
-      <h2 class="ca-cardtitle">Review application</h2>
-      <p class="ca-cardsub">Confirm the information before sending this demo application for a simulated lender decision.</p>
-      ${stepAlert(4)}
-      <div class="ca-review">
-        <div class="ca-revrow"><span>Identity</span><strong>${deal.identity && deal.identity.verifiedAt ? "Verified" : "—"}</strong></div>
-        <div class="ca-revrow"><span>Applicant</span><strong>${esc(F.first + " " + F.last)}</strong></div>
-        <div class="ca-revrow"><span>Application</span><strong>${F.appType === "joint" ? "Joint" : "Individual"} · ${esc(F.creditType)}</strong></div>
-        ${F.appType === "joint" && cbRec() ? `<div class="ca-revrow"><span>Co-applicant</span><strong>${esc(F.coFirst + " " + F.coLast)} · ${esc(F.coRel)}</strong></div>` : ""}
-        <div class="ca-revrow"><span>Residence</span><strong>${esc([F.address, F.city, F.state].filter(Boolean).join(", "))} ${esc(F.zip)}</strong></div>
-        <div class="ca-revrow"><span>Housing</span><strong>${esc(F.housing)} · ${F.housePmt ? "$" + esc(F.housePmt) + "/mo" : "—"}</strong></div>
-        <div class="ca-revrow"><span>Employment</span><strong>${F.employer ? esc(F.employer) : "Missing employer"}</strong></div>
-        <div class="ca-revrow"><span>Gross income</span><strong>${F.income ? "$" + esc(F.income) + "/mo" : "—"}</strong></div>
-      </div>
-      <label class="ca-consent${fieldErr("consent") ? " error" : ""}">
-        <input type="checkbox" data-flag="consent" ${F.consent ? "checked" : ""}>
-        <span><strong>Consent &amp; disclosures.</strong> I understand that checking this box constitutes my electronic signature, and I authorize Ride Price to obtain credit bureau reports in connection with this application. <b>Demo — no real inquiry ever occurs.</b></span></label>
-    </div>`;
-  }
-
-  const wsRow = (label, val) => `<div class="ca-wsrow"><span>${label}</span><strong>${val}</strong></div>`;
-  /* Deal Summary Option A (v2): customer-facing title, the source line
-     subordinate and muted. The time is honest — the rows are computed from
-     the live worksheet at render. */
-  const worksheetHtml = () => !r ? "" : `<div class="ca-ws">
-    <div class="ca-wshead"><div><div class="ca-wstitle">Deal summary</div><div class="ca-wssource"><span class="ca-sourcedot"></span>Updated from worksheet · ${esc(new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }))}</div></div><a class="ca-managelink" href="#/desk/${esc(deal.id)}">Edit</a></div>
-    <div class="ca-wsrows">
-      ${wsRow("Vehicle", `${esc(v.year)} ${esc(v.make)} ${esc(v.model)} · ${esc(v.stock)}`)}
-      ${wsRow("MSRP", money(v.msrp))}
-      ${wsRow("Cash Price", money(r.yourPrice))}
-      ${wsRow("Sales Tax", money(r.taxes.total || 0))}
-      ${wsRow("Cash Down", money(deal.desk.downPayment || 0))}
-      ${wsRow("Trade-In Amount", money(deal.trade.value || 0))}
-      ${deal.dealType === "cash" ? wsRow("Total Due", money(r.totalDue))
-        : wsRow("Amount Financed", money(r.amountFinanced)) + wsRow("Term / Estimated Payment", `${esc(String(r.term))} mo · ${money(r.payment)}`)}
-    </div></div>`;
-
-  const headerHtml = () => `
-    <div class="ca-eyebrow">Lending lane</div>
-    <div class="ca-headrow"><h1 class="ca-h1">Credit application</h1><a class="ca-linkbtn" href="#/agreement/${esc(deal.id)}">Base Payment</a></div>
-    <p class="ca-subtitle">${deal.dealNo ? `<strong>Deal #${esc(deal.dealNo)}</strong> · ` : ""}${esc(c.first + " " + c.last)}${v ? `<br><span>${esc(v.year + " " + v.make + " " + v.model)}</span>` : ""}</p>
-    <div class="dk-chips" style="margin-top:20px;margin-bottom:0">
-      <button type="button" class="dk-chip" data-buyers="${esc(deal.id)}">${rpIcon("user")} Buyer</button>
-      ${r ? `<button type="button" class="dk-chip" id="caDealSum">${rpIcon("page")} Deal summary</button>` : ""}
-      <a class="dk-chip" href="#/jacket/${esc(deal.id)}">${rpIcon("folder")} Jacket ${jacketCounts(deal).missing ? `<b>${esc(String(jacketCounts(deal).missing))}</b>` : ""}</a>
-    </div>`;
-
-  const progressHtml = () => `<div class="ca-progressbox">
-    <div class="ca-progressmeta"><strong>${STEP_NAMES[st.step - 1]}</strong><span>Step ${st.step} of 4</span></div>
-    <div class="ca-progress"><div style="width:${st.step * 25}%"></div></div></div>`;
-
-  /* the contextual sheets (v2): Deal summary, and the secure-link send /
-     status views. One shell per surface; a send marks the sheet dirty so
-     closing repaints the surface's Link-sent pills. */
-  let repaint = () => {};
-  let sheetDirty = false;
-  const sheetTop3 = (title) => `<div class="m-sheettop"><div class="m-sheettitle">${esc(title)}</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>`;
-  const openSheet3 = (html) => { $("#caSheet").innerHTML = `<div class="m-handle"></div>${html}`; $("#caScrim").classList.add("show"); };
-  function wireSheetShell() {
-    const scrim = $("#caScrim");
-    if (!scrim) return;
-    scrim.onclick = (e) => {
-      if (e.target === scrim || e.target.closest("[data-sheet-close]")) {
-        scrim.classList.remove("show");
-        if (sheetDirty) { sheetDirty = false; repaint(); }
-      }
-    };
-  }
-  const openSummarySheet = () => openSheet3(`${sheetTop3("Deal summary")}${worksheetHtml()}`);
-  function openLinkSheet(target) {
-    const isCo = target === "cobuyer";
-    const cb = cbRec();
-    const name = isCo ? (cb ? cb.first + " " + cb.last : "Co-buyer") : c.first + " " + c.last;
-    const phone = isCo ? (cb ? cb.phone : "") : c.phone;
-    const email = isCo ? (cb ? cb.email : "") : c.email;
-    openSheet3(`${sheetTop3(isCo ? "Send co-buyer link" : "Send application link")}
-      <p class="ca-sheetsub">${isCo ? "The co-buyer can complete their part without being in the showroom." : `Let ${esc(c.first)} continue this application on their own phone.`}</p>
-      <div class="ca-recipient"><small>${isCo ? "Recipient" : "Customer"}</small><strong>${esc(name)}</strong></div>
-      <div class="ca-fieldgrid">
-        <div><label class="ca-lab" for="clPhone">Phone number</label><input class="ca-input" id="clPhone" type="tel" value="${esc(phone)}" placeholder="(000) 000-0000"></div>
-        <div><label class="ca-lab" for="clEmail">Email</label><input class="ca-input" id="clEmail" type="email" value="${esc(email)}" placeholder="name@example.com"></div>
-      </div>
-      <div class="ca-consent" style="cursor:default"><span><strong>What happens next.</strong> The recipient opens the link on mobile, completes identity verification first, and then continues only their required credit-application fields. <b>Demo — no text or email is really sent; the link and its statuses are simulated on this device.</b></span></div>
-      <div class="ca-errtext" id="clErr" hidden>Enter a phone number or an email for the link</div>
-      <button type="button" class="mp-primary mp-wide" id="clSend">Send secure link</button>`);
-    $("#clSend").onclick = () => {
-      const phone2 = $("#clPhone").value.trim(), email2 = $("#clEmail").value.trim();
-      if (!phone2 && !email2) { $("#clErr").hidden = false; return; }
-      deal.creditRemote = deal.creditRemote || {};
-      deal.creditRemote[target] = { phone: phone2, email: email2, sentAt: new Date().toISOString() };
-      Store.save();
-      sheetDirty = true;
-      renderLinkStatus(target);
-    };
-  }
-  function renderLinkStatus(target) {
-    const isCo = target === "cobuyer";
-    const rec = deal.creditRemote[target];
-    openSheet3(`${sheetTop3(isCo ? "Co-buyer link sent" : "Application link sent")}
-      <div class="ca-sentstate"><div class="ca-senticon">✓</div><h3>Sent successfully</h3>
-        <p>${isCo ? "The co-buyer can verify their identity and complete their portion from home." : `${esc(c.first)} can verify their identity and continue the application on their phone.`}</p></div>
-      <div class="ca-statuslist">
-        <div class="ca-statusitem"><strong>Link sent</strong><span>${esc(new Date(rec.sentAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }))}</span></div>
-        <div class="ca-statusitem"><strong>Opened</strong><span>Waiting</span></div>
-        <div class="ca-statusitem"><strong>Identity verified</strong><span>Waiting</span></div>
-        <div class="ca-statusitem"><strong>Application submitted</strong><span>Waiting</span></div>
-      </div>
-      <p class="ca-sheetsub" style="margin-top:14px">Demo — no text or email was really sent; the statuses are simulated and stay waiting.</p>
-      <button type="button" class="mp-primary mp-wide" data-sheet-close>Done</button>`);
-  }
-
-  function render() {
-    repaint = render;
-    const stepHtml = st.step === 1 ? applicantHtml() : st.step === 2 ? residenceHtml() : st.step === 3 ? employmentHtml() : reviewHtml();
-    view().innerHTML = `
-    <div class="ca-app">
-      ${deskTop(deal)}
-      <div class="ca-page">
-        ${headerHtml()}
-        ${progressHtml()}
-        ${stepHtml}
-        ${st.step >= 2 ? worksheetHtml() : ""}
-      </div>
-    </div>
-    <div class="ca-dock">
-      <div class="ca-dockinfo"><small>${st.step < 4 ? "Next" : "Lending Lane"}</small><strong>${st.step < 4 ? STEP_NAMES[st.step] : "Ready to submit"}</strong></div>
-      <button type="button" class="mp-primary" id="caGo">${st.step < 4 ? "Continue" : "Submit application"} →</button>
-    </div>
-    <div class="m-scrim" id="caScrim"><div class="m-sheet m-sheet--wide" role="dialog" aria-modal="true" id="caSheet"></div></div>`;
-    wireDeskTop();
-    wire();
-  }
-
-  function wire() {
-    wireSheetShell();
-    $$("[data-atype]").forEach(el => {
-      const pick = () => { F.appType = el.dataset.atype; render(); };
-      el.onclick = pick;
-      el.onkeydown = (e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); pick(); } };
-    });
-    $$("[data-seg]").forEach(b => b.onclick = () => { F[b.dataset.seg] = b.dataset.val; render(); });
-    $$("[data-flag]").forEach(sw => sw.onchange = () => { F[sw.dataset.flag] = sw.checked; render(); });
-    const refs = $("#caRefsToggle");
-    if (refs) refs.onclick = () => { F.refsOpen = !F.refsOpen; render(); };
-    const sc = $("#caCoScan");
-    if (sc) sc.onclick = () => openScanFlow({ mode: "cobuyer", deal, onDone: () => router() });
-    const ds = $("#caDealSum");
-    if (ds) ds.onclick = openSummarySheet;
-    $$("[data-linksheet]").forEach(b => b.onclick = () => openLinkSheet(b.dataset.linksheet));
-    $("#caGo").onclick = () => { if (st.step < 4) { st.step++; st.err = null; render(); window.scrollTo({ top: 0, behavior: "smooth" }); } else submit(); };
-  }
-
-  /* identity verification (v2): a pre-application gate. The capture uses the
-     phone's own camera through a file input (invariant 5 — no getUserMedia,
-     works over LAN http); the photo is never read or stored, and the page
-     says plainly that no real biometric match occurs in the demo. */
-  function renderIdentity(verified) {
-    repaint = () => renderIdentity(verified);
-    renderChrome("Lending Lane — Identity Verification", dealTitle(deal), "");
-    document.body.dataset.canvas = "master";
+  /* ---------------- 01 / 02 · the identity gate ---------------- */
+  /* the capture uses the phone's own camera through a file input (invariant 5
+     — no getUserMedia, so it works over LAN http); the photo is never read or
+     stored, and the checklist says a photo was captured and discarded. It
+     never claims a face was matched. */
+  function identityScreen(verified) {
     const lic = c.license && c.license.number;
-    const checklist = verified ? `
-      <div class="ca-checklist">
-        <div class="ca-checkrow"><div class="ca-checkmark">✓</div><strong>Photo captured for verification</strong><span>Done</span></div>
-        <div class="ca-checkrow"><div class="ca-checkmark">✓</div><strong>Phone number on file</strong><span>${esc(c.phone)}</span></div>
-        <div class="ca-checkrow"><div class="ca-checkmark">✓</div><strong>Email on file</strong><span>On file</span></div>
-      </div>` : `
-      <div class="ca-checklist">
-        <div class="ca-checkrow">${lic ? `<div class="ca-checkmark">✓</div><strong>Driver&rsquo;s license on file</strong><span>${esc(lic)}</span>` : `<div class="ca-checkmark ca-checkmark--off">–</div><strong>Driver&rsquo;s license</strong><span>Not on file</span>`}</div>
-        <div class="ca-checkrow"><div class="ca-checkmark">✓</div><strong>Phone number on file</strong><span>${esc(c.phone)}</span></div>
-        <div class="ca-checkrow"><div class="ca-checkmark">✓</div><strong>Email on file</strong><span>On file</span></div>
-      </div>`;
-    view().innerHTML = `
-    <div class="ca-app">
-      ${deskTop(deal)}
-      <div class="ca-page">
-        <div class="ca-eyebrow">Identity verification</div>
-        <div class="ca-headrow"><h1 class="ca-h1">${verified ? "Identity verified" : "Verify your identity"}</h1><a class="ca-linkbtn" href="#/agreement/${esc(deal.id)}">Cancel</a></div>
-        <p class="ca-subtitle">${verified ? `<strong>${esc(c.first + " " + c.last)}</strong> is ready to continue to the credit application.` : `Before the credit application begins, confirm that the customer matches the driver&rsquo;s license already on file.`}</p>
-        <div class="ca-card">
-          <div class="ca-verifywrap">
-            <div class="ca-faceframe${verified ? " verified" : ""}"><div class="ca-faceicon">${verified ? rpIcon("check") : rpIcon("user")}</div></div>
-            <h2>${verified ? "You&rsquo;re verified" : "Take a quick photo"}</h2>
-            <p>${verified ? "Identity verification is recorded for this application." : "The photo confirms the customer matches the driver&rsquo;s license on file and helps protect the application from fraud."}</p>
-            ${checklist}
-            <div class="ca-privacy">${rpIcon("lock")}<span>Demo — the photo is confirmed on this device and discarded; no real biometric match occurs.</span></div>
-            ${verified ? "" : `<p class="ca-uploadline"><label class="ca-uploadlink"><u>or upload a photo</u><input type="file" accept="image/*" data-idcap hidden></label></p>`}
-          </div>
-        </div>
-        <div class="ca-remote">
-          <div class="ca-remotetop"><div><strong>Customer wants to use their own phone?</strong><span>Send a secure application link. The customer starts with this same identity-verification step, then completes the application on mobile.</span></div>${sentPill("applicant")}</div>
-          <button type="button" class="ca-secondary ca-full" data-linksheet="applicant">Send secure link to phone</button>
-        </div>
-      </div>
-    </div>
-    <div class="ca-dock">
-      <div class="ca-dockinfo"><small>${verified ? "Next" : "Required before application"}</small><strong>${verified ? "Application type" : "Identity verification"}</strong></div>
-      ${verified
-        ? `<button type="button" class="mp-primary" id="idGo">Continue →</button>`
-        : `<label class="mp-primary ca-caplabel">Take photo<input type="file" accept="image/*" capture="user" data-idcap hidden></label>`}
-    </div>
-    <div class="m-scrim" id="caScrim"><div class="m-sheet m-sheet--wide" role="dialog" aria-modal="true" id="caSheet"></div></div>`;
-    wireDeskTop();
-    wireSheetShell();
+    const licSub = lic ? `${esc((c.license.state || "NY"))} · ending ${esc(String(lic).slice(-4))} · scanned` : "Not on file — scan it in the resolver";
+    const list = verified
+      ? `<div class="rp-steps">
+          ${stepRow("Photo captured", "Confirmed on this device, then discarded", "Done", true)}
+          ${stepRow("Driver's license", licSub, lic ? "On file" : "Needed", !!lic)}
+          ${stepRow("Phone and email", "Both on record", "On file", true)}</div>`
+      : `<div class="rp-steps">
+          ${stepRow("Driver's license", licSub, lic ? "On file" : "Needed", !!lic)}
+          ${stepRow("Phone", c.phone, "On file", true)}
+          ${stepRow("Email", c.email, "On file", true)}
+          ${stepRow("Photo of the customer", "Confirms the person matches the license", "Needed", false)}</div>`;
+    const content = `<div class="rp-eyebrow">Identity verification</div>
+      <h1 class="rp-title" style="font-size:26px">${verified ? "Identity verified" : "Verify your identity"}</h1>
+      <div class="rp-idgate"><div class="rp-idgate__ring${verified ? " rp-idgate__ring--ok" : ""}"><i>${verified ? rpGlyph("check") : rpGlyph("customers")}</i></div>
+        <div class="rp-idgate__title">${verified ? "Verified" : "Take a quick photo"}</div></div>
+      ${list}`;
+    const dock = verified
+      ? chDock(`<button type="button" class="rp-primary" id="caIdGo">Continue to the application</button>`)
+      : chDock(`<label class="rp-primary" style="display:grid;place-items:center">Take photo<input type="file" accept="image/*" capture="user" data-idcap hidden></label>`,
+        `<button type="button" class="rp-link" data-sheet-open="link-applicant">Send a secure link to their phone</button>`);
+    paint(content, dock);
     $$("[data-idcap]").forEach(inp => inp.onchange = (e) => {
       if (!e.target.files || !e.target.files.length) return; /* a cancelled picker verifies nothing */
       deal.identity = { verifiedAt: new Date().toISOString() };
+      /* his identity record is a document, and it files here (§19a) */
+      jacketReceive(deal, "idverify-primary", "app");
       Store.save();
-      renderIdentity(true);
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      ui.mode = "identity-ok"; draw();
     });
-    const idGo = $("#idGo");
-    if (idGo) idGo.onclick = () => render();
-    $$("[data-linksheet]").forEach(b => b.onclick = () => openLinkSheet(b.dataset.linksheet));
+    const go = $("#caIdGo"); if (go) go.onclick = () => { ui.mode = "wizard"; draw(); };
+  }
+
+  /* ---------------- 03–06 · the four-step wizard ---------------- */
+  function applicantStep() {
+    const co = cbRec();
+    const cs = coState();
+    const joint = isJoint();
+    const coPaths = `<div class="rp-section">Co-buyer</div>
+      <div class="rp-group">
+        <button type="button" class="rp-row" data-sheet-open="link-cobuyer"><span class="rp-tile">${rpGlyph("upload")}</span>
+          <span class="rp-row__body"><span class="rp-row__title">Send a secure link</span><span class="rp-row__sub">They complete their part from their own phone</span></span>
+          <span class="rp-row__chevron"></span></button>
+        <button type="button" class="rp-row" id="caCoScan"><span class="rp-tile">${rpGlyph("license")}</span>
+          <span class="rp-row__body"><span class="rp-row__title">Scan their license</span><span class="rp-row__sub">They are here in the showroom</span></span>
+          <span class="rp-row__chevron"></span></button>
+        <button type="button" class="rp-row" data-buyers="${esc(deal.id)}"><span class="rp-tile">${rpGlyph("customers")}</span>
+          <span class="rp-row__body"><span class="rp-row__title">Choose an existing customer</span><span class="rp-row__sub">Already in the CRM</span></span>
+          <span class="rp-row__chevron"></span></button>
+      </div>`;
+    /* an attached co-buyer is a person on the deal, not a form to fill: her
+       identity comes from her own record and her progress from her own link */
+    const coAttached = co ? `<div class="rp-section">Co-buyer</div>
+      ${applPanel({
+        name: `${co.first} ${co.last}`, role: "Co-buyer · joint",
+        status: cs.complete ? "Complete" : cs.sent ? "Waiting" : "Not started", ok: cs.complete,
+        pct: cs.complete ? 100 : cs.identity ? 66 : cs.opened ? 34 : cs.sent ? 18 : 8,
+        blocked: !cs.complete,
+        items: cs.complete ? [] : [
+          `Identity verification — ${cs.identity ? `verified ${esc(timeUS(cs.rec.identityAt))}` : cs.opened ? `link opened ${esc(timeUS(cs.rec.openedAt))}` : cs.sent ? "waiting on her link" : "no link sent yet"}`,
+          `Her residence, employment and income — ${cs.fields ? "submitted" : "waiting"}`,
+          `Joint credit authorization — ${cs.authorized ? "signed" : "waiting"}`
+        ],
+        ctas: cs.complete ? [] : [{ act: "resend", label: `Resend the ${esc(channelWord())} to ${esc(co.first)}` }, { act: "showroom", label: "She is in the showroom" }]
+      })}` : coPaths;
+
+    return `<div class="rp-section">Application type</div>
+      ${option("Individual application", "One applicant completes this application", !joint, `data-atype="individual"`)}
+      ${option("Joint application", "A co-buyer applies with them. In accordance with Regulation B, you certify they are applying for joint credit.", joint, `data-atype="joint"`)}
+      ${joint ? coAttached : ""}
+      <div class="rp-section">Applicant</div>
+      ${field("Social Security number", "ssn", { ssn: true, placeholder: "000-00-0000" })}
+      <p class="rp-fine" style="text-align:left;margin:-6px 0 14px">The only applicant field the record does not hold.</p>
+      <div class="rp-acc">
+        <button type="button" class="rp-acc__head" style="width:100%" data-record aria-expanded="${ui.recordOpen}">Full legal name, date of birth, license
+          <span class="rp-acc__sum">From the record</span>${ui.recordOpen ? rpGlyph("chevron-down").replace('class="rp-icon"', 'class="rp-icon" style="transform:rotate(180deg)"') : rpGlyph("chevron-down")}</button>
+        ${ui.recordOpen ? `<div class="rp-acc__body">
+          ${kvRow("Full legal name", esc(legalName))}
+          ${kvRow("Date of birth", esc(F.dob || "Not on file"))}
+          ${kvRow("Driver's license", esc(F.dl || "Not on file"))}
+        </div>` : ""}
+      </div>
+      <p class="rp-fine" style="text-align:left;margin:-4px 0 0">Verified on the previous step · tap to review, nothing to retype</p>
+      <div class="rp-section" style="margin-top:20px">Credit type</div>
+      ${segment(["Retail", "Lease", "Balloon"], "creditType")}`;
+  }
+
+  function residenceStep() {
+    return `<div class="rp-section">Residence</div>
+      ${field("Street address", "address")}
+      ${field("ZIP code", "zip", { zip: "city,state" })}
+      ${field("City", "city")}
+      ${field("State", "state")}
+      <div class="rp-section">Residential status</div>
+      ${segment(["Own", "Rent", "Buying", "Parents", "Other"], "housing")}
+      ${field("Monthly rent or mortgage", "housePmt", { inputmode: "numeric", placeholder: "1,800" })}
+      ${field("Time at address (years)", "resYrs", { inputmode: "decimal" })}
+      ${under3(F.resYrs) ? field("Previous full address", "prevAddr", { placeholder: "Street, city, state, ZIP" }) : ""}
+      ${toggleRow("Mailing address is different", "mailDiff")}
+      ${F.mailDiff ? `<div style="height:12px"></div>${field("Mailing address", "mailAddr")}${field("ZIP code", "mailZip", { zip: "mailCity,mailState" })}${field("City", "mailCity")}${field("State", "mailState")}` : ""}`;
+  }
+
+  function employmentStep() {
+    return `<div class="rp-section">Employment and income</div>
+      ${field("Employer", "employer", { placeholder: "Employer name" })}
+      ${field("Occupation", "occupation", { placeholder: "e.g. Project manager" })}
+      ${field("Employer phone", "empPhone", { type: "tel", placeholder: "(000) 000-0000" })}
+      ${field("Time at employer (years)", "empYrs", { inputmode: "decimal" })}
+      ${field("Gross monthly income", "income", { inputmode: "numeric", placeholder: "6,500" })}
+      ${field("Other monthly income", "otherIncome", { inputmode: "numeric", placeholder: "0" })}
+      ${field("Other income source", "otherSource", { placeholder: "e.g. rental income" })}
+      ${under3(F.empYrs) ? field("Previous employer", "prevEmp") + field("Previous occupation", "prevOcc") + field("Years there", "prevEmpYrs", { inputmode: "decimal" }) : ""}
+      ${toggleRow("Self-employed", "selfEmp")}
+      <div class="rp-section" style="margin-top:20px">Disclosures</div>
+      ${toggleRow("Filed bankruptcy?", "dBk")}${F.dBk ? `<div style="height:12px"></div>${field("Please explain", "dBkNote")}` : ""}
+      ${toggleRow("Obtained credit under another name?", "dAlias")}${F.dAlias ? `<div style="height:12px"></div>${field("Please explain", "dAliasNote")}` : ""}
+      ${toggleRow("Had a vehicle repossessed?", "dRepo")}${F.dRepo ? `<div style="height:12px"></div>${field("Please explain", "dRepoNote")}` : ""}
+      <div style="height:14px"></div>
+      ${toggleRow("Bank and references (optional)", "refsOpen")}
+      ${F.refsOpen ? `<div style="height:12px"></div>
+        ${field("Bank reference", "refBank", { placeholder: "Bank or credit union name" })}
+        ${field("Nearest relative not living with you", "refKinName", { placeholder: "Name" })}
+        ${field("Relative's phone", "refKinPhone", { type: "tel", placeholder: "(000) 000-0000" })}
+        ${field("Relationship", "refKinRel", { placeholder: "e.g. sister" })}
+        ${field("Personal reference", "refP1", { placeholder: "Name · phone" })}
+        ${field("Personal reference 2", "refP2", { placeholder: "Name · phone" })}` : ""}`;
+  }
+
+  /* Review is where the whole draft is judged (§17a), so the validation
+     summary and the applicant panels live here — never on the step of the
+     first offending field. */
+  function reviewStep() {
+    const co = cbRec(), cs = coState();
+    const probs = johnProblems();
+    const missing = probs.filter(p => p.kind === "missing").length;
+    const invalid = probs.filter(p => p.kind === "invalid").length;
+    const showErrors = st.err && !johnComplete();
+    /* the head counts in words and the panel in digits, as the board writes
+       them; both count the same set — the fields */
+    const errHead = probs.length
+      ? `${countWord(missing)} missing · ${countWord(invalid)} invalid`.replace(/^./, ch => ch.toUpperCase())
+      : "Electronic signature needed";
+    const johnItems = probs.map(p => `${esc(p.label)} — ${p.kind === "invalid" ? `<i>invalid</i> · ${esc(p.msg)}` : `<b>missing</b>`}`);
+    /* the signature is a separate condition, so it is a separate row and it is
+       never counted among the fields */
+    if (johnFieldsComplete() && !F.consent) johnItems.push("Electronic signature — <b>not accepted</b>");
+
+    const johnPanel = applPanel({
+      name: `${c.first} ${c.last}`, role: isJoint() ? "Primary applicant · joint" : "Applicant",
+      status: johnComplete() ? "Complete" : probs.length ? `${missing} missing · ${invalid} invalid` : "Signature needed",
+      ok: johnComplete(), pct: johnComplete() ? 100 : Math.max(20, Math.round(100 - probs.length * 9)),
+      items: johnComplete() ? [] : johnItems,
+      ctas: johnComplete() ? [{ act: "answers-john", label: "View his answers" }] : [{ act: "fix", label: `Fix ${esc(c.first)}'s items` }]
+    });
+    const coPanel = co ? applPanel({
+      name: `${co.first} ${co.last}`, role: "Co-buyer · joint",
+      status: cs.complete ? "Complete" : "Waiting", ok: cs.complete,
+      pct: cs.complete ? 100 : cs.identity ? 66 : cs.opened ? 34 : cs.sent ? 18 : 8,
+      blocked: !cs.complete,
+      items: cs.complete ? [] : [
+        `Identity verification — ${cs.identity ? `verified ${esc(timeUS(cs.rec.identityAt))}` : cs.opened ? `link opened ${esc(timeUS(cs.rec.openedAt))}` : cs.sent ? "waiting on her link" : "no link sent yet"}`,
+        `Her residence, employment and income — ${cs.fields ? "submitted" : "not started"}`,
+        `Joint credit authorization — ${cs.authorized ? "signed" : "waiting"}`
+      ],
+      ctas: cs.complete ? [{ act: "answers-co", label: "View her answers" }] : [{ act: "resend", label: `Resend the ${esc(channelWord())} to ${esc(co.first)}` }, { act: "showroom", label: "She is in the showroom" }]
+    }) : "";
+
+    const ready = isJoint() && co && johnComplete() && cs.complete;
+    return `${showErrors ? `<div class="rp-errors"><div class="rp-errors__head"><span class="rp-tile">${probs.length || 1}</span>${esc(errHead)}</div>
+      <ul><li>Nothing has been saved or sent.${co && !cs.complete ? ` ${esc(co.first)}'s items are not yours to fix.` : ""}</li></ul></div>` : ""}
+      ${isJoint() ? `<div class="rp-section">Applicants</div>${johnPanel}${coPanel}` : `<div class="rp-section">Applicant</div>${johnPanel}`}
+      ${ready ? `<div class="rp-kv"><div class="rp-kv__head">Ready for lenders</div>
+        ${kvRow("Both identities verified", "Photo against each license")}
+        ${kvRow("Joint credit authorization", "Signed by both")}
+        ${kvRow("Fields complete", "Applicant, residence, employment, review")}</div>` : ""}
+      ${johnComplete() ? "" : `<div class="rp-section">Consent</div>
+        ${option("Electronic signature and credit authorization", "Checking this is the applicant's electronic signature, authorizing Ride Price to obtain credit bureau reports. Demo — no real inquiry ever occurs.", F.consent, `data-flag="consent"`)}`}`;
+  }
+
+  /* the dock says which action this is: internal completion or lender
+     submission — never "submit to lenders" before both halves exist (§19) */
+  function reviewDock() {
+    const co = cbRec(), cs = coState();
+    if (isJoint() && co && johnComplete() && cs.complete) {
+      return chDock(`<button type="button" class="rp-primary" id="caGo">Review &amp; submit to lenders</button>`,
+        `<button type="button" class="rp-link" id="caBack">Back to the application</button>`);
+    }
+    if (isJoint() && co && johnComplete()) {
+      return `<div class="rp-dock">
+        <div class="rp-gatenote">Regulation B — both applicants must authorize the joint credit pull</div>
+        <button type="button" class="rp-primary" id="caMarkReady">Mark ${esc(c.first)} ready · waiting on ${esc(co.first)}</button>
+        <button type="button" class="rp-link" id="caPark">Park the deal</button></div>`;
+    }
+    if (isJoint() && co) {
+      return `<div class="rp-dock">
+        <div class="rp-gatenote">A joint application goes to lenders only when both applicants are complete</div>
+        <button type="button" class="rp-primary" id="caGo">Fix ${esc(c.first)}'s items</button></div>`;
+    }
+    return chDock(`<button type="button" class="rp-primary" id="caGo">${johnComplete() ? "Review &amp; submit to lenders" : "Submit application"}</button>`);
+  }
+
+  function wizardScreen() {
+    const body = st.step === 1 ? applicantStep() : st.step === 2 ? residenceStep() : st.step === 3 ? employmentStep() : reviewStep();
+    const content = `<div class="rp-eyebrow">Lending lane</div>
+      <h1 class="rp-title" style="font-size:26px">Credit application</h1>
+      ${subLine()}
+      ${chipRow()}
+      ${stepBar(STEP_NAMES[st.step - 1], st.step)}
+      ${body}`;
+    const dock = st.step < 4
+      ? chDock(`<button type="button" class="rp-primary" id="caGo">Next: ${esc(STEP_NAMES[st.step])}</button>`)
+      : reviewDock();
+    paint(content, dock, st.step === 4 ? "rp-screen--gate" : "");
+
+    $$("[data-atype]").forEach(el => el.onclick = () => { F.appType = el.dataset.atype; draw(); });
+    $$("[data-seg]").forEach(b => b.onclick = () => { F[b.dataset.seg] = b.dataset.val; draw(); });
+    $$("[data-flag]").forEach(b => b.onclick = () => { F[b.dataset.flag] = !F[b.dataset.flag]; draw(); });
+    const rec = $("[data-record]"); if (rec) rec.onclick = () => { ui.recordOpen = !ui.recordOpen; draw(); };
+    const scan = $("#caCoScan"); if (scan) scan.onclick = () => coScan();
+    $$("[data-appl-cta]").forEach(b => b.onclick = () => applAction(b.dataset.applCta));
+    const go = $("#caGo");
+    if (go) go.onclick = () => {
+      if (st.step < 4) { st.step++; st.err = null; draw(); return; }
+      submit();
+    };
+    const back = $("#caBack"); if (back) back.onclick = () => { st.step = 1; draw(); };
+    const mark = $("#caMarkReady"); if (mark) mark.onclick = () => markReady();
+    const park = $("#caPark"); if (park) park.onclick = () => { markReady(true); navigate("#/deals"); };
+  }
+
+  /* an applicant panel's own actions */
+  function applAction(act) {
+    /* tapping a named item is what navigates to that field's step (§17a); with
+       the fields done, the one thing left is the signature, which is here */
+    if (act === "fix") { const p = johnProblems()[0]; if (p) { st.step = p.n; draw(); } return; }
+    if (act === "resend") { ui.sheet = "link-cobuyer"; draw(); return; }
+    if (act === "showroom") { coScan(); return; }
+    if (act === "answers-john") { ui.sheet = "answers-john"; draw(); return; }
+    if (act === "answers-co") { ui.sheet = "answers-co"; draw(); return; }
+  }
+  /* the co-buyer scan returns into THIS flow rather than rebuilding the route
+     from scratch, so the step and the draft survive it */
+  function coScan() {
+    openScanFlow({ mode: "cobuyer", deal, onDone: () => {
+      const cb = cbRec();
+      if (cb) {
+        /* she was verified in person: that is her identity record, and it
+           files as her own document (§19a) */
+        deal.creditRemote = deal.creditRemote || {};
+        const rec = deal.creditRemote.cobuyer = deal.creditRemote.cobuyer || {};
+        if (!rec.identityAt) { rec.identityAt = new Date().toISOString(); jacketReceive(deal, "idverify-cobuyer", "app"); }
+        Store.save();
+        seedCo();
+      }
+      document.body.dataset.canvas = "kit";
+      draw();
+    } });
+  }
+  const channelWord = () => {
+    const rec = (deal.creditRemote && deal.creditRemote.cobuyer) || {};
+    return rec.channel === "email" ? "email" : "text";
+  };
+
+  function markReady(parked) {
+    const a = deal.creditApp = deal.creditApp || {};
+    a.status = "pending-cobuyer";
+    a.primaryReadyAt = new Date().toISOString();
+    a.draft = Object.assign({}, F);
+    Store.save();
+    if (!parked) draw();
+  }
+
+  /* ---------------- the sheets ---------------- */
+  function sheetHtml() {
+    const co = cbRec(), cs = coState();
+    if (ui.sheet === "summary") return summarySheet();
+    if (ui.sheet === "answers-john" || ui.sheet === "answers-co") return answersSheet(ui.sheet === "answers-co");
+    /* the link sheet takes ONE channel, chosen on a segment as the resolver's
+       does, so the status view can name the channel actually used */
+    const toCo = ui.sheet === "link-cobuyer";
+    const who = toCo ? co : c;
+    const rec = toCo ? cs.rec : ((deal.creditRemote && deal.creditRemote.applicant) || {});
+    const name = who ? `${who.first} ${who.last}` : "the co-buyer";
+    const ctx = `Deal #${esc(deal.dealNo)} · ${esc(custName)}${toCo ? ` · joint application · to ${esc(name)}` : ""}`;
+    if (rec.sentAt) {
+      /* the status view: it stays on the screen instead of vanishing into a
+         toast, and nothing claims progress that has not happened */
+      return `${chSheetHead(toCo ? "Co-buyer link" : "Application link")}
+        <p class="rp-sheet__sub">${ctx}</p>
+        <div class="rp-steps">
+          ${stepRow(`Link sent by ${rec.channel === "email" ? "email" : "text"}`, `${esc(rec.to || "")} · ${esc(timeUS(rec.sentAt))}`, "Sent", true)}
+          ${stepRow("Opened", rec.openedAt ? `${esc(timeUS(rec.openedAt))}` : "Waiting on the co-buyer", rec.openedAt ? "Opened" : "Waiting", !!rec.openedAt)}
+          ${stepRow("Identity verified", "Photo against their license", rec.identityAt ? "Verified" : "Waiting", !!rec.identityAt)}
+          ${stepRow("Their fields submitted", "Residence, employment, income", rec.fieldsAt ? "Submitted" : "Waiting", !!rec.fieldsAt)}
+        </div>
+        <button type="button" class="rp-primary" data-sheet-close>Done</button>
+        <button type="button" class="rp-link" id="caResend">Resend the ${rec.channel === "email" ? "email" : "text"} to ${esc(who ? who.first : "them")}</button>`;
+    }
+    const channel = ui.channel || "text";
+    const to = channel === "email" ? (who && who.email) || "" : (who && who.phone) || "";
+    return `${chSheetHead(toCo ? "Send co-buyer link" : "Send application link")}
+      <p class="rp-sheet__sub">${ctx}</p>
+      <div class="rp-segment">
+        <button type="button" class="rp-segment__item${channel === "text" ? " rp-segment__item--on" : ""}" data-channel="text">Text</button>
+        <button type="button" class="rp-segment__item${channel === "email" ? " rp-segment__item--on" : ""}" data-channel="email">Email</button>
+      </div>
+      <div class="rp-field"><label class="rp-field__label" for="caLinkTo">${channel === "email" ? "Email" : "Mobile"}</label>
+        <input class="rp-field__input" id="caLinkTo" autofocus value="${esc(to)}" placeholder="${channel === "email" ? "name@example.com" : "(000) 000-0000"}"></div>
+      <div class="rp-steps" style="margin-top:4px">
+        ${stepRow("They verify identity first", "Photo against their own license", "First", false)}
+        ${stepRow("Then their own fields only", `Nothing about ${esc(c.first)} is shown to them`, "Second", false)}
+      </div>
+      <div class="rp-field__err" id="caLinkErr" hidden>Enter a ${channel === "email" ? "an email address" : "mobile number"} for the link</div>
+      <button type="button" class="rp-primary" id="caLinkSend">Send secure link</button>`;
+  }
+
+  function wireSheet(sheet) {
+    $$("[data-channel]", sheet).forEach(b => b.onclick = () => { ui.channel = b.dataset.channel; draw(); });
+    const send = $("#caLinkSend", sheet);
+    if (send) send.onclick = () => {
+      const to = $("#caLinkTo", sheet).value.trim();
+      if (!to) { $("#caLinkErr", sheet).hidden = false; return; }
+      const target = ui.sheet === "link-cobuyer" ? "cobuyer" : "applicant";
+      deal.creditRemote = deal.creditRemote || {};
+      const prev = deal.creditRemote[target] || {};
+      deal.creditRemote[target] = Object.assign({}, prev, { channel: ui.channel || "text", to, sentAt: new Date().toISOString() });
+      Store.save();
+      draw();
+    };
+    const resend = $("#caResend", sheet);
+    if (resend) resend.onclick = () => {
+      const target = ui.sheet === "link-cobuyer" ? "cobuyer" : "applicant";
+      deal.creditRemote[target].sentAt = new Date().toISOString();
+      Store.save();
+      draw();
+    };
+  }
+
+  /* the deal summary that reconciles: every line the total depends on is on
+     the screen, fees itemised, the tax naming its base (§17, §19b) */
+  function summarySheet() {
+    const acc = r.accessories;
+    const equity = (deal.trade.value || 0) - (deal.trade.payoff || 0);
+    const totalOfPayments = RIDE_PRICE_CALC.round2(r.payment * r.term);
+    return `${chSheetHead("Deal summary")}
+      <p class="rp-sheet__sub">Deal #${esc(deal.dealNo)}${v ? ` · ${esc(v.year + " " + v.model + (v.trim ? " " + v.trim : ""))}` : ""} · updated from the worksheet</p>
+      <div class="rp-kv"><div class="rp-kv__head">Vehicle</div>
+        ${kvRow("Cash price", money(v.selling + v.includedOptions))}
+        ${acc ? kvRow("Accessories", money(acc)) : ""}
+        ${RIDE_PRICE_DATA.fees.map(f => kvRow(esc(f.label), money(f.amount))).join("")}
+        ${kvRow(`Sales tax · ${RIDE_PRICE_CALC.taxPct(RIDE_PRICE_CALC.totalTaxRate())}% on ${money(RIDE_PRICE_CALC.taxableBase(deal, v))}`, money(r.taxes.total))}
+      </div>
+      <div class="rp-kv"><div class="rp-kv__head">Credits and payoff</div>
+        ${deal.trade.rebates ? kvRow("Rebate · customer cash", `−${money(deal.trade.rebates)}`) : ""}
+        ${deal.trade.has ? kvRow("Trade allowance", `−${money(deal.trade.value || 0)}`) + kvRow("Trade payoff", `+${money(deal.trade.payoff || 0)}`) : ""}
+        ${kvRow("Cash down", `−${money(deal.desk.downPayment || 0)}`)}
+      </div>
+      <div class="rp-kv"><div class="rp-kv__head">Structure</div>
+        ${kvRow("Term", `${esc(String(r.term))} months`)}
+        ${kvRow("Rate agreed with the customer", `${esc(String(deal.desk.apr))}% APR`)}
+        ${kvRow("Payment", `${money(r.payment)} / mo`)}
+        ${kvRow(`Total of payments · ${esc(String(r.term))} × ${money(r.payment)}`, money(totalOfPayments))}
+        <div class="rp-kv__row" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Amount financed</span><span style="font-weight:760">${money(r.amountFinanced)}</span></div>
+      </div>
+      <a class="rp-link" href="#/desk/${esc(deal.id)}">Edit on the pencil</a>`;
+  }
+
+  /* a read-only review drawer, one per applicant — four steps, no editing */
+  function answersSheet(forCo) {
+    const co = cbRec();
+    const who = forCo ? co : c;
+    const rows = forCo
+      ? [["Full legal name", [co.first, co.middle, co.last].filter(Boolean).join(" ")],
+         ["Date of birth", F.coDob || "—"], ["Driver's license", F.coDl || "—"],
+         ["Address", [F.coAddr, F.coCity, F.coState].filter(Boolean).join(", ") || "—"],
+         ["Relationship on the deal", F.coRel]]
+      : [["Full legal name", legalName], ["Date of birth", F.dob || "—"], ["Driver's license", F.dl || "—"],
+         ["Social Security number", F.ssn ? "On file" : "—"],
+         ["Address", [F.address, F.city, F.state].filter(Boolean).join(", ") + " " + (F.zip || "")],
+         ["Housing", `${F.housing}${F.housePmt ? ` · $${F.housePmt} / mo` : ""}`],
+         ["Time at address", `${F.resYrs} years`],
+         ["Employer", F.employer || "—"], ["Occupation", F.occupation || "—"],
+         ["Time at employer", `${F.empYrs} years`],
+         ["Gross monthly income", F.income ? `$${F.income} / mo` : "—"],
+         ["Electronic signature", F.consent ? "Accepted" : "Not accepted"]];
+    return `${chSheetHead(`${who.first}'s answers`)}
+      <p class="rp-sheet__sub">Deal #${esc(deal.dealNo)} · read-only · four steps</p>
+      <div class="rp-kv">${rows.map(([a, b]) => kvRow(esc(a), esc(String(b)))).join("")}</div>
+      <button type="button" class="rp-primary" data-sheet-close>Done</button>`;
+  }
+
+  /* ---------------- 11 · approved, at a different rate ---------------- */
+  /* When the lender approves at terms other than the ones the customer agreed
+     to, the screen states the difference in the customer's unit — the payment,
+     not the rate — and the forward action is to re-present (§18). Every figure
+     derives from the two payments on screen, so the per-month difference and
+     the term total multiply out against each other (§17). */
+  function approvedScreen() {
+    const a = deal.creditApp;
+    const agreedApr = a.agreedApr != null ? a.agreedApr : deal.desk.apr;
+    const approvedApr = a.approvedApr != null ? a.approvedApr : a.qualifiedApr;
+    const base = RIDE_PRICE_CALC.calc(deal, v);
+    const agreedPay = a.agreedPayment != null ? a.agreedPayment : base.payment;
+    const approvedPay = RIDE_PRICE_CALC.round2(RIDE_PRICE_CALC.amortize(base.amountFinanced, approvedApr, base.term));
+    const term = base.term;
+    const agreedTotal = RIDE_PRICE_CALC.round2(agreedPay * term);
+    const approvedTotal = RIDE_PRICE_CALC.round2(approvedPay * term);
+    const diff = RIDE_PRICE_CALC.round2(approvedPay - agreedPay);
+    const diffTotal = RIDE_PRICE_CALC.round2(diff * term);
+    const moved = Math.abs(diff) >= 0.01;
+    const content = `<div class="rp-eyebrow">Lending lane</div>
+      <h1 class="rp-title" style="font-size:26px">Approved</h1>
+      ${subLine()}
+      ${chipRow()}
+      <div class="rp-approval" style="padding:12px 16px 10px"><span class="rp-approval__badge">${rpGlyph("check")}Approved by ${esc(a.lender)}</span></div>
+      <div class="rp-kv">
+        <div class="rp-kv__head"${moved ? ` style="color:#A54600"` : ""}>${moved ? "The rate moved — the payment changed" : "Approved at the agreed rate"}</div>
+        ${kvRow(`Agreed · ${esc(String(agreedApr))}% APR`, `${money(agreedPay)} / mo`, `total of payments ${term} × ${money(agreedPay)} = ${money(agreedTotal)}`)}
+        ${kvRow(`Approved · ${esc(String(approvedApr))}% APR`, `${money(approvedPay)} / mo`, `total of payments ${term} × ${money(approvedPay)} = ${money(approvedTotal)}`)}
+        ${kvRow("Amount financed", money(base.amountFinanced), "unchanged — only the rate moved")}
+        <div class="rp-kv__row rp-kv__row--src" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Difference</span><span style="font-weight:760">${diff >= 0 ? "+" : "−"}${money(Math.abs(diff))} / mo</span><span class="rp-kv__src">${diff >= 0 ? "+" : "−"}${money(Math.abs(diffTotal))} over the term</span></div>
+      </div>`;
+    const dock = moved
+      ? chDock(`<button type="button" class="rp-primary" id="caRepresent">Re-present the new payment</button>`,
+        `<a class="rp-link" href="#/menu/${esc(deal.id)}">Manager sign-off</a>`)
+      : chDock(`<a class="rp-primary" style="display:grid;place-items:center" href="#/menu/${esc(deal.id)}">Manager sign-off</a>`);
+    paint(content, dock);
+    const rp = $("#caRepresent");
+    /* re-presenting hands the phone back to desking's present mode on the
+       APPROVED number: the customer agreed to a payment, and a new payment is
+       a new agreement (§18) */
+    if (rp) rp.onclick = () => { deal.desk.apr = approvedApr; delete deal.desk.customerChose; Store.save(); navigate(`#/desk/${deal.id}`); };
+  }
+
+  /* ---------------- submit ---------------- */
+  function submit() {
+    /* a joint application with nobody attached cannot go to a lender */
+    if (isJoint() && !cbRec()) {
+      st.err = { keys: new Map(), summary: "No co-buyer is attached." };
+      st.step = 4; draw();
+      return;
+    }
+    const bad = johnProblems();
+    if (bad.length || !F.consent) {
+      st.err = { keys: new Map(bad.map(b => [b.k, b.msg])) };
+      st.step = 4; draw();
+      return;
+    }
+    /* §19: internal completion is not lender submission — both halves first */
+    if (isJoint() && !coState().complete) { markReady(); return; }
+
+    const tier = RIDE_PRICE_CALC.creditTier(c.creditScore || 700);
+    const submittedAt = new Date().toISOString();
+    const outcome = RIDE_PRICE_DATA.approvalOutcome;
+    const base = v ? RIDE_PRICE_CALC.calc(deal, v) : null;
+    deal.creditApp = {
+      submitted: submittedAt, approved: true, status: "approved",
+      /* the lender's answer is the demo's own seeded outcome: a rate derived
+         from a credit tier would put this deal at 2.49% and contradict every
+         board and the finance menu that prices off it. The agreed rate is
+         snapshotted here because re-presenting overwrites desk.apr. */
+      lender: outcome.lender, approvedApr: outcome.apr, qualifiedApr: outcome.apr,
+      agreedApr: deal.desk.apr, agreedPayment: base ? base.payment : null,
+      leaseFactor: Math.max(0.00001, tier.leaseFactor - 0.0003),
+      employer: F.employer,
+      form: {
+        consent: { electronicSignature: true, acceptedAt: submittedAt },
+        dob: dateISO(F.dob), coDob: dateISO(F.coDob) || null,
+        creditType: F.creditType, primaryUse: F.primaryUse,
+        joint: isJoint(), coRel: isJoint() ? F.coRel : "",
+        marital: F.marital,
+        housing: F.housing, housePmt: F.housePmt.trim(), resYrs: F.resYrs.trim(),
+        prevAddress: under3(F.resYrs) ? F.prevAddr.trim() : "",
+        mailing: F.mailDiff
+          ? { address: F.mailAddr.trim(), city: F.mailCity.trim(), state: F.mailState.trim(), zip: F.mailZip.trim() } : null,
+        occupation: F.occupation.trim(), selfEmployed: F.selfEmp,
+        employerPhone: F.empPhone.trim(), empYrs: F.empYrs.trim(),
+        income: F.income.trim(), otherIncome: F.otherIncome.trim(), otherSource: F.otherSource.trim(),
+        prevEmployer: under3(F.empYrs) ? F.prevEmp.trim() : "", prevOccupation: F.prevOcc.trim(), prevEmpYrs: F.prevEmpYrs.trim(),
+        disclosures: {
+          bankruptcy: F.dBk ? F.dBkNote.trim() : null,
+          alias: F.dAlias ? F.dAliasNote.trim() : null,
+          repossession: F.dRepo ? F.dRepoNote.trim() : null
+        },
+        references: {
+          bank: F.refBank.trim(), acctType: F.refAcctType,
+          kin: F.refKinName.trim() ? { name: F.refKinName.trim(), phone: F.refKinPhone.trim(), relationship: F.refKinRel.trim() } : null,
+          personal: [F.refP1.trim(), F.refP2.trim()].filter(Boolean)
+        }
+      }
+    };
+    /* two documents file here, in order: the application itself — ONE document,
+       which is why it could not file while half of it did not exist — and the
+       lender's approval (§19a) */
+    jacketReceive(deal, "creditapp", "app");
+    jacketReceive(deal, "approval", "app");
+    deal.stage = "menu"; Store.save();
+    ui.mode = "approved"; draw();
+  }
+
+  /* ---------------- the frame ---------------- */
+  function paint(content, dockHtml, cls) {
+    if (!ui.sheet) sheets.close();
+    view().innerHTML = chShell({ template: "task", title: custName, closeId: "caClose", cls: cls || "" },
+      content, dockHtml, { scrim: "caScrim", sheet: "caSheet" });
+    $("#caClose").onclick = () => navigate(`#/agreement/${deal.id}`);
+    chWireRole(sheets, draw);
+    $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; ui.channel = null; draw(); });
+    if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
+  }
+
+  function draw() {
+    if (ui.mode === "approved") return approvedScreen();
+    if (ui.mode === "identity") return identityScreen(false);
+    if (ui.mode === "identity-ok") return identityScreen(true);
+    wizardScreen();
   }
 
   /* one delegated writer: masks applied here so the stored value matches what
@@ -5613,123 +5929,30 @@ route("credit/:id", ({ id }) => {
     }
     F[el.dataset.key] = el.value;
   });
-  view().addEventListener("change", (e) => {
-    const el = e.target.closest("select[data-key]");
-    if (el) F[el.dataset.key] = el.value;
-  });
 
-  function submit() {
-    /* a joint application with nobody attached cannot go to a lender */
-    if (F.appType === "joint" && !cbRec()) {
-      st.err = { keys: new Map(), alertStep: 1, summary: `<strong>No co-buyer is attached.</strong><br>Scan the co-buyer&rsquo;s license, choose an existing customer, or select Individual application.` };
-      st.step = 1; render(); window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-    const bad = [];
-    for (const n of [1, 2, 3]) for (const [k, label] of reqForStep(n)) {
-      const msg = problem(k);
-      if (msg) bad.push({ k, label, msg, n });
-    }
-    if (bad.length) {
-      const firstStep = bad[0].n;
-      st.err = {
-        keys: new Map(bad.map(b => [b.k, b.msg])),
-        alertStep: firstStep,
-        summary: `<strong>${bad.length} required item${bad.length === 1 ? "" : "s"} need${bad.length === 1 ? "s" : ""} attention.</strong><br>${esc(bad.map(b => b.label).join(", "))}.${bad.some(b => b.k === "ssn") ? " For this demo, SSN must be 000-00-0000." : ""} Nothing has been saved or sent.`
-      };
-      st.step = firstStep; render(); window.scrollTo({ top: 0, behavior: "smooth" });
-      return;
-    }
-    if (!F.consent) {
-      st.err = { keys: new Map([["consent", "Required"]]), alertStep: 4, summary: `<strong>Application not submitted.</strong><br>The applicant must check the electronic-signature consent box. Nothing has been saved or sent.` };
-      render();
-      return;
-    }
-    const tier = RIDE_PRICE_CALC.creditTier(c.creditScore || 700);
-    const submittedAt = new Date().toISOString();
-    /* the simulated approval is untouched (decision 25) — the form details are
-       captured alongside it as the application of record, field for field */
-    deal.creditApp = {
-      submitted: submittedAt, approved: true,
-      lender: RIDE_PRICE_DATA.lenders[0], qualifiedApr: tier.qualifiedApr, leaseFactor: Math.max(0.00001, tier.leaseFactor - 0.0003),
-      employer: F.employer,
-      form: {
-        consent: { electronicSignature: true, acceptedAt: submittedAt },
-        dob: dateISO(F.dob), coDob: dateISO(F.coDob) || null,
-        creditType: F.creditType, primaryUse: F.primaryUse,
-        joint: F.appType === "joint", coRel: F.appType === "joint" ? F.coRel : "",
-        marital: F.marital,
-        housing: F.housing, housePmt: F.housePmt.trim(), resYrs: F.resYrs.trim(),
-        prevAddress: under3(F.resYrs) ? F.prevAddr.trim() : "",
-        mailing: F.mailDiff
-          ? { address: F.mailAddr.trim(), city: F.mailCity.trim(), state: F.mailState.trim(), zip: F.mailZip.trim() } : null,
-        occupation: F.occupation.trim(), selfEmployed: F.selfEmp,
-        employerPhone: F.empPhone.trim(), empYrs: F.empYrs.trim(),
-        income: F.income.trim(), otherIncome: F.otherIncome.trim(), otherSource: F.otherSource.trim(),
-        prevEmployer: under3(F.empYrs) ? F.prevEmp.trim() : "", prevOccupation: F.prevOcc.trim(), prevEmpYrs: F.prevEmpYrs.trim(),
-        disclosures: {
-          bankruptcy: F.dBk ? F.dBkNote.trim() : null,
-          alias: F.dAlias ? F.dAliasNote.trim() : null,
-          repossession: F.dRepo ? F.dRepoNote.trim() : null
-        },
-        references: {
-          bank: F.refBank.trim(), acctType: F.refAcctType,
-          kin: F.refKinName.trim() ? { name: F.refKinName.trim(), phone: F.refKinPhone.trim(), relationship: F.refKinRel.trim() } : null,
-          personal: [F.refP1.trim(), F.refP2.trim()].filter(Boolean)
-        }
-      }
-    };
-    deal.stage = "menu"; Store.save();
-    renderApproved(true);
-  }
+  /* the gate comes before the application; an already-approved deal never
+     re-gates, and a deal parked on a pending co-buyer opens on Review */
+  if (app && app.approved) ui.mode = "approved";
+  else if (!(deal.identity && deal.identity.verifiedAt)) ui.mode = "identity";
+  else { ui.mode = "wizard"; if (app && app.status === "pending-cobuyer") st.step = 4; }
+  draw();
+});
 
-  function renderApproved(justNow) {
-    repaint = () => renderApproved();
-    const a = deal.creditApp;
-    renderChrome("Lending Lane — Credit Application", dealTitle(deal), "");
-    document.body.dataset.canvas = "master";
-    view().innerHTML = `
-    <div class="ca-app">
-      ${deskTop(deal)}
-      <div class="ca-page">
-        ${headerHtml()}
-        <div class="ca-card" style="margin-top:26px">
-          <div class="ca-statusline"><div class="ca-eyebrow" style="margin:0">Loan status</div><span class="ca-statuspill">✓ Approved</span></div>
-          <div class="ca-approvalhero">
-            <div class="ca-bankicon">${rpIcon("bank")}</div>
-            <h2>Approved by ${esc(a.lender)}</h2>
-            <p>Qualified rate: <strong>${esc(String(a.qualifiedApr))}% APR</strong><br><span>agreed structure was ${esc(String(deal.desk.apr))}%</span></p>
-          </div>
-          <div class="ca-selectline"><label class="ca-lab" for="assignLender">Assign Lender</label>
-            <select class="ca-input" id="assignLender">${RIDE_PRICE_DATA.lenders.map(l => `<option ${l === a.lender ? "selected" : ""}>${esc(l)}</option>`).join("")}</select></div>
-          ${deal.identity && deal.identity.verifiedAt
-            ? `<div class="ca-wait"><div class="ca-eyebrow">Identity complete</div><p>Identity verification is already complete, so the advisor does not need to repeat that step during delivery.</p></div>`
-            : `<div class="ca-wait"><div class="ca-eyebrow">While you waited</div><p>The Manufacturer Warranty Overview and Service Walk are complete and the Cover Sheet is printed. Next: the Team Lead signs off on the deal and delivers it to Processing — then the menu gets built.</p></div>`}
-        </div>
-      </div>
-    </div>
-    <div class="ca-dock">
-      <div class="ca-dockinfo"><small>Next step</small><strong>Manager Sign-Off</strong></div>
-      <a class="mp-primary" style="display:inline-flex;align-items:center;text-decoration:none" href="#/menu/${esc(deal.id)}">Continue →</a>
-    </div>
-    <div class="m-scrim" id="caScrim"><div class="m-sheet m-sheet--wide" role="dialog" aria-modal="true" id="caSheet"></div></div>`;
-    wireDeskTop();
-    wireSheetShell();
-    const ds = $("#caDealSum");
-    if (ds) ds.onclick = openSummarySheet;
-    $("#assignLender").onchange = (e) => {
-      a.lender = e.target.value; Store.save();
-      toast("Lender assigned: " + a.lender);
-      renderApproved();
-    };
-    if (justNow) toast("Application approved — qualified rate " + a.qualifiedApr + "%");
-  }
-
-  /* v2 gate: identity verification comes before the application begins; an
-     already-approved deal never re-gates */
-  if (app && app.approved) renderApproved();
-  else if (!(deal.identity && deal.identity.verifiedAt)) renderIdentity(false);
-  else render();
+/* the co-buyer finishing her half at home is a real sequence of events the
+   demo cannot receive over a network (invariant 2), so it is entered on
+   purpose — the same device the vehicle-reservation example uses. */
+route("demo/cobuyer-ready", () => {
+  const deal = Store.deal("d-demo1");
+  if (!deal) return navigate("#/deals");
+  deal.creditRemote = deal.creditRemote || {};
+  const rec = deal.creditRemote.cobuyer = deal.creditRemote.cobuyer || { channel: "text", to: "(347) 555-1212", sentAt: new Date().toISOString() };
+  const t = (mins) => new Date(Date.now() + mins * 60000).toISOString();
+  rec.openedAt = rec.openedAt || t(0);
+  if (!rec.identityAt) { rec.identityAt = t(1); jacketReceive(deal, "idverify-cobuyer", "app"); }
+  rec.fieldsAt = rec.fieldsAt || t(2);
+  rec.authorizedAt = rec.authorizedAt || t(2);
+  Store.save();
+  redirect(`#/credit/${deal.id}`);
 });
 /* ============================================================
    Menu step numbering — the persisted 1..5 contract
@@ -6631,6 +6854,19 @@ function jacketDocs(deal) {
     add("form-odometer", "Federal odometer disclosure for the trade", "Trade odometer");
     /* the trade answers already select and lock these on the forms step */
     requiredTradeForms(deal).forEach(fid => add("form-" + fid, "Required by the trade — locked on the deal forms step", "Trade requirement"));
+  }
+  /* the lending lane's records (§19a, package v032). Each is a document that
+     exists because an event happened, so each appears only once its event is
+     possible: the buyer's identity record from the gate onward, the co-buyer's
+     only when there is a co-buyer, and the application and the approval once
+     the lane has run. A cash deal has no lender and no application. */
+  if (!isCash) {
+    if (deal.identity && deal.identity.verifiedAt) add("idverify-primary", "The buyer verified against the license on file", "Identity record");
+    if (cb) add("idverify-cobuyer", "The co-buyer's own identity record", "Co-buyer identity");
+    if (deal.creditApp) {
+      add("creditapp", cb ? "The joint application both applicants completed" : "The application that went to the lender", "Submitted application");
+      if (deal.creditApp.approved) add("approval", "The lender's answer, on the terms it approved", "Lender approval");
+    }
   }
   /* a stip only exists once a lender has asked for it — an approved credit
      app is the moment the lender enters the deal */

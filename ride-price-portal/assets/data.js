@@ -75,7 +75,15 @@ const RIDE_PRICE_DATA = {
     { min: 0,   label: "Building", agreedApr: 12.9, qualifiedApr: 10.99, leaseFactor: 0.00340 }
   ],
 
-  lenders: ["CUDC Alliant C.U.", "Hyundai Motor Finance", "Ally Financial", "US Bank", "Chase Auto"],
+  lenders: ["Northline Bank", "CUDC Alliant C.U.", "Hyundai Motor Finance", "Ally Financial", "US Bank", "Chase Auto"],
+
+  /* The lender's answer in the demo. It is SEEDED rather than derived from the
+     customer's credit tier, because a lender's decision is not something this
+     tool can compute — and because the whole point of the approval screen is
+     that the rate MOVED from the one the customer agreed to (3.5%). A tier
+     lookup would answer 2.49% for an Excellent file and quietly contradict the
+     seed, the boards, and the finance menu that prices off this figure. */
+  approvalOutcome: { lender: "Northline Bank", apr: 3.9 },
 
   /* Demo ZIP directory — NYC codes covering the personas plus nearby
      neighborhoods, so typing a ZIP fills city/state. Not a real ZIP database.
@@ -381,7 +389,19 @@ const RIDE_PRICE_DATA = {
     { id: "testdrive", label: "Test Drive Agreement", group: "Deal Packet", code: 44 },
     { id: "delivery", label: "Delivery Checklist", group: "Deal Packet", code: 45 },
     { id: "rebates", label: "Applied Rebates", group: "Deal Packet", code: 46 },
-    { id: "quote", label: "Saved Quote", group: "Deal Packet", code: 47 }
+    { id: "quote", label: "Saved Quote", group: "Deal Packet", code: 47 },
+    /* the lending lane's own records (owner's package v032, 2026-09-04). They
+       are documents, not milestones: an identity verification record belongs
+       to ONE person and files on its own, a joint application is a SINGLE
+       document that cannot file until both halves exist, and the approval is
+       the lender's answer — which is why the count moves 11 · 12 · 13 · 14
+       through the flow and does not move when an advisor merely finishes
+       their own side (chrome rule §19a). Codes are permanent wire numbers, so
+       new entries take the next unused ones. */
+    { id: "idverify-primary", label: "Identity Verification — Buyer", group: "Deal Packet", code: 48 },
+    { id: "idverify-cobuyer", label: "Identity Verification — Co-Buyer", group: "Deal Packet", code: 49 },
+    { id: "creditapp", label: "Submitted Credit Application", group: "Deal Packet", code: 50 },
+    { id: "approval", label: "Lender Approval", group: "Deal Packet", code: 51 }
   ],
 
   seedCustomers: [
