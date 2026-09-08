@@ -484,6 +484,350 @@ document.addEventListener("click", (e) => {
   if (b) { e.preventDefault(); openBuyersSheet(b.dataset.buyers); }
 });
 
+/* ============================================================
+   Buyers on the deal (owner's package v033, 2026-09-04)
+   ============================================================
+   Who the deal and the paperwork belong to: a primary buyer and, when the
+   deal needs one, a co-buyer. It is NOT a joint credit application — that is
+   an election made in the lending lane, with its own conditions (§19, §21) —
+   and nothing here may imply one.
+
+   The sheet renders inside whichever kit screen opened it, because a sheet is
+   the kit's own overlay and lives in the screen it covers. The unconverted
+   master screens keep their own sheet until their packages land; both go
+   through the same helpers below, so the rules cannot drift apart.
+
+   §21, and it is the whole shape of this flow: **authority follows
+   consequence.** Removing a buyer is cheap before the lending lane runs and
+   expensive after it, so the sheet the advisor sees changes with the deal:
+
+   - Before any credit activity: three data rows. The relationship comes off,
+     the person is kept. That is the whole story and the sheet says so.
+   - After identity verification, a submitted application, a credit pull or a
+     signed acknowledgment: every affected artifact is listed BEFORE any
+     destructive control is reachable, and for an Advisor there is no
+     destructive control at all — the primary is **Ask a Team Lead**. The
+     Team Lead's own sheet carries the action, stamped with who asked and when.
+
+   Removal returns to a STATE, not to the beginning: the count falls to one
+   buyer, the Jacket does not fall, and the removed person keeps the full
+   customer row — initials, name, phone — plus a dated audit line naming who
+   removed her and what was withdrawn. Reattaching her starts a NEW
+   application; a withdrawn one is never reopened. */
+
+/* has anything happened that removal would undo? A credit pull has no record
+   of its own — the demo writes the approval in the same breath as the
+   submission — so a submitted application stands for it. */
+function creditActivity(deal) {
+  const a = deal.creditApp;
+  if (a && !a.withdrawnAt && (a.submitted || a.status === "pending-cobuyer")) return true;
+  if (deal.coIdentity && deal.coIdentity.verifiedAt) return true;
+  if (deal.menu && deal.menu.ackSigned) return true;
+  return false;
+}
+/* the app's live approval: an application that was withdrawn with the
+   co-buyer is not one the menu may price off, and the jacket does not go on
+   asking for the lender's stipulation because of it. The record itself stays
+   — the lender did approve, and that is history, not a live term. */
+function creditLive(deal) {
+  const a = deal.creditApp;
+  return !!(a && a.approved && !a.withdrawnAt);
+}
+/* everyone already on the deal is filtered out at the SOURCE, so a duplicate
+   can never be offered rather than being offered and then refused */
+function buyersFind(deal, query) {
+  const t = String(query || "").trim().toLowerCase();
+  const td = t.replace(/[^0-9]/g, "");
+  if (!t) return [];
+  return Store.s.customers
+    .filter(x => x.id !== deal.customerId && x.id !== deal.coBuyerId)
+    .filter(x => (x.first + " " + x.last).toLowerCase().includes(t)
+      || (td && String(x.phone || "").replace(/[^0-9]/g, "").includes(td))
+      || (x.license && x.license.number && x.license.number.toLowerCase().includes(t)))
+    .slice(0, 6);
+}
+/* what a removal costs, in the order it matters. The list is derived from the
+   deal, so a sheet can never promise less than the removal actually does. */
+function buyersConsequences(deal) {
+  const out = [];
+  const a = deal.creditApp;
+  if (a && !a.withdrawnAt && a.submitted) {
+    out.push("The joint application is withdrawn — it cannot be converted to an individual one");
+    out.push("Her joint-credit authorization is void");
+  }
+  if (deal.menu && deal.menu.ackSigned) out.push("Her signed benefits acknowledgment is void and must be re-signed if she returns");
+  if (a && !a.withdrawnAt && a.approved) out.push("The credit pull already made stays on her file — removal does not undo it");
+  return out;
+}
+/* the removal itself: the pointer comes off, the person is kept, and what was
+   withdrawn is recorded against the deal so the state afterwards can say it.
+   Jacket documents are MARKED withdrawn, never deleted — which is why the
+   count does not fall (§19a). */
+function buyersRemove(deal, opts) {
+  const o = opts || {};
+  const cbId = deal.coBuyerId;
+  if (!cbId) return;
+  const withdrew = [];
+  const a = deal.creditApp;
+  if (a && !a.withdrawnAt && a.submitted) {
+    a.withdrawnAt = new Date().toISOString();
+    a.withdrawnBy = roleName();
+    withdrew.push("joint application withdrawn");
+    ["creditapp", "approval", "idverify-cobuyer"].forEach(id => {
+      const rec = jacketRead(deal).docs[id];
+      if (rec) rec.withdrawn = { at: a.withdrawnAt, by: roleName() };
+    });
+  }
+  if (deal.menu && deal.menu.ackSigned) {
+    deal.menu.ackSigned = false; delete deal.menu.ackName;
+    withdrew.push("benefits acknowledgment void");
+  }
+  (deal.coBuyerRemovals = deal.coBuyerRemovals || []).push({
+    customerId: cbId, at: new Date().toISOString(), by: roleName(),
+    byRole: isTeamLead() ? "teamlead" : "advisor",
+    requestedBy: o.requestedBy || null, requestedAt: o.requestedAt || null,
+    withdrew
+  });
+  delete deal.coBuyerId;
+  delete deal.coBuyerRemoveRequest;
+  Store.save();
+}
+const buyersLastRemoval = (deal) => (deal.coBuyerRemovals || [])[(deal.coBuyerRemovals || []).length - 1] || null;
+
+/* ---------------------------------------------------------------
+   the kit sheet: ten states, rendered into the screen that owns it
+   --------------------------------------------------------------- */
+function buyersKitSheet(deal, sheets, onChange) {
+  const ui = { state: "list" };
+  const initials = (c) => esc(((c.first || " ")[0] + (c.last || " ")[0]).toUpperCase());
+  const timeUS = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const co = () => deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
+
+  const buyerRow = (c, roleLabel, isCo, attrs, metaLines) => `
+    <button type="button" class="rp-buyer"${metaLines ? ` style="align-items:flex-start"` : ""} ${attrs || ""}>
+      <span class="rp-initials">${initials(c)}</span>
+      <span class="rp-row__body"><span class="rp-buyer__name">${esc(c.first + " " + c.last)}</span>
+        <span class="rp-buyer__meta">${esc(c.phone || c.email || "no contact on file")}</span>
+        ${(metaLines || []).map(m => `<span class="rp-buyer__meta">${esc(m)}</span>`).join("")}</span>
+      ${roleLabel ? `<span class="rp-buyer__role${isCo ? " rp-buyer__role--co" : ""}">${esc(roleLabel)}</span>` : ""}
+      <span class="rp-row__chevron"></span></button>`;
+  const tileRow = (title, sub, glyph, attrs) => `
+    <button type="button" class="rp-row" ${attrs}><span class="rp-tile">${rpGlyph(glyph)}</span>
+      <span class="rp-row__body"><span class="rp-row__title">${esc(title)}</span><span class="rp-row__sub">${esc(sub)}</span></span>
+      <span class="rp-row__chevron"></span></button>`;
+  const kvRow = (label, val, src) => `<div class="rp-kv__row${src ? " rp-kv__row--src" : ""}"><span>${esc(label)}</span><span>${esc(val)}</span>${src ? `<span class="rp-kv__src">${esc(src)}</span>` : ""}</div>`;
+  /* the board's own two-up action row: the kit's dialog actions are
+     right-aligned at 40px for a centred dialog, and these are 52px
+     full-width inside a sheet. Reported, drawn the board's way. */
+  const actions = (cancelLabel, goLabel, goKind) => `<div class="rp-dialog__actions" style="justify-content:stretch;gap:10px">
+    <button type="button" class="rp-dialog__button rp-dialog__button--quiet" style="flex:1;height:52px;border-radius:15px" data-by="cancel">${esc(cancelLabel)}</button>
+    <button type="button" class="rp-dialog__button${goKind === "danger" ? " rp-dialog__button--destructive" : ""}" style="flex:1;height:52px;border-radius:15px${goKind === "danger" ? "" : ";background:var(--rp-gradient);color:#fff"}" data-by="go">${esc(goLabel)}</button>
+  </div>`;
+  const consequencesBlock = () => {
+    const list = buyersConsequences(deal);
+    if (!list.length) return "";
+    return `<div class="rp-consequences"><strong>What removing her does</strong>
+      <ul>${list.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>`;
+  };
+  /* every reassuring row states its own limit once credit activity exists —
+     "kept" and "retained" are half-truths on their own (§21) */
+  const keptRows = () => `<div class="rp-kv">
+    ${kvRow("Her customer profile", "Kept", "the person is not deleted — her credit history from this deal is not erased")}
+    ${kvRow("Jacket documents", "Retained", "the documents stay in the jacket — marked withdrawn, not removed")}</div>`;
+
+  function html() {
+    const c = Store.customer(deal.customerId);
+    const cb = co();
+    const removed = buyersLastRemoval(deal);
+    const req = deal.coBuyerRemoveRequest;
+
+    if (ui.state === "add") {
+      const hits = buyersFind(deal, ui.q);
+      return `${chSheetHead("Add co-buyer")}
+        <div class="rp-search rp-search--action" style="background:var(--rp-canvas)">${rpGlyph("search")}
+          <input class="rp-search__input" id="byQ" autofocus style="background:none" value="${esc(ui.q || "")}" placeholder="Name, phone, email, or license" aria-label="Search customers">
+          <button type="button" class="rp-button-navy" id="byQGo">Search</button></div>
+        ${ui.q ? (hits.length
+          ? `<div class="rp-section">Result${hits.length === 1 ? "" : "s"}</div><div class="rp-group">
+              ${hits.map(x => buyerRow(x, "", false, `data-pick="${esc(x.id)}"`)).join("")}</div>`
+          : `<div class="rp-empty"><strong>No match</strong>Nobody in the CRM matches that.
+              <div style="height:12px"></div><button type="button" class="rp-button-navy" id="byCreate">Create a new customer</button></div>`) : ""}
+        <div class="rp-section">Identify from a license</div>
+        <div class="rp-group">
+          ${tileRow("Scan physical license", "Same scan and confirm flow", "license", `id="byScan"`)}
+          ${tileRow("Send secure upload link", "They upload from their own phone", "upload", `id="byLink"`)}
+        </div>`;
+    }
+
+    if (ui.state === "actions" && cb) {
+      /* the sheet names who she is and what state she is in, because it covers
+         the page header (§18a) */
+      const sub = creditActivity(deal)
+        ? `Co-buyer on this deal · on a submitted joint application`
+        : `Co-buyer on this deal · no credit activity yet`;
+      return `${chSheetHead(`${cb.first} ${cb.last}`)}
+        <p class="rp-sheet__sub">${esc(sub)}</p>
+        <div class="rp-group">
+          ${tileRow("View customer profile", "Phone, email, address, history", "customers", `id="byView"`)}
+          ${tileRow("Scan her license", "She is here in the showroom", "license", `id="byScan"`)}
+          ${tileRow("Send secure upload link", "She uploads from her own phone", "upload", `id="byLink"`)}
+        </div>
+        ${req ? `<div class="rp-notice rp-notice--working"><strong>Removal requested</strong>${esc(req.by)} asked a Team Lead at ${esc(timeUS(req.at))} — it is theirs to approve</div>` : ""}
+        <div style="height:6px"></div>
+        <button type="button" class="rp-dialog__button rp-dialog__button--destructive" style="width:100%;height:52px;border-radius:15px" id="byRemove">Remove from deal</button>`;
+    }
+
+    if (ui.state === "remove" && cb) {
+      /* the clean case: three data rows, and that really is the whole story */
+      if (!creditActivity(deal)) {
+        return `${chSheetHead(`Remove ${cb.first} from this deal?`)}
+          <p class="rp-sheet__sub">Second tap confirms</p>
+          <div class="rp-kv">
+            ${kvRow("Relationship", "Comes off the deal")}
+            ${kvRow("Her customer profile", "Kept")}
+            ${kvRow("Credit activity", "None yet")}</div>
+          ${actions("Cancel", "Remove from deal", "danger")}`;
+      }
+      /* the consequential case. An Advisor sees every consequence and can ASK;
+         the destructive control is not on this sheet at all — absent, not
+         disabled — because authority follows consequence (§21). */
+      if (!isTeamLead()) {
+        return `${chSheetHead(`Remove ${cb.first} from this deal?`)}
+          <p class="rp-sheet__sub">She is on a submitted joint application · a Team Lead must approve this</p>
+          ${consequencesBlock()}${keptRows()}
+          ${actions("Cancel", "Ask a Team Lead", "primary")}`;
+      }
+      return `${chSheetHead(`Remove ${cb.first} from this deal?`)}
+        <p class="rp-sheet__sub">Team Lead action${req ? ` · requested by the ${esc(req.byRole === "teamlead" ? "Team Lead" : "advisor")} ${esc(timeUS(req.at))}` : ""}</p>
+        ${consequencesBlock()}${keptRows()}
+        ${actions("Cancel", "Remove from deal", "danger")}`;
+    }
+
+    if (ui.state === "roles" && cb) {
+      return `${chSheetHead(`Make ${cb.first} the primary buyer?`)}
+        <p class="rp-sheet__sub">Team Lead action · ${esc(c.first)} becomes the co-buyer</p>
+        <div class="rp-consequences"><strong>What changes with the swap</strong><ul>
+          ${deal.menu && deal.menu.ackSigned ? `<li>The signed benefits acknowledgment is void and must be re-signed by the new primary</li>` : ""}
+          <li>Title and registration paperwork regenerate in the new order</li>
+          ${creditActivity(deal) ? `<li>The submitted joint application keeps both applicants; the primary on file with the lender changes</li>` : ""}
+        </ul></div>
+        <div class="rp-kv">
+          ${kvRow("Primary", `${cb.first} ${cb.last}`)}
+          ${kvRow("Co-buyer", `${c.first} ${c.last}`)}</div>
+        ${actions("Cancel", "Change roles", "primary")}`;
+    }
+
+    /* ---- the list, in its three shapes: one buyer, two buyers, and after a
+       removal — which is a STATE, not the beginning (§21) ---- */
+    const removedRow = removed && !cb ? (() => {
+      const person = Store.customer(removed.customerId);
+      if (!person) return "";
+      const line = `Removed ${timeUS(removed.at)} by ${removed.by}${removed.withdrew.length ? " · " + removed.withdrew.join(" · ") : ""}`;
+      return `<div class="rp-section">Removed from this deal</div>
+        ${buyerRow(person, "Removed", true, `data-removed="${esc(person.id)}"`, [line])}
+        <p class="rp-fine" style="text-align:left;margin:-4px 0 12px">Tap for her profile and the withdrawn application — reattaching her starts a new application, it does not reopen that one.</p>`;
+    })() : "";
+
+    return `${chSheetHead("Buyers on this deal")}
+      ${cb && isTeamLead() ? `<button type="button" class="rp-sheet__action" id="byRoles">Change roles</button>` : ""}
+      <div class="rp-section">Primary buyer</div>
+      ${buyerRow(c, "Primary", false, `id="byPrimary"`)}
+      ${cb ? `<div class="rp-section">Co-buyer</div>${buyerRow(cb, "Co-buyer", true, `id="byCo"`)}` : removedRow}
+      ${cb ? "" : `<div style="height:6px"></div><button type="button" class="rp-primary" id="byAdd">${removed ? "Add a different co-buyer" : "Add co-buyer"}</button>`}`;
+  }
+
+  function wire(sheet) {
+    const cb = co();
+    /* a data change re-renders the SCREEN behind the sheet — which destroys
+       the sheet node and reopens it through the controller — so the module
+       must not also open it, or it renders twice */
+    const changed = () => { if (onChange) onChange(); else open(); };
+    const back = (state) => { ui.state = state; open(); };
+
+    const primary = $("#byPrimary", sheet);
+    if (primary) primary.onclick = () => { sheets.close(); navigate(`#/credit/${deal.id}`); };
+    const coRow = $("#byCo", sheet); if (coRow) coRow.onclick = () => back("actions");
+    const add = $("#byAdd", sheet); if (add) add.onclick = () => { ui.q = ""; back("add"); };
+    const roles = $("#byRoles", sheet); if (roles) roles.onclick = () => back("roles");
+    const rem = $("#byRemove", sheet); if (rem) rem.onclick = () => back("remove");
+    /* her removed row is still a person the advisor may need to call */
+    const removedRow = $("[data-removed]", sheet);
+    if (removedRow) removedRow.onclick = () => { sheets.close(); navigate("#/customers"); };
+
+    const q = $("#byQ", sheet);
+    if (q) {
+      q.oninput = () => {
+        ui.q = q.value;
+        const pos = q.selectionStart;
+        open();
+        const q2 = $("#byQ"); if (q2) { q2.focus(); q2.setSelectionRange(pos, pos); }
+      };
+      const goBtn = $("#byQGo", sheet); if (goBtn) goBtn.onclick = () => { ui.q = q.value; open(); };
+    }
+    $$("[data-pick]", sheet).forEach(b => b.onclick = () => {
+      /* attaching a co-buyer is a RELATIONSHIP: it files no document and it
+         does not create a joint credit application (§19a, §21) */
+      deal.coBuyerId = b.dataset.pick;
+      Store.save();
+      ui.state = "list"; changed();
+    });
+    const create = $("#byCreate", sheet);
+    if (create) create.onclick = () => {
+      resolverMission = { kind: "cobuyer", dealId: deal.id, back: location.hash, open: "manual" };
+      sheets.close(); navigate("#/customers");
+    };
+    const scan = $("#byScan", sheet);
+    if (scan) scan.onclick = () => {
+      const wasAttached = !!cb;
+      sheets.close();
+      /* both scanner entries hand back into THIS flow — from the add sheet to
+         the attached state, from her actions back to her actions */
+      openScanFlow({ mode: "cobuyer", deal, onDone: () => {
+        document.body.dataset.canvas = "kit";
+        ui.state = wasAttached ? "actions" : "list";
+        changed();
+      } });
+    };
+    const link = $("#byLink", sheet);
+    if (link) link.onclick = () => {
+      resolverMission = { kind: "cobuyer", dealId: deal.id, back: location.hash, open: "sendlink" };
+      sheets.close(); navigate("#/customers");
+    };
+    const cancel = $('[data-by="cancel"]', sheet);
+    if (cancel) cancel.onclick = () => {
+      /* cancelling a consequential request stays in the Team Lead's own view —
+         a cancel never hands the phone back to the requesting role (§21) */
+      ui.state = ui.state === "roles" ? "list" : (creditActivity(deal) && isTeamLead()) ? "list" : "actions";
+      open();
+    };
+    const go = $('[data-by="go"]', sheet);
+    if (go) go.onclick = () => {
+      if (ui.state === "roles") {
+        const tmp = deal.customerId; deal.customerId = deal.coBuyerId; deal.coBuyerId = tmp;
+        if (deal.menu && deal.menu.ackSigned) { deal.menu.ackSigned = false; delete deal.menu.ackName; }
+        Store.save(); ui.state = "list"; changed();
+        return;
+      }
+      if (creditActivity(deal) && !isTeamLead()) {
+        /* the Advisor's ask: recorded on the deal, so the Team Lead's sheet
+           can say who asked and when */
+        /* the record keeps WHO asked; the Team Lead's sheet names the ROLE,
+           which is what tells them whose request this is to approve */
+        deal.coBuyerRemoveRequest = { customerId: deal.coBuyerId, by: roleName(), byRole: isTeamLead() ? "teamlead" : "advisor", at: new Date().toISOString() };
+        Store.save(); ui.state = "actions"; changed();
+        return;
+      }
+      const req = deal.coBuyerRemoveRequest;
+      buyersRemove(deal, { requestedBy: req && req.by, requestedAt: req && req.at });
+      ui.state = "list"; changed();
+    };
+  }
+
+  function open() { sheets.open(html(), wire); }
+  open();
+  return { open, go: (state) => { ui.state = state; open(); } };
+}
+
 function openBuyersSheet(dealId) {
   const deal = Store.deal(dealId);
   if (!deal) return;
@@ -538,19 +882,41 @@ function openBuyersSheet(dealId) {
     }
 
     if (state === "confirmRemove" && cb) {
+      /* the same authority rule the kit sheet enforces (§21), because it is
+         about the deal and the role, not about which canvas the advisor
+         happens to be standing on: once credit activity exists, every
+         consequence is listed and an Advisor can only ASK */
+      const consequences = buyersConsequences(deal);
+      const mustAsk = creditActivity(deal) && !isTeamLead();
+      const req = deal.coBuyerRemoveRequest;
       sheet.innerHTML = `<div class="m-handle"></div>
         <div class="by2-head"><h2>Remove ${esc(cb.first)} from this deal?</h2></div>
-        <p class="by2-sub">Second tap confirms</p>
-        <div class="by2-confirmcard"><strong>The relationship comes off the deal.</strong>
-          <p>${esc(cb.first + " " + cb.last)}'s customer profile is kept — nothing about the person is deleted.</p></div>
+        <p class="by2-sub">${consequences.length
+          ? (mustAsk ? "She is on a submitted joint application — a Team Lead must approve this"
+            : `Team Lead action${req ? ` · requested by the ${esc(req.byRole === "teamlead" ? "Team Lead" : "advisor")}` : ""}`)
+          : "Second tap confirms"}</p>
+        ${consequences.length
+          ? `<div class="by2-confirmcard"><strong>What removing her does</strong>
+              <ul>${consequences.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
+              <p>Her customer profile is <b>kept</b> — the person is not deleted, and her credit history from this deal is not erased. Jacket documents are <b>retained</b>, marked withdrawn rather than removed.</p></div>`
+          : `<div class="by2-confirmcard"><strong>The relationship comes off the deal.</strong>
+              <p>${esc(cb.first + " " + cb.last)}'s customer profile is kept — nothing about the person is deleted.</p></div>`}
         <div class="by2-confirmrow">
           <button type="button" class="by2-actionbtn" id="byCancel">Cancel</button>
-          <button type="button" class="by2-actionbtn by2-actionbtn--danger" id="byRemoveGo">Remove from deal</button>
+          ${mustAsk
+            ? `<button type="button" class="by2-actionbtn by2-actionbtn--primary" id="byAsk">Ask a Team Lead</button>`
+            : `<button type="button" class="by2-actionbtn by2-actionbtn--danger" id="byRemoveGo">Remove from deal</button>`}
         </div>`;
       $("#byCancel", sheet).onclick = () => render("actions");
-      $("#byRemoveGo", sheet).onclick = () => {
-        delete deal.coBuyerId; Store.save();
-        toast("Co-buyer removed — their customer record is kept");
+      const ask = $("#byAsk", sheet);
+      if (ask) ask.onclick = () => {
+        deal.coBuyerRemoveRequest = { customerId: deal.coBuyerId, by: roleName(), byRole: "advisor", at: new Date().toISOString() };
+        Store.save(); render("actions");
+      };
+      const go = $("#byRemoveGo", sheet);
+      if (go) go.onclick = () => {
+        const r0 = deal.coBuyerRemoveRequest;
+        buyersRemove(deal, { requestedBy: r0 && r0.by, requestedAt: r0 && r0.at });
         router(); render("list");
       };
       return;
@@ -4544,18 +4910,22 @@ route("desk/:id", ({ id }) => {
         : `${r.term} months · ${aprLine()} · ${money0(deal.desk.downPayment)} down · with approved credit`;
 
   /* ---------- the pieces the screens are built from ---------- */
-  /* the car on the deal, with what is in the folder beside it — the board's
-     own row. No deal number anywhere on these screens: the huddle and the
-     pencil are pre-F&I (§16), and desking files no document, which is why the
-     Jacket count does not move here either (§19a).
-
-     The Buyers chip is deliberately NOT on this screen yet. The buyers board
-     (package v033) draws a chip row here, but the sheet it opens is still the
-     master-canvas one; putting its entry on a kit screen would open master
-     markup over the kit canvas. It arrives with that package. */
+  /* the chip row the buyers board (v033) draws on this screen: who the deal
+     belongs to, and what is in the folder. The Buyers chip carries the count
+     and opens the kit sheet inside THIS screen — a sheet is the kit's own
+     overlay and lives in the screen it covers. No deal number anywhere on
+     these screens (§16), and the Jacket count does not move here: desking is
+     pre-bureau drafting and files no document (§19a). */
+  const chipRow = () => {
+    const buyers = 1 + (deal.coBuyerId && Store.customer(deal.coBuyerId) ? 1 : 0);
+    return `<div class="rp-chiprow">
+      <button type="button" class="rp-chip" data-sheet-open="buyers">${rpGlyph("customers")}Buyers · ${buyers}</button>
+      <a class="rp-chip" href="#/jacket/${esc(deal.id)}">${rpGlyph("document")}Jacket · ${jacketCounts(deal).have}</a>
+    </div>`;
+  };
+  /* the car on the deal — the board's own row */
   const vehicleRow = () => `<div class="rp-choice"><span class="rp-choice__thumb" style="${vehicleTint(v)}">${mCarSvg(v, "rp-icon")}</span>
-    <span><div class="rp-choice__title">${esc(vehicleCompact)}</div><div class="rp-choice__sub">Stock ${esc(v.stock)} · ${esc(v.ext)}</div></span>
-    <span class="rp-choice__tag">${rpGlyph("document")}Jacket · ${jacketCounts(deal).have}</span></div>`;
+    <span><div class="rp-choice__title">${esc(vehicleCompact)}</div><div class="rp-choice__sub">Stock ${esc(v.stock)} · ${esc(v.ext)}</div></span></div>`;
 
   const segment = () => `<div class="rp-segment" style="grid-template-columns:repeat(4,1fr)" role="tablist" aria-label="Deal type">
     ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" class="rp-segment__item${deal.dealType === k ? " rp-segment__item--on" : ""}" data-type="${k}" role="tab" aria-selected="${deal.dealType === k}">${esc(l)}</button>`).join("")}</div>`;
@@ -4683,6 +5053,7 @@ route("desk/:id", ({ id }) => {
     const paying = h.paying || deal.dealType;
     const content = `<div class="rp-eyebrow">First pencil</div>
       <h1 class="rp-title">Game plan</h1>
+      ${chipRow()}
       ${vehicleRow()}
       <div class="rp-field"><label class="rp-field__label" for="hTrial">Trial close — in the customer&rsquo;s words</label>
         <textarea class="rp-textarea" id="hTrial" placeholder="&ldquo;If the numbers make sense, we&rsquo;d take it today.&rdquo;">${esc(h.trialClose || "")}</textarea></div>
@@ -4751,6 +5122,7 @@ route("desk/:id", ({ id }) => {
 
     const content = `<div class="rp-eyebrow">Desking</div>
       <h1 class="rp-title">Calculate payments</h1>
+      ${chipRow()}
       ${isCash() ? "" : vehicleRow()}
       ${chose ? `<div class="rp-notice rp-notice--success"><span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>Customer chose ${chose.term} months · ${money0(chose.down)} down · ${money(chose.payment)} / mo</div>` : ""}
       ${asked ? `<div class="rp-notice"><span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>Sent to ${esc(RIDE_PRICE_DATA.dealership.teamLead)} for approval · ${esc(timeUS(asked))}</div>` : ""}
@@ -4808,6 +5180,7 @@ route("desk/:id", ({ id }) => {
     const rec = recommended();
     const content = `<div class="rp-eyebrow">Desking</div>
       <h1 class="rp-title">Payment options</h1>
+      ${chipRow()}
       ${vehicleRow()}
       <div class="rp-section">Finance · ${aprLine()} · rebate and trade credit applied</div>
       ${grid(false)}
@@ -4974,9 +5347,13 @@ route("desk/:id", ({ id }) => {
     };
     chWireRole(sheets, draw);
     $$("[data-acc]").forEach(b => { if (b.dataset.acc && ui.open[b.dataset.acc] !== undefined) b.onclick = () => { ui.open[b.dataset.acc] = !ui.open[b.dataset.acc]; draw(); }; });
-    $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; draw(); });
-    if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
+    $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; if (b.dataset.sheetOpen === "buyers") buyers = null; draw(); });
+    /* the buyers sheet is its own module with its own states; the screen keeps
+       the handle so a re-render reopens it where it was, not at the top */
+    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, () => draw()); }
+    else if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
   }
+  let buyers = null;
 
   function draw() {
     if (ui.mode === "huddle") return huddleScreen();
@@ -5330,7 +5707,7 @@ route("credit/:id", ({ id }) => {
 
   /* ---------------- the kit pieces ---------------- */
   const chipRow = () => `<div class="rp-chiprow">
-    <button type="button" class="rp-chip" data-buyers="${esc(deal.id)}">${rpGlyph("customers")}Buyer</button>
+    <button type="button" class="rp-chip" data-buyers-open>${rpGlyph("customers")}Buyers · ${1 + (cbRec() ? 1 : 0)}</button>
     ${r ? `<button type="button" class="rp-chip" data-sheet-open="summary">${rpGlyph("document")}Deal summary</button>` : ""}
     <a class="rp-chip" href="#/jacket/${esc(deal.id)}">${rpGlyph("document")}Jacket · ${jacketCounts(deal).have}</a>
   </div>`;
@@ -5890,8 +6267,13 @@ route("credit/:id", ({ id }) => {
     $("#caClose").onclick = () => navigate(`#/agreement/${deal.id}`);
     chWireRole(sheets, draw);
     $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; ui.channel = null; draw(); });
-    if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
+    $$("[data-buyers-open]").forEach(b => b.onclick = () => { ui.sheet = "buyers"; buyers = null; draw(); });
+    /* the buyers sheet is its own module with its own states; the screen holds
+       the handle so a re-render reopens it where it was rather than at the top */
+    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, () => draw()); }
+    else if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
   }
+  let buyers = null;
 
   function draw() {
     if (ui.mode === "approved") return approvedScreen();
@@ -6320,7 +6702,10 @@ route("menu/:id", ({ id }) => {
     const jov = jacketRead(deal).override;
     const rows = [
       { name: "Base payment agreement", sub: deal.basePayment && deal.basePayment.signedAt ? "Signed" : "Not signed", ok: !!(deal.basePayment && deal.basePayment.signedAt) },
-      { name: "Credit application", sub: deal.creditApp && deal.creditApp.approved ? "Approved" : deal.creditApp ? "Submitted" : "Not submitted", ok: !!(deal.creditApp && deal.creditApp.approved) },
+      /* a withdrawn application is not a live approval: removing a co-buyer
+         from a submitted joint application withdraws it, and the gate has to
+         read that rather than the approval that once existed (§21) */
+      { name: "Credit application", sub: creditLive(deal) ? "Approved" : deal.creditApp && deal.creditApp.withdrawnAt ? "Withdrawn" : deal.creditApp ? "Submitted" : "Not submitted", ok: creditLive(deal) },
       { name: "Test drive", sub: deal.testDrive.done ? "Completed" : "Not completed", ok: !!deal.testDrive.done },
       { name: "Deal Jacket", sub: jkc.missing ? (jov ? `Override recorded by ${jov.by}` : `${jkc.missing} item${jkc.missing === 1 ? "" : "s"} outstanding`) : "Complete", ok: !jkc.missing || !!jov }
     ];
@@ -6862,7 +7247,13 @@ function jacketDocs(deal) {
      the lane has run. A cash deal has no lender and no application. */
   if (!isCash) {
     if (deal.identity && deal.identity.verifiedAt) add("idverify-primary", "The buyer verified against the license on file", "Identity record");
+    /* a document that has been FILED belongs to the deal's record even after
+       the person it belongs to comes off it: a removal marks her documents
+       withdrawn and keeps them, so dropping the row here would take the
+       count down with it and contradict the sheet that promised otherwise
+       (§21, §19a) */
     if (cb) add("idverify-cobuyer", "The co-buyer's own identity record", "Co-buyer identity");
+    else if (jacketState(deal, "idverify-cobuyer")) add("idverify-cobuyer", "The identity record of a co-buyer since removed — retained, marked withdrawn", "Withdrawn");
     if (deal.creditApp) {
       add("creditapp", cb ? "The joint application both applicants completed" : "The application that went to the lender", "Submitted application");
       if (deal.creditApp.approved) add("approval", "The lender's answer, on the terms it approved", "Lender approval");
@@ -6870,7 +7261,7 @@ function jacketDocs(deal) {
   }
   /* a stip only exists once a lender has asked for it — an approved credit
      app is the moment the lender enters the deal */
-  if (!isCash && deal.creditApp && deal.creditApp.approved) add("form-paystub", "Lender stipulation — proof of income", "Lender stips");
+  if (!isCash && creditLive(deal)) add("form-paystub", "Lender stipulation — proof of income", "Lender stips");
   if (deal.menu && deal.menu.selectedProgram && deal.menu.selectedProgram !== "none") {
     add("form-fimenu", "The products the client initialed for", "Menu initials");
     add("repayment", "What was purchased and what was declined", "Menu record");
@@ -8898,7 +9289,7 @@ function docData(deal) {
        the lender. Cash is a true NONE; an unapproved financed deal is an
        honest blank — the lender is not known yet. */
     lienholder: deal.dealType === "cash" ? { none: true, name: null }
-      : (deal.creditApp && deal.creditApp.approved && deal.creditApp.lender)
+      : (creditLive(deal) && deal.creditApp.lender)
         ? { none: false, name: deal.creditApp.lender }
         : { none: false, name: null },
     dealerPlate: {

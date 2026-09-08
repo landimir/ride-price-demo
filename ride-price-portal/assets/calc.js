@@ -162,7 +162,10 @@ const RIDE_PRICE_CALC = (function () {
 
   /* menu column payment for a given program */
   function menuColumn(deal, vehicle, programKey, program) {
-    const q = deal.creditApp && deal.creditApp.approved ? deal.creditApp : null;
+    /* a withdrawn application is not a live approval — removing a co-buyer
+       from a submitted joint one withdraws it, and the menu must not go on
+       pricing off a rate that no longer stands */
+    const q = deal.creditApp && deal.creditApp.approved && !deal.creditApp.withdrawnAt ? deal.creditApp : null;
     /* a one-pay lease has no monthly payment — every other surface quotes its
        onePayTotal, and a column that quoted a monthly figure would put a
        number in front of the customer that they never pay */
