@@ -81,14 +81,41 @@ const Store = (function () {
       visit: { arrivedAt: seedArrival() },
       discovery: { answers: { week: "Daily commute to Midtown, weekend trips upstate.", family: "Two kids, one dog." }, done: true },
       testDrive: { done: true, completedMiles: 12 },
-      trade: { has: true, desc: "2018 Hyundai Tucson", vin: "KM8TRAININGSAMP06", miles: 61200, condition: "Good", value: 15500, payoff: 10750, rebates: 500, applyTaxCredit: true },
-      huddle: { done: false },
+      /* the trade is the vehicle on John's registration prop (training pair
+         01): a 2016 Toyota RAV4, VIN 4T1TRAININGSAMP01. The seed's own
+         reasoning — the registration he hands over as proof of ownership has
+         to name the car he is trading, which v021's Tucson did not. The
+         ownership answers are read from the documents on file (§13b): the
+         title is in hand with one lien recorded, the vehicle is not paid off,
+         and the payoff statement expired 01/01/2025 — one gap, the only one. */
+      trade: {
+        has: true, desc: "2016 Toyota RAV4", vin: "4T1TRAININGSAMP01", miles: 61200, condition: "Good",
+        value: 15500, payoff: 10750, rebates: 500, applyTaxCredit: true,
+        ownership: seedTradeOwnership(), ownershipReviewedAt: "2026-09-04T13:40:00Z"
+      },
+      /* the huddle is still to be run — the advisor confirms it — but the two
+         things the customer already said are on the record, in his own words,
+         because the desking screens read them back: the trial close is quoted
+         when presenting, and the payment he named picks the recommended cell */
+      huddle: { done: false, trialClose: "If the numbers make sense, we'd take it today.", namedPayment: "Around $700 a month" },
       desk: { term: 60, apr: 3.5, downPayment: 1000, leaseTerm: 36, milesPerYear: 12000, leaseFactor: 0.00117, dueAtSigning: 1000, accessories: ["mats", "tint"], daysToFirst: 45 },
       basePayment: null, creditApp: null,
       menu: { step: 1, barsDone: [], custom: [], customSource: null, selectedProgram: null, initials: "", ackSigned: false },
       forms: { selected: [], finalized: false },
       /* the demo deal is found mid-jacket — see RIDE_PRICE_DATA.seedJacket */
       jacket: { docs: seedJacketDocs(), extra: [], req: {} }
+    };
+  }
+
+  /* the answers the trade documents produce, in the app's own tri-state terms:
+     title in hand, one lien on it (Harbor Auto Finance), not paid off, a payoff
+     statement on file that expired 01/01/2025, and the customer is the titled
+     owner. tradeOwnershipGaps() reads exactly one gap out of this — the expired
+     payoff — which is what the seed says Team Lead sign-off is waiting on. */
+  function seedTradeOwnership() {
+    return {
+      titleInHand: true, lienOnTitle: true, paidOff: false,
+      payoffReceived: true, payoffGoodThrough: "2025-01-01", isTitledOwner: true
     };
   }
 
@@ -133,6 +160,37 @@ const Store = (function () {
     if (demo && demo.trade && demo.trade.vin === undefined &&
         demo.trade.desc === "2018 Hyundai Tucson" && demo.trade.miles === 61200) {
       demo.trade.vin = "KM8TRAININGSAMP06"; minted = true;
+    }
+    /* the seed trade became the vehicle on John's registration prop on
+       2026-09-04 — a 2016 Toyota RAV4 — because the registration he hands
+       over as proof of ownership names that car and the old Tucson matched no
+       prop. Only a trade that is still the untouched seed Tucson is rewritten
+       (identity, not appraisal: desc, VIN and mileage together), so a trade
+       anyone has edited or re-appraised is left alone. The migration above
+       runs first, so a blob old enough to have no VIN at all arrives here
+       already stamped and converges on the same record. */
+    if (demo && demo.trade && demo.trade.desc === "2018 Hyundai Tucson" &&
+        demo.trade.vin === "KM8TRAININGSAMP06" && demo.trade.miles === 61200) {
+      demo.trade.desc = "2016 Toyota RAV4"; demo.trade.vin = "4T1TRAININGSAMP01"; minted = true;
+    }
+    /* the customer's own words, on a huddle nobody has run yet. A huddle that
+       is done, or that already holds either field, is the advisor's own work
+       and is never overwritten. */
+    if (demo && demo.huddle && !demo.huddle.done && !demo.huddle.trialClose && !demo.huddle.namedPayment) {
+      demo.huddle.trialClose = "If the numbers make sense, we'd take it today.";
+      demo.huddle.namedPayment = "Around $700 a month";
+      minted = true;
+    }
+    /* and the ownership answers the trade documents produce. Only a trade with
+       NO ownership object at all — a single recorded answer is somebody's
+       review, and an object emptied back to {} is a real state, the advisor
+       having cleared what was there. Stamping over an emptied one would
+       reinstate a review nobody ran, and it would do it on every load. */
+    if (demo && demo.trade && demo.trade.has && demo.trade.vin === "4T1TRAININGSAMP01" &&
+        demo.trade.ownership === undefined) {
+      demo.trade.ownership = seedTradeOwnership();
+      demo.trade.ownershipReviewedAt = demo.trade.ownershipReviewedAt || "2026-09-04T13:40:00Z";
+      minted = true;
     }
     /* deals gained a vehicle-identity snapshot (vin + stock) on 2026-08-23 so
        the advisor queue shows the VIN even when the unit is not stocked in or
@@ -853,7 +911,7 @@ const chWordmark = () => `<a class="rp-wordmark" href="#/deals" aria-label="Ride
 function chTop(opts) {
   if (opts.template === "task") {
     return `<header class="rp-topbar">
-      <button type="button" class="rp-topbar__close" id="${opts.closeId || "chClose"}" aria-label="Close">${rpGlyph("close")}</button>
+      <button type="button" class="rp-topbar__close" id="${opts.closeId || "chClose"}" aria-label="${esc(opts.closeLabel || "Close")}">${rpGlyph("close")}</button>
       <div class="rp-topbar__title">${esc(opts.title)}${opts.step ? `<small>${esc(opts.step)}</small>` : ""}</div>
       ${chRole()}</header>`;
   }
@@ -877,7 +935,10 @@ const chDock = (primaryHtml, linkHtml) => `<div class="rp-dock">${primaryHtml}${
 function chShell(opts, content, dockHtml, sheetIds) {
   const task = opts.template === "task";
   const ids = sheetIds || { scrim: "chScrim", sheet: "chSheet" };
-  return `<div class="rp-screen ${task ? "rp-screen--task" + (dockHtml ? "" : " rp-screen--nodock") : "rp-screen--destination"}">
+  /* opts.cls carries a kit screen modifier the caller owns — today only
+     rp-screen--present, the desking mode where the phone is turned to the
+     customer (the kit hides the role control and darkens the close itself) */
+  return `<div class="rp-screen ${task ? "rp-screen--task" + (dockHtml ? "" : " rp-screen--nodock") : "rp-screen--destination"}${opts.cls ? " " + opts.cls : ""}">
     ${chBanner()}${chTop(opts)}
     <main class="rp-page rp-stack">${content}</main>
     ${dockHtml || ""}${task ? "" : chTabbar(opts.active)}
@@ -3213,6 +3274,10 @@ function wireDeskTop() {
   if (r) r.onclick = () => $("#hamburgerBtn").click(); /* the drawer carries nav and the role switch */
 }
 /* the golden example's flat car illustration, coloured from the vehicle's hue */
+/* the tint a vehicle's flat car image sits on — one definition, because the
+   inventory card, the choice row and desking's present-mode hero all draw the
+   same car and a second copy would drift */
+const vehicleTint = (v) => `background:linear-gradient(145deg,hsl(${esc(v.hue)},42%,94%),hsl(${esc(v.hue)},36%,86%))`;
 function mCarSvg(v, cls) {
   const color = `hsl(${esc(v.hue)}, 58%, 52%)`;
   return `<svg class="${cls || "m-carsvg"}" viewBox="0 0 260 130" aria-hidden="true">
@@ -3342,7 +3407,7 @@ route("vehicles/:id", ({ id }) => {
   ];
 
   /* the app's vehicle images stay: the flat car on the vehicle's own tint */
-  const tint = (v) => `background:linear-gradient(145deg,hsl(${esc(v.hue)},42%,94%),hsl(${esc(v.hue)},36%,86%))`;
+  const tint = vehicleTint;
   const vName = (v) => `${v.year} ${v.make} ${v.model}`;
   const vMeta = (v) => `Stock ${v.stock} · ${v.miles.toLocaleString()} mi · ${v.ext} · ${v.drive}`;
   /* the kit's vehicle card: a button in the list — the whole card is the
@@ -4336,25 +4401,34 @@ route("trade/:id", ({ id }) => {
 });
 
 /* ============================================================
-   VIEW: Calculate Payments (desking)
-   ============================================================ */
-/* Audit RP-UI-001: on a phone the pencil is a long column and the Monthly
-   Payment hero sat 822px below the fold while Continue lived at the top.
-   This bar pins the live number and the forward action together. It renders
-   inside the view, which render() rewrites on every change, so it can never
-   drift from the hero above it. Since the prototype round (2026-08-27) it
-   shows at every width, styled as the neutral blur bar in the centred column. */
-function deskStickyBar(r, isCash, isLease, deal) {
-  const label = isCash ? "Total due" : deal.dealType === "onepay" ? "Due at signing" : "Estimated payment";
-  const amount = isCash ? money(r.totalDue) : deal.dealType === "onepay" ? money(r.onePayTotal) : money(r.payment);
-  const unit = isCash || deal.dealType === "onepay" ? "total" : "/ mo";
-  return `<div class="desk-sticky">
-    <div class="desk-sticky__copy"><span>${esc(label)}</span>
-      <div class="desk-sticky__val"><b>${esc(amount)}</b><span class="desk-sticky__unit">${unit}</span></div></div>
-    <button type="button" class="btn btn--grad desk-sticky__go" id="deskContinueSticky">Continue</button>
-  </div>`;
-}
+   VIEW: Desking — Calculate Payments
+   (owner's package v029, 2026-09-04, on the UI kit v022.18)
+   ============================================================
+   Eight screens on one route, all of them the kit's Task skeleton: the top
+   bar carries the customer's full name and nothing else — no step, no
+   status, and no deal number, because a worked deal has none until the
+   lending lane pushes it to F&I (chrome rule §16).
 
+   Two modes, and the difference is who is looking at the phone (§15).
+   WORK is the advisor's — the huddle, the deal-type control, the payment
+   hero, the accordions, the option grid — and every internal field lives
+   here and nowhere else. PRESENT is the same route with the kit's
+   `rp-screen--present`: the kit hides the role control and darkens the close
+   into Done, and the screen carries the car, two wins, the grid, the payment
+   and one line of fine print. Nothing internal, no hedge words ("estimated"
+   is gone from every customer-facing number — the fine print carries the
+   condition once), and one commitment action whose tap IS the trial close.
+
+   The money reconciles on the screen (§17): every figure the total depends
+   on is drawn, the four fees are itemized rather than bundled, and the tax
+   names the base it is taken on (§19b). The rebate says what kind it is
+   (§17b) — customer cash, so it survives the cash tab.
+
+   Three things v021 had are deliberately gone: the "Game plan set" toast
+   (the segmented control shows the deal type, and a toast cannot be the
+   record of anything — §24), the pinned estimated-payment bar (the hero and
+   the dock carry the figure), and the full-page Compare route, replaced by
+   the present-mode comparison below. */
 route("desk/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
   if (!deal.stock) { toast("Pick a vehicle first"); return navigate(`#/vehicles/${deal.id}`); }
@@ -4368,436 +4442,552 @@ route("desk/:id", ({ id }) => {
     deal.huddle.done = true; deal.huddle.backfilled = true; Store.save();
   }
 
+  renderChrome("Calculate Payments", "", "");
+  document.body.dataset.screen = "desk";
+  document.body.dataset.canvas = "kit";
+
   const PAY_TRACKS = {
-    finance: { q: "Is there an incentivized rate, or is a rebate better?", wt: "“Can we arrange your financing on your behalf?”" },
-    lease: { q: "Do they trade frequently? Are they a low-mileage driver?", wt: "“Have you ever considered leasing?”" },
-    cash: { q: "Will they be writing a check or obtaining a cashier's check?", wt: "“Where will we be sending the title?”" },
-    onepay: { q: "Low-mileage driver who hates monthly payments?", wt: "“Have you ever considered a one-pay lease?”" }
+    finance: "Is the incentivized rate or the rebate better for them?",
+    lease: "Do they trade frequently? Are they a low-mileage driver?",
+    cash: "Will they be writing a check or obtaining a cashier's check?",
+    onepay: "Low-mileage driver who would rather not have a monthly payment?"
   };
 
-  function renderHuddle() {
+  /* the board's grid: three terms across, three cash-down rows. Three
+     columns, never four — three is a choice, four is a spreadsheet (§15). */
+  const GRID_TERMS = [48, 60, 72];
+  const GRID_DOWNS = [1000, 3000, 5000];
+
+  const timeUS = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const isLease = () => deal.dealType === "lease" || deal.dealType === "onepay";
+  const isCash = () => deal.dealType === "cash";
+  const custName = `${c.first} ${c.last}`;
+  const vehicleFull = `${v.year} ${v.make} ${v.model}${v.trim ? " " + v.trim : ""}`;
+  const vehicleShort = `${v.year} ${v.make} ${v.model}`;
+  /* the compact row drops the make, as the board does: it is the car already
+     on the deal, and the row is 220px wide */
+  const vehicleCompact = `${v.year} ${v.model}${v.trim ? " " + v.trim : ""}`;
+
+  const ui = {
+    mode: deal.huddle.done ? "pencil" : "huddle",
+    open: { price: true, trade: false, rebates: false, accessories: false, feetax: false },
+    sheet: null,
+    sel: null      /* the cell the customer is looking at in present mode */
+  };
+  const sheets = chSheetOpener("dkScrim", "dkSheet", () => { ui.sheet = null; });
+
+  /* ---------- the numbers ---------- */
+  /* every grid cell is the real calculator run on a clone of this deal, so a
+     cell can never drift from the pencil it sits under */
+  function cellPayment(down, term) {
+    const clone = JSON.parse(JSON.stringify(deal));
+    clone.dealType = "finance";
+    clone.desk.downPayment = down; clone.desk.term = term;
+    return RIDE_PRICE_CALC.finance(clone, v).payment;
+  }
+  function gridCells() {
+    const out = [];
+    GRID_DOWNS.forEach(down => GRID_TERMS.forEach(term => out.push({ down, term, payment: cellPayment(down, term) })));
+    return out;
+  }
+  /* the payment the customer named in the huddle, as a number — "Around $700
+     a month" is $700. Absent or unparseable is null, and the grid then
+     recommends the structure the deal already carries. */
+  function namedPayment() {
+    const raw = String((deal.huddle && deal.huddle.namedPayment) || "");
+    const n = parseFloat(raw.replace(/[^0-9.]/g, ""));
+    return isFinite(n) && n > 0 ? n : null;
+  }
+  /* The recommended cell is the option NEAREST the payment the customer
+     named, shorter term winning a tie. The package's prompt says "the
+     highest option that sits at or under it", but no cell sits under the
+     $700 John named once the corrected New York base is applied — the
+     board's own recommendation, 60 months at $1,000 down, is $1.79 above it.
+     The board and the seed both name that cell, so nearest is the rule that
+     reproduces them; the divergence is reported to the owner rather than
+     resolved silently. */
+  function recommended() {
+    const cells = gridCells(), named = namedPayment();
+    if (!named) {
+      return cells.find(x => x.down === deal.desk.downPayment && x.term === deal.desk.term)
+        || cells.find(x => x.down === 1000 && x.term === 60) || cells[0];
+    }
+    return cells.reduce((best, x) => {
+      const d = Math.abs(x.payment - named), bd = Math.abs(best.payment - named);
+      return d < bd || (d === bd && x.term < best.term) ? x : best;
+    }, cells[0]);
+  }
+
+  const incentive = RIDE_PRICE_DATA.financeIncentive;
+  /* the incentive's real end date, and only while the deal is actually
+     quoted at that rate — a deadline that is not real is the fastest way to
+     lose a customer's trust (§15) */
+  const aprLine = () => {
+    const apr = `${deal.desk.apr}% APR`;
+    return incentive && deal.desk.apr === incentive.apr
+      ? `${apr} through ${new Date(incentive.through + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+      : apr;
+  };
+  const heroFigure = (r) => isCash() ? r.totalDue : deal.dealType === "onepay" ? r.onePayTotal : r.payment;
+  const heroLabel = () => isCash() || deal.dealType === "onepay" ? "Total due" : "Monthly payment";
+  const heroUnit = () => isCash() || deal.dealType === "onepay" ? "total" : "/ mo";
+  const heroTerms = (r) => isCash()
+    ? `${esc(vehicleCompact)} · cash, no financing`
+    : deal.dealType === "onepay"
+      ? `${r.term} months · ${r.miles.toLocaleString()} mi/yr · paid in full at signing`
+      : isLease()
+        ? `${r.term} months · ${r.miles.toLocaleString()} mi/yr · ${money0(deal.desk.dueAtSigning)} due at signing · with approved credit`
+        : `${r.term} months · ${aprLine()} · ${money0(deal.desk.downPayment)} down · with approved credit`;
+
+  /* ---------- the pieces the screens are built from ---------- */
+  /* the car on the deal, with what is in the folder beside it — the board's
+     own row. No deal number anywhere on these screens: the huddle and the
+     pencil are pre-F&I (§16), and desking files no document, which is why the
+     Jacket count does not move here either (§19a).
+
+     The Buyers chip is deliberately NOT on this screen yet. The buyers board
+     (package v033) draws a chip row here, but the sheet it opens is still the
+     master-canvas one; putting its entry on a kit screen would open master
+     markup over the kit canvas. It arrives with that package. */
+  const vehicleRow = () => `<div class="rp-choice"><span class="rp-choice__thumb" style="${vehicleTint(v)}">${mCarSvg(v, "rp-icon")}</span>
+    <span><div class="rp-choice__title">${esc(vehicleCompact)}</div><div class="rp-choice__sub">Stock ${esc(v.stock)} · ${esc(v.ext)}</div></span>
+    <a class="rp-choice__tag" href="#/jacket/${esc(deal.id)}">${rpGlyph("document")}Jacket · ${jacketCounts(deal).have}</a></div>`;
+
+  const segment = () => `<div class="rp-segment" style="grid-template-columns:repeat(4,1fr)" role="tablist" aria-label="Deal type">
+    ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" class="rp-segment__item${deal.dealType === k ? " rp-segment__item--on" : ""}" data-type="${k}" role="tab" aria-selected="${deal.dealType === k}">${esc(l)}</button>`).join("")}</div>`;
+
+  const priceHero = (r, action) => `<div class="rp-price">
+    <div class="rp-price__label">${esc(heroLabel())}</div>
+    <div class="rp-price__amount">${money(heroFigure(r))}<small>${esc(heroUnit())}</small></div>
+    <div class="rp-price__terms">${heroTerms(r)}</div>
+    ${action ? `<button type="button" class="rp-price__action" id="dkHeroPresent">Present</button>` : ""}</div>`;
+
+  const kvRow = (label, val, srcHtml) => `<div class="rp-kv__row${srcHtml ? " rp-kv__row--src" : ""}"><span>${label}</span><span>${val}</span>${srcHtml ? `<span class="rp-kv__src">${srcHtml}</span>` : ""}</div>`;
+
+  /* the board rotates the chevron on an open accordion with an inline style —
+     the kit draws no open state for rp-acc, so the board's own device is used
+     here and the gap is reported rather than patched in CSS */
+  /* the head and the toggle rows below carry an inline width because the kit
+     sizes neither for the element they have to be: `.rp-row` is given
+     `width: 100%` so it can be a button, `.rp-acc__head` and `.rp-toggle-row`
+     are not, and a button is inline-level, so both shrink to their text and
+     the summary lands against the title. Reported as a kit gap; the width is
+     on the element, never a rule over a kit class. */
+  const acc = (key, title, sum, rows) => `<div class="rp-acc">
+    <button type="button" class="rp-acc__head" style="width:100%" data-acc="${key}" aria-expanded="${ui.open[key] ? "true" : "false"}">${esc(title)}<span class="rp-acc__sum">${sum}</span>${ui.open[key] ? rpGlyph("chevron-down").replace('class="rp-icon"', 'class="rp-icon" style="transform:rotate(180deg)"') : rpGlyph("chevron-down")}</button>
+    ${ui.open[key] ? `<div class="rp-acc__body">${rows}</div>` : ""}</div>`;
+
+  const feeRows = () => RIDE_PRICE_DATA.fees.map(f => kvRow(esc(f.label), money(f.amount))).join("");
+  /* a lease is taxed on the payment and a purchase on the vehicle, so the row
+     states which — and a purchase names the base it is taken on, because a
+     tax figure with no stated base cannot be checked (§19b) */
+  const taxRow = (r) => isLease()
+    ? r.taxes.rows.map(t => kvRow(esc(t.label), money(t.amount))).join("")
+    : kvRow(`Sales tax · ${RIDE_PRICE_CALC.taxPct(RIDE_PRICE_CALC.totalTaxRate())}% on ${money(RIDE_PRICE_CALC.taxableBase(deal, v))}`, money(r.taxes.total));
+  /* the two fees a lease carries that a purchase does not. The disposition fee
+     is charged at lease END, so it never enters the payment and the row says
+     so — disclosed on the pencil, exactly as the app has always disclosed it. */
+  const leaseFeeRows = () => isLease()
+    ? kvRow("Acquisition Fee", money(RIDE_PRICE_DATA.leaseFees.acquisition))
+      + kvRow("Disposition Fee (at lease end)", money(RIDE_PRICE_DATA.leaseFees.disposition))
+    : "";
+
+  function accordions(r) {
+    const equity = (deal.trade.value || 0) - (deal.trade.payoff || 0);
+    const saving = v.msrp - (v.selling + v.includedOptions);
+    const price = acc("price", "Vehicle price", money(v.selling + v.includedOptions),
+      kvRow("MSRP", money(v.msrp)) + kvRow("Your price", money(v.selling + v.includedOptions))
+      + (saving > 0 ? kvRow("Saving", `<span class="rp-delta">−${money(saving)}</span>`) : ""));
+    const trade = deal.trade.has
+      ? acc("trade", "Trade", `${equity >= 0 ? "+" : "−"}${money(Math.abs(equity))}`,
+        kvRow("Allowance", money(deal.trade.value || 0)) + kvRow("Payoff", money(deal.trade.payoff || 0))
+        + kvRow(equity >= 0 ? "Equity" : "Negative equity", `<span class="${equity >= 0 ? "rp-delta" : ""}">${equity >= 0 ? "+" : "−"}${money(Math.abs(equity))}</span>`)
+        + `<div class="rp-kv__row"><span>Trade evaluation</span><span><a class="rp-row__action" href="#/trade/${esc(deal.id)}">Open</a></span></div>`)
+      : "";
+    /* the rebate names its kind on the row, because the same figure is valid
+       on one deal type and invalid on another (§17b) */
+    const rebates = acc("rebates", "Rebates", `−${money(deal.trade.rebates || 0)}`,
+      kvRow("Customer cash", `−${money(deal.trade.rebates || 0)}`, "applies to any deal type, including a cash purchase")
+      + `<div class="rp-kv__row"><span>Change the rebate</span><span><button type="button" class="rp-row__action" data-sheet-open="terms">Edit</button></span></div>`);
+    const accessories = acc("accessories", "Accessories", money(r.accessories),
+      (deal.desk.accessories.length
+        ? deal.desk.accessories.map(a2 => { const x = RIDE_PRICE_DATA.accessories.find(y => y.id === a2); return x ? kvRow(esc(x.name), money(x.price)) : ""; }).join("")
+        : kvRow("None selected", money(0)))
+      + `<div class="rp-kv__row"><span>Change accessories</span><span><button type="button" class="rp-row__action" data-sheet-open="accessories">Edit</button></span></div>`);
+    const feetax = acc("feetax", "Fees & tax", money(r.fees + r.taxes.total), feeRows() + leaseFeeRows() + taxRow(r));
+    const residual = isLease() ? acc("residual", "Residual", money(r.residual),
+      kvRow("Residual value", money(r.residual)) + kvRow("Percent of MSRP", (r.residualPct * 100).toFixed(1) + "%")) : "";
+    return price + residual + trade + rebates + accessories + feetax;
+  }
+
+  function grid(present) {
+    const rec = recommended();
+    const sel = ui.sel;
+    const head = `<div class="rp-grid__hdr"><span>Cash down</span>${GRID_TERMS.map(t => `<span>${t} mo</span>`).join("")}</div>`;
+    const rows = GRID_DOWNS.map(down => `<div class="rp-grid__row"><span class="rp-grid__down">${money0(down)}</span>${GRID_TERMS.map(term => {
+      const isRec = rec.down === down && rec.term === term;
+      const isOn = !!sel && sel.down === down && sel.term === term && !isRec;
+      const cls = `rp-grid__cell${isRec ? " rp-grid__cell--rec" : ""}${isOn ? " rp-grid__cell--on" : ""}`;
+      const body = `${isRec ? `<span class="rp-grid__tag">Recommended</span>` : ""}<span>${money(cellPayment(down, term))}<small>/ mo</small></span>`;
+      return present
+        ? `<button type="button" class="${cls}" data-cell="${down}-${term}" aria-pressed="${isRec || isOn}">${body}</button>`
+        : `<div class="${cls}">${body}</div>`;
+    }).join("")}</div>`).join("");
+    return `<div class="rp-grid">${head}${rows}</div>`;
+  }
+
+  const presentVehicle = () => `<div class="rp-present-vehicle">
+    <div class="rp-present-vehicle__thumb" style="${vehicleTint(v)}">${mCarSvg(v, "rp-icon")}</div>
+    <div class="rp-present-vehicle__name">${esc(vehicleFull)}</div>
+    <div class="rp-present-vehicle__sub">${esc(v.ext)} · ${esc(v.drive)} · Stock ${esc(v.stock)}</div></div>`;
+
+  /* two wins, and only when they are wins: a saving against MSRP, and trade
+     equity as a credit. Negative equity is never dressed as a win (§15) —
+     it stays a plain row in the payment detail. */
+  function wins() {
+    const saving = v.msrp - (v.selling + v.includedOptions);
+    const equity = (deal.trade.value || 0) - (deal.trade.payoff || 0);
+    const cards = [];
+    cards.push(`<div class="rp-win"><div class="rp-win__label">Your price</div>
+      <div class="rp-win__value">${money(v.selling + v.includedOptions)}</div>
+      <div class="rp-win__label">MSRP ${money(v.msrp)}${saving > 0 ? ` · <span class="rp-delta">save ${money(saving)}</span>` : ""}</div></div>`);
+    if (deal.trade.has && equity > 0) {
+      cards.push(`<div class="rp-win"><div class="rp-win__label">Your trade credit</div>
+        <div class="rp-win__value rp-win__value--good">+${money(equity)}</div>
+        <div class="rp-win__label">${esc(tradeShort())} · after payoff</div></div>`);
+    }
+    return `<div class="rp-wins">${cards.join("")}</div>`;
+  }
+  /* "2016 Toyota RAV4" reads as "2016 RAV4" on a customer-facing card */
+  function tradeShort() {
+    const parts = String(deal.trade.desc || "").split(" ");
+    return parts.length > 2 ? parts[0] + " " + parts.slice(2).join(" ") : (deal.trade.desc || "Your trade");
+  }
+  /* one line of fine print, and only what is true of the deal in front of the
+     customer: a cash purchase is subject to no credit approval and no rate,
+     and a lease is quoted on a money factor rather than the incentivized APR
+     (§15 — the condition is stated once, and never invented) */
+  const fineLine = (financed) => {
+    const showApr = financed === undefined ? !isCash() && !isLease() : financed;
+    if (financed === undefined && isCash()) return "";
+    return `<div class="rp-fine">With approved credit${showApr ? ` · ${aprLine()}` : ""}</div>`;
+  };
+
+  /* ---------- 01 · the huddle ---------- */
+  function huddleScreen() {
     const h = deal.huddle;
     const paying = h.paying || deal.dealType;
-    renderChrome("Base Payment Huddle", dealTitle(deal, true), "");
-    document.body.dataset.screen = "desk"; /* the prototype has one header — the flow carries the title */
-    document.body.dataset.canvas = "master";
-    /* the owner's desking prototype (2026-08-27), 1:1: eyebrow → h1 → deal
-       meta → chips, then one bordered section per question. The RP accent
-       lives ONLY on the two notice banners and the primary action; toggles,
-       inputs and choice cards keep the neutral default grammar. */
-    view().innerHTML = `${deskTop(deal)}
-    <div class="dk-wrap">
-      <div class="dk-headrow"><div class="dk-eyebrow" style="margin:0">FIRST PENCIL</div>${h.done ? `<button type="button" class="dk-linkbtn" id="huddleCancel">Back to the pencil</button>` : ""}</div>
-      <h1>Get the game plan aligned.</h1>
-      <div class="dk-meta"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}<br>Before showing numbers, confirm how the customer wants to buy.</div>
-      <div class="dk-chips">
-        <button type="button" class="dk-chip" data-buyers="${esc(deal.id)}">${rpIcon("user")} Buyer</button>
-        <a class="dk-chip" href="#/jacket/${esc(deal.id)}">${rpIcon("folder")} Jacket ${jacketCounts(deal).missing ? `<b>${jacketCounts(deal).missing}</b>` : ""}</a>
+    const content = `<div class="rp-eyebrow">First pencil</div>
+      <h1 class="rp-title">Game plan</h1>
+      ${vehicleRow()}
+      <div class="rp-field"><label class="rp-field__label" for="hTrial">Trial close — in the customer&rsquo;s words</label>
+        <textarea class="rp-textarea" id="hTrial" placeholder="&ldquo;If the numbers make sense, we&rsquo;d take it today.&rdquo;">${esc(h.trialClose || "")}</textarea></div>
+      <div class="rp-field"><label class="rp-field__label" for="hNamed">Payment the customer named</label>
+        <input class="rp-field__input" id="hNamed" value="${esc(h.namedPayment || "")}" placeholder="Around $700 a month"></div>
+      <div class="rp-section">How are they paying?</div>
+      <div class="rp-choice-grid" id="hPayRow" role="radiogroup" aria-label="How are they paying">
+        ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" class="rp-option${paying === k ? " rp-option--on" : ""}" data-pay="${k}" role="radio" aria-checked="${paying === k}">
+          <span><span class="rp-option__title">${esc(l)}</span></span>
+          <span class="rp-radio${paying === k ? " rp-radio--on" : ""}">${paying === k ? rpGlyph("check") : ""}</span></button>`).join("")}
       </div>
+      <div class="rp-group"><div class="rp-row"><span class="rp-row__body">
+        <span class="rp-row__title">Discovery question</span>
+        <span class="rp-row__sub" id="hTrack">${esc(PAY_TRACKS[paying])}</span></span></div></div>
+      <button type="button" class="rp-toggle-row" style="width:100%" id="hTrade" aria-pressed="${h.trade != null ? h.trade : deal.trade.has}">
+        ${deal.trade.has && deal.trade.value ? `Trade evaluated · ${money0(deal.trade.value)}` : "Trade evaluation needed"}
+        <span class="rp-toggle${(h.trade != null ? h.trade : deal.trade.has) ? " rp-toggle--on" : ""}"></span></button>
+      <button type="button" class="rp-toggle-row" style="width:100%" id="hStock" aria-pressed="${h.inStock !== false}">Vehicle in stock today
+        <span class="rp-toggle${h.inStock !== false ? " rp-toggle--on" : ""}"></span></button>`;
+    render(content, chDock(`<button type="button" class="rp-primary" id="hConfirm">Open the pencil</button>`));
 
-      <div class="dk-section">
-        <div class="dk-sechead"><h2 class="dk-h2">What was the answer to the trial close?</h2>
-          <p class="dk-subline">Capture the customer&rsquo;s words, not an interpretation.</p></div>
-        <input type="text" id="hTrial" class="dk-input" value="${esc(h.trialClose || "")}" placeholder="e.g. If the numbers make sense, we'd take it today.">
-      </div>
-
-      <div class="dk-section">
-        <div class="dk-sechead"><h2 class="dk-h2">How are they paying?</h2>
-          <p class="dk-subline">This choice unlocks the first pencil.</p></div>
-        <div class="dk-choices" id="hPayRow" role="radiogroup" aria-label="How are they paying">
-          ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" class="dk-choice${paying === k ? " active" : ""}" data-pay="${k}" role="radio" aria-checked="${paying === k}"><span>${esc(l)}</span><span class="dot"></span></button>`).join("")}
-        </div>
-      </div>
-
-      <div class="dk-section">
-        <div class="dk-notice" id="hPayTrack"><strong>Discovery question</strong>${PAY_TRACKS[paying].q} ${PAY_TRACKS[paying].wt}</div>
-        <div class="dk-card dk-card--pad" style="margin-top:14px">
-          <div class="dk-switchrow">
-            <div class="dk-switchcopy">Trade evaluation needed${deal.trade.has && deal.trade.value ? `<small>Current documented trade: ${money0(deal.trade.value)}</small>` : ""}</div>
-            <label class="switch"><input type="checkbox" id="hTrade" ${h.trade != null ? (h.trade ? "checked" : "") : (deal.trade.has ? "checked" : "")} aria-label="Trade evaluation needed"><span class="sl"></span></label>
-          </div>
-          <div class="dk-switchrow">
-            <div class="dk-switchcopy">Vehicle is in stock today<small>${esc(v.year + " " + v.make + " " + v.model)} · Stock ${esc(v.stock)}</small></div>
-            <label class="switch"><input type="checkbox" id="hStock" ${h.inStock === false ? "" : "checked"} aria-label="Vehicle is in stock today"><span class="sl"></span></label>
-          </div>
-        </div>
-      </div>
-
-      <div class="dk-section">
-        <label class="dk-lab" for="hNotes">Anything else before the pencil?</label>
-        <textarea id="hNotes" class="dk-textarea" placeholder="Objections, must-haves, co-buyer, timing…">${esc(h.notes || "")}</textarea>
-      </div>
-
-      <div class="dk-section">
-        <div class="dk-notice"><strong>Team Lead + Advisor</strong>Game plan the first pencil together before any numbers are shown.</div>
-        <div class="dk-actions">
-          <a class="dk-secondary" style="display:inline-flex;align-items:center;justify-content:center;text-decoration:none" href="#/trade/${esc(deal.id)}">Trade evaluation</a>
-          <button type="button" class="dk-primary" id="hConfirm">Game plan the pencil</button>
-        </div>
-      </div>
-    </div>`;
-
-    let payingSel = paying;
+    let payingSel = paying, tradeOn = h.trade != null ? h.trade : deal.trade.has, stockOn = h.inStock !== false;
     $$("#hPayRow [data-pay]").forEach(b => b.onclick = () => {
       payingSel = b.dataset.pay;
-      $$("#hPayRow [data-pay]").forEach(x => { x.classList.toggle("active", x === b); x.setAttribute("aria-checked", String(x === b)); });
-      const t = PAY_TRACKS[payingSel];
-      $("#hPayTrack").innerHTML = `<strong>Discovery question</strong>${t.q} ${t.wt}`;
+      $$("#hPayRow [data-pay]").forEach(x => {
+        const on = x === b;
+        x.classList.toggle("rp-option--on", on);
+        x.setAttribute("aria-checked", String(on));
+        const radio = x.querySelector(".rp-radio");
+        radio.classList.toggle("rp-radio--on", on);
+        radio.innerHTML = on ? rpGlyph("check") : "";
+      });
+      $("#hTrack").textContent = PAY_TRACKS[payingSel];
     });
-    wireDeskTop();
-    const cancel = $("#huddleCancel");
-    if (cancel) cancel.onclick = () => render();
+    const toggle = (sel, get, set) => { const el = $(sel); el.onclick = () => { set(!get()); el.setAttribute("aria-pressed", String(get())); el.querySelector(".rp-toggle").classList.toggle("rp-toggle--on", get()); }; };
+    toggle("#hTrade", () => tradeOn, (x) => tradeOn = x);
+    toggle("#hStock", () => stockOn, (x) => stockOn = x);
     $("#hConfirm").onclick = () => {
       Object.assign(deal.huddle, {
         done: true, at: new Date().toISOString(),
         by: `${Store.s.advisor} + ${RIDE_PRICE_DATA.dealership.teamLead}`,
         trialClose: $("#hTrial").value.trim(),
-        paying: payingSel,
-        trade: $("#hTrade").checked,
-        inStock: $("#hStock").checked,
-        notes: $("#hNotes").value.trim()
+        namedPayment: $("#hNamed").value.trim(),
+        paying: payingSel, trade: tradeOn, inStock: stockOn
       });
       deal.dealType = payingSel;
       Store.save();
-      toast("Game plan set — pencil unlocked as " + DEAL_TYPES[payingSel]);
-      render();
+      /* no toast: the deal-type control on the pencil says which it is, and
+         nothing that disappears may be the record of anything (§24) */
+      ui.mode = "pencil"; draw();
     };
   }
 
-  /* which accordions are open survives the full re-render each change makes;
-     the prototype opens Vehicle price and Payment terms by default */
-  const ui = { open: { price: true, terms: true, accessories: false, trade: false, credit: false, taxes: false, script: false } };
-
-  function render() {
-    renderChrome("Calculate Payments", dealTitle(deal, true),
-      `<button class="btn btn--ghost btn--sm" id="huddleBtn">Huddle</button>
-       <button class="btn btn--grad btn--sm" id="deskContinue">Continue</button>`);
-    document.body.dataset.screen = "desk";
-    document.body.dataset.canvas = "master";
-    $("#huddleBtn").onclick = () => renderHuddle();
+  /* ---------- 02 / 06 / 07 / 08 · the pencil ---------- */
+  function pencilScreen() {
     const r = RIDE_PRICE_CALC.calc(deal, v);
-    const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
-    const isCash = deal.dealType === "cash";
-    const score = c.creditScore || 700;
-    const tier = RIDE_PRICE_CALC.creditTier(score);
-    const accTotal = r.accessories;
-    const accCount = deal.desk.accessories.length;
+    const chose = deal.desk.customerChose;
+    const asked = deal.desk.approvalRequestedAt;
+    const cashColumn = () => `<div class="rp-kv"><div class="rp-kv__head">Cash purchase</div>
+      ${kvRow("Your price", money(v.selling + v.includedOptions))}
+      ${r.accessories ? kvRow("Accessories", money(r.accessories)) : ""}
+      ${kvRow("Taxes and fees", money(r.fees + r.taxes.total))}
+      ${deal.trade.rebates ? kvRow("Rebate", `−${money(deal.trade.rebates)}`, "customer cash — applies to a cash purchase, not tied to financing") : ""}
+      ${deal.trade.has ? kvRow("Trade credit", `−${money(r.netTrade)}`) : ""}
+      <div class="rp-kv__row" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Total due</span><span style="font-weight:760">${money(r.totalDue)}</span></div></div>`;
 
-    /* the hero states the figure the deal type actually produces */
-    const heroLabel = isCash ? "Estimated total due" : deal.dealType === "onepay" ? "Due at signing — One Pay" : "Estimated monthly payment";
-    const heroAmt = isCash ? money(r.totalDue) : deal.dealType === "onepay" ? money(r.onePayTotal) : money(r.payment);
-    const heroUnit = isCash || deal.dealType === "onepay" ? "" : `<span class="unit">/mo</span>`;
-    const heroSub = isCash ? "Cash purchase · trade and rebate applied"
-      : isLease ? `${r.term} months · ${r.miles.toLocaleString()} mi/yr · ${money0(deal.desk.dueAtSigning)} due at signing`
-      : `${r.term} months · ${r.apr}% APR · ${money0(deal.desk.downPayment)} down`;
+    const content = `<div class="rp-eyebrow">Desking</div>
+      <h1 class="rp-title">Calculate payments</h1>
+      ${isCash() ? "" : vehicleRow()}
+      ${chose ? `<div class="rp-notice rp-notice--success"><span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>Customer chose ${chose.term} months · ${money0(chose.down)} down · ${money(chose.payment)} / mo</div>` : ""}
+      ${asked ? `<div class="rp-notice"><span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>Sent to ${esc(RIDE_PRICE_DATA.dealership.teamLead)} for approval · ${esc(timeUS(asked))}</div>` : ""}
+      ${segment()}
+      ${priceHero(r, !chose)}
+      ${isCash() ? cashColumn() : ""}
+      ${isCash() || isLease() ? "" : `<div class="rp-group"><button type="button" class="rp-row" id="dkOptions">
+        <span class="rp-row__body"><span class="rp-row__title">Payment options</span>
+        <span class="rp-row__sub">${GRID_TERMS.join(" / ")} months × ${money0(GRID_DOWNS[0])}–${money0(GRID_DOWNS[GRID_DOWNS.length - 1])} down</span></span>
+        <span class="rp-row__chevron"></span></button></div>`}
+      ${accordions(r)}`;
 
-    const acc = (key, label, sum, body, extra) => `
-      <details class="dk-acc" data-acc-key="${key}" ${ui.open[key] ? "open" : ""}>
-        <summary>${label}${sum ? ` <span class="dk-accsum">${sum}</span>` : ""}</summary>
-        <div class="dk-accbody${extra || ""}">${body}</div>
-      </details>`;
-    const row = (label2, val, cls) => `<div class="row${cls ? " " + cls : ""}"><span>${label2}</span><b class="amt">${val}</b></div>`;
+    const dock = chose && !asked
+      ? chDock(`<button type="button" class="rp-primary" id="dkSubmit">Submit for Team Lead approval</button>`, `<button type="button" class="rp-link" id="dkPresent">Present again</button>`)
+      : chose && asked
+        ? chDock(`<button type="button" class="rp-primary" id="dkContinue">Continue — base payment agreement</button>`, `<button type="button" class="rp-link" id="dkPresent">Present again</button>`)
+        : chDock(`<button type="button" class="rp-primary" id="dkPresent">Present to customer</button>`,
+          `<button type="button" class="rp-link" id="dkCompare">${isCash() ? "Compare" : "Compare finance and lease"}</button>`);
+    render(content, dock);
 
-    view().innerHTML = `${deskTop(deal)}
-    <div class="dk-wrap">
-      <div class="dk-eyebrow">DESKING</div>
-      <div class="dk-headrow">
-        <div><h1 style="margin-bottom:7px">Calculate payments</h1>
-          <div class="dk-meta" style="margin:0"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</div></div>
-        <button type="button" class="dk-linkbtn" id="dkHuddleLink">Huddle</button>
-      </div>
-
-      <div class="dk-chips" style="margin-top:18px">
-        <button type="button" class="dk-chip" data-buyers="${esc(deal.id)}">${rpIcon("user")} Buyer</button>
-        <a class="dk-chip" href="#/jacket/${esc(deal.id)}">${rpIcon("folder")} Jacket ${jacketCounts(deal).missing ? `<b>${jacketCounts(deal).missing}</b>` : ""}</a>
-      </div>
-
-      <div class="dk-seg" id="dkTypes" role="tablist" aria-label="Deal type">
-        ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" data-type="${k}" class="${deal.dealType === k ? "active" : ""}" role="tab" aria-selected="${deal.dealType === k}">${esc(l)}</button>`).join("")}
-      </div>
-
-      <div class="dk-vehicle">
-        <div class="dk-vehicle-art" style="background:linear-gradient(145deg,hsl(${esc(v.hue)},42%,94%),hsl(${esc(v.hue)},36%,86%))" aria-hidden="true">${mCarSvg(v)}</div>
-        <div><h3>${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</h3>
-          <p>Stock ${esc(v.stock)} · VIN ${esc(v.vin)}</p>
-          <p>Your price ${money0(r.yourPrice)}</p></div>
-      </div>
-
-      <div class="dk-hero pay-hero">
-        <div class="hero-top"><span>${heroLabel}</span><span>${esc(tier.label)} credit</span></div>
-        <div class="amt">${heroAmt}${heroUnit}</div>
-        <div class="sub">${heroSub}</div>
-        <div class="acts">
-          <button type="button" class="dk-secondary" id="dkCompare">Compare</button>
-          <button type="button" class="dk-secondary" id="dkEditTerms">Edit terms</button>
-        </div>
-      </div>
-
-      <div class="dk-section" style="padding-top:0">
-        ${acc("price", "Vehicle price", null, `<div class="dk-prices">
-          ${row("MSRP", money(v.msrp))}
-          ${row("Selling price", money(v.selling))}
-          ${row("Included options", money(v.includedOptions))}
-          ${row("Accessories", money(accTotal))}
-          ${row("Your price", money(r.yourPrice), "total")}
-          ${isLease ? row("Residual", money(r.residual)) + row("Residual %", (r.residualPct * 100).toFixed(1) + "%") : ""}
-        </div>`, " dk-prices")}
-
-        ${acc("accessories", "Accessories", `${accCount} selected · ${money0(accTotal)}`, RIDE_PRICE_DATA.accessories.map(a => `
-          <div class="dk-accessory"><label><input type="checkbox" data-acc="${a.id}" ${deal.desk.accessories.includes(a.id) ? "checked" : ""}>${esc(a.name)}</label><b>${money0(a.price)}</b></div>`).join(""))}
-
-        ${acc("trade", "Trade & rebates", deal.trade.rebates ? money0(deal.trade.rebates) + " rebate" : (deal.trade.value ? money0(deal.trade.value) + " trade" : "none"), `
-          <div class="dk-2col">
-            <div><label class="dk-lab">Trade value</label><div class="dk-moneywrap"><input id="tradeVal" class="dk-money" type="number" step="100" value="${esc(String(deal.trade.value || 0))}"></div></div>
-            <div><label class="dk-lab">Trade payoff</label><div class="dk-moneywrap"><input id="tradePay" class="dk-money" type="number" step="100" value="${esc(String(deal.trade.payoff || 0))}"></div></div>
-          </div>
-          <div class="dk-2col" style="margin-top:14px">
-            <div><label class="dk-lab">Rebate</label><div class="dk-moneywrap"><input id="rebates" class="dk-money" type="number" step="100" value="${esc(String(deal.trade.rebates || 0))}"></div></div>
-            <div style="display:flex;align-items:flex-end"><div class="dk-switchrow" style="width:100%;padding:0 0 9px">
-              <div class="dk-switchcopy" style="font-size:13px">Apply tax credit</div>
-              <label class="switch"><input type="checkbox" id="taxCredit" ${deal.trade.applyTaxCredit ? "checked" : ""} aria-label="Apply tax credit"><span class="sl"></span></label>
-            </div></div>
-          </div>
-          <p style="margin:14px 0 0"><a class="dk-linkbtn" href="#/trade/${esc(deal.id)}">Import Trade</a></p>`)}
-
-        ${acc("terms", "Payment terms", null, isCash
-          ? `<div class="dk-notice"><strong>Cash purchase</strong>No finance term is needed. Trade, rebate, taxes and fees are reflected in the total due.</div>`
-          : isLease ? `
-          <div class="dk-2col">
-            <div><label class="dk-lab">Term</label><div class="dk-3col" id="dkLeaseTerms">${RIDE_PRICE_DATA.leaseTerms.map(t => `<button type="button" class="dk-opt${deal.desk.leaseTerm === t ? " active" : ""}" data-lterm="${t}">${t}</button>`).join("")}</div></div>
-            <div><label class="dk-lab">Miles / year</label><div class="dk-3col" id="dkMiles">${RIDE_PRICE_DATA.milesOptions.map(m2 => `<button type="button" class="dk-opt${deal.desk.milesPerYear === m2 ? " active" : ""}" data-miles="${m2}">${m2 / 1000}k</button>`).join("")}</div></div>
-          </div>
-          ${deal.dealType === "lease" ? `<div style="margin-top:14px"><label class="dk-lab">Due at signing</label><div class="dk-moneywrap"><input id="das" class="dk-money" type="number" step="100" value="${esc(String(deal.desk.dueAtSigning))}"></div></div>` : ""}
-          <div class="dk-prices" style="margin-top:14px">
-            ${row("Lease Factor", (deal.dealType === "onepay" ? Math.max(0.00001, deal.desk.leaseFactor - 0.0004) : deal.desk.leaseFactor).toFixed(5))}
-            ${row("Acquisition Fee", money(RIDE_PRICE_DATA.leaseFees.acquisition))}
-            ${row("Security Deposit", "$0.00")}
-            ${row("Disposition Fee (at lease end)", money(RIDE_PRICE_DATA.leaseFees.disposition))}
-          </div>` : `
-          <label class="dk-lab">Term</label>
-          <div class="dk-3col" id="dkFinTerms">${RIDE_PRICE_DATA.financeTerms.map(t => `<button type="button" class="dk-opt${deal.desk.term === t ? " active" : ""}" data-term="${t}">${t}</button>`).join("")}</div>
-          <div class="dk-2col" style="margin-top:14px">
-            <div><label class="dk-lab">APR %</label><input id="apr" class="dk-input" type="number" step="0.1" value="${deal.desk.apr}"></div>
-            <div><label class="dk-lab">Down payment</label><div class="dk-moneywrap"><input id="down" class="dk-money" type="number" step="100" value="${esc(String(deal.desk.downPayment))}"></div></div>
-          </div>
-          <label class="dk-lab" style="margin-top:14px">Days to first payment</label>
-          <div class="dk-3col" id="dkDtf">${[30, 45, 60].map(d2 => `<button type="button" class="dk-opt${deal.desk.daysToFirst === d2 ? " active" : ""}" data-days="${d2}">${d2}</button>`).join("")}</div>`)}
-
-        ${acc("credit", "Estimated credit score", `${score} · ${esc(tier.label)}`, `
-          <div class="credit-bar">
-            <div class="bar">
-              <input type="range" min="450" max="850" step="5" value="${score}" id="scoreRange" class="score-range" aria-label="Estimated credit score">
-            </div>
-            <div class="cap"><span>450</span><b style="color:var(--ink)">${score} · ${esc(tier.label)}</b><span>850</span></div>
-          </div>
-          <div style="font-size:12px;color:var(--muted);margin-top:10px">Based on the credit the client provided — never assume.</div>`)}
-
-        ${acc("taxes", "Taxes & fees", null, `<div class="dk-prices">
-          ${r.taxes.rows.map(t => row(esc(t.label), money(t.amount))).join("")}
-          ${row("Total Fees", money(RIDE_PRICE_CALC.totalFees()))}
-          ${!isCash && !isLease ? row("Amount Financed", money(r.amountFinanced), "total") : ""}
-        </div>`)}
-
-        ${acc("script", "Advisor word track", null, `<div class="dk-wordtrack">
-          <div class="label">BASE PAYMENT WORD TRACK</div>
-          <div>${wordTrack(r)}</div>
-          <div class="stop">🤫 Stop talking. Wait for your client to respond.</div>
-        </div>`)}
-      </div>
-      ${deskStickyBar(r, isCash, isLease, deal)}
-    </div>
-    ${compareSheetHtml()}`;
-
-    /* accordion open-state survives the redraw each change triggers */
-    $$("details.dk-acc", view()).forEach(d2 => d2.addEventListener("toggle", () => { ui.open[d2.dataset.accKey] = d2.open; }));
-
-    /* bindings */
-    $("#dkHuddleLink").onclick = () => renderHuddle();
-    $$("#dkTypes [data-type]").forEach(b => b.onclick = () => { deal.dealType = b.dataset.type; Store.save(); render(); });
-    $$("[data-acc]").forEach(cb => cb.onchange = () => {
-      deal.desk.accessories = $$("[data-acc]").filter(x => x.checked).map(x => x.dataset.acc);
-      Store.save(); render();
+    /* a new deal type is a new structure, so the payment the customer agreed
+       to is no longer the payment on screen — the choice comes off with it
+       rather than sitting over a number they never saw */
+    $$("[data-type]").forEach(b => b.onclick = () => {
+      if (deal.dealType !== b.dataset.type) {
+        delete deal.desk.customerChose; delete deal.desk.approvalRequestedAt; delete deal.desk.approvalRequestedBy;
+      }
+      deal.dealType = b.dataset.type; Store.save(); draw();
     });
-    const bind = (idSel, fn) => { const el2 = $(idSel); if (el2) el2.onchange = (e) => { fn(e); Store.save(); render(); }; };
-    bind("#tradeVal", e => deal.trade.value = parseFloat(e.target.value) || 0);
-    bind("#tradePay", e => deal.trade.payoff = parseFloat(e.target.value) || 0);
-    bind("#rebates", e => deal.trade.rebates = parseFloat(e.target.value) || 0);
-    bind("#taxCredit", e => deal.trade.applyTaxCredit = e.target.checked);
-    bind("#apr", e => deal.desk.apr = parseFloat(e.target.value) || 0);
-    bind("#down", e => deal.desk.downPayment = parseFloat(e.target.value) || 0);
-    bind("#das", e => deal.desk.dueAtSigning = parseFloat(e.target.value) || 0);
-    const pick = (sel, fn) => $$(sel).forEach(b => b.onclick = () => { fn(b); Store.save(); render(); });
-    pick("#dkFinTerms [data-term]", b => deal.desk.term = parseInt(b.dataset.term, 10));
-    pick("#dkDtf [data-days]", b => deal.desk.daysToFirst = parseInt(b.dataset.days, 10));
-    pick("#dkLeaseTerms [data-lterm]", b => deal.desk.leaseTerm = parseInt(b.dataset.lterm, 10));
-    pick("#dkMiles [data-miles]", b => deal.desk.milesPerYear = parseInt(b.dataset.miles, 10));
-    bind("#scoreRange", e => {
-      c.creditScore = parseInt(e.target.value, 10);
-      const t2 = RIDE_PRICE_CALC.creditTier(c.creditScore);
-      deal.desk.apr = t2.agreedApr; deal.desk.leaseFactor = t2.leaseFactor;
-    });
-    $("#dkEditTerms").onclick = () => {
-      ui.open.terms = true;
-      const d2 = $('[data-acc-key="terms"]'); if (d2) { d2.open = true; d2.scrollIntoView({ block: "start", behavior: "smooth" }); }
+    const opts = $("#dkOptions"); if (opts) opts.onclick = () => { ui.mode = "options"; draw(); };
+    const hero = $("#dkHeroPresent"); if (hero) hero.onclick = () => goPresent();
+    const pres = $("#dkPresent"); if (pres) pres.onclick = () => goPresent();
+    const cmp = $("#dkCompare"); if (cmp) cmp.onclick = () => { ui.mode = "compare"; draw(); };
+    const submit = $("#dkSubmit");
+    if (submit) submit.onclick = () => {
+      /* the request is recorded on the screen, not announced in a toast: the
+         Team Lead's own approval screen is not drawn yet, and a waiting role
+         still gets the action it has (§23, §24) */
+      deal.desk.approvalRequestedAt = new Date().toISOString();
+      deal.desk.approvalRequestedBy = Store.s.advisor;
+      Store.save(); draw();
     };
-    wireDeskTop();
-    wireCompareSheet();
-    /* one handler, both entries — the crumb button and the sticky bar must do
-       exactly the same thing, not merely look alike */
-    const goOn = () => {
+    const cont = $("#dkContinue");
+    if (cont) cont.onclick = () => {
       deal.basePayment = { signedAt: null, snapshot: RIDE_PRICE_CALC.calc(deal, v) };
-      if (["desking"].includes(deal.stage)) deal.stage = "signed";
+      if (deal.stage === "desking") deal.stage = "signed";
       Store.save();
       navigate(`#/agreement/${deal.id}`);
     };
-    $("#deskContinue").onclick = goOn;
-    const stickyGo = $("#deskContinueSticky"); if (stickyGo) stickyGo.onclick = goOn;
   }
 
-  /* Compare payments as a bottom sheet on the pencil (prototype): finance and
-     lease side by side, each from the real calculator on a cloned deal — the
-     same honest math the #/compare route uses. Selecting one sets the deal
-     type and drops the sheet. */
-  function compareSheetHtml() {
+  /* ---------- 03 · the option grid ---------- */
+  function optionsScreen() {
+    const named = deal.huddle.namedPayment;
+    const rec = recommended();
+    const content = `<div class="rp-eyebrow">Desking</div>
+      <h1 class="rp-title">Payment options</h1>
+      ${vehicleRow()}
+      <div class="rp-section">Finance · ${aprLine()} · rebate and trade credit applied</div>
+      ${grid(false)}
+      ${named ? `<div class="rp-group"><div class="rp-row"><span class="rp-row__body">
+        <span class="rp-row__title">Customer named</span>
+        <span class="rp-row__sub">&ldquo;${esc(named)}&rdquo; — ${rec.term} months · ${money0(rec.down)} down is the anchor</span></span></div></div>` : ""}`;
+    render(content, chDock(`<button type="button" class="rp-primary" id="dkPresent">Present to customer</button>`,
+      `<button type="button" class="rp-link" id="dkTerms">Change terms</button>`));
+    $("#dkPresent").onclick = () => goPresent();
+    $("#dkTerms").onclick = () => { ui.sheet = "terms"; draw(); };
+  }
+
+  /* ---------- 04 · present — your payment ---------- */
+  function presentScreen() {
+    const r = RIDE_PRICE_CALC.calc(deal, v);
+    const finance = !isCash() && !isLease();
+    const content = `<div class="rp-eyebrow">${finance ? "Three ways to own it" : isCash() ? "Your purchase" : "Your lease"}</div>
+      <h1 class="rp-title">${finance ? "Your payment" : isCash() ? "Your total" : "Your payment"}</h1>
+      ${presentVehicle()}
+      ${wins()}
+      ${finance ? grid(true) : priceHero(r, false)}
+      ${fineLine()}`;
+    render(content, chDock(`<button type="button" class="rp-primary" id="dkTake">This one works</button>`), "present");
+    $$("[data-cell]").forEach(b => b.onclick = () => {
+      const [down, term] = b.dataset.cell.split("-").map(Number);
+      ui.sel = { down, term, payment: cellPayment(down, term) };
+      draw();
+    });
+    $("#dkTake").onclick = () => commit();
+  }
+
+  /* ---------- 05 · present — own or lease ---------- */
+  function compareScreen() {
     const mk = (type) => {
       const clone = JSON.parse(JSON.stringify(deal)); clone.dealType = type;
       return RIDE_PRICE_CALC.calc(clone, v);
     };
     const f = mk("finance"), l = mk("lease");
-    return `
-    <div class="dk-scrim" id="dkScrim"></div>
-    <div class="dk-sheet" id="dkSheet" role="dialog" aria-modal="true" aria-label="Compare payments">
-      <div class="dk-sheet-inner">
-        <div class="dk-handle"></div>
-        <div class="dk-sheetbar"><h2>Compare payments</h2><button type="button" class="dk-close" id="dkSheetClose" aria-label="Close">×</button></div>
-        <div style="font-size:14px;color:var(--muted);line-height:1.45">Compare the two primary deal structures without leaving the pencil. A rebate applies to every deal type; cash down applies to a finance deal, and a lease uses the due-at-signing figure instead.</div>
-        <div class="dk-cmpcard">
-          <div class="top"><h3>Finance</h3><span class="dk-badge">${f.term} months</span></div>
-          <div class="price">${money(f.payment)} / mo</div>
-          <div class="dk-prices">
-            <div class="row"><span>Vehicle price</span><b>${money(f.yourPrice)}</b></div>
-            <div class="row"><span>Cash down</span><b>${money(deal.desk.downPayment)}</b></div>
-            <div class="row"><span>APR</span><b>${f.apr}%</b></div>
-          </div>
-          <button type="button" class="dk-primary dk-wide" data-pick-type="finance">Select finance</button>
-        </div>
-        <div class="dk-cmpcard">
-          <div class="top"><h3>Lease</h3><span class="dk-badge">${l.term} months · ${l.miles / 1000}k</span></div>
-          <div class="price">${money(l.payment)} / mo</div>
-          <div class="dk-prices">
-            <div class="row"><span>Vehicle price</span><b>${money(l.yourPrice)}</b></div>
-            <div class="row"><span>Residual</span><b>${money(l.residual)}</b></div>
-            <div class="row"><span>Due at signing</span><b>${money(deal.desk.dueAtSigning)}</b></div>
-          </div>
-          <button type="button" class="dk-primary dk-wide" data-pick-type="lease">Select lease</button>
-        </div>
-        <p style="margin:16px 0 0;text-align:center"><a class="dk-linkbtn" href="#/compare/${esc(deal.id)}">Full comparison — all four deal types</a></p>
+    const equity = (deal.trade.value || 0) - (deal.trade.payoff || 0);
+    const included = f.accessories + f.fees + f.taxes.total;
+    const recFinance = deal.dealType !== "lease";
+    const content = `<div class="rp-eyebrow">Own or lease</div>
+      <h1 class="rp-title">Two ways to drive it</h1>
+      ${presentVehicle()}
+      <div class="rp-wins">
+        <div class="rp-win"${recFinance ? ` style="border:2px solid var(--rp-ink)"` : ""}><div class="rp-win__label">Finance · ${f.term} mo</div>
+          <div class="rp-win__value">${money(f.payment)}</div>
+          <div class="rp-win__label">${money0(deal.desk.downPayment)} down · you own it</div></div>
+        <div class="rp-win"${recFinance ? "" : ` style="border:2px solid var(--rp-ink)"`}><div class="rp-win__label">Lease · ${l.term} mo</div>
+          <div class="rp-win__value">${money(l.payment)}</div>
+          <div class="rp-win__label">${money0(deal.desk.dueAtSigning)} at signing · ${Math.round(l.miles / 1000)}k mi/yr</div></div>
       </div>
-    </div>`;
-  }
-  function wireCompareSheet() {
-    const scrim = $("#dkScrim"), sheet = $("#dkSheet");
-    if (!scrim || !sheet) return;
-    const openSheet2 = () => { scrim.classList.add("show"); sheet.classList.add("show"); };
-    const closeSheet2 = () => { scrim.classList.remove("show"); sheet.classList.remove("show"); };
-    $("#dkCompare").onclick = openSheet2;
-    $("#dkSheetClose").onclick = closeSheet2;
-    scrim.onclick = closeSheet2;
-    $$("[data-pick-type]").forEach(b => b.onclick = () => { deal.dealType = b.dataset.pickType; Store.save(); render(); });
+      <div class="rp-kv">
+        ${kvRow("Your price", money(v.selling + v.includedOptions))}
+        ${deal.trade.has && equity > 0 ? kvRow("Trade credit", `<span class="rp-delta">+${money(equity)}</span>`) : ""}
+        ${deal.trade.rebates ? kvRow("Rebate", `<span class="rp-delta">−${money(deal.trade.rebates)}</span>`) : ""}
+        <div class="rp-kv__row rp-kv__row--src"><span>Included</span><span>${money(included)}</span>
+          <span class="rp-kv__src"><button type="button" class="rp-row__action" id="dkItemize" style="padding:0">accessories, tax and four fee lines — tap to itemize</button></span></div>
+      </div>
+      <div style="height:12px"></div>
+      ${fineLine(true)}`;
+    render(content, chDock(`<button type="button" class="rp-primary" id="dkFinance">Finance works</button>`,
+      `<button type="button" class="rp-link" id="dkLease">Show the lease</button>`), "present");
+    $("#dkItemize").onclick = () => { ui.sheet = "itemize"; draw(); };
+    $("#dkFinance").onclick = () => { deal.dealType = "finance"; Store.save(); commit(); };
+    $("#dkLease").onclick = () => { deal.dealType = "lease"; Store.save(); ui.mode = "present"; draw(); };
   }
 
-  function wordTrack(r) {
-    const cName = c ? c.first : "Client";
-    const accNames = deal.desk.accessories.map(a2 => (RIDE_PRICE_DATA.accessories.find(x => x.id === a2) || {}).name).filter(Boolean);
-    const accPhrase = accNames.length ? ` With the included options and the accessories you chose of ${accNames.join(", ").toLowerCase()},` : " With the included options,";
-    const tradePhrase = deal.trade.value > 0 ? (deal.trade.payoff > 0 ? " With us paying off your trade, and" : " Including your trade, and") : "";
-    const rebatePhrase = deal.trade.rebates > 0 ? ` congratulations, you qualified for the ${money0(deal.trade.rebates)} rebate,` : "";
-    if (deal.dealType === "cash") {
-      return `“OK ${esc(cName)}, for your ${v.year} ${v.make} ${v.model}, the MSRP is ${money(v.msrp)}. Your selling price is ${money(v.selling)}.${accPhrase} your price is ${money(r.yourPrice)}.${tradePhrase}${rebatePhrase} including your taxes and fees, your total due is ${money(r.totalDue)}.”`;
+  /* the customer's own tap is the trial close: it writes the structure they
+     chose onto the deal and hands the phone back to Work (§15) */
+  function commit() {
+    if (!isCash() && !isLease()) {
+      const cell = ui.sel || recommended();
+      deal.desk.term = cell.term;
+      deal.desk.downPayment = cell.down;
+      deal.desk.customerChose = { term: cell.term, down: cell.down, payment: cell.payment, at: new Date().toISOString() };
+    } else {
+      const r = RIDE_PRICE_CALC.calc(deal, v);
+      deal.desk.customerChose = { term: r.term || 0, down: isCash() ? 0 : deal.desk.dueAtSigning, payment: heroFigure(r), at: new Date().toISOString() };
     }
-    if (deal.dealType === "lease" || deal.dealType === "onepay") {
-      return `“OK ${esc(cName)}, for your ${v.year} ${v.make} ${v.model}, these lease terms are based on ${r.miles.toLocaleString()} miles per year, is that correct? ${deal.dealType === "lease" ? `And with your ${money0(deal.desk.dueAtSigning)} due at signing, correct? Excellent. ` : ""}The MSRP is ${money(v.msrp)}. Your selling price is ${money(v.selling)}.${accPhrase} your price is ${money(r.yourPrice)}. If you wanted to purchase your vehicle at the end of the lease, you could do so for ${money(r.residual)} PLUS TAXES &amp; FEES.${tradePhrase}${rebatePhrase} including your taxes and fees, at a standard ${r.term} month term, based on the credit you provided, ${deal.dealType === "onepay" ? `your one-pay total is ${money(r.onePayTotal)}.` : `your payment is ${money(r.payment)}.`}”`;
+    Store.save();
+    ui.mode = "pencil"; ui.sel = null; draw();
+  }
+  function goPresent() { ui.sel = null; ui.mode = "present"; draw(); }
+
+  /* ---------- the sheets ---------- */
+  function sheetHtml() {
+    if (ui.sheet === "itemize") {
+      const r = RIDE_PRICE_CALC.calc(deal, v);
+      return `${chSheetHead("What is included")}
+        <p class="rp-sheet__sub">${esc(vehicleCompact)} · ${esc(custName)}</p>
+        <div class="rp-kv">
+          ${deal.desk.accessories.map(a2 => { const x = RIDE_PRICE_DATA.accessories.find(y => y.id === a2); return x ? kvRow(esc(x.name), money(x.price)) : ""; }).join("")}
+          ${feeRows()}
+          ${taxRow(r)}
+        </div>
+        <button type="button" class="rp-primary" data-sheet-close>Done</button>`;
     }
-    return `“OK ${esc(cName)}, for your ${v.year} ${v.make} ${v.model}, the MSRP is ${money(v.msrp)}. Your selling price is ${money(v.selling)}.${accPhrase} your price is ${money(r.yourPrice)}.${tradePhrase}${rebatePhrase} including your taxes and fees, at a standard ${r.term} month term, based on the credit score you provided, you are still putting down ${money0(deal.desk.downPayment)} correct? Your payment is ${money(r.payment)}.”`;
+    if (ui.sheet === "accessories") {
+      return `${chSheetHead("Accessories")}
+        <p class="rp-sheet__sub">${esc(vehicleShort)} · Stock ${esc(v.stock)}</p>
+        ${RIDE_PRICE_DATA.accessories.map(a2 => {
+          const on = deal.desk.accessories.includes(a2.id);
+          return `<button type="button" class="rp-option${on ? " rp-option--on" : ""}" data-acc="${esc(a2.id)}" aria-pressed="${on}">
+            <span><span class="rp-option__title">${esc(a2.name)}</span><span class="rp-option__sub">${money0(a2.price)}</span></span>
+            <span class="rp-radio${on ? " rp-radio--on" : ""}">${on ? rpGlyph("check") : ""}</span></button>`;
+        }).join("")}
+        <button type="button" class="rp-primary" data-sheet-close>Done</button>`;
+    }
+    /* terms: what the advisor actually adjusts on a pencil. Work mode only —
+       nothing here is ever drawn while the phone is turned to the customer. */
+    const opt = (attr, val, label, on) => `<button type="button" class="rp-segment__item${on ? " rp-segment__item--on" : ""}" data-${attr}="${val}" aria-pressed="${on}">${esc(label)}</button>`;
+    const three = (html) => `<div class="rp-segment" style="grid-template-columns:repeat(3,1fr)">${html}</div>`;
+    return `${chSheetHead("Change terms")}
+      <p class="rp-sheet__sub">${esc(custName)} · ${esc(vehicleShort)}</p>
+      ${isCash() ? "" : isLease()
+        ? `<div class="rp-field"><span class="rp-field__label">Term</span>${three(RIDE_PRICE_DATA.leaseTerms.slice(0, 3).map(t => opt("lterm", t, t + " mo", deal.desk.leaseTerm === t)).join(""))}</div>
+           <div class="rp-field"><span class="rp-field__label">Miles per year</span>${three(RIDE_PRICE_DATA.milesOptions.map(m2 => opt("miles", m2, (m2 / 1000) + "k", deal.desk.milesPerYear === m2)).join(""))}</div>
+           <div class="rp-field"><label class="rp-field__label" for="dkDas">Due at signing</label><input class="rp-field__input" id="dkDas" type="number" step="100" value="${esc(String(deal.desk.dueAtSigning))}"></div>`
+        : `<div class="rp-field"><span class="rp-field__label">Term</span>${three(GRID_TERMS.map(t => opt("term", t, t + " mo", deal.desk.term === t)).join(""))}</div>
+           <div class="rp-field"><label class="rp-field__label" for="dkApr">APR %</label><input class="rp-field__input" id="dkApr" type="number" step="0.1" value="${esc(String(deal.desk.apr))}"></div>
+           <div class="rp-field"><label class="rp-field__label" for="dkDown">Cash down</label><input class="rp-field__input" id="dkDown" type="number" step="100" value="${esc(String(deal.desk.downPayment))}"></div>`}
+      <div class="rp-field"><label class="rp-field__label" for="dkRebate">Rebate — customer cash</label><input class="rp-field__input" id="dkRebate" type="number" step="100" value="${esc(String(deal.trade.rebates || 0))}"></div>
+      <button type="button" class="rp-primary" id="dkTermsSave">Save terms</button>`;
   }
-
-  if (!deal.huddle.done) renderHuddle(); else render();
-});
-
-/* ============================================================
-   VIEW: Compare Payments
-   ============================================================ */
-route("compare/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
-  const v = Store.vehicle(deal.stock);
-  const c = Store.customer(deal.customerId);
-
-  renderChrome("Payment Comparison", "", "");
-  document.body.dataset.screen = "desk";
-  document.body.dataset.canvas = "master";
-
-  const sides = [deal.dealType === "lease" ? "finance" : deal.dealType, deal.dealType === "lease" ? "lease" : "lease"];
-
-  function colHtml(side, i) {
-    const clone = JSON.parse(JSON.stringify(deal));
-    clone.dealType = side;
-    const r = RIDE_PRICE_CALC.calc(clone, v);
-    const head = side === "cash" ? money(r.totalDue) : side === "onepay" ? money(r.onePayTotal) : money(r.payment);
-    const unit = side === "cash" || side === "onepay" ? "total" : "/ mo";
-    const badge = side === "cash" ? "cash purchase"
-      : side === "onepay" ? `${r.term} months · one payment`
-      : side === "lease" ? `${r.term} months · ${Math.round(r.miles / 1000)}k`
-      : `${r.term} months`;
-    const row = (l, val) => `<div class="m-specrow"><span>${l}</span><strong>${val}</strong></div>`;
-    return `<div class="dk-cmpcard">
-      <div class="dk-cmphead"><b>${esc(DEAL_TYPES[side])}</b><span class="dk-badge">${esc(badge)}</span></div>
-      <div class="dk-typerow" role="tablist" aria-label="Deal type for this card">
-        ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" class="m-chip dk-typechip${side === k ? " active" : ""}" data-side="${i}" data-val="${k}" role="tab" aria-selected="${side === k}">${esc(l)}</button>`).join("")}
-      </div>
-      <div class="price">${esc(head)} <span class="unit">${unit}</span></div>
-      <div class="m-specgroup">
-        ${row("Vehicle price", money(r.yourPrice))}
-        ${row("Accessories", money(r.accessories))}
-        ${row("Rebate", money(deal.trade.rebates || 0))}
-        ${row("Trade allowance", money(deal.trade.value || 0))}
-        ${row("Trade payoff", money(deal.trade.payoff || 0))}
-        ${row("Total Fees", money(RIDE_PRICE_CALC.totalFees()))}
-        ${side === "lease" || side === "onepay"
-          ? row("Miles per year", (deal.desk.milesPerYear).toLocaleString())
-            + row("Residual", money(r.residual))
-            + row("Lease factor", r.factor.toFixed(5))
-            + row("Term", `${r.term} months`)
-          : side === "cash" ? row("Taxes", money(r.taxes.total))
-          : row("Cash down", money(deal.desk.downPayment))
-            + row("APR", `${deal.desk.apr}%`)
-            + row("Term", `${r.term} months`)}
-      </div>
-      <button type="button" class="dk-primary" style="width:100%;margin-top:16px" data-save="${side}">Select ${esc(DEAL_TYPES[side].toLowerCase())}</button>
-    </div>`;
-  }
-
-  function render() {
-    view().innerHTML = `${deskTop(deal)}
-    <div class="dk-wrap dk-wrap--wide">
-      <div class="dk-eyebrow">DESKING</div>
-      <div class="dk-headrow">
-        <div><h1 style="margin-bottom:7px">Compare payments</h1>
-          <div class="dk-meta" style="margin:0"><b>${esc(c.first + " " + c.last)}</b> · ${esc(v.year + " " + v.make + " " + v.model)} ${esc(v.trim || "")}</div></div>
-        <a class="dk-linkbtn" href="#/desk/${esc(deal.id)}" style="text-align:right">Back to the pencil</a>
-      </div>
-      <div class="dk-notice" style="margin-top:16px"><strong>Before you switch</strong>A rebate applies to every deal type. Cash down applies to a finance deal; a lease uses the due-at-signing figure instead.</div>
-      <div class="dk-cmpgrid">${sides.map((s, i) => colHtml(s, i)).join("")}</div>
-    </div>`;
-    wireDeskTop();
-    $$("[data-side]").forEach(b => b.onclick = () => { sides[+b.dataset.side] = b.dataset.val; render(); });
-    $$("[data-save]").forEach(b => b.onclick = () => {
-      deal.dealType = b.dataset.save; Store.save();
-      toast(`Deal type set to ${DEAL_TYPES[deal.dealType]}`);
-      navigate(`#/desk/${deal.id}`);
+  function wireSheet(sheet) {
+    $$("[data-acc]", sheet).forEach(b => b.onclick = () => {
+      const id2 = b.dataset.acc;
+      const at = deal.desk.accessories.indexOf(id2);
+      if (at >= 0) deal.desk.accessories.splice(at, 1); else deal.desk.accessories.push(id2);
+      Store.save(); draw();
     });
+    $$("[data-term]", sheet).forEach(b => b.onclick = () => { deal.desk.term = parseInt(b.dataset.term, 10); Store.save(); draw(); });
+    $$("[data-lterm]", sheet).forEach(b => b.onclick = () => { deal.desk.leaseTerm = parseInt(b.dataset.lterm, 10); Store.save(); draw(); });
+    $$("[data-miles]", sheet).forEach(b => b.onclick = () => { deal.desk.milesPerYear = parseInt(b.dataset.miles, 10); Store.save(); draw(); });
+    const save = $("#dkTermsSave", sheet);
+    if (save) save.onclick = () => {
+      const num = (sel, fallback) => { const el = $(sel, sheet); if (!el) return fallback; const n = parseFloat(el.value); return isFinite(n) && n >= 0 ? n : fallback; };
+      deal.desk.apr = num("#dkApr", deal.desk.apr);
+      deal.desk.downPayment = num("#dkDown", deal.desk.downPayment);
+      deal.desk.dueAtSigning = num("#dkDas", deal.desk.dueAtSigning);
+      deal.trade.rebates = num("#dkRebate", deal.trade.rebates || 0);
+      Store.save(); ui.sheet = null; sheets.close(); draw();
+    };
   }
-  render();
+
+  /* ---------- the frame ---------- */
+  function render(content, dockHtml, mode) {
+    const present = mode === "present";
+    if (!ui.sheet) sheets.close();
+    view().innerHTML = chShell({
+      template: "task", title: custName, closeId: "dkClose",
+      closeLabel: present ? "Done — back to work" : "Close",
+      cls: present ? "rp-screen--present" : ""
+    }, content, dockHtml, { scrim: "dkScrim", sheet: "dkSheet" });
+    /* Close leaves the screen it is on: from present mode it is Done and hands
+       the phone back to the advisor, from the option grid it returns to the
+       pencil the grid was opened from, and from the pencil itself it leaves
+       the task for the visit. A drill-down that could only go forward would
+       be a dead end (§23). */
+    $("#dkClose").onclick = () => {
+      if (present || ui.mode === "options") { ui.mode = "pencil"; ui.sel = null; return draw(); }
+      navigate(`#/discovery/${deal.id}`);
+    };
+    chWireRole(sheets, draw);
+    $$("[data-acc]").forEach(b => { if (b.dataset.acc && ui.open[b.dataset.acc] !== undefined) b.onclick = () => { ui.open[b.dataset.acc] = !ui.open[b.dataset.acc]; draw(); }; });
+    $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; draw(); });
+    if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
+  }
+
+  function draw() {
+    if (ui.mode === "huddle") return huddleScreen();
+    if (ui.mode === "options") return optionsScreen();
+    if (ui.mode === "present") return presentScreen();
+    if (ui.mode === "compare") return compareScreen();
+    pencilScreen();
+  }
+  draw();
 });
+
+/* the full-page Compare route is retired: the comparison the customer sees
+   is the present-mode one above (package v029). The hash stays a redirect so
+   a bookmark or a history entry lands on the pencil rather than nowhere. */
+route("compare/:id", ({ id }) => redirect(`#/desk/${id}`));
 
 /* ============================================================
    VIEW: Base Payment Agreement

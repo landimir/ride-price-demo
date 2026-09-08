@@ -43,9 +43,15 @@ const RIDE_PRICE_DATA = {
        the tire tax is the state's $2.50-per-tire waste fee × 5. */
     { label: "Documentation Fee", amount: 175.00 },
     { label: "Inspection Fee", amount: 10.00 },
-    { label: "Registration Fee", amount: 235.00 },
+    { label: "Registration and Plates", amount: 235.00 },
     { label: "Tire Tax", amount: 12.50 }
   ],
+
+  /* the incentivized finance rate the desking screens quote, with the date it
+     actually ends. A deadline shown to a customer has to be a real one, so the
+     date lives here and the screen formats it — never a phrase typed into a
+     template (chrome rule §15). */
+  financeIncentive: { apr: 3.5, through: "2026-09-30" },
 
   financeTerms: [36, 48, 60, 72, 84],
   leaseTerms: [24, 36, 39, 48],
@@ -207,7 +213,12 @@ const RIDE_PRICE_DATA = {
      like every other spec in this catalog. */
   inventory: [
     { stock: "7H21313", colorCode: "BK", weight: 3890, seats: 5, cyl: 4, fuel: "G", vin: "5NMS4DAL4NH457995", year: 2022, make: "Hyundai", model: "Santa Fe", trim: "Limited", body: "SUV", type: "New",
-      msrp: 42910, selling: 41431, includedOptions: 395, miles: 5, ext: "Twilight Black", int: "Gray", drive: "AWD", engine: "2.5L Turbo I4", mpg: "22/28",
+      /* the seed prices this unit at selling $41,431 against MSRP $42,910 with
+         accessories as the only additions — the demo deal's every downstream
+         figure (taxable base $26,700.00, amount financed $38,577.12) derives
+         from those two numbers, so it carries no separately-priced factory
+         options. Other units keep theirs. */
+      msrp: 42910, selling: 41431, includedOptions: 0, miles: 5, ext: "Twilight Black", int: "Gray", drive: "AWD", engine: "2.5L Turbo I4", mpg: "22/28",
       emoji: "🚙", hue: 250,
       blurb: "Panoramic sunroof, heated & ventilated leather, Highway Drive Assist, 360° camera." },
     { stock: "7H21477", colorCode: "GY", weight: 4284, seats: 7, cyl: 6, fuel: "G", vin: "KM8R5DHE6NU334821", year: 2022, make: "Hyundai", model: "Palisade", trim: "Limited", body: "SUV", type: "New",

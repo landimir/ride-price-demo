@@ -33,13 +33,26 @@ const RIDE_PRICE_CALC = (function () {
     return three.endsWith("0") ? (rate * 100).toFixed(2) : three;
   };
   const totalFees = () => RIDE_PRICE_DATA.fees.reduce((s, f) => s + f.amount, 0);
+  /* the documentation fee by name, because New York taxes it and the other
+     three fees are not part of the taxable base */
+  const docFee = () => {
+    const f = RIDE_PRICE_DATA.fees.find(x => x.label === "Documentation Fee");
+    return f ? f.amount : 0;
+  };
 
-  /* taxable base: your price + accessories − trade allowance (when tax credit applies) */
+  /* taxable base: your price + accessories + the documentation fee − trade
+     allowance (when the tax credit applies). New York taxes the dealer
+     documentation fee as part of the vehicle's price — the owner's chrome
+     rule §19b and the v034 seed both state the base and its derivation, and
+     every screen showing tax has to print it: $41,431.00 + $594.00 + $175.00
+     − $15,500.00 = $26,700.00, which is $2,369.62 at 8.875%. The other three
+     fees (inspection, registration and plates, tire tax) are government
+     charges and stay out of the base. */
   function taxableBase(deal, vehicle, opts) {
     const o = opts || {};
     const price = vehicle.selling + vehicle.includedOptions + accessoriesTotal(deal.desk.accessories) + (o.productsTotal || 0);
     const tradeCredit = (deal.trade.applyTaxCredit && deal.trade.value > 0) ? deal.trade.value : 0;
-    return Math.max(0, price - tradeCredit);
+    return Math.max(0, price + docFee() - tradeCredit);
   }
 
   function taxBreakdown(base) {
@@ -174,5 +187,5 @@ const RIDE_PRICE_CALC = (function () {
   const money = (n) => (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const money0 = (n) => (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 0 });
 
-  return { creditTier, accessoriesTotal, productsTotal, productById, totalTaxRate, taxPct, totalFees, taxBreakdown, taxableBase, finance, lease, cash, onePay, calc, menuColumn, money, money0, round2 };
+  return { creditTier, accessoriesTotal, productsTotal, productById, totalTaxRate, taxPct, totalFees, docFee, taxBreakdown, taxableBase, finance, lease, cash, onePay, calc, menuColumn, money, money0, round2, amortize };
 })();
