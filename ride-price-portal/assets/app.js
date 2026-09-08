@@ -5621,8 +5621,18 @@ route("agreement/:id", ({ id }) => {
    depends on is drawn, fees are itemised, the tax names its base, and the
    approval states the difference in the customer's unit (the payment), with
    both totals of payments and their arithmetic on their own rows. */
+/* a route can be re-entered without a hashchange — renderChrome() calls
+   router() on a role switch, and the buyers sheet calls it on every change —
+   so the credit lane's delegated input writer keeps its removal handle out
+   here, where a second entry can find it. A stale one holds an older F and
+   writes into a form nobody is looking at. */
+let creditInputOff = null;
 route("credit/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  /* a truthy stock is not a resolved vehicle, and the approved screen prices
+     against the unit — same guard, same destination as the menu, the print
+     centre and the test drive */
+  if (!deal.stock || !Store.vehicle(deal.stock)) return navigate("#/deals");
   const c = Store.customer(deal.customerId);
   const app = deal.creditApp;
 
@@ -5634,8 +5644,8 @@ route("credit/:id", ({ id }) => {
      "no co-buyer" here exactly as it does in dealTitle() and the submit guard */
   const cbRec = () => deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
 
-  const v = deal.stock ? Store.vehicle(deal.stock) : null;
-  const r = v ? RIDE_PRICE_CALC.calc(deal, v) : null;
+  const v = Store.vehicle(deal.stock);
+  const r = RIDE_PRICE_CALC.calc(deal, v);
   const custName = `${c.first} ${c.last}`;
   /* the legal name is the name as the license reads it — a different field
      from the display name the chrome uses (§20) */
@@ -5672,9 +5682,14 @@ route("credit/:id", ({ id }) => {
     const cb = cbRec(); if (!cb) return;
     Object.assign(F, { coFirst: cb.first, coLast: cb.last, coDob: dateUS(cb.dob || ""), coDl: (cb.license && cb.license.number) || "", coAddr: cb.address || "", coZip: cb.zip || "", coCity: cb.city || "", coState: cb.state || "" });
   };
-  seedCo();
-  /* a draft the advisor already marked ready comes back the way they left it */
+  /* a draft the advisor already marked ready comes back the way they left it —
+     and the co-applicant is reseeded AFTER it, because identity prefills from
+     the record and never from typed state. Parking a deal and then replacing
+     the co-buyer would otherwise reopen the application with the new person's
+     name beside the previous person's date of birth, licence and address, and
+     submit() would persist it. */
   if (deal.creditApp && deal.creditApp.draft) Object.assign(F, deal.creditApp.draft);
+  seedCo();
 
   const STEP_NAMES = ["Applicant", "Residence", "Employment", "Review"];
   const st = { step: 1, err: null };
@@ -5943,7 +5958,10 @@ route("credit/:id", ({ id }) => {
     const probs = johnProblems();
     const missing = probs.filter(p => p.kind === "missing").length;
     const invalid = probs.filter(p => p.kind === "invalid").length;
-    const showErrors = st.err && !johnComplete();
+    /* the summary is its own kind of error — a joint application with nobody
+       attached has no field to mark, and gating on johnProblems() alone left
+       the advisor tapping submit with nothing on the screen changing */
+    const showErrors = !!st.err && (!johnComplete() || !!st.err.summary);
     /* the head counts in words and the panel in digits, as the board writes
        them; both count the same set — the fields */
     const errHead = probs.length
@@ -5975,8 +5993,11 @@ route("credit/:id", ({ id }) => {
     }) : "";
 
     const ready = isJoint() && co && johnComplete() && cs.complete;
-    return `${showErrors ? `<div class="rp-errors"><div class="rp-errors__head"><span class="rp-tile">${probs.length || 1}</span>${esc(errHead)}</div>
-      <ul><li>Nothing has been saved or sent.${co && !cs.complete ? ` ${esc(co.first)}'s items are not yours to fix.` : ""}</li></ul></div>` : ""}
+    /* a summary error names a condition rather than a field, so it heads the
+       block itself and the count follows what is actually listed */
+    const summaryErr = st.err && st.err.summary && johnComplete() ? st.err.summary : "";
+    return `${showErrors ? `<div class="rp-errors"><div class="rp-errors__head"><span class="rp-tile">${summaryErr ? 1 : probs.length || 1}</span>${esc(summaryErr || errHead)}</div>
+      <ul>${summaryErr ? `<li>Attach the co-buyer, or change the application to an individual one.</li>` : ""}<li>Nothing has been saved or sent.${co && !cs.complete ? ` ${esc(co.first)}'s items are not yours to fix.` : ""}</li></ul></div>` : ""}
       ${isJoint() ? `<div class="rp-section">Applicants</div>${johnPanel}${coPanel}` : `<div class="rp-section">Applicant</div>${johnPanel}`}
       ${ready ? `<div class="rp-kv"><div class="rp-kv__head">Ready for lenders</div>
         ${kvRow("Both identities verified", "Photo against each license")}
@@ -6119,7 +6140,7 @@ route("credit/:id", ({ id }) => {
         ${stepRow("They verify identity first", "Photo against their own license", "First", false)}
         ${stepRow("Then their own fields only", `Nothing about ${esc(c.first)} is shown to them`, "Second", false)}
       </div>
-      <div class="rp-field__err" id="caLinkErr" hidden>Enter a ${channel === "email" ? "an email address" : "mobile number"} for the link</div>
+      <div class="rp-field__err" id="caLinkErr" hidden>Enter ${channel === "email" ? "an email address" : "a mobile number"} for the link</div>
       <button type="button" class="rp-primary" id="caLinkSend">Send secure link</button>`;
   }
 
@@ -6333,7 +6354,8 @@ route("credit/:id", ({ id }) => {
   /* one delegated writer: masks applied here so the stored value matches what
      the document-level [data-date] mask paints (both are idempotent). A
      complete demo ZIP fills city + state, in state and on screen. */
-  view().addEventListener("input", (e) => {
+  if (creditInputOff) creditInputOff();
+  const onCreditInput = (e) => {
     const el = e.target.closest("[data-key]");
     if (!el) return;
     if (el.hasAttribute("data-ssn")) {
@@ -6358,7 +6380,18 @@ route("credit/:id", ({ id }) => {
       }
     }
     F[el.dataset.key] = el.value;
-  });
+  };
+  view().addEventListener("input", onCreditInput);
+  /* the handle lives OUTSIDE the route, because the leak is a second entry
+     into the route rather than a second screen: it is cleared on the way in
+     above, and on the way out here */
+  const off = () => {
+    const el = view(); if (el) el.removeEventListener("input", onCreditInput);
+    window.removeEventListener("hashchange", off);
+    if (creditInputOff === off) creditInputOff = null;
+  };
+  creditInputOff = off;
+  window.addEventListener("hashchange", off);
 
   /* the gate comes before the application; an already-approved deal never
      re-gates, and a deal parked on a pending co-buyer opens on Review */
@@ -6376,11 +6409,14 @@ route("demo/cobuyer-ready", () => {
   if (!deal) return navigate("#/deals");
   deal.creditRemote = deal.creditRemote || {};
   const rec = deal.creditRemote.cobuyer = deal.creditRemote.cobuyer || { channel: "text", to: "(347) 555-1212", sentAt: new Date().toISOString() };
-  const t = (mins) => new Date(Date.now() + mins * 60000).toISOString();
-  rec.openedAt = rec.openedAt || t(0);
-  if (!rec.identityAt) { rec.identityAt = t(1); jacketReceive(deal, "idverify-cobuyer", "app"); }
-  rec.fieldsAt = rec.fieldsAt || t(2);
-  rec.authorizedAt = rec.authorizedAt || t(2);
+  /* minutes AGO: the screen states when she did each thing, and a stamp ahead
+     of the clock claims a verification that has not happened yet — the same
+     reason seedArrival() puts John's arrival in the past */
+  const t = (agoMins) => new Date(Date.now() - agoMins * 60000).toISOString();
+  rec.openedAt = rec.openedAt || t(3);
+  if (!rec.identityAt) { rec.identityAt = t(2); jacketReceive(deal, "idverify-cobuyer", "app"); }
+  rec.fieldsAt = rec.fieldsAt || t(1);
+  rec.authorizedAt = rec.authorizedAt || t(1);
   Store.save();
   redirect(`#/credit/${deal.id}`);
 });
@@ -8027,7 +8063,8 @@ route("jacket/:id", ({ id }) => {
       : st.how === "client" ? "Customer upload · accepted"
         : st.how === "sort" ? "Snap & Sort · auto-filed (demo)"
           : st.how === "esign" ? "Signed electronically · filed on signing"
-            : "Marked received by " + st.by;
+            : st.how === "app" ? "Recorded by Ride Price · filed by the event itself"
+              : "Marked received by " + st.by;
     return how + " · " + jacketStamp(st.at);
   }
   /* the why-line an outstanding row wears: its responsibility first, so an
@@ -8403,7 +8440,8 @@ route("jacket/:id", ({ id }) => {
         : st.how === "sort" ? "Auto-filed by Snap &amp; Sort (demo — a simulated check)."
           : st.how === "client" ? "Uploaded by the customer through the secure link and accepted after review."
             : st.how === "esign" ? "Signed electronically in the app and filed by the act of signing."
-              : "Taken in by hand. The jacket keeps the record, not the paper."}${st.note ? " Note: " + esc(st.note) : ""}${d.kind === "optional" ? " Counted as an optional document — it is not part of the required package." : ""}</p>
+              : st.how === "app" ? "Ride Price created this record itself when the event happened. Nobody handed anything over, and nothing was scanned."
+                : "Taken in by hand. The jacket keeps the record, not the paper."}${st.note ? " Note: " + esc(st.note) : ""}${d.kind === "optional" ? " Counted as an optional document — it is not part of the required package." : ""}</p>
       ${viewable ? `<a class="rp-primary" href="${esc(viewable)}" style="display:grid;place-items:center">View</a>` : ""}
       <button type="button" class="rp-link" id="jkUndo">Take back out</button>
       ${d.added ? `<button type="button" class="rp-link" id="jkDrop">Remove from this deal</button>` : ""}`,
@@ -9194,7 +9232,7 @@ route("docreview/:id/:docId", ({ id, docId }) => {
   function verificationLine() {
     const done = jacketState(deal, docId); if (!done) return null;
     return done.how === "sort" ? "Simulated" : done.how === "scan" ? "Marker read" : done.how === "esign" ? "Signed in the app"
-      : done.how === "client" ? "Reviewed" : "Marked received";
+      : done.how === "client" ? "Reviewed" : done.how === "app" ? "Recorded by the app" : "Marked received";
   }
 
   function render() {
