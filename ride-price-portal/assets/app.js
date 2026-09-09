@@ -30,7 +30,10 @@ const Store = (function () {
          the seed says it is visible only behind the date control */
       stage: "complete", createdAt: "2026-08-14T15:05:00Z", advisor: RIDE_PRICE_DATA.dealership.teamLead,
       discovery: { answers: {}, done: true }, testDrive: { done: true }, huddle: { done: true },
-      trade: { has: false, value: 0, payoff: 0, rebates: 0, applyTaxCredit: true },
+      /* the same trade literal startVisit builds, and deliberately byte-identical
+         to it: two constructors that disagree split the demo into two shapes.
+         No `payoff` — the note at startVisit says why. */
+      trade: { has: false, value: 0, rebates: 0, applyTaxCredit: true },
       desk: { term: 72, apr: 4.9, downPayment: 2500, leaseTerm: 36, milesPerYear: 12000, leaseFactor: 0.0015, dueAtSigning: 2500, accessories: [], daysToFirst: 45 },
       basePayment: null, creditApp: { approved: true, lender: "US Bank" },
       menu: { step: 4, barsDone: [1, 2, 3, 4], custom: [], customSource: null, selectedProgram: null, initials: "PP", ackSigned: true },
@@ -218,11 +221,49 @@ const Store = (function () {
        computed from was never in the seed at all, so the form fell back to a
        hard-coded 2018 and the screen contradicted its own header. Guarded the
        way the ownership answers are: the seed's VIN identifies the vehicle,
-       and only an ABSENT year is filled — a year anyone typed is theirs, even
-       when it disagrees with the words above it. */
-    if (demo && demo.trade && demo.trade.vin === "4T1TRAININGSAMP01" && demo.trade.year === undefined) {
+       and only an ABSENT year is filled — a year anyone typed is theirs.
+       The description clause joined it on 2026-09-09, when the appraisal
+       stopped PERSISTING a year it had only read out of `desc`. An absent
+       year is no longer evidence of an old blob — it is the ordinary shape of
+       an evaluated trade — while this stamp is a hard-coded 2016, so on a
+       trade whose description has been changed it would write a year the
+       words above it contradict, and that year, being a record, would then
+       outrank them for good. Keyed on `desc` the predicate is vehicle
+       identity, like the two migrations above it, and it fires only where
+       2016 is exactly what the description says. */
+    if (demo && demo.trade && demo.trade.vin === "4T1TRAININGSAMP01" &&
+        demo.trade.desc === "2016 Toyota RAV4" && demo.trade.year === undefined) {
       demo.trade.year = 2016; minted = true;
     }
+    /* the payoff box stopped printing a hard 0 on 2026-09-09, and this is the
+       other half of it: startVisit used to seed `payoff: 0` on a trade nobody
+       had appraised, so a deal already in this browser would keep painting a
+       black 0 — read as "this trade is paid off" — while every deal made
+       after the change showed the box empty. Two behaviours on one screen is
+       the drift the flow-by-flow rollout exists to avoid.
+       Six migrations run above this one. Three key on the seed's VIN — the
+       mint on that VIN being ABSENT, the RAV4 rewrite and the year stamp on it
+       being present — two more key on the demo deal by id, and only the
+       dealNo mint, like this pass, walks every deal. This one keys on no
+       identity at all, because the stale zeros live in the deals the USER
+       started, which is where the defect shows and where no seed VIN was ever
+       written.
+       What makes an unkeyed pass safe is the whole predicate, not `has`
+       alone: seedDeal writes `has: true` and `payoff: 10750` in one literal,
+       so `has !== true` proves nothing by itself. `payoff === 0 && !value` is
+       the guard that does the work. A trade that has been evaluated always
+       carries a value — runEval's floor is 1500 before the condition factor,
+       so it cannot write a falsy one — and the seeded trade carries 15500
+       beside its payoff. Both writers are excluded by construction, which
+       leaves the initializer that no longer writes a zero as the only source
+       of one. It cannot misfire on a typed 0 either: markStale never saves, so
+       a payoff typed and abandoned is never persisted. `value: 0` is left
+       alone — it has no box of its own to lie in. */
+    state.deals.forEach(d => {
+      if (d.trade && d.trade.has !== true && d.trade.payoff === 0 && !d.trade.value) {
+        delete d.trade.payoff; minted = true;
+      }
+    });
     /* the customer's own words, on a huddle nobody has run yet. A huddle that
        is done, or that already holds either field, is the advisor's own work
        and is never overwritten. */
@@ -350,23 +391,51 @@ function toast(msg) {
   let t = $("#toast");
   if (!t) { t = document.createElement("div"); t.id = "toast"; document.body.appendChild(t); }
   t.textContent = msg;
-  /* a footer pinned to the bottom of a phone is where the user just tapped —
-     a toast there would cover the button. Measured, not assumed: a
-     footer-less dialog, or one sitting short of the bottom, keeps the default.
-     The customer's upload page has a sticky action bar of its own and needs
-     the same lift (owner prototype, 2026-08-26), so both are considered and
-     the lowest one wins. The trade screen's dock joined them on 2026-09-08:
-     it is the same pinned bar, and the appraisal now toasts a message ASKING
-     for a field — an instruction covering the button it is about is worse
-     than no instruction. */
+  /* a bar pinned to the bottom of a phone is where the user just tapped — a
+     toast there would cover the button, and an instruction covering the
+     button it is about is no instruction (owner, 2026-09-08). Four surfaces
+     are measured: a dialog's pinned foot, the customer upload page's sticky
+     action bar (owner prototype, 2026-08-26), the Base Payment Agreement's
+     sticky bar (`.desk-sticky`, named for the route it used to live on), and
+     the Master Replication dock. Measured, not assumed: a bar sitting short
+     of the bottom, or none at all, keeps the CSS default.
+
+     2026-09-09 — this comment promised "the lowest one wins" while the code
+     was a || chain that stopped at the FIRST selector to match anything at
+     all. That is correct only while no screen puts two of these on the floor
+     together, an invariant nothing enforced and nothing tested; the promise
+     is now the code. The two differ on exactly one reachable screen today:
+     the drawer's Reset-demo confirm sits high on the page, so its foot is NOT
+     anchored — the chain stopped at it and fell back to 26px, this measures
+     it, drops it, and still clears the page bar behind it. Invisible either
+     way, because that dialog closes before it toasts. Rejected: keeping the
+     chain and rewriting this comment to admit first-match, which documents
+     the trap instead of removing it — the next flow to gain a dock is where
+     it would have fired.
+
+     KNOWN GAP, deliberately left open here: FOUR bottom-pinned bars are
+     unmeasured, not two, and half of them are ours. The kit's are `.rp-dock`
+     (what chDock draws) and `.rp-signoff` (the jacket's funding sign-off);
+     ours are `.mp-dock` on the presentation walkthrough and `.drv-dock` on
+     document review. So the scan flow's "Fill in the fields marked in red"
+     lands on #svSave on every route that has no dock in this list. The two
+     reasons are not the same one. The kit's pair reaches around twenty
+     screens a trade-appraisal package cannot run in the browser and
+     photograph, and nothing here is done until it has been. Ours are simply
+     out of this change's reach: no toast it touches fires on either screen,
+     so there is nothing it could have measured — a scope boundary, not a
+     verification cost. All four are the next improvement, not a line to slip
+     in. */
   /* measured AFTER the paint that follows this call: many callers toast and
      then render the screen the toast belongs to, so measuring now would read
      the outgoing screen — which is how a toast ended up underneath the
      desking payment bar it was supposed to sit above. */
   const place = () => {
-    const foot = $("#modalBack .modal__foot") || $(".dr-clientbottom") || $(".desk-sticky") || $(".tv-dock");
-    const fr = foot && foot.getBoundingClientRect();
-    t.style.bottom = fr && fr.bottom > window.innerHeight - 80 ? Math.round(window.innerHeight - fr.top + 12) + "px" : "";
+    const tops = [$("#modalBack .modal__foot"), $(".dr-clientbottom"), $(".desk-sticky"), $(".tv-dock")]
+      .filter(Boolean).map(el => el.getBoundingClientRect())
+      .filter(r => r.bottom > window.innerHeight - 80)
+      .map(r => r.top);
+    t.style.bottom = tops.length ? Math.round(window.innerHeight - Math.min(...tops) + 12) + "px" : "";
   };
   place();
   requestAnimationFrame(place);
@@ -2496,7 +2565,14 @@ function startVisit(customerId) {
     createdAt: new Date().toISOString(), advisor: Store.s.advisor,
     discovery: { answers: {}, done: false },
     testDrive: { done: false },
-    trade: { has: false, value: 0, payoff: 0, rebates: 0, applyTaxCredit: true },
+    /* no `payoff`: a visit that has not reached the trade screen has not been
+       asked about a loan, and seeding a 0 there made the appraisal form claim
+       the car was paid off — the same false assertion the year and mileage
+       boxes were cleared of on 2026-09-08/09. `value: 0` STAYS: it has no
+       input box, every reader takes it through `|| 0` or `> 0`, and dropping
+       it would only widen the money(undefined) surface on the printables for
+       no visible gain. */
+    trade: { has: false, value: 0, rebates: 0, applyTaxCredit: true },
     huddle: { done: false },
     desk: { term: 60, apr: 4.5, downPayment: 1000, leaseTerm: 36, milesPerYear: 12000, leaseFactor: 0.0015, dueAtSigning: 1000, accessories: [], daysToFirst: 45 },
     basePayment: null, creditApp: null,
@@ -4567,11 +4643,13 @@ route("trade/:id", ({ id }) => {
      "Vehicle (year make model)" — this reads it back out of that same string
      so the number box under the description cannot contradict the header
      above it. Absent stays absent: with no year to read, the box renders
-     EMPTY and its placeholder does the work, the `#tVin` rule ("an absent VIN
-     renders as an empty field, not an invented value"). The window is the
-     input's own min/max, so a derived year is always a value that box would
-     accept; a year the advisor TYPED is shown back verbatim, in range or not,
-     because it is theirs.
+     EMPTY and its placeholder states the SHAPE rather than standing in for a
+     value (2026-09-09), the `#tVin` rule ("an absent VIN renders as an empty
+     field, not an invented value"). The window is the input's own min/max, so
+     a derived year is always a value that box would accept; a year the
+     advisor TYPED is shown back verbatim, in range or not, because it is
+     theirs — and then refused by the evaluation rather than repaired, which
+     is runEval's half of the same rule.
 
      The window ends at the app's OWN present, which the appraisal states once
      here rather than three times: the depreciation line below counts back from
@@ -4582,33 +4660,123 @@ route("trade/:id", ({ id }) => {
      move together whenever the demo's present is moved on. */
   const APPRAISAL_YEAR = 2026;
   const YEAR_MIN = 1998, YEAR_MAX = APPRAISAL_YEAR;
+  /* one predicate, because two paths now ask it: the derivation below, which
+     drops a year it cannot price, and runEval, which refuses one. A membership
+     test rather than the same thing written twice as its own negation — a
+     rewritten window that reaches only one of them is the failure this
+     closes. */
+  const inWindow = (y) => y >= YEAR_MIN && y <= YEAR_MAX;
   const descYear = (desc) => {
-    const m = String(desc || "").match(/\b(?:19|20)\d{2}\b/);
-    const y = m ? +m[0] : 0;
-    return y >= YEAR_MIN && y <= YEAR_MAX ? y : null;
+    /* anchored to the FRONT of the string, because the label above the box
+       asks for "year make model" and the year is therefore the first word. A
+       year-shaped token anywhere else belongs to a NAME: a BMW 2002 is a
+       coupe built through 1976, and reading the model year off the model name
+       appraises a fifty-year-old car as this year's. A description written the
+       other way round ("Accord 2015") derives nothing and the evaluation asks
+       for the year instead — this screen may decline to read a year, but it
+       may never read the wrong one. */
+    const m = String(desc || "").match(/^\s*((?:19|20)\d{2})\b/);
+    const y = m ? +m[1] : 0;
+    return inWindow(y) ? y : null;
   };
 
   /* a field renders EMPTY only when it is genuinely absent. Distinct from
      falsy: a recorded 0 — a paid-off trade, an odometer that really reads 0 —
      is somebody's answer and has to show as 0, not as a box waiting to be
-     filled. */
+     filled. All three number boxes go through it now. The payoff was the last
+     one still printing `fld("payoff") || 0`, which put a black 0 in front of
+     the advisor on a trade nobody had been asked about — "this trade is paid
+     off", said by a screen with no basis for it (2026-09-09). Rejected:
+     dropping the seeded zero and keeping the `|| 0`, because
+     `String(undefined || 0)` is "0" as well — that box could not render empty
+     whatever the store held. */
   const shown = (key) => { const v = fld(key); return v == null || v === "" ? "" : v; };
 
+  /* the Model year box carries a year somebody RECORDED, or the one this
+     screen reads out of the description on their behalf — and only the second
+     kind may be moved when the description changes. Once the four digits are
+     in the box the two are the same characters, so the provenance is written
+     onto the box itself as `data-derived`: the element is the only thing that
+     knows, a second painter would carry its own, and nothing rests on an
+     invariant held by convention across the three places that read it.
+     A stored year that says exactly what the description says counts as
+     derived too, and that clause is what makes a blob written before
+     2026-09-09 — when a derived year WAS persisted — follow a corrected
+     description like every other. No load() migration, no hoisting this
+     route's window out to module scope, and the stale record clears itself
+     the next time the trade is evaluated. It heals such a blob only where the
+     anchored `descYear` reproduces the stored number, which by construction
+     leaves out the descriptions the anchoring was introduced to stop reading:
+     a blob holding 2002 off "BMW 2002 tii" no longer derives anything, so its
+     2002 fails the comparison and is carried as a record. That is the right
+     way to fail — nothing now distinguishes it from a 2002 somebody typed,
+     and treating an unreadable stored year as the advisor's own is the safe
+     direction; the alternative is a screen quietly discarding a number it
+     cannot account for. Its cost is that a year the advisor
+     typed which AGREES with the description is treated as the screen's own:
+     undetectable in principle, and the defensible half, because the
+     description is the sentence they are looking at and their number agrees
+     with it. Re-deriving at capture time cannot stand in for any of this —
+     the description is precisely what has just been edited, so the comparison
+     would always answer "different, therefore typed".
+     Tested `=== ""`, deliberately not for truthiness: `shown` exists to
+     separate an ABSENT answer from a falsy one, and a `||` here would hand a
+     recorded 0 straight back to the derivation it was written to outrank. */
+  const yearBoxAttrs = () => {
+    const rec = shown("year"), der = String(descYear(fld("desc")) || "");
+    return rec === "" || String(rec) === der
+      ? `value="${esc(der)}" data-derived="${esc(der)}"`
+      : `value="${esc(rec)}"`;
+  };
+  /* the model year AS A RECORD: the box, but only where it has been moved off
+     what the screen painted there — including emptied, which hands the
+     question back to the description. `data-derived` is absent on a box
+     painted from a record, and `undefined` never equals a string, so such a
+     box always reads as somebody's answer. Falls back to the store when the
+     form is not mounted; no caller reaches it in that state, and none should. */
+  const yearRecorded = () => {
+    const el = $("#tYear");
+    return el ? (el.value === el.dataset.derived ? "" : el.value) : shown("year");
+  };
+
+  /* the ghost text in an empty box teaches a SHAPE or names a SOURCE, never a
+     vehicle (2026-09-09). Four boxes here still advertised the retired
+     Tucson — `2018 Hyundai Tucson`, `KM8TRAININGSAMP06`, `2018`, `60000` —
+     the record the RAV4 rewrite at load() retired, whispered back in grey
+     under a header reading 2016 Toyota RAV4. (The VIN migration above MINTS
+     that Tucson VIN on purpose, so the rewrite below it can recognise a
+     pre-VIN blob: it is a waypoint the record passes through, never a value
+     this form should offer.) Echoing the deal's OWN values instead was the
+     other candidate and is worse than a wrong one: a grey 2016 under a 2016
+     header is indistinguishable from a filled box at a glance, so it walks
+     the advisor past a field nobody has answered — the `#tVin` rule beaten by
+     styling rather than by markup. So `YYYY`, the year half of the
+     `MM/DD/YYYY` mask the date boxes already spell, because a model year gets
+     written '16 on paper; `17 characters`, the one thing the VIN label does
+     not say, lowercase and spaced so it can never read as a scanned VIN;
+     `Odometer` where there is no shape to teach, naming where the number is
+     read from, as `No limit` on Max price and the test drive's "Ask for the
+     auto insurance company" already do. The credit application's numeric
+     boxes do carry example figures, but those invent a generic amount rather
+     than one specific vehicle's odometer, which is the whole distinction.
+     Vehicle keeps no ghost at all — its label already reads "year make
+     model", so one could only repeat it or name a car that needs retiring the
+     next time the prop changes. */
   const formCard = () => `<section class="tv-card">
     <h2 class="tv-cardtitle">${esc(fld("desc") || "Trade vehicle")}</h2>
     ${fld("desc") ? `<div class="tv-cardsub">Trade vehicle</div>` : ""}
     <label class="tv-field"><span class="tv-label">Vehicle (year make model)</span>
-      <input type="text" class="tv-input" id="tDesc" value="${esc(fld("desc") || "")}" placeholder="2018 Hyundai Tucson"></label>
+      <input type="text" class="tv-input" id="tDesc" value="${esc(fld("desc") || "")}"></label>
     <label class="tv-field"><span class="tv-label">VIN <span class="tv-labnote" id="tVinHint"></span></span>
-      <input type="text" class="tv-input" id="tVin" value="${esc(fld("vin") || "")}" placeholder="KM8TRAININGSAMP06" maxlength="17" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
+      <input type="text" class="tv-input" id="tVin" value="${esc(fld("vin") || "")}" placeholder="17 characters" maxlength="17" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
     <div class="tv-grid2">
       <label class="tv-field"><span class="tv-label">Model year</span>
-        <input type="number" class="tv-input" id="tYear" value="${esc(shown("year") || descYear(fld("desc")) || "")}" placeholder="2018" min="${esc(YEAR_MIN)}" max="${esc(YEAR_MAX)}"></label>
+        <input type="number" class="tv-input" id="tYear" ${yearBoxAttrs()} placeholder="YYYY" min="${esc(YEAR_MIN)}" max="${esc(YEAR_MAX)}"></label>
       <label class="tv-field"><span class="tv-label">Mileage</span>
-        <input type="number" class="tv-input" id="tMiles" value="${esc(shown("miles"))}" placeholder="60000" min="0"></label>
+        <input type="number" class="tv-input" id="tMiles" value="${esc(shown("miles"))}" placeholder="Odometer" min="0"></label>
     </div>
     <label class="tv-field"><span class="tv-label">Payoff amount (if financed)</span>
-      <input type="number" class="tv-input" id="tPayoff" value="${esc(String(fld("payoff") || 0))}" step="100"></label>
+      <input type="number" class="tv-input" id="tPayoff" value="${esc(shown("payoff"))}" step="100" min="0"></label>
     <div class="tv-field"><span class="tv-label">Condition</span>
       <div class="tv-seg" id="tCond">${["Excellent", "Good", "Fair", "Rough"].map(x =>
         `<button type="button" data-cond="${x}" class="${(fld("condition") || "Good") === x ? "on" : ""}">${x}</button>`).join("")}</div>
@@ -4731,7 +4899,11 @@ route("trade/:id", ({ id }) => {
     editing = true;
     draft = {
       desc: ($("#tDesc") || {}).value, vin: ($("#tVin") || {}).value,
-      year: ($("#tYear") || {}).value, miles: ($("#tMiles") || {}).value,
+      /* the year captured is the RECORD, never the paint: a box still showing
+         what this screen read out of the description is not an edit, and
+         freezing it here was half of how a corrected description kept the
+         year of the sentence it replaced (see yearRecorded, 2026-09-09). */
+      year: yearRecorded(), miles: ($("#tMiles") || {}).value,
       payoff: ($("#tPayoff") || {}).value,
       condition: ($("#tCond button.on") || { dataset: {} }).dataset.cond,
     };
@@ -4776,7 +4948,23 @@ route("trade/:id", ({ id }) => {
       const el = $("#" + fid); if (el) el.addEventListener("input", markStale);
     });
     const dm = $(".tv-dockmeta b");
-    const td2 = $("#tDesc"); if (td2 && dm) td2.addEventListener("input", () => { dm.textContent = shortTrade(); });
+    const td2 = $("#tDesc");
+    if (td2) td2.addEventListener("input", () => {
+      if (dm) dm.textContent = shortTrade();
+      /* the derived year follows the description as it is typed. markStale
+         deliberately does not re-render — that would eat the keystroke — so
+         without this the box would go on showing the year of a sentence just
+         corrected, the contradiction this screen was rebuilt to remove. Only
+         a box still holding the paint is moved, plus an empty one, which is
+         the advisor handing the question back to the description; a year they
+         put there is never overwritten. The two "input" listeners on this
+         field are order-independent: both read the same paint, and this one
+         moves the box and its provenance together. */
+      const y = $("#tYear");
+      if (y && (y.value === y.dataset.derived || y.value === "")) {
+        y.dataset.derived = String(descYear(td2.value) || ""); y.value = y.dataset.derived;
+      }
+    });
   }
 
   function runEval() {
@@ -4787,12 +4975,70 @@ route("trade/:id", ({ id }) => {
        nothing, so it is asked for. Both are named in one ask rather than one
        per round trip, and the first empty box takes the cursor. Owner's
        ruling, 2026-09-09: "leave the mileage box empty like the year". */
-    const year = parseInt($("#tYear").value, 10) || descYear($("#tDesc").value);
-    const miles = parseInt($("#tMiles").value, 10);
-    const need = [!year && "model year", !(miles >= 0) && "mileage"].filter(Boolean);
+    /* the year the advisor RECORDED is kept apart from the one the evaluation
+       resolves. `||` reads a typed 0 as no answer at all and hands the year to
+       the description, so without the raw number a box reading 0 would be
+       appraised as a 2015 and then overwritten with it: absence and a number
+       the box would not accept are different states, and only the first one
+       falls back. `yearRecorded` rather than the box itself, because a box
+       still showing what this screen derived is not an answer (2026-09-09). */
+    const typed = parseInt(yearRecorded(), 10);
+    const year = typed || descYear($("#tDesc").value);
+    /* the odometer is read the way the payoff below it is, and for the reason
+       this line was not: type=number accepts scientific notation, so "1e5"
+       really does arrive here, and parseInt stopped at the "e" and read 1.
+       That 1 cleared `>= 0`, so a 100,000-mile trade was appraised as a
+       1-mile one — some $5,500 high, stored as miles: 1, with nothing said
+       anywhere. parseFloat reads the exponent AND still answers NaN for an
+       empty box, which is what keeps the owner's ruling intact; a bare
+       Number() would have read the empty box as 0 and appraised a car nobody
+       measured. parseFloat behind isFinite is how the two other number reads
+       in this file are written, but neither is this same test: the huddle's
+       namedPayment takes `> 0`, which would refuse an odometer that genuinely
+       reads 0 — the distinction this box turns on — and the desking terms
+       sheet's `num()` takes `>= 0` but falls back to the stored figure
+       instead of refusing. The line that matches this one exactly is the
+       payoff gate below, added in the same change and for the same reason.
+       isFinite also refuses an Infinity, which would clear `>= 0` and
+       then JSON.stringify to null, bringing the odometer back out of
+       localStorage as never-recorded. Rounded because an odometer is a
+       whole-mile instrument and the figure is painted straight back into the
+       box; to nearest rather than down, so a fractional entry does not tilt
+       every trade high. */
+    const miles = Math.round(parseFloat($("#tMiles").value));
+    const need = [!year && "model year", !(isFinite(miles) && miles >= 0) && "mileage"].filter(Boolean);
     if (need.length) {
       toast(`Add the ${need.join(" and ")} — the evaluation is calculated from ${need.length > 1 ? "them" : "it"}`);
       (!year ? $("#tYear") : $("#tMiles")).focus();
+      return;
+    }
+    /* a year the box would not accept is refused, not repaired (2026-09-09).
+       Its min/max enforce nothing: there is no <form> in this portal and every
+       button here is type="button", so no validity check ever runs and the
+       attributes only ever drove the spinner. Only the DERIVED path was
+       guarded, by the window above; the typed path is the one a human uses,
+       and unguarded a 2030 against the 2026 epoch ADDS a year's depreciation
+       instead of removing one and prints a used trade above a new car. Both
+       ends, one test: 1200 falls through to the 1500 floor and prints a
+       confident beater nobody appraised — the same lie, more quietly — and
+       that floor exists to price a genuinely old car, never to catch a typo.
+       Two clauses, but not two independent tests, and it would overstate them
+       to write it that way: the raw box is the one that fires. A typed 0 is
+       falsy, so `||` above hands the year to the description and the resolved
+       half sees a perfectly good 2015 — the second clause is what refuses it.
+       The first cannot be the sole reason for any refusal while `descYear`
+       returns an in-window year or null and nothing else, since the absence
+       gate above has already sent the null back. It stays because it costs one
+       comparison and holds the line if `descYear` ever returns a year it did
+       not check: defence in depth, deliberately not a second distinct test.
+       Rejected: clamping the year, or the age via Math.max(0, ...) — either
+       appraises from a number the advisor did not enter, the defect class this
+       screen was rebuilt to remove, and the age clamp would then STORE the
+       2030 it priced as a 2026, so the record and the money disagree. Checked
+       after the absence gate so an empty box still takes the cursor first. */
+    if (!inWindow(year) || (!isNaN(typed) && !inWindow(typed))) {
+      toast(`Check the model year — the evaluation only appraises ${YEAR_MIN} to ${YEAR_MAX}`);
+      $("#tYear").focus();
       return;
     }
     const condBtn = $("#tCond button.on");
@@ -4800,11 +5046,62 @@ route("trade/:id", ({ id }) => {
     const factor = { Excellent: 1.06, Good: 1.0, Fair: 0.9, Rough: 0.78 }[cond] || 1;
     const base = Math.max(1500, 30000 - (APPRAISAL_YEAR - year) * 2100 - miles * 0.055);
     const value = Math.round(base * factor / 50) * 50;
-    const payoff = parseFloat($("#tPayoff").value) || 0;
+    /* an empty payoff box is an ANSWER. The label reads "(if financed)", so a
+       blank one says the trade is not financed, and the evaluation never asks
+       for it — the refusal below fires only on a number it will not take,
+       never on an empty box. It is not the only box that may be left empty,
+       and calling it that was overstated: the VIN is never checked at all,
+       Vehicle may go empty once a year is typed, and Model year may go empty
+       once the description carries one. Only the mileage is asked for
+       unconditionally. What is peculiar to the payoff is that its emptiness
+       MEANS something, which is why the key is deleted rather than stored.
+       Recording that answer as 0 would paint a 0 straight back into the box on
+       the render below: the same "this trade is paid off" the form was just
+       cleared of, one tap later. So an empty box leaves the key ABSENT, and a
+       typed 0 — a loan paid down to nothing — is recorded as 0, the shown()
+       rule the mileage already follows (2026-09-09). */
+    const payoffTyped = $("#tPayoff").value;
+    /* and a payoff the box would not accept is refused here, for the reason
+       the odometer above it is: that read gained parseFloat/isFinite/>= 0 in
+       this same change while the payoff, one line below, kept parseFloat with
+       `|| 0` behind it and no test of either kind.
+       A negative payoff does not merely store wrong — the hero on the customer
+       side computes `(value || 0) - (payoff || 0)`, so a minus sign ADDS to
+       the equity and the screen shows more of it than the trade has. isFinite
+       is here for the Infinity the odometer note describes, which clears
+       `>= 0` and then JSON.stringify to null. Placed
+       immediately before the Object.assign because nothing has been persisted
+       yet at this point, so the early return leaves the deal exactly as the
+       advisor left it; `min="0"` on the box matches `#tMiles` on the same card
+       and, like it, enforces nothing on its own — there is no <form> here, so
+       the attribute only ever drove the spinner. The toast names the case a
+       human actually reaches. */
+    const payoffNum = payoffTyped === "" ? 0 : parseFloat(payoffTyped);
+    if (!(isFinite(payoffNum) && payoffNum >= 0)) {
+      toast("Check the payoff — a payoff cannot be negative");
+      $("#tPayoff").focus(); return;
+    }
     deal.trade = Object.assign(deal.trade, {
-      has: true, desc: $("#tDesc").value, vin: $("#tVin").value, year, miles, condition: cond, value, payoff,
+      has: true, desc: $("#tDesc").value, vin: $("#tVin").value, miles, condition: cond, value,
       rebates: deal.trade.rebates || 0, applyTaxCredit: true
     });
+    /* both keys are set or DELETED here rather than inside the assign, which
+       cannot remove one — and that assign has to stay an assign: it is what
+       carries `ownership` and `ownershipReviewedAt` across a re-evaluation,
+       where a fresh literal would drop a finished trade back out of the
+       result state.
+       A year READ out of the description is not a record of one, so it is not
+       written. Storing it froze one wording of that sentence into a number
+       that then OUTRANKED every later correction of it: type "2015 Honda
+       Accord", evaluate, notice the typo, fix it to 2016 — and the box, and
+       the price, still said 2015, through a reload, because by then nothing
+       could tell the screen's own reading from the advisor's own answer.
+       `desc` IS the record, and the year is re-read from it every time it is
+       needed, so the two cannot drift. Deleted rather than skipped: clearing
+       the box is how the advisor hands the question back to the description,
+       and a leftover year would refuse it. */
+    if (typed) deal.trade.year = typed; else delete deal.trade.year;
+    if (payoffTyped === "") delete deal.trade.payoff; else deal.trade.payoff = parseFloat(payoffTyped) || 0;
     Store.save();
     editing = false;
     draft = null;
@@ -5560,7 +5857,7 @@ route("agreement/:id", ({ id }) => {
       ${trow("Accessories", money(r.accessories))}
       ${trow("Your price", money(r.yourPrice), "bp-trow--total")}
       ${deal.trade.rebates ? trow("Rebates", "−" + money(deal.trade.rebates)) : ""}
-      ${deal.trade.value ? trow("Trade value / payoff", `${money(deal.trade.value)} / ${money(deal.trade.payoff)}`) : ""}
+      ${deal.trade.value ? trow("Trade value / payoff", `${money(deal.trade.value)} / ${money(deal.trade.payoff || 0)}`) : ""}
       ${isLease ? trow("Residual (lease end value)", money(r.residual)) : ""}
       ${trow("Total taxes &amp; fees", money((r.taxes.total || 0) + RIDE_PRICE_CALC.totalFees()))}
       ${!isCash && !isLease ? trow("Down payment", money(deal.desk.downPayment))
@@ -9799,12 +10096,24 @@ function printDocs(deal) {
 
   const docs = {};
 
+  /* the trade rows below take value and payoff through `|| 0`, and since
+     2026-09-09 that is not belt and braces. An unfinanced trade now records
+     its payoff by leaving the key ABSENT, while the appraisal's own floor
+     (1500 x 0.78) guarantees a truthy value beside it — so the two
+     value-gated rows became reachable with the payoff undefined, and
+     money(undefined) prints "$NaN" on a document the customer signs. The
+     cover sheet's row is weaker still: gated on `has` alone, it is the one
+     printable a trade that never went through Run evaluation can reach.
+     Rejected: coercing inside money()/money0() in calc.js, which would kill
+     the class in one line and also hide a genuinely missing figure on every
+     other screen — ten sibling trade reads already guard at the call site,
+     so that is the file's convention. */
   docs.cover = () => shell("Deal Cover Sheet", `
     <ul class="lines">
       <li><span>Deal Type / Stage</span><b class="amt">${DEAL_TYPES[deal.dealType]} · ${(STAGES[deal.stage] || {}).label || deal.stage}</b></li>
       ${snap ? `<li><span>${isCash ? "Total Due" : isLease ? "Monthly Payment (lease)" : "Monthly Payment"}</span>
         <b class="amt">${money(isCash ? snap.totalDue : (deal.dealType === "onepay" ? snap.onePayTotal : snap.payment))}</b></li>` : ""}
-      <li><span>Trade</span><b class="amt">${deal.trade.has ? `${esc(deal.trade.desc || "documented")} · ${money0(deal.trade.value)} / payoff ${money0(deal.trade.payoff)}` : "None"}</b></li>
+      <li><span>Trade</span><b class="amt">${deal.trade.has ? `${esc(deal.trade.desc || "documented")} · ${money0(deal.trade.value || 0)} / payoff ${money0(deal.trade.payoff || 0)}` : "None"}</b></li>
       <li><span>Team Lead sign-off</span><b class="amt">${deal.signoff ? esc(deal.signoff.by) : "Pending"}</b></li>
     </ul>
     <h3 class="pd-h3">Required documentation checklist</h3>
@@ -9826,7 +10135,7 @@ function printDocs(deal) {
       <li><span>Accessories</span><b class="amt">${money(snap ? snap.accessories : 0)}</b></li>
       <li><span><b>Your Price</b></span><b class="amt">${money(snap ? snap.yourPrice : 0)}</b></li>
       ${deal.trade.rebates ? `<li><span>Rebates</span><b class="amt">−${money(deal.trade.rebates)}</b></li>` : ""}
-      ${deal.trade.value ? `<li><span>Trade Value / Payoff</span><b class="amt">${money(deal.trade.value)} / ${money(deal.trade.payoff)}</b></li>` : ""}
+      ${deal.trade.value ? `<li><span>Trade Value / Payoff</span><b class="amt">${money(deal.trade.value)} / ${money(deal.trade.payoff || 0)}</b></li>` : ""}
       ${isLease && snap ? `<li><span>Residual (lease end value)</span><b class="amt">${money(snap.residual)}</b></li>` : ""}
       ${snap ? `<li><span>Total Taxes &amp; Fees</span><b class="amt">${money((snap.taxes.total || 0) + (snap.fees || 0))}</b></li>` : ""}
       ${!isCash && !isLease && snap ? `<li><span>Down Payment</span><b class="amt">${money(deal.desk.downPayment)}</b></li>
