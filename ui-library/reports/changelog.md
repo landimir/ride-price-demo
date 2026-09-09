@@ -1,5 +1,73 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v028 — 2026-09-09
+
+App commit: b43ab7b · 20 flows · 139 screens · previous: v027
+
+### Added
+- Trade-In Evaluation & Proof of Ownership · The appraisal form before anyone has typed
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Funded history in range
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Scan Driver's License · Find customer manually (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Visit details (sheet)
+- Base Payment Agreement · Agreement — ready to sign
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+**One screen added, twenty-four dates rolled over.** The added screen is the
+point of this version: the appraisal form on a deal nobody has typed into.
+Every earlier library opened the trade flow on the seeded deal, which arrives
+already appraised — so the board had never once shown the form empty, which is
+exactly the state the two 2026-09-09 rulings are about. It is captured from a
+fresh visit for the second seed customer, and appended rather than inserted:
+it is a different deal, and the flow above it is one deal's sequence.
+
+The twenty-four "changed" screens contain no product change at all. Each pair
+was pixel-diffed against v027 and the differing ROW BANDS measured rather than
+the bounding box, because a box spanning two small edits far apart reads as a
+huge region: the three print previews looked like 302x885 changes and are in
+fact two bands each, a 7x9 character near the top and the jacket barcode at
+the bottom. That character is the date rolling from Sep 8 to Sep 9. The rest
+are the same clock: approval and request timestamps, three stacked dates in
+the jacket's Completed bucket, a random verification code and visit id.
+
+The trade screen the mileage change actually touched is NOT in the changed
+list, and should not be: the seeded trade carries 61,200 miles, so it renders
+exactly as it did. The change is only visible on the screen this version adds.
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v027 — 2026-09-09
 
 App commit: 26e557c · 20 flows · 138 screens · previous: v026

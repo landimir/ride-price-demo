@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-09-09T03:46:48.593Z",
-  "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+  "capturedAt": "2026-09-09T12:41:36.182Z",
+  "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-09-09T03:46:48.627Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:41:36.193Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -73,7 +73,7 @@
               "id": "RP-UI-031",
               "severity": "Minor",
               "issue": "Three gaps in the owner UI kit (v022.2) that the 19 chrome screens inherit: the wordmark (.rp-wordmark, 116x23) and the resolver search action (.rp-button-navy, 73x36) carry no 40px hit extension — and the Team Lead's date control (.rp-filter__control, 58x20), the only way into the date range / funded history sheet, has none either, where v021 drew it as a 40px pill — against the kit comment that every interactive element has one and the 40px floor for everything (owner, 2026-08-31); .rp-page reserves a flat 104px on a destination and 140px on a task beside bars whose height grows with env(safe-area-inset-bottom), masked today only because index.html carries no viewport-fit=cover; and .rp-search__input drops its outline with no :focus-within on the field, so keyboard focus on the search is invisible. harness/touchfloor.mjs exits 1 on the first two, deliberately.",
-              "observation": "Reported, not patched: the kit is the owner design asset and is never restyled in this repo (CLAUDE.md), so these wait for kit v022.3 — two ::before hit-extension rules and one focus ring close all three. The wordmark shows on every Home screen; the search action on the resolver (current/02-customer-onboarding/01-resolver-idle.png). Filed with library v022, the first version captured on the kit. harness/touchfloor.mjs walks its routes as the Advisor, so the Team Lead's date control is outside what it measures; the library's own check flags it on four Home screens.",
+              "observation": "Reported, not patched: the kit is the owner design asset and is never restyled in this repo (CLAUDE.md), so these wait for kit v022.3. THREE ::before hit-extension rules (the wordmark, the resolver search action and the Team Lead date control) and one focus ring close four of the five; the fifth, .rp-page's flat 104/140px reservation beside bars that grow with env(safe-area-inset-bottom), is a layout change and is closed by neither — it stays listed here so the remediation cannot read as complete while it is outstanding. The wordmark shows on every Home screen; the search action on the resolver (current/02-customer-onboarding/01-resolver-idle.png). Filed with library v022, the first version captured on the kit. harness/touchfloor.mjs walks its routes as the Advisor, so the Team Lead's date control is outside what it measures; the library's own check flags it on four Home screens.",
               "area": "ride-price-portal/assets/ride-price-mobile.css (the owner UI kit) — v022.3, never here"
             },
             {
@@ -359,7 +359,7 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-badge.rp-badge--positive Funded · Sep 8 <> .rp-card__name John Smith"
+              ".rp-badge.rp-badge--positive Funded · Sep 9 <> .rp-card__name John Smith"
             ]
           },
           "error": null,
@@ -449,8 +449,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-09-09T03:47:03.239Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:41:49.180Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -779,8 +779,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-09-09T03:47:20.282Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:42:04.451Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -1202,8 +1202,8 @@
         "from": "home/more-sheet",
         "action": "Training documents"
       },
-      "capturedAt": "2026-09-09T03:47:58.020Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:42:27.954Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -1381,15 +1381,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-09-09T03:48:03.017Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:42:32.215Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1, customer-first",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-pab7uwj",
+          "hash": "#/discovery/d-20o2oxh",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1426,7 +1426,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview, Back appears",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-pab7uwj",
+          "hash": "#/discovery/d-20o2oxh",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1454,7 +1454,7 @@
           "key": "question-last",
           "screen": "Discovery — the last question is the hand-off",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-pab7uwj",
+          "hash": "#/discovery/d-20o2oxh",
           "action": "Tap Find vehicles →",
           "next": "discovery-complete",
           "branches": [],
@@ -1482,7 +1482,7 @@
           "key": "discovery-complete",
           "screen": "Discovery complete (sheet)",
           "screenshot": "current/05-discovery/04-discovery-complete.png",
-          "hash": "#/discovery/d-pab7uwj",
+          "hash": "#/discovery/d-20o2oxh",
           "action": "Tap Find matching vehicles",
           "next": "vehicles/inventory",
           "branches": [
@@ -1522,7 +1522,7 @@
           "key": "visit-details",
           "screen": "Visit details (sheet)",
           "screenshot": "current/05-discovery/05-visit-details.png",
-          "hash": "#/discovery/d-3fup52i",
+          "hash": "#/discovery/d-1c5nt21",
           "action": "Tap Done",
           "next": "question-1",
           "branches": [
@@ -1598,8 +1598,8 @@
         "from": "discovery/discovery-complete",
         "action": "Tap Find matching vehicles"
       },
-      "capturedAt": "2026-09-09T03:48:14.189Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:42:43.309Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -1970,8 +1970,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-09-09T03:48:23.011Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:42:52.686Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -2226,8 +2226,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-09-09T03:48:29.675Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:47:39.802Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -2368,6 +2368,42 @@
           },
           "scrollShot": null,
           "issues": []
+        },
+        {
+          "step": 5,
+          "key": "appraisal-empty",
+          "screen": "The appraisal form before anyone has typed",
+          "screenshot": "current/08-trade-in/05-appraisal-empty.png",
+          "hash": "#/trade/d-3tqgtxk",
+          "action": "Type the vehicle, then Run evaluation",
+          "next": "trade-evaluation",
+          "branches": [],
+          "notes": "A trade nobody has described yet, on a deal that is not the demo's. Every box is empty behind a grey placeholder — an example, never an answer the screen puts in the advisor's mouth. Model year and Mileage used to arrive pre-filled with a hard-coded 2018 and 60,000, left over from an older demo vehicle; the year is now read back out of what the advisor types in Vehicle (year make model), the mileage can be read from nothing and so is asked for, and Run evaluation names whatever is still missing rather than appraising a car whose age or use it guessed. The context row carries no vehicle because this visit has not selected one.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": [
+              " Excellent <>  Trade",
+              ".on Good <>  Trade",
+              " Fair <>  Trade",
+              " Fair <> #evalDock.tv-primary.tv-dockgo Run evaluation",
+              " Rough <> #evalDock.tv-primary.tv-dockgo Run evaluation",
+              "#evalBtn.tv-primary Run evaluation <>  Not entered",
+              "#evalBtn.tv-primary Run evaluation <> #evalDock.tv-primary.tv-dockgo Run evaluation"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 1010
+          },
+          "scrollShot": "current/08-trade-in/05-appraisal-empty.scroll.png",
+          "issues": []
         }
       ]
     },
@@ -2380,8 +2416,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-09-09T03:48:37.133Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:43:07.852Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -2464,9 +2500,9 @@
             {
               "id": "RP-UI-029",
               "severity": "Minor",
-              "issue": "The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measures 14 real shortfalls: the desking accessory checkbox rows at 20px (eight of them), the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, the client-link demo option row at 30, and #mMaxPrice at 38 — the last of which closed with the vehicle-selection package (v025), where the filter sheet's price cap became the kit's 46px field.",
+              "issue": "The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measured 14 real shortfalls, 13 of them still open: the desking accessory checkbox rows at 20px (eight of them), the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, the client-link demo option row at 30, and #mMaxPrice at 38 — the last of which closed with the vehicle-selection package (v025), where the filter sheet's price cap became the kit's 46px field.",
               "observation": "Found by widening the audit on 2026-08-31 and measured, not estimated. It was not restyled in that change: the job there was to implement the owner's ruling on the NUMBER, and lifting 14 form controls is a design change across desking, inventory search and the filter sheet that deserves its own review. The harness states the scope boundary at its selector rather than implying coverage it does not have.",
-              "area": "portal.css .opt-row, .switch, .m-search input, #dealSearch, #mMaxPrice"
+              "area": "portal.css .opt-row, .switch, .m-search input, #dealSearch (#mMaxPrice closed with v025 and is listed above as history, not as somewhere to look)"
             }
           ]
         },
@@ -2683,8 +2719,8 @@
         "from": "desking/work-chose",
         "action": "Tap Submit for Team Lead approval, then Continue"
       },
-      "capturedAt": "2026-09-09T03:48:44.512Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:43:15.463Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -2805,8 +2841,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-09T03:48:49.982Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:43:22.419Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -3003,7 +3039,7 @@
               ".rp-option__sub One applicant completes this <> .rp-sheet__sub Deal #48201 · John Smith · j",
               ".rp-option__title Joint application <> .rp-step__title Link sent by text",
               ".rp-option__sub A co-buyer applies with them <> .rp-step__title Link sent by text",
-              ".rp-option__sub A co-buyer applies with them <> .rp-step__sub (347) 555-1212 · 11:48 PM",
+              ".rp-option__sub A co-buyer applies with them <> .rp-step__sub (347) 555-1212 · 8:43 AM",
               ".rp-section Co-buyer <> .rp-step__sub Waiting on the co-buyer",
               ".rp-section Co-buyer <> .rp-status Waiting",
               ".rp-row__title Send a secure link <> .rp-step__title Identity verified"
@@ -3134,8 +3170,8 @@
         "from": "discovery/visit-details",
         "action": "Tap Co-buyer in Visit details"
       },
-      "capturedAt": "2026-09-09T03:49:00.493Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:43:32.844Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -3436,8 +3472,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-09-09T03:49:07.660Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:43:40.188Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -3626,8 +3662,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-09-09T03:49:11.414Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:43:43.794Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -3902,7 +3938,7 @@
               ".rp-stage.rp-stage--on 2 Options <> .rp-sheet__sub Vehicle Service Contract",
               ".rp-stage 3 Forms <> .rp-sheet__sub Vehicle Service Contract",
               ".rp-stage 4 Finalize <> .rp-sheet__sub Vehicle Service Contract",
-              ".rp-notice.rp-notice--success Terms marked presented 11:49 <> .rp-kv__head What the customer is agreein",
+              ".rp-notice.rp-notice--success Terms marked presented 8:43  <> .rp-kv__head What the customer is agreein",
               ".rp-pkg__item Preferred <>  Products added"
             ]
           },
@@ -4145,8 +4181,8 @@
         "from": "discovery/question-1",
         "action": "Tap the Jacket chip in the context row"
       },
-      "capturedAt": "2026-09-09T03:49:26.576Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:44:00.674Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -4459,8 +4495,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-09-09T03:49:34.791Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:44:09.679Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -4560,7 +4596,7 @@
             "overlaps": [
               ".rp-ready__note 3 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 3 needed <>  Sep 8, 11:49 PM",
+              ".rp-bucket__badge 3 needed <>  Sep 9, 8:44 AM",
               ".rp-doc__why Front captured in the Custom <>  Customer opened",
               ".rp-doc__why Front captured in the Custom <>  Documents uploaded",
               ".rp-doc__state.rp-doc__state--part Back needed <>  Waiting",
@@ -4588,8 +4624,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-09-09T03:49:38.578Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:44:13.610Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -4930,8 +4966,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-09-09T03:49:51.657Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:44:28.024Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -5089,8 +5125,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-09-09T03:49:55.842Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:44:32.603Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,
@@ -5194,8 +5230,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-09-09T03:50:04.382Z",
-      "appCommit": "26e557cd477998ae08205f387b89c7541fa2949b",
+      "capturedAt": "2026-09-09T12:44:41.185Z",
+      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
       "screens": [
         {
           "step": 1,

@@ -1,6 +1,6 @@
-# Ride Price Mobile UI — UX Audit (v027)
+# Ride Price Mobile UI — UX Audit (v028)
 
-Captured 2026-09-09T03:46:48.593Z · viewport 390×844 · app 26e557cd477998ae08205f387b89c7541fa2949b
+Captured 2026-09-09T12:41:36.182Z · viewport 390×844 · app b43ab7b0dddff0f4cf53b420a03b21bd8abbb011
 
 | Severity | Count |
 |---|---|
@@ -29,15 +29,15 @@ _None recorded._
 ### RP-UI-029 — All (app-wide) · Desking accessories, search fields, filter sheet
 
 - **Screenshot:** `current/09-desking/02-pencil-finance.png`
-- **Issue:** The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measures 14 real shortfalls: the desking accessory checkbox rows at 20px (eight of them), the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, the client-link demo option row at 30, and #mMaxPrice at 38 — the last of which closed with the vehicle-selection package (v025), where the filter sheet's price cap became the kit's 46px field.
+- **Issue:** The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measured 14 real shortfalls, 13 of them still open: the desking accessory checkbox rows at 20px (eight of them), the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, the client-link demo option row at 30, and #mMaxPrice at 38 — the last of which closed with the vehicle-selection package (v025), where the filter sheet's price cap became the kit's 46px field.
 - **Observation:** Found by widening the audit on 2026-08-31 and measured, not estimated. It was not restyled in that change: the job there was to implement the owner's ruling on the NUMBER, and lifting 14 form controls is a design change across desking, inventory search and the filter sheet that deserves its own review. The harness states the scope boundary at its selector rather than implying coverage it does not have.
-- **Suggested area to investigate:** portal.css .opt-row, .switch, .m-search input, #dealSearch, #mMaxPrice
+- **Suggested area to investigate:** portal.css .opt-row, .switch, .m-search input, #dealSearch (#mMaxPrice closed with v025 and is listed above as history, not as somewhere to look)
 
 ### RP-UI-031 — Home — Active Floor & Navigation · My deals (landing — Advisor)
 
 - **Screenshot:** `current/01-home-and-navigation/01-deals-queue.png`
 - **Issue:** Three gaps in the owner UI kit (v022.2) that the 19 chrome screens inherit: the wordmark (.rp-wordmark, 116x23) and the resolver search action (.rp-button-navy, 73x36) carry no 40px hit extension — and the Team Lead's date control (.rp-filter__control, 58x20), the only way into the date range / funded history sheet, has none either, where v021 drew it as a 40px pill — against the kit comment that every interactive element has one and the 40px floor for everything (owner, 2026-08-31); .rp-page reserves a flat 104px on a destination and 140px on a task beside bars whose height grows with env(safe-area-inset-bottom), masked today only because index.html carries no viewport-fit=cover; and .rp-search__input drops its outline with no :focus-within on the field, so keyboard focus on the search is invisible. harness/touchfloor.mjs exits 1 on the first two, deliberately.
-- **Observation:** Reported, not patched: the kit is the owner design asset and is never restyled in this repo (CLAUDE.md), so these wait for kit v022.3 — two ::before hit-extension rules and one focus ring close all three. The wordmark shows on every Home screen; the search action on the resolver (current/02-customer-onboarding/01-resolver-idle.png). Filed with library v022, the first version captured on the kit. harness/touchfloor.mjs walks its routes as the Advisor, so the Team Lead's date control is outside what it measures; the library's own check flags it on four Home screens.
+- **Observation:** Reported, not patched: the kit is the owner design asset and is never restyled in this repo (CLAUDE.md), so these wait for kit v022.3. THREE ::before hit-extension rules (the wordmark, the resolver search action and the Team Lead date control) and one focus ring close four of the five; the fifth, .rp-page's flat 104/140px reservation beside bars that grow with env(safe-area-inset-bottom), is a layout change and is closed by neither — it stays listed here so the remediation cannot read as complete while it is outstanding. The wordmark shows on every Home screen; the search action on the resolver (current/02-customer-onboarding/01-resolver-idle.png). Filed with library v022, the first version captured on the kit. harness/touchfloor.mjs walks its routes as the Advisor, so the Team Lead's date control is outside what it measures; the library's own check flags it on four Home screens.
 - **Suggested area to investigate:** ride-price-portal/assets/ride-price-mobile.css (the owner UI kit) — v022.3, never here
 
 ### RP-UI-033 — Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status

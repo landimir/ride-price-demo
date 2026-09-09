@@ -1,12 +1,12 @@
 # Ride Price Mobile UI Library
 
-Version: v027
-Captured: 2026-09-09T03:46:48.593Z
-App commit: 26e557cd477998ae08205f387b89c7541fa2949b
+Version: v028
+Captured: 2026-09-09T12:41:36.182Z
+App commit: b43ab7b0dddff0f4cf53b420a03b21bd8abbb011
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 138
+Screens documented: 139
 Branches documented: 76
 
 UX Audit:
@@ -26,7 +26,7 @@ UX Audit:
 | 5 | Discovery Session | 6 | Customer Onboarding — the Customer Resolver · 03 Customer found — confirm + registration address — Confirm address & start visit |
 | 6 | Vehicle Selection | 8 | Discovery Session · 04 Discovery complete (sheet) — Tap Find matching vehicles |
 | 7 | Test Drive Agreement | 7 | Vehicle Selection · 05 What's next? — after choosing — Tap Test Drive |
-| 8 | Trade-In Evaluation & Proof of Ownership | 4 | Vehicle Selection · 05 What's next? — after choosing — Tap Trade Appraisal |
+| 8 | Trade-In Evaluation & Proof of Ownership | 5 | Vehicle Selection · 05 What's next? — after choosing — Tap Trade Appraisal |
 | 9 | Desking — Calculate Payments | 8 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap the deal card (Continue) |
 | 10 | Base Payment Agreement | 3 | Desking — Calculate Payments · 06 Back in Work — the customer chose — Tap Submit for Team Lead approval, then Continue |
 | 11 | Credit Application (Lending Lane) | 9 | Base Payment Agreement · 02 Agreement — signed — Tap Continue |

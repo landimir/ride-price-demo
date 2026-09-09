@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Improvement Report
 
-Improvement view v001 · built on flow library v017 (app 136b892) · updated 2026-09-02
+Improvement view v001 · built on flow library v028 (app b43ab7b) · updated 2026-09-09
 
 This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.
 
@@ -26,9 +26,9 @@ Finding types: **Existing Comment Expanded** — the library already flagged it 
 
 10 screens · reviewed 2026-08-23 · 7 recommendations
 
-**Screens:** 01 My deals (landing — Advisor) · 02 More sheet — secondary navigation · 03 Reset demo data — confirm · 04 Switch demo role · 05 Active floor (Team Lead) · 06 Stage filter — no match · 07 Date range / history sheet · 08 Funded history in range · 09 Advisor — completed deal ends the list · 10 In showroom — an active visit
+**Screens:** 01 My deals (landing — Advisor) · 02 More sheet — secondary navigation · 03 Reset demo data — confirm · 04 Switch role · 05 Active floor (Team Lead) · 06 Stage filter — no match · 07 Date range / history sheet · 08 Funded history in range · 09 Advisor — completed deal ends the list · 10 In showroom — an active visit
 
-**Documented issues before this review:** RP-UI-023 (Observation) on 01 My deals (landing — Advisor)
+**Documented issues before this review:** RP-UI-023 (Observation) on 01 My deals (landing — Advisor); RP-UI-031 (Minor) on 01 My deals (landing — Advisor); RP-UI-037 (Observation) on 01 My deals (landing — Advisor)
 
 ### Owner direction — Role-aware queue (owner concept, 2026-08-23)
 
@@ -81,7 +81,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 - **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 06 Stage filter — no match; Home — Active Floor & Navigation · 05 Active floor (Team Lead); Home — Active Floor & Navigation · 08 Funded history in range; Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver
 - **Type:** Pattern Opportunity · **Category:** interaction · **Severity:** Major · **Priority:** High · **Fix size:** medium
 
-**A. Current Ride Price screen.** The screen's one gradient action, + New Customer Visit (163×44 at the top-right, y≈75–117), sits in the hardest one-handed reach zone while everything below y≈370 is empty. The same page-top placement repeats on Find a Customer (Scan license / Create Customer at y≈140–180) and on both Training pages (Print at y≈140–195), and the page-bar layout differs between them — home puts the action on the title row, the other pages stack it under the subtitle.
+**A. Current Ride Price screen.** The screen's one gradient action, + New Customer Visit (163×44 at the top-right, y≈75–117), sits in the hardest one-handed reach zone while everything below y≈370 is empty. The same page-top placement repeats on Find a Customer (Scan license / Create Customer at y≈140–180) and on both Training pages (Print at y≈140–195; those two pages were retired by Training Documents V3 on 2026-09-02 — the citation is the evidence as measured then, not a screen to go and look at now), and the page-bar layout differs between them — home puts the action on the title row, the other pages stack it under the subtitle.
 
 **B. Why it is a problem.** An advisor uses this outdoors, one-handed, many times a day; the most frequent action belongs where the thumb rests. A first-time trainee also reads top-left to bottom-right and meets the search field and pills before the 'start here' control. Three slightly different page-bar layouts make each page feel different without a reason.
 
@@ -200,7 +200,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 - [Careem](https://mobbin.com/screens/160656d3-ef01-4163-87bc-ca4c2abd7551) — 'Next step: …' stated in plain words above the list
 - [Grab Driver](https://mobbin.com/screens/094b300e-f89e-480f-a72a-762788d331f9) — One 'what happens next' line under the active step
 
-**D. Ride Price adaptation.** FINAL (after the owner's corrections on built screenshots): every row, both roles, shows name (700), the mono VIN + STK line (an unstocked unit shows 'STK Pending stock-in'; a missing value 'Pending', never invented; blank during discovery), the vehicle, the stage chip, and a chevron — the whole row is the tap. Advisor ('My Deals'): no filter pills, the five stage chips, a 'Next: …' line in the stage colour per active deal, funded deals at the end of the one list, Clear search on an empty search. Team Lead ('Active Deals'): the original floor view — All / Desking / F&I-Docs pills with live counts, classic cards with a plain status line and DESKING / F&I READY / FUNDED chips, the Archived fold. + New Customer Visit stays the one gradient action; DEMO chip, role switch and drawer unchanged; light surface. The five-pill Team Lead dashboard was tried and withdrawn — see direction.superseded. **Stays:** Light surface and white cards; navy / chrome blue; gradient only on + New Customer Visit; DEMO chip; the Advisor / Team Lead switch; the search field; the drawer. Chevrons return by decision.
+**D. Ride Price adaptation.** FINAL (after the owner's corrections on built screenshots): every row, both roles, shows name (700), the mono VIN + STK line (an unstocked unit shows 'STK Pending stock-in'; a missing value 'Pending', never invented; blank during discovery), the vehicle, the stage chip, and a chevron — the whole row is the tap. Advisor ('My Deals'): no filter pills, the five stage chips, a 'Next: …' line in the stage colour per active deal, funded deals at the end of the one list, Clear search on an empty search. Team Lead ('Active Deals'): the original floor view — All / Desking / F&I-Docs pills with live counts, classic cards with a plain status line and DESKING / F&I READY / FUNDED chips, and — as this FINAL description was written — the Archived fold, which Home v3 has since removed (funded contracts moved behind the Team Lead date/history sheet; RP-UI-017 retired with it). The line is the contract as agreed, not a description of the screen today. + New Customer Visit stays the one gradient action; DEMO chip, role switch and drawer unchanged; light surface. The five-pill Team Lead dashboard was tried and withdrawn — see direction.superseded. **Stays:** Light surface and white cards; navy / chrome blue; gradient only on + New Customer Visit; DEMO chip; the Advisor / Team Lead switch; the search field; the drawer. Chevrons return by decision.
 
 *Implementation note:* route('deals') card template and paint() (the 'mine' filter at app.js ~526 already splits the roles); .dl-card / .dl-pills in portal.css; dealNextAction() for the advisor line; the five-way bucket needs a stage→bucket map beside dealBucket().
 
@@ -210,7 +210,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 **Screens:** 01 Scan — front of license · 02 Scan — flip to the back · 03 Couldn't read the license (sheet) · 04 Find customer manually (sheet) · 05 Manual search — customer found · 06 Confirm customer (certain match) · 07 Confirm customer (ambiguous — prop 1) · 08 New customer (prop 3) · 09 Phone already in use (sheet) · 10 Verify the phone number (sheet) · 11 Customer ready
 
-**Documented issues before this review:** none
+**Documented issues before this review:** RP-UI-045 (Minor) on 05 Manual search — customer found; RP-UI-034 (Minor) on 06 Confirm customer (certain match); RP-UI-044 (Minor) on 07 Confirm customer (ambiguous — prop 1); RP-UI-035 (Observation) on 08 New customer (prop 3); RP-UI-036 (Observation) on 08 New customer (prop 3)
 
 ### Owner direction — Intake of the external draft (owner's new working method, 2026-08-23)
 
@@ -484,18 +484,18 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 1. Customer Onboarding — the Customer Resolver (9 screens)
 2. Training Documents (4 screens)
 3. Discovery Session (6 screens)
-4. Vehicle Selection (7 screens)
+4. Vehicle Selection (8 screens)
 5. Test Drive Agreement (7 screens)
-6. Trade-In Evaluation & Proof of Ownership (4 screens)
-7. Desking — Calculate Payments (6 screens)
+6. Trade-In Evaluation & Proof of Ownership (5 screens)
+7. Desking — Calculate Payments (8 screens)
 8. Base Payment Agreement (3 screens)
 9. Credit Application (Lending Lane) (9 screens)
 10. Buyers on the Deal (Co-Buyer) (7 screens)
-11. F&I Product Presentation (5 screens)
-12. Finance Menu — Sign-Off Gate and Four Stages (13 screens)
-13. Deal Jacket & Compliance (9 screens)
+11. F&I Product Presentation (4 screens)
+12. Finance Menu — Sign-Off Gate and Four Stages (14 screens)
+13. Deal Jacket & Compliance (8 screens)
 14. Customer document request (from the jacket) (3 screens)
 15. Client Document Upload (customer's phone) (10 screens)
 16. Snap All — burst capture (4 screens)
-17. Document Review (advisor) (1 screen)
+17. Document Review (advisor) (3 screens)
 18. Documents — Print Center & Printables (6 screens)
