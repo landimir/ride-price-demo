@@ -352,7 +352,7 @@ const RIDE_PRICE_DATA = {
       requirement: "Front and back, unexpired, name matching the credit application. Not a photo of a photo, not a screenshot, not a temporary paper permit unless you also add the expired card.",
       minPages: 2,
       multiNote: "Two sides required. Capture the front and back — you can add the second side from the review screen.",
-      missingPage: { title: "Back of Driver's License is missing", description: "Please capture both the front and back before submitting again." },
+      missingPage: { title: "Back of Driver's License is missing", description: "Please capture both the front and back before submitting again.", action: "Add back" },
       checks: ["Front image is present and readable", "Back image is present and readable", "License is unexpired", "Name matches the credit application", "Image is an original capture, not a screenshot/photo of a photo"],
       sortDetail: "License unexpired",
       verifiedSummary: "Front and back are readable, the license is unexpired, and the customer name matches the credit application."
@@ -365,7 +365,7 @@ const RIDE_PRICE_DATA = {
       minPages: 2,
       multiNote: "Two paystubs required. Add your two most recent consecutive stubs.",
       altIncome: true,
-      missingPage: { title: "Second paystub is missing", description: "Please upload your two most recent consecutive paystubs." },
+      missingPage: { title: "Second paystub is missing", description: "Please upload your two most recent consecutive paystubs.", action: "Add paystub" },
       checks: ["Two consecutive paystubs are present", "Employer name is visible", "Pay period dates are visible", "Year-to-date gross is visible", "Customer name matches the application"],
       sortDetail: "Two consecutive stubs",
       verifiedSummary: "Two consecutive paystubs were detected and the employer, pay dates, YTD gross, and customer name are readable."

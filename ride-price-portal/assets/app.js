@@ -8135,6 +8135,8 @@ const RP_ICON = {
   trash: `<path d="M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13.5h9l1-13.5M10 10.5v7M14 10.5v7"/>`,
   upload: `<path d="M12 16.5V4M7.5 8.5 12 4l4.5 4.5"/><path d="M4.5 15v3.5a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2V15"/>`,
   close: `<path d="M6 6l12 12M18 6 6 18"/>`,
+  plus: `<path d="M12 5v14M5 12h14"/>`,
+  alert: `<circle cx="12" cy="12" r="8.5"/><path d="M12 7.6v5.2M12 16.3h.01"/>`,
   clock: `<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>`
 };
 const rpIcon = (k) => `<svg viewBox="0 0 24 24">${RP_ICON[k] || RP_ICON.file}</svg>`;
@@ -8143,13 +8145,13 @@ const rpIcon = (k) => `<svg viewBox="0 0 24 24">${RP_ICON[k] || RP_ICON.file}</s
    rows of vehicle selection: car, swap, dollar, page, check). Reported with
    v025 as a kit gap. */
 const rpIconGlyph = (k) => `<svg class="rp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${RP_ICON[k] || RP_ICON.file}</svg>`;
-/* the customer's document rows, keyed by the document they stand for */
-const DR_ROW_ICON = {
-  "form-insurance": rpIcon("shield"),
-  "form-license": rpIcon("idcard"),
-  "form-paystub": rpIcon("page"),
-  default: rpIcon("file")
-};
+/* the customer's document rows, keyed by the document they stand for. The
+   KEY is the shared thing: a client row draws the plain svg, a kit tile draws
+   the same glyph through .rp-icon so the kit sizes it, and neither has to
+   know the other's shape. */
+const DR_ROW_ICON_KEY = { "form-insurance": "shield", "form-license": "idcard", "form-paystub": "page", default: "file" };
+const drRowIconKey = (docId) => DR_ROW_ICON_KEY[docId] || DR_ROW_ICON_KEY.default;
+const DR_ROW_ICON = Object.keys(DR_ROW_ICON_KEY).reduce((m, k) => (m[k] = rpIcon(DR_ROW_ICON_KEY[k]), m), {});
 function clientMeta(docId) { return RIDE_PRICE_DATA.clientDocs[docId.replace(/^form-/, "")] || null; }
 
 function jacketClient(deal) {
@@ -9882,6 +9884,14 @@ route("docreview/:id/:docId", ({ id, docId }) => {
    this deal still needs, in order, and the screen says so.
    ============================================================ */
 
+/* Snap All — burst capture, on the kit since the owner's package (2026-09-09).
+   The chrome is the kit's Task: banner, top bar, groups, dock, sheet and
+   dialog. Reached from the jacket by the advisor and from the client landing
+   by the customer — and on the customer's side the screen carries the kit's
+   own rp-screen--present, the modifier for "the phone is turned to the
+   customer", which hides the role control. That is the 2026-08-27 decision
+   ("no app bar, no role switch" on the client's page) kept with the kit's own
+   device rather than a rule of ours over one of its classes. */
 route("snapall/:id/:origin", ({ id, origin }) => {
   const deal = Store.deal(id); if (!deal) return navigate("#/deals");
   const backHash = origin === "advisor" ? "#/jacket/" + deal.id : "#/clientlink/" + deal.id;
@@ -9892,20 +9902,23 @@ route("snapall/:id/:origin", ({ id, origin }) => {
      the same trap the retired composer hash had (review find) */
   if (!targets.length) return redirect(backHash);
   const cst = Store.customer(deal.customerId);
-
-  renderChrome("Snap All Documents", dealTitle(deal), "");
-  /* reached from the client link, this is still the CUSTOMER's page and keeps
-     their canvas — no app bar, no role switch (owner, 2026-08-27; the chrome
-     was leaking back in here after the client page had shed it) */
+  const custName = cst ? cst.first + " " + cst.last : "";
   const clientSide = origin !== "advisor";
-  document.body.dataset.screen = clientSide ? "clientlink" : "snapall";
+  const sheets = chSheetOpener("saScrim", "saSheet");
 
   /* shots are session-only object URLs until Confirm hands them to a
-     document's page set; leaving the screen releases whatever was not kept */
-  const st = { screen: "capture", shots: [], results: null, retakeNote: "", passes: 0, retakeTarget: null, beat: {} };
+     document's page set; leaving the screen releases whatever was not kept.
+     `overrides` outlives a single sort on purpose — see acceptRow. */
+  const st = { screen: "capture", shots: [], results: null, aim: null, aimShot: null,
+               passes: 0, beat: {}, overrides: {}, sorting: false };
   const releaseShot = (s) => { try { URL.revokeObjectURL(s.url); } catch (e) {} };
   function cleanup() { st.shots.forEach(releaseShot); st.shots = []; window.removeEventListener("hashchange", cleanup); }
   window.addEventListener("hashchange", cleanup);
+
+  /* the kit sizes .rp-tile's glyph itself; everything else on this screen is
+     sized on one of our own classes, never by a rule over .rp-icon */
+  const saIcon = (k, cls) => `<svg${cls ? ` class="${cls}"` : ""} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${RP_ICON[k] || RP_ICON.file}</svg>`;
+  const plural = (n, one, many) => n + " " + (n === 1 ? one : many);
 
   function buildResults() {
     st.passes++;
@@ -9918,10 +9931,10 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       const tid = s.target || (s.target = targets[i % targets.length]);
       (fed[tid] = fed[tid] || []).push(s);
     });
-    return targets.map(tid => {
+    const rows = targets.map(tid => {
       const d = docMeta(tid); const m = clientMeta(tid);
       const shots = fed[tid] || [];
-      const base = { id: tid, icon: m.icon, title: d.label, shots };
+      const base = { id: tid, title: d.label, sub: (m && m.sub) || "", shots };
       if (!shots.length) return Object.assign(base, { status: "missing" });
       /* the burst obeys the same rules the row path does: enough pages
          first, then the document's own first-attempt beat. Without this a
@@ -9929,13 +9942,43 @@ route("snapall/:id/:origin", ({ id, origin }) => {
          photo is refused one screen away. */
       const rec = jacketClient(deal)[tid] || {};
       if (m.minPages && shots.length < m.minPages && m.missingPage)
-        return Object.assign(base, { status: "attention", kind: "pages", issue: m.missingPage.title });
+        return Object.assign(base, { status: "attention", kind: "pages", issue: m.missingPage.title, fix: m.missingPage.action || "Add the page" });
       if (m.firstIssue && !(rec.tries > 0) && !st.beat[tid]) {
         st.beat[tid] = true;
-        return Object.assign(base, { status: "attention", kind: "issue", issue: drFirstIssueText(m) });
+        return Object.assign(base, { status: "attention", kind: "issue", issue: drFirstIssueText(m), fix: "Retake" });
       }
-      return Object.assign(base, { status: "verified", detail: "Matched: " + (cst ? cst.first + " " + cst.last : "this deal") + " · " + m.sortDetail });
+      return Object.assign(base, { status: "verified", detail: "Matched: " + (cst ? custName : "this deal") + " · " + m.sortDetail });
     });
+    /* an exception the advisor already ruled on survives the next pass, and
+       which way it survives depends on what the exception WAS (RP-SA-004).
+       A missing page is fixed by the page: once the document has its sides
+       the override retires with the flag it covered. An expiry is not fixed
+       by another photo — the second pass clears the flag only because the
+       demo flags a document once — so a document accepted over one keeps
+       saying so, with its reason, until Undo. Without this the advisor could
+       take one more photo of something else and the jacket would record the
+       insurance as plainly verified. */
+    rows.forEach(r => {
+      const ov = st.overrides[r.id];
+      if (!ov) return;
+      if (r.status === "attention") return acceptRow(r);
+      if (ov.kind === "pages") return void delete st.overrides[r.id];
+      r.issue = r.issue || ov.issue;
+      acceptRow(r);
+    });
+    return rows;
+  }
+
+  function acceptRow(r) {
+    st.overrides[r.id] = { issue: r.issue, kind: r.kind };
+    r.status = "verified"; r.override = true;
+    r.detail = "Accepted with exception — " + r.issue;
+  }
+  function undoRow(r) {
+    delete st.overrides[r.id];
+    /* the row keeps its issue and its kind, so putting it back is a status
+       change and nothing else — the pages it actually has are untouched */
+    r.status = "attention"; r.override = false; r.detail = null;
   }
 
   function commit() {
@@ -9956,7 +9999,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       if (origin === "advisor") rec.via = "advisor";
       /* V3: a burst REPLACES every page, so the per-side record is rewritten
          whole — stale entries from an earlier capture would otherwise outrank
-         the burst’s own origin (review find) */
+         the burst's own origin (review find) */
       rec.sideVia = r.shots.map(() => origin === "advisor" ? "advisor" : "customer");
       rec.tries = (rec.tries || 0) + 1; /* a burst pass counts as an attempt, so a later per-row retake is not re-flagged */
       if (r.status === "verified") {
@@ -9974,27 +10017,69 @@ route("snapall/:id/:origin", ({ id, origin }) => {
     navigate(backHash);
   }
 
+  /* ---------------- the three screens ---------------- */
+
+  const contextRow = () => `<div class="rp-listhead">
+    <span class="rp-eyebrow">Deal #${esc(deal.dealNo || "—")}</span>
+    <span class="rp-listhead__meta">${esc(custName)}</span></div>`;
+
   function captureScreen() {
-    const n = st.shots.length;
-    return `<div class="sa-wrap">
-      <div class="sa-cam">
-        <div class="sa-camtop"><button type="button" class="sa-x" id="saClose" aria-label="Close">×</button><b>Snap All Documents</b><span></span></div>
-        <div class="sa-viewfinder"><b>Hold steady over any paper, card, or ID</b>
-          <span>Take photos one after another. The system will identify and sort them automatically.</span></div>
-        ${st.retakeNote ? `<p class="sa-retakenote">${esc(st.retakeNote)}</p>` : ""}
-        ${n ? `<div class="sa-thumbs">${st.shots.map((s, i) => `
-          <span class="sa-thumb"><img src="${esc(s.url)}" alt="Captured photo ${i + 1}">
-            <button type="button" class="sa-thumb__x" data-unshot="${esc(s.id)}" aria-label="Remove photo ${i + 1}"><i>×</i></button></span>`).join("")}</div>` : ""}
-        <div class="sa-controls">
-          <button type="button" class="sa-gallery" id="saGallery"><span aria-hidden="true">🖼️</span>Gallery</button>
-          <button type="button" class="sa-shutter" id="saShutter" aria-label="Snap photo"><span></span></button>
-          <span></span>
-        </div>
-        <input type="file" accept="image/*" capture="environment" id="saCam" hidden>
-        <input type="file" accept="image/*" multiple id="saLib" hidden>
-        ${n ? `<button type="button" class="sa-process" id="saProcess">Process ${n} Photo${n === 1 ? "" : "s"} &amp; Auto-Sort →</button>` : ""}
-        <p class="demo-note">Demo — the sorting is simulated; nothing is read from your photos and they never leave this device.</p>
+    const n = st.shots.length, aim = st.aim;
+    return `<div class="sa-capture">
+      ${contextRow()}
+      <h1 class="rp-title">${aim ? (aim.kind === "pages" ? "Add the missing page." : "Retake this document.") : "Capture everything."}</h1>
+      <p class="rp-count">${aim ? esc(aim.title + " · " + aim.issue) : "One batch. Every outstanding document."}</p>
+      <div class="sa-finder">
+        <i class="sa-corner sa-corner--tl"></i><i class="sa-corner sa-corner--tr"></i><i class="sa-corner sa-corner--bl"></i><i class="sa-corner sa-corner--br"></i>
+        <span class="sa-finder__label">No live preview</span>
+        ${saIcon("camera", "sa-finder__ico")}
+        <b class="sa-finder__title">${aim ? "Frame the page it is missing." : "Paper, card or ID."}</b>
+        <p class="sa-finder__copy">${aim ? "Your other photos stay in the batch." : "Take them one after another. Sort the batch when you are ready."}</p>
       </div>
+      ${n ? `<div class="sa-thumbs" aria-label="Captured photos">${st.shots.map((s, i) => `
+        <span class="sa-thumb">
+          <button type="button" class="sa-thumb__open" data-shot="${esc(s.id)}" aria-label="Review photo ${i + 1}"><img src="${esc(s.url)}" alt=""></button>
+          <span class="sa-thumb__n">${i + 1}</span>
+          <button type="button" class="sa-thumb__x sa-hit" data-unshot="${esc(s.id)}" aria-label="Remove photo ${i + 1}">${saIcon("close", "")}</button>
+        </span>`).join("")}</div>` : ""}
+      <div class="sa-tools">
+        <button type="button" class="rp-chip sa-gallery sa-hit" id="saGallery">${saIcon("images", "")}Gallery</button>
+        <button type="button" class="sa-shutter" id="saShutter" aria-label="Take a photo"><span></span></button>
+        <span class="sa-count"><strong>${n}</strong>${n === 1 ? "photo" : "photos"}</span>
+      </div>
+    </div>`;
+  }
+
+  function sortingScreen() {
+    return `<div class="sa-sorting" id="saSorting">
+      <span class="sa-spinner" aria-hidden="true"></span>
+      <h1 class="rp-title">Sorting your batch.</h1>
+      <p class="rp-count">Dealing the photos onto the documents this deal still needs.</p>
+      <span class="rp-status">${plural(st.shots.length, "photo", "photos")}</span>
+    </div>`;
+  }
+
+  function docRow(r) {
+    const pages = r.shots.length;
+    const meta = pages ? plural(pages, "photo", "photos") + (r.sub ? " · " + r.sub : "") : r.sub;
+    const needs = r.status === "attention";
+    return `<div class="sa-doc">
+      <div class="sa-doc__head"><span class="rp-tile">${rpIconGlyph(drRowIconKey(r.id))}</span>
+        <div class="sa-doc__body">
+          <span class="sa-doc__title">${esc(r.title)}</span>
+          <p class="sa-doc__meta">${esc(meta)}</p>
+          ${needs ? `<p class="sa-doc__issue">${saIcon("alert", "")}${esc(r.issue)}</p>`
+                  : r.override ? `<p class="sa-doc__meta">${esc(r.detail)}</p>`
+                  : r.detail ? `<p class="sa-doc__meta">${esc(r.detail)}</p>` : ""}
+        </div></div>
+      ${needs ? `<div class="sa-doc__acts">
+          <button type="button" class="sa-act sa-act--fix sa-hit" data-sa-retake="${esc(r.id)}">${saIcon(r.kind === "pages" ? "plus" : "camera", "")}${esc(r.fix || "Retake")}</button>
+          <button type="button" class="sa-act sa-hit" data-sa-accept="${esc(r.id)}">Accept anyway</button>
+        </div>`
+        : r.status === "verified" ? `<div class="sa-doc__status">
+          <span class="rp-status ${r.override ? "rp-status--warn" : "rp-status--positive"}">${r.override ? "Exception accepted" : "Verified"}</span>
+          ${r.override ? `<button type="button" class="sa-act sa-hit" data-sa-undo="${esc(r.id)}">Undo</button>` : ""}
+        </div>` : ""}
     </div>`;
   }
 
@@ -10002,42 +10087,171 @@ route("snapall/:id/:origin", ({ id, origin }) => {
     const ok = st.results.filter(r => r.status === "verified");
     const attn = st.results.filter(r => r.status === "attention");
     const missing = st.results.filter(r => r.status === "missing");
-    return `<div class="sa-wrap">
-      <div class="sa-results">
-        <div class="sa-reshead"><h2>Upload Results</h2><p>Deal #${esc(deal.dealNo || "")}${cst ? " • " + esc(cst.first + " " + cst.last) : ""}</p></div>
-        <div class="sa-resbody">
-          ${ok.length ? `<p class="sa-grouplab sa-grouplab--green">Verified (${ok.length})</p>` + ok.map(r => `
-            <div class="sa-card"><span class="dr-rowicon" aria-hidden="true">${DR_ROW_ICON[r.id] || DR_ROW_ICON.default}</span>
-              <span class="sa-cardcopy"><b>${esc(r.title)}</b><span>${esc(r.detail)} · ${r.shots.length} page${r.shots.length === 1 ? "" : "s"}</span></span>
-              <span class="sa-verified">Verified</span></div>`).join("") : ""}
-          ${attn.length ? `<p class="sa-grouplab sa-grouplab--amber">Needs attention (${attn.length})</p>` + attn.map(r => `
-            <div class="sa-card">
-              <span class="dr-rowicon" aria-hidden="true">${DR_ROW_ICON[r.id] || DR_ROW_ICON.default}</span>
-              <span class="sa-cardcopy"><b>${esc(r.title)}</b>
-                <span class="sa-issue">${esc(r.issue)}</span>
-                <button type="button" class="dr-linkbtn sa-override" data-sa-accept="${esc(r.id)}">Accept anyway</button></span>
-              <button type="button" class="dr-clientadd" data-sa-retake="${esc(r.id)}">${r.kind === "pages" ? "Add the page" : "Retake"}</button>
-            </div>`).join("") : ""}
-          ${missing.length ? `<p class="sa-grouplab">Still needed (${missing.length})</p>` + missing.map(r => `
-            <div class="sa-card sa-card--missing"><span class="dr-rowicon" aria-hidden="true">${DR_ROW_ICON[r.id] || DR_ROW_ICON.default}</span>
-              <span class="sa-cardcopy"><b>${esc(r.title)}</b><span>No photo landed on this one</span></span></div>`).join("") : ""}
-          <p class="dr-demonote">Demo — the sorting is simulated. Nothing is read from your photos and they never leave this device.</p>
-        </div>
-        <button type="button" class="sa-save" id="saSave">Confirm &amp; Save to Deal Jacket →</button>
+    const landed = st.results.length - missing.length;
+    const group = (label, rows) => rows.length
+      ? `<div class="rp-listhead"><span class="rp-section">${label}</span><span class="rp-listhead__meta">${rows.length}</span></div>
+         <div class="rp-group">${rows.map(docRow).join("")}</div>` : "";
+    return `${contextRow()}
+      <h1 class="rp-title">Your batch, sorted.</h1>
+      <div class="sa-summary">
+        <span>${plural(st.shots.length, "photo", "photos")} · ${landed} of ${st.results.length} documents</span>
+        <button type="button" class="sa-more sa-hit" id="saMore">${saIcon("plus", "")}Take more</button>
       </div>
-    </div>`;
+      ${group("Verified", ok)}
+      ${group("Needs attention", attn)}
+      ${group("Still needed", missing)}
+      <p class="sa-note">${saIcon("lock", "")}<span>Demo — the sorting is simulated. Nothing is read from your photos and they never leave this device.</span></p>`;
   }
 
+  /* ---------------- what the dock carries ---------------- */
+
+  function dockHtml() {
+    if (st.screen === "sorting") return null;
+    if (st.screen === "results") return chDock(`<button type="button" class="rp-primary" id="saSave">Confirm &amp; save to deal jacket</button>`);
+    const n = st.shots.length;
+    /* the destination is on show even with nothing to send there — a primary
+       that is missing until the batch is non-empty leaves the screen with no
+       stated next step (the owner's board supersedes the 2026-08-18 rule that
+       hid it) */
+    if (st.aim) return chDock(`<button type="button" class="rp-primary" id="saUseAim"${st.aimShot ? "" : " disabled"}>Use photo &amp; return</button>`);
+    return chDock(`<button type="button" class="rp-primary" id="saProcess"${n ? "" : " disabled"}>${n ? `Process ${plural(n, "photo", "photos")} &amp; auto-sort` : "Process photos"}</button>`);
+  }
+
+  /* ---------------- the sheets, and what they guard ---------------- */
+
+  function reviewPhoto(sid) {
+    const i = st.shots.findIndex(s => s.id === sid); if (i < 0) return;
+    const s = st.shots[i];
+    sheets.open(`${chSheetHead("Review photo")}
+      <p class="rp-sheet__sub">Photo ${i + 1} of ${st.shots.length}</p>
+      <div class="sa-stage"><img src="${esc(s.url)}" alt="Captured photo ${i + 1}"></div>
+      <button type="button" class="rp-primary" data-sheet-close>Keep photo</button>
+      <button type="button" class="rp-link sa-danger" id="saDrop">Remove photo</button>`, (sheet) => {
+      /* the dialog opens over this sheet, so close first: the opener holds
+         one sheet node per screen and the dialog reshapes it */
+      $("#saDrop", sheet).onclick = () => { sheets.close(); confirmRemove(sid); };
+    });
+  }
+
+  function confirmRemove(sid) {
+    if (!st.shots.some(s => s.id === sid)) return;
+    chDialog(sheets, "Remove this photo?", "The other photos stay in the batch.", "Remove photo", () => {
+      const j = st.shots.findIndex(s => s.id === sid);
+      if (j < 0) return;
+      /* a candidate for an aimed page is the aim's own photo — dropping it
+         puts the dock back to disabled rather than leaving a stale id */
+      if (st.aimShot === sid) st.aimShot = null;
+      releaseShot(st.shots[j]); st.shots.splice(j, 1); render();
+    });
+  }
+
+  /* Close: while a page is aimed this cancels the aim rather than the batch,
+     because the batch is not what was entered. Otherwise a batch that has not
+     been sorted is protected — the shots are session-only and leaving is what
+     discards them. */
+  function closeScreen() {
+    if (st.aim) { cancelAim(); return; }
+    if (!st.shots.length) return navigate(backHash);
+    chDialog(sheets, "Leave this capture?",
+      `The ${plural(st.shots.length, "photo", "photos")} in this batch have not been saved to the deal jacket, and leaving clears them.`,
+      "Leave and clear", () => navigate(backHash));
+  }
+
+  function cancelAim() {
+    /* the candidate goes with the aim; the pages that were already on file
+       for that document are never touched by a cancel */
+    if (st.aimShot) {
+      const j = st.shots.findIndex(s => s.id === st.aimShot);
+      if (j >= 0) { releaseShot(st.shots[j]); st.shots.splice(j, 1); }
+    }
+    st.aim = null; st.aimShot = null;
+    st.screen = st.results ? "results" : "capture";
+    render();
+  }
+
+  /* ---------------- capture ---------------- */
+
+  function addFiles(files, source) {
+    const list = Array.from(files || []);
+    if (!list.length) return;
+    /* the batch keeps the order they were PICKED, not the order the decodes
+       happened to finish: one slot per file, filled in place, and nothing is
+       appended until every probe has settled. A green-red-blue pick came back
+       red-green-blue before this — measured, in the screenshots. */
+    const slots = new Array(list.length).fill(null);
+    let left = list.length, bad = 0;
+    const settled = () => {
+      if (--left) return;
+      const kept = slots.filter(Boolean);
+      /* an aimed page holds ONE candidate: whatever it was holding is released
+         so a second pick replaces it rather than adding a page nobody asked for */
+      if (st.aim && kept.length) {
+        if (st.aimShot) {
+          const j = st.shots.findIndex(x => x.id === st.aimShot);
+          if (j >= 0) { releaseShot(st.shots[j]); st.shots.splice(j, 1); }
+        }
+        st.aimShot = kept[0].id;
+      }
+      st.shots.push(...kept);
+      /* a file the browser cannot decode is not a photo: say so, and leave
+         every photo already in the batch exactly where it was */
+      if (bad) toast(bad === 1 ? "That file could not be read as a photo — nothing was added."
+                               : bad + " files could not be read as photos and were not added.");
+      render();
+    };
+    list.forEach((f, i) => {
+      const url = URL.createObjectURL(f);
+      const probe = new Image();
+      probe.onload = () => { slots[i] = { id: uid("s"), url, source, target: st.aim ? st.aim.id : null }; settled(); };
+      probe.onerror = () => { try { URL.revokeObjectURL(url); } catch (e) {} bad++; settled(); };
+      probe.src = url;
+    });
+  }
+
+  function startSort() {
+    if (st.sorting) return;
+    st.sorting = true; st.screen = "sorting"; render();
+    /* NAVIGATING AWAY mid-sort must not let the timer write state and repaint
+       over whatever screen is showing by then — the jacket's send lock learned
+       this the hard way */
+    const alive = () => !!$("#saSorting") && document.contains($("#saSorting"));
+    setTimeout(() => {
+      st.sorting = false;
+      if (!alive()) return;
+      st.results = buildResults(); st.screen = "results"; render();
+    }, 850);
+  }
+
+  /* ---------------- paint ---------------- */
+
   function render() {
-    view().innerHTML = st.screen === "results" ? resultsScreen() : captureScreen();
-    /* the DEBUG counters are staff furniture and this screen is often the
-       customer's (owner, 2026-08-27). The ✕ already returns wherever they came
-       from, so the strip added nothing here; the trainer keeps the marked demo
-       control on the customer side, as on the upload page. */
-    if (clientSide) view().insertAdjacentHTML("beforeend", `<button type="button" class="dr-demoexit" data-dbg="advisor">Demo · advisor view</button>`);
+    const content = (st.screen === "results" ? resultsScreen() : st.screen === "sorting" ? sortingScreen() : captureScreen())
+      /* the trainer's way back to the advisor's side rides INSIDE the page:
+         the kit's screen is the viewport and clips anything after it */
+      + (clientSide ? `<button type="button" class="dr-demoexit" data-dbg="advisor">Demo · advisor view</button>` : "");
+    const step = st.screen === "results" ? "Auto-sort results" : st.screen === "sorting" ? "Auto-sorting" : "Capture documents";
+
+    renderChrome("Snap All", dealTitle(deal), "");
+    document.body.dataset.canvas = "kit";
+    document.body.dataset.screen = "snapall";
+    view().innerHTML = chShell(
+      { template: "task", title: "Snap All", step, closeId: "saClose", closeLabel: "Close capture",
+        cls: clientSide ? "rp-screen--present" : "" },
+      content, dockHtml(), { scrim: "saScrim", sheet: "saSheet" })
+      + `<input type="file" accept="image/*" capture="environment" id="saCam" hidden>
+         <input type="file" accept="image/*"${st.aim ? "" : " multiple"} id="saLib" hidden>`;
+
+    $("#saClose").onclick = closeScreen;
+    chFitDock();
+    /* the customer's screen has no role control to wire — the kit hides it */
+    if (!clientSide) chWireRole(sheets, render);
     drWireDebug(deal);
+
+    if (st.screen === "sorting") return;
+
     if (st.screen === "results") {
       $("#saSave").onclick = commit;
+      $("#saMore").onclick = () => { st.screen = "capture"; render(); };
       $$("[data-sa-retake]").forEach(b => b.onclick = () => {
         const flagged = st.results.find(r => r.id === b.dataset.saRetake);
         if (!flagged) return;
@@ -10047,37 +10261,34 @@ route("snapall/:id/:origin", ({ id, origin }) => {
           flagged.shots.forEach(releaseShot);
           st.shots = st.shots.filter(s => s.target !== flagged.id);
         }
-        st.retakeTarget = flagged.id;
-        st.retakeNote = flagged.kind === "pages"
-          ? "Add the missing page for " + flagged.title + " — the next shots go to it."
-          : "Retake " + flagged.title + " — capture the current document.";
+        st.aim = { id: flagged.id, title: flagged.title, issue: flagged.issue, kind: flagged.kind };
+        st.aimShot = null;
         st.screen = "capture"; render();
       });
       $$("[data-sa-accept]").forEach(b => b.onclick = () => {
         const r = st.results.find(x => x.id === b.dataset.saAccept);
-        if (!r) return;
-        r.status = "verified";
-        r.detail = "Accepted with exception — " + r.issue;
-        r.override = true;
-        render();
+        if (r) { acceptRow(r); render(); }
+      });
+      $$("[data-sa-undo]").forEach(b => b.onclick = () => {
+        const r = st.results.find(x => x.id === b.dataset.saUndo);
+        if (r) { undoRow(r); render(); }
       });
       return;
     }
-    $("#saClose").onclick = () => navigate(backHash); /* the hashchange cleanup releases the shots */
+
     $("#saShutter").onclick = () => { const inp = $("#saCam"); inp.value = ""; inp.click(); };
     $("#saGallery").onclick = () => { const inp = $("#saLib"); inp.value = ""; inp.click(); };
     [["#saCam", "camera"], ["#saLib", "gallery"]].forEach(([sel, source]) => {
       const inp = $(sel);
-      inp.onchange = () => {
-        Array.from(inp.files || []).forEach(f => st.shots.push({ id: uid("s"), url: URL.createObjectURL(f), source, target: st.retakeTarget }));
-        render();
-      };
+      inp.onchange = () => addFiles(inp.files, source);
     });
-    $$("[data-unshot]").forEach(b => b.onclick = () => {
-      const i = st.shots.findIndex(s => s.id === b.dataset.unshot);
-      if (i >= 0) { releaseShot(st.shots[i]); st.shots.splice(i, 1); render(); }
-    });
-    if ($("#saProcess")) $("#saProcess").onclick = () => { st.results = buildResults(); st.screen = "results"; render(); };
+    $$("[data-shot]").forEach(b => b.onclick = () => reviewPhoto(b.dataset.shot));
+    $$("[data-unshot]").forEach(b => b.onclick = () => confirmRemove(b.dataset.unshot));
+    if ($("#saProcess")) $("#saProcess").onclick = startSort;
+    if ($("#saUseAim")) $("#saUseAim").onclick = () => {
+      st.aim = null; st.aimShot = null;
+      st.results = buildResults(); st.screen = "results"; render();
+    };
   }
 
   render();
