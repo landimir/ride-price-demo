@@ -5642,6 +5642,15 @@ route("credit/:id", ({ id }) => {
      would leave this hash in the history, so Back would land on it, run the
      guard again, and add another entry each time (review, #88). */
   if (!deal.stock || !Store.vehicle(deal.stock)) return redirect("#/deals");
+  /* and a cash purchase has no lender, so it has no application. The rest of
+     the app already knows: jacketDocs() files neither lending-lane record for
+     a cash deal, and cash() returns no term and no amount financed, so the
+     deal summary read an undefined total of payments. The lane does not open,
+     and it says why rather than bouncing in silence (§23). */
+  if (deal.dealType === "cash") {
+    toast("A cash purchase has no credit application");
+    return redirect(`#/desk/${deal.id}`);
+  }
   const c = Store.customer(deal.customerId);
   const app = deal.creditApp;
 
