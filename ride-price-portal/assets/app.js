@@ -4588,6 +4588,12 @@ route("trade/:id", ({ id }) => {
     return y >= YEAR_MIN && y <= YEAR_MAX ? y : null;
   };
 
+  /* a field renders EMPTY only when it is genuinely absent. Distinct from
+     falsy: a recorded 0 — a paid-off trade, an odometer that really reads 0 —
+     is somebody's answer and has to show as 0, not as a box waiting to be
+     filled. */
+  const shown = (key) => { const v = fld(key); return v == null || v === "" ? "" : v; };
+
   const formCard = () => `<section class="tv-card">
     <h2 class="tv-cardtitle">${esc(fld("desc") || "Trade vehicle")}</h2>
     ${fld("desc") ? `<div class="tv-cardsub">Trade vehicle</div>` : ""}
@@ -4597,9 +4603,9 @@ route("trade/:id", ({ id }) => {
       <input type="text" class="tv-input" id="tVin" value="${esc(fld("vin") || "")}" placeholder="KM8TRAININGSAMP06" maxlength="17" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
     <div class="tv-grid2">
       <label class="tv-field"><span class="tv-label">Model year</span>
-        <input type="number" class="tv-input" id="tYear" value="${esc(fld("year") || descYear(fld("desc")) || "")}" placeholder="2018" min="${esc(YEAR_MIN)}" max="${esc(YEAR_MAX)}"></label>
+        <input type="number" class="tv-input" id="tYear" value="${esc(shown("year") || descYear(fld("desc")) || "")}" placeholder="2018" min="${esc(YEAR_MIN)}" max="${esc(YEAR_MAX)}"></label>
       <label class="tv-field"><span class="tv-label">Mileage</span>
-        <input type="number" class="tv-input" id="tMiles" value="${esc(fld("miles") || 60000)}"></label>
+        <input type="number" class="tv-input" id="tMiles" value="${esc(shown("miles"))}" placeholder="60000" min="0"></label>
     </div>
     <label class="tv-field"><span class="tv-label">Payoff amount (if financed)</span>
       <input type="number" class="tv-input" id="tPayoff" value="${esc(String(fld("payoff") || 0))}" step="100"></label>
@@ -4774,18 +4780,21 @@ route("trade/:id", ({ id }) => {
   }
 
   function runEval() {
-    /* the appraisal is a function of the vehicle's AGE, so a missing year is
-       not a field to default — it is the one input without which there is no
-       number to give. Read from the description if the box is empty (the same
-       resolution the form renders), and if neither says a year, the screen
-       asks for one instead of appraising a car whose age it guessed. */
+    /* the appraisal is AGE and USE, and it has no other inputs of substance —
+       so neither a missing year nor a missing mileage is a field to default.
+       The year can still be READ, out of the description the advisor typed
+       (the same resolution the form renders); mileage can be read from
+       nothing, so it is asked for. Both are named in one ask rather than one
+       per round trip, and the first empty box takes the cursor. Owner's
+       ruling, 2026-09-09: "leave the mileage box empty like the year". */
     const year = parseInt($("#tYear").value, 10) || descYear($("#tDesc").value);
-    if (!year) {
-      toast("Add the model year — the evaluation is calculated from it");
-      $("#tYear").focus();
+    const miles = parseInt($("#tMiles").value, 10);
+    const need = [!year && "model year", !(miles >= 0) && "mileage"].filter(Boolean);
+    if (need.length) {
+      toast(`Add the ${need.join(" and ")} — the evaluation is calculated from ${need.length > 1 ? "them" : "it"}`);
+      (!year ? $("#tYear") : $("#tMiles")).focus();
       return;
     }
-    const miles = parseInt($("#tMiles").value, 10) || 60000;
     const condBtn = $("#tCond button.on");
     const cond = condBtn ? condBtn.dataset.cond : "Good";
     const factor = { Excellent: 1.06, Good: 1.0, Fair: 0.9, Rough: 0.78 }[cond] || 1;
