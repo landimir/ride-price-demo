@@ -50,7 +50,7 @@ Why each finding left the board, and what holds it fixed.
 - **RP-UI-025** — The master sheet's close was 34×34, and 28×40 in the jacket because a long sheet title squeezed it inside the flex header. Now 40×40 with `flex: none`, so a title cannot compress it. `touchfloor.mjs` holds it.
 - **RP-UI-015** — The Snap All thumbnail remove control was 24×24. A 40px disc would have covered a third of a 76px thumbnail, so the button is 40px and transparent with the visible 24px badge drawn inside it — the tap area meets the floor, the badge is unchanged and stays pinned at the tile's corner.
 
-**What holds all three:** `harness/touchfloor.mjs` walks 22 registered routes at 390px, opens every sheet on each, and reports **any control** under 40px — the floor is one number for everything since the owner's ruling below. It refuses to pass on a redirected hash, a short route list, or fewer than 300 controls measured — an audit that reached nothing reports nothing.
+**What holds all three:** `harness/touchfloor.mjs` walks 22 registered routes at 390px, opens every sheet on each, and reports **any pressable control** under 40px — `button, a, [role='button']`, which is its whole selector; native form fields sit outside it by design, and their own shortfall is RP-UI-029 below. The floor is one number for everything since the owner's ruling below. It refuses to pass on a redirected hash, a short route list, or fewer than 300 controls measured — an audit that reached nothing reports nothing.
 
 ### RP-UI-028, filed and withdrawn inside this same version
 

@@ -1,5 +1,58 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v027 — 2026-09-09
+
+App commit: 26e557c · 20 flows · 138 screens · previous: v026
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Scan Driver's License · Find customer manually (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Visit details (sheet)
+- Trade-In Evaluation & Proof of Ownership · Trade value — the appraisal first
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+**Read this way: one screen changed, eighteen clocks moved.** Every pair
+above was pixel-diffed against v026 and the differing region measured. The
+only substantive change is the trade appraisal, where the **Model year** box
+reads 2016 instead of 2018 — a 9x11 box, one digit, under a header that
+already said 2016 (PR #91). The other eighteen are what a recapture always
+produces: the sign-off and request timestamps moved from 8:35 PM to 11:49 PM,
+the license verification code and the visit id are random per run, the jacket
+barcode on three printables encodes a fresh marker, and one text caret was
+blinking. No screen gained or lost an automated check finding — the three
+whose `checks` differ differ only in the timestamp quoted inside them.
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v026 — 2026-09-09
 
 App commit: 02f3aa7 · 20 flows · 138 screens · previous: v025
