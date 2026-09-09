@@ -1,5 +1,114 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v026 — 2026-09-09
+
+App commit: 02f3aa7 · 20 flows · 138 screens · previous: v025
+
+### Added
+- Desking — Calculate Payments · Payment options — the 3x3 grid
+- Desking — Calculate Payments · Present — Your payment
+- Desking — Calculate Payments · Present — Own or lease
+- Desking — Calculate Payments · Back in Work — the customer chose
+- Finance Menu — Sign-Off Gate and Four Stages · Finalize with documents outstanding
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Funded history in range
+- Scan Driver's License · Couldn't read the license (sheet)
+- Scan Driver's License · Find customer manually (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Training Documents · License preview — both sides
+- Training Documents · Registration preview
+- Discovery Session · Discovery — question 1, customer-first
+- Discovery Session · Discovery — mid-interview, Back appears
+- Discovery Session · Discovery — the last question is the hand-off
+- Discovery Session · Discovery complete (sheet)
+- Discovery Session · Visit details (sheet)
+- Discovery Session · Stage-aware — a vehicle chosen upstream
+- Vehicle Selection · Vehicle details — sheet
+- Vehicle Selection · Quote — follow-up only
+- Test Drive Agreement · Ready to test drive
+- Test Drive Agreement · Add another driver
+- Test Drive Agreement · Test drive in progress
+- Test Drive Agreement · End test drive — odometer
+- Test Drive Agreement · Test drive complete
+- Test Drive Agreement · License needs attention
+- Trade-In Evaluation & Proof of Ownership · Trade value — the appraisal first
+- Trade-In Evaluation & Proof of Ownership · Trade ready — items for Team Lead
+- Trade-In Evaluation & Proof of Ownership · Trade ready — ownership review complete
+- Desking — Calculate Payments · Game plan — the huddle
+- Desking — Calculate Payments · Pencil — Finance
+- Desking — Calculate Payments · Pencil — Lease
+- Desking — Calculate Payments · Pencil — Cash
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Agreement — signed
+- Base Payment Agreement · Void signature and redesk? (sheet)
+- Credit Application (Lending Lane) · Verify your identity (pre-application gate)
+- Credit Application (Lending Lane) · Identity verified
+- Credit Application (Lending Lane) · Step 1 — Application type & applicant
+- Credit Application (Lending Lane) · Joint — co-buyer needed
+- Credit Application (Lending Lane) · Send co-buyer link (sheet)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Credit Application (Lending Lane) · Invalid submit — inline summary
+- Credit Application (Lending Lane) · Deal summary (contextual sheet)
+- Credit Application (Lending Lane) · Approved (simulated)
+- Buyers on the Deal (Co-Buyer) · Buyers on this deal
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — the resolver's entries
+- Buyers on the Deal (Co-Buyer) · Co-buyer attached
+- Buyers on the Deal (Co-Buyer) · Co-buyer — contextual actions
+- Buyers on the Deal (Co-Buyer) · Remove — second tap confirms
+- Buyers on the Deal (Co-Buyer) · Team Lead — Change roles visible
+- Buyers on the Deal (Co-Buyer) · Change buyer roles? — confirmation
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Resolve Deal Jacket blocker
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Accept package — client initials
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 3 — Disclosures & forms
+- Finance Menu — Sign-Off Gate and Four Stages · Additional deal forms (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Deal Jacket — funding readiness
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Document row — contextual actions
+- Deal Jacket & Compliance · Mark received — a person's word
+- Deal Jacket & Compliance · Add optional document
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Deal Jacket & Compliance · Driver's License — back still needed
+- Deal Jacket & Compliance · Jacket complete — the dock unlocks
+- Customer document request (from the jacket) · Request documents — secure link
+- Customer document request (from the jacket) · Jacket after sending — Requested
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Client Document Upload (customer's phone) · What we need — bottom sheet
+- Client Document Upload (customer's phone) · Too blurry to read — refused on the row
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Documents — Print Center & Printables · Documents
+- Documents — Print Center & Printables · Print full packet (sheet)
+- Documents — Print Center & Printables · Documents — two documents not ready
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- Desking — Calculate Payments · Compare payments — sheet
+- Desking — Calculate Payments · Payment Comparison — full page
+- F&I Product Presentation · Advisor script (sheet)
+- Deal Jacket & Compliance · Advisor script sheet
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v025 — 2026-09-06
 
 App commit: c6904ce · 20 flows · 137 screens · previous: v024

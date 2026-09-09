@@ -1,13 +1,13 @@
 # Ride Price Mobile UI Library
 
-Version: v025
-Captured: 2026-09-06T06:17:46.735Z
-App commit: c6904ce010fd137b3597e8f9a80d9b4099d38b97
+Version: v026
+Captured: 2026-09-09T00:33:01.710Z
+App commit: 02f3aa75be18173a3fa03fe8cc6b530fae1945ba
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 137
-Branches documented: 74
+Screens documented: 138
+Branches documented: 76
 
 UX Audit:
 - Critical: 0
@@ -27,17 +27,17 @@ UX Audit:
 | 6 | Vehicle Selection | 8 | Discovery Session · 04 Discovery complete (sheet) — Tap Find matching vehicles |
 | 7 | Test Drive Agreement | 7 | Vehicle Selection · 05 What's next? — after choosing — Tap Test Drive |
 | 8 | Trade-In Evaluation & Proof of Ownership | 4 | Vehicle Selection · 05 What's next? — after choosing — Tap Trade Appraisal |
-| 9 | Desking — Calculate Payments | 6 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap the deal card (Continue) |
-| 10 | Base Payment Agreement | 3 | Desking — Calculate Payments · 06 Payment Comparison — full page — Tap Continue |
+| 9 | Desking — Calculate Payments | 8 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap the deal card (Continue) |
+| 10 | Base Payment Agreement | 3 | Desking — Calculate Payments · 06 Back in Work — the customer chose — Tap Submit for Team Lead approval, then Continue |
 | 11 | Credit Application (Lending Lane) | 9 | Base Payment Agreement · 02 Agreement — signed — Tap Continue |
 | 12 | Buyers on the Deal (Co-Buyer) | 7 | Discovery Session · 05 Visit details (sheet) — Tap Co-buyer in Visit details |
-| 13 | F&I Product Presentation | 5 | Finance Menu — Sign-Off Gate and Four Stages · 06 Stage 2 — Choose a protection package — Tap Present on Product presentation |
-| 14 | Finance Menu — Sign-Off Gate and Four Stages | 13 | Credit Application (Lending Lane) · 09 Approved (simulated) — Continue → Manager sign-off |
-| 15 | Deal Jacket & Compliance | 9 | Discovery Session · 01 Discovery — question 1, customer-first — Tap the Jacket chip in the context row |
+| 13 | F&I Product Presentation | 4 | Finance Menu — Sign-Off Gate and Four Stages · 06 Stage 2 — Choose a protection package — Tap Present on Product presentation |
+| 14 | Finance Menu — Sign-Off Gate and Four Stages | 14 | Credit Application (Lending Lane) · 09 Approved (simulated) — Continue → Manager sign-off |
+| 15 | Deal Jacket & Compliance | 8 | Discovery Session · 01 Discovery — question 1, customer-first — Tap the Jacket chip in the context row |
 | 16 | Customer document request (from the jacket) | 3 | Deal Jacket & Compliance · 01 Deal Jacket — funding readiness — Tap Request N documents |
 | 17 | Client Document Upload (customer's phone) | 10 | Customer document request (from the jacket) · 03 Customer request — delivery status — Open the customer's phone |
 | 18 | Snap All — burst capture | 4 | Deal Jacket & Compliance · 01 Deal Jacket — funding readiness — Tap Capture all here instead |
-| 19 | Document Review (advisor) | 3 | Deal Jacket & Compliance · 07 Completed — already in the jacket — Tap a received customer document, then View |
+| 19 | Document Review (advisor) | 3 | Deal Jacket & Compliance · 06 Completed — already in the jacket — Tap a received customer document, then View |
 | 20 | Documents — Print Center & Printables | 6 | Finance Menu — Sign-Off Gate and Four Stages · 12 Stage 4 — Final review — Tap Open on Print centre |
 
 ## Incomplete or failed captures
