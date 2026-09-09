@@ -4571,8 +4571,17 @@ route("trade/:id", ({ id }) => {
      renders as an empty field, not an invented value"). The window is the
      input's own min/max, so a derived year is always a value that box would
      accept; a year the advisor TYPED is shown back verbatim, in range or not,
-     because it is theirs. */
-  const YEAR_MIN = 1998, YEAR_MAX = 2026;
+     because it is theirs.
+
+     The window ends at the app's OWN present, which the appraisal states once
+     here rather than three times: the depreciation line below counts back from
+     `APPRAISAL_YEAR`, so a window that ran ahead of it — a rolling
+     `getFullYear() + 1`, say — would let the form derive a model year the
+     formula then prices ABOVE a new car (2027 against a 2026 epoch adds a
+     year's depreciation instead of removing one). One constant, and the two
+     move together whenever the demo's present is moved on. */
+  const APPRAISAL_YEAR = 2026;
+  const YEAR_MIN = 1998, YEAR_MAX = APPRAISAL_YEAR;
   const descYear = (desc) => {
     const m = String(desc || "").match(/\b(?:19|20)\d{2}\b/);
     const y = m ? +m[0] : 0;
@@ -4780,7 +4789,7 @@ route("trade/:id", ({ id }) => {
     const condBtn = $("#tCond button.on");
     const cond = condBtn ? condBtn.dataset.cond : "Good";
     const factor = { Excellent: 1.06, Good: 1.0, Fair: 0.9, Rough: 0.78 }[cond] || 1;
-    const base = Math.max(1500, 30000 - (2026 - year) * 2100 - miles * 0.055);
+    const base = Math.max(1500, 30000 - (APPRAISAL_YEAR - year) * 2100 - miles * 0.055);
     const value = Math.round(base * factor / 50) * 50;
     const payoff = parseFloat($("#tPayoff").value) || 0;
     deal.trade = Object.assign(deal.trade, {
