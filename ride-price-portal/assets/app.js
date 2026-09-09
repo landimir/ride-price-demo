@@ -89,12 +89,15 @@ const Store = (function () {
       /* the trade is the vehicle on John's registration prop (training pair
          01): a 2016 Toyota RAV4, VIN 4T1TRAININGSAMP01. The seed's own
          reasoning — the registration he hands over as proof of ownership has
-         to name the car he is trading, which v021's Tucson did not. The
+         to name the car he is trading, which v021's Tucson did not. `year`
+         is the same 2016 the registration prop prints, stated here as a
+         number because the appraisal is computed from it: the description is
+         the advisor's phrasing, this is the figure the value came out of. The
          ownership answers are read from the documents on file (§13b): the
          title is in hand with one lien recorded, the vehicle is not paid off,
          and the payoff statement expired 01/01/2025 — one gap, the only one. */
       trade: {
-        has: true, desc: "2016 Toyota RAV4", vin: "4T1TRAININGSAMP01", miles: 61200, condition: "Good",
+        has: true, desc: "2016 Toyota RAV4", vin: "4T1TRAININGSAMP01", year: 2016, miles: 61200, condition: "Good",
         value: 15500, payoff: 10750, rebates: 500, applyTaxCredit: true,
         ownership: seedTradeOwnership(), ownershipReviewedAt: "2026-09-04T13:40:00Z"
       },
@@ -209,6 +212,16 @@ const Store = (function () {
     if (demo && demo.trade && demo.trade.desc === "2018 Hyundai Tucson" &&
         demo.trade.vin === "KM8TRAININGSAMP06" && demo.trade.miles === 61200) {
       demo.trade.desc = "2016 Toyota RAV4"; demo.trade.vin = "4T1TRAININGSAMP01"; minted = true;
+    }
+    /* the seed trade gained its MODEL YEAR on 2026-09-08. The description has
+       said 2016 since the RAV4 landed, but the number the appraisal is
+       computed from was never in the seed at all, so the form fell back to a
+       hard-coded 2018 and the screen contradicted its own header. Guarded the
+       way the ownership answers are: the seed's VIN identifies the vehicle,
+       and only an ABSENT year is filled — a year anyone typed is theirs, even
+       when it disagrees with the words above it. */
+    if (demo && demo.trade && demo.trade.vin === "4T1TRAININGSAMP01" && demo.trade.year === undefined) {
+      demo.trade.year = 2016; minted = true;
     }
     /* the customer's own words, on a huddle nobody has run yet. A huddle that
        is done, or that already holds either field, is the advisor's own work
@@ -342,13 +355,16 @@ function toast(msg) {
      footer-less dialog, or one sitting short of the bottom, keeps the default.
      The customer's upload page has a sticky action bar of its own and needs
      the same lift (owner prototype, 2026-08-26), so both are considered and
-     the lowest one wins. */
+     the lowest one wins. The trade screen's dock joined them on 2026-09-08:
+     it is the same pinned bar, and the appraisal now toasts a message ASKING
+     for a field — an instruction covering the button it is about is worse
+     than no instruction. */
   /* measured AFTER the paint that follows this call: many callers toast and
      then render the screen the toast belongs to, so measuring now would read
      the outgoing screen — which is how a toast ended up underneath the
      desking payment bar it was supposed to sit above. */
   const place = () => {
-    const foot = $("#modalBack .modal__foot") || $(".dr-clientbottom") || $(".desk-sticky");
+    const foot = $("#modalBack .modal__foot") || $(".dr-clientbottom") || $(".desk-sticky") || $(".tv-dock");
     const fr = foot && foot.getBoundingClientRect();
     t.style.bottom = fr && fr.bottom > window.innerHeight - 80 ? Math.round(window.innerHeight - fr.top + 12) + "px" : "";
   };
@@ -4547,6 +4563,22 @@ route("trade/:id", ({ id }) => {
     </div>`;
   };
 
+  /* the model year, READ rather than invented. The advisor types it once, in
+     "Vehicle (year make model)" — this reads it back out of that same string
+     so the number box under the description cannot contradict the header
+     above it. Absent stays absent: with no year to read, the box renders
+     EMPTY and its placeholder does the work, the `#tVin` rule ("an absent VIN
+     renders as an empty field, not an invented value"). The window is the
+     input's own min/max, so a derived year is always a value that box would
+     accept; a year the advisor TYPED is shown back verbatim, in range or not,
+     because it is theirs. */
+  const YEAR_MIN = 1998, YEAR_MAX = 2026;
+  const descYear = (desc) => {
+    const m = String(desc || "").match(/\b(?:19|20)\d{2}\b/);
+    const y = m ? +m[0] : 0;
+    return y >= YEAR_MIN && y <= YEAR_MAX ? y : null;
+  };
+
   const formCard = () => `<section class="tv-card">
     <h2 class="tv-cardtitle">${esc(fld("desc") || "Trade vehicle")}</h2>
     ${fld("desc") ? `<div class="tv-cardsub">Trade vehicle</div>` : ""}
@@ -4556,7 +4588,7 @@ route("trade/:id", ({ id }) => {
       <input type="text" class="tv-input" id="tVin" value="${esc(fld("vin") || "")}" placeholder="KM8TRAININGSAMP06" maxlength="17" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
     <div class="tv-grid2">
       <label class="tv-field"><span class="tv-label">Model year</span>
-        <input type="number" class="tv-input" id="tYear" value="${esc(fld("year") || 2018)}" min="1998" max="2026"></label>
+        <input type="number" class="tv-input" id="tYear" value="${esc(fld("year") || descYear(fld("desc")) || "")}" placeholder="2018" min="${esc(YEAR_MIN)}" max="${esc(YEAR_MAX)}"></label>
       <label class="tv-field"><span class="tv-label">Mileage</span>
         <input type="number" class="tv-input" id="tMiles" value="${esc(fld("miles") || 60000)}"></label>
     </div>
@@ -4733,7 +4765,17 @@ route("trade/:id", ({ id }) => {
   }
 
   function runEval() {
-    const year = parseInt($("#tYear").value, 10) || 2018;
+    /* the appraisal is a function of the vehicle's AGE, so a missing year is
+       not a field to default — it is the one input without which there is no
+       number to give. Read from the description if the box is empty (the same
+       resolution the form renders), and if neither says a year, the screen
+       asks for one instead of appraising a car whose age it guessed. */
+    const year = parseInt($("#tYear").value, 10) || descYear($("#tDesc").value);
+    if (!year) {
+      toast("Add the model year — the evaluation is calculated from it");
+      $("#tYear").focus();
+      return;
+    }
     const miles = parseInt($("#tMiles").value, 10) || 60000;
     const condBtn = $("#tCond button.on");
     const cond = condBtn ? condBtn.dataset.cond : "Good";
