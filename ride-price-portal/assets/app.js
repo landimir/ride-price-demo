@@ -92,15 +92,26 @@ const Store = (function () {
       /* the trade is the vehicle on John's registration prop (training pair
          01): a 2016 Toyota RAV4, VIN 4T1TRAININGSAMP01. The seed's own
          reasoning — the registration he hands over as proof of ownership has
-         to name the car he is trading, which v021's Tucson did not. `year`
-         is the same 2016 the registration prop prints, stated here as a
-         number because the appraisal is computed from it: the description is
-         the advisor's phrasing, this is the figure the value came out of. The
+         to name the car he is trading, which v021's Tucson did not.
+         There is deliberately NO `year` key, dropped 2026-09-09 together with
+         the load() migration that used to stamp one. The description already
+         says 2016 and `descYear` reads it back on every render, so a stored
+         2016 here is a copy of a reading — the exact thing `runEval` deletes
+         one screen away. It bought nothing while it was here: `yearBoxAttrs`
+         paints the same 2016 either way (a stored year equal to the derived
+         one is carried as paint, not as an answer), and the first press of
+         Run evaluation deleted it — so its whole effect was to leave the seed
+         in a shape the app itself can no longer produce.
+         `value` and `payoff` stay as literals for the reason the year cannot:
+         nothing can re-derive them. They are the demo's equity story — $4,750
+         of it — and NOT this formula's answer for a 2016 at 61,200 miles,
+         which is $5,650; evaluating the untouched seed re-prices it, as the
+         VIN migration in load() also notes. The
          ownership answers are read from the documents on file (§13b): the
          title is in hand with one lien recorded, the vehicle is not paid off,
          and the payoff statement expired 01/01/2025 — one gap, the only one. */
       trade: {
-        has: true, desc: "2016 Toyota RAV4", vin: "4T1TRAININGSAMP01", year: 2016, miles: 61200, condition: "Good",
+        has: true, desc: "2016 Toyota RAV4", vin: "4T1TRAININGSAMP01", miles: 61200, condition: "Good",
         value: 15500, payoff: 10750, rebates: 500, applyTaxCredit: true,
         ownership: seedTradeOwnership(), ownershipReviewedAt: "2026-09-04T13:40:00Z"
       },
@@ -216,35 +227,42 @@ const Store = (function () {
         demo.trade.vin === "KM8TRAININGSAMP06" && demo.trade.miles === 61200) {
       demo.trade.desc = "2016 Toyota RAV4"; demo.trade.vin = "4T1TRAININGSAMP01"; minted = true;
     }
-    /* the seed trade gained its MODEL YEAR on 2026-09-08. The description has
-       said 2016 since the RAV4 landed, but the number the appraisal is
-       computed from was never in the seed at all, so the form fell back to a
-       hard-coded 2018 and the screen contradicted its own header. Guarded the
-       way the ownership answers are: the seed's VIN identifies the vehicle,
-       and only an ABSENT year is filled — a year anyone typed is theirs.
-       The description clause joined it on 2026-09-09, when the appraisal
-       stopped PERSISTING a year it had only read out of `desc`. An absent
-       year is no longer evidence of an old blob — it is the ordinary shape of
-       an evaluated trade — while this stamp is a hard-coded 2016, so on a
-       trade whose description has been changed it would write a year the
-       words above it contradict, and that year, being a record, would then
-       outrank them for good. Keyed on `desc` the predicate is vehicle
-       identity, like the two migrations above it, and it fires only where
-       2016 is exactly what the description says. */
-    if (demo && demo.trade && demo.trade.vin === "4T1TRAININGSAMP01" &&
-        demo.trade.desc === "2016 Toyota RAV4" && demo.trade.year === undefined) {
-      demo.trade.year = 2016; minted = true;
-    }
+    /* NO year migration runs here, and the empty space is the point (removed
+       2026-09-09, one day after it was added). It stamped `year: 2016` onto a
+       seed trade that had none, because the form then fell back to a
+       hard-coded 2018 and contradicted its own header. Its guard was
+       "described as a 2016 RAV4, on the seed VIN, with NO year recorded" —
+       and hours later the appraisal stopped PERSISTING a year it had only
+       read out of `desc`, which turned that guard's third clause from the
+       signature of an old blob into the ORDINARY shape of an evaluated trade.
+       A migration whose predicate matches the steady state is not a migration:
+       it re-fired on every load, re-saved the whole store, and put back the
+       record `runEval` had just deliberately deleted — the branch's own rule
+       ("a reading is never a record") broken on the demo deal specifically.
+       No tightening was available, because there is nothing to tighten
+       against: an old blob and a freshly evaluated one are the SAME bytes.
+       Nor was anything lost with it. What it existed to produce was 2016 in
+       the Model year box, and `yearBoxAttrs` paints `descYear(desc)` whenever
+       no year is recorded — on exactly the blobs this guard named, since it
+       required `desc === "2016 Toyota RAV4"`, from which `descYear` returns
+       2016. The box was never the migration's work. `seedDeal` lost its own
+       `year: 2016` in the same change and for the same reason.
+       A blob still carrying a stale 2016 — written by this migration or by
+       the seed before it — is left alone rather than swept: `yearBoxAttrs`
+       already reads a stored year equal to the derived one as paint, so it
+       renders identically and clears itself the next time the trade is
+       evaluated, and a delete pass would be unable to tell it from a 2016 the
+       advisor typed under a 2016 description. */
     /* the payoff box stopped printing a hard 0 on 2026-09-09, and this is the
        other half of it: startVisit used to seed `payoff: 0` on a trade nobody
        had appraised, so a deal already in this browser would keep painting a
        black 0 — read as "this trade is paid off" — while every deal made
        after the change showed the box empty. Two behaviours on one screen is
        the drift the flow-by-flow rollout exists to avoid.
-       Six migrations run above this one. Three key on the seed's VIN — the
-       mint on that VIN being ABSENT, the RAV4 rewrite and the year stamp on it
-       being present — two more key on the demo deal by id, and only the
-       dealNo mint, like this pass, walks every deal. This one keys on no
+       Five migrations run above this one. Two key on the seed's VIN — the
+       mint on that VIN being ABSENT and the RAV4 rewrite on it being present
+       — two more key on the demo deal by id, and only the dealNo mint, like
+       this pass, walks every deal. This one keys on no
        identity at all, because the stale zeros live in the deals the USER
        started, which is where the defect shows and where no seed VIN was ever
        written.
@@ -4659,7 +4677,67 @@ route("trade/:id", ({ id }) => {
      year's depreciation instead of removing one). One constant, and the two
      move together whenever the demo's present is moved on. */
   const APPRAISAL_YEAR = 2026;
-  const YEAR_MIN = 1998, YEAR_MAX = APPRAISAL_YEAR;
+  /* the two ends of the window are NOT symmetric, and deriving one from the
+     other would invent a relationship that does not exist.
+
+     The TOP is the app's own present because the formula counts back from it:
+     a year above `APPRAISAL_YEAR` adds a year's depreciation instead of
+     removing one. That end MUST track the epoch, and the note above says why.
+
+     The BOTTOM is 1981, the first model year for which a 17-character VIN in
+     a fixed format was required (NHTSA's rule at 49 CFR Part 565; before it,
+     VINs ran anywhere from about 5 to 13 characters and no two manufacturers
+     agreed). It is chosen because it is a property of THIS FORM rather than a
+     guess about what a dealership takes in trade: `#tVin` below is
+     `maxlength="17"`, its placeholder reads "17 characters", and `#tVinHint`
+     counts "(n of 17)" as the advisor types. A vehicle older than the standard
+     has no identifier this screen is shaped to hold. Stated at its real
+     strength and no further: the VIN is never REQUIRED here and never checked,
+     so a 1975 truck is not impossible to record, it is outside what the screen
+     says a vehicle looks like — a stated assumption, not a hard wall.
+
+     What the bottom is NOT for: pricing old cars accurately. It cannot do
+     that and does not try. `base` below floors at $1,500, and with the
+     odometer at zero everything at or below **2012** already reaches that
+     floor — every year from 1981 to 2012 appraises at the same $1,500 x the
+     condition factor. That floor is there to price a genuinely old car, and
+     it is NOT a typo check — it cannot be one, because it cannot tell a 1985
+     from a "1200" or a "1015" slipped in for 2015: all three land on $1,500
+     and print a confident beater nobody appraised. Catching the typo is THIS
+     WINDOW's work, and the window is the only thing that does it. The floor
+     is what makes the window necessary, never a stand-in for it. `runEval`
+     states the same division where it refuses the year.
+
+     Rejected, and why:
+     - **1998** (what this branch shipped on 2026-09-09) was arbitrary — no
+       reader could check it — and it cost a real capability: `runEval` is the
+       only thing that APPRAISES, the only path that turns this form into a
+       `trade.value`, so refusing the year refused the whole trade, and a
+       twenty-year-old car a dealership genuinely does take could not be
+       recorded at all. The deal then printed as having no trade. (Not the
+       only WRITER of that key, which would be false: `seedDeal` hand-authors
+       the demo's value and payoff as a literal pair. Nothing hand-authors the
+       advisor's.)
+     - **1900, or any round number.** Nothing distinguishes it, so it drifts
+       the moment someone edits it, and it buys no capability at all: there is
+       no vehicle between 1900 and 1980 this form can identify. It only widens
+       the band a typo passes through by eighty years.
+     - **A sliding floor derived from the epoch** (`APPRAISAL_YEAR - 45`). The
+       arithmetic hides the arbitrariness rather than removing it — 45 is as
+       unarguable as 1998 was — and it makes the boundary move under records
+       that already exist: the same 1981 trade appraises today and is refused
+       once the demo's present is moved on, without anything about the vehicle
+       having changed. 1981 is 1981 permanently.
+
+     One more disagreement, deliberately left standing: `descYear`'s regex
+     matches any `19xx`/`20xx`, so its floor is 1900 and this window's is 1981.
+     They are different KINDS of test — the regex asks what a year-shaped token
+     looks like, the window asks which ones this screen will price — and
+     `descYear` composes them, returning null for a "1975 Bronco". The
+     evaluation then ASKS for the year rather than deriving one, and refuses it
+     if the advisor types 1975. Widening the regex to match three digits, or
+     narrowing it to start at 1981, would put the boundary in two places. */
+  const YEAR_MIN = 1981, YEAR_MAX = APPRAISAL_YEAR;
   /* one predicate, because two paths now ask it: the derivation below, which
      drops a year it cannot price, and runEval, which refuses one. A membership
      test rather than the same thing written twice as its own negation — a
@@ -4980,7 +5058,10 @@ route("trade/:id", ({ id }) => {
        the description, so without the raw number a box reading 0 would be
        appraised as a 2015 and then overwritten with it: absence and a number
        the box would not accept are different states, and only the first one
-       falls back. `yearRecorded` rather than the box itself, because a box
+       falls back. The gate below asks the same question of the same raw
+       number — `isNaN(typed)`, which only an empty box answers — so the two
+       states get two different messages as well as two different fates.
+       `yearRecorded` rather than the box itself, because a box
        still showing what this screen derived is not an answer (2026-09-09). */
     const typed = parseInt(yearRecorded(), 10);
     const year = typed || descYear($("#tDesc").value);
@@ -5006,10 +5087,25 @@ route("trade/:id", ({ id }) => {
        box; to nearest rather than down, so a fractional entry does not tilt
        every trade high. */
     const miles = Math.round(parseFloat($("#tMiles").value));
-    const need = [!year && "model year", !(isFinite(miles) && miles >= 0) && "mileage"].filter(Boolean);
+    /* ABSENT and UNUSABLE are different answers, and only the first one is
+       "Add the model year" (2026-09-09). `!year` alone conflated them: a
+       typed 0 is falsy, so it falls through `||` to the description, and
+       where the description carries no year either, the resolved half is null
+       as well — so the advisor who HAD answered was told to add an answer,
+       with the 0 the message calls missing still sitting in the box. It also
+       contradicted the note two gates down, which says a typed 0 is refused
+       by the window rather than read as a blank.
+       `isNaN(typed)` is the half that asks the RECORD, and an empty box is
+       the only thing that makes it NaN — a box holding 0, 1200 or 2030 is an
+       answer, so it passes this gate untouched and the window below refuses
+       it by name. Held in a variable rather than written twice, because the
+       CURSOR reads the same question: with the toast naming mileage alone,
+       `!year` would still have sent the caret to the year box. */
+    const yearAbsent = !year && isNaN(typed);
+    const need = [yearAbsent && "model year", !(isFinite(miles) && miles >= 0) && "mileage"].filter(Boolean);
     if (need.length) {
       toast(`Add the ${need.join(" and ")} — the evaluation is calculated from ${need.length > 1 ? "them" : "it"}`);
-      (!year ? $("#tYear") : $("#tMiles")).focus();
+      (yearAbsent ? $("#tYear") : $("#tMiles")).focus();
       return;
     }
     /* a year the box would not accept is refused, not repaired (2026-09-09).
@@ -5022,13 +5118,24 @@ route("trade/:id", ({ id }) => {
        ends, one test: 1200 falls through to the 1500 floor and prints a
        confident beater nobody appraised — the same lie, more quietly — and
        that floor exists to price a genuinely old car, never to catch a typo.
+       The low end is 1981 rather than the 1998 this branch first shipped
+       (see YEAR_MIN): 1998 refused cars a dealership really does take, and
+       since this function is the only thing that APPRAISES — the only path
+       that turns this form into a `trade.value`, `seedDeal`'s hand-authored
+       literal being the whole of the exception — refusing the year refused
+       the trade outright and the deal printed as having none.
+       A 1995 evaluates now, at the $1,500 floor — the honest answer for it.
        Two clauses, but not two independent tests, and it would overstate them
        to write it that way: the raw box is the one that fires. A typed 0 is
-       falsy, so `||` above hands the year to the description and the resolved
-       half sees a perfectly good 2015 — the second clause is what refuses it.
-       The first cannot be the sole reason for any refusal while `descYear`
-       returns an in-window year or null and nothing else, since the absence
-       gate above has already sent the null back. It stays because it costs one
+       falsy, so `||` above hands the year to the description; where that
+       description carries a year the resolved half sees a perfectly good 2015
+       and the second clause alone refuses it, and where it carries none both
+       clauses fire on the same 0 — the absence gate passes a typed 0 through
+       on purpose, because it is an answer and not a blank.
+       So the first clause is never the SOLE reason for a refusal: `descYear`
+       returns an in-window year or null and nothing else, and the only way
+       `year` is falsy at this point is `typed === 0`, which the second clause
+       refuses anyway. It stays because it costs one
        comparison and holds the line if `descYear` ever returns a year it did
        not check: defence in depth, deliberately not a second distinct test.
        Rejected: clamping the year, or the age via Math.max(0, ...) — either
