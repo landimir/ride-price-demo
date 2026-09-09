@@ -101,7 +101,7 @@ Used by: RP-IMP-001
 
 **Common pattern across the references:** Identity capture owns the screen; simple back/exit up top; one dominant task per screen; manual entry visible but secondary; leaving a part-done capture asks once.
 
-**Lesson most relevant to Ride Price:** Ride Price's ritual is right; the open question is the shell (owner Q2) — and back-vs-exit semantics apply at any answer.
+**Lesson most relevant to Ride Price:** Ride Price's ritual is right; the open question is the shell (owner Q2) — and back-vs-exit semantics apply at any answer. (RESOLVED 2026-08-23: the owner answered Q2 — the full-screen journey shell was adopted and built, and on desktop it renders as a 520px column. The back-vs-exit half of the lesson stands, and is what the journey's single close control follows.)
 
 **Should influence:** Scan Driver's License; the test-drive license scan reuses whatever is decided.
 
@@ -152,7 +152,7 @@ Used by: RP-IMP-012, RP-IMP-013
 
 **Common pattern across the references:** Extracted values render read-first, grouped; Edit is one tap away; the only open inputs are the ones the system could not fill.
 
-**Lesson most relevant to Ride Price:** Both reviewers proposed it independently — but in Ride Price it reverses a recorded owner decision (11), so it ships only on the owner's explicit reversal; the compatible slice is grouping + changed-value markers.
+**Lesson most relevant to Ride Price:** Both reviewers proposed it independently — but in Ride Price it reverses a recorded owner decision (11), so it ships only on the owner's explicit reversal; the compatible slice is grouping + changed-value markers. (ADOPTED 2026-08-23: the owner gave that explicit reversal, and summary-first review shipped in PR #46 and was carried further by the Granola redesign — read-mode rows, Edit opening a bottom sheet, changed fields carrying a quiet 'was …' line. The gate above is kept as the record of what it had to pass.)
 
 **Should influence:** Scan verify (both variants); the test-drive license verify; any future extracted-data review.
 
@@ -189,7 +189,7 @@ Used by: RP-IMP-008, RP-IMP-017, RP-IMP-018
 
 **Common pattern across the references:** The figures being agreed to sit beside the accept control, an edit path is visible, and the CTA names the whole outcome.
 
-**Lesson most relevant to Ride Price:** Ride Price's verify CTAs must say they start the visit; the summary-vs-form posture is the separate Q1.
+**Lesson most relevant to Ride Price:** Ride Price's verify CTAs must say they start the visit; the summary-vs-form posture is the separate Q1. (SUPERSEDED — neither half still holds. The visit transition was decoupled from the verify CTAs instead (RP-IMP-011, PR #49): they only save, and a separate completion screen carries 'Continue to visit'. Q1 was answered on 2026-08-23 in favour of summary-first. What Ride Price still takes from this family is the rule itself — the control names the outcome it produces.)
 
 **Should influence:** Scan verify CTAs; the agreement and disclosure confirms; the menu initials modal.
 

@@ -387,10 +387,10 @@
       "reviewedOn": "2026-08-23",
       "whatWorks": "(As reviewed 2026-08-23 against the v2 journey. The 2026-08-25 Granola redesign, merged as PR #49, rebuilt the chrome this paragraph describes — the step chips are five dots now, the capture frame is the drawn camera panel — and the strengths named here survived the rebuild in their new forms.) The staged ritual reads clearly: the three-step chips (1 · Front, 2 · Back, 3 · Verify) with green-done / navy-current states say exactly where the user is, the instruction names the side in caps, the capture frame is itself the control with 'Upload a photo' as an honest fallback, and the refusal screen teaches instead of scolding. The hint is straight about the demo ('Real IDs cannot be read'). The match cascade surfaces ambiguity instead of guessing — the possible-match and phone-conflict interstitials exist precisely so the app never links records silently. Both the external draft and the session analysts called this a strong foundation.",
       "strongest": [
-        "Make the match and conflict screens evidence-rich: show the scanned facts against the on-file record as one comparison (dates in MM/DD/YYYY), name the colliding phone number, and offer 'Back — fix the number' — the identity decisions are the highest-stakes taps in the flow and currently carry the least context.",
-        "Say what the button does: 'Save & Start Visit →' / 'Create & Start Visit →' — the verify CTAs also start the visit, and the manual path already says so.",
-        "Fix the real bug both reviewers circled from different angles: the 'training license' help links tear down the scan mid-flow (hash navigation closes the dialog); an in-dialog prop peek keeps the flow alive and makes the training guidance prominent without inventing a 'Training Mode'.",
-        "Decide the two structural questions recorded below: summary-first verify (it reverses your 2026-08-11 fully-editable decision — both reviewers independently proposed it) and the dialog shell (full-screen journey vs bottom-sheet short dialogs vs as-is)."
+        "SUPERSEDED — delivered by the scan-v2 rebuild (RP-IMP-012 and RP-IMP-013, resolved in PRs #46/#49, re-scored 2026-08-27): Match Found carries the identity facts with the scanned licence beneath an uncertain match, and the conflict screen names the number it warns about. AS FILED 2026-08-23: Make the match and conflict screens evidence-rich: show the scanned facts against the on-file record as one comparison (dates in MM/DD/YYYY), name the colliding phone number, and offer 'Back — fix the number' — the identity decisions are the highest-stakes taps in the flow and currently carry the least context.",
+        "SUPERSEDED — answered by decoupling instead of by wording (RP-IMP-011, PR #49): the verify CTAs no longer start the visit at all. 'Confirm & continue' and 'Create customer' only save; the journey then ends on its own completion screen whose action is 'Continue to visit'. AS FILED 2026-08-23: Say what the button does: 'Save & Start Visit →' / 'Create & Start Visit →' — the verify CTAs also start the visit, and the manual path already says so.",
+        "RESOLVED (RP-IMP-008, re-scored 2026-08-27 against the merged Granola journey, PR #49): the in-journey help links are gone entirely, so nothing inside the scan can navigate away and tear it down. AS FILED 2026-08-23: Fix the real bug both reviewers circled from different angles: the 'training license' help links tear down the scan mid-flow (hash navigation closes the dialog); an in-dialog prop peek keeps the flow alive and makes the training guidance prominent without inventing a 'Training Mode'.",
+        "ANSWERED — the owner decided both on 2026-08-23 (Decided 1 above): summary-first verify ADOPTED (decision 11 explicitly reversed) and the full-screen journey shell ADOPTED. AS FILED 2026-08-23: Decide the two structural questions recorded below: summary-first verify (it reverses your 2026-08-11 fully-editable decision — both reviewers independently proposed it) and the dialog shell (full-screen journey vs bottom-sheet short dialogs vs as-is)."
       ],
       "direction": {
         "title": "Intake of the external draft (owner's new working method, 2026-08-23)",
@@ -1121,7 +1121,7 @@
         }
       ],
       "commonPattern": "Identity capture owns the screen; simple back/exit up top; one dominant task per screen; manual entry visible but secondary; leaving a part-done capture asks once.",
-      "lesson": "Ride Price's ritual is right; the open question is the shell (owner Q2) — and back-vs-exit semantics apply at any answer.",
+      "lesson": "Ride Price's ritual is right; the open question is the shell (owner Q2) — and back-vs-exit semantics apply at any answer. (RESOLVED 2026-08-23: the owner answered Q2 — the full-screen journey shell was adopted and built, and on desktop it renders as a 520px column. The back-vs-exit half of the lesson stands, and is what the journey's single close control follows.)",
       "influence": "Scan Driver's License; the test-drive license scan reuses whatever is decided."
     },
     {
@@ -1196,7 +1196,7 @@
         }
       ],
       "commonPattern": "Extracted values render read-first, grouped; Edit is one tap away; the only open inputs are the ones the system could not fill.",
-      "lesson": "Both reviewers proposed it independently — but in Ride Price it reverses a recorded owner decision (11), so it ships only on the owner's explicit reversal; the compatible slice is grouping + changed-value markers.",
+      "lesson": "Both reviewers proposed it independently — but in Ride Price it reverses a recorded owner decision (11), so it ships only on the owner's explicit reversal; the compatible slice is grouping + changed-value markers. (ADOPTED 2026-08-23: the owner gave that explicit reversal, and summary-first review shipped in PR #46 and was carried further by the Granola redesign — read-mode rows, Edit opening a bottom sheet, changed fields carrying a quiet 'was …' line. The gate above is kept as the record of what it had to pass.)",
       "influence": "Scan verify (both variants); the test-drive license verify; any future extracted-data review."
     },
     {
@@ -1261,7 +1261,7 @@
         }
       ],
       "commonPattern": "The figures being agreed to sit beside the accept control, an edit path is visible, and the CTA names the whole outcome.",
-      "lesson": "Ride Price's verify CTAs must say they start the visit; the summary-vs-form posture is the separate Q1.",
+      "lesson": "Ride Price's verify CTAs must say they start the visit; the summary-vs-form posture is the separate Q1. (SUPERSEDED — neither half still holds. The visit transition was decoupled from the verify CTAs instead (RP-IMP-011, PR #49): they only save, and a separate completion screen carries 'Continue to visit'. Q1 was answered on 2026-08-23 in favour of summary-first. What Ride Price still takes from this family is the rule itself — the control names the outcome it produces.)",
       "influence": "Scan verify CTAs; the agreement and disclosure confirms; the menu initials modal."
     }
   ],

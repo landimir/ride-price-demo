@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ride Price Mobile UI Flow Library — v028</title>
+<title>Ride Price Mobile UI Flow Library — v029</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--chrome:#071b49;--chrome-2:#0b255d;--navy:#262254;--ink:#34314e;--muted:#6f6c88;--bg:#f2f2f8;--line:#e3e1ef;--card:#fff;--radius:14px;
@@ -80,7 +80,7 @@ a{color:inherit}
   <input id="q" type="search" placeholder="Filter screens, flows, issues…" aria-label="Filter">
   <div class="dlwrap dlwrap--all"><button type="button" class="dl dl--all" aria-haspopup="menu" aria-expanded="false" aria-label="All: download the whole library" title="Download the whole library">⬇ All</button>
     <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="all">Whole library (ZIP)</button></div></div>
-  <span class="ver">v028 · captured 2026-09-09 12:41 · viewport 390×844 · app b43ab7b</span></header>
+  <span class="ver">v029 · captured 2026-09-09 21:22 · viewport 390×844 · app 646c174</span></header>
 <div class="layout">
   <nav class="side"><h4>Product areas</h4><a href="#home">Home — Active Floor &amp; Navigation<small>10</small></a><a href="#onboarding">Customer Onboarding — the Customer Resolver<small>9</small></a><a href="#license-scan">Scan Driver&#39;s License<small>11</small></a><a href="#training">Training Documents<small>4</small></a><a href="#discovery">Discovery Session<small>6</small></a><a href="#vehicles">Vehicle Selection<small>8</small></a><a href="#test-drive">Test Drive Agreement<small>7</small></a><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership<small>5</small></a><a href="#desking">Desking — Calculate Payments<small>8</small></a><a href="#agreement">Base Payment Agreement<small>3</small></a><a href="#credit">Credit Application (Lending Lane)<small>9</small></a><a href="#buyers">Buyers on the Deal (Co-Buyer)<small>7</small></a><a href="#presentation">F&amp;I Product Presentation<small>4</small></a><a href="#finance-menu">Finance Menu — Sign-Off Gate and Four Stages<small>14</small></a><a href="#deal-jacket">Deal Jacket &amp; Compliance<small>8</small></a><a href="#document-request">Customer document request (from the jacket)<small>3</small></a><a href="#client-upload">Client Document Upload (customer&#39;s phone)<small>10</small></a><a href="#snap-all">Snap All — burst capture<small>4</small></a><a href="#doc-review">Document Review (advisor)<small>3</small></a><a href="#print-center">Documents — Print Center &amp; Printables<small>6</small></a><h4>Reports</h4><a href="../reports/ux-audit.md">UX audit</a><a href="../reports/flow-manifest.json">Flow manifest</a><a href="../reports/changelog.md">Changelog</a><a href="../reports/library-summary.md">Summary</a></nav>
   <main class="main">
@@ -88,7 +88,7 @@ a{color:inherit}
       <div><h1>Ride Price Mobile UI Flow Library</h1>
         <p>Every mobile flow of the working Ride Price portal, captured as a user sees it at 390 × 844, organised as sequential journeys. Read left to right: each arrow names the action that caused the next screen; branches list where else a screen can go; flagged screens carry their UX findings.</p>
         <p>The screenshots are untouched captures of the real application. Nothing here was redesigned — problems are documented, not fixed.</p></div>
-      <div class="stats"><div class="stat"><b>20</b><span>flows</span></div><div class="stat"><b>139</b><span>screens</span></div><div class="stat"><b>76</b><span>branches</span></div>
+      <div class="stats"><div class="stat"><b>20</b><span>flows</span></div><div class="stat"><b>139</b><span>screens</span></div><div class="stat"><b>77</b><span>branches</span></div>
         <div class="stat"><b>0</b><span><span class="sev sev--Critical">Critical</span></span></div><div class="stat"><b>1</b><span><span class="sev sev--Major">Major</span></span></div><div class="stat"><b>13 / 9</b><span><span class="sev sev--Minor">Minor</span> <span class="sev sev--Observation">Observation</span></span></div></div>
     </section>
     <div class="map"><h2>How the product connects</h2><ol><li><a href="#home">Home — Active Floor &amp; Navigation</a> <small>— 10 screens; entry point</small></li><li><a href="#onboarding">Customer Onboarding — the Customer Resolver</a> <small>— 9 screens; from Home — Active Floor &amp; Navigation · 01 My deals (landing — Advisor)</small></li><li><a href="#license-scan">Scan Driver&#39;s License</a> <small>— 11 screens; from Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver</small></li><li><a href="#training">Training Documents</a> <small>— 4 screens; from Home — Active Floor &amp; Navigation · 02 More sheet — secondary navigation</small></li><li><a href="#discovery">Discovery Session</a> <small>— 6 screens; from Customer Onboarding — the Customer Resolver · 03 Customer found — confirm + registration address</small></li><li><a href="#vehicles">Vehicle Selection</a> <small>— 8 screens; from Discovery Session · 04 Discovery complete (sheet)</small></li><li><a href="#test-drive">Test Drive Agreement</a> <small>— 7 screens; from Vehicle Selection · 05 What&#39;s next? — after choosing</small></li><li><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership</a> <small>— 5 screens; from Vehicle Selection · 05 What&#39;s next? — after choosing</small></li><li><a href="#desking">Desking — Calculate Payments</a> <small>— 8 screens; from Home — Active Floor &amp; Navigation · 01 My deals (landing — Advisor)</small></li><li><a href="#agreement">Base Payment Agreement</a> <small>— 3 screens; from Desking — Calculate Payments · 06 Back in Work — the customer chose</small></li><li><a href="#credit">Credit Application (Lending Lane)</a> <small>— 9 screens; from Base Payment Agreement · 02 Agreement — signed</small></li><li><a href="#buyers">Buyers on the Deal (Co-Buyer)</a> <small>— 7 screens; from Discovery Session · 05 Visit details (sheet)</small></li><li><a href="#presentation">F&amp;I Product Presentation</a> <small>— 4 screens; from Finance Menu — Sign-Off Gate and Four Stages · 06 Stage 2 — Choose a protection package</small></li><li><a href="#finance-menu">Finance Menu — Sign-Off Gate and Four Stages</a> <small>— 14 screens; from Credit Application (Lending Lane) · 09 Approved (simulated)</small></li><li><a href="#deal-jacket">Deal Jacket &amp; Compliance</a> <small>— 8 screens; from Discovery Session · 01 Discovery — question 1, customer-first</small></li><li><a href="#document-request">Customer document request (from the jacket)</a> <small>— 3 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — funding readiness</small></li><li><a href="#client-upload">Client Document Upload (customer&#39;s phone)</a> <small>— 10 screens; from Customer document request (from the jacket) · 03 Customer request — delivery status</small></li><li><a href="#snap-all">Snap All — burst capture</a> <small>— 4 screens; from Deal Jacket &amp; Compliance · 01 Deal Jacket — funding readiness</small></li><li><a href="#doc-review">Document Review (advisor)</a> <small>— 3 screens; from Deal Jacket &amp; Compliance · 06 Completed — already in the jacket</small></li><li><a href="#print-center">Documents — Print Center &amp; Printables</a> <small>— 6 screens; from Finance Menu — Sign-Off Gate and Four Stages · 12 Stage 4 — Final review</small></li></ol></div>
@@ -597,10 +597,10 @@ small targets &lt;36px (2): .rp-wordmark Ride Price 116x23; .rp-sheet__close  32
     <div class="frame">
       <span class="n">01</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — question 1, customer-first" data-cap="Discovery Session · 01 Discovery — question 1, customer-first · #/discovery/d-20o2oxh"><img loading="lazy" src="../current/05-discovery/01-question-1.png" alt="Discovery — question 1, customer-first"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — question 1, customer-first" data-cap="Discovery Session · 01 Discovery — question 1, customer-first · #/discovery/d-3ek9k6x"><img loading="lazy" src="../current/05-discovery/01-question-1.png" alt="Discovery — question 1, customer-first"></button>
     </div>
     <h3>Discovery — question 1, customer-first</h3>
-    <div class="hash">#/discovery/d-20o2oxh</div>
+    <div class="hash">#/discovery/d-3ek9k6x</div>
     <p class="notes">The context is ONE row — `Cheri Bridwell · Discovery` with compact Jacket access — where three stacked rows used to open with a deal number and &#39;no vehicle yet&#39;. No Deal #, no vehicle, no coaching card; the eyebrow and title carry the hierarchy.</p>
     <ul class="branches"><li>Tap the customer row → <a href="#discovery-visit-details">Discovery Session · 05 Visit details (sheet)</a></li><li>Tap the Jacket chip → <a href="#deal-jacket-jacket-overview">Deal Jacket &amp; Compliance · 01 Deal Jacket — funding readiness</a></li></ul>
     
@@ -610,10 +610,10 @@ small targets &lt;36px (2): .rp-wordmark Ride Price 116x23; .rp-sheet__close  32
     <div class="frame">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — mid-interview, Back appears" data-cap="Discovery Session · 02 Discovery — mid-interview, Back appears · #/discovery/d-20o2oxh"><img loading="lazy" src="../current/05-discovery/02-question-mid.png" alt="Discovery — mid-interview, Back appears"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — mid-interview, Back appears" data-cap="Discovery Session · 02 Discovery — mid-interview, Back appears · #/discovery/d-3ek9k6x"><img loading="lazy" src="../current/05-discovery/02-question-mid.png" alt="Discovery — mid-interview, Back appears"></button>
     </div>
     <h3>Discovery — mid-interview, Back appears</h3>
-    <div class="hash">#/discovery/d-20o2oxh</div>
+    <div class="hash">#/discovery/d-3ek9k6x</div>
     <p class="notes">Back appears only after question 1, and the autosave line names where the words go — typing alone persists the answer; Next is navigation, not a save button.</p>
     
     
@@ -623,10 +623,10 @@ small targets &lt;36px (2): .rp-wordmark Ride Price 116x23; .rp-sheet__close  32
     <div class="frame">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — the last question is the hand-off" data-cap="Discovery Session · 03 Discovery — the last question is the hand-off · #/discovery/d-20o2oxh"><img loading="lazy" src="../current/05-discovery/03-question-last.png" alt="Discovery — the last question is the hand-off"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery — the last question is the hand-off" data-cap="Discovery Session · 03 Discovery — the last question is the hand-off · #/discovery/d-3ek9k6x"><img loading="lazy" src="../current/05-discovery/03-question-last.png" alt="Discovery — the last question is the hand-off"></button>
     </div>
     <h3>Discovery — the last question is the hand-off</h3>
-    <div class="hash">#/discovery/d-20o2oxh</div>
+    <div class="hash">#/discovery/d-3ek9k6x</div>
     <p class="notes">The final CTA is Find vehicles — wording that admits none is chosen yet, replacing &#39;Pick Vehicle&#39;.</p>
     
     
@@ -636,10 +636,10 @@ small targets &lt;36px (2): .rp-wordmark Ride Price 116x23; .rp-sheet__close  32
     <div class="frame">
       <span class="n">04</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery complete (sheet)" data-cap="Discovery Session · 04 Discovery complete (sheet) · #/discovery/d-20o2oxh"><img loading="lazy" src="../current/05-discovery/04-discovery-complete.png" alt="Discovery complete (sheet)"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Discovery complete (sheet)" data-cap="Discovery Session · 04 Discovery complete (sheet) · #/discovery/d-3ek9k6x"><img loading="lazy" src="../current/05-discovery/04-discovery-complete.png" alt="Discovery complete (sheet)"></button>
     </div>
     <h3>Discovery complete (sheet)</h3>
-    <div class="hash">#/discovery/d-20o2oxh</div>
+    <div class="hash">#/discovery/d-3ek9k6x</div>
     <p class="notes">Status rows, not prose: the real answer count (&#39;7 of 7 discovery answers saved&#39;) and a Vehicle row reading Not selected yet. The stage advances on the link that navigates — Back to questions cannot strand the visit in a stage it never entered.</p>
     <ul class="branches"><li>Back to questions → <a href="#discovery-question-last">Discovery Session · 03 Discovery — the last question is the hand-off</a></li></ul>
     
@@ -649,10 +649,10 @@ small targets &lt;36px (2): .rp-wordmark Ride Price 116x23; .rp-sheet__close  32
     <div class="frame">
       <span class="n">05</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Visit details (sheet)" data-cap="Discovery Session · 05 Visit details (sheet) · #/discovery/d-1c5nt21"><img loading="lazy" src="../current/05-discovery/05-visit-details.png" alt="Visit details (sheet)"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Visit details (sheet)" data-cap="Discovery Session · 05 Visit details (sheet) · #/discovery/d-kprewz2"><img loading="lazy" src="../current/05-discovery/05-visit-details.png" alt="Visit details (sheet)"></button>
     </div>
     <h3>Visit details (sheet)</h3>
-    <div class="hash">#/discovery/d-1c5nt21</div>
+    <div class="hash">#/discovery/d-kprewz2</div>
     <p class="notes">Reached from any question by tapping the customer row. Everything the old crumb block shouted, on demand: the primary buyer with an honest three-state identity status (confirmed / licence photo on file / not verified), co-buyer as a real action, stage, visit number, registration address — and the one place that says No vehicle selected.</p>
     <ul class="branches"><li>Tap Co-buyer → <a href="#buyers-buyers-sheet">Buyers on the Deal (Co-Buyer) · 01 Buyers on this deal</a></li></ul>
     
@@ -923,7 +923,7 @@ small targets &lt;36px (1): #tdInsurance.td-link Edit 31x40</div></details>
     
     <details><summary>automated checks (1)</summary><div class="auto">overlap (8): .dv-title Trade value &lt;&gt; .tv-sheettitle Proof of ownership;  John Smith &lt;&gt; .tv-choicelabel Title in hand?;  · 2022 Hyundai Santa Fe &lt;&gt; .tv-choicelabel Title in hand?;  4 of 15 &lt;&gt; .tv-choicelabel Title in hand?; .tv-cardtitle 2016 Toyota RAV4 &lt;&gt;  Yes; .tv-cardtitle 2016 Toyota RAV4 &lt;&gt; .on No; .tv-cardtitle 2016 Toyota RAV4 &lt;&gt;  Not sure; .tv-cardsub Trade vehicle &lt;&gt; .tv-choicelabel Duplicate title process star</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Save ownership review</div></div><article class="scr" id="trade-ownership-gaps" data-search="trade-in evaluation &amp; proof of ownership trade ready — items for team lead the value hero stays visible; each gap is named in the amber list — the expired payoff as its own line with its date — under &#39;n items for team lead / advisor can continue&#39;, and calculate payment stays live. required paperwork the answers make mandatory is listed on the card. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Save ownership review</div></div><article class="scr" id="trade-ownership-gaps" data-search="trade-in evaluation &amp; proof of ownership trade ready — items for team lead the value hero stays visible; each gap is named in the amber list — the expired payoff as its own line with its date — under &#39;n items for team lead / advisor can continue&#39;, and calculate payment stays live: it goes to the same desking huddle the card beside this one exits to, gaps and all, because a gap queues for team lead rather than blocking the advisor. required paperwork the answers make mandatory is listed on the card. ">
     <div class="frame tall">
       <span class="n">03</span>
       
@@ -931,12 +931,12 @@ small targets &lt;36px (1): #tdInsurance.td-link Edit 31x40</div></details>
     </div>
     <h3>Trade ready — items for Team Lead</h3>
     <div class="hash">#/trade/d-demo1 · <a href="../current/08-trade-in/03-ownership-gaps.scroll.png" target="_blank">full length ↓</a></div>
-    <p class="notes">The value hero stays visible; each gap is named in the amber list — the expired payoff as its own line with its date — under &#39;N items for Team Lead / Advisor can continue&#39;, and Calculate payment stays live. Required paperwork the answers make mandatory is listed on the card.</p>
-    <ul class="branches"><li>Edit ownership answers → <a href="#trade-ownership-sheet">Trade-In Evaluation &amp; Proof of Ownership · 02 Proof of ownership (sheet) — conditional questions</a></li><li>Edit appraisal → <a href="#trade-trade-evaluation">Trade-In Evaluation &amp; Proof of Ownership · 01 Trade value — the appraisal first</a></li></ul>
+    <p class="notes">The value hero stays visible; each gap is named in the amber list — the expired payoff as its own line with its date — under &#39;N items for Team Lead / Advisor can continue&#39;, and Calculate payment stays live: it goes to the same Desking huddle the card beside this one exits to, gaps and all, because a gap queues for Team Lead rather than blocking the advisor. Required paperwork the answers make mandatory is listed on the card.</p>
+    <ul class="branches"><li>Calculate payment → <a href="#desking-huddle-gate">Desking — Calculate Payments · 01 Game plan — the huddle</a></li><li>Edit ownership answers → <a href="#trade-ownership-sheet">Trade-In Evaluation &amp; Proof of Ownership · 02 Proof of ownership (sheet) — conditional questions</a></li><li>Edit appraisal → <a href="#trade-trade-evaluation">Trade-In Evaluation &amp; Proof of Ownership · 01 Trade value — the appraisal first</a></li></ul>
     
     <details><summary>automated checks (1)</summary><div class="auto">overlap (2): #apprEdit.tv-link.tv-link--quiet Edit appraisal &lt;&gt;  $15,500; #apprEdit.tv-link.tv-link--quiet Edit appraisal &lt;&gt; #toDesk2.tv-primary.tv-dockgo Calculate payment</div></details>
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Calculate payment</div></div><article class="scr" id="trade-ownership-complete" data-search="trade-in evaluation &amp; proof of ownership trade ready — ownership review complete every root answer recorded and no follow-up left relevant: the card resolves to ownership review complete with a green complete badge and a view answers link. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Reopen the review, answer the rest, tap Save ownership review</div></div><article class="scr" id="trade-ownership-complete" data-search="trade-in evaluation &amp; proof of ownership trade ready — ownership review complete every root answer recorded and no follow-up left relevant: the card resolves to ownership review complete with a green complete badge and a view answers link. ">
     <div class="frame">
       <span class="n">04</span>
       
@@ -949,15 +949,15 @@ small targets &lt;36px (1): #tdInsurance.td-link Edit 31x40</div></details>
     
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Calculate payment</div></div><article class="scr" id="trade-appraisal-empty" data-search="trade-in evaluation &amp; proof of ownership the appraisal form before anyone has typed a trade nobody has described yet, on a deal that is not the demo&#39;s. every box is empty behind a grey placeholder — an example, never an answer the screen puts in the advisor&#39;s mouth. model year and mileage used to arrive pre-filled with a hard-coded 2018 and 60,000, left over from an older demo vehicle; the year is now read back out of what the advisor types in vehicle (year make model), the mileage can be read from nothing and so is asked for, and run evaluation names whatever is still missing rather than appraising a car whose age or use it guessed. the context row carries no vehicle because this visit has not selected one. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Calculate payment<br><a href="#desking-huddle-gate" style="font-weight:600">Desking — Calculate Payments · 01 Game plan — the huddle</a></div></div><div class="arrow" style="width:28px"></div><article class="scr" id="trade-appraisal-empty" data-standalone data-search="trade-in evaluation &amp; proof of ownership the appraisal form before anyone has typed a trade nobody has described yet, on a deal that is not the demo&#39;s. every box is empty, and the grey ghost text in them states a shape (yyyy, 17 characters) or names a source (odometer) — never an example vehicle, and never the deal&#39;s own values, which at a glance are indistinguishable from a filled box. vehicle carries no ghost at all: its label already says year make model. model year and mileage used to arrive pre-filled with a hard-coded 2018 and 60,000, left over from an older demo vehicle; the year is now read back out of what the advisor types in vehicle (year make model), the mileage can be read from nothing and so is asked for, and run evaluation names whatever is still missing rather than appraising a car whose age or use it guessed. the context row carries no vehicle because this visit has not selected one. ">
     <div class="frame tall">
       <span class="n">05</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: The appraisal form before anyone has typed" data-cap="Trade-In Evaluation &amp; Proof of Ownership · 05 The appraisal form before anyone has typed · #/trade/d-3tqgtxk"><img loading="lazy" src="../current/08-trade-in/05-appraisal-empty.png" alt="The appraisal form before anyone has typed"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: The appraisal form before anyone has typed" data-cap="Trade-In Evaluation &amp; Proof of Ownership · 05 The appraisal form before anyone has typed · #/trade/d-dlut1ru"><img loading="lazy" src="../current/08-trade-in/05-appraisal-empty.png" alt="The appraisal form before anyone has typed"></button>
     </div>
     <h3>The appraisal form before anyone has typed</h3>
-    <div class="hash">#/trade/d-3tqgtxk · <a href="../current/08-trade-in/05-appraisal-empty.scroll.png" target="_blank">full length ↓</a></div>
-    <p class="notes">A trade nobody has described yet, on a deal that is not the demo&#39;s. Every box is empty behind a grey placeholder — an example, never an answer the screen puts in the advisor&#39;s mouth. Model year and Mileage used to arrive pre-filled with a hard-coded 2018 and 60,000, left over from an older demo vehicle; the year is now read back out of what the advisor types in Vehicle (year make model), the mileage can be read from nothing and so is asked for, and Run evaluation names whatever is still missing rather than appraising a car whose age or use it guessed. The context row carries no vehicle because this visit has not selected one.</p>
+    <div class="hash">#/trade/d-dlut1ru · <a href="../current/08-trade-in/05-appraisal-empty.scroll.png" target="_blank">full length ↓</a></div>
+    <p class="notes">A trade nobody has described yet, on a deal that is not the demo&#39;s. Every box is empty, and the grey ghost text in them states a SHAPE (YYYY, 17 characters) or names a SOURCE (Odometer) — never an example vehicle, and never the deal&#39;s own values, which at a glance are indistinguishable from a filled box. Vehicle carries no ghost at all: its label already says year make model. Model year and Mileage used to arrive pre-filled with a hard-coded 2018 and 60,000, left over from an older demo vehicle; the year is now read back out of what the advisor types in Vehicle (year make model), the mileage can be read from nothing and so is asked for, and Run evaluation names whatever is still missing rather than appraising a car whose age or use it guessed. The context row carries no vehicle because this visit has not selected one.</p>
     
     
     <details><summary>automated checks (1)</summary><div class="auto">overlap (7):  Excellent &lt;&gt;  Trade; .on Good &lt;&gt;  Trade;  Fair &lt;&gt;  Trade;  Fair &lt;&gt; #evalDock.tv-primary.tv-dockgo Run evaluation;  Rough &lt;&gt; #evalDock.tv-primary.tv-dockgo Run evaluation; #evalBtn.tv-primary Run evaluation &lt;&gt;  Not entered; #evalBtn.tv-primary Run evaluation &lt;&gt; #evalDock.tv-primary.tv-dockgo Run evaluation</div></details>
@@ -1206,7 +1206,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     <p class="notes">After sending, the sheet BECOMES a status view rather than vanishing into a toast: link sent, then opened / identity verified / application submitted, which stay honestly Waiting because no link really went out.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-option__title Individual application &lt;&gt; #caSheetTitle.rp-sheet__title Co-buyer link; .rp-option__sub One applicant completes this &lt;&gt; .rp-sheet__sub Deal #48201 · John Smith · j; .rp-option__title Joint application &lt;&gt; .rp-step__title Link sent by text; .rp-option__sub A co-buyer applies with them &lt;&gt; .rp-step__title Link sent by text; .rp-option__sub A co-buyer applies with them &lt;&gt; .rp-step__sub (347) 555-1212 · 8:43 AM; .rp-section Co-buyer &lt;&gt; .rp-step__sub Waiting on the co-buyer; .rp-section Co-buyer &lt;&gt; .rp-status Waiting; .rp-row__title Send a secure link &lt;&gt; .rp-step__title Identity verified
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-option__title Individual application &lt;&gt; #caSheetTitle.rp-sheet__title Co-buyer link; .rp-option__sub One applicant completes this &lt;&gt; .rp-sheet__sub Deal #48201 · John Smith · j; .rp-option__title Joint application &lt;&gt; .rp-step__title Link sent by text; .rp-option__sub A co-buyer applies with them &lt;&gt; .rp-step__title Link sent by text; .rp-option__sub A co-buyer applies with them &lt;&gt; .rp-step__sub (347) 555-1212 · 5:24 PM; .rp-section Co-buyer &lt;&gt; .rp-step__sub Waiting on the co-buyer; .rp-section Co-buyer &lt;&gt; .rp-status Waiting; .rp-row__title Send a secure link &lt;&gt; .rp-step__title Identity verified
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Done, then walk to Review</div></div><article class="scr" id="credit-validation-errors" data-search="credit application (lending lane) invalid submit — inline summary the summary counts the misses, names them, states the demo ssn rule, and says nothing has been saved or sent — inline, never a toast over the controls — and the wizard returns to the first invalid step with those fields marked. ">
@@ -1534,7 +1534,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-stage.rp-stage--done Terms &lt;&gt; #fmSheetTitle.rp-sheet__title Accept Custom; .rp-stage.rp-stage--done Terms &lt;&gt; .rp-sheet__sub Vehicle Service Contract; .rp-stage.rp-stage--on 2 Options &lt;&gt; #fmSheetTitle.rp-sheet__title Accept Custom; .rp-stage.rp-stage--on 2 Options &lt;&gt; .rp-sheet__sub Vehicle Service Contract; .rp-stage 3 Forms &lt;&gt; .rp-sheet__sub Vehicle Service Contract; .rp-stage 4 Finalize &lt;&gt; .rp-sheet__sub Vehicle Service Contract; .rp-notice.rp-notice--success Terms marked presented 8:43  &lt;&gt; .rp-kv__head What the customer is agreein; .rp-pkg__item Preferred &lt;&gt;  Products added
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-stage.rp-stage--done Terms &lt;&gt; #fmSheetTitle.rp-sheet__title Accept Custom; .rp-stage.rp-stage--done Terms &lt;&gt; .rp-sheet__sub Vehicle Service Contract; .rp-stage.rp-stage--on 2 Options &lt;&gt; #fmSheetTitle.rp-sheet__title Accept Custom; .rp-stage.rp-stage--on 2 Options &lt;&gt; .rp-sheet__sub Vehicle Service Contract; .rp-stage 3 Forms &lt;&gt; .rp-sheet__sub Vehicle Service Contract; .rp-stage 4 Finalize &lt;&gt; .rp-sheet__sub Vehicle Service Contract; .rp-notice.rp-notice--success Terms marked presented 5:24  &lt;&gt; .rp-kv__head What the customer is agreein; .rp-pkg__item Preferred &lt;&gt;  Products added
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Enter initials, Accept package</div></div><article class="scr" id="finance-menu-decline-sheet" data-search="finance menu — sign-off gate and four stages continue without products declining is a recorded choice with initials, and it clears the custom box rather than refusing with a blocked toast. ">
@@ -1780,7 +1780,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     <ul class="branches"><li>Resend link → <a href="#document-request-request-sheet">Customer document request (from the jacket) · 01 Request documents — secure link</a></li></ul>
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-ready__note 3 items need the customer. T &lt;&gt; #jkSheetTitle.rp-sheet__title Customer request; .rp-bucket__title Waiting on customer &lt;&gt;  Link sent; .rp-bucket__badge 3 needed &lt;&gt;  Sep 9, 8:44 AM; .rp-doc__why Front captured in the Custom &lt;&gt;  Customer opened; .rp-doc__why Front captured in the Custom &lt;&gt;  Documents uploaded; .rp-doc__state.rp-doc__state--part Back needed &lt;&gt;  Waiting; .rp-doc__name Auto Insurance Card (Binder) &lt;&gt; .rp-count The customer&#39;s phone is play; .rp-doc__why Needed for delivery &lt;&gt; .rp-count The customer&#39;s phone is play
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-ready__note 3 items need the customer. T &lt;&gt; #jkSheetTitle.rp-sheet__title Customer request; .rp-bucket__title Waiting on customer &lt;&gt;  Link sent; .rp-bucket__badge 3 needed &lt;&gt;  Sep 9, 5:24 PM; .rp-doc__why Front captured in the Custom &lt;&gt;  Customer opened; .rp-doc__why Front captured in the Custom &lt;&gt;  Documents uploaded; .rp-doc__state.rp-doc__state--part Back needed &lt;&gt;  Waiting; .rp-doc__name Auto Insurance Card (Binder) &lt;&gt; .rp-count The customer&#39;s phone is play; .rp-doc__why Needed for delivery &lt;&gt; .rp-count The customer&#39;s phone is play
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
   </article><div class="arrow"><div class="line"></div><div class="act">Open the customer&#39;s phone<br><a href="#client-upload-sms" style="font-weight:600">Client Document Upload (customer&#39;s phone) · 01 Text message with the link</a></div></div></div>
@@ -2139,11 +2139,25 @@ small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 88x28; .dr-lin
   /* everything the page says about a screen travels with the download: the
      route, the notes, the branch lines and every finding with its severity */
   const flowScreens = (sec) => [...sec.querySelectorAll(".scr")].map(scr => {
-    const img = scr.querySelector("img"); let act = ""; let n = scr.nextElementSibling;
-    if (n && n.classList.contains("arrow")) { const a = n.querySelector(".act"); act = a ? a.textContent.trim() : ""; }
+    const img = scr.querySelector("img"); let act = "", exitTo = ""; let n = scr.nextElementSibling;
+    /* the separator after this card. An EXIT one carries a link to another
+       flow as well as the action, so the two are read apart: textContent alone
+       glues "Tap Calculate payment" onto the flow it leads to and the README
+       prints the pair as one sentence. A plain gap has no .act at all and
+       leaves both empty. */
+    if (n && n.classList.contains("arrow")) {
+      const a = n.querySelector(".act");
+      if (a) {
+        const link = a.querySelector("a");
+        exitTo = link ? link.textContent.replace(/[ \t\r\n]+/g, " ").trim() : "";
+        act = [...a.childNodes].filter(cn => cn.nodeName !== "A").map(cn => cn.textContent).join(" ").replace(/[ \t\r\n]+/g, " ").trim();
+      }
+    }
     const txt = (el) => el ? el.textContent.replace(/[ \t\r\n]+/g, " ").trim() : "";
     const hashEl = scr.querySelector(".hash"); const hash = hashEl ? txt(hashEl).split(" · ")[0] : "";
     return { src: img.src, file: img.src.split("/").pop(), n: scr.querySelector(".n").textContent, name: txt(scr.querySelector("h3")).replace(/capture-failed$/, "").trim(), act,
+      /* the card the strip draws no arrow into — the downloads must not draw one either */
+      standalone: scr.hasAttribute("data-standalone"), exitTo,
       hash, notes: txt(scr.querySelector(".notes")),
       branches: [...scr.querySelectorAll(".branches li")].map(li => "↳ " + txt(li)),
       issues: [...scr.querySelectorAll(".issue")].map(is => ({ sev: txt(is.querySelector(".sev")), id: txt(is.querySelector("b")).replace(txt(is.querySelector(".sev")), "").trim(), text: [...is.querySelectorAll("p")].map(p => txt(p)) })) };
@@ -2200,7 +2214,9 @@ small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 88x28; .dr-lin
     });
     /* arrows and action labels in a second pass, so no card paints over them */
     shots.forEach((s, i) => {
-      if (i >= shots.length - 1) return;
+      /* the last card leads out of the flow, not to the card beside it, and a
+         standalone card is not led into at all — both leave the space blank */
+      if (i >= shots.length - 1 || shots[i + 1].standalone) return;
       const x = PAD + i * (W + GAP), ax = x + W + 14, ay = TOP + Math.min(maxH, 844) / 2, lineW = GAP - 28;
       ctx.strokeStyle = "#262254"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(ax, ay); ctx.lineTo(ax + lineW, ay); ctx.stroke();
       ctx.fillStyle = "#262254"; ctx.beginPath(); ctx.moveTo(ax + lineW, ay - 6); ctx.lineTo(ax + lineW + 10, ay); ctx.lineTo(ax + lineW, ay + 6); ctx.fill();
@@ -2243,7 +2259,16 @@ small targets &lt;36px (2): .dr-linkbtn.sa-override Accept anyway 88x28; .dr-lin
     const { title, desc, entry } = flowMeta(sec);
     const md = ["# " + title, "", document.title, "", desc.trim(), entry.trim(), ""];
     shots.forEach((s, i) => {
-      md.push("## " + s.n + " " + s.name, "", "- Screenshot: " + s.file, s.hash ? "- Route: " + s.hash : "", s.act && i < shots.length - 1 ? "- Action to next: " + s.act : "");
+      /* an action that leaves the flow is still an action. It was being
+         dropped once the card after it went standalone — which is how the
+         trade flow's own exit into Desking vanished from every download of it
+         (CodeRabbit, PR #96) — and the last card's exit had never been written
+         down at all, because the old test only asked whether another card
+         followed. Named an EXIT rather than an action to next, since the
+         screen it reaches is not the one beside it. */
+      const step = s.exitTo ? "- Exit: " + (s.act ? s.act + " → " : "") + s.exitTo
+        : (s.act && i < shots.length - 1 && !shots[i + 1].standalone ? "- Action to next: " + s.act : "");
+      md.push("## " + s.n + " " + s.name, "", "- Screenshot: " + s.file, s.hash ? "- Route: " + s.hash : "", step);
       if (s.notes) md.push("- Notes: " + s.notes);
       for (const b of s.branches) md.push("- " + b);
       for (const is of s.issues) { md.push("- **" + is.sev + " " + is.id + "**: " + is.text[0]); for (const t of is.text.slice(1)) md.push("  - " + t); }

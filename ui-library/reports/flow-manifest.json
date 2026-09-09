@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-09-09T12:41:36.182Z",
-  "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+  "capturedAt": "2026-09-09T21:22:17.436Z",
+  "appCommit": "646c1745f86094374738cb2985b71323494cf849",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-09-09T12:41:36.193Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:22:17.442Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -449,8 +449,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-09-09T12:41:49.180Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:22:28.242Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -779,8 +779,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-09-09T12:42:04.451Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:22:44.366Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -1202,8 +1202,8 @@
         "from": "home/more-sheet",
         "action": "Training documents"
       },
-      "capturedAt": "2026-09-09T12:42:27.954Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:23:07.093Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -1381,15 +1381,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-09-09T12:42:32.215Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:23:11.030Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1, customer-first",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-20o2oxh",
+          "hash": "#/discovery/d-3ek9k6x",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1426,7 +1426,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview, Back appears",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-20o2oxh",
+          "hash": "#/discovery/d-3ek9k6x",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1454,7 +1454,7 @@
           "key": "question-last",
           "screen": "Discovery — the last question is the hand-off",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-20o2oxh",
+          "hash": "#/discovery/d-3ek9k6x",
           "action": "Tap Find vehicles →",
           "next": "discovery-complete",
           "branches": [],
@@ -1482,7 +1482,7 @@
           "key": "discovery-complete",
           "screen": "Discovery complete (sheet)",
           "screenshot": "current/05-discovery/04-discovery-complete.png",
-          "hash": "#/discovery/d-20o2oxh",
+          "hash": "#/discovery/d-3ek9k6x",
           "action": "Tap Find matching vehicles",
           "next": "vehicles/inventory",
           "branches": [
@@ -1522,7 +1522,7 @@
           "key": "visit-details",
           "screen": "Visit details (sheet)",
           "screenshot": "current/05-discovery/05-visit-details.png",
-          "hash": "#/discovery/d-1c5nt21",
+          "hash": "#/discovery/d-kprewz2",
           "action": "Tap Done",
           "next": "question-1",
           "branches": [
@@ -1598,8 +1598,8 @@
         "from": "discovery/discovery-complete",
         "action": "Tap Find matching vehicles"
       },
-      "capturedAt": "2026-09-09T12:42:43.309Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:23:21.737Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -1970,8 +1970,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-09-09T12:42:52.686Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:23:30.249Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -2226,8 +2226,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-09-09T12:47:39.802Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:23:36.809Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -2307,9 +2307,13 @@
           "screen": "Trade ready — items for Team Lead",
           "screenshot": "current/08-trade-in/03-ownership-gaps.png",
           "hash": "#/trade/d-demo1",
-          "action": "Tap Calculate payment",
-          "next": "desking/huddle-gate",
+          "action": "Reopen the review, answer the rest, tap Save ownership review",
+          "next": "ownership-complete",
           "branches": [
+            {
+              "action": "Calculate payment",
+              "to": "desking/huddle-gate"
+            },
             {
               "action": "Edit ownership answers",
               "to": "trade/ownership-sheet"
@@ -2319,7 +2323,7 @@
               "to": "trade/trade-evaluation"
             }
           ],
-          "notes": "The value hero stays visible; each gap is named in the amber list — the expired payoff as its own line with its date — under 'N items for Team Lead / Advisor can continue', and Calculate payment stays live. Required paperwork the answers make mandatory is listed on the card.",
+          "notes": "The value hero stays visible; each gap is named in the amber list — the expired payoff as its own line with its date — under 'N items for Team Lead / Advisor can continue', and Calculate payment stays live: it goes to the same Desking huddle the card beside this one exits to, gaps and all, because a gap queues for Team Lead rather than blocking the advisor. Required paperwork the answers make mandatory is listed on the card.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -2374,12 +2378,13 @@
           "key": "appraisal-empty",
           "screen": "The appraisal form before anyone has typed",
           "screenshot": "current/08-trade-in/05-appraisal-empty.png",
-          "hash": "#/trade/d-3tqgtxk",
+          "hash": "#/trade/d-dlut1ru",
           "action": "Type the vehicle, then Run evaluation",
           "next": "trade-evaluation",
           "branches": [],
-          "notes": "A trade nobody has described yet, on a deal that is not the demo's. Every box is empty behind a grey placeholder — an example, never an answer the screen puts in the advisor's mouth. Model year and Mileage used to arrive pre-filled with a hard-coded 2018 and 60,000, left over from an older demo vehicle; the year is now read back out of what the advisor types in Vehicle (year make model), the mileage can be read from nothing and so is asked for, and Run evaluation names whatever is still missing rather than appraising a car whose age or use it guessed. The context row carries no vehicle because this visit has not selected one.",
+          "notes": "A trade nobody has described yet, on a deal that is not the demo's. Every box is empty, and the grey ghost text in them states a SHAPE (YYYY, 17 characters) or names a SOURCE (Odometer) — never an example vehicle, and never the deal's own values, which at a glance are indistinguishable from a filled box. Vehicle carries no ghost at all: its label already says year make model. Model year and Mileage used to arrive pre-filled with a hard-coded 2018 and 60,000, left over from an older demo vehicle; the year is now read back out of what the advisor types in Vehicle (year make model), the mileage can be read from nothing and so is asked for, and Run evaluation names whatever is still missing rather than appraising a car whose age or use it guessed. The context row carries no vehicle because this visit has not selected one.",
           "status": "ok",
+          "standalone": true,
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
@@ -2416,8 +2421,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-09-09T12:43:07.852Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:23:45.295Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -2719,8 +2724,8 @@
         "from": "desking/work-chose",
         "action": "Tap Submit for Team Lead approval, then Continue"
       },
-      "capturedAt": "2026-09-09T12:43:15.463Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:23:52.135Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -2841,8 +2846,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-09T12:43:22.419Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:23:57.056Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -3039,7 +3044,7 @@
               ".rp-option__sub One applicant completes this <> .rp-sheet__sub Deal #48201 · John Smith · j",
               ".rp-option__title Joint application <> .rp-step__title Link sent by text",
               ".rp-option__sub A co-buyer applies with them <> .rp-step__title Link sent by text",
-              ".rp-option__sub A co-buyer applies with them <> .rp-step__sub (347) 555-1212 · 8:43 AM",
+              ".rp-option__sub A co-buyer applies with them <> .rp-step__sub (347) 555-1212 · 5:24 PM",
               ".rp-section Co-buyer <> .rp-step__sub Waiting on the co-buyer",
               ".rp-section Co-buyer <> .rp-status Waiting",
               ".rp-row__title Send a secure link <> .rp-step__title Identity verified"
@@ -3170,8 +3175,8 @@
         "from": "discovery/visit-details",
         "action": "Tap Co-buyer in Visit details"
       },
-      "capturedAt": "2026-09-09T12:43:32.844Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:24:06.726Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -3472,8 +3477,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-09-09T12:43:40.188Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:24:13.559Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -3662,8 +3667,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-09-09T12:43:43.794Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:24:16.859Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -3938,7 +3943,7 @@
               ".rp-stage.rp-stage--on 2 Options <> .rp-sheet__sub Vehicle Service Contract",
               ".rp-stage 3 Forms <> .rp-sheet__sub Vehicle Service Contract",
               ".rp-stage 4 Finalize <> .rp-sheet__sub Vehicle Service Contract",
-              ".rp-notice.rp-notice--success Terms marked presented 8:43  <> .rp-kv__head What the customer is agreein",
+              ".rp-notice.rp-notice--success Terms marked presented 5:24  <> .rp-kv__head What the customer is agreein",
               ".rp-pkg__item Preferred <>  Products added"
             ]
           },
@@ -4181,8 +4186,8 @@
         "from": "discovery/question-1",
         "action": "Tap the Jacket chip in the context row"
       },
-      "capturedAt": "2026-09-09T12:44:00.674Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:24:31.806Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -4495,8 +4500,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-09-09T12:44:09.679Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:24:39.818Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -4596,7 +4601,7 @@
             "overlaps": [
               ".rp-ready__note 3 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 3 needed <>  Sep 9, 8:44 AM",
+              ".rp-bucket__badge 3 needed <>  Sep 9, 5:24 PM",
               ".rp-doc__why Front captured in the Custom <>  Customer opened",
               ".rp-doc__why Front captured in the Custom <>  Documents uploaded",
               ".rp-doc__state.rp-doc__state--part Back needed <>  Waiting",
@@ -4624,8 +4629,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-09-09T12:44:13.610Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:24:43.555Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -4966,8 +4971,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-09-09T12:44:28.024Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:24:56.184Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -5125,8 +5130,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-09-09T12:44:32.603Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:25:00.128Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,
@@ -5230,8 +5235,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-09-09T12:44:41.185Z",
-      "appCommit": "b43ab7b0dddff0f4cf53b420a03b21bd8abbb011",
+      "capturedAt": "2026-09-09T21:25:08.602Z",
+      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
       "screens": [
         {
           "step": 1,

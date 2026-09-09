@@ -1,5 +1,68 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v029 — 2026-09-09
+
+App commit: 646c174 · 20 flows · 139 screens · previous: v028
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — mid-interview, Back appears
+- Discovery Session · Visit details (sheet)
+- Trade-In Evaluation & Proof of Ownership · The appraisal form before anyone has typed
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
+**Read by measurement, not by eye alone (2026-09-09).** Eighteen screens differ
+and exactly one of them is this merge's work. Each pair was diffed by
+CONTIGUOUS ROW BAND rather than bounding box — a box spans from the first
+differing pixel to the last, so two small edits far apart read as one huge
+region.
+
+- **08-trade-in/05 · the appraisal form before anyone has typed** — five bands,
+  one per form row, at y=313/403/494/583/675 and 152/163/36/73/9px wide. That
+  is precisely the four placeholders changing (`2018 Hyundai Tucson` → none,
+  `KM8TRAININGSAMP06` → `17 characters`, `2018` → `YYYY`, `60000` →
+  `Odometer`) and the Payoff box emptying. Nothing else on the screen moved.
+- **The other seventeen** are single text-sized bands — 8-18px tall, 40-100px
+  wide — in the places this demo is not deterministic: timestamps on the
+  document receipt and request-tracking rows (three and two bands, identical x
+  and width), the scan flow's random verification code, a date on the finance
+  menu, and the MV-82's barcode at y=2206. Sixteen of the seventeen changed in
+  v028 as well, from a merge that touched none of them.
+- **The trade screen the change was ABOUT is correctly absent.**
+  `01-trade-evaluation` is captured on the seeded RAV4, where every box is
+  filled, so no ghost text renders and the payoff shows its recorded 10,750 —
+  byte-identical, as predicted before the run.
+
 ## v028 — 2026-09-09
 
 App commit: b43ab7b · 20 flows · 139 screens · previous: v027
