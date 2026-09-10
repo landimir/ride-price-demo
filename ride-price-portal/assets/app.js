@@ -10126,16 +10126,32 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       <p class="rp-sheet__sub">Photo ${i + 1} of ${st.shots.length}</p>
       <div class="sa-stage"><img src="${esc(s.url)}" alt="Captured photo ${i + 1}"></div>
       <button type="button" class="rp-primary" data-sheet-close>Keep photo</button>
-      <button type="button" class="rp-link sa-danger" id="saDrop">Remove photo</button>`, (sheet) => {
+      <button type="button" class="rp-link sa-hit" id="saDrop">Remove photo</button>`, (sheet) => {
       /* the dialog opens over this sheet, so close first: the opener holds
          one sheet node per screen and the dialog reshapes it */
       $("#saDrop", sheet).onclick = () => { sheets.close(); confirmRemove(sid); };
     });
   }
 
+  /* Owner's call, 2026-09-09, on the screenshots: "always leave the gradient,
+     I love that part." So a confirmation on this screen is his board's SHEET
+     and not the kit's grey/red dialog — the primary carries the thing the
+     sheet was raised to do, and the quiet link is the way out. The dialog is
+     unchanged everywhere else it is used; this is the one screen he ruled on.
+     `sheets.open` supplies the grab handle and names the sheet from the
+     title, so the shape here is only what sits under it. */
+  function confirmSheet(title, body, goLabel, keepLabel, onConfirm) {
+    sheets.open(`<h2 class="rp-sheet__title">${esc(title)}</h2>
+      <p class="sa-confirmcopy">${esc(body)}</p>
+      <button type="button" class="rp-primary" id="saConfirmGo">${esc(goLabel)}</button>
+      <button type="button" class="rp-link sa-hit" data-sheet-close>${esc(keepLabel)}</button>`, (sheet) => {
+      $("#saConfirmGo", sheet).onclick = () => { sheets.close(); onConfirm(); };
+    });
+  }
+
   function confirmRemove(sid) {
     if (!st.shots.some(s => s.id === sid)) return;
-    chDialog(sheets, "Remove this photo?", "The other photos stay in the batch.", "Remove photo", () => {
+    confirmSheet("Remove this photo?", "The other photos stay in the batch.", "Remove photo", "Keep photo", () => {
       const j = st.shots.findIndex(s => s.id === sid);
       if (j < 0) return;
       /* a candidate for an aimed page is the aim's own photo — dropping it
@@ -10152,9 +10168,9 @@ route("snapall/:id/:origin", ({ id, origin }) => {
   function closeScreen() {
     if (st.aim) { cancelAim(); return; }
     if (!st.shots.length) return navigate(backHash);
-    chDialog(sheets, "Leave this capture?",
+    confirmSheet("Leave this capture?",
       `The ${plural(st.shots.length, "photo", "photos")} in this batch have not been saved to the deal jacket, and leaving clears them.`,
-      "Leave and clear", () => navigate(backHash));
+      "Leave capture", "Keep capturing", () => navigate(backHash));
   }
 
   function cancelAim() {
