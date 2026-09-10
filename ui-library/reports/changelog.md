@@ -1,5 +1,57 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v031 — 2026-09-10
+
+App commit: 9314b32 · 20 flows · 144 screens · previous: v030
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Reset demo data — confirm
+- Customer Onboarding — the Customer Resolver · Search results
+- Customer Onboarding — the Customer Resolver · Search results — no match
+- Scan Driver's License · Find customer manually (sheet)
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — mid-interview, Back appears
+- Discovery Session · Discovery complete (sheet)
+- Discovery Session · Visit details (sheet)
+- Test Drive Agreement · Test drive in progress
+- Test Drive Agreement · End test drive — odometer
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Row blocked — back of license missing
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
+**Reading the 27** (by eye, from row-band crops of v030 against v031): one is a design change. *Reset demo data* is now the kit's bottom sheet with the gradient confirm and a "Keep my data" link, replacing the centred grey-and-red dialog (PR #101, the owner's "keep the gradient on the scan and reset too"). Two are PR #104: the resolver's search box keeps the capital the capture types ("Smith", "Zzz") instead of rewriting it lowercase. The other 24 are capture-time data, not changes to the app: clocks and timestamps (12:13 AM to 6:11 PM, the test-drive timer), a freshly generated demo verification code and visit number, the deal-jacket marker barcode on the three print previews, and a text caret or loading spinner caught mid-blink. No issue is new and none is resolved: every changed band sits outside the area an open issue describes.
+
 ## v030 — 2026-09-10
 
 App commit: 0a93d7c · 20 flows · 144 screens · previous: v029
