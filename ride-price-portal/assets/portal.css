@@ -1378,8 +1378,8 @@ body[data-screen="clientlink"] { background: #fff; }
    sets position on whatever wears it, and a component that positions itself — the thumbnail’s
    remove circle — has to win. Same specificity, so the later rule takes it,
    and the circle landed under its own tile until this moved. Measured. */
-.sa-hit { position: relative; z-index: 1; }
-.sa-hit::after { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: max(44px, 100%); height: max(44px, 100%); }
+.ch-hit { position: relative; z-index: 1; }
+.ch-hit::after { content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: max(44px, 100%); height: max(44px, 100%); }
 
 /* the capture column fills the page so the camera takes whatever the heading
    and the strip leave; the floor keeps it a camera on a short screen rather
@@ -1468,9 +1468,10 @@ body[data-screen="clientlink"] { background: #fff; }
 /* the photo the review sheet is showing */
 .sa-stage { height: 320px; background: #ECECF1; border-radius: var(--rp-r-row); padding: 22px; display: grid; place-items: center; overflow: hidden; margin: 0 0 14px; }
 .sa-stage img { max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 4px; }
-/* his confirmation sheet: one sentence under the title, then the gradient
-   primary and the quiet way out (owner, 2026-09-09) */
-.sa-confirmcopy { font-size: 14px; line-height: 1.5; color: var(--rp-muted); margin: 8px 0 18px; }
+/* the confirmation sheet's one sentence, under the title and above the
+   gradient (owner, 2026-09-09 for Snap All and 2026-09-10 for the other two).
+   Chrome rather than one screen's, since chDialog draws every one of them. */
+.ch-confirmcopy { font-size: 14px; line-height: 1.5; color: var(--rp-muted); margin: 8px 0 18px; }
 
 
 /* phone-only pieces, hidden above 720 */

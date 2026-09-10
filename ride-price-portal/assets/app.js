@@ -1561,14 +1561,29 @@ function chRoleSheet(sheets, afterSwitch) {
 function chWireRole(sheets, afterSwitch, root) {
   $$("[data-role-open]", root).forEach(b => b.onclick = () => chRoleSheet(sheets, afterSwitch));
 }
-/* the kit's dialog, inside the screen: title, one sentence, quiet + destructive */
-function chDialog(sheets, title, body, actionLabel, onConfirm) {
-  sheets.open(`<div class="rp-dialog__title">${esc(title)}</div><p class="rp-dialog__body">${esc(body)}</p>
-    <div class="rp-dialog__actions"><button type="button" class="rp-dialog__button rp-dialog__button--quiet" data-sheet-close>Cancel</button><button type="button" class="rp-dialog__button rp-dialog__button--destructive" id="chDialogGo">${esc(actionLabel)}</button></div>`, (sheet) => {
-    /* the shape is restored by the opener on the next open, so no dismissal
-       path has to remember to undo this one */
-    sheet.classList.add("rp-dialog"); sheet.classList.remove("rp-sheet");
-    const grab = sheet.querySelector(".rp-sheet__grab"); if (grab) grab.remove();
+/* The confirmation, inside the screen: a title, one sentence, the thing the
+   sheet was raised to DO on the gradient, and the quiet way out under it.
+
+   It was the kit's centred dialog — grey Cancel, red destructive — until the
+   owner ruled twice: 2026-09-09 on Snap All's screenshots ("No, always leave
+   the gradient I love that part"), then 2026-09-10 for the other two ("keep
+   the gradient on the scan and reset too"). With every caller wanting the same
+   shape, Snap All's local copy of it folded back into here rather than living
+   as a second definition.
+
+   The focus goes to the LINK, not the primary. chSheetOpener focuses the first
+   control it finds, and with the gradient carrying the destructive action that
+   put one Enter between an advisor and a cleared batch — the gradient is the
+   loud one, not the armed one. [autofocus] is inert on inserted markup, so the
+   opener reads it as the marker it is.
+
+   `keepLabel` names the opposite of the action rather than saying Cancel: the
+   pair reads Remove photo / Keep photo, Leave capture / Keep capturing. */
+function chDialog(sheets, title, body, actionLabel, onConfirm, keepLabel) {
+  sheets.open(`<h2 class="rp-sheet__title">${esc(title)}</h2>
+    <p class="ch-confirmcopy">${esc(body)}</p>
+    <button type="button" class="rp-primary" id="chDialogGo">${esc(actionLabel)}</button>
+    <button type="button" class="rp-link ch-hit" data-sheet-close autofocus>${esc(keepLabel || "Cancel")}</button>`, (sheet) => {
     $("#chDialogGo", sheet).onclick = () => { sheets.close(); onConfirm(); };
   });
 }
@@ -1600,7 +1615,7 @@ function chMoreSheet(sheets) {
       /* the kit's dialog, in place of the app-wide confirm (Home 03) */
       chDialog(sheets, "Reset demo data?", "All deals and customers you created will be removed and the demo returns to its seed state.", "Reset demo data", () => {
         Store.reset(); navigate("#/deals"); router(); toast("Demo data reset");
-      });
+      }, "Keep my data");
     };
   });
 }
@@ -2779,7 +2794,7 @@ function openScanFlow(opts) {
 
   /* leaving a part-done scan asks once, in the kit's dialog */
   function renderLeaveConfirm() {
-    chDialog(sheets, "Leave the scan?", "The captured photos and parsed details will be discarded.", "Leave", () => done());
+    chDialog(sheets, "Leave the scan?", "The captured photos and parsed details will be discarded.", "Leave the scan", () => done(), "Keep scanning");
   }
 
   /* ---- Screen 1: scan. Front and back are phases of one architecture. ---- */
@@ -10059,10 +10074,10 @@ route("snapall/:id/:origin", ({ id, origin }) => {
         <span class="sa-thumb">
           <button type="button" class="sa-thumb__open" data-shot="${esc(s.id)}" aria-label="Review photo ${i + 1}"><img src="${esc(s.url)}" alt=""></button>
           <span class="sa-thumb__n">${i + 1}</span>
-          <button type="button" class="sa-thumb__x sa-hit" data-unshot="${esc(s.id)}" aria-label="Remove photo ${i + 1}">${saIcon("close", "")}</button>
+          <button type="button" class="sa-thumb__x ch-hit" data-unshot="${esc(s.id)}" aria-label="Remove photo ${i + 1}">${saIcon("close", "")}</button>
         </span>`).join("")}</div>` : ""}
       <div class="sa-tools">
-        <button type="button" class="rp-chip sa-gallery sa-hit" id="saGallery">${saIcon("images", "")}Gallery</button>
+        <button type="button" class="rp-chip sa-gallery ch-hit" id="saGallery">${saIcon("images", "")}Gallery</button>
         <button type="button" class="sa-shutter" id="saShutter" aria-label="Take a photo"><span></span></button>
         <span class="sa-count"><strong>${n}</strong>${n === 1 ? "photo" : "photos"}</span>
       </div>
@@ -10092,12 +10107,12 @@ route("snapall/:id/:origin", ({ id, origin }) => {
                   : r.detail ? `<p class="sa-doc__meta">${esc(r.detail)}</p>` : ""}
         </div></div>
       ${needs ? `<div class="sa-doc__acts">
-          <button type="button" class="sa-act sa-act--fix sa-hit" data-sa-retake="${esc(r.id)}">${saIcon(r.kind === "pages" ? "plus" : "camera", "")}${esc(r.fix || "Retake")}</button>
-          <button type="button" class="sa-act sa-hit" data-sa-accept="${esc(r.id)}">Accept anyway</button>
+          <button type="button" class="sa-act sa-act--fix ch-hit" data-sa-retake="${esc(r.id)}">${saIcon(r.kind === "pages" ? "plus" : "camera", "")}${esc(r.fix || "Retake")}</button>
+          <button type="button" class="sa-act ch-hit" data-sa-accept="${esc(r.id)}">Accept anyway</button>
         </div>`
         : r.status === "verified" ? `<div class="sa-doc__status">
           <span class="rp-status ${r.override ? "rp-status--warn" : "rp-status--positive"}">${r.override ? "Exception accepted" : "Verified"}</span>
-          ${r.override ? `<button type="button" class="sa-act sa-hit" data-sa-undo="${esc(r.id)}">Undo</button>` : ""}
+          ${r.override ? `<button type="button" class="sa-act ch-hit" data-sa-undo="${esc(r.id)}">Undo</button>` : ""}
         </div>` : ""}
     </div>`;
   }
@@ -10114,7 +10129,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       <h1 class="rp-title">Your batch, sorted.</h1>
       <div class="sa-summary">
         <span>${plural(st.shots.length, "photo", "photos")} · ${landed} of ${st.results.length} documents</span>
-        <button type="button" class="sa-more sa-hit" id="saMore">${saIcon("plus", "")}Take more</button>
+        <button type="button" class="sa-more ch-hit" id="saMore">${saIcon("plus", "")}Take more</button>
       </div>
       ${group("Verified", ok)}
       ${group("Needs attention", attn)}
@@ -10145,39 +10160,23 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       <p class="rp-sheet__sub">Photo ${i + 1} of ${st.shots.length}</p>
       <div class="sa-stage"><img src="${esc(s.url)}" alt="Captured photo ${i + 1}"></div>
       <button type="button" class="rp-primary" data-sheet-close>Keep photo</button>
-      <button type="button" class="rp-link sa-hit" id="saDrop">Remove photo</button>`, (sheet) => {
+      <button type="button" class="rp-link ch-hit" id="saDrop">Remove photo</button>`, (sheet) => {
       /* the dialog opens over this sheet, so close first: the opener holds
          one sheet node per screen and the dialog reshapes it */
       $("#saDrop", sheet).onclick = () => { sheets.close(); confirmRemove(sid); };
     });
   }
 
-  /* Owner's call, 2026-09-09, on the screenshots: "always leave the gradient,
-     I love that part." So a confirmation on this screen is his board's SHEET
-     and not the kit's grey/red dialog — the primary carries the thing the
-     sheet was raised to do, and the quiet link is the way out. The dialog is
-     unchanged everywhere else it is used; this is the one screen he ruled on.
-     `sheets.open` supplies the grab handle and names the sheet from the
-     title, so the shape here is only what sits under it. */
-  function confirmSheet(title, body, goLabel, keepLabel, onConfirm) {
-    sheets.open(`<h2 class="rp-sheet__title">${esc(title)}</h2>
-      <p class="sa-confirmcopy">${esc(body)}</p>
-      <button type="button" class="rp-primary" id="saConfirmGo">${esc(goLabel)}</button>
-      <button type="button" class="rp-link sa-hit" data-sheet-close autofocus>${esc(keepLabel)}</button>`, (sheet) => {
-      $("#saConfirmGo", sheet).onclick = () => { sheets.close(); onConfirm(); };
-    });
-  }
-
   function confirmRemove(sid) {
     if (!st.shots.some(s => s.id === sid)) return;
-    confirmSheet("Remove this photo?", "The other photos stay in the batch.", "Remove photo", "Keep photo", () => {
+    chDialog(sheets, "Remove this photo?", "The other photos stay in the batch.", "Remove photo", () => {
       const j = st.shots.findIndex(s => s.id === sid);
       if (j < 0) return;
       /* a candidate for an aimed page is the aim's own photo — dropping it
          puts the dock back to disabled rather than leaving a stale id */
       if (st.aimShot === sid) st.aimShot = null;
       releaseShot(st.shots[j]); st.shots.splice(j, 1); render();
-    });
+    }, "Keep photo");
   }
 
   /* Close: while a page is aimed this cancels the aim rather than the batch,
@@ -10187,9 +10186,9 @@ route("snapall/:id/:origin", ({ id, origin }) => {
   function closeScreen() {
     if (st.aim) { cancelAim(); return; }
     if (!st.shots.length) return navigate(backHash);
-    confirmSheet("Leave this capture?",
+    chDialog(sheets, "Leave this capture?",
       `The ${plural(st.shots.length, "photo", "photos")} in this batch have not been saved to the deal jacket, and leaving clears them.`,
-      "Leave capture", "Keep capturing", () => navigate(backHash));
+      "Leave capture", () => navigate(backHash), "Keep capturing");
   }
 
   function cancelAim() {
