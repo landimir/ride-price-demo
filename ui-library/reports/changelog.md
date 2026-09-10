@@ -1,5 +1,58 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v030 — 2026-09-10
+
+App commit: 0a93d7c · 20 flows · 144 screens · previous: v029
+
+### Added
+- Snap All — burst capture · Sorting the batch
+- Snap All — burst capture · Capture the missing page
+- Snap All — burst capture · The license now complete
+- Snap All — burst capture · Review one photo
+- Snap All — burst capture · Leaving an unsorted batch
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Funded history in range
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Visit details (sheet)
+- Base Payment Agreement · Agreement — ready to sign
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Snap All — camera
+- Snap All — burst capture · Three photos in the batch
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- RP-UI-038 (Minor) — The Gallery button uses an emoji glyph, against the standing rule that every icon slot carries a line icon from the one set, never emoji (owner ruling; RP_ICON).
+- RP-UI-039 (Minor) — The demo note is hidden behind the sticky Confirm button — the automated overlap check flags it (.dr-demonote against #saSave) and the capture shows it: the note's last line sits under the button.
+- RP-UI-040 (Minor) — Three “Accept anyway” link buttons measure 88x28, under the 40px touch floor, and the fixed action column squeezes the row titles into fragments — “Driver's / License” and “Proof of / Income / (Paystub)” wrap to two and three lines.
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v029 — 2026-09-09
 
 App commit: 646c174 · 20 flows · 139 screens · previous: v028

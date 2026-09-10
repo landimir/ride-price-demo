@@ -100,36 +100,6 @@
     "area": "ride-price-mobile.css .rp-card__meta (the owner UI kit) — a kit decision"
   },
   {
-    "id": "RP-UI-038",
-    "severity": "Minor",
-    "flow": "Snap All",
-    "screen": "Capture",
-    "screenshot": "current/18-snap-all/01-capture.png",
-    "issue": "The Gallery button uses an emoji glyph, against the standing rule that every icon slot carries a line icon from the one set, never emoji (owner ruling; RP_ICON).",
-    "observation": "Snap All predates the icon ruling and has not been through a replication package; the glyph is the last emoji the library can find in a control.",
-    "area": "app.js — Snap All capture screen, the Gallery control"
-  },
-  {
-    "id": "RP-UI-039",
-    "severity": "Minor",
-    "flow": "Snap All",
-    "screen": "Results — accepted",
-    "screenshot": "current/18-snap-all/04-results-accepted.png",
-    "issue": "The demo note is hidden behind the sticky Confirm button — the automated overlap check flags it (.dr-demonote against #saSave) and the capture shows it: the note's last line sits under the button.",
-    "observation": "The page reserves no room for its own sticky control; the note needs the same bottom reservation the deal screens give their docks.",
-    "area": "portal.css — Snap All results, bottom reservation beside the sticky Confirm"
-  },
-  {
-    "id": "RP-UI-040",
-    "severity": "Minor",
-    "flow": "Snap All",
-    "screen": "Results",
-    "screenshot": "current/18-snap-all/03-results.png",
-    "issue": "Three “Accept anyway” link buttons measure 88x28, under the 40px touch floor, and the fixed action column squeezes the row titles into fragments — “Driver's / License” and “Proof of / Income / (Paystub)” wrap to two and three lines.",
-    "observation": "harness/touchfloor.mjs walks routes as the Advisor and does not reach the results state behind a scan, so it never measures this control; measure it there or give the links the same 40px hit extension the app's other link buttons carry. The title column needs the width the action column is taking.",
-    "area": "app.js / portal.css — Snap All results rows (.dr-linkbtn.sa-override)"
-  },
-  {
     "id": "RP-UI-041",
     "severity": "Minor",
     "flow": "Client Document Upload (customer's phone)",
@@ -146,7 +116,7 @@
     "screen": "Document sheet",
     "screenshot": "current/17-client-document-upload/08-document-sheet.png",
     "issue": "Two link buttons on the sheet are 27px tall, under the 40px touch floor: “Other income type” (106x27) and “See a good example” (115x27).",
-    "observation": "Same family as RP-UI-029's native controls and the Snap All links: link-styled buttons the floor harness does not reach. A ::before hit extension or a 40px min-height closes both.",
+    "observation": "Same family as RP-UI-029's native controls: link-styled buttons the floor harness does not reach. Snap All was the third of this family and closed it in v030, with a 44px ::after extension carried on its own class — the same device works here. A ::before hit extension or a 40px min-height closes both.",
     "area": "portal.css — the client upload sheet's link buttons"
   },
   {

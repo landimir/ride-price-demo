@@ -1,12 +1,12 @@
-# Ride Price Mobile UI — UX Audit (v029)
+# Ride Price Mobile UI — UX Audit (v030)
 
-Captured 2026-09-09T21:22:17.436Z · viewport 390×844 · app 646c1745f86094374738cb2985b71323494cf849
+Captured 2026-09-10T04:11:17.144Z · viewport 390×844 · app 0a93d7cddd33644bc577b9b9bbbd4095a6334c46
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 1 |
-| Minor | 13 |
+| Minor | 10 |
 | Observation | 9 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
@@ -24,7 +24,7 @@ _None recorded._
 - **Observation:** The chrome rule (v022) removed lede and helper copy from the 19 screens and made the banner slot the one place DEMO appears; the Advisor banner says “Sample data only”, which covers the data, not the sending. The demo is a training tool with no network (architecture invariant), so a screen that claims a send needs one honest line somewhere on the path — the banner slot is the package's own place for it. Copy decision on package screens, so filed rather than changed.
 - **Suggested area to investigate:** app.js — the resolver's link path (obSendGo / waiting status / remote-ready) on the kit; the banner slot
 
-## Minor (13)
+## Minor (10)
 
 ### RP-UI-029 — All (app-wide) · Desking accessories, search fields, filter sheet
 
@@ -54,27 +54,6 @@ _None recorded._
 - **Observation:** A layout on a kit screen, not the kit: the pill could wrap under the identity, or take a fixed width and let the column keep the rest. The only one of the eleven scan screens the face change hurt.
 - **Suggested area to investigate:** app.js / portal.css — the scan flow's confirm card (identity column vs. match pill)
 
-### RP-UI-038 — Snap All · Capture
-
-- **Screenshot:** `current/18-snap-all/01-capture.png`
-- **Issue:** The Gallery button uses an emoji glyph, against the standing rule that every icon slot carries a line icon from the one set, never emoji (owner ruling; RP_ICON).
-- **Observation:** Snap All predates the icon ruling and has not been through a replication package; the glyph is the last emoji the library can find in a control.
-- **Suggested area to investigate:** app.js — Snap All capture screen, the Gallery control
-
-### RP-UI-039 — Snap All · Results — accepted
-
-- **Screenshot:** `current/18-snap-all/04-results-accepted.png`
-- **Issue:** The demo note is hidden behind the sticky Confirm button — the automated overlap check flags it (.dr-demonote against #saSave) and the capture shows it: the note's last line sits under the button.
-- **Observation:** The page reserves no room for its own sticky control; the note needs the same bottom reservation the deal screens give their docks.
-- **Suggested area to investigate:** portal.css — Snap All results, bottom reservation beside the sticky Confirm
-
-### RP-UI-040 — Snap All · Results
-
-- **Screenshot:** `current/18-snap-all/03-results.png`
-- **Issue:** Three “Accept anyway” link buttons measure 88x28, under the 40px touch floor, and the fixed action column squeezes the row titles into fragments — “Driver's / License” and “Proof of / Income / (Paystub)” wrap to two and three lines.
-- **Observation:** harness/touchfloor.mjs walks routes as the Advisor and does not reach the results state behind a scan, so it never measures this control; measure it there or give the links the same 40px hit extension the app's other link buttons carry. The title column needs the width the action column is taking.
-- **Suggested area to investigate:** app.js / portal.css — Snap All results rows (.dr-linkbtn.sa-override)
-
 ### RP-UI-041 — Client Document Upload (customer's phone) · Text message with the link
 
 - **Screenshot:** `current/17-client-document-upload/01-sms.png`
@@ -86,7 +65,7 @@ _None recorded._
 
 - **Screenshot:** `current/17-client-document-upload/08-document-sheet.png`
 - **Issue:** Two link buttons on the sheet are 27px tall, under the 40px touch floor: “Other income type” (106x27) and “See a good example” (115x27).
-- **Observation:** Same family as RP-UI-029's native controls and the Snap All links: link-styled buttons the floor harness does not reach. A ::before hit extension or a 40px min-height closes both.
+- **Observation:** Same family as RP-UI-029's native controls: link-styled buttons the floor harness does not reach. Snap All was the third of this family and closed it in v030, with a 44px ::after extension carried on its own class — the same device works here. A ::before hit extension or a 40px min-height closes both.
 - **Suggested area to investigate:** portal.css — the client upload sheet's link buttons
 
 ### RP-UI-044 — Scan Driver's License · Confirm customer (ambiguous — prop 1)

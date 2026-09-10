@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Improvement Report
 
-Improvement view v001 · built on flow library v029 (app 646c174) · updated 2026-09-09
+Improvement view v001 · built on flow library v030 (app 0a93d7c) · matrix updated 2026-09-10
 
 This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.
 
@@ -496,6 +496,6 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 13. Deal Jacket & Compliance (8 screens)
 14. Customer document request (from the jacket) (3 screens)
 15. Client Document Upload (customer's phone) (10 screens)
-16. Snap All — burst capture (4 screens)
+16. Snap All — burst capture (9 screens)
 17. Document Review (advisor) (3 screens)
 18. Documents — Print Center & Printables (6 screens)

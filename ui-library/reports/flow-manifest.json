@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-09-09T21:22:17.436Z",
-  "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+  "capturedAt": "2026-09-10T04:11:17.144Z",
+  "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-09-09T21:22:17.442Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:11:17.155Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -359,7 +359,7 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-badge.rp-badge--positive Funded · Sep 9 <> .rp-card__name John Smith"
+              ".rp-badge.rp-badge--positive Funded · Sep 10 <> .rp-card__name John Smith"
             ]
           },
           "error": null,
@@ -449,8 +449,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-09-09T21:22:28.242Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:11:30.076Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -779,8 +779,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-09-09T21:22:44.366Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:11:49.031Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -1202,8 +1202,8 @@
         "from": "home/more-sheet",
         "action": "Training documents"
       },
-      "capturedAt": "2026-09-09T21:23:07.093Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:12:13.070Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -1381,15 +1381,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-09-09T21:23:11.030Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:12:17.019Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1, customer-first",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-3ek9k6x",
+          "hash": "#/discovery/d-ikftukk",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1426,7 +1426,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview, Back appears",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-3ek9k6x",
+          "hash": "#/discovery/d-ikftukk",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1454,7 +1454,7 @@
           "key": "question-last",
           "screen": "Discovery — the last question is the hand-off",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-3ek9k6x",
+          "hash": "#/discovery/d-ikftukk",
           "action": "Tap Find vehicles →",
           "next": "discovery-complete",
           "branches": [],
@@ -1482,7 +1482,7 @@
           "key": "discovery-complete",
           "screen": "Discovery complete (sheet)",
           "screenshot": "current/05-discovery/04-discovery-complete.png",
-          "hash": "#/discovery/d-3ek9k6x",
+          "hash": "#/discovery/d-ikftukk",
           "action": "Tap Find matching vehicles",
           "next": "vehicles/inventory",
           "branches": [
@@ -1522,7 +1522,7 @@
           "key": "visit-details",
           "screen": "Visit details (sheet)",
           "screenshot": "current/05-discovery/05-visit-details.png",
-          "hash": "#/discovery/d-kprewz2",
+          "hash": "#/discovery/d-769317z",
           "action": "Tap Done",
           "next": "question-1",
           "branches": [
@@ -1598,8 +1598,8 @@
         "from": "discovery/discovery-complete",
         "action": "Tap Find matching vehicles"
       },
-      "capturedAt": "2026-09-09T21:23:21.737Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:12:28.230Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -1970,8 +1970,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-09-09T21:23:30.249Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:12:37.686Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -2226,8 +2226,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-09-09T21:23:36.809Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:12:44.469Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -2378,7 +2378,7 @@
           "key": "appraisal-empty",
           "screen": "The appraisal form before anyone has typed",
           "screenshot": "current/08-trade-in/05-appraisal-empty.png",
-          "hash": "#/trade/d-dlut1ru",
+          "hash": "#/trade/d-in673w2",
           "action": "Type the vehicle, then Run evaluation",
           "next": "trade-evaluation",
           "branches": [],
@@ -2421,8 +2421,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-09-09T21:23:45.295Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:12:53.313Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -2724,8 +2724,8 @@
         "from": "desking/work-chose",
         "action": "Tap Submit for Team Lead approval, then Continue"
       },
-      "capturedAt": "2026-09-09T21:23:52.135Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:13:00.886Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -2846,8 +2846,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-09T21:23:57.056Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:13:06.420Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -3044,7 +3044,7 @@
               ".rp-option__sub One applicant completes this <> .rp-sheet__sub Deal #48201 · John Smith · j",
               ".rp-option__title Joint application <> .rp-step__title Link sent by text",
               ".rp-option__sub A co-buyer applies with them <> .rp-step__title Link sent by text",
-              ".rp-option__sub A co-buyer applies with them <> .rp-step__sub (347) 555-1212 · 5:24 PM",
+              ".rp-option__sub A co-buyer applies with them <> .rp-step__sub (347) 555-1212 · 12:13 AM",
               ".rp-section Co-buyer <> .rp-step__sub Waiting on the co-buyer",
               ".rp-section Co-buyer <> .rp-status Waiting",
               ".rp-row__title Send a secure link <> .rp-step__title Identity verified"
@@ -3175,8 +3175,8 @@
         "from": "discovery/visit-details",
         "action": "Tap Co-buyer in Visit details"
       },
-      "capturedAt": "2026-09-09T21:24:06.726Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:13:17.087Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -3477,8 +3477,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-09-09T21:24:13.559Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:13:25.818Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -3667,8 +3667,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-09-09T21:24:16.859Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:13:31.506Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -3943,7 +3943,7 @@
               ".rp-stage.rp-stage--on 2 Options <> .rp-sheet__sub Vehicle Service Contract",
               ".rp-stage 3 Forms <> .rp-sheet__sub Vehicle Service Contract",
               ".rp-stage 4 Finalize <> .rp-sheet__sub Vehicle Service Contract",
-              ".rp-notice.rp-notice--success Terms marked presented 5:24  <> .rp-kv__head What the customer is agreein",
+              ".rp-notice.rp-notice--success Terms marked presented 12:13 <> .rp-kv__head What the customer is agreein",
               ".rp-pkg__item Preferred <>  Products added"
             ]
           },
@@ -4186,8 +4186,8 @@
         "from": "discovery/question-1",
         "action": "Tap the Jacket chip in the context row"
       },
-      "capturedAt": "2026-09-09T21:24:31.806Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:13:48.909Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -4500,8 +4500,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-09-09T21:24:39.818Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:13:57.246Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -4601,7 +4601,7 @@
             "overlaps": [
               ".rp-ready__note 3 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 3 needed <>  Sep 9, 5:24 PM",
+              ".rp-bucket__badge 3 needed <>  Sep 10, 12:13 AM",
               ".rp-doc__why Front captured in the Custom <>  Customer opened",
               ".rp-doc__why Front captured in the Custom <>  Documents uploaded",
               ".rp-doc__state.rp-doc__state--part Back needed <>  Waiting",
@@ -4629,8 +4629,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-09-09T21:24:43.555Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:14:01.141Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -4897,7 +4897,7 @@
               "id": "RP-UI-042",
               "severity": "Minor",
               "issue": "Two link buttons on the sheet are 27px tall, under the 40px touch floor: “Other income type” (106x27) and “See a good example” (115x27).",
-              "observation": "Same family as RP-UI-029's native controls and the Snap All links: link-styled buttons the floor harness does not reach. A ::before hit extension or a 40px min-height closes both.",
+              "observation": "Same family as RP-UI-029's native controls: link-styled buttons the floor harness does not reach. Snap All was the third of this family and closed it in v030, with a 44px ::after extension carried on its own class — the same device works here. A ::before hit extension or a 40px min-height closes both.",
               "area": "portal.css — the client upload sheet's link buttons"
             }
           ]
@@ -4966,13 +4966,13 @@
       "id": "snap-all",
       "area": "18-snap-all",
       "title": "Snap All — burst capture",
-      "description": "Shoot every outstanding document in one go; the simulated sorter deals the shots onto the queue and shows what verified, what needs attention, and what is still missing.",
+      "description": "Shoot every outstanding document in one go; the simulated sorter deals the shots onto the queue and shows what verified, what needs attention, and what is still missing. On the UI kit since the owner's Snap All package (2026-09-09): the kit's Task, with a camera, a strip of captures, a result row whose actions sit under a full-width title, and a sorting screen between the two. The same route serves the customer from the client link, where the kit's turned-to-the-customer mode hides the role control.",
       "entry": {
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-09-09T21:24:56.184Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:26:01.899Z",
+      "appCommit": "e61f6dcb40a60f0a2ee232aeebec71b651144938",
       "screens": [
         {
           "step": 1,
@@ -4980,16 +4980,18 @@
           "screen": "Snap All — camera",
           "screenshot": "current/18-snap-all/01-capture.png",
           "hash": "#/snapall/d-demo1/advisor",
-          "action": "Shutter ×3",
+          "action": "Shutter, or Gallery",
           "next": "thumbs",
           "branches": [],
-          "notes": "",
+          "notes": "The dock states where the batch is going even with nothing in it — disabled, reading Process photos. The viewfinder says No live preview because the panel is drawn, not a camera feed: the shutter opens the device camera.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [],
+            "tinyTargets": [
+              "#saGallery.rp-chip.sa-gallery Gallery 94x32"
+            ],
             "clipped": [],
             "overlaps": []
           },
@@ -5000,26 +5002,51 @@
             "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-038",
-              "severity": "Minor",
-              "issue": "The Gallery button uses an emoji glyph, against the standing rule that every icon slot carries a line icon from the one set, never emoji (owner ruling; RP_ICON).",
-              "observation": "Snap All predates the icon ruling and has not been through a replication package; the glyph is the last emoji the library can find in a control.",
-              "area": "app.js — Snap All capture screen, the Gallery control"
-            }
-          ]
+          "issues": []
         },
         {
           "step": 2,
           "key": "thumbs",
-          "screen": "Three shots taken",
+          "screen": "Three photos in the batch",
           "screenshot": "current/18-snap-all/02-thumbs.png",
           "hash": "#/snapall/d-demo1/advisor",
-          "action": "Process 3 Photos & Auto-Sort →",
+          "action": "Process 3 photos & auto-sort",
+          "next": "sorting",
+          "branches": [],
+          "notes": "The strip exists only when a photo does. Each tile opens the photo it stands for; the 24px remove circle over its corner owns a 44px hit region.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".sa-thumb__x.sa-hit  24x24",
+              ".sa-thumb__x.sa-hit  24x24",
+              ".sa-thumb__x.sa-hit  24x24",
+              "#saGallery.rp-chip.sa-gallery Gallery 94x32"
+            ],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 3,
+          "key": "sorting",
+          "screen": "Sorting the batch",
+          "screenshot": "current/18-snap-all/03-sorting.png",
+          "hash": "#/snapall/d-demo1/advisor",
+          "action": "(the sort finishes on its own)",
           "next": "results",
           "branches": [],
-          "notes": "",
+          "notes": "The one state with no dock. Transient by design — the batch is being dealt onto the queue.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -5039,24 +5066,85 @@
           "issues": []
         },
         {
-          "step": 3,
+          "step": 4,
           "key": "results",
           "screen": "Auto-sort results",
-          "screenshot": "current/18-snap-all/03-results.png",
+          "screenshot": "current/18-snap-all/04-results.png",
           "hash": "#/snapall/d-demo1/advisor",
-          "action": "Accept Anyway on a flagged card",
+          "action": "Accept anyway on a flagged row",
           "next": "results-accepted",
           "branches": [],
-          "notes": "",
+          "notes": "Each row's title has the full width and its two actions sit underneath at 44px, the repair naming the page it wants — Retake, Add back, Add paystub. The demo note stands above the dock rather than under it.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 5,
+          "key": "results-accepted",
+          "screen": "Results — exception accepted",
+          "screenshot": "current/18-snap-all/05-results-accepted.png",
+          "hash": "#/snapall/d-demo1/advisor",
+          "action": "Add back on the driver's license",
+          "next": "aimed-capture",
+          "branches": [],
+          "notes": "The override wears an amber badge with Undo beside it, and the reason it was accepted over stays on the row. It survives a re-sort; Undo puts the flag back for the next pass too.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              ".dr-linkbtn.sa-override Accept anyway 88x28",
-              ".dr-linkbtn.sa-override Accept anyway 88x28",
-              ".dr-linkbtn.sa-override Accept anyway 88x28"
+              ".sa-act.sa-hit Undo 34x40"
+            ],
+            "clipped": [],
+            "overlaps": [
+              " Demo — the sorting is simula <> #saSave.rp-primary Confirm & save to deal jacke"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 6,
+          "key": "aimed-capture",
+          "screen": "Capture the missing page",
+          "screenshot": "current/18-snap-all/06-aimed-capture.png",
+          "hash": "#/snapall/d-demo1/advisor",
+          "action": "Take the page, then Use photo & return",
+          "next": "license-complete",
+          "branches": [],
+          "notes": "An aim holds exactly one candidate and destroys nothing on the way in — cancelling leaves the batch as it found it. The gallery drops multi-select while a page is aimed.",
+          "status": "ok",
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".sa-thumb__x.sa-hit  24x24",
+              ".sa-thumb__x.sa-hit  24x24",
+              ".sa-thumb__x.sa-hit  24x24",
+              "#saGallery.rp-chip.sa-gallery Gallery 94x32"
             ],
             "clipped": [],
             "overlaps": []
@@ -5064,60 +5152,123 @@
           "error": null,
           "size": {
             "width": 390,
-            "height": 951,
-            "pageHeight": 951
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-040",
-              "severity": "Minor",
-              "issue": "Three “Accept anyway” link buttons measure 88x28, under the 40px touch floor, and the fixed action column squeezes the row titles into fragments — “Driver's / License” and “Proof of / Income / (Paystub)” wrap to two and three lines.",
-              "observation": "harness/touchfloor.mjs walks routes as the Advisor and does not reach the results state behind a scan, so it never measures this control; measure it there or give the links the same 40px hit extension the app's other link buttons carry. The title column needs the width the action column is taking.",
-              "area": "app.js / portal.css — Snap All results rows (.dr-linkbtn.sa-override)"
-            }
-          ]
+          "issues": []
         },
         {
-          "step": 4,
-          "key": "results-accepted",
-          "screen": "Results — exception accepted",
-          "screenshot": "current/18-snap-all/04-results-accepted.png",
+          "step": 7,
+          "key": "license-complete",
+          "screen": "The license now complete",
+          "screenshot": "current/18-snap-all/07-license-complete.png",
           "hash": "#/snapall/d-demo1/advisor",
-          "action": "Confirm & Save to Deal Jacket →",
+          "action": "Confirm & save to deal jacket",
           "next": "deal-jacket/jacket-overview",
           "branches": [],
-          "notes": "",
+          "notes": "Two sides on file, so the licence verifies; the insurance beat is already spent. Confirm writes the pages and the reasons into the jacket and returns there.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              ".dr-linkbtn.sa-override Accept anyway 88x28",
-              ".dr-linkbtn.sa-override Accept anyway 88x28"
+              ".sa-act.sa-hit Undo 34x40"
             ],
             "clipped": [],
             "overlaps": [
-              ".dr-demonote Demo — the sorting is simula <> #saSave.sa-save Confirm & Save to Deal Jacke"
+              " Demo — the sorting is simula <> #saSave.rp-primary Confirm & save to deal jacke"
             ]
           },
           "error": null,
           "size": {
             "width": 390,
-            "height": 980,
-            "pageHeight": 980
+            "height": 844,
+            "pageHeight": 844
           },
           "scrollShot": null,
-          "issues": [
-            {
-              "id": "RP-UI-039",
-              "severity": "Minor",
-              "issue": "The demo note is hidden behind the sticky Confirm button — the automated overlap check flags it (.dr-demonote against #saSave) and the capture shows it: the note's last line sits under the button.",
-              "observation": "The page reserves no room for its own sticky control; the note needs the same bottom reservation the deal screens give their docks.",
-              "area": "portal.css — Snap All results, bottom reservation beside the sticky Confirm"
-            }
-          ]
+          "issues": []
+        },
+        {
+          "step": 8,
+          "key": "photo-review",
+          "screen": "Review one photo",
+          "screenshot": "current/18-snap-all/08-photo-review.png",
+          "hash": "#/snapall/d-demo1/advisor",
+          "action": "Keep photo, or Remove photo",
+          "next": null,
+          "branches": [],
+          "notes": "Nothing could look at a capture before the kit conversion — only delete it. The gradient carries Keep here; Remove is the quiet link.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".sa-thumb__x.sa-hit  24x24",
+              ".sa-thumb__x.sa-hit  24x24",
+              ".sa-thumb__x.sa-hit  24x24",
+              "#saGallery.rp-chip.sa-gallery Gallery 94x32",
+              ".rp-sheet__close  32x32"
+            ],
+            "clipped": [],
+            "overlaps": [
+              "#saProcess.rp-primary Process 3 photos & auto-sort <> .rp-primary Keep photo",
+              "#saProcess.rp-primary Process 3 photos & auto-sort <> #saDrop.rp-link.sa-hit Remove photo"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 9,
+          "key": "leave-guard",
+          "screen": "Leaving an unsorted batch",
+          "screenshot": "current/18-snap-all/09-leave-guard.png",
+          "hash": "#/snapall/d-demo1/advisor",
+          "action": "Leave capture, or Keep capturing",
+          "next": null,
+          "branches": [],
+          "notes": "The batch is session-only, so leaving is what discards it — the sheet says how many. Owner's call on the screenshots: the gradient carries the action the sheet was raised to do, and the quiet link is the way out. The focus goes to the link, not the gradient.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".sa-thumb__x.sa-hit  24x24",
+              ".sa-thumb__x.sa-hit  24x24",
+              "#saGallery.rp-chip.sa-gallery Gallery 94x32"
+            ],
+            "clipped": [],
+            "overlaps": [
+              "#saGallery.rp-chip.sa-gallery Gallery <> #saSheetTitle.rp-sheet__title Leave this capture?",
+              "#saGallery.rp-chip.sa-gallery Gallery <> .sa-confirmcopy The 2 photos in this batch h",
+              ".sa-count 2photos <> #saSheetTitle.rp-sheet__title Leave this capture?",
+              ".sa-count 2photos <> .sa-confirmcopy The 2 photos in this batch h",
+              " 2 <> #saSheetTitle.rp-sheet__title Leave this capture?",
+              " 2 <> .sa-confirmcopy The 2 photos in this batch h",
+              "#saProcess.rp-primary Process 2 photos & auto-sort <> #saConfirmGo.rp-primary Leave capture",
+              "#saProcess.rp-primary Process 2 photos & auto-sort <> .rp-link.sa-hit Keep capturing"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
         }
       ]
     },
@@ -5130,8 +5281,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-09-09T21:25:00.128Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:14:25.074Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
@@ -5235,8 +5386,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-09-09T21:25:08.602Z",
-      "appCommit": "646c1745f86094374738cb2985b71323494cf849",
+      "capturedAt": "2026-09-10T04:14:33.810Z",
+      "appCommit": "0a93d7cddd33644bc577b9b9bbbd4095a6334c46",
       "screens": [
         {
           "step": 1,
