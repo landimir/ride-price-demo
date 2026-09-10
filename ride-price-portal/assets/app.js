@@ -1906,11 +1906,15 @@ route("deals", () => {
 
   $("#dealSearch").oninput = (e) => { dealsUI.q = e.target.value; paint(); };
   $$(".dq-chipbtn").forEach(p => p.onclick = () => { dealsUI.pipe = p.dataset.pipe; paint(); });
-  $("#dealScanBtn").onclick = () => openScanFlow({ mode: "customer", onDone: (cust) => {
-    /* same stamp as the resolver's scan path: the license address was just
-       confirmed through the scan's own review */
-    cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), address: { confirmedAt: new Date().toISOString(), source: "license" } });
-    Store.save();
+  $("#dealScanBtn").onclick = () => openScanFlow({ mode: "customer", onDone: (cust, persona) => {
+    /* same stamp as the resolver's scan path, under the same condition: only
+       when a licence was actually READ. The scan's manual licence-number
+       lookup hands the customer back with no persona — nothing photographed,
+       no address extracted — and stamping there claimed both. */
+    if (persona) {
+      cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), address: { confirmedAt: new Date().toISOString(), source: "license" } });
+      Store.save();
+    }
     startVisit(cust.id);
   } });
 
@@ -1977,6 +1981,14 @@ route("customers", () => {
      exactly the same way; only what finish() does with them differs */
   const missionDeal = mission && (mission.kind === "cobuyer" || mission.kind === "driver") ? Store.deal(mission.dealId) : null;
   if (missionDeal && mission.open === "manual") st.mode = "manual";
+  /* the test-drive door at the foot of this route taps #scanBtn, and only the
+     idle screen has one. A finished upload session — which may belong to
+     somebody else entirely — promotes idle to remote-ready inside render(),
+     so the door found no button and silently did nothing: the advisor asked
+     for the scan and got a stranger's upload instead. Hold the promotion for
+     the one render the door needs; the session is untouched and surfaces
+     again on the next render. */
+  let scanDoorPending = !!(missionDeal && mission.open === "scan");
 
   /* the one exit for every resolver path. The dedupe guard is absolute: the
      primary cannot co-sign their own loan, and an already-attached co-buyer
@@ -2052,12 +2064,20 @@ route("customers", () => {
      an unparseable string stays unparsed and the field says the format. */
   function parseAddress(text) {
     const t = String(text || "").trim();
+    /* ...and never with a part missing. The city group is .+?, which a lone
+       space satisfies, so "20 Ditmars Blvd,  , NY 11106" parsed with an empty
+       town: the field's hint offered it as a standardized address, the manual
+       save wrote it with a confirmedAt over it, and the different-address
+       sheet offered a pick that confirmAddress then silently refused. hasAddr
+       is the one test for "an address"; applied here, every caller gets the
+       same answer. */
+    const whole = (a) => hasAddr(a) ? a : null;
     let m = t.match(/^(.+?),\s*(.+?),\s*([A-Za-z]{2})\.?\s+(\d{5})$/);
-    if (m) return { address: m[1].trim(), city: m[2].trim(), state: m[3].toUpperCase(), zip: m[4] };
+    if (m) return whole({ address: m[1].trim(), city: m[2].trim(), state: m[3].toUpperCase(), zip: m[4] });
     m = t.match(/^(.+?),?\s+(\d{5})$/);
     if (m && RIDE_PRICE_DATA.zipLookup[m[2]]) {
       const hit = RIDE_PRICE_DATA.zipLookup[m[2]];
-      return { address: m[1].replace(/,$/, "").trim(), city: hit.city, state: hit.state, zip: m[2] };
+      return whole({ address: m[1].replace(/,$/, "").trim(), city: hit.city, state: hit.state, zip: m[2] });
     }
     return null;
   }
@@ -2225,7 +2245,7 @@ route("customers", () => {
   /* ---- render + wiring ---- */
   function render() {
     const s = session();
-    if (st.mode === "idle" && s && s.doneAt) st.mode = "remote-ready";
+    if (st.mode === "idle" && s && s.doneAt && !scanDoorPending) st.mode = "remote-ready";
     view().innerHTML =
       st.mode === "found" ? foundHtml()
       : st.mode === "manual" ? manualHtml()
@@ -2256,18 +2276,40 @@ route("customers", () => {
     const sb = $("#searchBtn");
     if (sb) {
       const run = () => {
-        const q = $("#obSearch").value.trim().toLowerCase();
-        if (!q) { $("#obSearch").focus(); return; }
-        const digits = q.replace(/\D/g, "");
+        const raw = $("#obSearch").value.trim();
+        const q = raw.toLowerCase();
+        /* an empty query is not a search: clear what it replaces, or the
+           previous hits stay on screen under a box the advisor just emptied */
+        if (!q) { st.results = null; render(); const again = $("#obSearch"); if (again) again.focus(); return; }
+        /* every field the filter reads can be absent on an imported or
+           half-typed record — c.email.toLowerCase() on one threw, and a throw
+           inside .click() goes to window.onerror, so the button simply did
+           nothing and the screen never changed */
+        const txt = (x) => String(x || "").toLowerCase();
         const norm = (x) => String(x || "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+        /* a number typed or pasted with its country code is the same number:
+           records hold ten digits, so an 11-digit query starting with 1 could
+           never match one (measured — "+1 (718) 555-0134" found nobody, while
+           the same number without it found John Smith) */
+        const digitsOf = (x) => String(x || "").replace(/\D/g, "");
+        const dig = (x) => { const d = digitsOf(x); return d.length === 11 && d.charAt(0) === "1" ? d.slice(1) : d; };
+        const digits = dig(raw), typed = digitsOf(raw);
+        const lic = norm(q);
         st.results = Store.s.customers.filter(c =>
-          (c.first + " " + c.last).toLowerCase().includes(q) ||
-          c.last.toLowerCase().includes(q) ||
-          (digits.length >= 4 && c.phone.replace(/\D/g, "").includes(digits)) ||
-          c.email.toLowerCase().includes(q) ||
-          (c.license && norm(c.license.number).includes(norm(q))));
+          txt([c.first, c.last].filter(Boolean).join(" ")).includes(q) ||
+          txt(c.last).includes(q) ||
+          /* both ways: stripped, so "+1 (718) 555-0134" finds a ten-digit
+             record, and as typed, so a record stored WITH its +1 still answers
+             a partial that includes the 1 — as it did before the strip */
+          (digits.length >= 4 && (dig(c.phone).includes(digits) || digitsOf(c.phone).includes(typed))) ||
+          txt(c.email).includes(q) ||
+          /* norm() of a punctuation-only query is "", and includes("") is true
+             for every record carrying a licence — "..." listed them all */
+          (!!lic && c.license && norm(c.license.number).includes(lic)));
         render();
-        const inp = $("#obSearch"); inp.value = q; /* the query survives the render */
+        /* the query survives the render AS TYPED: writing back the lowercased
+           copy rewrote the advisor's own capitalisation under the cursor */
+        const inp = $("#obSearch"); if (inp) inp.value = raw;
       };
       sb.onclick = run;
       $("#obSearch").onkeydown = (e) => { if (e.key === "Enter") run(); };
@@ -2277,16 +2319,36 @@ route("customers", () => {
     if (scan) scan.onclick = () => openScanFlow({
       mode: "customer",
       onManual: () => { st.mode = "manual"; render(); },
-      onDone: (cust) => {
-        /* the scan already confirmed identity and wrote the license address —
-           record it as the confirmed registration address (source: license) */
-        cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), address: { confirmedAt: new Date().toISOString(), source: "license" } });
-        Store.save();
+      onDone: (cust, persona) => {
+        /* the scan confirmed identity and wrote the license address, so record
+           it as the confirmed registration address (source: license) — but
+           only when a licence was actually READ. The same flow's manual
+           licence-number lookup hands the customer back with no persona:
+           nothing was photographed, and no address was extracted. Stamping
+           there claimed a licence photo on file and an address checked
+           against a licence nobody ever produced (measured: refuse every
+           photo, then Search by number, and Cheri Bridwell came back
+           stamped). */
+        if (persona) {
+          cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), address: { confirmedAt: new Date().toISOString(), source: "license" } });
+          Store.save();
+        }
         finish(cust.id);
       }
     });
 
-    const send = $("#obSendLink"); if (send) send.onclick = openSendSheet;
+    /* one secure upload at a time: the sheet's Send replaces Store.s.idSession
+       outright, so offered over a session in flight it was a one-tap overwrite
+       of the customer's work, a finished upload included. The mission's own
+       auto-open already yields to any session (at the foot of this route); a
+       tap does the same and takes the advisor to that session, where
+       cancelling or discarding it is their decision to make. */
+    const send = $("#obSendLink"); if (send) send.onclick = () => {
+      const s = session();
+      if (!s) { openSendSheet(); return; }
+      toast("A secure upload is already open — finish or cancel it first");
+      st.mode = s.doneAt ? "remote-ready" : "waiting"; render(); window.scrollTo(0, 0);
+    };
     const sess = $("#obSession"); if (sess) sess.onclick = () => { st.mode = session().doneAt ? "remote-ready" : "waiting"; render(); };
     const cancelS = $("#obCancelSession"); if (cancelS) cancelS.onclick = () => { Store.s.idSession = null; Store.save(); st.mode = "idle"; render(); };
     const discard = $("#obDiscardSession"); if (discard) discard.onclick = () => { Store.s.idSession = null; Store.save(); st.mode = "idle"; render(); };
@@ -2315,11 +2377,13 @@ route("customers", () => {
       if (markMissing(view(), bad)) return;
       const c = {
         id: uid("c"), first: parts.slice(0, -1).join(" "), middle: "", last: parts[parts.length - 1],
-        phone, email, creditScore: 700, createdAt: new Date().toISOString(),
-        address: parsed.address, city: parsed.city, state: parsed.state, zip: parsed.zip,
-        onboard: { address: { confirmedAt: new Date().toISOString(), source: "typed" } }
+        phone, email, creditScore: 700, createdAt: new Date().toISOString()
       };
-      Store.s.customers.push(c); Store.save();
+      Store.s.customers.push(c);
+      /* the one write path for a confirmed registration address, here too: it
+         writes the four fields and the stamp together and saves, so no caller
+         can record a confirmation over an address that is not there */
+      confirmAddress(c, parsed, "typed");
       toast("Customer created");
       finish(c.id);
     };
@@ -2353,6 +2417,19 @@ route("customers", () => {
         const dig = (x) => String(x || "").replace(/\D/g, "");
         c = Store.s.customers.find(x => dig(x.phone) && dig(x.phone) === dig(s.phone) && !(x.license && x.license.number)) || null;
       }
+      /* an EXISTING record takes the upload before any guard runs: it is that
+         person's own identity, and it stays whatever the mission then decides.
+         Measured against the old portal: a refused driver attach left John
+         Smith holding the licence he had just uploaded — the upload's whole
+         point. The first version of the orphan fix withheld even that, so the
+         session could only be discarded and the upload was lost. */
+      const stampOnboard = (x) => {
+        Object.assign(x, { address: a.address, city: a.city, state: a.state, zip: a.zip });
+        x.onboard = Object.assign({}, x.onboard, {
+          phoneAt: s.doneAt, faceAt: s.faceAt, licensePhotoAt: s.photoAt, secondSide: "pending",
+          address: { confirmedAt: s.addressConfirmedAt, source: "license" }
+        });
+      };
       if (c) {
         Object.assign(c, {
           first: p.first, middle: p.middle || "", last: p.last, dob: p.dob || c.dob,
@@ -2362,35 +2439,40 @@ route("customers", () => {
            them into the link sheet, and a record's own email is the customer's */
         if (!c.phone && s.phone) c.phone = s.phone;
         if (!c.email && s.email) c.email = s.email;
-      } else {
+        stampOnboard(c);
+      }
+      /* the mission guard runs before a NEW record is created, and before the
+         session is spent. Creating first meant a refusal returned having added
+         a customer attached to nothing — and the button stayed live, so every
+         further tap added another (measured: three taps, three orphans). A
+         refusal saves what the existing record took above and nothing else;
+         the completed upload survives because clearing it still happens last
+         (PR #55's finding, which stands). */
+      if (sMission) {
+        const mD = Store.deal(sMission.dealId);
+        /* no record yet means a person this deal cannot already be holding */
+        const cid = c ? c.id : null;
+        if (mD && cid && cid === mD.customerId) {
+          Store.save();
+          toast(sMission.kind === "driver"
+            ? "That's the customer on this deal — they're already the driver"
+            : "That's the primary buyer — a co-buyer must be a different person");
+          return;
+        }
+        if (sMission.kind === "cobuyer") {
+          /* same contract as finish(): the pointer resolves or it is nothing */
+          const existingCo = mD && mD.coBuyerId ? Store.customer(mD.coBuyerId) : null;
+          if (existingCo && existingCo.id !== cid) { Store.save(); toast("This deal already has a co-buyer"); return; }
+        }
+      }
+      if (!c) {
         c = {
           id: uid("c"), first: p.first, middle: p.middle || "", last: p.last, dob: p.dob || "",
           phone: s.phone, email: s.email, creditScore: 700, createdAt: new Date().toISOString(),
-          address: a.address, city: a.city, state: a.state, zip: a.zip,
           license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
         };
         Store.s.customers.push(c);
-      }
-      Object.assign(c, { address: a.address, city: a.city, state: a.state, zip: a.zip });
-      c.onboard = Object.assign({}, c.onboard, {
-        phoneAt: s.doneAt, faceAt: s.faceAt, licensePhotoAt: s.photoAt, secondSide: "pending",
-        address: { confirmedAt: s.addressConfirmedAt, source: "license" }
-      });
-      /* the mission guard runs BEFORE the session is spent: a refusal must
-         leave the completed upload intact — clearing first threw away the
-         customer's finished session over the advisor's mistake, forcing a
-         whole new link (review find). The identity updates written above are
-         that person's own data and rightly stay. */
-      if (sMission && sMission.kind === "driver") {
-        const mD = Store.deal(sMission.dealId);
-        if (mD && c.id === mD.customerId) { Store.save(); toast("That's the customer on this deal — they're already the driver"); return; }
-      }
-      if (sMission && sMission.kind === "cobuyer") {
-        const mD = Store.deal(sMission.dealId);
-        if (mD && c.id === mD.customerId) { Store.save(); toast("That's the primary buyer — a co-buyer must be a different person"); return; }
-        /* same contract as finish(): the pointer resolves or it is nothing */
-        const existingCo = mD && mD.coBuyerId ? Store.customer(mD.coBuyerId) : null;
-        if (existingCo && existingCo.id !== c.id) { Store.save(); toast("This deal already has a co-buyer"); return; }
+        stampOnboard(c);
       }
       Store.s.idSession = null;
       Store.save();
@@ -2455,7 +2537,7 @@ route("customers", () => {
   /* the test drive's "Scan physical license" door: the resolver's own scan,
      opened for the advisor, so the scan → confirm → attach path is the one
      every other scan takes */
-  if (missionDeal && mission.open === "scan") { const sb = $("#scanBtn"); if (sb) sb.click(); }
+  if (missionDeal && mission.open === "scan") { scanDoorPending = false; const sb = $("#scanBtn"); if (sb) sb.click(); }
 });
 
 /* the customer's own secure-upload session (onboarding v3): opened from the
