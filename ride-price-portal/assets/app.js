@@ -9912,7 +9912,15 @@ route("snapall/:id/:origin", ({ id, origin }) => {
   const st = { screen: "capture", shots: [], results: null, aim: null, aimShot: null,
                passes: 0, beat: {}, overrides: {}, sorting: false };
   const releaseShot = (s) => { try { URL.revokeObjectURL(s.url); } catch (e) {} };
-  function cleanup() { st.shots.forEach(releaseShot); st.shots = []; window.removeEventListener("hashchange", cleanup); }
+  function cleanup() {
+    /* `dead` is what every async continuation on this screen checks. The
+       decode below is asynchronous and the router is not, so leaving while
+       a pick is in flight used to land in settled() afterwards and repaint
+       Snap All over whatever had replaced it (review lesson 5). */
+    st.dead = true;
+    st.shots.forEach(releaseShot); st.shots = [];
+    window.removeEventListener("hashchange", cleanup);
+  }
   window.addEventListener("hashchange", cleanup);
 
   /* the kit sizes .rp-tile's glyph itself; everything else on this screen is
@@ -9976,6 +9984,11 @@ route("snapall/:id/:origin", ({ id, origin }) => {
   }
   function undoRow(r) {
     delete st.overrides[r.id];
+    /* the beat is spent once per document per session, which is what stops
+       a flag firing twice — but an advisor who takes an override BACK has
+       said the exception is not accepted, and leaving the beat spent let the
+       next pass verify it in silence. Undo is a full undo. */
+    delete st.beat[r.id];
     /* the row keeps its issue and its kind, so putting it back is a status
        change and nothing else — the pages it actually has are untouched */
     r.status = "attention"; r.override = false; r.detail = null;
@@ -10012,6 +10025,12 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       }
     });
     Store.save();
+    /* Every shot belongs to a row by construction: buildResults deals ALL of
+       them onto the queue, and a pick that lands while the results are up
+       re-sorts (see settled), so there is nothing here to release that the
+       loop above has not already handed to a document. A sweep for the
+       leftovers stood here until mutation testing showed nothing could ever
+       reach it; snapall2 asserts the invariant instead. */
     st.shots = []; /* the kept URLs now belong to the documents */
     toast("Batch sorted. Verified documents moved into the Deal Jacket.");
     navigate(backHash);
@@ -10066,7 +10085,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
     return `<div class="sa-doc">
       <div class="sa-doc__head"><span class="rp-tile">${rpIconGlyph(drRowIconKey(r.id))}</span>
         <div class="sa-doc__body">
-          <span class="sa-doc__title">${esc(r.title)}</span>
+          <span class="rp-row__title">${esc(r.title)}</span>
           <p class="sa-doc__meta">${esc(meta)}</p>
           ${needs ? `<p class="sa-doc__issue">${saIcon("alert", "")}${esc(r.issue)}</p>`
                   : r.override ? `<p class="sa-doc__meta">${esc(r.detail)}</p>`
@@ -10144,7 +10163,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
     sheets.open(`<h2 class="rp-sheet__title">${esc(title)}</h2>
       <p class="sa-confirmcopy">${esc(body)}</p>
       <button type="button" class="rp-primary" id="saConfirmGo">${esc(goLabel)}</button>
-      <button type="button" class="rp-link sa-hit" data-sheet-close>${esc(keepLabel)}</button>`, (sheet) => {
+      <button type="button" class="rp-link sa-hit" data-sheet-close autofocus>${esc(keepLabel)}</button>`, (sheet) => {
       $("#saConfirmGo", sheet).onclick = () => { sheets.close(); onConfirm(); };
     });
   }
@@ -10199,6 +10218,10 @@ route("snapall/:id/:origin", ({ id, origin }) => {
     const settled = () => {
       if (--left) return;
       const kept = slots.filter(Boolean);
+      /* the screen is gone and its batch went with it: release what arrived
+         late and say nothing — a toast and a render here would both land on
+         somebody else's screen */
+      if (st.dead) { kept.forEach(releaseShot); return; }
       /* an aimed page holds ONE candidate: whatever it was holding is released
          so a second pick replaces it rather than adding a page nobody asked for */
       if (st.aim && kept.length) {
@@ -10209,6 +10232,11 @@ route("snapall/:id/:origin", ({ id, origin }) => {
         st.aimShot = kept[0].id;
       }
       st.shots.push(...kept);
+      /* a pick can land after the screen has moved on — an aim cancelled
+         while its photo was still decoding — and a batch the results do not
+         know about is one the Confirm cannot commit. Re-sort so the two
+         always describe the same photos. */
+      if (st.screen === "results" && kept.length) st.results = buildResults();
       /* a file the browser cannot decode is not a photo: say so, and leave
          every photo already in the batch exactly where it was */
       if (bad) toast(bad === 1 ? "That file could not be read as a photo — nothing was added."
@@ -10230,7 +10258,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
     /* NAVIGATING AWAY mid-sort must not let the timer write state and repaint
        over whatever screen is showing by then — the jacket's send lock learned
        this the hard way */
-    const alive = () => !!$("#saSorting") && document.contains($("#saSorting"));
+    const alive = () => !st.dead && !!$("#saSorting") && document.contains($("#saSorting"));
     setTimeout(() => {
       st.sorting = false;
       if (!alive()) return;
@@ -10240,7 +10268,14 @@ route("snapall/:id/:origin", ({ id, origin }) => {
 
   /* ---------------- paint ---------------- */
 
+  let painted = null;   /* which screen the last paint drew */
   function render() {
+    /* a re-render on the SAME screen keeps its place — accepting an
+       exception on the last row used to jump back to the top, which is the
+       jacket's lesson 6 in a screen that also grows as it is used. A change
+       of screen starts at the top, as a new screen should. */
+    const was = $(".rp-page");
+    const keep = was && painted === st.screen ? was.scrollTop : 0;
     const content = (st.screen === "results" ? resultsScreen() : st.screen === "sorting" ? sortingScreen() : captureScreen())
       /* the trainer's way back to the advisor's side rides INSIDE the page:
          the kit's screen is the viewport and clips anything after it */
@@ -10259,6 +10294,11 @@ route("snapall/:id/:origin", ({ id, origin }) => {
 
     $("#saClose").onclick = closeScreen;
     chFitDock();
+    painted = st.screen;
+    if (keep) {
+      const page = $(".rp-page");
+      if (page) page.scrollTop = Math.min(keep, Math.max(0, page.scrollHeight - page.clientHeight));
+    }
     /* the customer's screen has no role control to wire — the kit hides it */
     if (!clientSide) chWireRole(sheets, render);
     drWireDebug(deal);
@@ -10271,12 +10311,9 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       $$("[data-sa-retake]").forEach(b => b.onclick = () => {
         const flagged = st.results.find(r => r.id === b.dataset.saRetake);
         if (!flagged) return;
-        /* a bad photo is replaced; a missing page is added to — the same
-           rule the row path follows, so the two never disagree */
-        if (flagged.kind !== "pages") {
-          flagged.shots.forEach(releaseShot);
-          st.shots = st.shots.filter(s => s.target !== flagged.id);
-        }
+        /* nothing is dropped here: a cancelled aim has to leave the batch
+           exactly as it found it. What a retake replaces is replaced when the
+           aim RETURNS — see #saUseAim. */
         st.aim = { id: flagged.id, title: flagged.title, issue: flagged.issue, kind: flagged.kind };
         st.aimShot = null;
         st.screen = "capture"; render();
@@ -10302,6 +10339,16 @@ route("snapall/:id/:origin", ({ id, origin }) => {
     $$("[data-unshot]").forEach(b => b.onclick = () => confirmRemove(b.dataset.unshot));
     if ($("#saProcess")) $("#saProcess").onclick = startSort;
     if ($("#saUseAim")) $("#saUseAim").onclick = () => {
+      const aim = st.aim;
+      /* a bad photo is REPLACED — the pages that document had go, and the
+         candidate stands in their place; a missing page is ADDED to. The
+         same rule the row path follows, so the two never disagree. */
+      if (aim && aim.kind !== "pages") {
+        st.shots = st.shots.filter(x => {
+          if (x.target !== aim.id || x.id === st.aimShot) return true;
+          releaseShot(x); return false;
+        });
+      }
       st.aim = null; st.aimShot = null;
       st.results = buildResults(); st.screen = "results"; render();
     };

@@ -1441,7 +1441,6 @@ body[data-screen="clientlink"] { background: #fff; }
 .sa-doc + .sa-doc { border-top: .5px solid var(--rp-separator); }
 .sa-doc__head { display: flex; align-items: flex-start; gap: 12px; }
 .sa-doc__body { flex: 1; min-width: 0; }
-.sa-doc__title { display: block; font-size: 15px; font-weight: 680; }
 .sa-doc__meta { font-size: 12px; line-height: 1.4; color: var(--rp-muted); margin: 3px 0 0; }
 .sa-doc__issue { font-size: 12px; line-height: 1.4; color: var(--rp-amber); margin: 5px 0 0; }
 .sa-doc__issue svg { width: 13px; height: 13px; display: inline-block; vertical-align: -2px; margin-right: 4px; }
