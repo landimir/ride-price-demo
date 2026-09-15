@@ -2248,7 +2248,7 @@ route("customers", () => {
       ${contextPill()}
       ${s ? `<button type="button" class="ob-session" id="obSession">
         <span class="ob-sessiondot${s.doneAt ? " done" : ""}"></span>
-        <span class="ob-sessioncopy"><b>${s.doneAt ? "Customer finished the secure upload" : "Waiting for the customer's upload"}</b><small>${esc(s.phone || s.email)}${s.helper ? " · a helper's number" : ""}</small></span>
+        <span class="ob-sessioncopy"><b>${s.doneAt ? "Customer finished the secure upload" : "Waiting for the customer's upload"}</b><small>${esc(s.phone || s.email)}${s.helper ? (s.phone ? " · a helper's number" : " · a helper's address") : ""}</small></span>
         <span class="sc2-go">›</span></button>` : ""}
       <div class="rp-search rp-search--action">${rpGlyph("search")}<input class="rp-search__input" id="obSearch" placeholder="Name, phone, email, or license" aria-label="Search customers"><button type="button" class="rp-button-navy" id="searchBtn">Search</button></div>
       ${st.results ? resultsHtml() : ""}
@@ -2350,7 +2350,7 @@ route("customers", () => {
        the licence (v022 Onboarding 08) */
     return shell(`
       ${heroHtml("Customer onboarding", "Waiting for customer")}
-      <div class="rp-notice">Secure link sent · ${esc(s.phone || s.email)}${s.helper ? " (a helper's number)" : ""} · ${esc(s.channel)}</div>
+      <div class="rp-notice">Secure link sent · ${esc(s.phone || s.email)}${s.helper ? (s.phone ? " (a helper's number)" : " (a helper's address)") : ""} · ${esc(s.channel)}</div>
       <div class="rp-steps">
         ${row(true, "Link sent", "Secure Ride Price session created", "Complete")}
         ${row(!!s.photoAt, "License photo", s.photoAt ? "Read from the training prop" : "Waiting for customer upload", s.photoAt ? "Received" : "Pending")}
@@ -2378,7 +2378,7 @@ route("customers", () => {
     return shell(`
       ${heroHtml("Customer onboarding", "Customer identified")}
       <section class="rp-match"><div class="rp-match__head"><span class="rp-initials">${initials(p)}</span>
-        <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(p))}</span><span class="rp-row__sub">Remote session${linked ? " · existing customer" : ""}${s.helper ? " · answered from a helper's number" : ""}</span></span>
+        <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(p))}</span><span class="rp-row__sub">Remote session${linked ? " · existing customer" : ""}${s.helper ? (s.phone ? " · answered from a helper's number" : " · answered from a helper's address") : ""}</span></span>
         <span class="rp-tag rp-tag--match">Identity captured</span></div></section>
       <div class="rp-steps" style="margin-top:14px">
         ${row(true, "Secure session", "Opened on the customer's device", "Complete")}
