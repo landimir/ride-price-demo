@@ -2115,6 +2115,9 @@ route("customers", () => {
     if (st.mode === "found" && !st.found) st.mode = "idle";
     if (st.mode === "dupe" && !st.dupe) st.mode = "manual";
     if (st.mode === "whose") st.mode = "idle";
+    if ((st.mode === "waiting" || st.mode === "remote-ready") && !session()) st.mode = "idle";
+    /* an upload that finished while the page was away lands on the ready screen */
+    if (st.mode === "waiting" && session() && session().doneAt) st.mode = "remote-ready";
     return true;
   };
   /* Back inside the resolver: popstate fires with the entry's state and the
@@ -2160,15 +2163,35 @@ route("customers", () => {
        is the one test for "an address"; applied here, every caller gets the
        same answer. */
     const whole = (a) => hasAddr(a) ? a : null;
-    let m = t.match(/^(.+?),\s*(.+?),\s*([A-Za-z]{2})\.?\s+(\d{5})$/);
-    if (m) return whole({ address: m[1].trim(), city: m[2].trim(), state: m[3].toUpperCase(), zip: m[4] });
-    m = t.match(/^(.+?),?\s+(\d{5})$/);
+    /* OB-049 (his first test log, 2026-09-15): he typed his address three ways
+       and was refused three times, then gave up. The commas are optional now,
+       a ZIP+4 is a ZIP, a state may be written out, and when the ZIP is in
+       the demo table the city and state may be left off or typed without
+       commas. What is written is still only a complete, four-part address. */
+    const STATES = { alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA", colorado: "CO", connecticut: "CT", delaware: "DE", florida: "FL", georgia: "GA", hawaii: "HI", idaho: "ID", illinois: "IL", indiana: "IN", iowa: "IA", kansas: "KS", kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD", massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS", missouri: "MO", montana: "MT", nebraska: "NE", nevada: "NV", "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY", "north carolina": "NC", "north dakota": "ND", ohio: "OH", oklahoma: "OK", oregon: "OR", pennsylvania: "PA", "rhode island": "RI", "south carolina": "SC", "south dakota": "SD", tennessee: "TN", texas: "TX", utah: "UT", vermont: "VT", virginia: "VA", washington: "WA", "west virginia": "WV", wisconsin: "WI", wyoming: "WY", "district of columbia": "DC" };
+    const stateOf = (x) => { const k = String(x || "").trim().replace(/\.$/, "").toLowerCase(); return /^[a-z]{2}$/.test(k) ? k.toUpperCase() : STATES[k] || null; };
+    const q = t.replace(/\s+/g, " ").replace(/\s*,\s*/g, ", ");
+    /* an explicitly empty part ("20 Ditmars Blvd,  , NY 11106") is a slip, not
+       a shorthand: still refused (PR #104's rule), whatever the ZIP would fill */
+    if (/,\s*,/.test(q) || /^,|,$/.test(q)) return null;
+    /* street, city, ST 12345 — commas optional between city and state, a state written out allowed */
+    let m = q.match(/^(.+?),\s*(.+?)[,\s]+([A-Za-z]{2}\.?|[A-Za-z]+(?: [A-Za-z]+)?)[,\s]+(\d{5})(?:-\d{4})?$/);
+    if (m && stateOf(m[3])) return whole({ address: m[1].trim(), city: m[2].trim(), state: stateOf(m[3]), zip: m[4] });
+    /* anything ending in a ZIP the demo table knows: the city and state come from the table,
+       and are stripped from the tail of what was typed if they are there */
+    m = q.match(/^(.+?)[,\s]+(\d{5})(?:-\d{4})?$/);
     if (m && RIDE_PRICE_DATA.zipLookup[m[2]]) {
       const hit = RIDE_PRICE_DATA.zipLookup[m[2]];
-      return whole({ address: m[1].replace(/,$/, "").trim(), city: hit.city, state: hit.state, zip: m[2] });
+      const escRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const stateWords = Object.keys(STATES).filter(k => STATES[k] === hit.state).concat([hit.state.toLowerCase()]).map(escRe).join("|");
+      let street = m[1].replace(new RegExp("[,\\s]+(?:" + escRe(hit.city) + ")?[,\\s]*(?:" + stateWords + ")\\.?$", "i"), "")
+        .replace(new RegExp("[,\\s]+" + escRe(hit.city) + "$", "i"), "").replace(/,$/, "").trim();
+      return whole({ address: street, city: hit.city, state: hit.state, zip: m[2] });
     }
     return null;
   }
+  /* OB-052: a number typed as bare digits is stored the way every record shows one */
+  const fmtPhone = (p) => { const d = String(p || "").replace(/\D/g, ""); const t = d.length === 11 && d.charAt(0) === "1" ? d.slice(1) : d; return t.length === 10 ? "(" + t.slice(0, 3) + ") " + t.slice(3, 6) + "-" + t.slice(6) : String(p || "").trim(); };
   const fmtAddr = (a) => `${a.address}, ${a.city}, ${a.state} ${a.zip}`;
   /* a CRM record can hold no address at all. fmtAddr would render ", ,  " and
      the screen would offer to confirm it, so ask first: a registration address
@@ -2497,7 +2520,7 @@ route("customers", () => {
       toast("A secure upload is already open — finish or cancel it first");
       st.mode = s.doneAt ? "remote-ready" : "waiting"; render(); window.scrollTo(0, 0);
     };
-    const sess = $("#obSession"); if (sess) sess.onclick = () => { st.mode = session().doneAt ? "remote-ready" : "waiting"; render(); };
+    const sess = $("#obSession"); if (sess) sess.onclick = () => { st.mode = session().doneAt ? "remote-ready" : "waiting"; step(); render(); };
     /* D-OB2 (owner, 2026-09-15, Option B — "Someone can accidentally make a
        mistake and that's the way to prevent it"): the kit's dialog before a
        link in flight is cancelled or a finished upload is discarded; Keep it
@@ -2526,7 +2549,7 @@ route("customers", () => {
     if (manualSave) manualSave.onclick = () => {
       const name = $("#obName").value.trim();
       const parts = name.split(/\s+/);
-      const phone = $("#obPhone").value.trim(), email = $("#obEmail").value.trim();
+      const phone = fmtPhone($("#obPhone").value), email = $("#obEmail").value.trim();
       const parsed = parseAddress($("#obAddr").value);
       const bad = [];
       if (parts.length < 2) bad.push({ el: $("#obName"), msg: name ? "First and last name" : "Required" });
@@ -2534,7 +2557,7 @@ route("customers", () => {
       else if (!phoneOk(phone)) bad.push({ el: $("#obPhone"), msg: "Ten digits" });
       if (!email) bad.push({ el: $("#obEmail"), msg: "Required" });
       else if (!emailOk(email)) bad.push({ el: $("#obEmail"), msg: "Needs an @ and a dot" });
-      if (!parsed) bad.push({ el: $("#obAddr"), msg: $("#obAddr").value.trim() ? "Enter as street, city, ST 12345" : "Required" });
+      if (!parsed) bad.push({ el: $("#obAddr"), msg: $("#obAddr").value.trim() ? "Needs a street, a town and a ZIP — e.g. 20 Ditmars Blvd, Astoria, NY 11106" : "Required" });
       if (markMissing(view(), bad)) return;
       /* D-OB1: nothing is written while someone is on file for this phone,
          email or name — the screen says who, and creating anyway is the
@@ -2675,7 +2698,7 @@ route("customers", () => {
         $$("#obChannel button", sheet).forEach(x => { x.classList.toggle("rp-segment__item--on", x === b); x.classList.toggle("active", x === b); });
       });
       $("#obSendGo", sheet).onclick = () => {
-        const phone = $("#obLinkPhone", sheet).value.trim(), email = $("#obLinkEmail", sheet).value.trim();
+        const phone = fmtPhone($("#obLinkPhone", sheet).value), email = $("#obLinkEmail", sheet).value.trim();
         /* both channels are required on every customer record (v3 rule,
            reaffirmed by SEED-DATA v022.2 — Marcus has both on record) */
         const bad = [];
@@ -2693,7 +2716,7 @@ route("customers", () => {
         if (missionDeal) Store.s.idSession.mission = { kind: mission.kind, dealId: missionDeal.id, back: mission.back };
         Store.save();
         closeSheet4();
-        st.mode = "waiting"; render(); window.scrollTo(0, 0);
+        st.mode = "waiting"; step(); render(); window.scrollTo(0, 0);
       };
     });
   }

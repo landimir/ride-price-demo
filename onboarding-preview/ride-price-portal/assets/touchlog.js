@@ -74,6 +74,8 @@
   document.addEventListener("input", (e) => {
     if (!state.on) return;
     const el = e.target; if (!el || !("value" in el)) return;
+    if (el.type === "file") return;                       /* the picker line already says it */
+    if (el.type === "checkbox" || el.type === "radio") { push("type", `${el.id || el.name || el.tagName}: ${el.checked ? "checked" : "unchecked"}`); return; }
     const v = String(el.value);
     push("type", SHOW_VALUE[el.id] ? `${el.id} = "${v.slice(0, 40)}"` : `${el.id || el.placeholder || el.tagName}: ${v.length} character${v.length === 1 ? "" : "s"}`);
   }, true);
