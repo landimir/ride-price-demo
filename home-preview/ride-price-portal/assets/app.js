@@ -1991,7 +1991,9 @@ route("deals", () => {
       cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), address: { confirmedAt: new Date().toISOString(), source: "license" } });
       Store.save();
     }
-    startVisit(cust.id);
+    /* D-HN10 B: the camera door on Home continues an open deal too */
+    const od = openDealFor(cust.id);
+    if (od) continueVisit(od); else startVisit(cust.id);
   } });
 
   /* the role sheet (v022): one definition, opened from the role control or
@@ -2115,6 +2117,10 @@ route("customers", () => {
       }
       return;
     }
+    /* D-HN10 B for every door that is not the found screen's own "anyway":
+       the scan, a secure-upload match, a manual entry that matched */
+    const od = st.forceNew ? null : openDealFor(customerId);
+    if (od) { continueVisit(od); return; }
     startVisit(customerId);
   }
 
@@ -2243,6 +2249,25 @@ route("customers", () => {
        the link becomes the way to supply one, so no run can stamp
        "address confirmed" over a record that holds none */
     const on = hasAddr(a);
+    /* D-HN10 B: the open visit is offered first. "Start a new visit anyway"
+       sets forceNew and the screen comes back as the ordinary found screen,
+       so the address rules still apply to the new visit. */
+    const od = !missionDeal && !st.forceNew ? openDealFor(c.id) : null;
+    if (od) {
+      const b = dealBucket(od), arrived = arrivedLabel(od), who = od.advisor || Store.s.advisor;
+      return shell(`
+      ${heroHtml("Customer onboarding", "Customer found")}
+      ${contextPill()}
+      <section class="rp-match">
+        <div class="rp-match__head"><span class="rp-initials">${initials(c)}</span>
+          <span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">Existing Ride Price customer</span></span>
+          <span class="rp-tag rp-tag--match">CRM match</span></div>
+        <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
+        <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
+      </section>
+      <div class="rp-notice" id="obOpenVisit"><strong>${inShowroom(od) ? "Already in the showroom" : "Has an open deal"}</strong><br>${arrived && inShowroom(od) ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)} · with ${esc(who)}</div>`, "Step 2 of 3",
+        chDock(primaryBtn("obContinue", "Continue " + esc(c.first) + "'s visit"), linkBtn("obNewVisit", "Start a new visit anyway")));
+    }
     return shell(`
       ${heroHtml("Customer onboarding", "Customer found")}
       ${contextPill()}
@@ -2351,7 +2376,7 @@ route("customers", () => {
     const scrim = $("#obScrim");
     if (scrim) scrim.onclick = (e) => { if (e.target === scrim || e.target.closest("[data-sheet-close]")) closeSheet4(); };
 
-    $$("[data-found]").forEach(b => b.onclick = () => { st.found = Store.customer(b.dataset.found); st.mode = "found"; render(); window.scrollTo(0, 0); });
+    $$("[data-found]").forEach(b => b.onclick = () => { st.found = Store.customer(b.dataset.found); st.mode = "found"; st.forceNew = false; render(); window.scrollTo(0, 0); });
     const back = $("#obBack"); if (back) back.onclick = () => { st.mode = "idle"; st.results = null; st.found = null; render(); };
 
     const sb = $("#searchBtn");
@@ -2435,6 +2460,10 @@ route("customers", () => {
     const discard = $("#obDiscardSession"); if (discard) discard.onclick = () => { Store.s.idSession = null; Store.save(); st.mode = "idle"; render(); };
     const man = $("#obManual"); if (man) man.onclick = () => { st.mode = "manual"; render(); window.scrollTo(0, 0); };
 
+    const cont = $("#obContinue");
+    if (cont) cont.onclick = () => { const od = openDealFor(st.found.id); if (od) continueVisit(od); else { st.forceNew = true; render(); } };
+    const anew = $("#obNewVisit");
+    if (anew) anew.onclick = () => { st.forceNew = true; render(); window.scrollTo(0, 0); };
     const confirmBtn = $("#obConfirm");
     if (confirmBtn) confirmBtn.onclick = () => {
       const c = st.found;
@@ -2755,6 +2784,21 @@ route("idverify", () => {
    RESPONSIBLE for the deal, not who tapped the button. A visit the Team Lead
    starts still belongs to the floor advisor — stamping the lead's name would
    orphan the deal from every advisor's view with no reassignment UI. */
+/* D-HN10 (owner, 2026-09-15, Option B — found by his first test log, where
+   Cheri confirmed three times made three deals): a customer with an OPEN deal
+   is never given a second one by accident. The open deal is the newest that
+   is not complete, whoever's it is — the safe default while he has not ruled
+   on a Team Lead continuing another advisor's visit. Continuing stamps a
+   fresh arrival when the earlier visit had ended or never started. */
+function openDealFor(customerId) {
+  return Store.s.deals.filter(d => d.customerId === customerId && d.stage !== "complete")
+    .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))[0] || null;
+}
+function continueVisit(deal) {
+  if (!deal.visit || !deal.visit.arrivedAt || deal.visit.endedAt) deal.visit = { arrivedAt: new Date().toISOString() };
+  Store.save();
+  navigate((STAGES[deal.stage] || STAGES.discovery).route(deal));
+}
 function startVisit(customerId) {
   const deal = {
     id: uid("d"), dealNo: Store.mintDealNo(), customerId, stock: null, dealType: "finance", stage: "discovery",
