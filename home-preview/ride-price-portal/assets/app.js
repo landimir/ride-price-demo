@@ -4115,14 +4115,14 @@ route("demo/testlog", () => {
   view().innerHTML = chShell({ template: "task", title: "Test log", step: n ? n + " event" + (n === 1 ? "" : "s") + (L.on() ? " · recording" : "") : "Nothing recorded", closeId: "tlClose" },
     `<textarea class="ca-input tl-text" id="tlText" readonly aria-label="Test log" rows="14">${esc(text)}</textarea>
      ${navigator.share ? `<button type="button" class="rp-link ch-hit" id="tlShare">Share</button>` : ""}
-     <button type="button" class="rp-link ch-hit" id="tlClear">Clear the log</button>`,
+     ${L ? `<button type="button" class="rp-link ch-hit" id="tlClear">Clear the log</button>` : ""}`,
     chDock(`<a class="rp-primary" id="tlMail" href="${esc(mail)}">Send by email</a>`),
     { scrim: "tlScrim", sheet: "tlSheet" });
   const sheets = chSheetOpener("tlScrim", "tlSheet");
   chWireRole(sheets, () => router());
   $("#tlClose").onclick = () => navigate("#/deals");
   const share = $("#tlShare"); if (share) share.onclick = () => { navigator.share({ title: "Ride Price test log", text }).catch(() => {}); };
-  $("#tlClear").onclick = () => chDialog(sheets, "Clear the test log?", "Every recorded event is removed.", "Clear the log", () => { L.clear(); router(); }, "Keep it");
+  const clr = $("#tlClear"); if (clr) clr.onclick = () => chDialog(sheets, "Clear the test log?", "Every recorded event is removed.", "Clear the log", () => { L.clear(); router(); }, "Keep it");
   $("#tlText").onclick = () => { const t = $("#tlText"); t.focus(); t.select(); };
   chFitDock();
 });
@@ -7433,7 +7433,7 @@ route("menu/:id", ({ id }) => {
   const v = Store.vehicle(deal.stock);
   /* the menu needs a vehicle it can PRICE — a catalog unit. A deal carried by
      its own snapshot has nothing to price, and its record is its jacket. */
-  if (!v) return navigate(deal.stage === "complete" ? `#/jacket/${deal.id}` : `#/vehicles/${deal.id}`);
+  if (!v) return redirect(deal.stage === "complete" ? `#/jacket/${deal.id}` : `#/vehicles/${deal.id}`);
   const c = Store.customer(deal.customerId);
   const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
   const isCash = deal.dealType === "cash";

@@ -64,11 +64,15 @@
     const tapAt = Date.now();
     setTimeout(() => { if (state.on && changes === before && lastFilePick < tapAt) push("no-effect", `${l.name} — nothing changed within 1 s`); }, 1000);
   }, true);
-  /* typing — one entry per keystroke, the value as it stands */
+  /* typing — one entry per keystroke. Only the two search boxes keep the
+     text (it is what he searched for); any other field logs its length, so a
+     phone, an email or a license number never lands in the log. */
+  const SHOW_VALUE = { dealSearch: 1, byQ: 1 };
   document.addEventListener("input", (e) => {
     if (!state.on) return;
     const el = e.target; if (!el || !("value" in el)) return;
-    push("type", `${el.id || el.placeholder || el.tagName} = "${String(el.value).slice(0, 40)}"`);
+    const v = String(el.value);
+    push("type", SHOW_VALUE[el.id] ? `${el.id} = "${v.slice(0, 40)}"` : `${el.id || el.placeholder || el.tagName}: ${v.length} character${v.length === 1 ? "" : "s"}`);
   }, true);
   /* screens */
   window.addEventListener("hashchange", () => { changes++; push("screen", location.hash || "#/deals"); });
