@@ -34,7 +34,12 @@
   function label(el) {
     const c = el.closest("button, a, [role='button'], input, select, textarea, .rp-row, .rp-card, .rp-chip, .rp-option, .rp-tab");
     if (!c) return null;
-    const name = c.getAttribute("aria-label") || (c.tagName === "INPUT" || c.tagName === "TEXTAREA" ? (c.placeholder || c.name || c.id) : (c.textContent || "").replace(/\s+/g, " ").trim());
+    /* the row's own title first ("Marcus Alvarez", not "MAMarcus Alvarez(646)…" —
+       initials, name and phone run together in textContent); else every text
+       part with a space between, so a row's title and sub do not fuse */
+    const titled = c.querySelector(".rp-row__title, .rp-option__title, .rp-card__name, .rp-sheet__title");
+    const parts = () => { const out = []; const walk = (n) => { for (const k of n.childNodes) { if (k.nodeType === 3) { const s = k.textContent.trim(); if (s) out.push(s); } else if (k.nodeType === 1) walk(k); } }; walk(c); return out.join(" "); };
+    const name = c.getAttribute("aria-label") || (c.tagName === "INPUT" || c.tagName === "TEXTAREA" ? (c.placeholder || c.name || c.id) : titled ? titled.textContent.trim() : parts());
     const sel = c.tagName.toLowerCase() + (c.id ? "#" + c.id : "") + (c.classList.length ? "." + c.classList[0] : "");
     return { name: (name || "").slice(0, 60), sel };
   }
@@ -42,17 +47,22 @@
      screen change, so a sheet that opened and closed inside the second still
      counts as an effect (the first version compared before/after snapshots
      and called the visit sheet a dead tap) */
-  let changes = 0;
+  let changes = 0, lastFilePick = 0;
 
   /* taps — capture phase, so a handler that re-renders cannot hide the target */
   document.addEventListener("click", (e) => {
     if (!state.on) return;
     const l = label(e.target);
-    if (!l) { push("tap", "(nothing tappable)"); return; }
-    if (l.sel.indexOf("input") === 0 || l.sel.indexOf("select") === 0 || l.sel.indexOf("textarea") === 0) { push("focus", `${l.name} (${l.sel})`); return; }
+    if (!l) { push("tap", e.target.closest(".rp-scrim, .drawer-overlay, .m-scrim") ? "outside the sheet (backdrop)" : "(nothing tappable)"); return; }
+    if (l.sel.indexOf("input") === 0 || l.sel.indexOf("select") === 0 || l.sel.indexOf("textarea") === 0) {
+      const inp = e.target.closest("input");
+      if (inp && inp.type === "file") { lastFilePick = Date.now(); push("picker", "the phone's photo picker opened"); return; }
+      push("focus", `${l.name} (${l.sel})`); return;
+    }
     push("tap", `${l.name} (${l.sel})`);
     const before = changes;
-    setTimeout(() => { if (state.on && changes === before) push("no-effect", `${l.name} — nothing changed within 1 s`); }, 1000);
+    const tapAt = Date.now();
+    setTimeout(() => { if (state.on && changes === before && lastFilePick < tapAt) push("no-effect", `${l.name} — nothing changed within 1 s`); }, 1000);
   }, true);
   /* typing — one entry per keystroke, the value as it stands */
   document.addEventListener("input", (e) => {
@@ -74,6 +84,11 @@
     if (!state.on) return;
     const seen = new Set();
     for (const m of muts) {
+      /* a form that refused: the app marks the field with .f-err (markMissing);
+         his first log showed a Send that "did nothing" for 2.6 s — it had
+         refused on two empty fields, and the log could not say so */
+      if (m.type === "childList") for (const n of m.addedNodes) if (n.nodeType === 1 && n.classList.contains("f-err")) { const f = n.previousElementSibling; push("refused", `${(f && (f.id || f.placeholder)) || "a field"}: ${n.textContent.trim().slice(0, 60)}`); }
+      if (m.type === "attributes" && m.attributeName !== "hidden") continue;
       const el = m.target.nodeType === 1 ? m.target.closest(".rp-sheet") : null;
       if (!el || seen.has(el)) continue;
       seen.add(el);
@@ -82,7 +97,7 @@
       if (el.hidden) { if (lastSheet) { push("sheet-close", lastSheet); lastSheet = null; } }
       else if (name !== lastSheet) { lastSheet = name; push("sheet-open", name); }
     }
-  }).observe(document.documentElement, { attributes: true, attributeFilter: ["hidden"], childList: true, subtree: true });
+  }).observe(document.documentElement, { attributes: true, childList: true, subtree: true });
   /* toasts: the app's global toast() is wrapped, so the words that flashed are kept */
   const wrapToast = () => {
     if (typeof window.toast !== "function" || window.toast.__touchlog) return false;
@@ -93,7 +108,12 @@
   if (!wrapToast()) window.addEventListener("DOMContentLoaded", wrapToast);
   /* slow answers: an input whose handling took longer than a frame (Chrome and
      Safari 16.4+; silently absent elsewhere), and long tasks where reported */
-  try { new PerformanceObserver((l) => { for (const e of l.getEntries()) if (e.duration > 16) push("slow", `${e.name} took ${Math.round(e.duration)} ms`); }).observe({ type: "event", durationThreshold: 16, buffered: false }); } catch (e) { /* no event timing here */ }
+  /* his first phone log was three-quarters "slow mouseover took 40 ms" — every
+     pointer event of one tap, each at the same cost. One line per tap or
+     keystroke that took longer than three frames (50 ms), and only the event
+     that carries the work: click, keydown, input. */
+  let lastSlow = -1;
+  try { new PerformanceObserver((l) => { for (const e of l.getEntries()) { if (!/^(click|keydown|input|pointerup)$/.test(e.name) || e.duration < 50) continue; const key = Math.round(e.startTime); if (key === lastSlow) continue; lastSlow = key; push("slow", `${e.name} took ${Math.round(e.duration)} ms`); } }).observe({ type: "event", durationThreshold: 50, buffered: false }); } catch (e) { /* no event timing here */ }
   try { new PerformanceObserver((l) => { for (const e of l.getEntries()) push("slow", `long task ${Math.round(e.duration)} ms`); }).observe({ type: "longtask", buffered: false }); } catch (e) { /* no long-task timing here */ }
 
   const storeKB = () => { try { return Math.round((localStorage.getItem("ride_price_portal_v1") || "").length / 1024); } catch (e) { return -1; } };
@@ -110,7 +130,7 @@
     clear() { if (saveTimer) { clearTimeout(saveTimer); saveTimer = null; } state = { on: false, startedAt: null, events: [] }; try { localStorage.removeItem(KEY); } catch (e) { /* nothing to remove */ } },
     /* app hooks: a guard's rescue to Home, or anything the app wants on the record */
     note: (kind, detail) => push(kind, detail),
-    text() { return header() + state.events.map(e => `+${e.t}s  ${e.k.padEnd(11)} ${e.d}  @${e.h}`).join("\n") + "\n"; }
+    text() { return header() + state.events.map(e => `+${e.t}s  ${e.k.padEnd(11)} ${e.d}  @${e.h}`).join("\n") + `\n— end of log · ${state.events.length} events\n`; }
   };
   window.RIDE_PRICE_TOUCHLOG = api;
 })();
