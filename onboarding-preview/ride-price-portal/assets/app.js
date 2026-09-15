@@ -2688,24 +2688,39 @@ route("customers", () => {
   function openSendSheet() {
     openSheet4(`${sheetHead4("Send secure upload link")}
       <div class="rp-segment" id="obChannel"><button type="button" class="rp-segment__item rp-segment__item--on active" data-ch="Text">Text</button><button type="button" class="rp-segment__item" data-ch="Email">Email</button></div>
-      <div class="rp-field"><label class="rp-field__label" for="obLinkPhone">Customer mobile</label><input class="rp-field__input" id="obLinkPhone" type="tel" placeholder="(555) 555-5555"></div>
-      <div class="rp-field"><label class="rp-field__label" for="obLinkEmail">Email</label><input class="rp-field__input" id="obLinkEmail" type="email" placeholder="name@testing.com"></div>
-      <label class="rp-field ob-helperrow"><input type="checkbox" id="obLinkHelper"> <span>This number belongs to someone helping the customer</span></label>
+      <div class="rp-field" id="obLinkPhoneRow"><label class="rp-field__label" for="obLinkPhone">Customer mobile</label><input class="rp-field__input" id="obLinkPhone" type="tel" placeholder="(555) 555-5555"></div>
+      <div class="rp-field" id="obLinkEmailRow" hidden><label class="rp-field__label" for="obLinkEmail">Email</label><input class="rp-field__input" id="obLinkEmail" type="email" placeholder="name@testing.com"></div>
+      <label class="rp-field ob-helperrow"><input type="checkbox" id="obLinkHelper"> <span id="obLinkHelperText">This number belongs to someone helping the customer</span></label>
       <button type="button" class="rp-primary" id="obSendGo">Send secure link</button>`, (sheet) => {
+      /* D-OB6 (owner, 2026-09-15, Option B — "they should only be required to
+         provide the contact method they have available"): the segment at the
+         top picks the channel and the sheet shows that one field. The other
+         is not asked for. If both were ever on a session, the phone comes
+         first ("we will prioritize the phone number"). */
       let channel = "Text";
+      const showChannel = () => {
+        const text = channel === "Text";
+        $("#obLinkPhoneRow", sheet).hidden = !text; $("#obLinkEmailRow", sheet).hidden = text;
+        $("#obLinkHelperText", sheet).textContent = text ? "This number belongs to someone helping the customer" : "This address belongs to someone helping the customer";
+      };
       $$("#obChannel button", sheet).forEach(b => b.onclick = () => {
         channel = b.dataset.ch;
         $$("#obChannel button", sheet).forEach(x => { x.classList.toggle("rp-segment__item--on", x === b); x.classList.toggle("active", x === b); });
+        showChannel(); const f = $(channel === "Text" ? "#obLinkPhone" : "#obLinkEmail", sheet); if (f) f.focus();
       });
+      showChannel();
       $("#obSendGo", sheet).onclick = () => {
-        const phone = fmtPhone($("#obLinkPhone", sheet).value), email = $("#obLinkEmail", sheet).value.trim();
-        /* both channels are required on every customer record (v3 rule,
-           reaffirmed by SEED-DATA v022.2 — Marcus has both on record) */
+        /* one channel, the chosen one; the other field is not read (D-OB6).
+           The record rule (both channels on every record, v3) is set aside
+           for a link by his ruling: the record made from the upload carries
+           what was provided. The manual form still asks for both (D-OB4). */
+        const text = channel === "Text";
+        const phone = text ? fmtPhone($("#obLinkPhone", sheet).value) : "", email = text ? "" : $("#obLinkEmail", sheet).value.trim();
         const bad = [];
-        if (!phone) bad.push({ el: $("#obLinkPhone", sheet), msg: "Required" });
-        else if (!phoneOk(phone)) bad.push({ el: $("#obLinkPhone", sheet), msg: "Ten digits" });
-        if (!email) bad.push({ el: $("#obLinkEmail", sheet), msg: "Required" });
-        else if (!emailOk(email)) bad.push({ el: $("#obLinkEmail", sheet), msg: "Needs an @ and a dot" });
+        if (text && !phone) bad.push({ el: $("#obLinkPhone", sheet), msg: "Required" });
+        else if (text && !phoneOk(phone)) bad.push({ el: $("#obLinkPhone", sheet), msg: "Ten digits" });
+        if (!text && !email) bad.push({ el: $("#obLinkEmail", sheet), msg: "Required" });
+        else if (!text && !emailOk(email)) bad.push({ el: $("#obLinkEmail", sheet), msg: "Needs an @ and a dot" });
         if (markMissing(sheet, bad)) return;
         /* OB-047 (from his D-OB3 answer): a helper's number is the helper's —
            it never becomes the customer's phone and matches no record */
