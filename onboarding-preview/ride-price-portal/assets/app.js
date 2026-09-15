@@ -2002,7 +2002,15 @@ route("customers", () => {
   const mission = Store.s.mission || null;
   const openOnce = mission ? mission.open || null : null;
   if (mission && mission.open) { mission.open = null; Store.save(); }
-  const clearMission = () => { if (Store.s.mission) { Store.s.mission = null; Store.save(); } };
+  const clearMission = () => { if (Store.s.mission) { Store.s.mission = null; Store.save(); } stepsDone(); };
+  /* OB-054/055 (his second log, 2026-09-15): once the errand is over — a visit
+     started, a link cancelled, the resolver closed — the steps pushed on the
+     way there are spent. Each pushed entry carries the epoch it was made in;
+     an entry from an older epoch is treated as no entry, so Back from the
+     Discovery screen lands on a fresh resolver and Close leaves in one tap
+     instead of walking a form that already became a customer. */
+  const stepsDone = () => { Store.s.obEpoch = (Store.s.obEpoch || 0) + 1; Store.save(); };
+  const liveStep = () => !!(history.state && history.state.ob && (history.state.epoch || 0) === (Store.s.obEpoch || 0));
   /* two mission kinds share the resolver: "cobuyer" (the buyers sheet) and
      "driver" (the test drive's additional driver) — the person is resolved
      exactly the same way; only what finish() does with them differs */
@@ -2104,10 +2112,11 @@ route("customers", () => {
      a history entry whose state can rebuild the screen — ids, never records —
      so Back walks the steps the way Close does, and from the first step Back
      leaves the resolver as it always did. A reload lands on the same step. */
-  const snap = () => ({ ob: st.mode, q: st.q, results: st.results ? st.results.map(c => c.id) : null, found: st.found ? st.found.id : null, forceNew: st.forceNew, dupe: st.dupe ? { id: st.dupe.c.id, why: st.dupe.why, draft: st.dupe.draft } : null });
+  const snap = () => ({ ob: st.mode, epoch: Store.s.obEpoch || 0, q: st.q, results: st.results ? st.results.map(c => c.id) : null, found: st.found ? st.found.id : null, forceNew: st.forceNew, dupe: st.dupe ? { id: st.dupe.c.id, why: st.dupe.why, draft: st.dupe.draft } : null });
   const step = () => { history.pushState(snap(), "", location.hash); };
   const restore = (h) => {
     if (!h || !h.ob) return false;
+    if ((h.epoch || 0) !== (Store.s.obEpoch || 0)) { history.replaceState(null, "", location.hash); return false; }
     st.mode = h.ob; st.q = h.q || ""; st.forceNew = !!h.forceNew;
     st.results = h.results ? h.results.map(id => Store.customer(id)).filter(Boolean) : null;
     st.found = h.found ? Store.customer(h.found) : null;
@@ -2128,7 +2137,7 @@ route("customers", () => {
     if (!restore(e.state)) { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; st.whose = null; }
     render(); window.scrollTo(0, 0);
   };
-  const stepBack = () => { if (history.state && history.state.ob) history.back(); else { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; render(); } };
+  const stepBack = () => { if (liveStep()) history.back(); else { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; render(); } };
 
   const initials = (c) => esc(((c.first || " ")[0] + (c.last || " ")[0]).toUpperCase());
   /* the Task template (chrome rule v022): Close on the left, the task name and
@@ -2414,7 +2423,7 @@ route("customers", () => {
     const close = $("#chClose"); if (close) close.onclick = () => {
       /* a stepped entry (results, found, the form, a question) goes back one
          step; a form opened by a mission's door has no entry and resets */
-      if (history.state && history.state.ob) { history.back(); return; }
+      if (liveStep()) { history.back(); return; }
       if (st.mode === "found" || st.mode === "manual" || st.mode === "dupe" || st.mode === "whose") { stepBack(); return; }
       const back = (mission && mission.back) || "#/deals";
       clearMission();
@@ -2525,7 +2534,7 @@ route("customers", () => {
        mistake and that's the way to prevent it"): the kit's dialog before a
        link in flight is cancelled or a finished upload is discarded; Keep it
        is the safe answer. Measured before: gone in one tap. */
-    const dropSession = () => { Store.s.idSession = null; Store.save(); st.mode = "idle"; render(); };
+    const dropSession = () => { Store.s.idSession = null; Store.save(); stepsDone(); st.mode = "idle"; render(); };
     const cancelS = $("#obCancelSession"); if (cancelS) cancelS.onclick = () => { const x = session(); chDialog(obSheets, "Cancel this secure link?", "The link sent to " + (x.phone || x.email) + " stops working. Nothing the customer has not sent yet is lost.", "Cancel the link", dropSession, "Keep it"); };
     const discard = $("#obDiscardSession"); if (discard) discard.onclick = () => { const x = session(); const who = (x.persona && x.persona.first) || "the customer"; chDialog(obSheets, "Discard " + who + "'s upload?", "The photo, the face check and the confirmed address are removed. " + who + " would have to do it again.", "Discard", dropSession, "Keep it"); };
     const man = $("#obManual"); if (man) man.onclick = () => { st.mode = "manual"; st.forceNew = false; step(); render(); window.scrollTo(0, 0); };
@@ -2752,7 +2761,7 @@ route("customers", () => {
     });
   }
 
-  if (st.mode === "idle" && history.state && history.state.ob) restore(history.state);
+  if (st.mode === "idle" && liveStep()) restore(history.state);
   render();
   /* the buyers sheet's "Send secure upload link" lands here mid-mission with
      the send sheet already open — one tap on the buyers sheet, one screen.
@@ -2931,6 +2940,8 @@ function startVisit(customerId) {
      secure-link session counts as present before arrival is an open item;
      the code keeps doing what it did (it checks in). */
   deal.visit = { arrivedAt: deal.createdAt };
+  /* OB-055: the resolver's steps on the way here are spent (see stepsDone) */
+  Store.s.obEpoch = (Store.s.obEpoch || 0) + 1;
   Store.s.deals.push(deal); Store.save();
   navigate(`#/discovery/${deal.id}`);
 }
