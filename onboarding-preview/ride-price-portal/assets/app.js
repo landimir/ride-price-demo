@@ -1597,14 +1597,15 @@ function chDialog(sheets, title, body, actionLabel, onConfirm, keepLabel) {
    sub-destination that carries the More tab (Training documents, v024).
    The row for the screen already on show closes the sheet instead of
    navigating nowhere. */
-/* the test log's row (touchlog.js, owner 2026-09-15): the recorder runs from
-   the first load on this branch, so More carries one row — the screen that
-   hands the log over. Drawn only when the recorder is loaded. */
+/* the test log's row (touchlog.js, owner 2026-09-15; master v1.2 test-log
+   contract): the recorder runs from the first load of a designated test
+   preview, so More carries one row — the screen that hands the log over.
+   Drawn only when the recorder is loaded. */
 function tlRows() {
   const L = window.RIDE_PRICE_TOUCHLOG; if (!L) return "";
   const n = L.count();
   return `<div class="rp-group rp-group--spaced">
-    <a class="rp-row" href="#/demo/testlog" id="dqLogSend"><span class="rp-tile">${rpGlyph("upload")}</span><span class="rp-row__body"><span class="rp-row__title">Send test log</span><span class="rp-row__sub">${L.on() ? "Recording · " : ""}${n ? n + " event" + (n === 1 ? "" : "s") : "nothing yet"}</span></span><span class="rp-row__chevron"></span></a>
+    <a class="rp-row" href="#/demo/testlog" id="dqLogSend"><span class="rp-tile">${rpGlyph("upload")}</span><span class="rp-row__body"><span class="rp-row__title">Send test log</span><span class="rp-row__sub">${L.on() ? "Recording · " : L.designated() ? "Stopped · " : ""}${n ? n + " event" + (n === 1 ? "" : "s") : "nothing yet"}</span></span><span class="rp-row__chevron"></span></a>
     </div>`;
 }
 function chMoreSheet(sheets) {
@@ -4225,8 +4226,13 @@ route("demo/testlog", () => {
   document.body.dataset.canvas = "kit"; document.body.dataset.screen = "testlog";
   const text = L ? L.text() : "The recorder is not loaded on this page.";
   const n = L ? L.count() : 0;
+  /* v1.2: recording by itself only in a designated test preview; elsewhere
+     the screen says so and offers Start. Not persisted: storage refused, the
+     log lives in memory until the page is left. */
+  const status = !L ? "" : L.on() ? " · recording" : L.designated() ? " · stopped" : " · off here (not a designated test preview)";
+  const persist = L && !L.persisted() ? " · not saved: storage refused" : "";
   const mail = "mailto:?subject=" + encodeURIComponent("Ride Price test log · " + new Date().toLocaleString()) + "&body=" + encodeURIComponent(text.slice(0, 60000));
-  view().innerHTML = chShell({ template: "task", title: "Test log", step: n ? n + " event" + (n === 1 ? "" : "s") + (L && L.on() ? " · recording" : "") : "Nothing recorded", closeId: "tlClose" },
+  view().innerHTML = chShell({ template: "task", title: "Test log", step: (n ? n + " event" + (n === 1 ? "" : "s") : "Nothing recorded") + status + persist, closeId: "tlClose" },
     `<textarea class="ca-input tl-text" id="tlText" readonly aria-label="Test log" rows="14">${esc(text)}</textarea>
      ${navigator.share ? `<button type="button" class="rp-link ch-hit" id="tlShare">Share</button>` : ""}
      ${L ? `<button type="button" class="rp-link ch-hit" id="tlToggle">${L.on() ? "Stop recording" : "Start recording"}</button><button type="button" class="rp-link ch-hit" id="tlClear">Clear the log</button>` : ""}`,

@@ -2608,4 +2608,8 @@ body:not([data-canvas="kit"]) { font-family: var(--app-font); font-feature-setti
 .ob-helperrow input { width: 20px; height: 20px; margin: 0; flex: none; }
 
 /* the test log's read-only field (touchlog.js): the whole log, monospace, select-all-copy */
+/* the recorder's quiet indicator (touchlog.js, master v1.2): a dot in the corner while recording; never over a control */
+.tl-dot { position: fixed; top: calc(env(safe-area-inset-top, 0px) + 6px); right: 6px; width: 8px; height: 8px; border-radius: 50%; background: #e0452b; opacity: .7; pointer-events: none; z-index: 60; }
+.tl-dot[hidden] { display: none; }
+@media print { .tl-dot { display: none; } }
 .tl-text { width: 100%; min-height: 56vh; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; overflow: auto; resize: vertical; }
