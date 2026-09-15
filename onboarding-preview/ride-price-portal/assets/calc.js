@@ -1,0 +1,214 @@
+/* Ride Price Portal — deal math (finance, lease, cash, one-pay) */
+"use strict";
+
+const RIDE_PRICE_CALC = (function () {
+
+  const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
+
+  function creditTier(score) {
+    return RIDE_PRICE_DATA.creditTiers.find(t => score >= t.min) || RIDE_PRICE_DATA.creditTiers[RIDE_PRICE_DATA.creditTiers.length - 1];
+  }
+
+  function accessoriesTotal(ids) {
+    return (ids || []).reduce((sum, id) => {
+      const a = RIDE_PRICE_DATA.accessories.find(x => x.id === id);
+      return sum + (a ? a.price : 0);
+    }, 0);
+  }
+
+  function productById(id) { return RIDE_PRICE_DATA.products.find(p => p.id === id); }
+  function productsTotal(ids) {
+    return (ids || []).reduce((s, id) => s + (productById(id) ? productById(id).price : 0), 0);
+  }
+
+  const totalTaxRate = () => RIDE_PRICE_DATA.taxes.reduce((s, t) => s + t.rate, 0);
+
+  /* Tax rates display at their true precision — two decimals normally, three
+     when the rate needs it. NYC's MCTD rate is 0.375% and the combined rate is
+     8.875%; a flat toFixed(2) rounded those to 0.38% and 8.88% on screen while
+     the math used the real figure. Never widen this to fixed 3 decimals — it
+     would print every ordinary rate as "4.000%". */
+  const taxPct = (rate) => {
+    const three = (rate * 100).toFixed(3);
+    return three.endsWith("0") ? (rate * 100).toFixed(2) : three;
+  };
+  const totalFees = () => RIDE_PRICE_DATA.fees.reduce((s, f) => s + f.amount, 0);
+  /* the documentation fee by name, because New York taxes it and the other
+     three fees are not part of the taxable base */
+  const docFee = () => {
+    const f = RIDE_PRICE_DATA.fees.find(x => x.label === "Documentation Fee");
+    return f ? f.amount : 0;
+  };
+
+  /* taxable base: your price + accessories + the documentation fee − trade
+     allowance (when the tax credit applies). New York taxes the dealer
+     documentation fee as part of the vehicle's price — the owner's chrome
+     rule §19b and the v034 seed both state the base and its derivation, and
+     every screen showing tax has to print it: $41,431.00 + $594.00 + $175.00
+     − $15,500.00 = $26,700.00, which is $2,369.62 at 8.875%. The other three
+     fees (inspection, registration and plates, tire tax) are government
+     charges and stay out of the base. */
+  function taxableBase(deal, vehicle, opts) {
+    const o = opts || {};
+    const price = vehicle.selling + vehicle.includedOptions + accessoriesTotal(deal.desk.accessories) + (o.productsTotal || 0);
+    const tradeCredit = (deal.trade.applyTaxCredit && deal.trade.value > 0) ? deal.trade.value : 0;
+    return Math.max(0, price + docFee() - tradeCredit);
+  }
+
+  function taxBreakdown(base) {
+    const rows = RIDE_PRICE_DATA.taxes.map(t => ({ label: `${t.label} @ ${taxPct(t.rate)}%`, amount: round2(base * t.rate) }));
+    return { rows, total: round2(rows.reduce((s, r) => s + r.amount, 0)) };
+  }
+
+  function amortize(principal, apr, months) {
+    if (principal <= 0) return 0;
+    const r = apr / 100 / 12;
+    if (r === 0) return principal / months;
+    return principal * r / (1 - Math.pow(1 + r, -months));
+  }
+
+  /* ---------- FINANCE ---------- */
+  function finance(deal, vehicle, opts) {
+    const o = Object.assign({ apr: deal.desk.apr, term: deal.desk.term, products: [] }, opts || {});
+    const acc = accessoriesTotal(deal.desk.accessories);
+    const prodTotal = productsTotal(o.products);
+    const yourPrice = vehicle.selling + vehicle.includedOptions + acc;
+    const taxes = taxBreakdown(taxableBase(deal, vehicle, { productsTotal: prodTotal }));
+    const fees = totalFees();
+    const netTrade = (deal.trade.value || 0) - (deal.trade.payoff || 0);
+    const amountFinanced = round2(yourPrice + prodTotal + taxes.total + fees - (deal.trade.rebates || 0) - netTrade - (deal.desk.downPayment || 0));
+    const payment = round2(amortize(Math.max(0, amountFinanced), o.apr, o.term));
+    return {
+      dealType: "finance", yourPrice: round2(yourPrice), accessories: acc, productsTotal: prodTotal,
+      taxes, fees, netTrade: round2(netTrade), amountFinanced: Math.max(0, amountFinanced),
+      payment, apr: o.apr, term: o.term, downPayment: deal.desk.downPayment || 0
+    };
+  }
+
+  /* ---------- LEASE ---------- */
+  function lease(deal, vehicle, opts) {
+    const o = Object.assign({ term: deal.desk.leaseTerm, miles: deal.desk.milesPerYear, factor: deal.desk.leaseFactor, products: [], dueAtSigning: deal.desk.dueAtSigning }, opts || {});
+    /* Object.assign lets an explicit `factor: undefined` clobber the desk's
+       own — a credit approval that carries an APR but no lease factor then
+       priced every lease at $NaN. A missing factor falls back to the desk. */
+    if (!isFinite(o.factor)) o.factor = deal.desk.leaseFactor;
+    const acc = accessoriesTotal(deal.desk.accessories);
+    const prodTotal = productsTotal(o.products);
+    const yourPrice = vehicle.selling + vehicle.includedOptions + acc;
+    const residualPct = RIDE_PRICE_DATA.residuals[o.term] || 0.6;
+    /* mileage adjustment: baseline 12k; ±2% residual per 2,500 miles step */
+    const mileAdj = (12000 - o.miles) / 2500 * 0.02;
+    const residual = round2(vehicle.msrp * (residualPct + mileAdj));
+    const netTrade = (deal.trade.value || 0) - (deal.trade.payoff || 0);
+    const capCostReduction = Math.max(0, (o.dueAtSigning || 0)) + Math.max(0, netTrade) + (deal.trade.rebates || 0);
+    const grossCap = yourPrice + prodTotal + RIDE_PRICE_DATA.leaseFees.acquisition + totalFees();
+    const adjCap = Math.max(residual, grossCap - capCostReduction);
+    const depreciation = (adjCap - residual) / o.term;
+    const rent = (adjCap + residual) * o.factor;
+    const basePayment = round2(depreciation + rent);
+    const taxRate = totalTaxRate();
+    const monthlyTax = round2(basePayment * taxRate);
+    const payment = round2(basePayment + monthlyTax);
+    const ccrTax = round2(capCostReduction * taxRate);
+    return {
+      dealType: "lease", yourPrice: round2(yourPrice), accessories: acc, productsTotal: prodTotal,
+      residual, residualPct: residualPct + mileAdj, term: o.term, miles: o.miles, factor: o.factor,
+      basePayment, monthlyTax, payment, capCostReduction: round2(capCostReduction), ccrTax,
+      acquisitionFee: RIDE_PRICE_DATA.leaseFees.acquisition, dueAtSigning: o.dueAtSigning || 0,
+      taxes: { rows: [{ label: `Sales Tax on Payment @ ${taxPct(taxRate)}%`, amount: monthlyTax }], total: monthlyTax },
+      fees: totalFees(), netTrade: round2(netTrade)
+    };
+  }
+
+  /* ---------- CASH ---------- */
+  function cash(deal, vehicle, opts) {
+    const o = opts || {};
+    const acc = accessoriesTotal(deal.desk.accessories);
+    const prodTotal = productsTotal(o.products || []);
+    const yourPrice = vehicle.selling + vehicle.includedOptions + acc;
+    const taxes = taxBreakdown(taxableBase(deal, vehicle, { productsTotal: prodTotal }));
+    const fees = totalFees();
+    const netTrade = (deal.trade.value || 0) - (deal.trade.payoff || 0);
+    const totalDue = round2(yourPrice + prodTotal + taxes.total + fees - (deal.trade.rebates || 0) - netTrade);
+    return {
+      dealType: "cash", yourPrice: round2(yourPrice), accessories: acc, productsTotal: prodTotal,
+      taxes, fees, netTrade: round2(netTrade), totalDue: Math.max(0, totalDue), payment: 0
+    };
+  }
+
+  /* ---------- ONE-PAY LEASE ---------- */
+  function onePay(deal, vehicle, opts) {
+    const o = opts || {};
+    /* One-pay: all base payments up front at a reduced money factor. The
+       reduction applies to whichever base factor the caller is pricing at —
+       taking the desk's factor unconditionally made an approved one-pay
+       quote a total built on the agreed factor while every lease column
+       beside it quoted the qualified one. */
+    const base = isFinite(o.factor) ? o.factor : deal.desk.leaseFactor || 0.00117;
+    const reduced = Math.max(0.00001, base - 0.0004);
+    const l = lease(deal, vehicle, Object.assign({}, o, { factor: reduced, dueAtSigning: 0 }));
+    const dueAtSigning = round2(l.payment * l.term + RIDE_PRICE_DATA.leaseFees.acquisition);
+    return Object.assign({}, l, { dealType: "onepay", dueAtSigning, payment: 0, onePayTotal: dueAtSigning });
+  }
+
+  function calc(deal, vehicle, opts) {
+    switch (deal.dealType) {
+      case "lease": return lease(deal, vehicle, opts);
+      case "cash": return cash(deal, vehicle, opts);
+      case "onepay": return onePay(deal, vehicle, opts);
+      default: return finance(deal, vehicle, opts);
+    }
+  }
+
+  /* menu column payment for a given program */
+  function menuColumn(deal, vehicle, programKey, program) {
+    /* a withdrawn application is not a live approval — removing a co-buyer
+       from a submitted joint one withdraws it, and the menu must not go on
+       pricing off a rate that no longer stands */
+    const q = deal.creditApp && deal.creditApp.approved && !deal.creditApp.withdrawnAt ? deal.creditApp : null;
+    /* a one-pay lease has no monthly payment — every other surface quotes its
+       onePayTotal, and a column that quoted a monthly figure would put a
+       number in front of the customer that they never pay */
+    if (deal.dealType === "onepay") {
+      const r = onePay(deal, vehicle, { products: program.products, factor: q ? q.leaseFactor : deal.desk.leaseFactor });
+      return { key: programKey, label: program.label, products: program.products, payment: r.onePayTotal, isTotal: true, term: r.term, detail: `${r.miles.toLocaleString()} mi/yr · ${r.term} mo, paid in full`, result: r };
+    }
+    if (deal.dealType === "lease") {
+      const r = lease(deal, vehicle, { products: program.products, factor: q ? q.leaseFactor : deal.desk.leaseFactor });
+      return { key: programKey, label: program.label, products: program.products, payment: r.payment, term: r.term, detail: `${r.miles.toLocaleString()} mi/yr · ${r.term} mo`, result: r };
+    }
+    if (deal.dealType === "cash") {
+      const r = cash(deal, vehicle, { products: program.products });
+      return { key: programKey, label: program.label, products: program.products, payment: r.totalDue, isTotal: true, detail: "Total due", result: r };
+    }
+    /* the lender's rate is `approvedApr` since the lending lane's package
+       v032; `qualifiedApr` is what blobs saved before it carry, and a record
+       holding neither must not price the whole menu at NaN */
+    const qApr = q ? (q.approvedApr != null ? q.approvedApr : q.qualifiedApr) : null;
+    const apr = (qApr != null ? qApr : deal.desk.apr) + (program.aprAdj || 0);
+    const term = deal.desk.term + (program.termAdj || 0);
+    const r = finance(deal, vehicle, { products: program.products, apr, term });
+    /* PRODUCT MONEY IS DERIVED, NEVER ASSERTED (chrome rule §22b): a package
+       payment is the agreed payment plus the amortization of the products it
+       contains, over this deal's term and rate — $4,814.00 over 60 months at
+       3.9% is +$88.44 a month, and the customer can check that. The full
+       recalculation above is kept for `result`, which the print centre and
+       the repayment page still read; what the menu QUOTES is the derived
+       pair, so the delta on the row always amortizes back to the products
+       beside it. */
+    const baseR = finance(deal, vehicle, { apr, term });
+    const products = productsTotal(program.products);
+    const delta = round2(amortize(products, apr, term));
+    const payment = round2(baseR.payment + delta);
+    return {
+      key: programKey, label: program.label, products: program.products, payment, term, apr,
+      basePayment: baseR.payment, productsTotal: products, delta,
+      detail: `${term} mo @ ${apr.toFixed(2)}%`, result: r
+    };
+  }
+
+  const money = (n) => (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const money0 = (n) => (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US", { maximumFractionDigits: 0 });
+
+  return { creditTier, accessoriesTotal, productsTotal, productById, totalTaxRate, taxPct, totalFees, docFee, taxBreakdown, taxableBase, finance, lease, cash, onePay, calc, menuColumn, money, money0, round2, amortize };
+})();
