@@ -1276,7 +1276,12 @@ function navigate(hash) { location.hash = hash; }
    forward again, and the advisor is looped on a screen that has no app bar
    to leave by (review find — my own first fix had exactly this hole). */
 let routerReplacing = false;
-function redirect(hash) { routerReplacing = true; location.replace(hash); }
+function redirect(hash) {
+  /* on the test log: a rescue to Home is exactly the kind of thing a tester
+     cannot describe ("it just went back") */
+  if (window.RIDE_PRICE_TOUCHLOG && hash === "#/deals" && (location.hash || "#/deals") !== "#/deals") RIDE_PRICE_TOUCHLOG.note("rescue", "sent Home from " + location.hash);
+  routerReplacing = true; location.replace(hash);
+}
 /* the hash this router last rendered. A screen on the master canvas has no
    app bar, so when it is the FIRST page in a tab its back control has nowhere
    to go; this is what it falls back to. Deliberately not history.length —
@@ -1592,6 +1597,16 @@ function chDialog(sheets, title, body, actionLabel, onConfirm, keepLabel) {
    sub-destination that carries the More tab (Training documents, v024).
    The row for the screen already on show closes the sheet instead of
    navigating nowhere. */
+/* the test log's row (touchlog.js, owner 2026-09-15): the recorder runs from
+   the first load on this branch, so More carries one row — the screen that
+   hands the log over. Drawn only when the recorder is loaded. */
+function tlRows() {
+  const L = window.RIDE_PRICE_TOUCHLOG; if (!L) return "";
+  const n = L.count();
+  return `<div class="rp-group rp-group--spaced">
+    <a class="rp-row" href="#/demo/testlog" id="dqLogSend"><span class="rp-tile">${rpGlyph("upload")}</span><span class="rp-row__body"><span class="rp-row__title">Send test log</span><span class="rp-row__sub">${L.on() ? "Recording · " : ""}${n ? n + " event" + (n === 1 ? "" : "s") : "nothing yet"}</span></span><span class="rp-row__chevron"></span></a>
+    </div>`;
+}
 function chMoreSheet(sheets) {
   /* flat glyph tiles: a row group is all-flat or all-glass, and this one has
      no family icon for the hub, so it is flat throughout */
@@ -1606,6 +1621,7 @@ function chMoreSheet(sheets) {
     ${row("#/props", "document", "Training documents", "Prop licenses and registrations")}
     ${row("../ride-price-training-hub/index.html", "hub", "Training hub", "Guides and practice flows")}
     </div>
+    ${tlRows()}
     <div class="rp-group rp-group--spaced">
     <button type="button" class="rp-row rp-row--destructive" id="dqReset"><span class="rp-tile">${rpGlyph("trash")}</span><span class="rp-row__body"><span class="rp-row__title">Reset demo data</span><span class="rp-row__sub">Return the demo to its original seed state</span></span><span class="rp-row__chevron"></span></button>
     </div>`, (sheet) => {
@@ -4148,6 +4164,35 @@ function vehicleStatusHtml(d) {
 }
 /* the seed's contention example (SEED-DATA v025, screen 08): a later moment
    than the rest of the seed, so the demo enters it on purpose. Reset clears it. */
+/* Test log — the hand-over screen (touchlog.js). A Task: Close returns to
+   Home. The whole log sits in a read-only field that select-all-copy reaches
+   on any page, http or https; "Send by email" opens the phone's mail app with
+   the log in the body (a mailto: link — no network call by the app); Share
+   appears only where the browser offers it. Stop/Start and Clear behind the
+   kit's dialog. */
+route("demo/testlog", () => {
+  const L = window.RIDE_PRICE_TOUCHLOG;
+  renderChrome("Test log", "", "");
+  document.body.dataset.canvas = "kit"; document.body.dataset.screen = "testlog";
+  const text = L ? L.text() : "The recorder is not loaded on this page.";
+  const n = L ? L.count() : 0;
+  const mail = "mailto:?subject=" + encodeURIComponent("Ride Price test log · " + new Date().toLocaleString()) + "&body=" + encodeURIComponent(text.slice(0, 60000));
+  view().innerHTML = chShell({ template: "task", title: "Test log", step: n ? n + " event" + (n === 1 ? "" : "s") + (L && L.on() ? " · recording" : "") : "Nothing recorded", closeId: "tlClose" },
+    `<textarea class="ca-input tl-text" id="tlText" readonly aria-label="Test log" rows="14">${esc(text)}</textarea>
+     ${navigator.share ? `<button type="button" class="rp-link ch-hit" id="tlShare">Share</button>` : ""}
+     ${L ? `<button type="button" class="rp-link ch-hit" id="tlToggle">${L.on() ? "Stop recording" : "Start recording"}</button><button type="button" class="rp-link ch-hit" id="tlClear">Clear the log</button>` : ""}`,
+    chDock(`<a class="rp-primary" id="tlMail" href="${esc(mail)}">Send by email</a>`),
+    { scrim: "tlScrim", sheet: "tlSheet" });
+  const sheets = chSheetOpener("tlScrim", "tlSheet");
+  chWireRole(sheets, () => router());
+  $("#tlClose").onclick = () => navigate("#/deals");
+  const share = $("#tlShare"); if (share) share.onclick = () => { navigator.share({ title: "Ride Price test log", text }).catch(() => {}); };
+  const tog = $("#tlToggle"); if (tog) tog.onclick = () => { if (L.on()) L.stop(); else L.start(); router(); };
+  const clr = $("#tlClear"); if (clr) clr.onclick = () => chDialog(sheets, "Clear the test log?", "Every recorded event is removed.", "Clear the log", () => { L.clear(); router(); }, "Keep it");
+  $("#tlText").onclick = () => { const t = $("#tlText"); t.focus(); t.select(); };
+  chFitDock();
+});
+
 route("demo/vehicle-reserved", () => {
   const ex = RIDE_PRICE_DATA.contentionExample;
   const at = new Date(); const [h, m] = ex.time.split(":").map(Number); at.setHours(h, m, 0, 0);
