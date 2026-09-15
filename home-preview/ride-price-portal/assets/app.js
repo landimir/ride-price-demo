@@ -5562,7 +5562,7 @@ route("trade/:id", ({ id }) => {
    the present-mode comparison below. */
 route("desk/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return redirect("#/deals");
-  if (!deal.stock) { toast("Pick a vehicle first"); return navigate(`#/vehicles/${deal.id}`); }
+  if (!deal.stock) { toast("Pick a vehicle first"); return redirect(`#/vehicles/${deal.id}`); }
   const v = Store.vehicle(deal.stock);
   const c = Store.customer(deal.customerId);
   if (["discovery", "vehicle", "testdrive"].includes(deal.stage)) { deal.stage = "desking"; Store.save(); }
@@ -9849,7 +9849,7 @@ function drClientLink(id, startScreen) {
 route("docreview/:id/:docId", ({ id, docId }) => {
   const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const d = docMeta(docId); const m = clientMeta(docId);
-  if (!d || !m) return navigate("#/jacket/" + id);
+  if (!d || !m) return redirect("#/jacket/" + id);
   const c = Store.customer(deal.customerId);
 
   /* the viewer's own state: which side is shown, and whether it is zoomed */
