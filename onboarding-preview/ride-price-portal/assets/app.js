@@ -11311,12 +11311,18 @@ Store.load();
    browser is seen at once — the store is re-read and the screen repainted,
    unless someone is typing here (their field would be wiped). Two devices
    never share a store on this demo: that is a backend (OB-057, deferred). */
+let storeStale = false;
 window.addEventListener("storage", (e) => {
   if (e.key !== "ride_price_portal_v1") return;
-  Store.load();
-  const a = document.activeElement; if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
-  router();
+  /* while someone is typing here the store is NOT re-read either: a route
+     holds its deal by reference and saves it later, and a re-read under it
+     would orphan what is being typed (PR #108 review). The re-read waits
+     for the next screen change, where every route fetches its deal afresh. */
+  const a = document.activeElement; if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) { storeStale = true; return; }
+  Store.load(); router();
 });
+/* capture: at the window itself a capturing listener runs before the router's own hashchange listener, so the route entered reads the fresh store */
+window.addEventListener("hashchange", () => { if (storeStale) { storeStale = false; Store.load(); } }, true);
 window.addEventListener("hashchange", router);
 window.addEventListener("DOMContentLoaded", () => {
   /* the logo hard-refreshes the floor queue: search and pipeline filter
