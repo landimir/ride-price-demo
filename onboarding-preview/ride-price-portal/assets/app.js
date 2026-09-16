@@ -191,6 +191,10 @@ const Store = (function () {
        migration write, not a display-path write */
     let minted = false;
     state.deals.forEach(d => { if (!d.dealNo) { d.dealNo = mintDealNo(); minted = true; } });
+    /* owner's protocol 2026-09-15: a deal with no advisor field is from before
+       advisors were stamped and belongs to the demo's one advisor; null is a
+       different thing — a visit a Team Lead registered and has not assigned */
+    state.deals.forEach(d => { if (d.advisor === undefined) { d.advisor = RIDE_PRICE_DATA.dealership.advisor; minted = true; } });
     /* the demo deal gained its mid-jacket seed after this browser may have
        saved a blob without one. Only a deal that has NO jacket at all is
        seeded: an existing jacket — even an emptied one — is somebody's work
@@ -1674,7 +1678,10 @@ route("deals", () => {
      A deal saved before deals carried an advisor belongs to the demo's one
      advisor — that is who created it. */
   const lead = isTeamLead();
-  const mine = Store.s.deals.filter(d => lead || !d.advisor || d.advisor === Store.s.advisor);
+  /* owner's protocol 2026-09-15: a visit a Team Lead registered (advisor null)
+     appears under no salesperson until the Team Lead assigns it — a referral;
+     the Team Lead's floor shows it at once */
+  const mine = Store.s.deals.filter(d => lead || d.advisor === Store.s.advisor);
   const bySeen = (a, b) => (b.createdAt || "").localeCompare(a.createdAt || "");
   /* v3: In showroom is a separate active-visits section, not a deal stage */
   /* v022: presence is its own list and never moves a deal out of the deal
@@ -2912,9 +2919,17 @@ route("idverify", () => {
    starts still belongs to the floor advisor — stamping the lead's name would
    orphan the deal from every advisor's view with no reassignment UI. */
 function startVisit(customerId) {
+  /* owner's protocol 2026-09-15: "duplicate customer entries in the showroom
+     are not permitted" — a customer already in the showroom is taken to that
+     visit, never given a second one (OB-034; the same rule as PR #107's guard
+     on Home, at the one place every start passes through) */
+  const already = Store.s.deals.find(d => d.customerId === customerId && inShowroom(d));
+  if (already) { const c0 = Store.customer(customerId) || {}; toast([c0.first, c0.last].filter(Boolean).join(" ") + " is already in the showroom"); navigate(`#/discovery/${already.id}`); return; }
   const deal = {
     id: uid("d"), dealNo: Store.mintDealNo(), customerId, stock: null, dealType: "finance", stage: "discovery",
-    createdAt: new Date().toISOString(), advisor: Store.s.advisor,
+    /* owner's protocol 2026-09-15: a Team Lead's visit is under no salesperson
+       until assigned (OB-043 B, OB-056); an advisor's is theirs at once */
+    createdAt: new Date().toISOString(), advisor: isTeamLead() ? null : Store.s.advisor, startedBy: roleName(),
     discovery: { answers: {}, done: false },
     testDrive: { done: false },
     /* no `payoff`: a visit that has not reached the trade screen has not been
@@ -3992,6 +4007,12 @@ route("discovery/:id", ({ id }) => {
         <span class="dv-chev" aria-hidden="true">&rsaquo;</span>
       </button>
       <div class="dv-seclab">Visit</div>
+      ${deal.advisor ? `<div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Advisor</div></div>
+        <span class="dv-rowval dv-rowval--strong">${esc(deal.advisor)}</span></div>`
+      : isTeamLead() ? `<button type="button" class="dv-row dv-row--link" id="dvAssign">
+        <div class="dv-rowmain"><div class="dv-rowsub">Advisor</div></div>
+        <span class="dv-rowval">Not assigned</span><span class="dv-chev" aria-hidden="true">&rsaquo;</span></button>`
+      : `<div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Advisor</div></div><span class="dv-rowval">Not assigned</span></div>`}
       <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Stage</div></div>
         <span class="dv-rowval dv-rowval--strong">${esc((STAGES[deal.stage] || {}).label || deal.stage)}</span></div>
       <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Visit #</div></div>
@@ -4010,6 +4031,23 @@ route("discovery/:id", ({ id }) => {
          sheet; close this one first so they do not stack */
       const cb = $("#dvCoBuyer", sh);
       if (cb) cb.addEventListener("click", closeSheet);
+      const as = $("#dvAssign", sh);
+      if (as) as.onclick = assignSheet;
+    });
+  }
+  /* owner's protocol 2026-09-15 (OB-056): the Team Lead assigns a visit they
+     registered to a salesperson — a referral. One pick; the visit then shows
+     under that advisor's My deals. */
+  function assignSheet() {
+    const names = [RIDE_PRICE_DATA.dealership.advisor, ...(RIDE_PRICE_DATA.otherAdvisors || [])];
+    openSheet(`
+      <h2 class="dv-sheettitle">Assign to an advisor</h2>
+      ${names.map(n => `<button type="button" class="dv-row dv-row--link" data-assign="${esc(n)}"><div class="dv-rowmain"><div class="dv-rowname">${esc(n)}</div></div><span class="dv-chev" aria-hidden="true">&rsaquo;</span></button>`).join("")}
+      <div class="dv-actions"><button type="button" class="dv-sheetbtn" data-sheet-close>Cancel</button></div>`, (sh) => {
+      $$("[data-assign]", sh).forEach(b => b.onclick = () => {
+        deal.advisor = b.dataset.assign; Store.save();
+        toast("Assigned to " + b.dataset.assign); closeSheet(); render();
+      });
     });
   }
 
@@ -11269,6 +11307,16 @@ route("print/:id/:doc", ({ id, doc }) => {
 
 /* ---------------- boot ---------------- */
 Store.load();
+/* owner's protocol 2026-09-15 (OB-038 B): a save in another tab of this
+   browser is seen at once — the store is re-read and the screen repainted,
+   unless someone is typing here (their field would be wiped). Two devices
+   never share a store on this demo: that is a backend (OB-057, deferred). */
+window.addEventListener("storage", (e) => {
+  if (e.key !== "ride_price_portal_v1") return;
+  Store.load();
+  const a = document.activeElement; if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+  router();
+});
 window.addEventListener("hashchange", router);
 window.addEventListener("DOMContentLoaded", () => {
   /* the logo hard-refreshes the floor queue: search and pipeline filter
