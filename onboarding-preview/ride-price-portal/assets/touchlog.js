@@ -54,7 +54,9 @@
     }, 150);
   }
   const now = () => new Date().toISOString();
-  const ms = () => state.startedAt ? Math.round(performance.now()) : 0;
+  /* wall clock from the run's start, not performance.now(): the log lives
+     across reloads and his third log restarted at +7 s after a reload (OB-058) */
+  const ms = () => state.startedAt ? Date.now() - state.startedAt : 0;
   const t = (e) => (e.t / 1000).toFixed(1);
   /* entity ids become run-local pseudonyms: d-nwf33ug → d1 */
   const pseud = (id) => { const p = id[0]; if (!state.ids[id]) state.ids[id] = p + (Object.keys(state.ids).filter(k => k[0] === p).length + 1); return state.ids[id]; };

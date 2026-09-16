@@ -2140,7 +2140,7 @@ route("customers", () => {
   const step = () => { history.pushState(snap(), "", location.hash); };
   const restore = (h) => {
     if (!h || !h.ob) return false;
-    if ((h.epoch || 0) !== (Store.s.obEpoch || 0)) { history.replaceState(null, "", location.hash); return false; }
+    if ((h.epoch || 0) !== (Store.s.obEpoch || 0)) { history.replaceState(null, "", location.hash); return "stale"; }
     st.mode = h.ob; st.q = h.q || ""; st.forceNew = !!h.forceNew;
     st.results = h.results ? h.results.map(id => Store.customer(id)).filter(Boolean) : null;
     st.found = h.found ? Store.customer(h.found) : null;
@@ -2158,7 +2158,10 @@ route("customers", () => {
      Leaving the route by Back changes the hash and the router takes over. */
   window.onpopstate = (e) => {
     if ((location.hash || "#/deals").split("?")[0] !== "#/customers") return;
-    if (!restore(e.state)) { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; st.whose = null; }
+    const r = restore(e.state);
+    /* OB-059: a spent entry with no errand left is Home's, not the resolver's */
+    if (r === "stale" && !Store.s.mission) { redirect("#/deals"); return; }
+    if (!r) { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; st.whose = null; }
     render(); window.scrollTo(0, 0);
   };
   const stepBack = () => { if (liveStep()) history.back(); else { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; render(); } };
@@ -2785,6 +2788,11 @@ route("customers", () => {
     });
   }
 
+  /* OB-059 (his third log, 2026-09-16): Back from Discovery after a visit
+     started landed on an empty resolver, and he closed it to reach Home —
+     three times. A spent step with no errand left is not a place to stand:
+     the resolver hands straight over to Home (or the mission's return). */
+  if (history.state && history.state.ob && !liveStep() && !Store.s.mission) { redirect("#/deals"); return; }
   if (st.mode === "idle" && liveStep()) restore(history.state);
   render();
   /* the buyers sheet's "Send secure upload link" lands here mid-mission with
