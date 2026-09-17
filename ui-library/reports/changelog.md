@@ -1,5 +1,48 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v034 — 2026-09-17
+
+App commit: 47bcec4 · 20 flows · 145 screens · previous: v033
+
+### Added
+- Customer Onboarding — the Customer Resolver · Customer found — already in the showroom
+
+### Changed (screenshot bytes differ from the previous version)
+- Customer Onboarding — the Customer Resolver · Customer found — confirm + registration address
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Visit details (sheet)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Documents — Print Center & Printables · Documents
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+What changed for real: PR #107 (Home — Active Floor & Navigation) landed. One screen is new — Customer found for a customer already in the showroom, where Continue is the only action (the 'anyway' link appears only once the visit has ended). The flow's ordinary found screen and its address sheet are now captured on Cheri Bridwell, because John's found screen is the new one. Every other changed screenshot differs by live values only (visit numbers, clock times, dates). No issue resolved; none added.
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v033 — 2026-09-17
 
 App commit: d461e22 · 20 flows · 144 screens · previous: v032

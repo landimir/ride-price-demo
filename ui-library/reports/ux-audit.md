@@ -1,6 +1,6 @@
-# Ride Price Mobile UI — UX Audit (v033)
+# Ride Price Mobile UI — UX Audit (v034)
 
-Captured 2026-09-17T20:11:39.843Z · viewport 390×844 · app d461e221d5c7ac7169c4e37d097adc0e5b9da9b0
+Captured 2026-09-17T21:41:15.909Z · viewport 390×844 · app 47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d
 
 | Severity | Count |
 |---|---|
@@ -19,8 +19,8 @@ _None recorded._
 
 ### RP-UI-032 — Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status
 
-- **Screenshot:** `current/02-customer-onboarding/08-waiting-for-customer.png`
-- **Issue:** The link path now says the link went out and nothing says the demo did not send anything. The banner reads “Secure link sent · (646) 555-0900 · Text”; the send sheet before it (07) dropped “Demo — no text or email is really sent; the customer view opens on this device”; and the customer-identified screen after it (09) describes a real remote session — “Secure session · Opened on the customer's device”, “License photo · Read from the upload” — where v021 said “Opened on this device (demo)” and “Read from the training prop”. A trainee is told a text was sent and a customer uploaded, and neither happened.
+- **Screenshot:** `current/02-customer-onboarding/09-waiting-for-customer.png`
+- **Issue:** The link path now says the link went out and nothing says the demo did not send anything. The banner reads “Secure link sent · (646) 555-0900 · Text”; the send sheet before it (08) dropped “Demo — no text or email is really sent; the customer view opens on this device”; and the customer-identified screen after it (10) describes a real remote session — “Secure session · Opened on the customer's device”, “License photo · Read from the upload” — where v021 said “Opened on this device (demo)” and “Read from the training prop”. A trainee is told a text was sent and a customer uploaded, and neither happened.
 - **Observation:** The chrome rule (v022) removed lede and helper copy from the 19 screens and made the banner slot the one place DEMO appears; the Advisor banner says “Sample data only”, which covers the data, not the sending. The demo is a training tool with no network (architecture invariant), so a screen that claims a send needs one honest line somewhere on the path — the banner slot is the package's own place for it. Copy decision on package screens, so filed rather than changed.
 - **Suggested area to investigate:** app.js — the resolver's link path (obSendGo / waiting status / remote-ready) on the kit; the banner slot
 
@@ -42,7 +42,7 @@ _None recorded._
 
 ### RP-UI-033 — Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status
 
-- **Screenshot:** `current/02-customer-onboarding/08-waiting-for-customer.png`
+- **Screenshot:** `current/02-customer-onboarding/09-waiting-for-customer.png`
 - **Issue:** The task's step counter skips a step on the link path: the send sheet opens over “Step 1 of 3” and the next screen reads “Step 3 of 3” — step 2 never appears — while the found-customer and manual paths show “Step 2 of 3” before they leave the task.
 - **Observation:** The Task template's “task name + step” line is part of the chrome rule; the three paths through the resolver number their steps differently. Either the link path has a second step to show, or the counter should read the path's own length.
 - **Suggested area to investigate:** app.js — the resolver's Task header step index
@@ -135,7 +135,7 @@ _None recorded._
 
 ### RP-UI-043 — Customer Onboarding — the Customer Resolver · No license available — manual fallback
 
-- **Screenshot:** `current/02-customer-onboarding/06-manual-fallback.png`
+- **Screenshot:** `current/02-customer-onboarding/07-manual-fallback.png`
 - **Issue:** The manual fallback is now the task title and four bare fields. The note that made it fallback-only (“if a license or license photo becomes available, use it instead”) and the line that both phone and email are required are gone, and no field is marked required until validation says so.
 - **Observation:** The chrome rule removed helper copy from the 19 screens by design; the two rules still hold in validation (customerMissing requires first, last, phone, email, address and ZIP). Whether the fallback-only rule needs a line on the screen is the package's call — filed so the change is on record, since the library's step note used to describe the copy.
 - **Suggested area to investigate:** app.js — the resolver's manual fallback on the kit

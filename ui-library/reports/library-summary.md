@@ -1,12 +1,12 @@
 # Ride Price Mobile UI Library
 
-Version: v033
-Captured: 2026-09-17T20:11:39.843Z
-App commit: d461e221d5c7ac7169c4e37d097adc0e5b9da9b0
+Version: v034
+Captured: 2026-09-17T21:41:15.909Z
+App commit: 47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 144
+Screens documented: 145
 Branches documented: 77
 
 UX Audit:
@@ -20,10 +20,10 @@ UX Audit:
 | # | Flow | Screens | Entry |
 |---|---|---|---|
 | 1 | Home — Active Floor & Navigation | 10 | entry point |
-| 2 | Customer Onboarding — the Customer Resolver | 9 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap New visit |
+| 2 | Customer Onboarding — the Customer Resolver | 10 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap New visit |
 | 3 | Scan Driver's License | 11 | Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver — Tap Scan physical license |
 | 4 | Training Documents | 4 | Home — Active Floor & Navigation · 02 More sheet — secondary navigation — Training documents |
-| 5 | Discovery Session | 6 | Customer Onboarding — the Customer Resolver · 03 Customer found — confirm + registration address — Confirm address & start visit |
+| 5 | Discovery Session | 6 | Customer Onboarding — the Customer Resolver · 04 Customer found — confirm + registration address — Confirm address & start visit |
 | 6 | Vehicle Selection | 8 | Discovery Session · 04 Discovery complete (sheet) — Tap Find matching vehicles |
 | 7 | Test Drive Agreement | 7 | Vehicle Selection · 05 What's next? — after choosing — Tap Test Drive |
 | 8 | Trade-In Evaluation & Proof of Ownership | 5 | Vehicle Selection · 05 What's next? — after choosing — Tap Trade Appraisal |

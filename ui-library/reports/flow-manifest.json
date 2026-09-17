@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-09-17T20:11:39.843Z",
-  "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+  "capturedAt": "2026-09-17T21:41:15.909Z",
+  "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
       "entry": null,
-      "capturedAt": "2026-09-17T20:11:39.865Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:41:15.972Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -446,8 +446,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-09-17T20:11:52.033Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T22:04:48.348Z",
+      "appCommit": "cf7d02a821b4de7bf91252fae83327fca4aa0422",
       "screens": [
         {
           "step": 1,
@@ -499,7 +499,7 @@
           "screenshot": "current/02-customer-onboarding/02-search-results.png",
           "hash": "#/customers",
           "action": "Tap the customer",
-          "next": "customer-found",
+          "next": "customer-found-open-visit",
           "branches": [],
           "notes": "One field takes a name, phone, email or license number — the advisor does not have to know which identifier they hold.",
           "status": "ok",
@@ -524,19 +524,14 @@
         },
         {
           "step": 3,
-          "key": "customer-found",
-          "screen": "Customer found — confirm + registration address",
-          "screenshot": "current/02-customer-onboarding/03-customer-found.png",
+          "key": "customer-found-open-visit",
+          "screen": "Customer found — already in the showroom",
+          "screenshot": "current/02-customer-onboarding/03-customer-found-open-visit.png",
           "hash": "#/customers",
-          "action": "Tap Confirm address & start visit",
-          "next": "discovery/question-1",
-          "branches": [
-            {
-              "action": "Use a different address",
-              "to": "onboarding/address-sheet"
-            }
-          ],
-          "notes": "The customer and the registration address are confirmed in ONE decision region; the way back is the task's close control. The address is marked Required — and named as the CRM's when it came from a match — because it feeds registration, tax calculations, credit and paperwork — confirming here means nobody is asked to type it again.",
+          "action": "Tap Continue John's visit",
+          "next": "desking/huddle-gate",
+          "branches": [],
+          "notes": "Since PR #107 (D-HN10 B with the owner's showroom protocol): a customer with an open visit is offered that visit, never a second one. In the showroom Continue is the only action; once the visit has ended a 'Start a new visit anyway' link appears under it.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -557,9 +552,43 @@
         },
         {
           "step": 4,
+          "key": "customer-found",
+          "screen": "Customer found — confirm + registration address",
+          "screenshot": "current/02-customer-onboarding/04-customer-found.png",
+          "hash": "#/customers",
+          "action": "Tap Confirm address & start visit",
+          "next": "discovery/question-1",
+          "branches": [
+            {
+              "action": "Use a different address",
+              "to": "onboarding/address-sheet"
+            }
+          ],
+          "notes": "The customer and the registration address are confirmed in ONE decision region; the way back is the task's close control. The address is marked Required — and named as the CRM's when it came from a match — because it feeds registration, tax calculations, credit and paperwork — confirming here means nobody is asked to type it again.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 5,
           "key": "address-sheet",
           "screen": "Use a different address (sheet)",
-          "screenshot": "current/02-customer-onboarding/04-address-sheet.png",
+          "screenshot": "current/02-customer-onboarding/05-address-sheet.png",
           "hash": "#/customers",
           "action": "Pick the standardized address",
           "next": "discovery/question-1",
@@ -589,10 +618,10 @@
           "issues": []
         },
         {
-          "step": 5,
+          "step": 6,
           "key": "no-match",
           "screen": "Search results — no match",
-          "screenshot": "current/02-customer-onboarding/05-no-match.png",
+          "screenshot": "current/02-customer-onboarding/06-no-match.png",
           "hash": "#/customers",
           "action": "Tap 'No license available · add manually'",
           "next": "manual-fallback",
@@ -619,10 +648,10 @@
           "issues": []
         },
         {
-          "step": 6,
+          "step": 7,
           "key": "manual-fallback",
           "screen": "No license available — manual fallback",
-          "screenshot": "current/02-customer-onboarding/06-manual-fallback.png",
+          "screenshot": "current/02-customer-onboarding/07-manual-fallback.png",
           "hash": "#/customers",
           "action": "Fill the four fields, tap Confirm & start visit",
           "next": "discovery/question-1",
@@ -655,10 +684,10 @@
           ]
         },
         {
-          "step": 7,
+          "step": 8,
           "key": "send-link-sheet",
           "screen": "Send secure upload link (sheet)",
-          "screenshot": "current/02-customer-onboarding/07-send-link-sheet.png",
+          "screenshot": "current/02-customer-onboarding/08-send-link-sheet.png",
           "hash": "#/customers",
           "action": "Pick Text or Email, enter that contact, tap Send secure link",
           "next": "waiting-for-customer",
@@ -694,10 +723,10 @@
           "issues": []
         },
         {
-          "step": 8,
+          "step": 9,
           "key": "waiting-for-customer",
           "screen": "Waiting for customer — progressive status",
-          "screenshot": "current/02-customer-onboarding/08-waiting-for-customer.png",
+          "screenshot": "current/02-customer-onboarding/09-waiting-for-customer.png",
           "hash": "#/customers",
           "action": "Tap Open customer view",
           "next": "onboarding/remote-ready",
@@ -723,7 +752,7 @@
             {
               "id": "RP-UI-032",
               "severity": "Major",
-              "issue": "The link path now says the link went out and nothing says the demo did not send anything. The banner reads “Secure link sent · (646) 555-0900 · Text”; the send sheet before it (07) dropped “Demo — no text or email is really sent; the customer view opens on this device”; and the customer-identified screen after it (09) describes a real remote session — “Secure session · Opened on the customer's device”, “License photo · Read from the upload” — where v021 said “Opened on this device (demo)” and “Read from the training prop”. A trainee is told a text was sent and a customer uploaded, and neither happened.",
+              "issue": "The link path now says the link went out and nothing says the demo did not send anything. The banner reads “Secure link sent · (646) 555-0900 · Text”; the send sheet before it (08) dropped “Demo — no text or email is really sent; the customer view opens on this device”; and the customer-identified screen after it (10) describes a real remote session — “Secure session · Opened on the customer's device”, “License photo · Read from the upload” — where v021 said “Opened on this device (demo)” and “Read from the training prop”. A trainee is told a text was sent and a customer uploaded, and neither happened.",
               "observation": "The chrome rule (v022) removed lede and helper copy from the 19 screens and made the banner slot the one place DEMO appears; the Advisor banner says “Sample data only”, which covers the data, not the sending. The demo is a training tool with no network (architecture invariant), so a screen that claims a send needs one honest line somewhere on the path — the banner slot is the package's own place for it. Copy decision on package screens, so filed rather than changed.",
               "area": "app.js — the resolver's link path (obSendGo / waiting status / remote-ready) on the kit; the banner slot"
             },
@@ -737,10 +766,10 @@
           ]
         },
         {
-          "step": 9,
+          "step": 10,
           "key": "remote-ready",
           "screen": "Customer identified (advisor)",
-          "screenshot": "current/02-customer-onboarding/09-remote-ready.png",
+          "screenshot": "current/02-customer-onboarding/10-remote-ready.png",
           "hash": "#/customers",
           "action": "Tap Start visit",
           "next": "discovery/question-1",
@@ -775,8 +804,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-09-17T20:12:17.269Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:41:53.513Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -1198,8 +1227,8 @@
         "from": "home/more-sheet",
         "action": "Training documents"
       },
-      "capturedAt": "2026-09-17T20:12:46.397Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:42:18.733Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -1377,15 +1406,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-09-17T20:12:52.428Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:42:22.970Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
           "key": "question-1",
           "screen": "Discovery — question 1, customer-first",
           "screenshot": "current/05-discovery/01-question-1.png",
-          "hash": "#/discovery/d-dxgmak5",
+          "hash": "#/discovery/d-3pphie4",
           "action": "Answer, tap Next →",
           "next": "question-mid",
           "branches": [
@@ -1422,7 +1451,7 @@
           "key": "question-mid",
           "screen": "Discovery — mid-interview, Back appears",
           "screenshot": "current/05-discovery/02-question-mid.png",
-          "hash": "#/discovery/d-dxgmak5",
+          "hash": "#/discovery/d-3pphie4",
           "action": "Keep answering to the last question",
           "next": "question-last",
           "branches": [],
@@ -1450,7 +1479,7 @@
           "key": "question-last",
           "screen": "Discovery — the last question is the hand-off",
           "screenshot": "current/05-discovery/03-question-last.png",
-          "hash": "#/discovery/d-dxgmak5",
+          "hash": "#/discovery/d-3pphie4",
           "action": "Tap Find vehicles →",
           "next": "discovery-complete",
           "branches": [],
@@ -1478,7 +1507,7 @@
           "key": "discovery-complete",
           "screen": "Discovery complete (sheet)",
           "screenshot": "current/05-discovery/04-discovery-complete.png",
-          "hash": "#/discovery/d-dxgmak5",
+          "hash": "#/discovery/d-3pphie4",
           "action": "Tap Find matching vehicles",
           "next": "vehicles/inventory",
           "branches": [
@@ -1518,7 +1547,7 @@
           "key": "visit-details",
           "screen": "Visit details (sheet)",
           "screenshot": "current/05-discovery/05-visit-details.png",
-          "hash": "#/discovery/d-zzgugdb",
+          "hash": "#/discovery/d-ee10onn",
           "action": "Tap Done",
           "next": "question-1",
           "branches": [
@@ -1594,8 +1623,8 @@
         "from": "discovery/discovery-complete",
         "action": "Tap Find matching vehicles"
       },
-      "capturedAt": "2026-09-17T20:13:04.913Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:42:34.105Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -1966,8 +1995,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-09-17T20:13:20.413Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:42:45.696Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -2222,8 +2251,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-09-17T20:13:28.580Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:42:52.952Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -2374,7 +2403,7 @@
           "key": "appraisal-empty",
           "screen": "The appraisal form before anyone has typed",
           "screenshot": "current/08-trade-in/05-appraisal-empty.png",
-          "hash": "#/trade/d-e8w9a6c",
+          "hash": "#/trade/d-40z3jee",
           "action": "Type the vehicle, then Run evaluation",
           "next": "trade-evaluation",
           "branches": [],
@@ -2417,8 +2446,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-09-17T20:13:38.161Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:43:02.337Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -2720,8 +2749,8 @@
         "from": "desking/work-chose",
         "action": "Tap Submit for Team Lead approval, then Continue"
       },
-      "capturedAt": "2026-09-17T20:13:46.091Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:43:10.928Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -2842,8 +2871,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-09-17T20:13:52.769Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:43:18.969Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -3040,7 +3069,7 @@
               ".rp-option__sub One applicant completes this <> .rp-sheet__sub Deal #48201 · John Smith · j",
               ".rp-option__title Joint application <> .rp-step__title Link sent by text",
               ".rp-option__sub A co-buyer applies with them <> .rp-step__title Link sent by text",
-              ".rp-option__sub A co-buyer applies with them <> .rp-step__sub (347) 555-1212 · 4:13 PM",
+              ".rp-option__sub A co-buyer applies with them <> .rp-step__sub (347) 555-1212 · 5:43 PM",
               ".rp-section Co-buyer <> .rp-step__sub Waiting on the co-buyer",
               ".rp-section Co-buyer <> .rp-status Waiting",
               ".rp-row__title Send a secure link <> .rp-step__title Identity verified"
@@ -3171,8 +3200,8 @@
         "from": "discovery/visit-details",
         "action": "Tap Co-buyer in Visit details"
       },
-      "capturedAt": "2026-09-17T20:14:03.848Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:43:31.112Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -3473,8 +3502,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present on Product presentation"
       },
-      "capturedAt": "2026-09-17T20:14:11.443Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:43:40.031Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -3663,8 +3692,8 @@
         "from": "credit/approved",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-09-17T20:14:15.274Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:43:44.339Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -3939,7 +3968,7 @@
               ".rp-stage.rp-stage--on 2 Options <> .rp-sheet__sub Vehicle Service Contract",
               ".rp-stage 3 Forms <> .rp-sheet__sub Vehicle Service Contract",
               ".rp-stage 4 Finalize <> .rp-sheet__sub Vehicle Service Contract",
-              ".rp-notice.rp-notice--success Terms marked presented 4:14  <> .rp-kv__head What the customer is agreein",
+              ".rp-notice.rp-notice--success Terms marked presented 5:43  <> .rp-kv__head What the customer is agreein",
               ".rp-pkg__item Preferred <>  Products added"
             ]
           },
@@ -4182,8 +4211,8 @@
         "from": "discovery/question-1",
         "action": "Tap the Jacket chip in the context row"
       },
-      "capturedAt": "2026-09-17T20:14:31.182Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:44:02.153Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -4496,8 +4525,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-09-17T20:14:39.979Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:44:12.423Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -4597,7 +4626,7 @@
             "overlaps": [
               ".rp-ready__note 3 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 3 needed <>  Sep 17, 4:14 PM",
+              ".rp-bucket__badge 3 needed <>  Sep 17, 5:44 PM",
               ".rp-doc__why Front captured in the Custom <>  Customer opened",
               ".rp-doc__why Front captured in the Custom <>  Documents uploaded",
               ".rp-doc__state.rp-doc__state--part Back needed <>  Waiting",
@@ -4625,8 +4654,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-09-17T20:14:44.238Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:44:16.619Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -4967,8 +4996,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-09-17T20:14:57.413Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:44:30.182Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -5277,8 +5306,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-09-17T20:15:08.246Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:44:41.115Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
@@ -5382,8 +5411,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print centre"
       },
-      "capturedAt": "2026-09-17T20:15:16.948Z",
-      "appCommit": "d461e221d5c7ac7169c4e37d097adc0e5b9da9b0",
+      "capturedAt": "2026-09-17T21:44:49.795Z",
+      "appCommit": "47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d",
       "screens": [
         {
           "step": 1,
