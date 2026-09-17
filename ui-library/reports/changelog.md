@@ -1,5 +1,63 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v032 — 2026-09-17
+
+App commit: d8ab397 · 20 flows · 144 screens · previous: v031
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · More sheet — secondary navigation
+- Home — Active Floor & Navigation · Funded history in range
+- Customer Onboarding — the Customer Resolver · Send secure upload link (sheet)
+- Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1, customer-first
+- Discovery Session · Discovery complete (sheet)
+- Discovery Session · Visit details (sheet)
+- Test Drive Agreement · Test drive in progress
+- Test Drive Agreement · End test drive — odometer
+- Base Payment Agreement · Agreement — ready to sign
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Row blocked — back of license missing
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Snap All — burst capture · The license now complete
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+What changed for real: PR #108 (Customer Onboarding / Resolver) landed — the More sheet gained “Send test log”; the send-link sheet asks for one contact method (the chosen channel) with the helper checkbox; Discovery's visit-details sheet gained the Advisor row (the name, or “Not assigned” tappable for the Team Lead). The other changed screens differ by live values only (visit numbers, clock times, dates). No issue resolved; none added.
+
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v031 — 2026-09-10
 
 App commit: 9314b32 · 20 flows · 144 screens · previous: v030
