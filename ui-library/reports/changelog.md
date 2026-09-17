@@ -1,5 +1,48 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v033 — 2026-09-17
+
+App commit: d461e22 · 20 flows · 144 screens · previous: v032
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1, customer-first
+- Discovery Session · Visit details (sheet)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+What changed for real: PR #110 (Portal Interaction) landed — the customer-facing Snap All no longer draws the demo band, and on Training documents a tab is a step for the phone's Back. Neither shows in this library's captures: Snap All is captured from the advisor's side (its band stays), and the tab rule is navigation, not a screen. Every changed screenshot here differs by live values only (visit numbers, clock times, dates). No issue resolved; none added.
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v032 — 2026-09-17
 
 App commit: d8ab397 · 20 flows · 144 screens · previous: v031

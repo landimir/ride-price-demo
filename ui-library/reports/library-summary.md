@@ -1,8 +1,8 @@
 # Ride Price Mobile UI Library
 
-Version: v032
-Captured: 2026-09-17T15:20:19.305Z
-App commit: d8ab397b92abefed5565afb069b971b4aa9dc5b6
+Version: v033
+Captured: 2026-09-17T20:11:39.843Z
+App commit: d461e221d5c7ac7169c4e37d097adc0e5b9da9b0
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
