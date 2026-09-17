@@ -1463,6 +1463,10 @@ function chTabbar(active) {
 const chDock = (primaryHtml, linkHtml) => `<div class="rp-dock">${primaryHtml}${linkHtml || ""}</div>`;
 /* the whole frame: the kit's screen skeletons. Only .rp-page scrolls. The
    scrim and sheet live INSIDE the screen, hidden until opened. */
+/* opts.banner === false: a screen the CUSTOMER holds (Snap All from the text
+   link) carries no dealership demo band — the kit's --present hides the role
+   pill, not the band's Switch, and a Switch that does nothing on a customer's
+   page was PI-005 (Portal Interaction, 2026-09-17) */
 function chShell(opts, content, dockHtml, sheetIds) {
   const task = opts.template === "task";
   const ids = sheetIds || { scrim: "chScrim", sheet: "chSheet" };
@@ -1470,7 +1474,7 @@ function chShell(opts, content, dockHtml, sheetIds) {
      rp-screen--present, the desking mode where the phone is turned to the
      customer (the kit hides the role control and darkens the close itself) */
   return `<div class="rp-screen ${task ? "rp-screen--task" + (dockHtml ? "" : " rp-screen--nodock") : "rp-screen--destination"}${opts.cls ? " " + opts.cls : ""}">
-    ${chBanner()}${chTop(opts)}
+    ${opts.banner === false ? "" : chBanner()}${chTop(opts)}
     <main class="rp-page rp-stack">${content}</main>
     ${dockHtml || ""}${task ? "" : chTabbar(opts.active)}
     <div class="rp-scrim" id="${ids.scrim}" hidden></div><div class="rp-sheet" id="${ids.sheet}" role="dialog" aria-modal="true" tabindex="-1" hidden></div>
@@ -3773,10 +3777,14 @@ function trainingDocsView(tab) {
       + `<div class="tdoc-printroot" id="tdocPrint" aria-hidden="true"></div>`;
 
     $$(".rp-segment [data-type]").forEach(b => b.onclick = () => {
+      if (type === b.dataset.type) return; /* the tab already on is not a step */
       type = b.dataset.type;
       /* the tab lives in the URL, so a reload and the alias route both land
          on the same screen the advisor was looking at */
-      history.replaceState(null, "", type === "license" ? "#/props" : "#/props/registrations");
+      /* his ruling D-PI2 = B (2026-09-17): a tab is a step — pushed, so the phone's
+         Back returns to the tab you were on (the router re-renders from the URL);
+         it was replaceState, and Back left the screen altogether (PI-006) */
+      history.pushState(null, "", type === "license" ? "#/props" : "#/props/registrations");
       render();
     });
     $("#tdocPrintAll").onclick = () => { setPrintSet(pairs.map(p => p.prop)); window.print(); };
@@ -10703,7 +10711,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
     document.body.dataset.screen = "snapall";
     view().innerHTML = chShell(
       { template: "task", title: "Snap All", step, closeId: "saClose", closeLabel: "Close capture",
-        cls: clientSide ? "rp-screen--present" : "" },
+        cls: clientSide ? "rp-screen--present" : "", banner: !clientSide /* PI-005: the customer's page has no band */ },
       content, dockHtml(), { scrim: "saScrim", sheet: "saSheet" })
       + `<input type="file" accept="image/*" capture="environment" id="saCam" hidden>
          <input type="file" accept="image/*"${st.aim ? "" : " multiple"} id="saLib" hidden>`;
