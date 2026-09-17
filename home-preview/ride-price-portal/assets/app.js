@@ -181,16 +181,36 @@ const Store = (function () {
     return out;
   }
 
+  /* a re-read keeps every object the screens hold by reference: a deal or a
+     customer already in memory takes the fresh fields in place, gone ones
+     leave the array, new ones join it. A route mid-edit keeps its `deal` and
+     its later save writes the union — the other tab's change plus this
+     tab's edit — instead of an orphan (PR #108 review, round 5). */
+  function mergeInto(cur, next) {
+    for (const k of Object.keys(cur)) if (!(k in next)) delete cur[k];
+    for (const k of Object.keys(next)) {
+      const n = next[k], c = cur[k];
+      if (Array.isArray(n) && Array.isArray(c) && n.every(x => x && typeof x === "object" && x.id)) {
+        const old = new Map(c.map(x => [x.id, x])); c.length = 0;
+        for (const x of n) { const o = old.get(x.id); if (o) { for (const kk of Object.keys(o)) if (!(kk in x)) delete o[kk]; Object.assign(o, x); c.push(o); } else c.push(x); }
+      } else cur[k] = n;
+    }
+  }
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
-      state = raw ? JSON.parse(raw) : fresh();
+      const next = raw ? JSON.parse(raw) : fresh();
+      if (state && state.customers && next && next.customers) mergeInto(state, next); else state = next;
     } catch (e) { state = fresh(); }
     if (!state.customers) state = fresh();
     /* deals saved before deal numbers existed get one minted at load — a
        migration write, not a display-path write */
     let minted = false;
     state.deals.forEach(d => { if (!d.dealNo) { d.dealNo = mintDealNo(); minted = true; } });
+    /* owner's protocol 2026-09-15: a deal with no advisor field is from before
+       advisors were stamped and belongs to the demo's one advisor; null is a
+       different thing — a visit a Team Lead registered and has not assigned */
+    state.deals.forEach(d => { if (d.advisor === undefined) { d.advisor = RIDE_PRICE_DATA.dealership.advisor; minted = true; } });
     /* the demo deal gained its mid-jacket seed after this browser may have
        saved a blob without one. Only a deal that has NO jacket at all is
        seeded: an existing jacket — even an emptied one — is somebody's work
@@ -1277,8 +1297,8 @@ function navigate(hash) { location.hash = hash; }
    to leave by (review find — my own first fix had exactly this hole). */
 let routerReplacing = false;
 function redirect(hash) {
-  /* on the test log when it is recording: a rescue to Home is exactly the kind
-     of thing a tester cannot describe ("it just went back") */
+  /* on the test log: a rescue to Home is exactly the kind of thing a tester
+     cannot describe ("it just went back") */
   if (window.RIDE_PRICE_TOUCHLOG && hash === "#/deals" && (location.hash || "#/deals") !== "#/deals") RIDE_PRICE_TOUCHLOG.note("rescue", "sent Home from " + location.hash);
   routerReplacing = true; location.replace(hash);
 }
@@ -1466,6 +1486,10 @@ function chTabbar(active) {
 const chDock = (primaryHtml, linkHtml) => `<div class="rp-dock">${primaryHtml}${linkHtml || ""}</div>`;
 /* the whole frame: the kit's screen skeletons. Only .rp-page scrolls. The
    scrim and sheet live INSIDE the screen, hidden until opened. */
+/* opts.banner === false: a screen the CUSTOMER holds (Snap All from the text
+   link) carries no dealership demo band — the kit's --present hides the role
+   pill, not the band's Switch, and a Switch that does nothing on a customer's
+   page was PI-005 (Portal Interaction, 2026-09-17) */
 function chShell(opts, content, dockHtml, sheetIds) {
   const task = opts.template === "task";
   const ids = sheetIds || { scrim: "chScrim", sheet: "chSheet" };
@@ -1473,7 +1497,7 @@ function chShell(opts, content, dockHtml, sheetIds) {
      rp-screen--present, the desking mode where the phone is turned to the
      customer (the kit hides the role control and darkens the close itself) */
   return `<div class="rp-screen ${task ? "rp-screen--task" + (dockHtml ? "" : " rp-screen--nodock") : "rp-screen--destination"}${opts.cls ? " " + opts.cls : ""}">
-    ${chBanner()}${chTop(opts)}
+    ${opts.banner === false ? "" : chBanner()}${chTop(opts)}
     <main class="rp-page rp-stack">${content}</main>
     ${dockHtml || ""}${task ? "" : chTabbar(opts.active)}
     <div class="rp-scrim" id="${ids.scrim}" hidden></div><div class="rp-sheet" id="${ids.sheet}" role="dialog" aria-modal="true" tabindex="-1" hidden></div>
@@ -1620,15 +1644,15 @@ function chDialog(sheets, title, body, actionLabel, onConfirm, keepLabel) {
    sub-destination that carries the More tab (Training documents, v024).
    The row for the screen already on show closes the sheet instead of
    navigating nowhere. */
-/* the test log's two rows (touchlog.js, owner 2026-09-15): record on/off, and
-   the screen that hands the log over. Drawn only when the recorder is loaded,
-   so a page without it shows the More sheet exactly as before. */
+/* the test log's row (touchlog.js, owner 2026-09-15; master v1.2 test-log
+   contract): the recorder runs from the first load of a designated test
+   preview, so More carries one row — the screen that hands the log over.
+   Drawn only when the recorder is loaded. */
 function tlRows() {
   const L = window.RIDE_PRICE_TOUCHLOG; if (!L) return "";
-  const on = L.on(), n = L.count();
+  const n = L.count();
   return `<div class="rp-group rp-group--spaced">
-    <button type="button" class="rp-row" id="dqLogToggle"><span class="rp-tile">${rpGlyph(on ? "check" : "document")}</span><span class="rp-row__body"><span class="rp-row__title">${on ? "Stop recording" : "Record test log"}</span><span class="rp-row__sub">${on ? "Recording · " + n + " event" + (n === 1 ? "" : "s") : (n ? n + " events kept" : "Off")}</span></span><span class="rp-row__chevron"></span></button>
-    <a class="rp-row" href="#/demo/testlog" id="dqLogSend"><span class="rp-tile">${rpGlyph("upload")}</span><span class="rp-row__body"><span class="rp-row__title">Send test log</span><span class="rp-row__sub">${n ? n + " events" : "Nothing recorded yet"}</span></span><span class="rp-row__chevron"></span></a>
+    <a class="rp-row" href="#/demo/testlog" id="dqLogSend"><span class="rp-tile">${rpGlyph("upload")}</span><span class="rp-row__body"><span class="rp-row__title">Send test log</span><span class="rp-row__sub">${L.on() ? "Recording · " : L.designated() ? "Stopped · " : ""}${n ? n + " event" + (n === 1 ? "" : "s") : "nothing yet"}</span></span><span class="rp-row__chevron"></span></a>
     </div>`;
 }
 function chMoreSheet(sheets) {
@@ -1650,8 +1674,6 @@ function chMoreSheet(sheets) {
     <button type="button" class="rp-row rp-row--destructive" id="dqReset"><span class="rp-tile">${rpGlyph("trash")}</span><span class="rp-row__body"><span class="rp-row__title">Reset demo data</span><span class="rp-row__sub">Return the demo to its original seed state</span></span><span class="rp-row__chevron"></span></button>
     </div>`, (sheet) => {
     $$("[data-here]", sheet).forEach(a => a.onclick = (e) => { e.preventDefault(); sheets.close(); });
-    const tlToggle = $("#dqLogToggle", sheet);
-    if (tlToggle) tlToggle.onclick = () => { const L = RIDE_PRICE_TOUCHLOG; if (L.on()) L.stop(); else L.start(); sheets.close(); chMoreSheet(sheets); };
     $("#dqReset", sheet).onclick = () => {
       sheets.close();
       /* the kit's dialog, in place of the app-wide confirm (Home 03) */
@@ -1708,7 +1730,10 @@ route("deals", () => {
      A deal saved before deals carried an advisor belongs to the demo's one
      advisor — that is who created it. */
   const lead = isTeamLead();
-  const mine = Store.s.deals.filter(d => lead || !d.advisor || d.advisor === Store.s.advisor);
+  /* owner's protocol 2026-09-15: a visit a Team Lead registered (advisor null)
+     appears under no salesperson until the Team Lead assigns it — a referral;
+     the Team Lead's floor shows it at once */
+  const mine = Store.s.deals.filter(d => lead || d.advisor === Store.s.advisor);
   const bySeen = (a, b) => (b.createdAt || "").localeCompare(a.createdAt || "");
   /* v3: In showroom is a separate active-visits section, not a deal stage */
   /* v022: presence is its own list and never moves a deal out of the deal
@@ -2051,19 +2076,40 @@ route("customers", () => {
      then a physical-license scan or a secure self-upload; manual entry is
      the fallback only. There is no top-level Create Customer any more. */
 
-  const st = { mode: "idle", results: null, found: null, source: "record" };
+  const st = { mode: "idle", results: null, found: null, q: "", forceNew: false, dupe: null, whose: null };
   /* the scan flow's no-match create and the deals-camera hand-off both land
      on the manual fallback now (the flag is consumed exactly once) */
   if (scanWantsCreate) { scanWantsCreate = false; st.mode = "manual"; }
   /* the buyers sheet's mission (consumed once, like the flag above): the
      resolver runs exactly as it always does, but the person it resolves is
      attached to the deal as the co-buyer instead of starting a visit */
-  const mission = resolverMission; resolverMission = null;
+  /* OB-004 (2026-09-15): a mission used to live only in the module variable,
+     so a reload on this screen forgot it — the notice vanished, the primary
+     read "start visit", and a co-buyer errand made a brand-new deal (measured:
+     2 → 3 deals). The mission now lives in the store from the moment it is
+     handed over until finish() or a Close from the first step clears it. The
+     "open" hint (manual / scan / sendlink) is consumed on the first render
+     only, so a reload lands on the same screen without re-opening a door. */
+  if (resolverMission) { Store.s.mission = resolverMission; Store.save(); resolverMission = null; }
+  const mission = Store.s.mission || null;
+  const openOnce = mission ? mission.open || null : null;
+  if (mission && mission.open) { mission.open = null; Store.save(); }
+  const clearMission = () => { if (Store.s.mission) { Store.s.mission = null; Store.save(); } stepsDone(); };
+  /* OB-054/055 (his second log, 2026-09-15): once the errand is over — a visit
+     started, a link cancelled, the resolver closed — the steps pushed on the
+     way there are spent. Each pushed entry carries the epoch it was made in;
+     an entry from an older epoch is treated as no entry, so Back from the
+     Discovery screen lands on a fresh resolver and Close leaves in one tap
+     instead of walking a form that already became a customer. */
+  const stepsDone = () => { Store.s.obEpoch = (Store.s.obEpoch || 0) + 1; Store.save(); };
+  const liveStep = () => !!(history.state && history.state.ob && (history.state.epoch || 0) === (Store.s.obEpoch || 0));
   /* two mission kinds share the resolver: "cobuyer" (the buyers sheet) and
      "driver" (the test drive's additional driver) — the person is resolved
      exactly the same way; only what finish() does with them differs */
   const missionDeal = mission && (mission.kind === "cobuyer" || mission.kind === "driver") ? Store.deal(mission.dealId) : null;
-  if (missionDeal && mission.open === "manual") st.mode = "manual";
+  /* a mission whose deal is gone is no mission: forget it rather than carry it */
+  if (mission && !missionDeal) clearMission();
+  if (missionDeal && openOnce === "manual") st.mode = "manual";
   /* the test-drive door at the foot of this route taps #scanBtn, and only the
      idle screen has one. A finished upload session — which may belong to
      somebody else entirely — promotes idle to remote-ready inside render(),
@@ -2071,7 +2117,7 @@ route("customers", () => {
      for the scan and got a stranger's upload instead. Hold the promotion for
      the one render the door needs; the session is untouched and surfaces
      again on the next render. */
-  let scanDoorPending = !!(missionDeal && mission.open === "scan");
+  let scanDoorPending = !!(missionDeal && openOnce === "scan");
 
   /* the one exit for every resolver path. The dedupe guard is absolute: the
      primary cannot co-sign their own loan, and an already-attached co-buyer
@@ -2086,12 +2132,12 @@ route("customers", () => {
          are already the driver — and a repeat resolve of the same person is
          idempotent. The name row appearing on the Ready screen is the feedback. */
       const dDeal = Store.deal(m.dealId);
-      if (!dDeal) { toast("That visit is no longer on the floor"); redirect("#/deals"); return; }
+      if (!dDeal) { clearMission(); toast("That visit is no longer on the floor"); redirect("#/deals"); return; }
       if (customerId === dDeal.customerId) { toast("That's the customer on this deal — they're already the driver"); st.mode = "idle"; st.results = null; st.found = null; render(); return; }
       const dtd = dDeal.testDrive = dDeal.testDrive || { done: false };
       dtd.addlDriverIds = dtd.addlDriverIds || [];
       if (!dtd.addlDriverIds.includes(customerId)) dtd.addlDriverIds.push(customerId);
-      Store.save();
+      Store.save(); clearMission();
       navigate(m.back || "#/testdrive/" + dDeal.id);
       return;
     }
@@ -2105,26 +2151,92 @@ route("customers", () => {
          the SAME person is an idempotent success, not a refusal. */
       const existingCo = mDeal.coBuyerId ? Store.customer(mDeal.coBuyerId) : null;
       if (existingCo && existingCo.id !== customerId) { toast("This deal already has a co-buyer"); st.mode = "idle"; render(); return; }
-      mDeal.coBuyerId = customerId; Store.save();
+      mDeal.coBuyerId = customerId; Store.save(); clearMission();
       const back = m.back || "#/desk/" + mDeal.id;
       if (location.hash === back) { router(); openBuyersSheet(mDeal.id); }
       else {
         /* reopen the sheet once the origin screen has painted — armed only
            when a navigation is actually coming, or the once-listener would
-           fire on the next unrelated hash change */
-        window.addEventListener("hashchange", () => setTimeout(() => openBuyersSheet(mDeal.id), 80), { once: true });
+           fire on the next unrelated hash change. OB-022: and only if that
+           screen IS the deal's — a redirect on the way (a funded deal's desk
+           sends to the jacket) must not get the buyers sheet opened over it. */
+        window.addEventListener("hashchange", () => setTimeout(() => { if (location.hash === back) openBuyersSheet(mDeal.id); }, 80), { once: true });
         navigate(back);
       }
       return;
     }
+    clearMission();
     /* D-HN10 B for every door that is not the found screen's own "anyway":
        the scan, a secure-upload match, a manual entry that matched */
     const od = st.forceNew ? null : openDealFor(customerId);
     if (od) { continueVisit(od); return; }
     startVisit(customerId);
   }
+  /* OB-017: one name everywhere a person is printed — a record missing a
+     half never prints "undefined" (measured on a hand-made record) */
+  const nameOf = (c) => [c && c.first, c && c.last].filter(Boolean).join(" ") || "Unnamed";
+  /* D-OB4 (owner, 2026-09-15, Option B — "in the beginning stages, you do not
+     want to create friction"): format only. Ten digits for a US number, a
+     leading 1 allowed and ignored; an @ with a dot after it for an email. No
+     carrier or domain check — nothing a real customer gives is refused.
+     Real verification (a code sent to the number) is a backend feature and
+     is registered, not built (OB-048). */
+  const phoneOk = (p) => { const d = String(p || "").replace(/\D/g, ""); return d.length === 10 || (d.length === 11 && d.charAt(0) === "1"); };
+  const emailOk = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(e || "").trim());
+  const digitsOnly = (x) => { const d = String(x || "").replace(/\D/g, ""); return d.length === 11 && d.charAt(0) === "1" ? d.slice(1) : d; };
+  /* D-OB1 (owner, 2026-09-15, Option B — "Duplicating a customer information
+     is never acceptable"): who is on file for what the advisor typed. The
+     same phone, email or license number is a hard match; the same full name
+     alone is a question, never a silent merge. */
+  function onFile(draft) {
+    const ph = digitsOnly(draft.phone), em = String(draft.email || "").trim().toLowerCase(), lic = String(draft.license || "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+    const nm = String(draft.name || "").trim().toLowerCase().replace(/\s+/g, " ");
+    let soft = null;
+    for (const c of Store.s.customers) {
+      if (ph && digitsOnly(c.phone) === ph) return { c, why: "phone" };
+      if (em && String(c.email || "").trim().toLowerCase() === em) return { c, why: "email" };
+      if (lic && c.license && String(c.license.number || "").replace(/[^a-z0-9]/gi, "").toLowerCase() === lic) return { c, why: "license" };
+      if (!soft && nm && nameOf(c).toLowerCase() === nm) soft = { c, why: "name" };
+    }
+    return soft;
+  }
 
   const session = () => Store.s.idSession || null;
+
+  /* D-OB5 (owner, 2026-09-15, Option B): the phone's Back agrees with Close.
+     Each in-page step (results, found, manual, the two questions) is pushed as
+     a history entry whose state can rebuild the screen — ids, never records —
+     so Back walks the steps the way Close does, and from the first step Back
+     leaves the resolver as it always did. A reload lands on the same step. */
+  const snap = () => ({ ob: st.mode, epoch: Store.s.obEpoch || 0, q: st.q, results: st.results ? st.results.map(c => c.id) : null, found: st.found ? st.found.id : null, forceNew: st.forceNew, dupe: st.dupe ? { id: st.dupe.c.id, why: st.dupe.why, draft: st.dupe.draft } : null });
+  const step = () => { history.pushState(snap(), "", location.hash); };
+  const restore = (h) => {
+    if (!h || !h.ob) return false;
+    if ((h.epoch || 0) !== (Store.s.obEpoch || 0)) { history.replaceState(null, "", location.hash); return "stale"; }
+    st.mode = h.ob; st.q = h.q || ""; st.forceNew = !!h.forceNew;
+    st.results = h.results ? h.results.map(id => Store.customer(id)).filter(Boolean) : null;
+    st.found = h.found ? Store.customer(h.found) : null;
+    st.dupe = h.dupe && Store.customer(h.dupe.id) ? { c: Store.customer(h.dupe.id), why: h.dupe.why, draft: h.dupe.draft } : null;
+    if (st.mode === "found" && !st.found) st.mode = "idle";
+    if (st.mode === "dupe" && !st.dupe) st.mode = "manual";
+    if (st.mode === "whose") st.mode = "idle";
+    if ((st.mode === "waiting" || st.mode === "remote-ready") && !session()) st.mode = "idle";
+    /* an upload that finished while the page was away lands on the ready screen */
+    if (st.mode === "waiting" && session() && session().doneAt) st.mode = "remote-ready";
+    return true;
+  };
+  /* Back inside the resolver: popstate fires with the entry's state and the
+     hash unchanged, so the router does not run — this rebuilds the step.
+     Leaving the route by Back changes the hash and the router takes over. */
+  window.onpopstate = (e) => {
+    if ((location.hash || "#/deals").split("?")[0] !== "#/customers") return;
+    const r = restore(e.state);
+    /* OB-059: a spent entry with no errand left is Home's, not the resolver's */
+    if (r === "stale" && !Store.s.mission) { redirect("#/deals"); return; }
+    if (!r) { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; st.whose = null; }
+    render(); window.scrollTo(0, 0);
+  };
+  const stepBack = () => { if (liveStep()) history.back(); else { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; render(); } };
 
   const initials = (c) => esc(((c.first || " ")[0] + (c.last || " ")[0]).toUpperCase());
   /* the Task template (chrome rule v022): Close on the left, the task name and
@@ -2159,15 +2271,35 @@ route("customers", () => {
        is the one test for "an address"; applied here, every caller gets the
        same answer. */
     const whole = (a) => hasAddr(a) ? a : null;
-    let m = t.match(/^(.+?),\s*(.+?),\s*([A-Za-z]{2})\.?\s+(\d{5})$/);
-    if (m) return whole({ address: m[1].trim(), city: m[2].trim(), state: m[3].toUpperCase(), zip: m[4] });
-    m = t.match(/^(.+?),?\s+(\d{5})$/);
+    /* OB-049 (his first test log, 2026-09-15): he typed his address three ways
+       and was refused three times, then gave up. The commas are optional now,
+       a ZIP+4 is a ZIP, a state may be written out, and when the ZIP is in
+       the demo table the city and state may be left off or typed without
+       commas. What is written is still only a complete, four-part address. */
+    const STATES = { alabama: "AL", alaska: "AK", arizona: "AZ", arkansas: "AR", california: "CA", colorado: "CO", connecticut: "CT", delaware: "DE", florida: "FL", georgia: "GA", hawaii: "HI", idaho: "ID", illinois: "IL", indiana: "IN", iowa: "IA", kansas: "KS", kentucky: "KY", louisiana: "LA", maine: "ME", maryland: "MD", massachusetts: "MA", michigan: "MI", minnesota: "MN", mississippi: "MS", missouri: "MO", montana: "MT", nebraska: "NE", nevada: "NV", "new hampshire": "NH", "new jersey": "NJ", "new mexico": "NM", "new york": "NY", "north carolina": "NC", "north dakota": "ND", ohio: "OH", oklahoma: "OK", oregon: "OR", pennsylvania: "PA", "rhode island": "RI", "south carolina": "SC", "south dakota": "SD", tennessee: "TN", texas: "TX", utah: "UT", vermont: "VT", virginia: "VA", washington: "WA", "west virginia": "WV", wisconsin: "WI", wyoming: "WY", "district of columbia": "DC" };
+    const stateOf = (x) => { const k = String(x || "").trim().replace(/\.$/, "").toLowerCase(); return /^[a-z]{2}$/.test(k) ? k.toUpperCase() : STATES[k] || null; };
+    const q = t.replace(/\s+/g, " ").replace(/\s*,\s*/g, ", ");
+    /* an explicitly empty part ("20 Ditmars Blvd,  , NY 11106") is a slip, not
+       a shorthand: still refused (PR #104's rule), whatever the ZIP would fill */
+    if (/,\s*,/.test(q) || /^,|,$/.test(q)) return null;
+    /* street, city, ST 12345 — commas optional between city and state, a state written out allowed */
+    let m = q.match(/^(.+?),\s*(.+?)[,\s]+([A-Za-z]{2}\.?|[A-Za-z]+(?: [A-Za-z]+)?)[,\s]+(\d{5})(?:-\d{4})?$/);
+    if (m && stateOf(m[3])) return whole({ address: m[1].trim(), city: m[2].trim(), state: stateOf(m[3]), zip: m[4] });
+    /* anything ending in a ZIP the demo table knows: the city and state come from the table,
+       and are stripped from the tail of what was typed if they are there */
+    m = q.match(/^(.+?)[,\s]+(\d{5})(?:-\d{4})?$/);
     if (m && RIDE_PRICE_DATA.zipLookup[m[2]]) {
       const hit = RIDE_PRICE_DATA.zipLookup[m[2]];
-      return whole({ address: m[1].replace(/,$/, "").trim(), city: hit.city, state: hit.state, zip: m[2] });
+      const escRe = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const stateWords = Object.keys(STATES).filter(k => STATES[k] === hit.state).concat([hit.state.toLowerCase()]).map(escRe).join("|");
+      let street = m[1].replace(new RegExp("[,\\s]+(?:" + escRe(hit.city) + ")?[,\\s]*(?:" + stateWords + ")\\.?$", "i"), "")
+        .replace(new RegExp("[,\\s]+" + escRe(hit.city) + "$", "i"), "").replace(/,$/, "").trim();
+      return whole({ address: street, city: hit.city, state: hit.state, zip: m[2] });
     }
     return null;
   }
+  /* OB-052: a number typed as bare digits is stored the way every record shows one */
+  const fmtPhone = (p) => { const d = String(p || "").replace(/\D/g, ""); const t = d.length === 11 && d.charAt(0) === "1" ? d.slice(1) : d; return t.length === 10 ? "(" + t.slice(0, 3) + ") " + t.slice(3, 6) + "-" + t.slice(6) : String(p || "").trim(); };
   const fmtAddr = (a) => `${a.address}, ${a.city}, ${a.state} ${a.zip}`;
   /* a CRM record can hold no address at all. fmtAddr would render ", ,  " and
      the screen would offer to confirm it, so ask first: a registration address
@@ -2191,6 +2323,13 @@ route("customers", () => {
        over an empty record would tell every downstream screen the address was
        checked when nobody was ever shown one. */
     if (!hasAddr(a)) return false;
+    /* OB-003: the same address confirmed again keeps its stronger stamp — a
+       license-read address re-confirmed from the record stayed "license"
+       (measured: it was downgraded to "record" on every Confirm) */
+    const rank = { license: 3, chosen: 2, typed: 1, record: 0 };
+    const prev = c.onboard && c.onboard.address;
+    const same = prev && [["address", "address"], ["city", "city"], ["state", "state"], ["zip", "zip"]].every(([k]) => String(c[k] || "").trim().toLowerCase() === String(a[k] || "").trim().toLowerCase());
+    if (same && prev.source && (rank[prev.source] || 0) > (rank[source] || 0)) return true;
     Object.assign(c, { address: a.address, city: a.city, state: a.state, zip: a.zip });
     c.onboard = Object.assign({}, c.onboard, { address: { confirmedAt: new Date().toISOString(), source } });
     Store.save();
@@ -2217,7 +2356,7 @@ route("customers", () => {
       ${contextPill()}
       ${s ? `<button type="button" class="ob-session" id="obSession">
         <span class="ob-sessiondot${s.doneAt ? " done" : ""}"></span>
-        <span class="ob-sessioncopy"><b>${s.doneAt ? "Customer finished the secure upload" : "Waiting for the customer's upload"}</b><small>${esc(s.phone || s.email)}</small></span>
+        <span class="ob-sessioncopy"><b>${s.doneAt ? "Customer finished the secure upload" : "Waiting for the customer's upload"}</b><small>${esc(s.phone || s.email)}${s.helper ? (s.phone ? " · a helper's number" : " · a helper's address") : ""}</small></span>
         <span class="sc2-go">›</span></button>` : ""}
       <div class="rp-search rp-search--action">${rpGlyph("search")}<input class="rp-search__input" id="obSearch" placeholder="Name, phone, email, or license" aria-label="Search customers"><button type="button" class="rp-button-navy" id="searchBtn">Search</button></div>
       ${st.results ? resultsHtml() : ""}
@@ -2227,7 +2366,7 @@ route("customers", () => {
       </div>
       ${st.results ? "" : `
       <div class="rp-section">Recent customers</div><div class="rp-group">
-        ${recent.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">${esc(rowSub(c))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
+        ${recent.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc(rowSub(c))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
       </div>`}`, "Step 1 of 3");
   }
 
@@ -2235,9 +2374,12 @@ route("customers", () => {
     const hits = st.results;
     /* a miss names the other paths — the licence rows stay below — and offers
        manual entry as a link, never as a form (v022 Onboarding 05) */
-    if (!hits.length) return `<div class="rp-empty"><strong>No matches</strong>Nothing on file matches that search.<button type="button" class="rp-link" id="obManual">No license available · add manually</button></div>`;
+    /* OB-012: a one-to-three digit query cannot match a number (the floor is
+       four), and the empty state says so instead of "nothing on file" */
+    const shortNum = /^\D*\d{1,3}\D*$/.test(st.q || "") && !/[a-z]/i.test(st.q || "");
+    if (!hits.length) return `<div class="rp-empty"><strong>No matches</strong>${shortNum ? "Type at least four digits of a number." : "Nothing on file matches that search."}<button type="button" class="rp-link" id="obManual">No license available · add manually</button></div>`;
     return `<div class="rp-section">Results (${hits.length})</div><div class="rp-group">
-      ${hits.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">${esc([c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
+      ${hits.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc([c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
     </div>`;
   }
 
@@ -2254,7 +2396,7 @@ route("customers", () => {
        so the address rules still apply to the new visit. */
     const od = !missionDeal && !st.forceNew ? openDealFor(c.id) : null;
     if (od) {
-      const b = dealBucket(od), arrived = arrivedLabel(od), who = od.advisor || Store.s.advisor;
+      const b = dealBucket(od), arrived = arrivedLabel(od), who = od.advisor || "no salesperson yet";
       return shell(`
       ${heroHtml("Customer onboarding", "Customer found")}
       ${contextPill()}
@@ -2266,14 +2408,15 @@ route("customers", () => {
         <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
       </section>
       <div class="rp-notice" id="obOpenVisit"><strong>${inShowroom(od) ? "Already in the showroom" : "Has an open deal"}</strong><br>${arrived && inShowroom(od) ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)} · with ${esc(who)}</div>`, "Step 2 of 3",
-        chDock(primaryBtn("obContinue", "Continue " + esc(c.first) + "'s visit"), linkBtn("obNewVisit", "Start a new visit anyway")));
+        /* the "anyway" is offered only once the visit has ended: while the customer is in the showroom startVisit refuses a second visit (owner's protocol, 2026-09-15), so the link would promise what the app will not do */
+        chDock(primaryBtn("obContinue", "Continue " + esc(c.first) + "'s visit"), inShowroom(od) ? "" : linkBtn("obNewVisit", "Start a new visit anyway")));
     }
     return shell(`
       ${heroHtml("Customer onboarding", "Customer found")}
       ${contextPill()}
       <section class="rp-match">
         <div class="rp-match__head"><span class="rp-initials">${initials(c)}</span>
-          <span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">Existing Ride Price customer</span></span>
+          <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">Existing Ride Price customer</span></span>
           <span class="rp-tag rp-tag--match">CRM match</span></div>
         <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
         <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
@@ -2283,6 +2426,36 @@ route("customers", () => {
         </div>
       </section>`, "Step 2 of 3",
       chDock(primaryBtn("obConfirm", "Confirm address & " + (missionDeal ? (mission.kind === "driver" ? "add driver" : "attach co-buyer") : "start visit"), !on), linkBtn("obOtherAddr", on ? "Use a different address" : "Add a registration address")));
+  }
+
+  /* ---- D-OB1: someone is already on file for what was typed ---- */
+  function dupeHtml() {
+    const { c, why, draft } = st.dupe;
+    const hard = why !== "name";
+    const line = [c.phone, c.email, c.address && c.city ? c.address + ", " + c.city : ""].filter(Boolean).map(esc).join(" · ");
+    return shell(`
+      ${heroHtml("Customer onboarding", hard ? "Already on file" : "Same name on file")}
+      ${contextPill()}
+      <section class="rp-match">
+        <div class="rp-match__head"><span class="rp-initials">${initials(c)}</span>
+          <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">Existing Ride Price customer</span></span>
+          <span class="rp-tag rp-tag--match">${hard ? (why === "phone" ? "Same phone" : why === "email" ? "Same email" : "Same license") : "Same name"}</span></div>
+        <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
+        <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
+      </section>
+      <div class="rp-notice" id="obDupeNotice">${hard ? `<strong>${esc(nameOf(c))} is already on file</strong><br>${line}` : `<strong>A ${esc(nameOf(c))} is already on file</strong><br>Is this the same person? ${line}`}</div>`, "Step 2 of 3",
+      chDock(primaryBtn("obUseOnFile", "Use " + esc(nameOf(c)) + " on file"), linkBtn("obCreateAnyway", hard ? "Create a new record anyway" : "No — create a new record")));
+  }
+  /* ---- D-OB3: the upload came back on a number another record holds ---- */
+  function whoseHtml() {
+    const { c, s } = st.whose; const p = s.persona;
+    return shell(`
+      ${heroHtml("Customer onboarding", "Whose upload is this?")}
+      <section class="rp-match"><div class="rp-match__head"><span class="rp-initials">${initials(p)}</span>
+        <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(p))}</span><span class="rp-row__sub">Remote session${p.dob ? " · born " + esc(p.dob) : ""}</span></span>
+        <span class="rp-tag rp-tag--match">Identity captured</span></div></section>
+      <div class="rp-notice" id="obWhoseNotice"><strong>${esc(nameOf(c))} already holds ${esc(s.phone)}</strong><br>The upload reads ${esc(nameOf(p))}. Is this the same person?</div>`, "Step 3 of 3",
+      chDock(primaryBtn("obCreateOwn", "Create " + esc(nameOf(p))), linkBtn("obItIs", "It is " + esc(c.first || nameOf(c)) + " — update the record")));
   }
 
   /* ---- manual fallback: minimum typing, one address field ---- */
@@ -2305,7 +2478,7 @@ route("customers", () => {
        the licence (v022 Onboarding 08) */
     return shell(`
       ${heroHtml("Customer onboarding", "Waiting for customer")}
-      <div class="rp-notice">Secure link sent · ${esc(s.phone || s.email)} · ${esc(s.channel)}</div>
+      <div class="rp-notice">Secure link sent · ${esc(s.phone || s.email)}${s.helper ? (s.phone ? " (a helper's number)" : " (a helper's address)") : ""} · ${esc(s.channel)}</div>
       <div class="rp-steps">
         ${row(true, "Link sent", "Secure Ride Price session created", "Complete")}
         ${row(!!s.photoAt, "License photo", s.photoAt ? "Read from the training prop" : "Waiting for customer upload", s.photoAt ? "Received" : "Pending")}
@@ -2333,7 +2506,7 @@ route("customers", () => {
     return shell(`
       ${heroHtml("Customer onboarding", "Customer identified")}
       <section class="rp-match"><div class="rp-match__head"><span class="rp-initials">${initials(p)}</span>
-        <span class="rp-row__body"><span class="rp-row__title">${esc(p.first + " " + p.last)}</span><span class="rp-row__sub">Remote session${linked ? " · existing customer" : ""}</span></span>
+        <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(p))}</span><span class="rp-row__sub">Remote session${linked ? " · existing customer" : ""}${s.helper ? (s.phone ? " · answered from a helper's number" : " · answered from a helper's address") : ""}</span></span>
         <span class="rp-tag rp-tag--match">Identity captured</span></div></section>
       <div class="rp-steps" style="margin-top:14px">
         ${row(true, "Secure session", "Opened on the customer's device", "Complete")}
@@ -2344,7 +2517,7 @@ route("customers", () => {
       <section class="rp-match"><div class="rp-match__addr" style="border-top:0">
         <div class="rp-match__addr-head">Registration address<span class="rp-tag rp-tag--match">Confirmed</span></div>
         <div class="rp-match__addr-line">${esc(fmtAddr(a))}</div>
-        <div class="rp-row__sub">Confirmed by customer from the license</div></div></section>`, "Step 3 of 3",
+        <div class="rp-row__sub">${s.addressFrom === "record" ? "Confirmed by customer — the address already on file" : "Confirmed by customer from the license"}</div></div></section>`, "Step 3 of 3",
       chDock(primaryBtn("obAttach", attachLabel), linkBtn("obDiscardSession", "Discard this upload")));
   }
 
@@ -2354,6 +2527,8 @@ route("customers", () => {
     if (st.mode === "idle" && s && s.doneAt && !scanDoorPending) st.mode = "remote-ready";
     view().innerHTML =
       st.mode === "found" ? foundHtml()
+      : st.mode === "dupe" ? dupeHtml()
+      : st.mode === "whose" ? whoseHtml()
       : st.mode === "manual" ? manualHtml()
       : st.mode === "waiting" ? waitingHtml()
       : st.mode === "remote-ready" ? remoteReadyHtml()
@@ -2365,19 +2540,31 @@ route("customers", () => {
        launching screen — the mission's own way back when there is one, else
        the queue. The board has no "search again" link; Close is that path. */
     const close = $("#chClose"); if (close) close.onclick = () => {
-      if (st.mode === "found" || st.mode === "manual") { st.mode = "idle"; st.results = null; st.found = null; render(); return; }
-      navigate((mission && mission.back) || "#/deals");
+      /* a stepped entry (results, found, the form, a question) goes back one
+         step; a form opened by a mission's door has no entry and resets */
+      if (liveStep()) { history.back(); return; }
+      if (st.mode === "found" || st.mode === "manual" || st.mode === "dupe" || st.mode === "whose") { stepBack(); return; }
+      const back = (mission && mission.back) || "#/deals";
+      clearMission();
+      navigate(back);
     };
     chWireRole(obSheets, () => render());
     wire();
+    /* the query survives a step back the way it survives a render */
+    const qi = $("#obSearch"); if (qi && st.q && st.results) qi.value = st.q;
   }
 
   function wire() {
     const scrim = $("#obScrim");
     if (scrim) scrim.onclick = (e) => { if (e.target === scrim || e.target.closest("[data-sheet-close]")) closeSheet4(); };
 
-    $$("[data-found]").forEach(b => b.onclick = () => { st.found = Store.customer(b.dataset.found); st.mode = "found"; st.forceNew = false; render(); window.scrollTo(0, 0); });
-    const back = $("#obBack"); if (back) back.onclick = () => { st.mode = "idle"; st.results = null; st.found = null; render(); };
+    $$("[data-found]").forEach(b => b.onclick = () => {
+      const c = Store.customer(b.dataset.found);
+      /* OB-036: a row whose record vanished (another tab) is a refreshed list, not a throw */
+      if (!c) { toast("That record is no longer on file"); st.results = st.results ? st.results.filter(x => Store.customer(x.id)) : null; render(); return; }
+      st.found = c; st.mode = "found"; st.forceNew = false; step(); render(); window.scrollTo(0, 0);
+    });
+    const back = $("#obBack"); if (back) back.onclick = () => stepBack();
 
     const sb = $("#searchBtn");
     if (sb) {
@@ -2386,6 +2573,7 @@ route("customers", () => {
         const q = raw.toLowerCase();
         /* an empty query is not a search: clear what it replaces, or the
            previous hits stay on screen under a box the advisor just emptied */
+        st.q = raw;
         if (!q) { st.results = null; render(); const again = $("#obSearch"); if (again) again.focus(); return; }
         /* every field the filter reads can be absent on an imported or
            half-typed record — c.email.toLowerCase() on one threw, and a throw
@@ -2412,7 +2600,12 @@ route("customers", () => {
           /* norm() of a punctuation-only query is "", and includes("") is true
              for every record carrying a licence — "..." listed them all */
           (!!lic && c.license && norm(c.license.number).includes(lic)));
-        render();
+        /* OB-013: the likeliest first — an exact full name, then the newest record */
+        st.results.sort((a, b) => {
+          const ea = txt([a.first, a.last].filter(Boolean).join(" ")) === q ? 1 : 0, eb = txt([b.first, b.last].filter(Boolean).join(" ")) === q ? 1 : 0;
+          return eb - ea || (b.createdAt || "").localeCompare(a.createdAt || "");
+        });
+        step(); render();
         /* the query survives the render AS TYPED: writing back the lowercased
            copy rewrote the advisor's own capitalisation under the cursor */
         const inp = $("#obSearch"); if (inp) inp.value = raw;
@@ -2455,10 +2648,21 @@ route("customers", () => {
       toast("A secure upload is already open — finish or cancel it first");
       st.mode = s.doneAt ? "remote-ready" : "waiting"; render(); window.scrollTo(0, 0);
     };
-    const sess = $("#obSession"); if (sess) sess.onclick = () => { st.mode = session().doneAt ? "remote-ready" : "waiting"; render(); };
-    const cancelS = $("#obCancelSession"); if (cancelS) cancelS.onclick = () => { Store.s.idSession = null; Store.save(); st.mode = "idle"; render(); };
-    const discard = $("#obDiscardSession"); if (discard) discard.onclick = () => { Store.s.idSession = null; Store.save(); st.mode = "idle"; render(); };
-    const man = $("#obManual"); if (man) man.onclick = () => { st.mode = "manual"; render(); window.scrollTo(0, 0); };
+    const sess = $("#obSession"); if (sess) sess.onclick = () => { st.mode = session().doneAt ? "remote-ready" : "waiting"; step(); render(); };
+    /* D-OB2 (owner, 2026-09-15, Option B — "Someone can accidentally make a
+       mistake and that's the way to prevent it"): the kit's dialog before a
+       link in flight is cancelled or a finished upload is discarded; Keep it
+       is the safe answer. Measured before: gone in one tap. */
+    const dropSession = () => { Store.s.idSession = null; Store.save(); stepsDone(); st.mode = "idle"; render(); };
+    const cancelS = $("#obCancelSession"); if (cancelS) cancelS.onclick = () => { const x = session(); chDialog(obSheets, "Cancel this secure link?", "The link sent to " + (x.phone || x.email) + " stops working. Nothing the customer has not sent yet is lost.", "Cancel the link", dropSession, "Keep it"); };
+    const discard = $("#obDiscardSession"); if (discard) discard.onclick = () => { const x = session(); const who = (x.persona && x.persona.first) || "the customer"; chDialog(obSheets, "Discard " + who + "'s upload?", "The photo, the face check and the confirmed address are removed. " + who + " would have to do it again.", "Discard", dropSession, "Keep it"); };
+    const man = $("#obManual"); if (man) man.onclick = () => { st.mode = "manual"; st.forceNew = false; step(); render(); window.scrollTo(0, 0); };
+    /* D-OB1: the two answers on the "already on file" screen */
+    const useOn = $("#obUseOnFile"); if (useOn) useOn.onclick = () => { st.found = st.dupe.c; st.mode = "found"; step(); render(); window.scrollTo(0, 0); };
+    const anyway = $("#obCreateAnyway"); if (anyway) anyway.onclick = () => { st.forceNew = true; const d = st.dupe.draft; st.mode = "manual"; step(); render(); $("#obName").value = d.name; $("#obPhone").value = d.phone; $("#obEmail").value = d.email; $("#obAddr").value = d.addr; window.scrollTo(0, 0); };
+    /* D-OB3: whose upload — create the person it reads, or update the record on that number */
+    const own = $("#obCreateOwn"); if (own) own.onclick = () => { const w = st.whose; st.whose = null; st.mode = "remote-ready"; attachUpload(null, true); };
+    const itIs = $("#obItIs"); if (itIs) itIs.onclick = () => { const w = st.whose; st.whose = null; st.mode = "remote-ready"; attachUpload(w.c, true); };
 
     const cont = $("#obContinue");
     if (cont) cont.onclick = () => { const od = openDealFor(st.found.id); if (od) continueVisit(od); else { st.forceNew = true; render(); } };
@@ -2477,14 +2681,24 @@ route("customers", () => {
     if (manualSave) manualSave.onclick = () => {
       const name = $("#obName").value.trim();
       const parts = name.split(/\s+/);
-      const phone = $("#obPhone").value.trim(), email = $("#obEmail").value.trim();
+      const phone = fmtPhone($("#obPhone").value), email = $("#obEmail").value.trim();
       const parsed = parseAddress($("#obAddr").value);
       const bad = [];
       if (parts.length < 2) bad.push({ el: $("#obName"), msg: name ? "First and last name" : "Required" });
       if (!phone) bad.push({ el: $("#obPhone"), msg: "Required" });
+      else if (!phoneOk(phone)) bad.push({ el: $("#obPhone"), msg: "Ten digits" });
       if (!email) bad.push({ el: $("#obEmail"), msg: "Required" });
-      if (!parsed) bad.push({ el: $("#obAddr"), msg: $("#obAddr").value.trim() ? "Enter as street, city, ST 12345" : "Required" });
+      else if (!emailOk(email)) bad.push({ el: $("#obEmail"), msg: "Needs an @ and a dot" });
+      if (!parsed) bad.push({ el: $("#obAddr"), msg: $("#obAddr").value.trim() ? "Needs a street, a town and a ZIP — e.g. 20 Ditmars Blvd, Astoria, NY 11106" : "Required" });
       if (markMissing(view(), bad)) return;
+      /* D-OB1: nothing is written while someone is on file for this phone,
+         email or name — the screen says who, and creating anyway is the
+         advisor's deliberate second tap (measured before: a second John Smith
+         on John's own number, no warning) */
+      if (!st.forceNew) {
+        const hit = onFile({ phone, email, name });
+        if (hit) { st.dupe = { c: hit.c, why: hit.why, draft: { name, phone, email, addr: $("#obAddr").value } }; st.mode = "dupe"; step(); render(); window.scrollTo(0, 0); return; }
+      }
       const c = {
         id: uid("c"), first: parts.slice(0, -1).join(" "), middle: "", last: parts[parts.length - 1],
         phone, email, creditScore: 700, createdAt: new Date().toISOString()
@@ -2507,7 +2721,13 @@ route("customers", () => {
     };
 
     const attach = $("#obAttach");
-    if (attach) attach.onclick = () => {
+    if (attach) attach.onclick = () => attachUpload(null, false);
+  }
+
+  /* the finished upload, attached. `forced` is the answer to the D-OB3
+     question: a record to update, or null to create the person it reads. */
+  function attachUpload(forced, decided) {
+    {
       const s = session();
       /* a session created under a co-buyer mission carries it — captured
          before the session is cleared, so a reload between send and attach
@@ -2515,17 +2735,23 @@ route("customers", () => {
          visit */
       const sMission = s.mission || null;
       const p = s.persona, a = s.addressChoice;
-      let c = s.matchId ? Store.customer(s.matchId) : null;
+      let c = decided ? forced : (s.matchId ? Store.customer(s.matchId) : null);
       /* the licence number is the strong match, and a profile the link itself
          created has none (seed v023: Marcus, phone and email on record, no
          licence) — so a completed session would write a SECOND record with
          the same number. Fall back to the profile that already holds this
          session's phone, and only while it carries no licence of its own:
          a record with a different licence is a different person who happens
-         to share a number, and that case still creates. */
-      if (!c) {
+         to share a number, and that case still creates.
+         D-OB3 (owner, 2026-09-15, Option B — a grandfather helped by a
+         sibling): a record with a DIFFERENT name on that number is never
+         overwritten (measured: Maria became Jake). The screen asks whose the
+         upload is. OB-047: a link sent to a helper's number matches nobody. */
+      if (!c && !decided && !s.helper) {
         const dig = (x) => String(x || "").replace(/\D/g, "");
-        c = Store.s.customers.find(x => dig(x.phone) && dig(x.phone) === dig(s.phone) && !(x.license && x.license.number)) || null;
+        const cand = Store.s.customers.find(x => dig(x.phone) && dig(x.phone) === dig(s.phone) && !(x.license && x.license.number)) || null;
+        if (cand && nameOf(cand).toLowerCase() !== nameOf(p).toLowerCase()) { st.whose = { c: cand, s }; st.mode = "whose"; step(); render(); window.scrollTo(0, 0); return; }
+        c = cand;
       }
       /* an EXISTING record takes the upload before any guard runs: it is that
          person's own identity, and it stays whatever the mission then decides.
@@ -2547,7 +2773,7 @@ route("customers", () => {
         });
         /* the session's channels fill a gap, never overwrite: the advisor typed
            them into the link sheet, and a record's own email is the customer's */
-        if (!c.phone && s.phone) c.phone = s.phone;
+        if (s.helper) c.helperPhone = s.phone; else if (!c.phone && s.phone) c.phone = s.phone;
         if (!c.email && s.email) c.email = s.email;
         stampOnboard(c);
       }
@@ -2578,44 +2804,66 @@ route("customers", () => {
       if (!c) {
         c = {
           id: uid("c"), first: p.first, middle: p.middle || "", last: p.last, dob: p.dob || "",
-          phone: s.phone, email: s.email, creditScore: 700, createdAt: new Date().toISOString(),
+          phone: s.helper ? "" : s.phone, email: s.email, creditScore: 700, createdAt: new Date().toISOString(),
           license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
         };
+        if (s.helper) c.helperPhone = s.phone;
         Store.s.customers.push(c);
         stampOnboard(c);
       }
       Store.s.idSession = null;
       Store.save();
       finish(c.id, sMission);
-    };
+    }
   }
 
   function openSendSheet() {
     openSheet4(`${sheetHead4("Send secure upload link")}
       <div class="rp-segment" id="obChannel"><button type="button" class="rp-segment__item rp-segment__item--on active" data-ch="Text">Text</button><button type="button" class="rp-segment__item" data-ch="Email">Email</button></div>
-      <div class="rp-field"><label class="rp-field__label" for="obLinkPhone">Customer mobile</label><input class="rp-field__input" id="obLinkPhone" type="tel" placeholder="(555) 555-5555"></div>
-      <div class="rp-field"><label class="rp-field__label" for="obLinkEmail">Email</label><input class="rp-field__input" id="obLinkEmail" type="email" placeholder="name@testing.com"></div>
+      <div class="rp-field" id="obLinkPhoneRow"><label class="rp-field__label" for="obLinkPhone">Customer mobile</label><input class="rp-field__input" id="obLinkPhone" type="tel" placeholder="(555) 555-5555"></div>
+      <div class="rp-field" id="obLinkEmailRow" hidden><label class="rp-field__label" for="obLinkEmail">Email</label><input class="rp-field__input" id="obLinkEmail" type="email" placeholder="name@testing.com"></div>
+      <label class="rp-field ob-helperrow"><input type="checkbox" id="obLinkHelper"> <span id="obLinkHelperText">This number belongs to someone helping the customer</span></label>
       <button type="button" class="rp-primary" id="obSendGo">Send secure link</button>`, (sheet) => {
+      /* D-OB6 (owner, 2026-09-15, Option B — "they should only be required to
+         provide the contact method they have available"): the segment at the
+         top picks the channel and the sheet shows that one field. The other
+         is not asked for. If both were ever on a session, the phone comes
+         first ("we will prioritize the phone number"). */
       let channel = "Text";
+      const showChannel = () => {
+        const text = channel === "Text";
+        $("#obLinkPhoneRow", sheet).hidden = !text; $("#obLinkEmailRow", sheet).hidden = text;
+        $("#obLinkHelperText", sheet).textContent = text ? "This number belongs to someone helping the customer" : "This address belongs to someone helping the customer";
+      };
       $$("#obChannel button", sheet).forEach(b => b.onclick = () => {
         channel = b.dataset.ch;
         $$("#obChannel button", sheet).forEach(x => { x.classList.toggle("rp-segment__item--on", x === b); x.classList.toggle("active", x === b); });
+        showChannel(); const f = $(channel === "Text" ? "#obLinkPhone" : "#obLinkEmail", sheet); if (f) f.focus();
       });
+      showChannel();
       $("#obSendGo", sheet).onclick = () => {
-        const phone = $("#obLinkPhone", sheet).value.trim(), email = $("#obLinkEmail", sheet).value.trim();
-        /* both channels are required on every customer record (v3 rule,
-           reaffirmed by SEED-DATA v022.2 — Marcus has both on record) */
+        /* one channel, the chosen one; the other field is not read (D-OB6).
+           The record rule (both channels on every record, v3) is set aside
+           for a link by his ruling: the record made from the upload carries
+           what was provided. The manual form still asks for both (D-OB4). */
+        const text = channel === "Text";
+        const phone = text ? fmtPhone($("#obLinkPhone", sheet).value) : "", email = text ? "" : $("#obLinkEmail", sheet).value.trim();
         const bad = [];
-        if (!phone) bad.push({ el: $("#obLinkPhone", sheet), msg: "Required" });
-        if (!email) bad.push({ el: $("#obLinkEmail", sheet), msg: "Required" });
+        if (text && !phone) bad.push({ el: $("#obLinkPhone", sheet), msg: "Required" });
+        else if (text && !phoneOk(phone)) bad.push({ el: $("#obLinkPhone", sheet), msg: "Ten digits" });
+        if (!text && !email) bad.push({ el: $("#obLinkEmail", sheet), msg: "Required" });
+        else if (!text && !emailOk(email)) bad.push({ el: $("#obLinkEmail", sheet), msg: "Needs an @ and a dot" });
         if (markMissing(sheet, bad)) return;
-        Store.s.idSession = { id: uid("s"), phone, email, channel, sentAt: new Date().toISOString(), photoAt: null, persona: null, matchId: null, faceAt: null, addressChoice: null, addressConfirmedAt: null, doneAt: null };
+        /* OB-047 (from his D-OB3 answer): a helper's number is the helper's —
+           it never becomes the customer's phone and matches no record */
+        const helper = !!($("#obLinkHelper", sheet) && $("#obLinkHelper", sheet).checked);
+        Store.s.idSession = { id: uid("s"), phone, email, channel, helper, sentAt: new Date().toISOString(), photoAt: null, persona: null, matchId: null, faceAt: null, addressChoice: null, addressFrom: null, addressConfirmedAt: null, doneAt: null };
         /* a link sent on the buyers sheet's mission attaches as co-buyer when
            it completes — recorded on the session, which outlives this page */
         if (missionDeal) Store.s.idSession.mission = { kind: mission.kind, dealId: missionDeal.id, back: mission.back };
         Store.save();
         closeSheet4();
-        st.mode = "waiting"; render(); window.scrollTo(0, 0);
+        st.mode = "waiting"; step(); render(); window.scrollTo(0, 0);
       };
     });
   }
@@ -2636,6 +2884,12 @@ route("customers", () => {
     });
   }
 
+  /* OB-059 (his third log, 2026-09-16): Back from Discovery after a visit
+     started landed on an empty resolver, and he closed it to reach Home —
+     three times. A spent step with no errand left is not a place to stand:
+     the resolver hands straight over to Home (or the mission's return). */
+  if (history.state && history.state.ob && !liveStep() && !Store.s.mission) { redirect("#/deals"); return; }
+  if (st.mode === "idle" && liveStep()) restore(history.state);
   render();
   /* the buyers sheet's "Send secure upload link" lands here mid-mission with
      the send sheet already open — one tap on the buyers sheet, one screen.
@@ -2643,11 +2897,11 @@ route("customers", () => {
      remote-ready screen up for it, and the sheet's Send would overwrite a
      finished upload with one tap (review find). The advisor decides what
      happens to a session in flight. */
-  if (missionDeal && mission.open === "sendlink" && !session()) openSendSheet();
+  if (missionDeal && openOnce === "sendlink" && !session()) openSendSheet();
   /* the test drive's "Scan physical license" door: the resolver's own scan,
      opened for the advisor, so the scan → confirm → attach path is the one
      every other scan takes */
-  if (missionDeal && mission.open === "scan") { scanDoorPending = false; const sb = $("#scanBtn"); if (sb) sb.click(); }
+  if (missionDeal && openOnce === "scan") { scanDoorPending = false; const sb = $("#scanBtn"); if (sb) sb.click(); }
 });
 
 /* the customer's own secure-upload session (onboarding v3): opened from the
@@ -2743,7 +2997,7 @@ route("idverify", () => {
     const crm = linked ? { address: linked.address, city: linked.city, state: linked.state, zip: linked.zip } : null;
     const same = crm && `${crm.address}|${crm.zip}`.toLowerCase() === `${lic.address}|${lic.zip}`.toLowerCase();
     const fmt = (a) => `${a.address}, ${a.city}, ${a.state} ${a.zip}`;
-    const choose = (a) => { s.addressChoice = a; s.addressConfirmedAt = new Date().toISOString(); s.doneAt = new Date().toISOString(); Store.save(); render(); window.scrollTo(0, 0); };
+    const choose = (a) => { s.addressChoice = a; s.addressFrom = crm && a === crm ? "record" : "license"; s.addressConfirmedAt = new Date().toISOString(); s.doneAt = new Date().toISOString(); Store.save(); render(); window.scrollTo(0, 0); };
     view().innerHTML = shell(`
       ${heroHtml("Registration", "Confirm registration address", "This address is used for vehicle registration and deal calculations — confirming it here means nobody asks you to type it again.")}
       ${crm && !same ? `
@@ -2800,9 +3054,17 @@ function continueVisit(deal) {
   navigate((STAGES[deal.stage] || STAGES.discovery).route(deal));
 }
 function startVisit(customerId) {
+  /* owner's protocol 2026-09-15: "duplicate customer entries in the showroom
+     are not permitted" — a customer already in the showroom is taken to that
+     visit, never given a second one (OB-034; the same rule as PR #107's guard
+     on Home, at the one place every start passes through) */
+  const already = Store.s.deals.find(d => d.customerId === customerId && inShowroom(d));
+  if (already) { const c0 = Store.customer(customerId) || {}; toast([c0.first, c0.last].filter(Boolean).join(" ") + " is already in the showroom"); navigate(`#/discovery/${already.id}`); return; }
   const deal = {
     id: uid("d"), dealNo: Store.mintDealNo(), customerId, stock: null, dealType: "finance", stage: "discovery",
-    createdAt: new Date().toISOString(), advisor: Store.s.advisor,
+    /* owner's protocol 2026-09-15: a Team Lead's visit is under no salesperson
+       until assigned (OB-043 B, OB-056); an advisor's is theirs at once */
+    createdAt: new Date().toISOString(), advisor: isTeamLead() ? null : Store.s.advisor, startedBy: roleName(),
     discovery: { answers: {}, done: false },
     testDrive: { done: false },
     /* no `payoff`: a visit that has not reached the trade screen has not been
@@ -2829,6 +3091,8 @@ function startVisit(customerId) {
      secure-link session counts as present before arrival is an open item;
      the code keeps doing what it did (it checks in). */
   deal.visit = { arrivedAt: deal.createdAt };
+  /* OB-055: the resolver's steps on the way here are spent (see stepsDone) */
+  Store.s.obEpoch = (Store.s.obEpoch || 0) + 1;
   Store.s.deals.push(deal); Store.save();
   navigate(`#/discovery/${deal.id}`);
 }
@@ -3620,10 +3884,14 @@ function trainingDocsView(tab) {
       + `<div class="tdoc-printroot" id="tdocPrint" aria-hidden="true"></div>`;
 
     $$(".rp-segment [data-type]").forEach(b => b.onclick = () => {
+      if (type === b.dataset.type) return; /* the tab already on is not a step */
       type = b.dataset.type;
       /* the tab lives in the URL, so a reload and the alias route both land
          on the same screen the advisor was looking at */
-      history.replaceState(null, "", type === "license" ? "#/props" : "#/props/registrations");
+      /* his ruling D-PI2 = B (2026-09-17): a tab is a step — pushed, so the phone's
+         Back returns to the tab you were on (the router re-renders from the URL);
+         it was replaceState, and Back left the screen altogether (PI-006) */
+      history.pushState(null, "", type === "license" ? "#/props" : "#/props/registrations");
       render();
     });
     $("#tdocPrintAll").onclick = () => { setPrintSet(pairs.map(p => p.prop)); window.print(); };
@@ -3878,6 +4146,12 @@ route("discovery/:id", ({ id }) => {
         <span class="dv-chev" aria-hidden="true">&rsaquo;</span>
       </button>
       <div class="dv-seclab">Visit</div>
+      ${deal.advisor ? `<div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Advisor</div></div>
+        <span class="dv-rowval dv-rowval--strong">${esc(deal.advisor)}</span></div>`
+      : isTeamLead() ? `<button type="button" class="dv-row dv-row--link" id="dvAssign">
+        <div class="dv-rowmain"><div class="dv-rowsub">Advisor</div></div>
+        <span class="dv-rowval">Not assigned</span><span class="dv-chev" aria-hidden="true">&rsaquo;</span></button>`
+      : `<div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Advisor</div></div><span class="dv-rowval">Not assigned</span></div>`}
       <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Stage</div></div>
         <span class="dv-rowval dv-rowval--strong">${esc((STAGES[deal.stage] || {}).label || deal.stage)}</span></div>
       <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Visit #</div></div>
@@ -3896,6 +4170,23 @@ route("discovery/:id", ({ id }) => {
          sheet; close this one first so they do not stack */
       const cb = $("#dvCoBuyer", sh);
       if (cb) cb.addEventListener("click", closeSheet);
+      const as = $("#dvAssign", sh);
+      if (as) as.onclick = assignSheet;
+    });
+  }
+  /* owner's protocol 2026-09-15 (OB-056): the Team Lead assigns a visit they
+     registered to a salesperson — a referral. One pick; the visit then shows
+     under that advisor's My deals. */
+  function assignSheet() {
+    const names = [RIDE_PRICE_DATA.dealership.advisor, ...(RIDE_PRICE_DATA.otherAdvisors || [])];
+    openSheet(`
+      <h2 class="dv-sheettitle">Assign to an advisor</h2>
+      ${names.map(n => `<button type="button" class="dv-row dv-row--link" data-assign="${esc(n)}"><div class="dv-rowmain"><div class="dv-rowname">${esc(n)}</div></div><span class="dv-chev" aria-hidden="true">&rsaquo;</span></button>`).join("")}
+      <div class="dv-actions"><button type="button" class="dv-sheetbtn" data-sheet-close>Cancel</button></div>`, (sh) => {
+      $$("[data-assign]", sh).forEach(b => b.onclick = () => {
+        deal.advisor = b.dataset.assign; Store.save();
+        toast("Assigned to " + b.dataset.assign); closeSheet(); render();
+      });
     });
   }
 
@@ -4104,24 +4395,31 @@ function vehicleStatusHtml(d) {
    Home. The whole log sits in a read-only field that select-all-copy reaches
    on any page, http or https; "Send by email" opens the phone's mail app with
    the log in the body (a mailto: link — no network call by the app); Share
-   appears only where the browser offers it. Clear behind the kit's dialog. */
+   appears only where the browser offers it. Stop/Start and Clear behind the
+   kit's dialog. */
 route("demo/testlog", () => {
   const L = window.RIDE_PRICE_TOUCHLOG;
   renderChrome("Test log", "", "");
   document.body.dataset.canvas = "kit"; document.body.dataset.screen = "testlog";
   const text = L ? L.text() : "The recorder is not loaded on this page.";
   const n = L ? L.count() : 0;
+  /* v1.2: recording by itself only in a designated test preview; elsewhere
+     the screen says so and offers Start. Not persisted: storage refused, the
+     log lives in memory until the page is left. */
+  const status = !L ? "" : L.on() ? " · recording" : L.designated() ? " · stopped" : " · off here (not a designated test preview)";
+  const persist = L && !L.persisted() ? " · not saved: storage refused" : "";
   const mail = "mailto:?subject=" + encodeURIComponent("Ride Price test log · " + new Date().toLocaleString()) + "&body=" + encodeURIComponent(text.slice(0, 60000));
-  view().innerHTML = chShell({ template: "task", title: "Test log", step: n ? n + " event" + (n === 1 ? "" : "s") + (L.on() ? " · recording" : "") : "Nothing recorded", closeId: "tlClose" },
+  view().innerHTML = chShell({ template: "task", title: "Test log", step: (n ? n + " event" + (n === 1 ? "" : "s") : "Nothing recorded") + status + persist, closeId: "tlClose" },
     `<textarea class="ca-input tl-text" id="tlText" readonly aria-label="Test log" rows="14">${esc(text)}</textarea>
      ${navigator.share ? `<button type="button" class="rp-link ch-hit" id="tlShare">Share</button>` : ""}
-     ${L ? `<button type="button" class="rp-link ch-hit" id="tlClear">Clear the log</button>` : ""}`,
+     ${L ? `<button type="button" class="rp-link ch-hit" id="tlToggle">${L.on() ? "Stop recording" : "Start recording"}</button><button type="button" class="rp-link ch-hit" id="tlClear">Clear the log</button>` : ""}`,
     chDock(`<a class="rp-primary" id="tlMail" href="${esc(mail)}">Send by email</a>`),
     { scrim: "tlScrim", sheet: "tlSheet" });
   const sheets = chSheetOpener("tlScrim", "tlSheet");
   chWireRole(sheets, () => router());
   $("#tlClose").onclick = () => navigate("#/deals");
   const share = $("#tlShare"); if (share) share.onclick = () => { navigator.share({ title: "Ride Price test log", text }).catch(() => {}); };
+  const tog = $("#tlToggle"); if (tog) tog.onclick = () => { if (L.on()) L.stop(); else L.start(); router(); };
   const clr = $("#tlClear"); if (clr) clr.onclick = () => chDialog(sheets, "Clear the test log?", "Every recorded event is removed.", "Clear the log", () => { L.clear(); router(); }, "Keep it");
   $("#tlText").onclick = () => { const t = $("#tlText"); t.focus(); t.select(); };
   chFitDock();
@@ -10520,7 +10818,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
     document.body.dataset.screen = "snapall";
     view().innerHTML = chShell(
       { template: "task", title: "Snap All", step, closeId: "saClose", closeLabel: "Close capture",
-        cls: clientSide ? "rp-screen--present" : "" },
+        cls: clientSide ? "rp-screen--present" : "", banner: !clientSide /* PI-005: the customer's page has no band */ },
       content, dockHtml(), { scrim: "saScrim", sheet: "saSheet" })
       + `<input type="file" accept="image/*" capture="environment" id="saCam" hidden>
          <input type="file" accept="image/*"${st.aim ? "" : " multiple"} id="saLib" hidden>`;
@@ -11148,6 +11446,19 @@ route("print/:id/:doc", ({ id, doc }) => {
 
 /* ---------------- boot ---------------- */
 Store.load();
+/* owner's protocol 2026-09-15 (OB-038 B): a save in another tab of this
+   browser is seen at once — the store is re-read and the screen repainted,
+   unless someone is typing here (their field would be wiped). Two devices
+   never share a store on this demo: that is a backend (OB-057, deferred). */
+window.addEventListener("storage", (e) => {
+  if (e.key !== "ride_price_portal_v1") return;
+  /* the store is re-read in place at once (Store.load merges, so what a
+     screen holds stays the same object and a later save here carries both
+     tabs' changes); the screen is repainted only when nobody is typing in it. */
+  Store.load();
+  const a = document.activeElement; if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return;
+  router();
+});
 window.addEventListener("hashchange", router);
 window.addEventListener("DOMContentLoaded", () => {
   /* the logo hard-refreshes the floor queue: search and pipeline filter
