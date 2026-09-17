@@ -3777,10 +3777,14 @@ function trainingDocsView(tab) {
       + `<div class="tdoc-printroot" id="tdocPrint" aria-hidden="true"></div>`;
 
     $$(".rp-segment [data-type]").forEach(b => b.onclick = () => {
+      if (type === b.dataset.type) return; /* the tab already on is not a step */
       type = b.dataset.type;
       /* the tab lives in the URL, so a reload and the alias route both land
          on the same screen the advisor was looking at */
-      history.replaceState(null, "", type === "license" ? "#/props" : "#/props/registrations");
+      /* his ruling D-PI2 = B (2026-09-17): a tab is a step — pushed, so the phone's
+         Back returns to the tab you were on (the router re-renders from the URL);
+         it was replaceState, and Back left the screen altogether (PI-006) */
+      history.pushState(null, "", type === "license" ? "#/props" : "#/props/registrations");
       render();
     });
     $("#tdocPrintAll").onclick = () => { setPrintSet(pairs.map(p => p.prop)); window.print(); };
