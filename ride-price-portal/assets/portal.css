@@ -2095,6 +2095,13 @@ select.ca-input { appearance: auto; }
    variant; it is named in the PR so v022.3 can carry one and this rule can
    go. (.rp-row needs nothing — the kit already gives it display:flex.) */
 a.rp-card { display: block; }
+/* the screen's title takes focus after a navigation (chFocusScreen, Phase 2 of
+   the Home workflow) so the reading position moves with the screen. It is not
+   a control, so it draws no ring — the attribute is the app's, not a kit class. */
+#view [tabindex="-1"]:focus { outline: 0; }
+/* the test log's hand-over field (touchlog.js): the app's own input, monospace
+   and full-width, on the kit canvas; the log is read here or selected whole */
+.tl-text { width: 100%; min-height: 56vh; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; overflow: auto; resize: vertical; }
 
 /* an input that has to exist and must not be seen: the verify sheet's real
    six-digit field sits under the kit's six display boxes (.rp-code__box is

@@ -1321,17 +1321,40 @@ function router() {
       else if (seg !== parts[i]) ok = false;
     });
     if (ok) {
-      if (hash !== routerCurHash) {
+      /* a navigation FROM a screen — not the first render at boot, where a
+         focused title drew Chrome's focus ring on a cold load (there is no
+         prior pointer input to tell it otherwise) and into every printed PDF */
+      const booting = routerCurHash === null, changed = hash !== routerCurHash;
+      if (changed) {
         /* arriving BY a redirect: the hash we are leaving was the alias, so
            keep whatever was behind it instead of recording the alias */
         if (!routerReplacing) routerPrevHash = routerCurHash;
         routerCurHash = hash;
         routerReplacing = false;
       }
-      r.fn(params); window.scrollTo(0, 0); return;
+      r.fn(params); window.scrollTo(0, 0);
+      if (changed && !booting) chFocusScreen();
+      return;
     }
   }
-  navigate("#/deals");
+  redirect("#/deals");
+}
+/* After a NAVIGATION — never a repaint, which router() also serves — the
+   reading position moves to the new screen's title: the task's top-bar title
+   or the destination's own. Without it focus sat on body after every tab tap
+   and nothing said where the user now was (HN-029; D-HN6's default, taken
+   into force for Phase 2 — his word can still change it). A screen that
+   claims focus itself while rendering (a field marked for it) keeps it: the
+   title is focused only when nothing else was. tabindex -1 makes the title
+   reachable by script and never by Tab; preventScroll because the frame is
+   the viewport already. */
+function chFocusScreen() {
+  const a = document.activeElement;
+  if (a && a !== document.body && document.contains(a)) return;
+  const t = $("#view .rp-topbar__title, #view .rp-title, #view h1");
+  if (!t) return;
+  if (!t.hasAttribute("tabindex")) t.setAttribute("tabindex", "-1");
+  t.focus({ preventScroll: true });
 }
 
 const view = () => $("#view");
@@ -1660,6 +1683,15 @@ function chMoreSheet(sheets) {
     };
   });
 }
+/* Presence rules for Home (D-HN4). checkout: the showroom row opens the
+   visit's sheet — Open deal, or "Left the showroom" behind the kit's dialog —
+   and the row is a button; false keeps the row a plain link to the stage, as
+   before Phase 2. Ending a visit writes visit.endedAt and endedBy and leaves
+   the deal exactly where it is. An AUTOMATIC end (close of business) is not
+   built: the seed's own visit is stamped "yesterday 11:38" whenever the demo
+   opens before 11:38, so any day cut-off would empty the showroom every
+   morning — that stays his call (DECISIONS.md, D-HN4). */
+const HOME_PRESENCE = { checkout: true };
 const DEAL_BUCKETS = [
   { id: "desking", label: "Desking", chip: "DESKING", badge: "badge--prog", stages: ["discovery", "vehicle", "testdrive", "desking"] },
   { id: "fni", label: "F&I", chip: "F&I", badge: "badge--new", stages: ["signed", "credit", "menu", "forms"] },
@@ -1839,12 +1871,36 @@ route("deals", () => {
     const b = dealBucket(d);
     const name = c ? c.first + " " + c.last : "—";
     const arrived = arrivedLabel(d);
-    return `<a class="rp-row dq-visit" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}">
-      <span class="rp-initials">${esc(((c && c.first[0]) || "") + ((c && c.last[0]) || ""))}</span>
+    const body = `<span class="rp-initials">${esc(((c && c.first[0]) || "") + ((c && c.last[0]) || ""))}</span>
       <span class="rp-row__body"><span class="rp-row__title">${esc(name)}</span>
       <span class="rp-row__sub dq-visitmeta">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)}</span></span>
-      <span class="rp-row__chevron"></span>
-    </a>`;
+      <span class="rp-row__chevron"></span>`;
+    /* the row is a button when the visit has a sheet (HOME_PRESENCE) and the
+       stage's link otherwise; the four things it shows are the same either way */
+    return HOME_PRESENCE.checkout
+      ? `<button type="button" class="rp-row dq-visit" data-visit="${esc(d.id)}" aria-label="${esc(name)}'s visit">${body}</button>`
+      : `<a class="rp-row dq-visit" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}">${body}</a>`;
+  }
+
+  /* the visit sheet (HOME_PRESENCE.checkout): who, when they arrived, where the
+     deal is; one primary into the deal, one link that ends the visit behind the
+     kit's dialog. The stamp names who ended it. The route re-renders rather
+     than repaints, because the showroom set is computed on render. */
+  function openVisitSheet(id) {
+    const d = Store.deal(id); if (!d) return;
+    const c = Store.customer(d.customerId), st = STAGES[d.stage] || STAGES.discovery, b = dealBucket(d);
+    const name = c ? c.first + " " + c.last : "—", arrived = arrivedLabel(d);
+    openSheet5(`${chSheetHead(name)}<p class="rp-sheet__sub">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)}</p>
+      <button type="button" class="rp-primary" id="dqVisitOpen">Open deal</button>
+      <button type="button" class="rp-link ch-hit" id="dqVisitEnd">Left the showroom</button>`, (sheet) => {
+      $("#dqVisitOpen", sheet).onclick = () => { closeSheet5(); navigate(st.route(d)); };
+      $("#dqVisitEnd", sheet).onclick = () => {
+        chDialog(sheets, `${name} left the showroom?`, "The visit ends now. The deal stays where it is.", "End the visit", () => {
+          d.visit = Object.assign({}, d.visit, { endedAt: new Date().toISOString(), endedBy: roleName() });
+          Store.save(); router();
+        }, "Still here");
+      };
+    });
   }
 
   function showroomHtml(rows) {
@@ -1901,6 +1957,7 @@ route("deals", () => {
       paint();
     });
     $("#dqShowroom").innerHTML = (showroom.length || lead) ? showroomHtml(showRows) : "";
+    $$("[data-visit]").forEach(b => b.onclick = () => openVisitSheet(b.dataset.visit));
     if (lead) {
       $$(".dq-chipbtn").forEach(p => {
         const on = p.dataset.pipe === dealsUI.pipe;
@@ -1959,7 +2016,9 @@ route("deals", () => {
       cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), address: { confirmedAt: new Date().toISOString(), source: "license" } });
       Store.save();
     }
-    startVisit(cust.id);
+    /* D-HN10 B: the camera door on Home continues an open deal too */
+    const od = openDealFor(cust.id);
+    if (od) continueVisit(od); else startVisit(cust.id);
   } });
 
   /* the role sheet (v022): one definition, opened from the role control or
@@ -1988,7 +2047,12 @@ route("deals", () => {
       });
       const apply = $("#dqApplyRange", sheet);
       if (apply) apply.onclick = () => {
-        dealsUI.from = $("#dqFrom", sheet).value; dealsUI.to = $("#dqTo", sheet).value;
+        const from = $("#dqFrom", sheet), to = $("#dqTo", sheet);
+        /* a range that starts after it ends matched nothing and the history
+           read "None in this range" with no reason (HN-021). Refused on the
+           field, the sheet stays open; either date alone is still open-ended. */
+        if (markMissing(sheet, from.value && to.value && from.value > to.value ? [{ el: from, msg: "Starts after the To date" }] : [])) return;
+        dealsUI.from = from.value; dealsUI.to = to.value;
         dealsUI.range = "custom";
         closeSheet5(); paint();
       };
@@ -2102,6 +2166,10 @@ route("customers", () => {
       return;
     }
     clearMission();
+    /* D-HN10 B for every door that is not the found screen's own "anyway":
+       the scan, a secure-upload match, a manual entry that matched */
+    const od = st.forceNew ? null : openDealFor(customerId);
+    if (od) { continueVisit(od); return; }
     startVisit(customerId);
   }
   /* OB-017: one name everywhere a person is printed — a record missing a
@@ -2323,6 +2391,26 @@ route("customers", () => {
        the link becomes the way to supply one, so no run can stamp
        "address confirmed" over a record that holds none */
     const on = hasAddr(a);
+    /* D-HN10 B: the open visit is offered first. "Start a new visit anyway"
+       sets forceNew and the screen comes back as the ordinary found screen,
+       so the address rules still apply to the new visit. */
+    const od = !missionDeal && !st.forceNew ? openDealFor(c.id) : null;
+    if (od) {
+      const b = dealBucket(od), arrived = arrivedLabel(od), who = od.advisor || "no salesperson yet";
+      return shell(`
+      ${heroHtml("Customer onboarding", "Customer found")}
+      ${contextPill()}
+      <section class="rp-match">
+        <div class="rp-match__head"><span class="rp-initials">${initials(c)}</span>
+          <span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">Existing Ride Price customer</span></span>
+          <span class="rp-tag rp-tag--match">CRM match</span></div>
+        <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
+        <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
+      </section>
+      <div class="rp-notice" id="obOpenVisit"><strong>${inShowroom(od) ? "Already in the showroom" : "Has an open deal"}</strong><br>${arrived && inShowroom(od) ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)} · with ${esc(who)}</div>`, "Step 2 of 3",
+        /* the "anyway" is offered only once the visit has ended: while the customer is in the showroom startVisit refuses a second visit (owner's protocol, 2026-09-15), so the link would promise what the app will not do */
+        chDock(primaryBtn("obContinue", "Continue " + esc(c.first) + "'s visit"), inShowroom(od) ? "" : linkBtn("obNewVisit", "Start a new visit anyway")));
+    }
     return shell(`
       ${heroHtml("Customer onboarding", "Customer found")}
       ${contextPill()}
@@ -2576,6 +2664,10 @@ route("customers", () => {
     const own = $("#obCreateOwn"); if (own) own.onclick = () => { const w = st.whose; st.whose = null; st.mode = "remote-ready"; attachUpload(null, true); };
     const itIs = $("#obItIs"); if (itIs) itIs.onclick = () => { const w = st.whose; st.whose = null; st.mode = "remote-ready"; attachUpload(w.c, true); };
 
+    const cont = $("#obContinue");
+    if (cont) cont.onclick = () => { const od = openDealFor(st.found.id); if (od) continueVisit(od); else { st.forceNew = true; render(); } };
+    const anew = $("#obNewVisit");
+    if (anew) anew.onclick = () => { st.forceNew = true; render(); window.scrollTo(0, 0); };
     const confirmBtn = $("#obConfirm");
     if (confirmBtn) confirmBtn.onclick = () => {
       const c = st.found;
@@ -2946,6 +3038,21 @@ route("idverify", () => {
    RESPONSIBLE for the deal, not who tapped the button. A visit the Team Lead
    starts still belongs to the floor advisor — stamping the lead's name would
    orphan the deal from every advisor's view with no reassignment UI. */
+/* D-HN10 (owner, 2026-09-15, Option B — found by his first test log, where
+   Cheri confirmed three times made three deals): a customer with an OPEN deal
+   is never given a second one by accident. The open deal is the newest that
+   is not complete, whoever's it is — the safe default while he has not ruled
+   on a Team Lead continuing another advisor's visit. Continuing stamps a
+   fresh arrival when the earlier visit had ended or never started. */
+function openDealFor(customerId) {
+  return Store.s.deals.filter(d => d.customerId === customerId && d.stage !== "complete")
+    .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))[0] || null;
+}
+function continueVisit(deal) {
+  if (!deal.visit || !deal.visit.arrivedAt || deal.visit.endedAt) deal.visit = { arrivedAt: new Date().toISOString() };
+  Store.save();
+  navigate((STAGES[deal.stage] || STAGES.discovery).route(deal));
+}
 function startVisit(customerId) {
   /* owner's protocol 2026-09-15: "duplicate customer entries in the showroom
      are not permitted" — a customer already in the showroom is taken to that
@@ -3962,7 +4069,7 @@ function regPropHtml(r) {
    exists underneath; it is simply not what the advisor is shown.
    ============================================================ */
 route("discovery/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const c = Store.customer(deal.customerId);
   const qs = RIDE_PRICE_DATA.discoveryQuestions;
   /* a vehicle may legitimately exist if one was selected upstream — the rule
@@ -4328,7 +4435,7 @@ route("demo/vehicle-reserved", () => {
 
 route("vehicles/:id", ({ id }) => {
   const deal = id === "browse" ? null : Store.deal(id);
-  if (id !== "browse" && !deal) return navigate("#/deals");
+  if (id !== "browse" && !deal) return redirect("#/deals");
   renderChrome(deal ? "Vehicle Selection" : "Inventory", "", "");
   document.body.dataset.canvas = "kit";
   document.body.dataset.screen = "vehicles";
@@ -4551,7 +4658,7 @@ route("vehicles/:id", ({ id }) => {
    drivers; `addlDriver` stays the frozen name string the printable prints)
    and `startedAt` / `endedAt` for the session clock. */
 route("testdrive/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal || !deal.stock) return redirect("#/deals");
   const v = Store.vehicle(deal.stock);
   /* a truthy stock is not a resolved vehicle (a catalog change, a hand-edited
      blob) — the same guard the Documents and print routes carry; everything
@@ -5015,7 +5122,7 @@ function requiredTradeForms(deal) {
   return req;
 }
 route("trade/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const c = Store.customer(deal.customerId);
   const v = deal.stock ? Store.vehicle(deal.stock) : null;
   const jkc = jacketCounts(deal);
@@ -5752,8 +5859,8 @@ route("trade/:id", ({ id }) => {
    the dock carry the figure), and the full-page Compare route, replaced by
    the present-mode comparison below. */
 route("desk/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
-  if (!deal.stock) { toast("Pick a vehicle first"); return navigate(`#/vehicles/${deal.id}`); }
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
+  if (!deal.stock) { toast("Pick a vehicle first"); return redirect(`#/vehicles/${deal.id}`); }
   const v = Store.vehicle(deal.stock);
   const c = Store.customer(deal.customerId);
   if (["discovery", "vehicle", "testdrive"].includes(deal.stage)) { deal.stage = "desking"; Store.save(); }
@@ -6326,7 +6433,7 @@ route("compare/:id", ({ id }) => redirect(`#/desk/${id}`));
    VIEW: Base Payment Agreement
    ============================================================ */
 route("agreement/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal || !deal.stock) return redirect("#/deals");
   const v = Store.vehicle(deal.stock);
   const c = Store.customer(deal.customerId);
   const r = RIDE_PRICE_CALC.calc(deal, v);
@@ -6539,7 +6646,7 @@ let creditInputOff = null;
    the teardown that removes the input listener clears it too. */
 let creditWorking = null;
 route("credit/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   /* a truthy stock is not a resolved vehicle, and the approved screen prices
      against the unit — same guard, same destination as the menu, the print
      centre and the test drive. It REPLACES rather than pushes: navigate()
@@ -7345,7 +7452,7 @@ route("credit/:id", ({ id }) => {
    purpose — the same device the vehicle-reservation example uses. */
 route("demo/cobuyer-ready", () => {
   const deal = Store.deal("d-demo1");
-  if (!deal) return navigate("#/deals");
+  if (!deal) return redirect("#/deals");
   deal.creditRemote = deal.creditRemote || {};
   const rec = deal.creditRemote.cobuyer = deal.creditRemote.cobuyer || { channel: "text", to: "(347) 555-1212", sentAt: new Date().toISOString() };
   /* minutes AGO: the screen states when she did each thing, and a stamp ahead
@@ -7379,7 +7486,7 @@ function migrateMenuV5(deal) {
    VIEW: Step 2 — Preferred product presentation walkthrough
    ============================================================ */
 route("present/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal || !deal.stock) return redirect("#/deals");
   const v = Store.vehicle(deal.stock);
   const c = Store.customer(deal.customerId);
   const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
@@ -7620,11 +7727,11 @@ route("present/:id", ({ id }) => {
    trade-locked forms, the acknowledgment gate, and the DMS push folded into
    Finalize and recorded against the Team Lead who approved the deal. */
 route("menu/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal || !deal.stock) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal || !deal.stock) return redirect("#/deals");
   const v = Store.vehicle(deal.stock);
   /* the menu needs a vehicle it can PRICE — a catalog unit. A deal carried by
      its own snapshot has nothing to price, and its record is its jacket. */
-  if (!v) return navigate(deal.stage === "complete" ? `#/jacket/${deal.id}` : `#/vehicles/${deal.id}`);
+  if (!v) return redirect(deal.stage === "complete" ? `#/jacket/${deal.id}` : `#/vehicles/${deal.id}`);
   const c = Store.customer(deal.customerId);
   const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
   const isCash = deal.dealType === "cash";
@@ -8898,7 +9005,7 @@ const JK_ROW_GLYPH = {
          customer's upload path, and it never appears in the customer request,
          even though the store hands it over at delivery.                    */
 route("jacket/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const cst = Store.customer(deal.customerId);
   const custName = cst ? `${cst.first} ${cst.last}` : "—";
   /* catalog first, then the deal's own snapshot while it agrees with the
@@ -9642,7 +9749,7 @@ route("clientlink/:id", ({ id }) => drClientLink(id, "landing"));
 route("clientlink/:id/:start", ({ id, start }) => drClientLink(id, start));
 
 function drClientLink(id, startScreen) {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const ds = RIDE_PRICE_DATA.dealership;
   const cst = Store.customer(deal.customerId);
   const v = Store.vehicle(deal.stock);
@@ -10038,9 +10145,9 @@ function drClientLink(id, startScreen) {
    called verified.
    ============================================================ */
 route("docreview/:id/:docId", ({ id, docId }) => {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const d = docMeta(docId); const m = clientMeta(docId);
-  if (!d || !m) return navigate("#/jacket/" + id);
+  if (!d || !m) return redirect("#/jacket/" + id);
   const c = Store.customer(deal.customerId);
 
   /* the viewer's own state: which side is shown, and whether it is zoomed */
@@ -10333,7 +10440,7 @@ route("docreview/:id/:docId", ({ id, docId }) => {
    ("no app bar, no role switch" on the client's page) kept with the kit's own
    device rather than a rule of ours over one of its classes. */
 route("snapall/:id/:origin", ({ id, origin }) => {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const backHash = origin === "advisor" ? "#/jacket/" + deal.id : "#/clientlink/" + deal.id;
   /* the sort's targets: the customer documents still outstanding */
   const targets = clientQueue(deal);
@@ -11188,7 +11295,7 @@ function printCentreDocs(deal) {
 }
 
 route("forms/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const c = Store.customer(deal.customerId);
   /* A truthy stock number is not a resolved vehicle — a blob saved against
      inventory that no longer carries that stock leaves Store.vehicle()
@@ -11289,7 +11396,7 @@ route("forms/:id", ({ id }) => {
    switch, no Buyer/Jacket chips, no second dock repeating the same action
    at the bottom — all four are named acceptance failures in the package. */
 route("print/:id/:doc", ({ id, doc }) => {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   /* the same guard as Documents: printDocs() builds every document from the
      vehicle, so a stock number that no longer resolves rendered a blank view */
   /* the printables price against the catalog unit. A deal that has none — or
@@ -11356,7 +11463,19 @@ window.addEventListener("hashchange", router);
 window.addEventListener("DOMContentLoaded", () => {
   /* the logo hard-refreshes the floor queue: search and pipeline filter
      cleared, list re-pulled (owner spec, 2026-08-20) */
-  $("#brandHome").onclick = () => { dealsUI.q = ""; dealsUI.pipe = "all"; dealsUI.arch = false; navigate("#/deals"); router(); };
+  $("#brandHome").onclick = () => { dealsUI.q = ""; dealsUI.pipe = "all"; navigate("#/deals"); router(); };
+  /* the kit's wordmark is that logo's successor on every kit screen and keeps
+     its spec: the floor comes back whole — search and stage chip cleared, the
+     queue re-pulled — never filtered by a search typed before leaving (HN-010,
+     HN-011; the two "go Home" controls disagreed until Phase 2). Leaving by a
+     TAB still keeps the search: the tab bar moves between destinations, the
+     wordmark starts over. The link's own href does the navigation; on Home
+     already, the hash cannot change, so the route is re-rendered here. */
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".rp-wordmark")) return;
+    dealsUI.q = ""; dealsUI.pipe = "all";
+    if ((location.hash || "#/deals") === "#/deals") { e.preventDefault(); router(); }
+  });
   $$("[data-nav]").forEach(a => a.onclick = (e) => { e.preventDefault(); navigate(a.dataset.nav); });
 
   /* hamburger navigation drawer */
