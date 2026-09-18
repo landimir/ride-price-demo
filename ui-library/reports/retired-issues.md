@@ -99,3 +99,7 @@ Why each finding left the board, and what holds it fixed.
   mixed-source line, per-side provenance), and the library's document-review
   flow now asserts both rows on its completed screen, which is this
   finding's screenshot anchor.
+
+## v035 (2026-09-18, PR #106)
+
+- **RP-UI-041** — Fixed by PR #106 (Codex's scanner branch, merged 2026-09-18): Codex's kit conversion of the customer's document-upload page (a34c93c, Phase 28) replaced the simulated text bubble, whose only way in was a 144x19 inline link, with a landing screen whose one action is the full-width "Open document request" primary in the dock. The customer's first tap is now a kit primary well over the 40px floor. `harness/walk2.mjs` (183 checks, updated to the kit page in the same merge) walks it.

@@ -1,5 +1,154 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v035 — 2026-09-18
+
+App commit: a6501c9 · 20 flows · 146 screens · previous: v034
+
+### Added
+- Customer Onboarding — the Customer Resolver · Switch role — only in Customer Onboarding
+- Scan Driver's License · Review front — the photo waits for Use front
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · My deals (landing — Advisor)
+- Home — Active Floor & Navigation · More sheet — secondary navigation
+- Home — Active Floor & Navigation · Reset demo data — confirm
+- Home — Active Floor & Navigation · Active floor (Team Lead)
+- Home — Active Floor & Navigation · Stage filter — no match
+- Home — Active Floor & Navigation · Date range / history sheet
+- Home — Active Floor & Navigation · Funded history in range
+- Home — Active Floor & Navigation · Advisor — completed deal ends the list
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Customer Onboarding — the Customer Resolver · Find customer — the resolver
+- Customer Onboarding — the Customer Resolver · Search results
+- Customer Onboarding — the Customer Resolver · Customer found — already in the showroom
+- Customer Onboarding — the Customer Resolver · Customer found — confirm + registration address
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Customer Onboarding — the Customer Resolver · Send secure upload link (sheet)
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Scan Driver's License · Scan — front of license
+- Scan Driver's License · Scan — flip to the back
+- Scan Driver's License · Review back — the barcode could not be read
+- Scan Driver's License · Find customer manually (sheet)
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Confirm customer (certain match)
+- Scan Driver's License · Confirm customer (ambiguous — prop 1)
+- Scan Driver's License · New customer (prop 3)
+- Scan Driver's License · Phone already in use (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Scan Driver's License · Customer ready
+- Training Documents · Licenses
+- Training Documents · License preview — both sides
+- Training Documents · Registrations
+- Training Documents · Registration preview
+- Discovery Session · Discovery — mid-interview, Back appears
+- Discovery Session · Visit details (sheet)
+- Vehicle Selection · Vehicle search — inventory
+- Vehicle Selection · Inventory — Used only
+- Vehicle Selection · Inventory — no vehicles match
+- Vehicle Selection · Vehicle details — sheet
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Vehicle Selection · Notification — vehicle reserved
+- Desking — Calculate Payments · Game plan — the huddle
+- Desking — Calculate Payments · Pencil — Finance
+- Desking — Calculate Payments · Payment options — the 3x3 grid
+- Desking — Calculate Payments · Present — Your payment
+- Desking — Calculate Payments · Present — Own or lease
+- Desking — Calculate Payments · Back in Work — the customer chose
+- Desking — Calculate Payments · Pencil — Lease
+- Desking — Calculate Payments · Pencil — Cash
+- Base Payment Agreement · Agreement — ready to sign
+- Credit Application (Lending Lane) · Verify your identity (pre-application gate)
+- Credit Application (Lending Lane) · Identity verified
+- Credit Application (Lending Lane) · Step 1 — Application type & applicant
+- Credit Application (Lending Lane) · Joint — co-buyer needed
+- Credit Application (Lending Lane) · Send co-buyer link (sheet)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Credit Application (Lending Lane) · Invalid submit — inline summary
+- Credit Application (Lending Lane) · Approved (simulated)
+- Buyers on the Deal (Co-Buyer) · Buyers on this deal
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — the resolver's entries
+- Buyers on the Deal (Co-Buyer) · Co-buyer attached
+- Buyers on the Deal (Co-Buyer) · Co-buyer — contextual actions
+- Buyers on the Deal (Co-Buyer) · Remove — second tap confirms
+- Buyers on the Deal (Co-Buyer) · Team Lead — Change roles visible
+- Buyers on the Deal (Co-Buyer) · Change buyer roles? — confirmation
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Resolve Deal Jacket blocker
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Accept package — client initials
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 3 — Disclosures & forms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Finalize with documents outstanding
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Deal Jacket — funding readiness
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Document row — contextual actions
+- Deal Jacket & Compliance · Mark received — a person's word
+- Deal Jacket & Compliance · Add optional document
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Deal Jacket & Compliance · Driver's License — back still needed
+- Deal Jacket & Compliance · Jacket complete — the dock unlocks
+- Customer document request (from the jacket) · Request documents — secure link
+- Customer document request (from the jacket) · Jacket after sending — Requested
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Document request — what the link opens
+- Client Document Upload (customer's phone) · Upload your documents
+- Client Document Upload (customer's phone) · Row blocked — back of license missing
+- Client Document Upload (customer's phone) · Row verified
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · All documents verified
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Client Document Upload (customer's phone) · What we need — bottom sheet
+- Client Document Upload (customer's phone) · Review capture — 2 pages
+- Client Document Upload (customer's phone) · Too blurry to read — refused on the row
+- Snap All — burst capture · Snap All — camera
+- Snap All — burst capture · Three photos in the batch
+- Snap All — burst capture · Sorting the batch
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Snap All — burst capture · Capture the missing page
+- Snap All — burst capture · The license now complete
+- Snap All — burst capture · Review one photo
+- Snap All — burst capture · Leaving an unsorted batch
+- Document Review (advisor) · Front received, back needed
+- Document Review (advisor) · Add back of driver's license
+- Document Review (advisor) · Both sides received
+- Documents — Print Center & Printables · Documents
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- Home — Active Floor & Navigation · Switch role (moved: the role sheet is now captured in Customer Onboarding, the only place it appears)
+
+What changed for real: PR #106 (Codex's licence-scanner branch) landed, brought up to date with main. Two screens are new — the role sheet, captured where it now lives (owner ruling B, 2026-09-18: the role control appears only in Customer Onboarding), and Review front (a picked licence photo waits for Use front). Home's Team Lead floor is reached by switching in New visit and carries no Switch. A failed read stays on its Review back screen instead of a sheet; the phone-conflict sheet offers linking only when the record already holds the same licence; the confirm screen's updates now include the middle initial. Customer rows carry no initials avatars; top bars carry no role control; the client upload, secure upload and Document Review screens are Codex's kit versions; a credit approval names its applicants. Most other changed screenshots differ for those reasons or by live values only.
+
+### New issues
+- none
+
+### Resolved issues
+- RP-UI-041 (Minor) — The only way into the customer's flow is a 144x19 inline text link inside the message bubble — under the 40px touch floor, on the one screen that a customer, not an advisor, taps.
+
+### Amended issues (kept, but re-filed or reworded)
+- RP-UI-022 (Observation) — reworded: the role control it mentions now lives only in Customer Onboarding (owner ruling B, 2026-09-18); the gate still offers no next action
+- RP-UI-023 — wording corrected
+- RP-UI-032 — re-filed against current/02-customer-onboarding/10-waiting-for-customer.png; wording corrected
+- RP-UI-033 — re-filed against current/02-customer-onboarding/10-waiting-for-customer.png
+- RP-UI-034 — re-filed against current/03-license-scan/07-scan-confirm.png
+- RP-UI-035 — re-filed against current/03-license-scan/09-scan-new-customer.png
+- RP-UI-036 — re-filed against current/03-license-scan/09-scan-new-customer.png
+- RP-UI-043 — re-filed against current/02-customer-onboarding/08-manual-fallback.png
+- RP-UI-044 — re-filed against current/03-license-scan/08-scan-ambiguous.png
+- RP-UI-045 — re-filed against current/03-license-scan/06-scan-manual-result.png
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v034 — 2026-09-17
 
 App commit: 47bcec4 · 20 flows · 145 screens · previous: v033

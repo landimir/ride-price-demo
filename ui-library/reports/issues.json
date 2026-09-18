@@ -6,7 +6,7 @@
     "screen": "Manager sign-off — Advisor view",
     "screenshot": "current/14-finance-menu/01-signoff-gate-advisor.png",
     "issue": "The Advisor's gate is a deliberate dead end — four statuses and the line \"Waiting for Team Lead.\" — but it offers no next action at all. V3 removed the older note that told the reader to switch roles, so nothing on the screen connects the wait to the role control in the top bar.",
-    "observation": "The role control is now a labelled pill (\"Advisor\" / \"Team Lead\"), which is a real improvement on the unlabelled segmented control this was first filed against. What remains is that a trainee reading the gate is not told where the handoff happens.",
+    "observation": "The role control is a labelled pill (\"Advisor\" / \"Team Lead\"), and since 2026-09-18 (owner ruling B, PR #106) it appears only in Customer Onboarding — not in this screen's top bar. So the gap is wider than when filed: a trainee reading the gate is not told where the handoff happens, and the switch that makes it is on another screen.",
     "area": "menu route gate(), .fm-note copy"
   },
   {
@@ -15,7 +15,7 @@
     "flow": "Home — Deals Queue & Navigation",
     "screen": "My Deals (landing — Advisor)",
     "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
-    "issue": "No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet on the queue top bar standing in for identity.",
+    "issue": "No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet standing in for identity — opened only in Customer Onboarding since 2026-09-18 (owner ruling B), not from the queue's top bar.",
     "observation": "By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.",
     "area": "n/a"
   },
@@ -44,8 +44,8 @@
     "severity": "Major",
     "flow": "Customer Onboarding — the Customer Resolver",
     "screen": "Waiting for customer — progressive status",
-    "screenshot": "current/02-customer-onboarding/09-waiting-for-customer.png",
-    "issue": "The link path now says the link went out and nothing says the demo did not send anything. The banner reads “Secure link sent · (646) 555-0900 · Text”; the send sheet before it (08) dropped “Demo — no text or email is really sent; the customer view opens on this device”; and the customer-identified screen after it (10) describes a real remote session — “Secure session · Opened on the customer's device”, “License photo · Read from the upload” — where v021 said “Opened on this device (demo)” and “Read from the training prop”. A trainee is told a text was sent and a customer uploaded, and neither happened.",
+    "screenshot": "current/02-customer-onboarding/10-waiting-for-customer.png",
+    "issue": "The link path now says the link went out and nothing says the demo did not send anything. The banner reads “Secure link sent · (646) 555-0900 · Text”; the send sheet before it (09) dropped “Demo — no text or email is really sent; the customer view opens on this device”; and the customer-identified screen after it (11) describes a real remote session — “Secure session · Opened on the customer's device”, “License photo · Read from the upload” — where v021 said “Opened on this device (demo)” and “Read from the training prop”. A trainee is told a text was sent and a customer uploaded, and neither happened.",
     "observation": "The chrome rule (v022) removed lede and helper copy from the 19 screens and made the banner slot the one place DEMO appears; the Advisor banner says “Sample data only”, which covers the data, not the sending. The demo is a training tool with no network (architecture invariant), so a screen that claims a send needs one honest line somewhere on the path — the banner slot is the package's own place for it. Copy decision on package screens, so filed rather than changed.",
     "area": "app.js — the resolver's link path (obSendGo / waiting status / remote-ready) on the kit; the banner slot"
   },
@@ -54,7 +54,7 @@
     "severity": "Minor",
     "flow": "Customer Onboarding — the Customer Resolver",
     "screen": "Waiting for customer — progressive status",
-    "screenshot": "current/02-customer-onboarding/09-waiting-for-customer.png",
+    "screenshot": "current/02-customer-onboarding/10-waiting-for-customer.png",
     "issue": "The task's step counter skips a step on the link path: the send sheet opens over “Step 1 of 3” and the next screen reads “Step 3 of 3” — step 2 never appears — while the found-customer and manual paths show “Step 2 of 3” before they leave the task.",
     "observation": "The Task template's “task name + step” line is part of the chrome rule; the three paths through the resolver number their steps differently. Either the link path has a second step to show, or the counter should read the path's own length.",
     "area": "app.js — the resolver's Task header step index"
@@ -64,7 +64,7 @@
     "severity": "Minor",
     "flow": "Scan Driver's License",
     "screen": "Confirm customer (certain match)",
-    "screenshot": "current/03-license-scan/06-scan-confirm.png",
+    "screenshot": "current/03-license-scan/07-scan-confirm.png",
     "issue": "The identity column on the customer card is squeezed beside the “License match” pill: the name “Cheri Bridwell” breaks onto two lines and the one-sentence subtitle “Existing customer · license ending 0102” onto four. In v021 both fit on one line each. The kit's Inter is wider than the device face the screen was laid out for, and the card gives the pill its full width first.",
     "observation": "A layout on a kit screen, not the kit: the pill could wrap under the identity, or take a fixed width and let the column keep the rest. The only one of the eleven scan screens the face change hurt.",
     "area": "app.js / portal.css — the scan flow's confirm card (identity column vs. match pill)"
@@ -74,7 +74,7 @@
     "severity": "Observation",
     "flow": "Scan Driver's License",
     "screen": "New customer (prop 3)",
-    "screenshot": "current/03-license-scan/08-scan-new-customer.png",
+    "screenshot": "current/03-license-scan/09-scan-new-customer.png",
     "issue": "The primary “Create customer” button is cut in half at the bottom edge of the viewport: the new-customer form lays its call to action inline below the fields rather than in the Task template's pinned action dock, so on a phone the advisor scrolls, or dismisses the keyboard, to reach it.",
     "observation": "The chrome rule gives every task an action dock for exactly this control; the scan flow's form still keeps its own. Below the fold the library cannot show it either (see the v022 changelog on kit-screen captures).",
     "area": "app.js — the scan flow's new-customer form; the Task template's dock"
@@ -84,7 +84,7 @@
     "severity": "Observation",
     "flow": "Scan Driver's License",
     "screen": "New customer (prop 3)",
-    "screenshot": "current/03-license-scan/08-scan-new-customer.png",
+    "screenshot": "current/03-license-scan/09-scan-new-customer.png",
     "issue": "The helper line “Demo tool — sample data only.” under the Email field is set in the red danger colour although nothing is wrong yet, so an untouched, empty form reads as if it already failed validation.",
     "observation": "A note is muted or ink; red is the validation voice on every other screen. Same field family as the resolver's fallback form.",
     "area": "app.js / portal.css — the scan flow's new-customer form helper"
@@ -98,16 +98,6 @@
     "issue": "The VIN + STK identifier line is the smallest and lightest text on the deal card — 10.5px in the muted grey (rgb 115,115,125 on white, about 4.7:1, AA by a hair and marginal in sunlight) — while the flow calls VIN and stock two of the four load-bearing identifiers on every row, and the standing rule is that load-bearing text is ink because the app is used outdoors. v021 drew it darker and in mono.",
     "observation": "The kit's .rp-card__meta draws it this way on purpose (text face, tabular figures, muted) and the kit is the binding artifact, never restyled here — so this is a question for the kit's next revision, not a portal.css change. The flow note that still called the line mono was corrected with v022.",
     "area": "ride-price-mobile.css .rp-card__meta (the owner UI kit) — a kit decision"
-  },
-  {
-    "id": "RP-UI-041",
-    "severity": "Minor",
-    "flow": "Client Document Upload (customer's phone)",
-    "screen": "Text message with the link",
-    "screenshot": "current/17-client-document-upload/01-sms.png",
-    "issue": "The only way into the customer's flow is a 144x19 inline text link inside the message bubble — under the 40px touch floor, on the one screen that a customer, not an advisor, taps.",
-    "observation": "The simulated text is a demo prop, but the tap target is real: a link-styled block with a 40px hit area keeps the bubble's look.",
-    "area": "app.js / portal.css — the client link's simulated SMS bubble"
   },
   {
     "id": "RP-UI-042",
@@ -124,7 +114,7 @@
     "severity": "Observation",
     "flow": "Customer Onboarding — the Customer Resolver",
     "screen": "No license available — manual fallback",
-    "screenshot": "current/02-customer-onboarding/07-manual-fallback.png",
+    "screenshot": "current/02-customer-onboarding/08-manual-fallback.png",
     "issue": "The manual fallback is now the task title and four bare fields. The note that made it fallback-only (“if a license or license photo becomes available, use it instead”) and the line that both phone and email are required are gone, and no field is marked required until validation says so.",
     "observation": "The chrome rule removed helper copy from the 19 screens by design; the two rules still hold in validation (customerMissing requires first, last, phone, email, address and ZIP). Whether the fallback-only rule needs a line on the screen is the package's call — filed so the change is on record, since the library's step note used to describe the copy.",
     "area": "app.js — the resolver's manual fallback on the kit"
@@ -134,7 +124,7 @@
     "severity": "Minor",
     "flow": "Scan Driver's License",
     "screen": "Confirm customer (ambiguous — prop 1)",
-    "screenshot": "current/03-license-scan/07-scan-ambiguous.png",
+    "screenshot": "current/03-license-scan/08-scan-ambiguous.png",
     "issue": "On a PAGE the kit's unselected option row is invisible as a control. `.rp-option` fills with `--rp-canvas` and carries a transparent border, and `.rp-page` is that same canvas — so \"Different guest — create new\" has no edge and no fill of its own, and a pixel scan across the row's band returns one uniform #F2F2F7. The selected row reads as a card and the unselected one as loose text beside a circle, which is the wrong signal for the single question this screen exists to ask: same person, or a different guest?",
     "observation": "A kit matter, not this app's: the owner's board draws screen 07's option rows directly on the page too, so the app matches the board exactly and no override belongs in portal.css. Inside a sheet the pair reads correctly, because a sheet is `--rp-surface` and the canvas fill separates from it. Closing it needs one rule in the kit — a border or a surface fill for `.rp-option` when it is not on a surface — so it is filed for the kit's next revision.",
     "area": "ride-price-mobile.css .rp-option (the owner UI kit) — never here"
@@ -144,7 +134,7 @@
     "severity": "Minor",
     "flow": "Scan Driver's License",
     "screen": "Manual search — customer found",
-    "screenshot": "current/03-license-scan/05-scan-manual-result.png",
+    "screenshot": "current/03-license-scan/06-scan-manual-result.png",
     "issue": "The \"Results (1)\" section label sits flush under the gradient Search button, inside the button's own pink shadow: the button's fill ends at y=696 and rows 698–705 are its glow, with the label starting immediately after. The label reads as part of the button rather than as the heading of the list below it.",
     "observation": "The kit gives `.rp-section` a bottom margin and no top margin, and `.rp-stack` adds the gap between siblings — but the sheet lays these out itself, so nothing separates the primary from the label that follows. Measured on the capture, not estimated.",
     "area": "app.js — the scan's manual-search sheet, the gap between the primary and the results label"

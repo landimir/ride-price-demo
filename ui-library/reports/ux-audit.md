@@ -1,12 +1,12 @@
-# Ride Price Mobile UI — UX Audit (v034)
+# Ride Price Mobile UI — UX Audit (v035)
 
-Captured 2026-09-17T21:41:15.909Z · viewport 390×844 · app 47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d
+Captured 2026-09-18T19:05:09.088Z · viewport 390×844 · app a6501c99e601b93077498b15ecf8b78e38c3fa12
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 1 |
-| Minor | 10 |
+| Minor | 9 |
 | Observation | 9 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
@@ -19,12 +19,12 @@ _None recorded._
 
 ### RP-UI-032 — Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status
 
-- **Screenshot:** `current/02-customer-onboarding/09-waiting-for-customer.png`
-- **Issue:** The link path now says the link went out and nothing says the demo did not send anything. The banner reads “Secure link sent · (646) 555-0900 · Text”; the send sheet before it (08) dropped “Demo — no text or email is really sent; the customer view opens on this device”; and the customer-identified screen after it (10) describes a real remote session — “Secure session · Opened on the customer's device”, “License photo · Read from the upload” — where v021 said “Opened on this device (demo)” and “Read from the training prop”. A trainee is told a text was sent and a customer uploaded, and neither happened.
+- **Screenshot:** `current/02-customer-onboarding/10-waiting-for-customer.png`
+- **Issue:** The link path now says the link went out and nothing says the demo did not send anything. The banner reads “Secure link sent · (646) 555-0900 · Text”; the send sheet before it (09) dropped “Demo — no text or email is really sent; the customer view opens on this device”; and the customer-identified screen after it (11) describes a real remote session — “Secure session · Opened on the customer's device”, “License photo · Read from the upload” — where v021 said “Opened on this device (demo)” and “Read from the training prop”. A trainee is told a text was sent and a customer uploaded, and neither happened.
 - **Observation:** The chrome rule (v022) removed lede and helper copy from the 19 screens and made the banner slot the one place DEMO appears; the Advisor banner says “Sample data only”, which covers the data, not the sending. The demo is a training tool with no network (architecture invariant), so a screen that claims a send needs one honest line somewhere on the path — the banner slot is the package's own place for it. Copy decision on package screens, so filed rather than changed.
 - **Suggested area to investigate:** app.js — the resolver's link path (obSendGo / waiting status / remote-ready) on the kit; the banner slot
 
-## Minor (10)
+## Minor (9)
 
 ### RP-UI-029 — All (app-wide) · Desking accessories, search fields, filter sheet
 
@@ -42,24 +42,17 @@ _None recorded._
 
 ### RP-UI-033 — Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status
 
-- **Screenshot:** `current/02-customer-onboarding/09-waiting-for-customer.png`
+- **Screenshot:** `current/02-customer-onboarding/10-waiting-for-customer.png`
 - **Issue:** The task's step counter skips a step on the link path: the send sheet opens over “Step 1 of 3” and the next screen reads “Step 3 of 3” — step 2 never appears — while the found-customer and manual paths show “Step 2 of 3” before they leave the task.
 - **Observation:** The Task template's “task name + step” line is part of the chrome rule; the three paths through the resolver number their steps differently. Either the link path has a second step to show, or the counter should read the path's own length.
 - **Suggested area to investigate:** app.js — the resolver's Task header step index
 
 ### RP-UI-034 — Scan Driver's License · Confirm customer (certain match)
 
-- **Screenshot:** `current/03-license-scan/06-scan-confirm.png`
+- **Screenshot:** `current/03-license-scan/07-scan-confirm.png`
 - **Issue:** The identity column on the customer card is squeezed beside the “License match” pill: the name “Cheri Bridwell” breaks onto two lines and the one-sentence subtitle “Existing customer · license ending 0102” onto four. In v021 both fit on one line each. The kit's Inter is wider than the device face the screen was laid out for, and the card gives the pill its full width first.
 - **Observation:** A layout on a kit screen, not the kit: the pill could wrap under the identity, or take a fixed width and let the column keep the rest. The only one of the eleven scan screens the face change hurt.
 - **Suggested area to investigate:** app.js / portal.css — the scan flow's confirm card (identity column vs. match pill)
-
-### RP-UI-041 — Client Document Upload (customer's phone) · Text message with the link
-
-- **Screenshot:** `current/17-client-document-upload/01-sms.png`
-- **Issue:** The only way into the customer's flow is a 144x19 inline text link inside the message bubble — under the 40px touch floor, on the one screen that a customer, not an advisor, taps.
-- **Observation:** The simulated text is a demo prop, but the tap target is real: a link-styled block with a 40px hit area keeps the bubble's look.
-- **Suggested area to investigate:** app.js / portal.css — the client link's simulated SMS bubble
 
 ### RP-UI-042 — Client Document Upload (customer's phone) · Document sheet
 
@@ -70,14 +63,14 @@ _None recorded._
 
 ### RP-UI-044 — Scan Driver's License · Confirm customer (ambiguous — prop 1)
 
-- **Screenshot:** `current/03-license-scan/07-scan-ambiguous.png`
+- **Screenshot:** `current/03-license-scan/08-scan-ambiguous.png`
 - **Issue:** On a PAGE the kit's unselected option row is invisible as a control. `.rp-option` fills with `--rp-canvas` and carries a transparent border, and `.rp-page` is that same canvas — so "Different guest — create new" has no edge and no fill of its own, and a pixel scan across the row's band returns one uniform #F2F2F7. The selected row reads as a card and the unselected one as loose text beside a circle, which is the wrong signal for the single question this screen exists to ask: same person, or a different guest?
 - **Observation:** A kit matter, not this app's: the owner's board draws screen 07's option rows directly on the page too, so the app matches the board exactly and no override belongs in portal.css. Inside a sheet the pair reads correctly, because a sheet is `--rp-surface` and the canvas fill separates from it. Closing it needs one rule in the kit — a border or a surface fill for `.rp-option` when it is not on a surface — so it is filed for the kit's next revision.
 - **Suggested area to investigate:** ride-price-mobile.css .rp-option (the owner UI kit) — never here
 
 ### RP-UI-045 — Scan Driver's License · Manual search — customer found
 
-- **Screenshot:** `current/03-license-scan/05-scan-manual-result.png`
+- **Screenshot:** `current/03-license-scan/06-scan-manual-result.png`
 - **Issue:** The "Results (1)" section label sits flush under the gradient Search button, inside the button's own pink shadow: the button's fill ends at y=696 and rows 698–705 are its glow, with the label starting immediately after. The label reads as part of the button rather than as the heading of the list below it.
 - **Observation:** The kit gives `.rp-section` a bottom margin and no top margin, and `.rp-stack` adds the gap between siblings — but the sheet lays these out itself, so nothing separates the primary from the label that follows. Measured on the capture, not estimated.
 - **Suggested area to investigate:** app.js — the scan's manual-search sheet, the gap between the primary and the results label
@@ -102,26 +95,26 @@ _None recorded._
 
 - **Screenshot:** `current/14-finance-menu/01-signoff-gate-advisor.png`
 - **Issue:** The Advisor's gate is a deliberate dead end — four statuses and the line "Waiting for Team Lead." — but it offers no next action at all. V3 removed the older note that told the reader to switch roles, so nothing on the screen connects the wait to the role control in the top bar.
-- **Observation:** The role control is now a labelled pill ("Advisor" / "Team Lead"), which is a real improvement on the unlabelled segmented control this was first filed against. What remains is that a trainee reading the gate is not told where the handoff happens.
+- **Observation:** The role control is a labelled pill ("Advisor" / "Team Lead"), and since 2026-09-18 (owner ruling B, PR #106) it appears only in Customer Onboarding — not in this screen's top bar. So the gap is wider than when filed: a trainee reading the gate is not told where the handoff happens, and the switch that makes it is on another screen.
 - **Suggested area to investigate:** menu route gate(), .fm-note copy
 
 ### RP-UI-023 — Home — Deals Queue & Navigation · My Deals (landing — Advisor)
 
 - **Screenshot:** `current/01-home-and-navigation/01-deals-queue.png`
-- **Issue:** No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet on the queue top bar standing in for identity.
+- **Issue:** No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet standing in for identity — opened only in Customer Onboarding since 2026-09-18 (owner ruling B), not from the queue's top bar.
 - **Observation:** By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.
 - **Suggested area to investigate:** n/a
 
 ### RP-UI-035 — Scan Driver's License · New customer (prop 3)
 
-- **Screenshot:** `current/03-license-scan/08-scan-new-customer.png`
+- **Screenshot:** `current/03-license-scan/09-scan-new-customer.png`
 - **Issue:** The primary “Create customer” button is cut in half at the bottom edge of the viewport: the new-customer form lays its call to action inline below the fields rather than in the Task template's pinned action dock, so on a phone the advisor scrolls, or dismisses the keyboard, to reach it.
 - **Observation:** The chrome rule gives every task an action dock for exactly this control; the scan flow's form still keeps its own. Below the fold the library cannot show it either (see the v022 changelog on kit-screen captures).
 - **Suggested area to investigate:** app.js — the scan flow's new-customer form; the Task template's dock
 
 ### RP-UI-036 — Scan Driver's License · New customer (prop 3)
 
-- **Screenshot:** `current/03-license-scan/08-scan-new-customer.png`
+- **Screenshot:** `current/03-license-scan/09-scan-new-customer.png`
 - **Issue:** The helper line “Demo tool — sample data only.” under the Email field is set in the red danger colour although nothing is wrong yet, so an untouched, empty form reads as if it already failed validation.
 - **Observation:** A note is muted or ink; red is the validation voice on every other screen. Same field family as the resolver's fallback form.
 - **Suggested area to investigate:** app.js / portal.css — the scan flow's new-customer form helper
@@ -135,7 +128,7 @@ _None recorded._
 
 ### RP-UI-043 — Customer Onboarding — the Customer Resolver · No license available — manual fallback
 
-- **Screenshot:** `current/02-customer-onboarding/07-manual-fallback.png`
+- **Screenshot:** `current/02-customer-onboarding/08-manual-fallback.png`
 - **Issue:** The manual fallback is now the task title and four bare fields. The note that made it fallback-only (“if a license or license photo becomes available, use it instead”) and the line that both phone and email are required are gone, and no field is marked required until validation says so.
 - **Observation:** The chrome rule removed helper copy from the 19 screens by design; the two rules still hold in validation (customerMissing requires first, last, phone, email, address and ZIP). Whether the fallback-only rule needs a line on the screen is the package's call — filed so the change is on record, since the library's step note used to describe the copy.
 - **Suggested area to investigate:** app.js — the resolver's manual fallback on the kit

@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Improvement Report
 
-Improvement view v001 · built on flow library v030 (app 0a93d7c) · matrix updated 2026-09-10
+Improvement view v001 · built on flow library v035 (app a6501c9) · matrix updated 2026-09-18
 
 This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.
 
@@ -24,9 +24,9 @@ Finding types: **Existing Comment Expanded** — the library already flagged it 
 
 ## Home — Deals Queue & Navigation
 
-10 screens · reviewed 2026-08-23 · 7 recommendations
+9 screens · reviewed 2026-08-23 · 7 recommendations
 
-**Screens:** 01 My deals (landing — Advisor) · 02 More sheet — secondary navigation · 03 Reset demo data — confirm · 04 Switch role · 05 Active floor (Team Lead) · 06 Stage filter — no match · 07 Date range / history sheet · 08 Funded history in range · 09 Advisor — completed deal ends the list · 10 In showroom — an active visit
+**Screens:** 01 My deals (landing — Advisor) · 02 More sheet — secondary navigation · 03 Reset demo data — confirm · 04 Active floor (Team Lead) · 05 Stage filter — no match · 06 Date range / history sheet · 07 Funded history in range · 08 Advisor — completed deal ends the list · 09 In showroom — an active visit
 
 **Documented issues before this review:** RP-UI-023 (Observation) on 01 My deals (landing — Advisor); RP-UI-031 (Minor) on 01 My deals (landing — Advisor); RP-UI-037 (Observation) on 01 My deals (landing — Advisor)
 
@@ -52,23 +52,23 @@ The owner answered the Home module with a concept of his own: the Team Lead and 
 **Superseded during the build:**
 - Original concept, withdrawn during the build (owner, 2026-08-23): a high-density five-pill dashboard for the Team Lead (All / Desking / Credit / F&I / Docs / Done with counts, dense ~80px rows). Tried on screen; the owner kept the original two-lane queue — a team leader reads what is being desked and what is allocated to finance. Do not re-propose.
 - Original concept, narrowed during the build: the five-bucket stage vocabulary (DESKING · CREDIT · F&I · DOCS · DONE) survives only as the ADVISOR's row chips; the Team Lead pills and chips stayed the original three-lane set.
+- Superseded 2026-09-18 by owner ruling B (PR #106: the role control appears only in Customer Onboarding): App bar keeps its original style for now — DEMO chip and the Advisor / Team Lead segmented switch (owner, 2026-08-23). The app bar on Home now carries the wordmark and no role control; the band names the acting person.
 
 **Decided:**
 1. Light surface — take the concept's layout and hierarchy only; colours stay Ride Price's (owner, 2026-08-23).
 2. + New Customer Visit stays — the queue's one gradient action keeps its home (owner, 2026-08-23).
 3. No bottom tab bar — the drawer stays the app's navigation (owner, 2026-08-23).
 4. Row chevrons come back as the 'row is tappable' cue on the queue (owner, 2026-08-23 — reverses the 2026-08-21 removal for this design).
-5. App bar keeps its original style for now — DEMO chip and the Advisor / Team Lead segmented switch (owner, 2026-08-23).
-6. Stage vocabulary — recommended mapping (owner asked for help, 2026-08-23): five buckets derived from the deal stage, one deal in exactly one bucket so the counts add up: DESKING = discovery · vehicle · test drive · desking · signed (orange, badge--prog) · CREDIT = credit (purple, badge--menu — the app already owns this colour) · F&I = menu (blue, badge--new) · DOCS = forms (navy-tinted, badge--type) · DONE = complete (navy filled, badge--done — Ride Price's funded chip, not the concept's green). 'All' counts the active four; DONE is its own pill. (In the five-pill concept this replaced the grey 'Archived' fold — that applies to the ADVISOR only in the final state: their funded deals sit at the end of the one list with no fold. The Team Lead's original view, kept by the later decision, retains the Archived fold; RP-UI-017's minimum row-styling fix stays open for it.) A deal that still owes documents while in F&I stays in F&I — the advisor's Next line says 'Missing insurance card', the pill says where the deal is. All five colours already exist in portal.css; nothing new is introduced.
-7. Advisor view carries NO filter pills (owner, 2026-08-23, on the built screenshot): a good advisor does ten deals a day and scrolls them fine — the count dashboard is the Team Lead's tool. The advisor gets search, the rows with their Next lines, and their funded deals at the end of the same list under the DONE chip; search covers everything they own. The five pills with counts stay on the Team Lead view only.
-8. Team Lead view stays UNCHANGED from the original queue (owner, 2026-08-23, final): All / Desking / F&I-Docs pills with counts, the classic cards (name, vehicle · Stk, status line, DESKING / F&I READY / FUNDED chips), funded contracts in the Archived fold — with ONE addition (owner, 2026-08-23, after testing on his phone): the VIN + STK mono line under the name, because the four-identifier hard rule holds for every role. A team leader reads two lanes — what is being desked and what is allocated to finance — so the five-bucket dashboard and the dense VIN rows were dropped for that role. The role-aware split lands entirely on the advisor: no pills, rows with name · VIN · stock · stage chip · chevron, a Next line per active deal, funded deals at the end of the one list.
-9. Universal VIN visibility on the advisor queue (owner requirement, 2026-08-23): once a vehicle is on a deal, the VIN renders on the advisor row whether or not the unit is stocked in. Built as a vehicle-identity snapshot on the deal itself (deal.vehicle = { vin, stock }) — stamped the moment a vehicle is attached, migrated in load() for saved deals, so the VIN survives an unstocked/in-transit unit or a later catalog change. Display: both known → VIN + STK in bold mono; VIN only → 'STK Pending stock-in'; VIN unknown → 'Pending' (the app never invents a value); no vehicle → 'No vehicle selected yet'. A snapshot that disagrees with the deal's current stock is ignored and the row re-resolves fresh (a swapped vehicle can never show the old unit's VIN). Search also matches the deal-carried VIN/stock. The Team Lead's classic card only gains the honest fallback line ('VIN x · Stock pending stock-in') for a unit the catalog cannot name; its layout is untouched. Sync is by construction: every render reads the one Store.
-10. Discovery blank state (owner, 2026-08-23): while the advisor is logging the customer in and building rapport, the card shows only the name, the stage line and the badge — no vehicle placeholder text. The identifier line auto-populates (VIN + STK) the moment a vehicle lands on the deal or a quote starts. Both roles.
-11. Re-scored 2026-08-27: RP-IMP-002 and RP-IMP-003 are partly built by PR #44 (what remains: the Team Lead fold's row styling, and the in-field camera question). RP-IMP-001's bottom-dock pattern became the app's own precedent on the master canvas (PR #51 desking; Base Payment Agreement) while Home keeps the owner's title-row layout. RP-IMP-004, -005 and -006 stand open unchanged.
+5. Stage vocabulary — recommended mapping (owner asked for help, 2026-08-23): five buckets derived from the deal stage, one deal in exactly one bucket so the counts add up: DESKING = discovery · vehicle · test drive · desking · signed (orange, badge--prog) · CREDIT = credit (purple, badge--menu — the app already owns this colour) · F&I = menu (blue, badge--new) · DOCS = forms (navy-tinted, badge--type) · DONE = complete (navy filled, badge--done — Ride Price's funded chip, not the concept's green). 'All' counts the active four; DONE is its own pill. (In the five-pill concept this replaced the grey 'Archived' fold — that applies to the ADVISOR only in the final state: their funded deals sit at the end of the one list with no fold. The Team Lead's original view, kept by the later decision, retains the Archived fold; RP-UI-017's minimum row-styling fix stays open for it.) A deal that still owes documents while in F&I stays in F&I — the advisor's Next line says 'Missing insurance card', the pill says where the deal is. All five colours already exist in portal.css; nothing new is introduced.
+6. Advisor view carries NO filter pills (owner, 2026-08-23, on the built screenshot): a good advisor does ten deals a day and scrolls them fine — the count dashboard is the Team Lead's tool. The advisor gets search, the rows with their Next lines, and their funded deals at the end of the same list under the DONE chip; search covers everything they own. The five pills with counts stay on the Team Lead view only.
+7. Team Lead view stays UNCHANGED from the original queue (owner, 2026-08-23, final): All / Desking / F&I-Docs pills with counts, the classic cards (name, vehicle · Stk, status line, DESKING / F&I READY / FUNDED chips), funded contracts in the Archived fold — with ONE addition (owner, 2026-08-23, after testing on his phone): the VIN + STK mono line under the name, because the four-identifier hard rule holds for every role. A team leader reads two lanes — what is being desked and what is allocated to finance — so the five-bucket dashboard and the dense VIN rows were dropped for that role. The role-aware split lands entirely on the advisor: no pills, rows with name · VIN · stock · stage chip · chevron, a Next line per active deal, funded deals at the end of the one list.
+8. Universal VIN visibility on the advisor queue (owner requirement, 2026-08-23): once a vehicle is on a deal, the VIN renders on the advisor row whether or not the unit is stocked in. Built as a vehicle-identity snapshot on the deal itself (deal.vehicle = { vin, stock }) — stamped the moment a vehicle is attached, migrated in load() for saved deals, so the VIN survives an unstocked/in-transit unit or a later catalog change. Display: both known → VIN + STK in bold mono; VIN only → 'STK Pending stock-in'; VIN unknown → 'Pending' (the app never invents a value); no vehicle → 'No vehicle selected yet'. A snapshot that disagrees with the deal's current stock is ignored and the row re-resolves fresh (a swapped vehicle can never show the old unit's VIN). Search also matches the deal-carried VIN/stock. The Team Lead's classic card only gains the honest fallback line ('VIN x · Stock pending stock-in') for a unit the catalog cannot name; its layout is untouched. Sync is by construction: every render reads the one Store.
+9. Discovery blank state (owner, 2026-08-23): while the advisor is logging the customer in and building rapport, the card shows only the name, the stage line and the badge — no vehicle placeholder text. The identifier line auto-populates (VIN + STK) the moment a vehicle lands on the deal or a quote starts. Both roles.
+10. Re-scored 2026-08-27: RP-IMP-002 and RP-IMP-003 are partly built by PR #44 (what remains: the Team Lead fold's row styling, and the in-field camera question). RP-IMP-001's bottom-dock pattern became the app's own precedent on the master canvas (PR #51 desking; Base Payment Agreement) while Home keeps the owner's title-row layout. RP-IMP-004, -005 and -006 stand open unchanged.
 
 Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the owner concept confirms it); RP-IMP-003 (the advisor row carries an explicit Next line — confirmed; the concept drops it from the Team Lead view on purpose); RP-IMP-001 (the concept moves navigation to a bottom bar — the thumb-zone point, answered differently; see the open choices)
 
-**What already works:** The queue is genuinely calm in both of its views (as reviewed, and still after the build): one title carrying the live count, one gradient action, one search field, and clean whole-row tap targets with the status chip pinned to the corner — nothing competes, which is exactly what the best work-queue screens do. The pill dashboard with live counts lives on the Team Lead screen (the Advisor landing deliberately has none). The role switch is a visible segmented control and its toast names the acting person, so the no-login decision reads as deliberate rather than missing. The drawer orients a first-time user well (dealership, advisor name and role, WORKFLOW vs RESOURCES) and keeps the destructive reset at the very bottom behind a branded confirm whose red button is the only danger-styled control in the flow. Empty states speak instead of going blank.
+**What already works:** The queue is genuinely calm in both of its views (as reviewed, and still after the build): one title carrying the live count, one gradient action, one search field, and clean whole-row tap targets with the status chip pinned to the corner — nothing competes, which is exactly what the best work-queue screens do. The pill dashboard with live counts lives on the Team Lead screen (the Advisor landing deliberately has none). Home's band names the acting person ('Acting as …') and the role control lives in Customer Onboarding (owner ruling B, 2026-09-18), so the no-login decision reads as deliberate rather than missing. The drawer orients a first-time user well (dealership, advisor name and role, WORKFLOW vs RESOURCES) and keeps the destructive reset at the very bottom behind a branded confirm whose red button is the only danger-styled control in the flow. Empty states speak instead of going blank.
 
 **Strongest recommendations:**
 1. Put the one forward action where the thumb is: on a phone, anchor + New Customer Visit in a thin bottom bar (or full-width under the pills) instead of the top-right corner — and use the same page-bar rule on Find a Customer and the Training pages, which put their actions at the top the same way.
@@ -78,7 +78,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-001 — The only forward action sits in the hardest thumb zone while 60% of the screen is empty
 
-- **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 06 Stage filter — no match; Home — Active Floor & Navigation · 05 Active floor (Team Lead); Home — Active Floor & Navigation · 08 Funded history in range; Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver
+- **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 05 Stage filter — no match; Home — Active Floor & Navigation · 04 Active floor (Team Lead); Home — Active Floor & Navigation · 07 Funded history in range; Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver
 - **Type:** Pattern Opportunity · **Category:** interaction · **Severity:** Major · **Priority:** High · **Fix size:** medium
 
 **A. Current Ride Price screen.** The screen's one gradient action, + New Customer Visit (163×44 at the top-right, y≈75–117), sits in the hardest one-handed reach zone while everything below y≈370 is empty. The same page-top placement repeats on Find a Customer (Scan license / Create Customer at y≈140–180) and on both Training pages (Print at y≈140–195; those two pages were retired by Training Documents V3 on 2026-09-02 — the citation is the evidence as measured then, not a screen to go and look at now), and the page-bar layout differs between them — home puts the action on the title row, the other pages stack it under the subtitle.
@@ -97,7 +97,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-002 — Finished deals hide behind a 20px grey caption
 
-- **Screen:** 08 Funded history in range (`current/01-home-and-navigation/08-funded-history.png`)
+- **Screen:** 07 Funded history in range (`current/01-home-and-navigation/07-funded-history.png`)
 - **Type:** Existing Comment Expanded (builds on RP-UI-017 — The audit finding this expanded was RESOLVED and retired in library v009 — the Archived fold it described no longer exists.) · **Category:** interaction · **Severity:** Minor · **Priority:** High · **Fix size:** small
 
 **A. Current Ride Price screen.** '▼ Archived — funded contracts (1)' (362×20 at y≈378) is a muted 13px text row under the 44px touch floor, styled like a caption, sitting directly under an equally muted empty-state sentence. A Team Lead whose deal just funded sees a (0) title, a grey sentence and a grey row — no obvious control to reach the contract.
@@ -115,7 +115,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-003 — The card does not say what comes next, and the search-field camera promises the wrong scan
 
-- **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 05 Active floor (Team Lead); Home — Active Floor & Navigation · 06 Stage filter — no match; Home — Active Floor & Navigation · 08 Funded history in range
+- **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 04 Active floor (Team Lead); Home — Active Floor & Navigation · 05 Stage filter — no match; Home — Active Floor & Navigation · 07 Funded history in range
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
 
 **A. Current Ride Price screen.** The deal card's third line 'Game Plan With the Team Lead' is the next action but carries no 'Next' marker, so it reads as a status or a note. Separately, the camera button inside 'Search stock, customer, or VIN…' (right end of the field, y≈172) opens the license scanner — but a camera inside a VIN search field universally reads as 'scan a VIN', and on a phone there is no tooltip to correct that.
@@ -152,7 +152,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-005 — A filter with no matches contradicts the title and offers no way back
 
-- **Screen:** 06 Stage filter — no match (`current/01-home-and-navigation/06-stage-filter-empty.png`)
+- **Screen:** 05 Stage filter — no match (`current/01-home-and-navigation/05-stage-filter-empty.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
 **A. Current Ride Price screen.** With F&I / Docs (0) selected the list says only 'No deals match that filter.' while the title still reads ACTIVE DEALS (1); the sentence does not say where the one deal is and offers no one-tap way back to All.
@@ -170,10 +170,10 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-006 — No login by design — keep the 'who am I' cue consistent
 
-- **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 05 Active floor (Team Lead)
-- **Type:** Existing Comment Expanded (builds on RP-UI-023 — accurate — it records a decision and stays an Observation; incomplete only in that it does not note where the identity cue lives: the acting person is named only in the drawer header ('Ashley Collins · Client Advisor') and, after a switch, in a 4-second toast ('Now acting as Team Lead — Jordan Reyes'); the app bar shows the role but never the name.) · **Category:** informational · **Severity:** Observation · **Priority:** Low · **Fix size:** small
+- **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 04 Active floor (Team Lead)
+- **Type:** Existing Comment Expanded (builds on RP-UI-023 — accurate — it records a decision and stays an Observation. Where the identity cue lives today: Home's band names the acting person ('Acting as …'); the switch itself is made in Customer Onboarding (owner ruling B, 2026-09-18) and confirms with a toast ('Now acting as Team Lead — Jordan Reyes'). (As filed, before that ruling, the name appeared only in the drawer header and the toast, and the app bar showed the role but never the name.)) · **Category:** informational · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
-**A. Current Ride Price screen.** No login is by design; the only persistent 'who am I' cue is inside the drawer, and the role switch confirms itself with a toast while nothing else on the page changes (same list, same CTA).
+**A. Current Ride Price screen.** No login is by design. On Home the persistent 'who am I' cue is the band ('Acting as …'); the switch itself happens in Customer Onboarding (owner ruling B, 2026-09-18) and confirms with a toast, and back on Home the floor follows the role (the Advisor's queue or the Team Lead's active floor).
 
 **B. Why it is a problem.** For a demo/training tool this is acceptable; the only risk is a trainee forgetting they are in Team Lead mode and later meeting (or missing) role-gated steps without knowing why. Not a bug — a cue to keep consistent.
 
@@ -181,13 +181,13 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 - [X](https://mobbin.com/screens/296ece73-7630-4846-a67b-8d4772ef70a0) — Account switcher avatar beside the profile header — the current identity is always visible
 - [Nextdoor](https://mobbin.com/screens/4e6ef4c3-a9b5-4a54-a33b-1c68a091a873) — Name + place header, then the second identity as a named row
 
-**D. Ride Price adaptation.** Keep the segmented Advisor / Team Lead switch exactly as it is. Make sure the drawer header follows the switch (name and role of the acting person), and on wider phones consider a one-line name under the app-bar switch ('Jordan Reyes'). No login, no avatar, nothing heavier. **Stays:** No authentication; the app-bar segmented switch; the toast.
+**D. Ride Price adaptation.** SUPERSEDED for the switch itself by owner ruling B (2026-09-18): there is no Home role switch to keep — the role control is only in Customer Onboarding. What still applies: the acting person's name stays visible (Home's band reads 'Acting as …'). Original recommendation: Keep the segmented Advisor / Team Lead switch exactly as it is. Make sure the drawer header follows the switch (name and role of the acting person), and on wider phones consider a one-line name under the app-bar switch ('Jordan Reyes'). No login, no avatar, nothing heavier. **Stays:** No authentication; the band naming the acting person; the toast. (The app-bar segmented switch this listed is gone from Home — owner ruling B, 2026-09-18.)
 
 *Implementation note:* roleName() and the app-bar switch / drawer header in renderChrome(), app.js.
 
 ### RP-IMP-007 — Role-aware queue: same four identifiers for everyone, dense rows for the Team Lead, a Next line for the advisor
 
-- **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 05 Active floor (Team Lead); Home — Active Floor & Navigation · 08 Funded history in range
+- **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 04 Active floor (Team Lead); Home — Active Floor & Navigation · 07 Funded history in range
 - **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Major · **Priority:** High · **Fix size:** medium
 
 **A. Current Ride Price screen.** The queue shows the same card to both roles: name, vehicle · stock, a status line and a chip. It carries no VIN (the identifier a manager and a lender both use), the three buckets lump Credit, F&I and Docs into one pill, and a Team Lead with a full floor would scroll ~110px cards one at a time. The role switch changes who is acting but not what the screen is for.
@@ -200,17 +200,17 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 - [Careem](https://mobbin.com/screens/160656d3-ef01-4163-87bc-ca4c2abd7551) — 'Next step: …' stated in plain words above the list
 - [Grab Driver](https://mobbin.com/screens/094b300e-f89e-480f-a72a-762788d331f9) — One 'what happens next' line under the active step
 
-**D. Ride Price adaptation.** FINAL (after the owner's corrections on built screenshots): every row, both roles, shows name (700), the mono VIN + STK line (an unstocked unit shows 'STK Pending stock-in'; a missing value 'Pending', never invented; blank during discovery), the vehicle, the stage chip, and a chevron — the whole row is the tap. Advisor ('My Deals'): no filter pills, the five stage chips, a 'Next: …' line in the stage colour per active deal, funded deals at the end of the one list, Clear search on an empty search. Team Lead ('Active Deals'): the original floor view — All / Desking / F&I-Docs pills with live counts, classic cards with a plain status line and DESKING / F&I READY / FUNDED chips, and — as this FINAL description was written — the Archived fold, which Home v3 has since removed (funded contracts moved behind the Team Lead date/history sheet; RP-UI-017 retired with it). The line is the contract as agreed, not a description of the screen today. + New Customer Visit stays the one gradient action; DEMO chip, role switch and drawer unchanged; light surface. The five-pill Team Lead dashboard was tried and withdrawn — see direction.superseded. **Stays:** Light surface and white cards; navy / chrome blue; gradient only on + New Customer Visit; DEMO chip; the Advisor / Team Lead switch; the search field; the drawer. Chevrons return by decision.
+**D. Ride Price adaptation.** FINAL (after the owner's corrections on built screenshots): every row, both roles, shows name (700), the mono VIN + STK line (an unstocked unit shows 'STK Pending stock-in'; a missing value 'Pending', never invented; blank during discovery), the vehicle, the stage chip, and a chevron — the whole row is the tap. Advisor ('My Deals'): no filter pills, the five stage chips, a 'Next: …' line in the stage colour per active deal, funded deals at the end of the one list, Clear search on an empty search. Team Lead ('Active Deals'): the original floor view — All / Desking / F&I-Docs pills with live counts, classic cards with a plain status line and DESKING / F&I READY / FUNDED chips, and — as this FINAL description was written — the Archived fold, which Home v3 has since removed (funded contracts moved behind the Team Lead date/history sheet; RP-UI-017 retired with it). The line is the contract as agreed, not a description of the screen today. + New Customer Visit stays the one gradient action; DEMO chip, role switch and drawer unchanged; light surface. The five-pill Team Lead dashboard was tried and withdrawn — see direction.superseded. **Stays:** Light surface and white cards; navy / chrome blue; gradient only on + New Customer Visit; DEMO chip; the band naming the acting person (the Advisor / Team Lead switch left Home — owner ruling B, 2026-09-18); the search field; the drawer. Chevrons return by decision.
 
 *Implementation note:* route('deals') card template and paint() (the 'mine' filter at app.js ~526 already splits the roles); .dl-card / .dl-pills in portal.css; dealNextAction() for the advisor line; the five-way bucket needs a stage→bucket map beside dealBucket().
 
 ## Scan Driver's License
 
-11 screens · reviewed 2026-08-23 · 14 recommendations
+12 screens · reviewed 2026-08-23 · 14 recommendations
 
-**Screens:** 01 Scan — front of license · 02 Scan — flip to the back · 03 Couldn't read the license (sheet) · 04 Find customer manually (sheet) · 05 Manual search — customer found · 06 Confirm customer (certain match) · 07 Confirm customer (ambiguous — prop 1) · 08 New customer (prop 3) · 09 Phone already in use (sheet) · 10 Verify the phone number (sheet) · 11 Customer ready
+**Screens:** 01 Scan — front of license · 02 Review front — the photo waits for Use front · 03 Scan — flip to the back · 04 Review back — the barcode could not be read · 05 Find customer manually (sheet) · 06 Manual search — customer found · 07 Confirm customer (certain match) · 08 Confirm customer (ambiguous — prop 1) · 09 New customer (prop 3) · 10 Phone already in use (sheet) · 11 Verify the phone number (sheet) · 12 Customer ready
 
-**Documented issues before this review:** RP-UI-045 (Minor) on 05 Manual search — customer found; RP-UI-034 (Minor) on 06 Confirm customer (certain match); RP-UI-044 (Minor) on 07 Confirm customer (ambiguous — prop 1); RP-UI-035 (Observation) on 08 New customer (prop 3); RP-UI-036 (Observation) on 08 New customer (prop 3)
+**Documented issues before this review:** RP-UI-045 (Minor) on 06 Manual search — customer found; RP-UI-034 (Minor) on 07 Confirm customer (certain match); RP-UI-044 (Minor) on 08 Confirm customer (ambiguous — prop 1); RP-UI-035 (Observation) on 09 New customer (prop 3); RP-UI-036 (Observation) on 09 New customer (prop 3)
 
 ### Owner direction — Intake of the external draft (owner's new working method, 2026-08-23)
 
@@ -243,7 +243,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-008 — The training-license help links tear down the scan, and the demo guidance whispers
 
-- **Screen:** 01 Scan — front of license (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 02 Scan — flip to the back; Scan Driver's License · 03 Couldn't read the license (sheet)
+- **Screen:** 01 Scan — front of license (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 03 Scan — flip to the back; Scan Driver's License · 04 Review back — the barcode could not be read
 - **Type:** Newly Detected UI Issue · **Category:** interaction · **Severity:** Major · **Priority:** High · **Fix size:** small
 
 **A. Current Ride Price screen.** The 'training license' links in the hints (84×29 and 151×20 — under the small-target floor) navigate to #/props, and the hash change closes the scan dialog mid-flow (verified in openScanFlow) — help costs the user their captured front. Meanwhile the one sentence that prevents the most predictable failure ('Real IDs cannot be read — use a printed training license') is small muted text.
@@ -261,7 +261,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-009 — Where the scan journey lives: full screen, bottom sheets, or the current modal (owner question Q2)
 
-- **Screen:** 01 Scan — front of license (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 06 Confirm customer (certain match); Scan Driver's License · 09 Phone already in use (sheet)
+- **Screen:** 01 Scan — front of license (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 07 Confirm customer (certain match); Scan Driver's License · 10 Phone already in use (sheet)
 - **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Major · **Priority:** Medium · **Fix size:** major
 
 **A. Current Ride Price screen.** The centred modal carries the whole journey: capture, processing, refusal, matching, and the long verify forms. Short steps end high on the screen (the possible-match and phone-conflict buttons sit at y≈240–340), so the highest-stakes taps live at the top of a 844px viewport; the external draft reads the shell itself as too small for what the flow became.
@@ -279,7 +279,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-010 — Summary-first verify — both reviewers propose it; it reverses decision 11 (owner question Q1)
 
-- **Screen:** 08 New customer (prop 3) (`current/03-license-scan/08-scan-new-customer.png`) — also on Scan Driver's License · 06 Confirm customer (certain match)
+- **Screen:** 09 New customer (prop 3) (`current/03-license-scan/09-scan-new-customer.png`) — also on Scan Driver's License · 07 Confirm customer (certain match)
 - **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Major · **Priority:** High · **Fix size:** medium
 
 **A. Current Ride Price screen.** The verify step renders every scanned value as a large editable input, so the screen says 'fill out a form' although the scan already did the work; the instruction says 'check every field, then ask the guest for their contact details', but the ask-the-guest fields sit below the fold behind seven license fields the advisor only needs to read.
@@ -298,7 +298,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-011 — The verify CTAs understate what they do — they also start the visit
 
-- **Screen:** 06 Confirm customer (certain match) (`current/03-license-scan/06-scan-confirm.png`) — also on Scan Driver's License · 08 New customer (prop 3)
+- **Screen:** 07 Confirm customer (certain match) (`current/03-license-scan/07-scan-confirm.png`) — also on Scan Driver's License · 09 New customer (prop 3)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Minor · **Priority:** High · **Fix size:** small
 
 **A. Current Ride Price screen.** 'Update Customer →' and 'Create Customer →' also start the visit and land on Discovery, but only the manual path's dialog says so ('Save & Start Visit →'). The same outcome wears two names depending on the door the advisor came through.
@@ -315,7 +315,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-012 — The possible-match screen asks a high-stakes question with a one-line clue
 
-- **Screen:** 06 Confirm customer (certain match) (`current/03-license-scan/06-scan-confirm.png`)
+- **Screen:** 07 Confirm customer (certain match) (`current/03-license-scan/07-scan-confirm.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Major · **Priority:** High · **Fix size:** small
 
 **A. Current Ride Price screen.** 'License reads: John Smith · DOB 1987-03-14 · T-0000101' is one 13px muted line — with the date in ISO against the app's own MM/DD/YYYY rule — and the on-file record is described only by name. The advisor decides link-vs-create without seeing what the CRM actually holds, and the external draft filed this as its top identity risk (recalibrated Critical → Major: the flow completes).
@@ -332,7 +332,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-013 — The phone-conflict screen hides the number it is warning about
 
-- **Screen:** 09 Phone already in use (sheet) (`current/03-license-scan/09-scan-conflict.png`)
+- **Screen:** 10 Phone already in use (sheet) (`current/03-license-scan/10-scan-conflict.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Major · **Priority:** High · **Fix size:** small
 
 **A. Current Ride Price screen.** 'That phone number is on file for John Smith.' — without showing the number, who the scanned person is, or what 'Link to that record' will actually do; and there is no way back to simply fix a mistyped digit, though a typo is the likeliest cause. (External draft filed Critical; recalibrated — the flow completes.)
@@ -349,7 +349,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-014 — The refusal explains four things in one small paragraph
 
-- **Screen:** 03 Couldn't read the license (sheet) (`current/03-license-scan/03-scan-reject.png`)
+- **Screen:** 04 Review back — the barcode could not be read (`current/03-license-scan/04-scan-reject.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
 
 **A. Current Ride Price screen.** The not-recognized copy mixes the demo limitation, real-system behaviour, damaged-barcode advice and the manual fallback into one small block. The external draft wanted cause-specific diagnosis on top — killed: the recognizer cannot know why an image failed (it finds a prop marker or refuses; invariant 4) — but the copy structure critique stands.
@@ -362,11 +362,11 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 **D. Ride Price adaptation.** RESOLVED (PR #49): the refusal now says one thing — 'We couldn't find the barcode. Keep the whole barcode visible and avoid glare.' — and the demo boundary lives in its own one-line hint. — AS ORIGINALLY WRITTEN (kept as the record of what was recommended; the status above is the current state): Restructure the copy only: the headline stays; then two short lines — 'In this demo, only the 5 printed training licenses can be read.' and 'Blurry or shadowed photo? Retake usually fixes it.' — then the two actions as today (Retake primary per decision 13, Enter manually secondary). No diagnosis is claimed the app cannot make. **Stays:** Retake-then-manual order (decision 13); the neutral teaching voice; no cause classification (invariant 4).
 
-*Implementation note:* The refusal step's copy block in openScanFlow(); pairs with RP-IMP-008's prop peek.
+*Implementation note:* The refusal step's copy block in openScanFlow(); pairs with RP-IMP-008's prop peek. 2026-09-18 (library v035): PR #106 replaced the refusal sheet with an inline Review back — the unreadable photo stays on screen with one line, "The barcode could not be read.", Use back disabled, Retake and Find customer manually on the screen (the owner chose this version). The four-ideas-in-one-paragraph copy is gone; re-assess this entry against the new screen.
 
 ### RP-IMP-015 — The processing state sets no time expectation
 
-- **Screen:** 02 Scan — flip to the back (`current/03-license-scan/02-scan-back.png`)
+- **Screen:** 03 Scan — flip to the back (`current/03-license-scan/03-scan-back.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
 **A. Current Ride Price screen.** 'Reading barcode…' says what is happening but not how long it should take (about one second in the demo).
@@ -382,7 +382,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-016 — The dialog height jumps twice around the one-second spinner
 
-- **Screen:** 02 Scan — flip to the back (`current/03-license-scan/02-scan-back.png`)
+- **Screen:** 03 Scan — flip to the back (`current/03-license-scan/03-scan-back.png`)
 - **Type:** Newly Detected UI Issue · **Category:** visual · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
 **A. Current Ride Price screen.** The sheet collapses from ~470px to ~260px for the spinner and re-expands for the result — two height jumps in two seconds. The external draft additionally wanted the stepper to indicate the transition toward verify; the analysts keep '2 · Back' highlighted (processing belongs to the capture step) — the analysts' reading is recorded as the truer one.
@@ -398,7 +398,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-017 — The back step could show what the barcode side should look like
 
-- **Screen:** 02 Scan — flip to the back (`current/03-license-scan/02-scan-back.png`)
+- **Screen:** 03 Scan — flip to the back (`current/03-license-scan/03-scan-back.png`)
 - **Type:** Pattern Opportunity · **Category:** visual · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
 
 **A. Current Ride Price screen.** Step 2 says 'BACK — barcode side' in words, but the frame is the same empty dashed box as the front step; nothing shows where the wide strip sits or warns about glare — the two failure causes a paper prop actually has.
@@ -415,7 +415,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-018 — Small capture-step polish: the photo action as a visible button, the status attached, Retake labelled
 
-- **Screen:** 01 Scan — front of license (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 02 Scan — flip to the back
+- **Screen:** 01 Scan — front of license (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 03 Scan — flip to the back
 - **Type:** Newly Detected UI Issue · **Category:** visual · **Severity:** Minor · **Priority:** Low · **Fix size:** small
 
 **A. Current Ride Price screen.** Three small things pull the same way: the primary photo action lives implicitly in the dashed frame while 'Upload a photo' looks like the only button; 'Front captured ✓' renders as a detached footer status; and retaking the front is a small text link after the thumbnail.
@@ -432,7 +432,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-019 — Closing mid-scan discards captured work silently
 
-- **Screen:** 06 Confirm customer (certain match) (`current/03-license-scan/06-scan-confirm.png`) — also on Scan Driver's License · 02 Scan — flip to the back
+- **Screen:** 07 Confirm customer (certain match) (`current/03-license-scan/07-scan-confirm.png`) — also on Scan Driver's License · 03 Scan — flip to the back
 - **Type:** Newly Detected UI Issue · **Category:** interaction · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
 
 **A. Current Ride Price screen.** The X and Cancel close the whole journey at any step without saying the captured front/back and parsed data are gone; nothing distinguishes 'leave the scan' from 'go back a step'.
@@ -481,7 +481,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ## Not yet reviewed — next in line
 
-1. Customer Onboarding — the Customer Resolver (9 screens)
+1. Customer Onboarding — the Customer Resolver (11 screens)
 2. Training Documents (4 screens)
 3. Discovery Session (6 screens)
 4. Vehicle Selection (8 screens)

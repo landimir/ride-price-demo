@@ -1,6 +1,6 @@
 # Ride Price — Mobbin Reference Summary
 
-Updated 2026-09-10. One entry per reference family used by the improvement review so far. Each was looked up on Mobbin for a specific Ride Price problem; the screens are listed so they can be opened, and the lesson is what Ride Price takes — structure and clarity, never the other app's brand. Nothing here says "copy X": the adaptation always re-expresses the pattern in Ride Price's navy, gradient, Poppins and existing components.
+Updated 2026-09-18. One entry per reference family used by the improvement review so far. Each was looked up on Mobbin for a specific Ride Price problem; the screens are listed so they can be opened, and the lesson is what Ride Price takes — structure and clarity, never the other app's brand. Nothing here says "copy X": the adaptation always re-expresses the pattern in Ride Price's navy, gradient, Poppins and existing components.
 
 ## M3 · Work queue / home with one dominant action
 
@@ -38,7 +38,7 @@ Used by: RP-IMP-003, RP-IMP-007
 
 ## M17 · Navigation drawer and identity header
 
-**Ride Price problem it was looked up for:** Home — the drawer's active state and the role switch's 'who am I' cue.
+**Ride Price problem it was looked up for:** Home — the drawer's active state and the band's 'who am I' cue.
 
 **What was reviewed:**
 - [Microsoft Outlook](https://mobbin.com/screens/5516b226-0b53-45f0-abf7-a4c9e69fbf86) — Account header, favourites first with count badges, secondary folders, help/settings pinned bottom; active row tinted
@@ -48,7 +48,7 @@ Used by: RP-IMP-003, RP-IMP-007
 
 **Common pattern across the references:** Identity at the top (name, role/place, a switcher beside it), grouped plain rows, the active place marked with a tint or bar, counts as badges, destructive/settings pinned at the bottom.
 
-**Lesson most relevant to Ride Price:** Ride Price's drawer already has this shape; spend the gradient only on the forward action, mark 'you are here' with a tint + bar, and keep the acting person's name where the role switch is.
+**Lesson most relevant to Ride Price:** Ride Price's drawer already has this shape; spend the gradient only on the forward action, mark 'you are here' with a tint + bar, and keep the acting person's name visible on Home's band — the role control itself lives in Customer Onboarding (owner ruling B, 2026-09-18).
 
 **Should influence:** Home drawer and app bar.
 

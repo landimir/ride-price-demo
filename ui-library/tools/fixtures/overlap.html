@@ -1,0 +1,23 @@
+<!doctype html><meta charset="utf-8"><title>overlap fixture</title>
+<style>
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; }
+  .dialog { width: 320px; height: 240px; margin: 24px; border: 1px solid #ccc; display: flex; flex-direction: column; background: #fff; }
+  /* position: relative makes .body the offsetParent, so #second's
+     offsetTop is measured in the scrolling content and the scroll maths
+     below is the maths the assertions describe */
+  .body { position: relative; flex: 1; min-height: 0; overflow-y: auto; padding: 12px; }
+  .body p { margin: 0; }
+  #first { margin-bottom: 200px; }
+  .foot { flex: none; height: 56px; display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; border-top: 1px solid #ccc; background: #fff; }
+  #save { height: 36px; padding: 0 16px; font: inherit; }
+  .stack { position: relative; margin: 24px; height: 44px; }
+  #textA, #textB { position: absolute; left: 0; top: 0; width: 260px; }
+</style>
+<div class="dialog">
+  <div class="body">
+    <p id="first">A first paragraph, well above the fold of this scrolling body.</p>
+    <p id="second">A paragraph tall enough that its box would cover the pinned button, but the body clips it away long before it gets there.</p>
+  </div>
+  <div class="foot"><button id="save">Save</button></div>
+</div>
+<div class="stack"><span id="textA">Two texts drawn on one spot</span><span id="textB">And here is the other one</span></div>

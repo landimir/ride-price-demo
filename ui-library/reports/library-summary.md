@@ -1,27 +1,27 @@
 # Ride Price Mobile UI Library
 
-Version: v034
-Captured: 2026-09-17T21:41:15.909Z
-App commit: 47bcec40ce0ed817b4d4352dbabf21cb5ed4a38d
+Version: v035
+Captured: 2026-09-18T19:05:09.088Z
+App commit: a6501c99e601b93077498b15ecf8b78e38c3fa12
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 145
-Branches documented: 77
+Screens documented: 146
+Branches documented: 78
 
 UX Audit:
 - Critical: 0
 - Major: 1
-- Minor: 10
+- Minor: 9
 - Observation: 9
 
 ## Flows
 
 | # | Flow | Screens | Entry |
 |---|---|---|---|
-| 1 | Home — Active Floor & Navigation | 10 | entry point |
-| 2 | Customer Onboarding — the Customer Resolver | 10 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap New visit |
-| 3 | Scan Driver's License | 11 | Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver — Tap Scan physical license |
+| 1 | Home — Active Floor & Navigation | 9 | entry point |
+| 2 | Customer Onboarding — the Customer Resolver | 11 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap New visit |
+| 3 | Scan Driver's License | 12 | Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver — Tap Scan physical license |
 | 4 | Training Documents | 4 | Home — Active Floor & Navigation · 02 More sheet — secondary navigation — Training documents |
 | 5 | Discovery Session | 6 | Customer Onboarding — the Customer Resolver · 04 Customer found — confirm + registration address — Confirm address & start visit |
 | 6 | Vehicle Selection | 8 | Discovery Session · 04 Discovery complete (sheet) — Tap Find matching vehicles |

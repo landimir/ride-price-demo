@@ -1,8 +1,10 @@
 # Ride Price Mobile UI — Opportunity Board
 
-Updated 2026-09-10 · 2 of 20 product areas reviewed · 21 recommendations so far. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.
+Updated 2026-09-18 · 2 of 20 product areas reviewed · 21 recommendations so far. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.
 
 ## Top opportunities (by priority, then severity, then how widely they repeat)
+
+_This table ranks every recommendation in the matrix. The matrix carries no status field yet, so it also lists recommendations whose own notes record them as built, resolved or superseded — read each entry's notes before acting on it._
 
 | # | Id | Area | Opportunity | Priority | Severity | Size |
 |---|---|---|---|---|---|---|
@@ -48,7 +50,7 @@ Updated 2026-09-10 · 2 of 20 product areas reviewed · 21 recommendations so fa
 
 1. Scan Driver's License is REVIEWED (area 2 of 20 in review order) via the first external-draft intake: 14 recommendations, two owner questions answered (Q1 summary-first verify vs decision 11; Q2 the scanner's shell), four external items killed on invariants/decisions — see the area's intake record.
 2. Build order once the owner answers (SUPERSEDED by item 4 below, 2026-09-01 — scan-v2 rebuilt the flow, so RP-IMP-012 and RP-IMP-013 describe screens that no longer exist and nothing here is picked up before the area is re-reviewed; kept as the record of what was planned): RP-IMP-012 + 013 (the identity screens), RP-IMP-008 (the tear-down bug + guidance), RP-IMP-011 (CTA outcomes), then the Q1/Q2-dependent work.
-3. Still open from Home: where + New Customer Visit lives on phones (RP-IMP-001).
+3. Still open on Home itself: where + New Customer Visit lives on phones (RP-IMP-001). The fixed bottom home for the forward action is delivered on the deal flows (see Biggest overall gains); Home is the screen it has not reached.
 4. (2026-09-01) The Scan Driver's License rows above predate the owner's scan-v2 package (2026-08-28), which rebuilt the flow and answered both owner questions — at least RP-IMP-012 and RP-IMP-013 describe screens that no longer exist in that form. The area needs a re-review against the built v2 before anything here is picked up; do not build from these rows as written. (2026-09-10, CodeRabbit #98: this caution has been partly overtaken. RP-IMP-012 and RP-IMP-013 were re-scored on 2026-08-27 and stand as SUPERSEDED — delivered by the v2 rebuild in PRs #46/#49 — and RP-IMP-011 and RP-IMP-008 with them, so those four are settled rather than waiting. The flow was then rebuilt a SECOND time by the owner's kit package v023 on 2026-09-05, which is what the eleven screens in the library show today. What still holds is the narrower half: any scan row here that has not been individually re-scored describes pre-v2 screens, so read the row's own status before building from it.)
 5. (2026-08-31) RP-UI-017 (the Team Lead Archived row's touch target) was listed on this board as still open for five versions after it was retired — the 20px Archived fold is gone and funded contracts live behind the Team Lead date/history sheet. See reports/retired-issues.md. Both corrections now live in screen-improvement-matrix.json, the file this board is generated from, so rebuilding cannot drop them.
 6. (2026-09-02) Training Documents V3 replaced the two prop pages with one hub, so the old training screenshots are gone. RP-IMP-001 listed both as places it also appeared; those two entries are removed rather than repointed, because the finding describes a mostly-empty screen whose only forward action sits in the hard thumb zone, and the new hub is a full list of pair rows — whether it still applies there is a question for the area's own review, not an assumption to carry forward.

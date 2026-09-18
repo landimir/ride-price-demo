@@ -35,6 +35,18 @@ const wait = (ms) => new Promise(r => setTimeout(r, ms));
 /* the toast of the step before is not part of this screen: three v022 captures
    had one covering the very line the screen exists to show. toast() recreates
    the node on its next call, so removing it costs nothing. */
+/* the role control appears only in Customer Onboarding (owner ruling B,
+   2026-09-18): a flow that needs another role switches there and comes back */
+const switchRole = async (s, role, back) => { await s.go("#/customers"); await s.click(".rp-role", { wait: 300 }); await s.click(`.rp-sheet:not([hidden]) [data-role="${role}"]`, { wait: 500 }); if (back) await s.go(back); };
+/* Codex Phase 53 (LS-018): every picked photo waits on its review screen until
+   Use front / Use back; a readable pair then asks "Review both sides" */
+const captureBoth = async (s, front, back) => {
+  await s.upload("#scanBody input[data-cap]", [front], { wait: 700 });
+  await s.click("#scanBody [data-capture-use]", { wait: 500 });
+  await s.upload("#scanBody input[data-cap]", [back], { wait: 2200 });
+  if (await s.exists("#scanBody [data-capture-use]:not([disabled])")) await s.click("#scanBody [data-capture-use]", { wait: 700 });
+};
+const confirmPair = async (s) => { if (await s.exists("#scPairMatch")) { await s.click("#scPairMatch", { wait: 150 }); await s.click("#scPairContinue", { wait: 1200 }); } };
 const clearToast = (s) => s.eval(`(() => { const t = document.getElementById("toast"); if (t) t.remove(); return true; })()`);
 /* mutate state WITHOUT re-rendering — the current route may still be the previous
    flow's screen, and some routes write state when they render (the presentation
@@ -81,7 +93,7 @@ async function barcodePng(s, prop) {
 /* menu / F&I preconditions on the seed deal, layered on demand */
 const MENU_READY = `
   const d = Store.deal("${D}");
-  d.creditApp = { approved: true, submitted: new Date().toISOString(), lender: "US Bank", qualifiedApr: 3.9, leaseFactor: 0.00087, employer: "Demo Co" };
+  d.creditApp = { approved: true, customerId: d.customerId, coBuyerId: null /* Codex 9c5501d: an approval names its applicants */, submitted: new Date().toISOString(), lender: "US Bank", qualifiedApr: 3.9, leaseFactor: 0.00087, employer: "Demo Co" };
   d.basePayment = { signedAt: new Date().toISOString(), sigName: "John Smith", snapshot: RIDE_PRICE_CALC.calc(d, Store.vehicle(d.stock)) };
   d.huddle.done = true; d.stage = "menu";`;
 const SIGNED_OFF = MENU_READY + ` d.signoff = { by: RIDE_PRICE_DATA.dealership.teamLead, at: new Date().toISOString() };`;
@@ -89,7 +101,7 @@ const SIGNED_OFF = MENU_READY + ` d.signoff = { by: RIDE_PRICE_DATA.dealership.t
 export const FLOWS = [
   /* ------------------------------------------------------------ */
   { id: "home", area: "01-home-and-navigation", title: "Home — Active Floor & Navigation",
-    description: "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet on the queue's own top bar stands in for authentication.",
+    description: "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet stands in for authentication, and it opens only in Customer Onboarding (owner ruling B, 2026-09-18) — Home's top bar carries no role control.",
     steps: [
       { key: "deals-queue", screen: "My deals (landing — Advisor)", do: async (s) => { await s.reset(); await s.go("#/deals"); },
         action: "Tap More in the bottom nav", next: "more-sheet",
@@ -98,20 +110,18 @@ export const FLOWS = [
       { key: "more-sheet", screen: "More sheet — secondary navigation", do: async (s) => { await s.click("#dqMore"); }, action: "Tap Reset demo data", next: "reset-demo-confirm",
         branches: [{ action: "Inventory", to: "vehicles/inventory-browse" }, { action: "New customer visit", to: "onboarding/resolver-idle" }, { action: "Training documents", to: "training/licenses" }],
         notes: "Secondary destinations stay out of the queue until asked for. Every row icon is a line icon from the one set." },
-      { key: "reset-demo-confirm", screen: "Reset demo data — confirm", do: async (s) => { await s.click("#dqReset", { wait: 400 }); }, action: "Cancel, then open the role sheet", next: "role-sheet",
+      { key: "reset-demo-confirm", screen: "Reset demo data — confirm", do: async (s) => { await s.click("#dqReset", { wait: 400 }); }, action: "Cancel, then switch to Team Lead in New visit", next: "team-lead-floor",
         notes: "Destructive action behind a branded confirm (never the native confirm())." },
-      { key: "role-sheet", screen: "Switch role", do: async (s) => { /* the reset confirm is chDialog() in the shared sheet now, not the old modal: its Cancel carries data-sheet-close */ await s.click("#dqSheet [data-sheet-close]", { wait: 300 }); await s.click(".rp-role", { wait: 300 }); }, action: "Choose Team Lead", next: "team-lead-floor",
-        notes: "Opens from the role control in the top bar — the same control on every destination and task (chrome rule v022). The floating ‘Now acting as’ pill is gone; the banner slot says who is acting." },
-      { key: "team-lead-floor", screen: "Active floor (Team Lead)", do: async (s) => { await s.click('[data-role="teamlead"]', { wait: 500 }); }, action: "Tap the F&I chip", next: "stage-filter-empty",
+      { key: "team-lead-floor", screen: "Active floor (Team Lead)", do: async (s) => { await s.click("#dqSheet [data-sheet-close]", { wait: 300 }); await switchRole(s, "teamlead", "#/deals"); }, action: "Tap the F&I chip", next: "stage-filter-empty",
         notes: "Three chips that fit the screen — All / Desking / F&I — with live counts, plus the manager-only date control and its summary line. Funded contracts are not among the chips." },
       { key: "stage-filter-empty", screen: "Stage filter — no match", do: async (s) => { await s.click('.dq-chipbtn[data-pipe="fni"]'); }, action: "Tap All, then open the date control", next: "date-history-sheet",
         notes: "An empty stage says so instead of going blank. (Team Lead only; the Advisor view has no chips.)" },
       { key: "date-history-sheet", screen: "Date range / history sheet", do: async (s) => { await s.click('.dq-chipbtn[data-pipe="all"]'); await s.click("#dqDateBtn", { wait: 300 }); }, action: "Toggle Include funded contracts", next: "funded-history",
         notes: "Manager-only. The window governs the funded HISTORY — the live floor is always current, so an active deal never disappears because it started last week." },
       { key: "funded-history", screen: "Funded history in range", do: async (s) => { await ev(s, `const d = Store.deal("${D}"); d.stage = "complete"; d.forms.finalized = true; d.createdAt = new Date().toISOString();`); await s.go("#/deals"); await s.click("#dqDateBtn", { wait: 300 }); await s.click("#dqFundedToggle", { wait: 400 }); },
-        action: "Switch back to Advisor", next: "advisor-completed",
+        action: "Switch back to Advisor (in New visit)", next: "advisor-completed",
         notes: "Funded contracts appear only behind the date control, labelled with the window they belong to." },
-      { key: "advisor-completed", screen: "Advisor — completed deal ends the list", do: async (s) => { await s.click(".rp-role", { wait: 300 }); await s.click('[data-role="advisor"]', { wait: 500 }); },
+      { key: "advisor-completed", screen: "Advisor — completed deal ends the list", do: async (s) => { await switchRole(s, "advisor", "#/deals"); },
         action: "Tap the completed deal", next: "finance-menu/deal-finalized",
         notes: "The Advisor has no history control: their funded deals sit under a Completed label at the end of the one list, with no Next line — search still finds them." },
       /* the seed already puts John in the showroom, so setting his visit here
@@ -140,6 +150,8 @@ export const FLOWS = [
       { key: "address-sheet", screen: "Use a different address (sheet)", do: async (s) => { await s.click("#obOtherAddr", { wait: 300 }); await s.type("#obSheetAddr", "12 Main St, Astoria, NY 11106"); },
         action: "Pick the standardized address", next: "discovery/question-1",
         notes: "ONE address search field — never separate street / city / state / ZIP boxes. The demo standardizes against its own ZIP table and offers the result to tap; an unparseable string is refused rather than guessed at." },
+      { key: "role-sheet", screen: "Switch role — only in Customer Onboarding", standalone: true, do: async (s) => { await s.go("#/deals"); await s.go("#/customers"); await s.click(".rp-role", { wait: 300 }); }, action: "Choose Team Lead", next: "home/team-lead-floor",
+        notes: "Owner ruling 2026-09-18 (\"B The codex way\"): the role control appears ONLY here, in Customer Onboarding — never on Home or any other screen, never inside Scan License. Home's band still says who is acting, with no Switch." },
       { key: "no-match", screen: "Search results — no match", do: async (s) => { await s.go("#/customers"); await s.type("#obSearch", "Zzz"); await s.click("#searchBtn", { wait: 400 }); }, action: "Tap 'No license available · add manually'", next: "manual-fallback",
         notes: "A miss names the other paths rather than jumping straight to a create form." },
       { key: "manual-fallback", screen: "No license available — manual fallback", do: async (s) => { await s.click("#obManual", { wait: 300 }); }, action: "Fill the four fields, tap Confirm & start visit", next: "discovery/question-1",
@@ -162,10 +174,10 @@ export const FLOWS = [
     ] },
 
   /* ------------------------------------------------------------ */  { id: "license-scan", area: "03-license-scan", title: "Scan Driver's License",
-    description: "The prop-license scanner on the owner's UI kit (package v023, 2026-09-05): eleven screens as a kit Task inside New visit — Close returns to the resolver, the title carries the two-part step, and the DEMO band is the only environment marker. The advisor still experiences two decisions — capture the license, then confirm the customer — and everything else is automation or an exception sheet in the kit's own sheet. Only the five printed training props can ever be recognised. Prop 1 matches a seed customer by name (ambiguous → the same-person question as two option rows), prop 2 carries a license on file (certain match), 3–5 create new customers. Phone AND email are both required on every record; the scan asks for no credit score.",
+    description: "The prop-license scanner on the owner's UI kit (package v023, 2026-09-05): twelve screens as a kit Task inside New visit — Close returns to the resolver, the title carries the two-part step, and the DEMO band is the only environment marker. The advisor still experiences two decisions — capture the license, then confirm the customer — and everything else is automation or an exception sheet in the kit's own sheet. Only the five printed training props can ever be recognised. Prop 1 matches a seed customer by name (ambiguous → the same-person question as two option rows), prop 2 carries a license on file (certain match), 3–5 create new customers. Phone AND email are both required on every record; the scan asks for no credit score.",
     entry: { from: "onboarding/resolver-idle", action: "Tap Scan physical license" },
     steps: [
-      { key: "scan-front", screen: "Scan — front of license", do: async (s) => { await s.reset(); await s.go("#/customers"); await s.click("#scanBtn", { wait: 400 }); }, action: "Take / choose the front photo", next: "scan-back",
+      { key: "scan-front", screen: "Scan — front of license", do: async (s) => { await s.reset(); await s.go("#/customers"); await s.click("#scanBtn", { wait: 400 }); }, action: "Take / choose the front photo", next: "scan-review-front",
         expect: async (s) => {
           const t = await s.text("#scanBody .rp-topbar__title");
           if (!t.includes("Scan license") || !t.includes("Step 1 of 2")) return "the Task top bar should read Scan license / Step 1 of 2 · Scan, got: " + t;
@@ -173,46 +185,49 @@ export const FLOWS = [
           return null;
         },
         notes: "The kit's Task: Close returns to the resolver, the title is 'Scan license' and the second line is the two-part step. The capture card owns the screen — a dashed frame with corner marks and the license drawn inside it — and the dock carries one gradient primary with one text link. No lede, no device disclaimer, no demo sentence: the DEMO band in the banner slot is the only environment marker." },
-      { key: "scan-back", screen: "Scan — flip to the back", do: async (s, ctx) => { await s.upload("#scanBody input[data-cap]", [ctx.photos[0]], { wait: 500 }); }, action: "Capture the back", next: "scan-reject",
+      { key: "scan-review-front", screen: "Review front — the photo waits for Use front", do: async (s, ctx) => { await s.upload("#scanBody input[data-cap]", [ctx.photos[0]], { wait: 700 }); }, action: "Tap Use front", next: "scan-back",
+        branches: [{ action: "Retake / Choose another", to: "license-scan/scan-front" }],
+        notes: "Codex Phase 53 (LS-018, the wrong gallery image): the picked photo is shown as it was chosen and attaches only on Use front; Retake or Choose another replaces it without touching anything saved." },
+      { key: "scan-back", screen: "Scan — flip to the back", do: async (s) => { await s.click("#scanBody [data-capture-use]", { wait: 500 }); }, action: "Capture the back", next: "scan-reject",
         notes: "The SAME screen flips to its back phase — front and back belong to one session, never two journey steps. 'Front captured · ready for the back' is an inline state chip and the frame now draws the barcode side, which is the side the recognizer actually reads." },
-      { key: "scan-reject", screen: "Couldn't read the license (sheet)", do: async (s, ctx) => { await s.upload("#scanBody input[data-cap]", [ctx.photos[1]], { wait: 1400 }); }, action: "Tap Find customer manually", next: "scan-manual",
+      { key: "scan-reject", screen: "Review back — the barcode could not be read", do: async (s, ctx) => { await s.upload("#scanBody input[data-cap]", [ctx.photos[1]], { wait: 1400 }); }, action: "Tap Find customer manually", next: "scan-manual",
         branches: [{ action: "Try again", to: "license-scan/scan-back" }],
-        notes: "A failed read is an exception sheet over the capture screen — the advisor never leaves the scanner to recover. One line of camera guidance, the only functional guidance this flow keeps, because the board draws one here. Escape and an outside tap both close it, and the screen underneath is untouched." },
-      { key: "scan-manual", screen: "Find customer manually (sheet)", do: async (s) => { await s.click("#scSheet [data-manual]", { wait: 400 }); }, action: "Type a license number, tap Search", next: "scan-manual-result",
+        notes: "A failed read stays on its review (owner, 2026-09-18: the Codex version): the unreadable photo is shown, the failure is named, Use back is disabled, Retake and Find customer manually sit on the screen — no pop-up." },
+      { key: "scan-manual", screen: "Find customer manually (sheet)", do: async (s) => { await s.click("#scanBody [data-manual]", { wait: 400 }); }, action: "Type a license number, tap Search", next: "scan-manual-result",
         notes: "A CRM SEARCH by license number and issuing state — never a card read. Two fields in the kit's field row, one primary; nothing typed here is treated as data recovered from a license, and no persona is invented." },
       { key: "scan-manual-result", screen: "Manual search — customer found", do: async (s) => { await s.type("#mnNum", "T-0000102"); await s.click("#mnGo", { wait: 400 }); }, action: "Tap Use", next: "discovery/question-1",
         branches: [{ action: "No match · create new customer", to: "onboarding/manual-fallback" }],
         notes: "A hit is a result row with the kit's navy Use action; a miss is the kit's empty state saying plainly that nothing on file carries that number, with the create path under it. Use hands the found customer straight to the visit — the licence was never read, so there is nothing to confirm against it." },
       { key: "scan-confirm", screen: "Confirm customer (certain match)", do: async (s, ctx) => {
-          const png = await barcodePng(s, 2);
+          /* a clean store: an unfinished scan left by an earlier step is a saved draft now (Codex Phase 52), and the scanner would open its resume card */
+          await s.reset(); const png = await barcodePng(s, 2);
           await s.go("#/customers"); await s.click("#scanBtn", { wait: 300 });
-          await s.upload("#scanBody input[data-cap]", [ctx.photos[0]], { wait: 600 });
-          await s.upload("#scanBody input[data-cap]", [png], { wait: 2200 }); await clearToast(s); },
+          await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s); },
         action: "Tap Confirm & continue", next: "scan-done",
         branches: [{ action: "This isn't Cheri", to: "license-scan/scan-new-customer" }],
         expect: async (s) => {
           const t = await s.text("#scanBody");
           if (!t.includes("License match")) return "the match tag should state the real basis (License match)";
-          if (!t.includes("Updates from this license · 1") || !t.includes("11/02/2031")) return "the updates group should list the one thing this licence changes — the renewed expiry — and nothing else";
+          if (!t.includes("Updates from this license · 2") || !t.includes("Cheri L Bridwell") || !t.includes("11/02/2031")) return "the updates group should list what this licence changes — the middle initial on the name and the renewed expiry — and nothing else";
           return null;
         },
-        notes: "Identity is the hero and the tag states the REAL match basis, never an invented confidence. Contact completeness is a step row. The updates group lists ONLY what the license changes: the seed gives Cheri's record the prop's own address and number, so the single update is the renewed expiry — when nothing changed at all, there is no group." },
+        notes: "Identity is the hero and the tag states the REAL match basis, never an invented confidence. Contact completeness is a step row. The updates group lists ONLY what the license changes: the seed gives Cheri's record the prop's own address and number, so the updates are the middle initial the licence carries and the renewed expiry — when nothing changed at all, there is no group." },
       { key: "scan-ambiguous", screen: "Confirm customer (ambiguous — prop 1)", scenario: true, do: async (s, ctx) => {
-          const png = await barcodePng(s, 1);
+          /* a clean store: an unfinished scan left by an earlier step is a saved draft now (Codex Phase 52), and the scanner would open its resume card */
+          await s.reset(); const png = await barcodePng(s, 1);
           await s.go("#/customers"); await s.click("#scanBtn", { wait: 300 });
-          await s.upload("#scanBody input[data-cap]", [ctx.photos[0]], { wait: 600 });
-          await s.upload("#scanBody input[data-cap]", [png], { wait: 2200 }); await clearToast(s); },
+          await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s); },
         action: "Choose 'Different guest — create new', tap Continue", next: "scan-new-customer",
         notes: "When the match is only a guess the screen asks the same-person question outright, as two option rows over one Continue, and shows the scanned license beside the record so the two can actually be compared. Nothing is ever merged silently." },
       { key: "scan-new-customer", screen: "New customer (prop 3)", do: async (s, ctx) => {
-          const png = await barcodePng(s, 3);
+          /* a clean store: an unfinished scan left by an earlier step is a saved draft now (Codex Phase 52), and the scanner would open its resume card */
+          await s.reset(); const png = await barcodePng(s, 3);
           await s.go("#/customers"); await s.click("#scanBtn", { wait: 300 });
-          await s.upload("#scanBody input[data-cap]", [ctx.photos[0]], { wait: 600 });
-          await s.upload("#scanBody input[data-cap]", [png], { wait: 2200 }); await clearToast(s); },
+          await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s); },
         action: "Type the number already on file, tap Create customer", next: "scan-conflict",
         notes: "Identity is a READ-ONLY summary from the license — the advisor never retypes card data. The only asks are what a license cannot say: phone and email. No credit score at the door; the record starts at the neutral default." },
-      { key: "scan-conflict", screen: "Phone already in use (sheet)", do: async (s) => { await s.type("#svPhone", "(646) 555-0900"); await s.click("[data-save]", { wait: 600 }); },
-        action: "Keep 'Verify the number and link this license', tap Continue", next: "scan-verify-code",
+      { key: "scan-conflict", screen: "Phone already in use (sheet)", do: async (s) => { await ev(s, `Store.customer("c-demo4").license = structuredClone(RIDE_PRICE_SCAN.personaFor(3).license)`); await s.type("#svPhone", "(646) 555-0900"); await s.click("[data-save]", { wait: 600 }); await s.click('#scSheet [data-opt="link"]', { wait: 200 }); },
+        action: "Choose 'Verify the number and link this license', tap Continue", next: "scan-verify-code",
         branches: [{ action: "Keep profiles separate", to: "license-scan/scan-done" }, { action: "Use a different number", to: "license-scan/scan-new-customer" }],
         expect: async (s) => {
           const t = await s.text("#scSheet");
@@ -220,7 +235,7 @@ export const FLOWS = [
           if (!t.includes("secure upload link")) return "and how that profile came to be — it was created by his own link";
           return null;
         },
-        notes: "No license carries a phone number, so this compares the number just TYPED against the record already holding it — and the seed makes that record Marcus's own, created by the secure upload link he completed before any scan. The notice says whose profile it is and where it came from; two option rows and one primary follow. Nothing merges until the number is verified." },
+        notes: "No license carries a phone number, so this compares the number just TYPED against the record already holding it — and the seed makes that record Marcus's own, created by the secure upload link he completed before any scan. The notice says whose profile it is and where it came from; two option rows and one primary follow. Nothing merges until the number is verified. Linking is offered only when that record already carries the same issuer and licence number (Codex dbd80c0, identity safeguards) — name and phone alone never link two people, and then the choice has no default; the capture seeds Marcus's record with his licence to show that path." },
       { key: "scan-verify-code", screen: "Verify the phone number (sheet)", do: async (s) => { await s.click("[data-continue]", { wait: 1400 }); }, action: "Tap Verify & link", next: "scan-done",
         expect: async (s) => {
           const t = await s.text("#scSheet");
@@ -244,7 +259,7 @@ export const FLOWS = [
     ] },
 
   { id: "training", area: "04-training-materials", title: "Training Documents",
-    description: "One hub for both printable prop sets, on the owner's UI kit (package v024, 2026-09-05): a sub-destination under More — the Destination skeleton with the More tab active, the wordmark and role control, the DEMO band, and the floating tab bar as the way around. Five training driver's licenses (the only things the scanner recognises) and their five matching registrations, as compact pair rows; the document itself appears only inside its preview sheet — scaled to the phone, printed at true millimetre size.",
+    description: "One hub for both printable prop sets, on the owner's UI kit (package v024, 2026-09-05): a sub-destination under More — the Destination skeleton with the More tab active, the wordmark (no role control — it appears only in Customer Onboarding, owner ruling B), the DEMO band, and the floating tab bar as the way around. Five training driver's licenses (the only things the scanner recognises) and their five matching registrations, as compact pair rows; the document itself appears only inside its preview sheet — scaled to the phone, printed at true millimetre size.",
     entry: { from: "home/more-sheet", action: "Training documents" },
     steps: [
       { key: "licenses", screen: "Licenses", do: async (s) => { await s.reset(); await s.go("#/props"); }, action: "Tap a pair row", next: "license-preview",
@@ -452,7 +467,7 @@ export const FLOWS = [
 
   /* ------------------------------------------------------------ */
   { id: "desking", area: "09-desking", title: "Desking — Calculate Payments",
-    description: "The owner's desking package (v029, 2026-09-04) on the UI kit: eight screens, one route, all of them the kit's Task with the customer's full name in the bar and no deal number — a worked deal has none until the lending lane pushes it to F&I. Two modes, and the difference is who is holding the phone. WORK is the advisor's: the huddle that captures the trial close in the customer's own words and the payment they named, the deal-type control, the payment hero, the accordions, and a 3x3 option grid whose every cell is the real calculator. PRESENT turns the phone around: the role control goes, Close becomes Done, and the customer sees the car, two wins, the grid with one recommended cell, the payment to the cent, one line of fine print with a real incentive date, and one commitment action whose tap writes the structure onto the deal. New York's taxable base is stated on the screen it is taken on, and the four fees are itemised rather than bundled.",
+    description: "The owner's desking package (v029, 2026-09-04) on the UI kit: eight screens, one route, all of them the kit's Task with the customer's full name in the bar and no deal number — a worked deal has none until the lending lane pushes it to F&I. Two modes, and the difference is who is holding the phone. WORK is the advisor's: the huddle that captures the trial close in the customer's own words and the payment they named, the deal-type control, the payment hero, the accordions, and a 3x3 option grid whose every cell is the real calculator. PRESENT turns the phone around: Close becomes Done, and the customer sees the car, two wins, the grid with one recommended cell, the payment to the cent, one line of fine print with a real incentive date, and one commitment action whose tap writes the structure onto the deal. New York's taxable base is stated on the screen it is taken on, and the four fees are itemised rather than bundled.",
     entry: { from: "home/deals-queue", action: "Tap the deal card (Continue)" },
     steps: [
       { key: "huddle-gate", screen: "Game plan — the huddle", do: async (s) => { await s.reset(); await s.go(`#/desk/${D}`); }, action: "Confirm how they're paying, tap Open the pencil", next: "pencil-finance",
@@ -464,7 +479,7 @@ export const FLOWS = [
         notes: "The choice close, built before the phone turns: three terms across, three cash-down rows, one recommended cell — the option nearest the payment the customer named. Three columns, never four; four is a spreadsheet." },
       { key: "present-payment", screen: "Present — Your payment", do: async (s) => { await s.click("#dkPresent", { wait: 400 }); }, action: "Done, then Compare finance and lease", next: "present-compare",
         branches: [{ action: "This one works", to: "desking/work-chose" }],
-        notes: "Present mode: the role control is hidden and Close is a dark Done. The order is deliberate — the car, two wins (price against MSRP, trade credit), the grid with the recommended cell as the anchor, then one line of fine print carrying a real incentive date. Nothing internal is on screen." },
+        notes: "Present mode: Close is a dark Done (neither mode carries a role control — it appears only in Customer Onboarding). The order is deliberate — the car, two wins (price against MSRP, trade credit), the grid with the recommended cell as the anchor, then one line of fine print carrying a real incentive date. Nothing internal is on screen." },
       { key: "present-compare", screen: "Present — Own or lease", do: async (s) => { await s.click("#dkClose", { wait: 300 }); await s.click("#dkCompare", { wait: 400 }); }, action: "Customer taps Finance works", next: "work-chose",
         notes: "Two cards, the recommended one outlined. 'Included' is one row that names its own total and opens the itemisation on tap — summarising is fine, a label with no figure conceals." },
       { key: "work-chose", screen: "Back in Work — the customer chose", do: async (s) => { await s.click("#dkFinance", { wait: 450 }); }, action: "Deal type → Lease", next: "pencil-lease",
@@ -521,7 +536,7 @@ export const FLOWS = [
         notes: "The summary counts the misses, names them, states the demo SSN rule, and says nothing has been saved or sent — inline, never a toast over the controls — and the wizard returns to the first invalid step with those fields marked." },
       { key: "deal-summary-sheet", screen: "Deal summary (contextual sheet)", do: async (s) => { await s.click('[data-sheet-open="summary"]', { wait: 400 }); }, action: "Close", next: "approved",
         notes: "'Synced from your worksheet' became Deal summary with a subordinate 'Updated from worksheet · time' line (owner v2, Option A). It opens from a header chip so the numbers can be inspected without losing the form position, and appears inline only from Residence onward." },
-      { key: "approved", screen: "Approved (simulated)", do: async (s) => { await ev(s, `const d = Store.deal("${D}"); d.identity = { verifiedAt: new Date().toISOString() }; d.creditApp = { approved: true, submitted: new Date().toISOString(), lender: "US Bank", qualifiedApr: 3.9, leaseFactor: 0.00087, employer: "Demo Co", form: { consent: { electronicSignature: true, acceptedAt: new Date().toISOString() } } }; d.stage = "menu";`); await s.go(`#/credit/${D}`); },
+      { key: "approved", screen: "Approved (simulated)", do: async (s) => { await ev(s, `const d = Store.deal("${D}"); d.identity = { customerId: d.customerId, verifiedAt: new Date().toISOString() }; /* Codex 9c5501d: Credit accepts identity only when it names the primary applicant */ d.creditApp = { approved: true, customerId: d.customerId, coBuyerId: null /* Codex 9c5501d: an approval names its applicants */, submitted: new Date().toISOString(), lender: "US Bank", qualifiedApr: 3.9, leaseFactor: 0.00087, employer: "Demo Co", form: { consent: { electronicSignature: true, acceptedAt: new Date().toISOString() } } }; d.stage = "menu";`); await s.go(`#/credit/${D}`); },
         action: "Tap Continue", next: "finance-menu/signoff-gate-advisor",
         notes: "Reached via the store shortcut (a real submission needs every required field). Loan status, the lender, the qualified rate against the agreed structure, lender reassignment, and ONE forward action — Manager Sign-Off. Because identity was verified up front, the note says delivery will not repeat that step." },
     ] },
@@ -571,9 +586,9 @@ export const FLOWS = [
     description: "The owner's Finance Menu V3 (2026-08-30). A Manager sign-off gate reads four upstream statuses — base payment agreement, credit application, test drive, Deal Jacket — and recreates none of their detail; an Advisor is simply told it is waiting on the Team Lead. Then four stages, Terms → Options → Forms → Finalize, as one row of pills that never wraps. The money leads every stage and the detail hides behind one tap: taxes behind View, the form catalog behind Choose. Finalize is the single closeout — the DMS push folded into it rather than standing as a second button.",
     entry: { from: "credit/approved", action: "Continue → Manager sign-off" },
     steps: [
-      { key: "signoff-gate-advisor", screen: "Manager sign-off — Advisor view", do: async (s) => { await s.reset(); await ev(s, MENU_READY); await s.go(`#/menu/${D}`); }, action: "Switch role to Team Lead", next: "signoff-gate-locked",
+      { key: "signoff-gate-advisor", screen: "Manager sign-off — Advisor view", do: async (s) => { await s.reset(); await ev(s, MENU_READY); await s.go(`#/menu/${D}`); }, action: "Switch role to Team Lead (in New visit — the only place the role control appears)", next: "signoff-gate-locked",
         notes: "Four statuses and nothing more. The Advisor sees no approval or override control — only who it is waiting on." },
-      { key: "signoff-gate-locked", screen: "Manager sign-off — jacket blocking (Team Lead)", do: async (s) => { await ev(s, `Store.s.role = "teamlead";`); await s.go(`#/menu/${D}`); }, action: "Tap Resolve Deal Jacket blocker", next: "override-sheet",
+      { key: "signoff-gate-locked", screen: "Manager sign-off — jacket blocking (Team Lead)", do: async (s) => { await switchRole(s, "teamlead", `#/menu/${D}`); }, action: "Tap Resolve Deal Jacket blocker", next: "override-sheet",
         notes: "Approve stays disabled while the jacket is outstanding. The test drive is advisory and does not block." },
       { key: "override-sheet", screen: "Resolve Deal Jacket blocker", do: async (s) => { await s.click('[data-sheet-open="override"]'); }, action: "Type a reason, Record override", next: "terms",
         notes: "The override needs a typed reason and says plainly that the missing documents remain missing." },
@@ -648,7 +663,7 @@ export const FLOWS = [
     description: "What the customer sees from the text link, rebuilt from the owner's upload prototype (2026-08-27) in Ride Price colours. This is the customer's OWN page: no app bar, no role switch, no debug strip — a white edge-to-edge canvas reached from a text message by someone who does not work at the dealership. One row per requested document with a line icon and a plain what-to-bring subtitle, an \"n of N ready\" progress line, and one dominant action. Verification is simulated with scripted beats (the license needs both sides, insurance flags once, two paystubs). An unreadable photo is refused plainly — \"Too blurry to read\" — with the retake on the row, never a coaching screen.",
     entry: { from: "document-request/request-tracking", action: "Open the customer's phone" },
     steps: [
-      { key: "sms", screen: "Text message with the link", do: async (s) => { await s.reset();
+      { key: "sms", screen: "Document request — what the link opens", do: async (s) => { await s.reset();
           /* the seed hands the customer a licence whose front the advisor
              already captured in the resolver. This flow is the both-sides
              journey, so it opens with neither side on file. */
@@ -756,7 +771,7 @@ export const FLOWS = [
         /* the two rows RP-UI-030 asked for, asserted rather than assumed: Source
            is where the sides came from — both from the customer here — and
            Verification is what checked them. The empty string is "as expected". */
-        expect: async (s) => { const rows = await s.eval(`[...document.querySelectorAll(".drv-detail")].map(d => d.querySelector("span").textContent.trim() + ": " + d.querySelector("strong").textContent.trim()).join(" | ")`); return rows === "Source: Customer upload | Verification: Simulated" ? "" : "the status card rows read " + JSON.stringify(rows); },
+        expect: async (s) => { const rows = await s.eval(`[...document.querySelectorAll(".rp-kv__row")].map(d => d.querySelector("span").textContent.trim() + ": " + d.querySelector("span:last-child").textContent.trim()).filter(x => /^(Source|Verification):/.test(x)).join(" | ")`); /* Verification reads Not verified until someone reviews it (Codex LS-116: two revision-bound sides and an explicit review) */ return rows === "Source: Customer upload | Verification: Not verified" ? "" : "the status card rows read " + JSON.stringify(rows); },
         notes: "The missing side lands in place — no separate success page, whichever branch delivered it — and both sides stay reviewable." },
     ] },
 
