@@ -1,5 +1,45 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v036 — 2026-09-18
+
+App commit: 142422e · 20 flows · 146 screens · previous: v035
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — the last question is the hand-off
+- Discovery Session · Visit details (sheet)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+What changed for real: nothing in the app. PR #114 (docs only: the progress tracker records the PR #106 merge) moved main to 142422e, so the library catches up with it. The served portal is byte-identical to v035 (app a6501c9); every changed screenshot differs by live values only (the demo text code, clock times, dates, visit numbers). No issue resolved; none added.
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v035 — 2026-09-18
 
 App commit: a6501c9 · 20 flows · 146 screens · previous: v034
