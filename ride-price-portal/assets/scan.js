@@ -43,13 +43,38 @@ const RIDE_PRICE_SCAN = (function () {
   }
 
   /* ---------- image loading ---------- */
-  function loadBitmap(file) {
+  // Demo resource limits. Pixel limits are checked after browser decoding;
+  // they are not a substitute for a production upload-processing boundary.
+  const MAX_FILE_BYTES = 20 * 1024 * 1024, MAX_IMAGE_PIXELS = 64 * 1000 * 1000;
+  async function loadBitmap(file) {
+    if (!file || !Number.isFinite(file.size) || file.size <= 0) throw new Error('unreadable-image');
+    if (file.size > MAX_FILE_BYTES) throw new Error('file-too-large');
+    const mime = String(file.type || '').split(';', 1)[0].trim().toLowerCase();
+    const allowed = ['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/bmp'];
+    if (mime && !allowed.includes(mime)) throw new Error('unsupported-image');
+    const bytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+    const starts = values => values.every((value, index) => bytes[index] === value);
+    const ascii = (start, end) => String.fromCharCode(...bytes.slice(start, end));
+    const detected = starts([137,80,78,71,13,10,26,10]) ? 'image/png'
+      : starts([255,216,255]) ? 'image/jpeg'
+      : ascii(0,4) === 'RIFF' && ascii(8,12) === 'WEBP' ? 'image/webp'
+      : ['GIF87a','GIF89a'].includes(ascii(0,6)) ? 'image/gif'
+      : ascii(0,2) === 'BM' ? 'image/bmp' : '';
+    if (!detected || (mime && mime !== detected)) throw new Error('unsupported-image');
+    // Decode the inspected raster type; never let browser MIME sniffing admit SVG.
+    file = new Blob([file], { type: detected });
+    let bitmap;
     if (window.createImageBitmap) {
-      return createImageBitmap(file, { imageOrientation: "from-image" })
+      bitmap = await createImageBitmap(file, { imageOrientation: "from-image" })
         .catch(() => createImageBitmap(file))
         .catch(() => loadViaImg(file));
+    } else bitmap = await loadViaImg(file);
+    const width = bitmap.width || bitmap.naturalWidth, height = bitmap.height || bitmap.naturalHeight;
+    if (!width || !height || width * height > MAX_IMAGE_PIXELS) {
+      bitmap.close?.();
+      throw new Error('image-too-large');
     }
-    return loadViaImg(file);
+    return bitmap;
   }
   function loadViaImg(file) {
     return new Promise((resolve, reject) => {
@@ -64,7 +89,7 @@ const RIDE_PRICE_SCAN = (function () {
   function raster(src, targetW) {
     const sw = src.width || src.naturalWidth, sh = src.height || src.naturalHeight;
     if (!sw || !sh) return null;
-    const scale = Math.min(1, targetW / sw);
+    const scale = Math.min(1, targetW / Math.max(sw, sh));
     const w = Math.max(1, Math.round(sw * scale)), h = Math.max(1, Math.round(sh * scale));
     const cv = document.createElement("canvas");
     cv.width = w; cv.height = h;
@@ -115,8 +140,8 @@ const RIDE_PRICE_SCAN = (function () {
 
   const near = (v, target, tol) => Math.abs(v - target) <= tol;
 
-  /* try to find start…stop in a run sequence; returns prop id or 0 */
-  function decodeRuns(runs) {
+  /* Collect distinct training identities; never let scan order choose a guest. */
+  function decodeRuns(runs, found) {
     for (let i = 0; i < runs.length - 22; i++) {
       if (!runs[i].b) continue;
       const r0 = runs[i].n, r1 = runs[i + 1].n, r2 = runs[i + 2].n, r3 = runs[i + 3].n;
@@ -144,13 +169,13 @@ const RIDE_PRICE_SCAN = (function () {
       if (i + 23 < runs.length && !runs[i + 23].b && runs[i + 23].n < 2.2 * mm &&
           i + 24 < runs.length) continue; /* stop must be followed by quiet or line end */
       const id = idFromPayload(bits);
-      if (id) return id;
+      if (id) found.add(id);
+      if (found.size > 1) return;
     }
-    return 0;
   }
 
   /* sample a family of parallel lines across the raster at angle theta */
-  function scanDirection(img, theta) {
+  function scanDirection(img, theta, found) {
     const { lum, w, h } = img;
     const dx = Math.cos(theta), dy = Math.sin(theta);
     const px = -dy, py = dx; /* perpendicular */
@@ -170,38 +195,63 @@ const RIDE_PRICE_SCAN = (function () {
       }
       if (!inside) continue;
       const runs = runsOf(binarize(samples));
-      let id = decodeRuns(runs);
-      if (!id) id = decodeRuns(runs.slice().reverse());
-      if (id) return id;
+      decodeRuns(runs, found);
+      if (found.size > 1) return;
+      decodeRuns(runs.slice().reverse(), found);
+      if (found.size > 1) return;
     }
-    return 0;
   }
 
-  function scanRaster(img) {
+  function scanRaster(img, found) {
     const base = [0, 0.14, -0.14, 0.30, -0.30, 0.49, -0.49];
     for (const a of base) {
-      let id = scanDirection(img, a);
-      if (id) return id;
-      id = scanDirection(img, a + Math.PI / 2);
-      if (id) return id;
+      scanDirection(img, a, found);
+      if (found.size > 1) return;
+      scanDirection(img, a + Math.PI / 2, found);
+      if (found.size > 1) return;
     }
-    return 0;
   }
 
   /* ---------- public API ---------- */
+  const rejection = error => ({ ok: false, reason: ['file-too-large', 'image-too-large', 'unsupported-image'].includes(error?.message) ? error.message : 'unreadable-image' });
+  async function validateImage(file) {
+    let bitmap;
+    try { bitmap = await loadBitmap(file); return { ok: true }; }
+    catch (error) { return rejection(error); }
+    finally { bitmap?.close?.(); }
+  }
+  async function previewFile(file) {
+    const bitmap = await loadBitmap(file);
+    try {
+      const width = bitmap.width || bitmap.naturalWidth, height = bitmap.height || bitmap.naturalHeight;
+      const scale = Math.min(1, 640 / Math.max(width, height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(width * scale)); canvas.height = Math.max(1, Math.round(height * scale));
+      canvas.getContext('2d').drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+      return canvas.toDataURL('image/jpeg', .75);
+    } finally { bitmap.close?.(); }
+  }
   async function recognizeFile(file) {
     let bmp;
     try { bmp = await loadBitmap(file); }
-    catch (e) { return { ok: false }; }
+    catch (e) { return rejection(e); }
     try {
-      const srcW = bmp.width || bmp.naturalWidth || 0;
+      const found = new Set();
+      const srcW = Math.max(bmp.width || bmp.naturalWidth || 0, bmp.height || bmp.naturalHeight || 0);
       const targets = Array.from(new Set([1100, 800, 550, 350].map(t => Math.min(t, srcW))));
-      for (const targetW of targets) {
+      for (let i = 0; i < targets.length; i++) {
+        const targetW = targets[i];
         if (!targetW) break;
         const img = raster(bmp, targetW);
         if (!img) break;
-        const id = scanRaster(img);
-        if (id) return { ok: true, prop: id, persona: personaFor(id) };
+        scanRaster(img, found);
+        if (found.size > 1) return { ok: false, reason: "multiple-documents" };
+        /* Let pending input and rendering run without skipping later identities. */
+        if (i + 1 < targets.length) await new Promise(resolve => setTimeout(resolve, 0));
+      }
+      if (found.size === 1) {
+        const id = found.values().next().value;
+        return { ok: true, prop: id, persona: personaFor(id) };
       }
     } catch (e) {
       return { ok: false }; /* contract: resolve, never reject */
@@ -215,5 +265,5 @@ const RIDE_PRICE_SCAN = (function () {
     return RIDE_PRICE_DATA.licenseProps.find(p => p.prop === id) || null;
   }
 
-  return { barcodeSVG, recognizeFile, personaFor };
+  return { barcodeSVG, recognizeFile, personaFor, validateImage, previewFile };
 })();

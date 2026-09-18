@@ -2610,6 +2610,23 @@ body:not([data-canvas="kit"]) { font-family: var(--app-font); font-feature-setti
    to hold on its own, not only behind the scoped rule above. */
 @media print { html body { font-family: var(--app-font); font-feature-settings: normal; } }
 
+
+/* Owner-requested scanner spacing: capture cards need the same title gap
+   as the kit's other cards. Scoped here so other flows keep their layout. */
+#scanBody .rp-title + .rp-capture { margin-top: 18px; }
+
+/* Document Review: only image containment/gesture geometry is flow-owned.
+   The surrounding surface, typography, controls and sheets are kit components. */
+.document-review-preview { height: min(48vh, 400px); min-height: 200px; display: grid; place-items: center; overflow: hidden; touch-action: pan-y; }
+.document-review-image { max-width: 100%; max-height: min(48vh, 400px); object-fit: contain; transform-origin: center; transition: transform .18s ease; }
+
+/* Customer-upload image geometry; kit chrome and tokens remain unchanged. */
+.customer-upload-preview { height: min(38vh, 320px); min-height: 180px; display: grid; place-items: center; overflow: hidden; touch-action: pan-y; }
+.customer-upload-image { max-width: 100%; max-height: min(38vh, 320px); object-fit: contain; transform-origin: center; }
+
+/* The flow-owned label button inherits its row alignment, not the browser button center. */
+.customer-upload-open { text-align: inherit; min-height: 40px; }
+
 /* the send-link sheet's helper toggle (OB-047): a plain checkbox row in the field's rhythm */
 .ob-helperrow { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 1.35; cursor: pointer; }
 .ob-helperrow input { width: 20px; height: 20px; margin: 0; flex: none; }

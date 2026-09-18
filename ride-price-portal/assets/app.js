@@ -8,6 +8,10 @@
 const Store = (function () {
   const KEY = "ride_price_portal_v1";
   let state = null;
+  let draftBase = {};
+  let malformedAtLoad = null;
+  const draftMap = value => value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  const copyDrafts = value => JSON.parse(JSON.stringify(draftMap(value)));
 
   function fresh() {
     return {
@@ -46,7 +50,7 @@ const Store = (function () {
          first paint to a function that may one day read the store back, and
          a boot that cannot start is worse than a seed that drifts. walk2
          asserts the two agree, so a drift goes red instead of silent. */
-      jacket: { docs: fundedJacketDocs(), extra: [], req: {} }
+      jacket: { docs: fundedJacketDocs(), extra: [], req: {}, client: fundedLicenseReceipt() }
     };
   }
   function fundedJacketDocs() {
@@ -60,7 +64,22 @@ const Store = (function () {
     ["idverify-primary", "form-license", "form-privacy", "form-reg", "form-insurance",
      "form-contracts", "form-creditmatch", "form-riskdisc", "form-paystub", "creditapp",
      "approval", "testdrive", "form-tqi", "form-settings", "delivery"].forEach(id => { out[id] = { how: "hand", by, at }; });
+    /* LS-116: a filed license names the reviewed receipt it rests on, or
+       jacketState() reads it as missing — see fundedLicenseReceipt() */
+    out["form-license"] = { how: "review", by, at, subjects: [{ customerId: "c-demo3", receiptRevision: 1 }] };
     return out;
+  }
+
+  /* the funded contract's license: both sides received and reviewed by the
+     Team Lead when it funded (LS-116 per-buyer receipt, revision 1). No
+     photos — the record is the demo's history, not an image of anyone. */
+  function fundedLicenseReceipt() {
+    const at = "2026-08-14T15:05:00Z", by = RIDE_PRICE_DATA.dealership.teamLead;
+    const side = { receivedAt: at, via: "advisor" };
+    return { "form-license": { state: "accepted", buyers: { "c-demo3": {
+      customerId: "c-demo3", state: "accepted", receiptRevision: 1, receivedAt: at, acceptedAt: at, pages: 2,
+      sides: { front: side, back: { ...side } },
+      review: { customerId: "c-demo3", receiptRevision: 1, reviewedAt: at, by } } } } };
   }
 
   /* the friendly number on the folder tab; ids stay the routing key */
@@ -197,12 +216,14 @@ const Store = (function () {
     }
   }
   function load() {
+    let raw = null; malformedAtLoad = null;
     try {
-      const raw = localStorage.getItem(KEY);
+      raw = localStorage.getItem(KEY);
       const next = raw ? JSON.parse(raw) : fresh();
-      if (state && state.customers && next && next.customers) mergeInto(state, next); else state = next;
-    } catch (e) { state = fresh(); }
+      const heldDrafts = state ? draftMap(state.licenseDrafts) : null; if (state && state.customers && next && next.customers) mergeInto(state, next); else state = next; if (heldDrafts) { const liveDrafts = draftMap(state.licenseDrafts); for (const k of Object.keys(liveDrafts)) if (heldDrafts[k] && JSON.stringify(heldDrafts[k]) === JSON.stringify(liveDrafts[k])) liveDrafts[k] = heldDrafts[k]; } /* a re-read keeps the object of every draft the other tab did not change: the scanner's identity checks (resume current(), the done screen's draftOf() !== completedDraft) must not read an unrelated save as a changed draft */
+    } catch (e) { state = fresh(); malformedAtLoad = raw; }
     if (!state.customers) state = fresh();
+    draftBase = copyDrafts(state.licenseDrafts);
     /* deals saved before deal numbers existed get one minted at load — a
        migration write, not a display-path write */
     let minted = false;
@@ -387,8 +408,39 @@ const Store = (function () {
     if (minted) save();
     return state;
   }
-  function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
-  function reset() { localStorage.removeItem(KEY); state = fresh(); save(); }
+  function save() {
+    // Preserve drafts an unrelated stale tab has not edited. This is a local
+    // read/merge/write safeguard, not a cross-process atomic transaction.
+    const raw = localStorage.getItem(KEY);
+    let latest;
+    try { latest = JSON.parse(raw || "null"); }
+    catch (error) {
+      // Only replace the malformed blob already rejected by load(). An
+      // unexpected new corruption in another tab must not be overwritten.
+      if (raw !== malformedAtLoad) throw error;
+      latest = null;
+    }
+    const remote = draftMap(latest?.licenseDrafts), local = draftMap(state.licenseDrafts);
+    const merged = { ...remote };
+    for (const key of new Set([...Object.keys(draftBase), ...Object.keys(local)])) {
+      const before = JSON.stringify(draftBase[key]), mine = JSON.stringify(local[key]);
+      if (mine === before) continue;
+      const theirs = JSON.stringify(remote[key]);
+      if (theirs !== before && theirs !== mine) {
+        const error = new Error("This scan changed in another tab. Reload before saving again.");
+        error.name = "DraftConflictError"; throw error;
+      }
+      if (Object.prototype.hasOwnProperty.call(local, key)) merged[key] = local[key];
+      else delete merged[key];
+    }
+    const next = { ...state };
+    const hasDrafts = Object.prototype.hasOwnProperty.call(state, "licenseDrafts") || latest?.licenseDrafts !== undefined || Object.keys(merged).length;
+    if (hasDrafts) next.licenseDrafts = merged;
+    localStorage.setItem(KEY, JSON.stringify(next));
+    if (hasDrafts) state.licenseDrafts = merged;
+    draftBase = copyDrafts(merged); malformedAtLoad = null;
+  }
+  function reset() { localStorage.removeItem(KEY); state = fresh(); draftBase = {}; malformedAtLoad = null; save(); }
 
   return {
     load, save, reset, mintDealNo,
@@ -455,7 +507,7 @@ function toast(msg) {
      unmeasured, not two, and half of them are ours. The kit's are `.rp-dock`
      (what chDock draws) and `.rp-signoff` (the jacket's funding sign-off);
      ours are `.mp-dock` on the presentation walkthrough and `.drv-dock` on
-     document review. So the scan flow's "Fill in the fields marked in red"
+     document review. So the scan flow's "Check the errors beside each field"
      lands on #svSave on every route that has no dock in this list. The two
      reasons are not the same one. The kit's pair reaches around twenty
      screens a trade-appraisal package cannot run in the browser and
@@ -469,7 +521,9 @@ function toast(msg) {
      the outgoing screen — which is how a toast ended up underneath the
      desking payment bar it was supposed to sit above. */
   const place = () => {
-    const tops = [$("#modalBack .modal__foot"), $(".dr-clientbottom"), $(".desk-sticky"), $(".tv-dock")]
+    // Scanner recovery must leave both camera and gallery actions unobstructed.
+    // Include the converted document viewer; other kit docks keep their existing behavior.
+    const tops = [$("#modalBack .modal__foot"), $(".dr-clientbottom"), $(".desk-sticky"), $(".tv-dock"), $("#scanBody .rp-dock"), ["docreview", "clientlink"].includes(document.body.dataset.screen) ? $("#view .rp-dock") : null]
       .filter(Boolean).map(el => el.getBoundingClientRect())
       .filter(r => r.bottom > window.innerHeight - 80)
       .map(r => r.top);
@@ -485,21 +539,52 @@ function toast(msg) {
 /* title is TEXT and is escaped here, once, at the boundary — callers pass a
    plain string and must not pre-escape it. bodyHtml/footHtml are markup by
    contract and stay raw; whatever builds them escapes its own values. */
+/* Temporarily exclude content behind a dialog from keyboard and assistive navigation. */
+function isolateDialog(dialog) {
+  const changed = [];
+  for (let node = dialog; node && node !== document.body; node = node.parentElement) {
+    for (const sibling of node.parentElement?.children || []) {
+      if (sibling !== node && !sibling.classList.contains('rp-scrim') && !sibling.inert && !['SCRIPT','STYLE','LINK'].includes(sibling.tagName)) { sibling.inert = true; changed.push(sibling); }
+    }
+  }
+  return () => changed.forEach(node => { node.inert = false; });
+}
+/* Keep keyboard navigation inside the currently active dialog. */
+function trapDialogTab(event, dialog) {
+  if (event.key !== "Tab") return;
+  const controls = [...dialog.querySelectorAll('button, [href], input, select, textarea, [tabindex]')]
+    .filter(el => !el.disabled && el.tabIndex >= 0 && !el.closest('[hidden], [inert]') && el.getClientRects().length);
+  const first = controls[0], last = controls[controls.length - 1];
+  if (!first) { event.preventDefault(); dialog.focus(); return; }
+  if (document.activeElement === dialog || !dialog.contains(document.activeElement) || (event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) {
+    event.preventDefault(); (event.shiftKey ? last : first).focus();
+  }
+}
 function modal(title, bodyHtml, footHtml) {
   closeModal();
   const back = document.createElement("div");
   back.className = "modal-back open";
   back.id = "modalBack";
-  back.innerHTML = `<div class="modal">
-    <div class="modal__head"><h3>${esc(title)}</h3><button data-close>×</button></div>
+  back.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}" tabindex="-1">
+    <div class="modal__head"><h3>${esc(title)}</h3><button data-close aria-label="Close">×</button></div>
     <div class="modal__body">${bodyHtml}</div>
     ${footHtml ? `<div class="modal__foot">${footHtml}</div>` : ""}
   </div>`;
   back.addEventListener("click", (e) => { if (e.target === back || e.target.hasAttribute("data-close")) closeModal(); });
+  back._opener = document.activeElement;
+  back.addEventListener("keydown", event => {
+    if (back.querySelector('.rp-sheet:not([hidden])')) return;
+    if (event.key === "Escape") {
+      event.preventDefault(); event.stopPropagation();
+      (back.querySelector('#scClose') || back.querySelector('[data-close]'))?.click();
+    } else trapDialogTab(event, back.querySelector('.modal'));
+  });
   document.body.appendChild(back);
+  back._restoreBackground = isolateDialog(back);
+  back.querySelector('.modal').focus();
   return back;
 }
-function closeModal() { const m = $("#modalBack"); if (m) m.remove(); }
+function closeModal() { const m = $("#modalBack"); if (m) { const opener = m._opener; m._restoreBackground?.(); m.remove(); if (opener?.isConnected) opener.focus(); } }
 
 /* a multi-step dialog swaps its footer per step — the buttons live in the
    pinned .modal__foot, never at the end of the scrolling body, so they are
@@ -517,11 +602,17 @@ function setModalFoot(html) {
    reason under it, scroll the first one to the centre and focus it. bad is
    [{ el, msg }]; returns how many, so a caller can `if (markMissing(...)) return`. */
 function markMissing(root, bad) {
-  $$(".f-err", root).forEach(el => el.remove());
-  $$("input, textarea, select", root).forEach(el => { el.style.borderColor = ""; });
+  $$(".f-err", root).forEach(el => {
+    $$("[aria-describedby]", root).forEach(field => { const ids = field.getAttribute("aria-describedby").split(/\s+/).filter(id => id !== el.id); if (ids.length) field.setAttribute("aria-describedby", ids.join(" ")); else field.removeAttribute("aria-describedby"); });
+    el.remove();
+  });
+  $$("input, textarea, select", root).forEach(el => { el.style.borderColor = ""; el.removeAttribute("aria-invalid"); });
   bad.forEach(({ el, msg }) => {
     el.style.borderColor = "var(--crimson)";
-    el.insertAdjacentHTML("afterend", `<span class="f-err">${esc(msg)}</span>`);
+    el.setAttribute("aria-invalid", "true");
+    const errorId = (el.id || "field") + "-error";
+    el.setAttribute("aria-describedby", [el.getAttribute("aria-describedby"), errorId].filter(Boolean).join(" "));
+    el.insertAdjacentHTML("afterend", `<span class="f-err" id="${esc(errorId)}">${esc(msg)}</span>`);
   });
   if (bad.length) {
     bad[0].el.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -539,7 +630,8 @@ function customerMissing(vals, prefix, root) {
   need("First", vals.first, "Required"); need("Last", vals.last, "Required");
   /* both contact channels are required (owner rule, 2026-08-23 — supersedes
      the earlier either/or): every customer record carries phone AND email */
-  need("Email", vals.email, "Required"); need("Phone", vals.phone, "Required");
+  need("Email", validCustomerEmail(vals.email), vals.email ? "Enter a valid email" : "Required");
+  need("Phone", validCustomerPhone(vals.phone), vals.phone ? "Enter a 10-digit phone" : "Required");
   need("Addr", vals.address, "Required"); need("Zip", vals.zip, "Required");
   return bad;
 }
@@ -761,7 +853,7 @@ function buyersKitSheet(deal, sheets, onChange) {
 
   const buyerRow = (c, roleLabel, isCo, attrs, metaLines) => `
     <button type="button" class="rp-buyer"${metaLines ? ` style="align-items:flex-start"` : ""} ${attrs || ""}>
-      <span class="rp-initials">${initials(c)}</span>
+
       <span class="rp-row__body"><span class="rp-buyer__name">${esc(c.first + " " + c.last)}</span>
         <span class="rp-buyer__meta">${esc(c.phone || c.email || "no contact on file")}</span>
         ${(metaLines || []).map(m => `<span class="rp-buyer__meta">${esc(m)}</span>`).join("")}</span>
@@ -897,7 +989,7 @@ function buyersKitSheet(deal, sheets, onChange) {
     /* a data change re-renders the SCREEN behind the sheet — which destroys
        the sheet node and reopens it through the controller — so the module
        must not also open it, or it renders twice */
-    const changed = () => { if (onChange) onChange(); else open(); };
+    const changed = (reopenBuyers = false) => { if (onChange) onChange(reopenBuyers); else open(); };
     const back = (state) => { ui.state = state; open(); };
 
     const primary = $("#byPrimary", sheet);
@@ -941,7 +1033,7 @@ function buyersKitSheet(deal, sheets, onChange) {
       openScanFlow({ mode: "cobuyer", deal, onDone: () => {
         document.body.dataset.canvas = "kit";
         ui.state = wasAttached ? "actions" : "list";
-        changed();
+        changed(true);
       } });
     };
     const link = $("#byLink", sheet);
@@ -1012,7 +1104,7 @@ function openBuyersSheet(dealId) {
   const digits = (v) => String(v || "").replace(/\D/g, "");
   const row = (c, roleLabel, coMod, data) => `
     <button type="button" class="by2-row" ${data}>
-      <span class="by2-avatar">${initials(c)}</span>
+
       <span class="by2-rowmain"><span class="by2-rowname">${esc(c.first + " " + c.last)}</span>
         <span class="by2-rowsub">${esc(c.phone || c.email || "no contact on file")}</span></span>
       <span class="by2-pill${coMod ? " by2-pill--co" : ""}">${roleLabel}</span>
@@ -1142,7 +1234,7 @@ function openBuyersSheet(dealId) {
         ).slice(0, 6);
         box.innerHTML = hits.length
           ? hits.map(x => `<button type="button" class="by2-row" data-pick="${esc(x.id)}">
-              <span class="by2-avatar">${initials(x)}</span>
+
               <span class="by2-rowmain"><span class="by2-rowname">${esc(x.first + " " + x.last)}</span>
                 <span class="by2-rowsub">${esc(x.phone || x.email || "no contact on file")} · Existing customer</span></span>
               <span class="by2-go">›</span>
@@ -1276,6 +1368,7 @@ function renderChrome(title, crumbs, actionsHtml) {
 /* a scan that ends in "create new" from an entry point with no create
    callback sets this; the customers route consumes it once on arrival */
 let scanWantsCreate = false;
+let scanManualDraft = null;
 /* the buyers sheet sends the advisor into the canonical Customer Resolver on
    a MISSION — attach the person it resolves as this deal's co-buyer instead
    of starting a new visit. Consumed once by the customers route on arrival,
@@ -1452,13 +1545,18 @@ const CH_TABS = [["deals", "#/deals", "deals", "Deals"], ["inventory", "#/vehicl
 const roleInitials = () => isTeamLead() ? "TL" : "A";
 /* the banner slot — Advisor: sample data; Team Lead: who is being acted as,
    with the inline Switch that opens the role sheet */
+/* where the role control may appear: Customer Onboarding only, never inside
+   Scan License (context/customer-identity-style.md). Owner, 2026-09-18, shown
+   Home with and without it: "B The codex way." */
+const ROLE_SWITCH_SCREENS = ["resolver"];
+function roleSwitchAllowed() { return ROLE_SWITCH_SCREENS.includes(document.body.dataset.screen) && !document.querySelector("#scanBody"); }
 function chBanner() {
   return isTeamLead()
-    ? `<div class="rp-banner"><span class="rp-banner__dot"></span><span class="rp-banner__tag">DEMO</span><span class="rp-banner__text">Acting as ${esc(roleName())}</span><button type="button" class="rp-banner__action" data-role-open>Switch</button></div>`
+    ? `<div class="rp-banner"><span class="rp-banner__dot"></span><span class="rp-banner__tag">DEMO</span><span class="rp-banner__text">Acting as ${esc(roleName())}</span>${roleSwitchAllowed() ? '<button type="button" class="rp-banner__action" data-role-open>Switch</button>' : ""}</div>`
     : `<div class="rp-banner"><span class="rp-banner__dot"></span><span class="rp-banner__tag">DEMO</span><span class="rp-banner__text">Sample data only</span></div>`;
 }
 /* the role control — identical on both templates; tapping opens the role sheet */
-const chRole = () => `<button type="button" class="rp-role" data-role-open aria-label="Switch role"><span class="rp-role__avatar">${roleInitials()}</span>${isTeamLead() ? "Team Lead" : "Advisor"}${rpGlyph("chevron-down")}</button>`;
+const chRole = () => !roleSwitchAllowed() ? "" : `<button type="button" class="rp-role" data-role-open aria-label="Switch role"><span class="rp-role__avatar">${roleInitials()}</span>${isTeamLead() ? "Team Lead" : "Advisor"}${rpGlyph("chevron-down")}</button>`;
 /* the wordmark: the words "Ride Price" — the kit's class, the kit's gradient */
 const chWordmark = () => `<a class="rp-wordmark" href="#/deals" aria-label="Ride Price — Deals">Ride Price</a>`;
 /* the top bar for either template */
@@ -1467,7 +1565,7 @@ function chTop(opts) {
     return `<header class="rp-topbar">
       <button type="button" class="rp-topbar__close" id="${opts.closeId || "chClose"}" aria-label="${esc(opts.closeLabel || "Close")}">${rpGlyph("close")}</button>
       <div class="rp-topbar__title">${esc(opts.title)}${opts.step ? `<small>${esc(opts.step)}</small>` : ""}</div>
-      ${chRole()}</header>`;
+      ${opts.hideRole || !roleSwitchAllowed() ? `<span aria-hidden="true" style="width:44px"></span>` : chRole()}</header>`;
   }
   return `<header class="rp-topbar">${chWordmark()}${chRole()}</header>`;
 }
@@ -1511,8 +1609,9 @@ function chShell(opts, content, dockHtml, sheetIds) {
 function chSheetOpener(scrimId, sheetId, onClose) {
   const scrim = () => $("#" + scrimId), sheet = () => $("#" + sheetId);
   /* what opened it, and the two listeners that are bound only while it is up */
-  let opener = null, onKey = null, onHash = null;
+  let opener = null, onKey = null, onHash = null, restoreBackground = null;
   const detach = () => {
+    if (restoreBackground) { restoreBackground(); restoreBackground = null; }
     if (onKey) { document.removeEventListener("keydown", onKey); onKey = null; }
     if (onHash) { window.removeEventListener("hashchange", onHash); onHash = null; }
   };
@@ -1550,6 +1649,7 @@ function chSheetOpener(scrimId, sheetId, onClose) {
     sheet().className = "rp-sheet";
     sheet().innerHTML = `<div class="rp-sheet__grab"></div>${html}`;
     scrim().hidden = false; sheet().hidden = false;
+    restoreBackground = isolateDialog(sheet());
     scrim().onclick = close;
     $$("[data-sheet-close]", sheet()).forEach(b => b.onclick = close);
     if (onMount) onMount(sheet());
@@ -1559,7 +1659,7 @@ function chSheetOpener(scrimId, sheetId, onClose) {
     const t = sheet().querySelector(".rp-sheet__title, .rp-dialog__title");
     if (t) { if (!t.id) t.id = sheetId + "Title"; sheet().setAttribute("aria-labelledby", t.id); }
     else sheet().removeAttribute("aria-labelledby");
-    onKey = (e) => { if (e.key === "Escape") close(); };
+    onKey = (e) => { if (!sheet()) return; if (e.key === "Escape") { e.preventDefault(); close(); } else trapDialogTab(e, sheet()); };
     document.addEventListener("keydown", onKey);
     /* a sheet row can be a LINK — the More sheet's are — so the screen can be
        replaced without close() ever running. The null guards in close() keep
@@ -1595,6 +1695,7 @@ const chSheetHead = (title) => `<div class="rp-sheet__head"><h2 class="rp-sheet_
 /* the role sheet — one definition, opened from the role control or the
    banner's Switch on any of the 19 screens */
 function chRoleSheet(sheets, afterSwitch) {
+  if (!roleSwitchAllowed()) return;
   const lead = isTeamLead();
   const opt = (key, title, sub, on) => `<button type="button" class="rp-option${on ? " rp-option--on" : ""}" data-role="${key}"><span><span class="rp-option__title">${title}</span><span class="rp-option__sub">${sub}</span></span><span class="rp-radio${on ? " rp-radio--on" : ""}">${on ? rpGlyph("check") : ""}</span></button>`;
   sheets.open(`${chSheetHead("Switch role")}
@@ -1871,7 +1972,7 @@ route("deals", () => {
     const b = dealBucket(d);
     const name = c ? c.first + " " + c.last : "—";
     const arrived = arrivedLabel(d);
-    const body = `<span class="rp-initials">${esc(((c && c.first[0]) || "") + ((c && c.last[0]) || ""))}</span>
+    const body = `
       <span class="rp-row__body"><span class="rp-row__title">${esc(name)}</span>
       <span class="rp-row__sub dq-visitmeta">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)}</span></span>
       <span class="rp-row__chevron"></span>`;
@@ -2007,19 +2108,19 @@ route("deals", () => {
 
   $("#dealSearch").oninput = (e) => { dealsUI.q = e.target.value; paint(); };
   $$(".dq-chipbtn").forEach(p => p.onclick = () => { dealsUI.pipe = p.dataset.pipe; paint(); });
-  $("#dealScanBtn").onclick = () => openScanFlow({ mode: "customer", onDone: (cust, persona) => {
-    /* same stamp as the resolver's scan path, under the same condition: only
-       when a licence was actually READ. The scan's manual licence-number
-       lookup hands the customer back with no persona — nothing photographed,
-       no address extracted — and stamping there claimed both. */
-    if (persona) {
-      cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), address: { confirmedAt: new Date().toISOString(), source: "license" } });
-      Store.save();
-    }
-    /* D-HN10 B: the camera door on Home continues an open deal too */
-    const od = openDealFor(cust.id);
-    if (od) continueVisit(od); else startVisit(cust.id);
-  } });
+  /* the scanner stamps the licence itself when it saves (it honours the
+     advisor's address choice), so the handler no longer re-stamps it.
+     D-HN10 B: the camera door on Home continues an open deal too. false keeps
+     the scanner's completed screen up so the advisor can retry a failed save. */
+  $("#dealScanBtn").onclick = () => openScanFlow({ mode: "customer",
+    onContinue: cust => {
+      const od = openDealFor(cust.id);
+      if (!od) return startVisit(cust.id);
+      const previousVisit = od.visit;
+      try { continueVisit(od); }
+      catch (error) { od.visit = previousVisit; toast("Changes were not saved. Try again."); return false; }
+      return true;
+    } });
 
   /* the role sheet (v022): one definition, opened from the role control or
      the banner's Switch. No toast — the banner now says who is acting. */
@@ -2076,13 +2177,18 @@ route("customers", () => {
      then a physical-license scan or a secure self-upload; manual entry is
      the fallback only. There is no top-level Create Customer any more. */
 
-  const st = { mode: "idle", results: null, found: null, q: "", forceNew: false, dupe: null, whose: null };
+  const st = { mode: "idle", results: null, found: null, q: "", forceNew: false, dupe: null, whose: null, sessionResolving: false };
   /* the scan flow's no-match create and the deals-camera hand-off both land
      on the manual fallback now (the flag is consumed exactly once) */
-  if (scanWantsCreate) { scanWantsCreate = false; st.mode = "manual"; }
+  if (scanWantsCreate) { scanWantsCreate = false; st.mode = "manual"; st.manualDraft = scanManualDraft; }
+  scanManualDraft = null;
   /* the buyers sheet's mission (consumed once, like the flag above): the
      resolver runs exactly as it always does, but the person it resolves is
      attached to the deal as the co-buyer instead of starting a visit */
+  /* a completed scanner attachment waiting on this screen outranks any new
+     errand: its own saved mission is the one this render serves */
+  const pendingCompletion = scannerHasCompletion(Store.s.licenseDrafts?.unassigned);
+  if (pendingCompletion) st.mode = 'idle';
   /* OB-004 (2026-09-15): a mission used to live only in the module variable,
      so a reload on this screen forgot it — the notice vanished, the primary
      read "start visit", and a co-buyer errand made a brand-new deal (measured:
@@ -2090,11 +2196,17 @@ route("customers", () => {
      handed over until finish() or a Close from the first step clears it. The
      "open" hint (manual / scan / sendlink) is consumed on the first render
      only, so a reload lands on the same screen without re-opening a door. */
-  if (resolverMission) { Store.s.mission = resolverMission; Store.save(); resolverMission = null; }
-  const mission = Store.s.mission || null;
+  if (resolverMission) { Store.s.mission = pendingCompletion ? Object.assign({}, resolverMission, { open: null }) : resolverMission; Store.save(); resolverMission = null; }
+  const storedMission = Store.s.licenseDrafts?.unassigned?.mission || null;
+  const missionCandidate = pendingCompletion ? storedMission : Store.s.mission || storedMission;
+  /* the store's own errand passes through unfiltered, exactly as on main, so
+     the dead-deal check below can clear it (OB-059 and the stale-session
+     redirect both key on !Store.s.mission); only a draft's saved mission is
+     filtered here, because clearMission() cannot remove that one */
+  const mission = missionCandidate && (missionCandidate === Store.s.mission || ((missionCandidate.kind === "cobuyer" || missionCandidate.kind === "driver") && (pendingCompletion || Store.deal(missionCandidate.dealId)))) ? missionCandidate : null;
   const openOnce = mission ? mission.open || null : null;
   if (mission && mission.open) { mission.open = null; Store.save(); }
-  const clearMission = () => { if (Store.s.mission) { Store.s.mission = null; Store.save(); } stepsDone(); };
+  const clearMission = () => { if (Store.s.mission) { Store.s.mission = null; Store.save(); } stepsDone(); }; const deadMission = x => !!(x && (x.kind === "driver" || x.kind === "cobuyer") && !Store.deal(x.dealId)); const leaveDeadMission = () => { try { clearMission(); } catch (error) { /* leave anyway: a stale errand is refused again at the next door */ } redirect("#/deals"); };
   /* OB-054/055 (his second log, 2026-09-15): once the errand is over — a visit
      started, a link cancelled, the resolver closed — the steps pushed on the
      way there are spent. Each pushed entry carries the epoch it was made in;
@@ -2117,15 +2229,33 @@ route("customers", () => {
      for the scan and got a stranger's upload instead. Hold the promotion for
      the one render the door needs; the session is untouched and surfaces
      again on the next render. */
-  let scanDoorPending = !!(missionDeal && openOnce === "scan");
+  let scanDoorPending = !!pendingCompletion || !!(missionDeal && openOnce === "scan");
 
   /* the one exit for every resolver path. The dedupe guard is absolute: the
      primary cannot co-sign their own loan, and an already-attached co-buyer
      is not attached twice. On attach, the advisor returns to the deal screen
      they came from with the buyers sheet reopened — the second row appearing
      IS the feedback (the package prefers local state over toast spam). */
-  function finish(customerId, sessionMission) {
+  function finish(customerId, sessionMission, mustSave = false) {
     const m = sessionMission || mission;
+    const pending = Store.s.licenseDrafts?.unassigned;
+    if (scannerHasCompletion(pending) && (!scannerValidCompletion(pending) || pending.completion.customerId !== customerId || !m || pending.mission.kind !== m.kind || pending.mission.dealId !== m.dealId)) {
+      toast("The pending attachment changed. Review it before continuing."); return false;
+    }
+    const retireMissionDraft = () => {
+      const saved = Store.s.licenseDrafts?.unassigned?.mission;
+      if (!m || !saved || saved.kind !== m.kind || saved.dealId !== m.dealId) return null;
+      const previous = Store.s.licenseDrafts;
+      Store.s.licenseDrafts = { ...previous };
+      delete Store.s.licenseDrafts.unassigned;
+      return previous;
+    };
+    const restoreMissionDraft = previous => {
+      if (previous !== null) Store.s.licenseDrafts = previous;
+    };
+    if (m && (m.kind === 'driver' || m.kind === 'cobuyer') && !Store.deal(m.dealId)) {
+      toast("That visit is no longer on the floor"); if (mustSave) return false; leaveDeadMission(); return;
+    }
     if (m && m.kind === "driver") {
       /* the additional test-drive driver: attached to the deal's test drive by
          customer id (never a typed name), the primary never duplicated — they
@@ -2133,25 +2263,57 @@ route("customers", () => {
          idempotent. The name row appearing on the Ready screen is the feedback. */
       const dDeal = Store.deal(m.dealId);
       if (!dDeal) { clearMission(); toast("That visit is no longer on the floor"); redirect("#/deals"); return; }
-      if (customerId === dDeal.customerId) { toast("That's the customer on this deal — they're already the driver"); st.mode = "idle"; st.results = null; st.found = null; render(); return; }
+      if (customerId === dDeal.customerId) { toast("That's the customer on this deal — they're already the driver"); if (mustSave) return false; st.mode = "idle"; st.results = null; st.found = null; render(); return; }
+      const hadTd = Object.prototype.hasOwnProperty.call(dDeal, 'testDrive');
+      const previousTd = dDeal.testDrive ? JSON.parse(JSON.stringify(dDeal.testDrive)) : dDeal.testDrive;
       const dtd = dDeal.testDrive = dDeal.testDrive || { done: false };
       dtd.addlDriverIds = dtd.addlDriverIds || [];
       if (!dtd.addlDriverIds.includes(customerId)) dtd.addlDriverIds.push(customerId);
-      Store.save(); clearMission();
+      const previousDrafts = retireMissionDraft();
+      /* the spent mission and the resolver's steps (clearMission/stepsDone)
+         ride in this one save, so the driver lands whole or not at all */
+      const previousMission = Store.s.mission;
+      const hadEpoch = Object.prototype.hasOwnProperty.call(Store.s, "obEpoch"), previousEpoch = Store.s.obEpoch;
+      if (previousMission) Store.s.mission = null;
+      Store.s.obEpoch = (previousEpoch || 0) + 1;
+      try { Store.save(); } catch (error) {
+        if (!hadTd) delete dDeal.testDrive;
+        else if (previousTd && typeof previousTd === 'object') { Object.keys(dtd).forEach(k => delete dtd[k]); Object.assign(dtd, previousTd); }
+        else dDeal.testDrive = previousTd;
+        restoreMissionDraft(previousDrafts);
+        if (previousMission) Store.s.mission = previousMission;
+        if (hadEpoch) Store.s.obEpoch = previousEpoch; else delete Store.s.obEpoch;
+        toast("Driver was not saved. Try again."); return false;
+      }
       navigate(m.back || "#/testdrive/" + dDeal.id);
-      return;
+      return true;
     }
     const mDeal = m && m.kind === "cobuyer" ? Store.deal(m.dealId) : null;
     if (mDeal) {
-      if (customerId === mDeal.customerId) { toast("That's the primary buyer — a co-buyer must be a different person"); st.mode = "idle"; st.results = null; st.found = null; render(); return; }
+      if (customerId === mDeal.customerId) { toast("That's the primary buyer — a co-buyer must be a different person"); if (mustSave) return false; st.mode = "idle"; st.results = null; st.found = null; render(); return; }
       /* resolve the pointer, not the raw id: a dangling coBuyerId means "no
          co-buyer, never an error" (the documented contract every other
          reader follows) — a raw check would let the sheet offer Add while
          every resolver completion got refused (review find). Re-resolving
          the SAME person is an idempotent success, not a refusal. */
       const existingCo = mDeal.coBuyerId ? Store.customer(mDeal.coBuyerId) : null;
-      if (existingCo && existingCo.id !== customerId) { toast("This deal already has a co-buyer"); st.mode = "idle"; render(); return; }
-      mDeal.coBuyerId = customerId; Store.save(); clearMission();
+      if (existingCo && existingCo.id !== customerId) { toast("This deal already has a co-buyer"); if (mustSave) return false; st.mode = "idle"; render(); return; }
+      const hadCo = Object.prototype.hasOwnProperty.call(mDeal, 'coBuyerId'), previousCo = mDeal.coBuyerId;
+      mDeal.coBuyerId = customerId;
+      const previousDrafts = retireMissionDraft();
+      /* the spent mission and the resolver's steps (clearMission/stepsDone)
+         ride in this one save, so the co-buyer lands whole or not at all */
+      const previousMission = Store.s.mission;
+      const hadEpoch = Object.prototype.hasOwnProperty.call(Store.s, "obEpoch"), previousEpoch = Store.s.obEpoch;
+      if (previousMission) Store.s.mission = null;
+      Store.s.obEpoch = (previousEpoch || 0) + 1;
+      try { Store.save(); } catch (error) {
+        if (hadCo) mDeal.coBuyerId = previousCo; else delete mDeal.coBuyerId;
+        restoreMissionDraft(previousDrafts);
+        if (previousMission) Store.s.mission = previousMission;
+        if (hadEpoch) Store.s.obEpoch = previousEpoch; else delete Store.s.obEpoch;
+        toast("Co-buyer was not saved. Try again."); return false;
+      }
       const back = m.back || "#/desk/" + mDeal.id;
       if (location.hash === back) { router(); openBuyersSheet(mDeal.id); }
       else {
@@ -2165,12 +2327,35 @@ route("customers", () => {
       }
       return;
     }
-    clearMission();
+    /* clearMission/stepsDone without a save of their own: the spent mission
+       and the steps' epoch ride in the visit's one save below, and come back
+       if that save does not land — a mustSave caller's customer is saved whole
+       or rolled back whole, never half-stored behind "not saved" */
+    const previousMission = Store.s.mission;
+    const hadEpoch = Object.prototype.hasOwnProperty.call(Store.s, "obEpoch"), previousEpoch = Store.s.obEpoch;
+    if (previousMission) Store.s.mission = null;
+    Store.s.obEpoch = (previousEpoch || 0) + 1;
+    const restoreMission = () => {
+      if (previousMission) Store.s.mission = previousMission;
+      if (hadEpoch) Store.s.obEpoch = previousEpoch; else delete Store.s.obEpoch;
+    };
     /* D-HN10 B for every door that is not the found screen's own "anyway":
-       the scan, a secure-upload match, a manual entry that matched */
+       the scan, a secure-upload match, a manual entry that matched. A caller
+       that must know the save landed (mustSave) gets false when it did not. */
     const od = st.forceNew ? null : openDealFor(customerId);
-    if (od) { continueVisit(od); return; }
-    startVisit(customerId);
+    if (od) {
+      const hadVisit = Object.prototype.hasOwnProperty.call(od, "visit"), previousVisit = od.visit;
+      try { continueVisit(od); } catch (error) {
+        if (hadVisit) od.visit = previousVisit; else delete od.visit;
+        restoreMission();
+        toast("Changes were not saved. Try again."); return false;
+      }
+      return true;
+    }
+    let started;
+    try { started = startVisit(customerId); } catch (error) { restoreMission(); toast("Changes were not saved. Try again."); return false; }
+    if (started === false) { restoreMission(); return false; }
+    return started;
   }
   /* OB-017: one name everywhere a person is printed — a record missing a
      half never prints "undefined" (measured on a hand-made record) */
@@ -2208,12 +2393,12 @@ route("customers", () => {
      a history entry whose state can rebuild the screen — ids, never records —
      so Back walks the steps the way Close does, and from the first step Back
      leaves the resolver as it always did. A reload lands on the same step. */
-  const snap = () => ({ ob: st.mode, epoch: Store.s.obEpoch || 0, q: st.q, results: st.results ? st.results.map(c => c.id) : null, found: st.found ? st.found.id : null, forceNew: st.forceNew, dupe: st.dupe ? { id: st.dupe.c.id, why: st.dupe.why, draft: st.dupe.draft } : null });
+  const snap = () => ({ ob: st.mode, epoch: Store.s.obEpoch || 0, q: st.q, results: st.results ? st.results.map(c => c.id) : null, found: st.found ? st.found.id : null, forceNew: st.forceNew, dupe: st.dupe ? { id: st.dupe.c.id, why: st.dupe.why, draft: st.dupe.draft } : null, resolving: !!st.sessionResolving });
   const step = () => { history.pushState(snap(), "", location.hash); };
   const restore = (h) => {
     if (!h || !h.ob) return false;
     if ((h.epoch || 0) !== (Store.s.obEpoch || 0)) { history.replaceState(null, "", location.hash); return "stale"; }
-    st.mode = h.ob; st.q = h.q || ""; st.forceNew = !!h.forceNew;
+    st.mode = h.ob; st.q = h.q || ""; st.forceNew = !!h.forceNew; st.sessionResolving = !!h.resolving && !!session();
     st.results = h.results ? h.results.map(id => Store.customer(id)).filter(Boolean) : null;
     st.found = h.found ? Store.customer(h.found) : null;
     st.dupe = h.dupe && Store.customer(h.dupe.id) ? { c: Store.customer(h.dupe.id), why: h.dupe.why, draft: h.dupe.draft } : null;
@@ -2232,11 +2417,11 @@ route("customers", () => {
     if ((location.hash || "#/deals").split("?")[0] !== "#/customers") return;
     const r = restore(e.state);
     /* OB-059: a spent entry with no errand left is Home's, not the resolver's */
-    if (r === "stale" && !Store.s.mission) { redirect("#/deals"); return; }
-    if (!r) { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; st.whose = null; }
+    if (r === "stale" && !Store.s.mission && !scannerHasCompletion(Store.s.licenseDrafts?.unassigned)) { redirect("#/deals"); return; }
+    if (!r) { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; st.whose = null; st.sessionResolving = false; }
     render(); window.scrollTo(0, 0);
   };
-  const stepBack = () => { if (liveStep()) history.back(); else { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; render(); } };
+  const stepBack = () => { if (liveStep()) history.back(); else { st.mode = "idle"; st.results = null; st.found = null; st.q = ""; st.forceNew = false; st.dupe = null; st.sessionResolving = false; render(); } };
 
   const initials = (c) => esc(((c.first || " ")[0] + (c.last || " ")[0]).toUpperCase());
   /* the Task template (chrome rule v022): Close on the left, the task name and
@@ -2317,12 +2502,14 @@ route("customers", () => {
   /* the one write path for a confirmed registration address — explicit
      choice, never a silent overwrite; the record keeps its single address
      that every downstream surface already reads */
-  function confirmAddress(c, a, source) {
+  function confirmAddress(c, a, source, persist = true) {
     /* the stamp says a person confirmed a real address. Refuse to write one
        for an address that is not there, whichever caller asks: a confirmedAt
        over an empty record would tell every downstream screen the address was
        checked when nobody was ever shown one. */
     if (!hasAddr(a)) return false;
+    const keys = ["address", "city", "state", "zip", "onboard"];
+    const before = keys.map(key => ({ key, had: Object.prototype.hasOwnProperty.call(c, key), value: c[key] }));
     /* OB-003: the same address confirmed again keeps its stronger stamp — a
        license-read address re-confirmed from the record stayed "license"
        (measured: it was downgraded to "record" on every Confirm) */
@@ -2332,7 +2519,14 @@ route("customers", () => {
     if (same && prev.source && (rank[prev.source] || 0) > (rank[source] || 0)) return true;
     Object.assign(c, { address: a.address, city: a.city, state: a.state, zip: a.zip });
     c.onboard = Object.assign({}, c.onboard, { address: { confirmedAt: new Date().toISOString(), source } });
-    Store.save();
+    if (persist) {
+      try { Store.save(); }
+      catch (error) {
+        before.forEach(item => { if (item.had) c[item.key] = item.value; else delete c[item.key]; });
+        toast("Address was not saved. Try again.");
+        return false;
+      }
+    }
     return true;
   }
 
@@ -2351,6 +2545,12 @@ route("customers", () => {
       .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
       .filter(c => str(c.first) && str(c.last) && rowSub(c))
       .slice(0, 5);
+    if (st.sessionResolving) return shell(`
+      ${heroHtml("Customer onboarding", "Find customer")}
+      <div class="rp-notice rp-notice--conflict"><strong>Resolve secure upload</strong>Search by name and select the matching customer record.</div>
+      <div class="rp-search rp-search--action">${rpGlyph("search")}<input class="rp-search__input" id="obSearch" placeholder="Customer name" aria-label="Search customers by name"><button type="button" class="rp-button-navy" id="searchBtn">Search</button></div>
+      ${st.results ? resultsHtml() : `<div class="rp-section">Matching records</div><div class="rp-group">${recent.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc(rowSub(c))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}</div>`}`,
+      "Step 3 of 3", chDock(linkBtn("obBackUpload", "Back to secure upload")));
     return shell(`
       ${heroHtml("Customer onboarding", "Find customer")}
       ${contextPill()}
@@ -2366,7 +2566,7 @@ route("customers", () => {
       </div>
       ${st.results ? "" : `
       <div class="rp-section">Recent customers</div><div class="rp-group">
-        ${recent.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc(rowSub(c))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
+        ${recent.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc(rowSub(c))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
       </div>`}`, "Step 1 of 3");
   }
 
@@ -2377,9 +2577,9 @@ route("customers", () => {
     /* OB-012: a one-to-three digit query cannot match a number (the floor is
        four), and the empty state says so instead of "nothing on file" */
     const shortNum = /^\D*\d{1,3}\D*$/.test(st.q || "") && !/[a-z]/i.test(st.q || "");
-    if (!hits.length) return `<div class="rp-empty"><strong>No matches</strong>${shortNum ? "Type at least four digits of a number." : "Nothing on file matches that search."}<button type="button" class="rp-link" id="obManual">No license available · add manually</button></div>`;
+    if (!hits.length) return `<div class="rp-empty"><strong>No matches</strong>${shortNum ? "Type at least four digits of a number." : "Nothing on file matches that search."}${st.sessionResolving ? "" : '<button type="button" class="rp-link" id="obManual">No license available · add manually</button>'}</div>`;
     return `<div class="rp-section">Results (${hits.length})</div><div class="rp-group">
-      ${hits.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-initials">${initials(c)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc([c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
+      ${hits.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc([c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · "))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
     </div>`;
   }
 
@@ -2401,8 +2601,8 @@ route("customers", () => {
       ${heroHtml("Customer onboarding", "Customer found")}
       ${contextPill()}
       <section class="rp-match">
-        <div class="rp-match__head"><span class="rp-initials">${initials(c)}</span>
-          <span class="rp-row__body"><span class="rp-row__title">${esc(c.first + " " + c.last)}</span><span class="rp-row__sub">Existing Ride Price customer</span></span>
+        <div class="rp-match__head">
+          <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">Existing Ride Price customer</span></span>
           <span class="rp-tag rp-tag--match">CRM match</span></div>
         <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
         <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
@@ -2415,7 +2615,7 @@ route("customers", () => {
       ${heroHtml("Customer onboarding", "Customer found")}
       ${contextPill()}
       <section class="rp-match">
-        <div class="rp-match__head"><span class="rp-initials">${initials(c)}</span>
+        <div class="rp-match__head">
           <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">Existing Ride Price customer</span></span>
           <span class="rp-tag rp-tag--match">CRM match</span></div>
         <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
@@ -2437,7 +2637,7 @@ route("customers", () => {
       ${heroHtml("Customer onboarding", hard ? "Already on file" : "Same name on file")}
       ${contextPill()}
       <section class="rp-match">
-        <div class="rp-match__head"><span class="rp-initials">${initials(c)}</span>
+        <div class="rp-match__head">
           <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">Existing Ride Price customer</span></span>
           <span class="rp-tag rp-tag--match">${hard ? (why === "phone" ? "Same phone" : why === "email" ? "Same email" : "Same license") : "Same name"}</span></div>
         <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
@@ -2451,7 +2651,7 @@ route("customers", () => {
     const { c, s } = st.whose; const p = s.persona;
     return shell(`
       ${heroHtml("Customer onboarding", "Whose upload is this?")}
-      <section class="rp-match"><div class="rp-match__head"><span class="rp-initials">${initials(p)}</span>
+      <section class="rp-match"><div class="rp-match__head">
         <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(p))}</span><span class="rp-row__sub">Remote session${p.dob ? " · born " + esc(p.dob) : ""}</span></span>
         <span class="rp-tag rp-tag--match">Identity captured</span></div></section>
       <div class="rp-notice" id="obWhoseNotice"><strong>${esc(nameOf(c))} already holds ${esc(s.phone)}</strong><br>The upload reads ${esc(nameOf(p))}. Is this the same person?</div>`, "Step 3 of 3",
@@ -2496,6 +2696,10 @@ route("customers", () => {
   function remoteReadyHtml() {
     const s = session();
     const p = s.persona;
+    const resolved = findLicenseMatch(p);
+    const duplicateCandidates = resolved.candidates || [];
+    const duplicateResolved = !!(s.matchResolvedAt && s.matchId && duplicateCandidates.some(candidate => candidate.id === s.matchId));
+    const needsResolution = duplicateCandidates.length > 0 && !duplicateResolved;
     const linked = s.matchId ? Store.customer(s.matchId) : null;
     const a = s.addressChoice;
     const row = (okFlag, label, sub, value) => `<div class="rp-step"><span class="rp-step__mark${okFlag ? " rp-step__mark--done" : ""} ob-statusicon${okFlag ? "" : " pending"}">${okFlag ? rpGlyph("check") : ""}</span><div><span class="rp-step__title">${label}</span>${sub ? `<span class="rp-step__sub">${sub}</span>` : ""}</div><span class="rp-status${okFlag ? " rp-status--positive" : ""} ob-statusvalue${okFlag ? "" : " pending"}">${value}</span></div>`;
@@ -2505,7 +2709,8 @@ route("customers", () => {
     const attachLabel = k === "driver" ? "Add as driver" : k === "cobuyer" ? "Attach as co-buyer" : "Start visit";
     return shell(`
       ${heroHtml("Customer onboarding", "Customer identified")}
-      <section class="rp-match"><div class="rp-match__head"><span class="rp-initials">${initials(p)}</span>
+      ${needsResolution ? `<div class="rp-notice rp-notice--conflict"><strong>Duplicate customer records</strong>Select the matching customer before attaching this upload.</div>` : ""}
+      <section class="rp-match"><div class="rp-match__head">
         <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(p))}</span><span class="rp-row__sub">Remote session${linked ? " · existing customer" : ""}${s.helper ? (s.phone ? " · answered from a helper's number" : " · answered from a helper's address") : ""}</span></span>
         <span class="rp-tag rp-tag--match">Identity captured</span></div></section>
       <div class="rp-steps" style="margin-top:14px">
@@ -2518,13 +2723,21 @@ route("customers", () => {
         <div class="rp-match__addr-head">Registration address<span class="rp-tag rp-tag--match">Confirmed</span></div>
         <div class="rp-match__addr-line">${esc(fmtAddr(a))}</div>
         <div class="rp-row__sub">${s.addressFrom === "record" ? "Confirmed by customer — the address already on file" : "Confirmed by customer from the license"}</div></div></section>`, "Step 3 of 3",
-      chDock(primaryBtn("obAttach", attachLabel), linkBtn("obDiscardSession", "Discard this upload")));
+      needsResolution
+        ? chDock(primaryBtn("obResolveMatch", "Find customer by name"), linkBtn("obDiscardSession", "Discard this upload"))
+        : chDock(primaryBtn("obAttach", attachLabel), linkBtn("obDiscardSession", "Discard this upload")));
+  }
+  function sessionErrorHtml() {
+    return shell(`${heroHtml("Customer onboarding", "Secure upload unavailable")}
+      <div class="rp-notice rp-notice--conflict"><strong>The saved upload is incomplete</strong>Discard it before starting another secure upload.</div>`,
+      "Step 3 of 3", chDock(primaryBtn("obDiscardInvalidSession", "Discard saved upload")));
   }
 
   /* ---- render + wiring ---- */
   function render() {
     const s = session();
-    if (st.mode === "idle" && s && s.doneAt && !scanDoorPending) st.mode = "remote-ready";
+    if (s && scannerSecureSessionInvalid(s)) st.mode = "session-error";
+    if (st.mode === "idle" && s && s.doneAt && !scanDoorPending && !st.sessionResolving) st.mode = "remote-ready";
     view().innerHTML =
       st.mode === "found" ? foundHtml()
       : st.mode === "dupe" ? dupeHtml()
@@ -2532,6 +2745,7 @@ route("customers", () => {
       : st.mode === "manual" ? manualHtml()
       : st.mode === "waiting" ? waitingHtml()
       : st.mode === "remote-ready" ? remoteReadyHtml()
+      : st.mode === "session-error" ? sessionErrorHtml()
       : idleHtml();
     /* the Task template's Close returns to the launching screen: the
        mission's own way back when there is one, else the queue */
@@ -2559,10 +2773,25 @@ route("customers", () => {
     if (scrim) scrim.onclick = (e) => { if (e.target === scrim || e.target.closest("[data-sheet-close]")) closeSheet4(); };
 
     $$("[data-found]").forEach(b => b.onclick = () => {
-      const c = Store.customer(b.dataset.found);
+      const customer = Store.customer(b.dataset.found);
+      if (st.sessionResolving) {
+        const s = session(), candidates = s?.persona ? findLicenseMatch(s.persona).candidates || [] : [];
+        if (!s || !customer || !candidates.some(candidate => candidate.id === customer.id) || scannerIdentityConflict(customer, s.persona)) {
+          toast("That record does not match the secure upload"); return;
+        }
+        const previousId = s.matchId, previousResolvedAt = s.matchResolvedAt;
+        s.matchId = customer.id; s.matchResolvedAt = new Date().toISOString();
+        try { Store.save(); }
+        catch (error) {
+          s.matchId = previousId;
+          if (previousResolvedAt === undefined) delete s.matchResolvedAt; else s.matchResolvedAt = previousResolvedAt;
+          toast("Customer selection was not saved. Try again."); return;
+        }
+        st.sessionResolving = false; st.mode = "remote-ready"; st.results = null; render(); window.scrollTo(0, 0); return;
+      }
       /* OB-036: a row whose record vanished (another tab) is a refreshed list, not a throw */
-      if (!c) { toast("That record is no longer on file"); st.results = st.results ? st.results.filter(x => Store.customer(x.id)) : null; render(); return; }
-      st.found = c; st.mode = "found"; st.forceNew = false; step(); render(); window.scrollTo(0, 0);
+      if (!customer) { toast("That record is no longer on file"); st.results = st.results ? st.results.filter(x => Store.customer(x.id)) : null; render(); return; }
+      st.found = customer; st.mode = "found"; st.forceNew = false; step(); render(); window.scrollTo(0, 0);
     });
     const back = $("#obBack"); if (back) back.onclick = () => stepBack();
 
@@ -2586,7 +2815,7 @@ route("customers", () => {
            never match one (measured — "+1 (718) 555-0134" found nobody, while
            the same number without it found John Smith) */
         const digitsOf = (x) => String(x || "").replace(/\D/g, "");
-        const dig = (x) => { const d = digitsOf(x); return d.length === 11 && d.charAt(0) === "1" ? d.slice(1) : d; };
+        const dig = normalizeCustomerPhone;
         const digits = dig(raw), typed = digitsOf(raw);
         const lic = norm(q);
         st.results = Store.s.customers.filter(c =>
@@ -2617,7 +2846,10 @@ route("customers", () => {
     const scan = $("#scanBtn");
     if (scan) scan.onclick = () => openScanFlow({
       mode: "customer",
-      onManual: () => { st.mode = "manual"; render(); },
+      mission: mission ? { kind: mission.kind, dealId: mission.dealId, back: mission.back } : null,
+      completionLabel: mission ? (mission.kind === "driver" ? "Add driver" : "Add co-buyer") : "Continue to visit",
+      onContinue: cust => { const saved = finish(cust.id, null, true); if (saved === false && deadMission(mission)) { leaveDeadMission(); return true; } return saved; },
+      onManual: (draft = null) => { st.manualDraft = draft; st.mode = "manual"; render(); },
       onDone: (cust, persona) => {
         /* the scan confirmed identity and wrote the license address, so record
            it as the confirmed registration address (source: license) — but
@@ -2629,8 +2861,7 @@ route("customers", () => {
            photo, then Search by number, and Cheri Bridwell came back
            stamped). */
         if (persona) {
-          cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), address: { confirmedAt: new Date().toISOString(), source: "license" } });
-          Store.save();
+          /* Scan evidence was committed with the identity by openScanFlow. */
         }
         finish(cust.id);
       }
@@ -2649,14 +2880,24 @@ route("customers", () => {
       st.mode = s.doneAt ? "remote-ready" : "waiting"; render(); window.scrollTo(0, 0);
     };
     const sess = $("#obSession"); if (sess) sess.onclick = () => { st.mode = session().doneAt ? "remote-ready" : "waiting"; step(); render(); };
+    const resolveMatch = $("#obResolveMatch"); if (resolveMatch) resolveMatch.onclick = () => { st.sessionResolving = true; st.mode = "idle"; st.results = null; render(); window.scrollTo(0, 0); };
+    const backUpload = $("#obBackUpload"); if (backUpload) backUpload.onclick = () => { st.sessionResolving = false; st.mode = "remote-ready"; st.results = null; render(); window.scrollTo(0, 0); };
     /* D-OB2 (owner, 2026-09-15, Option B — "Someone can accidentally make a
        mistake and that's the way to prevent it"): the kit's dialog before a
        link in flight is cancelled or a finished upload is discarded; Keep it
        is the safe answer. Measured before: gone in one tap. */
-    const dropSession = () => { Store.s.idSession = null; Store.save(); stepsDone(); st.mode = "idle"; render(); };
+    const dropSession = () => { Store.s.idSession = null; Store.save(); stepsDone(); st.sessionResolving = false; st.mode = "idle"; render(); };
     const cancelS = $("#obCancelSession"); if (cancelS) cancelS.onclick = () => { const x = session(); chDialog(obSheets, "Cancel this secure link?", "The link sent to " + (x.phone || x.email) + " stops working. Nothing the customer has not sent yet is lost.", "Cancel the link", dropSession, "Keep it"); };
     const discard = $("#obDiscardSession"); if (discard) discard.onclick = () => { const x = session(); const who = (x.persona && x.persona.first) || "the customer"; chDialog(obSheets, "Discard " + who + "'s upload?", "The photo, the face check and the confirmed address are removed. " + who + " would have to do it again.", "Discard", dropSession, "Keep it"); };
-    const man = $("#obManual"); if (man) man.onclick = () => { st.mode = "manual"; st.forceNew = false; step(); render(); window.scrollTo(0, 0); };
+    /* an incomplete saved upload (scannerSecureSessionInvalid) has one way
+       out; a failed save puts it back rather than losing it silently */
+    const discardInvalid = $("#obDiscardInvalidSession"); if (discardInvalid) discardInvalid.onclick = () => {
+      const previous = Store.s.idSession; Store.s.idSession = null;
+      try { Store.save(); }
+      catch (error) { Store.s.idSession = previous; toast("Saved upload was not discarded. Try again."); return; }
+      stepsDone(); st.sessionResolving = false; st.mode = "idle"; render();
+    };
+    const man = $("#obManual"); if (man) man.onclick = () => { st.manualDraft = null; st.mode = "manual"; st.forceNew = false; step(); render(); window.scrollTo(0, 0); };
     /* D-OB1: the two answers on the "already on file" screen */
     const useOn = $("#obUseOnFile"); if (useOn) useOn.onclick = () => { st.found = st.dupe.c; st.mode = "found"; step(); render(); window.scrollTo(0, 0); };
     const anyway = $("#obCreateAnyway"); if (anyway) anyway.onclick = () => { st.forceNew = true; const d = st.dupe.draft; st.mode = "manual"; step(); render(); $("#obName").value = d.name; $("#obPhone").value = d.phone; $("#obEmail").value = d.email; $("#obAddr").value = d.addr; window.scrollTo(0, 0); };
@@ -2686,9 +2927,9 @@ route("customers", () => {
       const bad = [];
       if (parts.length < 2) bad.push({ el: $("#obName"), msg: name ? "First and last name" : "Required" });
       if (!phone) bad.push({ el: $("#obPhone"), msg: "Required" });
-      else if (!phoneOk(phone)) bad.push({ el: $("#obPhone"), msg: "Ten digits" });
+      else if (!validCustomerPhone(phone)) bad.push({ el: $("#obPhone"), msg: "Ten digits" });
       if (!email) bad.push({ el: $("#obEmail"), msg: "Required" });
-      else if (!emailOk(email)) bad.push({ el: $("#obEmail"), msg: "Needs an @ and a dot" });
+      else if (!validCustomerEmail(email)) bad.push({ el: $("#obEmail"), msg: "Needs an @ and a dot" });
       if (!parsed) bad.push({ el: $("#obAddr"), msg: $("#obAddr").value.trim() ? "Needs a street, a town and a ZIP — e.g. 20 Ditmars Blvd, Astoria, NY 11106" : "Required" });
       if (markMissing(view(), bad)) return;
       /* D-OB1: nothing is written while someone is on file for this phone,
@@ -2703,13 +2944,26 @@ route("customers", () => {
         id: uid("c"), first: parts.slice(0, -1).join(" "), middle: "", last: parts[parts.length - 1],
         phone, email, creditScore: 700, createdAt: new Date().toISOString()
       };
-      Store.s.customers.push(c);
-      /* the one write path for a confirmed registration address, here too: it
-         writes the four fields and the stamp together and saves, so no caller
-         can record a confirmation over an address that is not there */
-      confirmAddress(c, parsed, "typed");
+      const priorDrafts = Store.s.licenseDrafts;
+      try {
+        const unfinished = st.manualDraft && priorDrafts?.unassigned &&
+          JSON.stringify(priorDrafts.unassigned) === JSON.stringify(st.manualDraft) ? priorDrafts.unassigned : null;
+        if (unfinished) {
+          c.onboard = { secondSide: 'pending', licenseSides: { front: true, reviewedAt: null } };
+          Store.s.licenseDrafts = { ...priorDrafts, ['customer:' + c.id]: { ...unfinished, subjectCustomerId: c.id } }; delete Store.s.licenseDrafts.unassigned;
+        }
+        Store.s.customers.push(c);
+        confirmAddress(c, parsed, 'typed', false);
+        if (finish(c.id, null, true) === false) throw new Error('Caller save failed');
+      } catch (error) {
+        const at = Store.s.customers.indexOf(c); if (at !== -1) Store.s.customers.splice(at, 1);
+        if (priorDrafts === undefined) delete Store.s.licenseDrafts; else Store.s.licenseDrafts = priorDrafts;
+        if (deadMission(mission)) { leaveDeadMission(); return; } let message = $('#obManualError');
+        if (!message) { message = document.createElement('p'); message.id = 'obManualError'; message.setAttribute('role', 'alert'); $('#obAddr').parentNode.appendChild(message); }
+        message.textContent = 'Customer was not saved. Your entries and unfinished scan are still here. Try again.';
+        return;
+      }
       toast("Customer created");
-      finish(c.id);
     };
     const addrInp = $("#obAddr");
     if (addrInp) addrInp.oninput = () => {
@@ -2729,13 +2983,40 @@ route("customers", () => {
   function attachUpload(forced, decided) {
     {
       const s = session();
+      if (!s) return;
+      const customersBefore = Store.s.customers.slice();
+      const originalCustomers = customersBefore.map(customer => [customer, JSON.parse(JSON.stringify(customer))]);
+      try {
       /* a session created under a co-buyer mission carries it — captured
          before the session is cleared, so a reload between send and attach
          (which loses the module flag) still attaches instead of starting a
          visit */
       const sMission = s.mission || null;
       const p = s.persona, a = s.addressChoice;
-      let c = decided ? forced : (s.matchId ? Store.customer(s.matchId) : null);
+      /* the duplicate gate runs on every path, the D-OB3 answer included: a
+         licence that matches more than one record attaches only to the one
+         the advisor selected by name */
+      const resolved = findLicenseMatch(p);
+      const selectedDuplicate = !!(resolved.candidates && s.matchResolvedAt && s.matchId && resolved.candidates.some(candidate => candidate.id === s.matchId));
+      if (resolved.candidates && !selectedDuplicate) {
+        const error = new Error('Multiple customer records match this upload. Find the customer by name before attaching it.');
+        error.identityConflict = true; throw error;
+      }
+      let c = decided ? (forced ? Store.customer(forced.id) || null : null) : (s.matchId ? Store.customer(s.matchId) : null);
+      if (!c && !decided) c = scannerSessionCustomer(resolved, p);
+      /* D-OB3 "It is <record> — update the record" (owner, 2026-09-15, Option
+         B): the whose screen only opens when the names differ, so the name
+         part of the identity check would refuse the advisor's
+         own answer every time. That answer IS the identity decision, made by
+         a person looking at both names, and only names (the record's birth date is not on that screen), so the birth-date part (LS-045) and the licence part still
+         guard it, and a licence another record already holds is refused: a record that is gone, has a different birth date, or holds a different licence number or state
+         (another tab may have given it one since the screen opened) is never
+         taken over. The full check below is skipped for this
+         answer alone — see `!(decided && forced)` on it. */
+      if (decided && forced && (!c || (resolved.type === "license number" && resolved.customer && resolved.customer.id !== c.id) || scannerIdentityConflict(Object.assign({}, c, { first: "", last: "" }), p))) {
+        const error = new Error('These identity details conflict. The existing customer has not been changed.');
+        error.identityConflict = true; throw error;
+      }
       /* the licence number is the strong match, and a profile the link itself
          created has none (seed v023: Marcus, phone and email on record, no
          licence) — so a completed session would write a SECOND record with
@@ -2753,7 +3034,11 @@ route("customers", () => {
         if (cand && nameOf(cand).toLowerCase() !== nameOf(p).toLowerCase()) { st.whose = { c: cand, s }; st.mode = "whose"; step(); render(); window.scrollTo(0, 0); return; }
         c = cand;
       }
-      /* an EXISTING record takes the upload before any guard runs: it is that
+      if (c && !(decided && forced) && scannerIdentityConflict(c, p)) {
+        const error = new Error('These identity details conflict. The existing customer has not been changed.');
+        error.identityConflict = true; throw error;
+      }
+      /* an EXISTING record takes the upload before the buyer-role guard runs: it is that
          person's own identity, and it stays whatever the mission then decides.
          Measured against the old portal: a refused driver attach left John
          Smith holding the licence he had just uploaded — the upload's whole
@@ -2762,13 +3047,13 @@ route("customers", () => {
       const stampOnboard = (x) => {
         Object.assign(x, { address: a.address, city: a.city, state: a.state, zip: a.zip });
         x.onboard = Object.assign({}, x.onboard, {
-          phoneAt: s.doneAt, faceAt: s.faceAt, licensePhotoAt: s.photoAt, secondSide: "pending",
+          phoneAt: s.doneAt, faceAt: s.faceAt, licensePhotoAt: s.photoAt, secondSide: "pending", licenseSides: { barcode: true, reviewedAt: null },
           address: { confirmedAt: s.addressConfirmedAt, source: "license" }
         });
       };
       if (c) {
         Object.assign(c, {
-          first: p.first, middle: p.middle || "", last: p.last, dob: p.dob || c.dob,
+          first: p.first, middle: typeof p.middle === 'string' && p.middle.trim() ? p.middle : c.middle || "", last: p.last, dob: p.dob || c.dob,
           license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
         });
         /* the session's channels fill a gap, never overwrite: the advisor typed
@@ -2812,8 +3097,22 @@ route("customers", () => {
         stampOnboard(c);
       }
       Store.s.idSession = null;
-      Store.save();
-      finish(c.id, sMission);
+      /* the save happens inside finish() (mustSave): a refusal or a failed
+         save rolls every record back and keeps the finished upload */
+      if (finish(c.id, sMission, true) === false) throw new Error('Caller save failed');
+      } catch (error) {
+        Store.s.customers.splice(0, Store.s.customers.length, ...customersBefore);
+        originalCustomers.forEach(([customer, previous]) => { Object.keys(customer).forEach(k => delete customer[k]); Object.assign(customer, previous); });
+        Store.s.idSession = s;
+        /* the D-OB3 answer calls this from the "whose upload" screen, which
+           has no attach button: put the upload screen back to say so there */
+        if (!error.identityConflict && deadMission(s.mission || mission)) { leaveDeadMission(); return; } if (!$('#obAttach')) render();
+        const attachBtn = $('#obAttach');
+        const text = error.identityConflict ? error.message : 'Upload was not saved. Try again.';
+        let message = $('#obSaveError');
+        if (!message && attachBtn) { message = document.createElement('p'); message.id = 'obSaveError'; message.setAttribute('role', 'alert'); attachBtn.parentNode.insertBefore(message, attachBtn); }
+        if (message) message.textContent = text; else toast(text);
+      }
     }
   }
 
@@ -2888,8 +3187,8 @@ route("customers", () => {
      started landed on an empty resolver, and he closed it to reach Home —
      three times. A spent step with no errand left is not a place to stand:
      the resolver hands straight over to Home (or the mission's return). */
-  if (history.state && history.state.ob && !liveStep() && !Store.s.mission) { redirect("#/deals"); return; }
-  if (st.mode === "idle" && liveStep()) restore(history.state);
+  if (history.state && history.state.ob && !liveStep() && !Store.s.mission && !pendingCompletion) { redirect("#/deals"); return; }
+  if (st.mode === "idle" && liveStep() && !pendingCompletion) restore(history.state);
   render();
   /* the buyers sheet's "Send secure upload link" lands here mid-mission with
      the send sheet already open — one tap on the buyers sheet, one screen.
@@ -2901,7 +3200,7 @@ route("customers", () => {
   /* the test drive's "Scan physical license" door: the resolver's own scan,
      opened for the advisor, so the scan → confirm → attach path is the one
      every other scan takes */
-  if (missionDeal && openOnce === "scan") { scanDoorPending = false; const sb = $("#scanBtn"); if (sb) sb.click(); }
+  if (pendingCompletion || (missionDeal && openOnce === "scan")) { scanDoorPending = false; const sb = $("#scanBtn"); if (sb) sb.click(); }
 });
 
 /* the customer's own secure-upload session (onboarding v3): opened from the
@@ -2910,19 +3209,61 @@ route("customers", () => {
    recognizer and discarded; the identity photo is never even read. */
 route("idverify", () => {
   renderChrome("Secure Identity Upload", "", "");
-  document.body.dataset.canvas = "master";
+  document.body.dataset.canvas = "kit";
+  document.body.dataset.screen = "identity-upload";
   const s = Store.s.idSession;
+  let surface = null, readGeneration = 0, faceGeneration = 0;
+  const live = () => location.hash === '#/idverify' && Store.s.idSession === s && surface && document.contains(surface);
+  function saveSession(update) {
+    if (!live()) return false;
+    const previous = JSON.parse(JSON.stringify(s));
+    try { Object.assign(s, update); Store.save(); }
+    catch (error) {
+      Object.keys(s).forEach(k => delete s[k]); Object.assign(s, previous);
+      let alert = $('#obSaveError');
+      if (!alert) { alert = document.createElement('div'); alert.id = 'obSaveError'; alert.setAttribute('role', 'alert'); alert.className = 'rp-notice rp-notice--conflict'; $('.rp-page', surface).appendChild(alert); }
+      alert.textContent = 'Your progress was not saved. ' + (error.name === 'QuotaExceededError' ? 'Storage is full. Free space, then retry.' : 'Try saving again.');
+      const retry = document.createElement('button'); retry.type = 'button'; retry.className = 'rp-primary'; retry.textContent = 'Retry save';
+      retry.onclick = () => { if (saveSession(update)) render(); }; alert.appendChild(retry);
+      alert.scrollIntoView({ block: 'nearest' });
+      return false;
+    }
+    return true;
+  }
 
-  const shell = (content) => `
-    <div class="ca-app" style="max-width:560px">
-      <div class="ob-clienttop"><span class="m-wordmark"><span class="rideprice">Ride</span><span class="price">PRICE</span></span></div>
-      <div class="ob-main">${content}</div>
-    </div>`;
-  const heroHtml = (eyebrow, title, lead) => `<div class="ca-eyebrow">${eyebrow}</div><h1 class="ob-h1">${title}</h1>${lead ? `<p class="ob-lead">${lead}</p>` : ""}`;
+  const shell = (content) => chShell({ template: "task", title: "Identity upload", hideRole: true, banner: false /* PI-005 (docs/workflows/portal-interaction): a customer's page draws no dealership band */ }, content);
+  const heroHtml = (eyebrow, title) => `<div><div class="rp-section">${eyebrow}</div><h1 class="rp-title">${title}</h1></div>`;
+  function mount() {
+    surface = view().firstElementChild;
+    const dock = $('.rp-dock', surface);
+    if (dock) { surface.classList.remove('rp-screen--nodock'); surface.appendChild(dock); }
+    const change = $('#obChangeLicense', surface);
+    if (change && dock) dock.appendChild(change);
+    $('#chClose', surface).onclick = () => navigate('#/customers');
+    chFitDock();
+  }
+
+  if (s && scannerSecureSessionInvalid(s)) {
+    view().innerHTML = shell(`${heroHtml("Secure identity upload", "Saved upload unavailable", "The saved upload is incomplete. Discard it before starting again.")}
+      <div class="rp-dock"><button type="button" class="rp-primary" id="obDiscardInvalidUpload">Discard saved upload</button></div>`);
+    $("#obDiscardInvalidUpload").onclick = () => {
+      const previous = Store.s.idSession; Store.s.idSession = null;
+      try { Store.save(); router(); }
+      catch (error) {
+        Store.s.idSession = previous;
+        let message = $("#obSaveError");
+        if (!message) { message = document.createElement('p'); message.id = 'obSaveError'; message.setAttribute('role', 'alert'); $("#obDiscardInvalidUpload").before(message); }
+        message.textContent = 'Saved upload was not discarded. Try again.';
+      }
+    };
+    mount();
+    return;
+  }
 
   if (!s) {
     view().innerHTML = shell(`${heroHtml("Secure identity upload", "No active session", "Ask the advisor to send a new secure link from the customer resolver.")}
-      <a class="ob-primary ob-linkbtn" href="#/customers">Back to Ride Price</a>`);
+      <div class="rp-dock"><a class="rp-primary" href="#/customers">Back to Ride Price</a></div>`);
+    mount();
     return;
   }
 
@@ -2931,42 +3272,49 @@ route("idverify", () => {
     else if (!s.faceAt) renderFace();
     else if (!s.addressConfirmedAt) renderAddress();
     else renderDoneView();
+    mount();
   }
 
   function renderUpload() {
     view().innerHTML = shell(`
-      ${heroHtml("Secure identity upload", "Upload your driver&rsquo;s license", "Choose the license photo already saved on your phone, or take a new one. Your ID uploads directly to Ride Price.")}
-      <div class="ob-privacy"><strong>Your license is not sent to the salesperson.</strong> The image goes from your device directly into the secure Ride Price profile. <b>Demo — only the 5 printed training licenses can be read, from their barcode side, and photos are discarded after reading.</b></div>
-      <div class="sc2-capture">
-        <div class="sc2-frame"><div class="sc2-cardart" aria-hidden="true"><span class="sc2-cardface">${rpIcon("user")}</span><span class="sc2-cardlines"><i></i><i></i><i></i></span></div></div>
-        <div class="sc2-captitle">Upload your license</div>
-        <p class="sc2-captip">Use the training prop&rsquo;s barcode side — that is the side the demo can read.</p>
-        <div id="obUpNote"></div>
+      ${heroHtml("Secure identity upload", "Upload your driver&rsquo;s license", "Choose a printed training license photo, or take a new one. This demo reads it on this device.")}
+      <div class="rp-capture">
+        <div class="rp-capture__frame" aria-hidden="true"><div class="rp-capture__barcode"><i></i></div></div>
+        <div class="rp-capture__hint">License photo</div>
+        <div id="obUpNote" role="status" aria-live="polite"></div>
       </div>
-      <div class="sc2-actions">
-        <label class="sc2-primary sc2-cap">Choose license photo<input type="file" accept="image/*" data-upcap hidden></label>
-        <label class="sc2-secondary sc2-cap">Take a photo<input type="file" accept="image/*" capture="environment" data-upcap hidden></label>
+      <div class="rp-empty">Training samples only. Photos are read on this device and discarded.</div>
+      <div class="rp-dock">
+        <button type="button" class="rp-primary" data-upbtn="library">Choose license photo</button>
+        <button type="button" class="rp-link" data-upbtn="camera">Take a photo</button>
+        <input type="file" accept="image/*" data-upcap data-upsrc="library" hidden>
+        <input type="file" accept="image/*" capture="environment" data-upcap data-upsrc="camera" hidden>
       </div>`);
+    $$("[data-upbtn]").forEach(button => button.onclick = () => $(`[data-upcap][data-upsrc="${button.dataset.upbtn}"]`)?.click());
     $$("[data-upcap]").forEach(inp => inp.onchange = (e) => {
       const f = e.target.files && e.target.files[0];
       if (!f) return;
-      $("#obUpNote").innerHTML = `<div class="sc2-status"><span class="sc2-statusicon">✓</span><div><b>Reading&hellip;</b></div></div>`;
-      RIDE_PRICE_SCAN.recognizeFile(f).then((res) => {
-        if (!Store.s.idSession || Store.s.idSession.id !== s.id) return; /* session was cancelled */
-        if (res && res.ok && res.persona) {
-          s.photoAt = new Date().toISOString();
-          s.persona = res.persona;
-          const m = findLicenseMatch(res.persona);
-          s.matchId = m.customer && m.type === "license number" ? m.customer.id : null;
-          Store.save();
-          render();
-          window.scrollTo(0, 0);
-        } else {
-          $("#obUpNote").innerHTML = `<div class="sc2-status"><span class="sc2-statusicon" style="background:#FFF3F0;color:#B42318">!</span><div><b>Couldn&rsquo;t read that photo</b><br><span>The demo reads only the printed training prop&rsquo;s barcode side — try that side.</span></div></div>`;
+      inp.value = ''; // selecting the same file again must still trigger a retry
+      const generation = ++readGeneration;
+      const note = $('#obUpNote');
+      const current = () => live() && generation === readGeneration && document.contains(note);
+      const failedRead = () => {
+        if (current()) note.textContent = 'Couldn’t read that photo. Try the printed training prop’s barcode side, or choose another photo.';
+      };
+      const oldError = $('#obSaveError'); if (oldError) oldError.remove();
+      note.textContent = 'Reading…';
+      Promise.resolve().then(() => RIDE_PRICE_SCAN.recognizeFile(f)).then((res) => {
+        if (!current()) return;
+        if (res?.reason === 'multiple-documents') { note.textContent = 'More than one license found. Choose a photo of one license.'; return; }
+        if (['file-too-large', 'image-too-large', 'unsupported-image'].includes(res?.reason)) { note.textContent = scannerImageError(res.reason); return; }
+        if (!(res && res.ok && res.persona)) return failedRead();
+        const m = findLicenseMatch(res.persona), matchedCustomer = scannerSessionCustomer(m, res.persona);
+        note.textContent = '';
+        if (saveSession({ photoAt: new Date().toISOString(), persona: res.persona,
+          matchId: matchedCustomer ? matchedCustomer.id : null, matchResolvedAt: null })) {
+          render(); window.scrollTo(0, 0);
         }
-      }).catch(() => {
-        $("#obUpNote").innerHTML = `<div class="sc2-status"><span class="sc2-statusicon" style="background:#FFF3F0;color:#B42318">!</span><div><b>Couldn&rsquo;t read that photo</b><br><span>The demo reads only the printed training prop&rsquo;s barcode side.</span></div></div>`;
-      });
+      }).catch(failedRead);
     });
   }
 
@@ -2974,20 +3322,38 @@ route("idverify", () => {
     const p = s.persona;
     view().innerHTML = shell(`
       ${heroHtml("Identity verification", "Confirm it&rsquo;s you", "Take a quick photo so the dealership can confirm you match the license that was uploaded.")}
-      <div class="ob-notice"><span>✓</span><div><strong>License read</strong>${esc(p.first + " " + p.last)} · ${esc(p.license.number)} · ${esc(p.license.state)}</div></div>
-      <div class="ob-selfie">${rpIcon("user")}</div>
-      <div class="ob-privacy"><strong>Why this helps:</strong> it protects the application from someone using a photo of another person&rsquo;s license. <b>Demo — the photo is confirmed on this device and discarded; no real biometric match occurs.</b></div>
-      <div class="sc2-actions">
-        <label class="sc2-primary sc2-cap">Take identity photo<input type="file" accept="image/*" capture="user" data-facecap hidden></label>
-        <label class="sc2-secondary sc2-cap">Choose a photo<input type="file" accept="image/*" data-facecap hidden></label>
-      </div>`);
-    $$("[data-facecap]").forEach(inp => inp.onchange = (e) => {
+      <div class="rp-notice">License read · ${esc(p.first + " " + p.last)}</div>
+      <div class="rp-empty"><strong>Identity photo</strong>Demo only. The photo is checked on this device and discarded. No biometric match occurs.</div>
+      <div class="rp-dock">
+        <button type="button" class="rp-primary" data-facebtn="camera">Take identity photo</button>
+        <button type="button" class="rp-link" data-facebtn="library">Choose a photo</button>
+        <input type="file" accept="image/*" capture="user" data-facecap data-facesrc="camera" hidden>
+        <input type="file" accept="image/*" data-facecap data-facesrc="library" hidden>
+      </div>
+      <button type="button" class="rp-link" id="obChangeLicense">Use a different license photo</button>`);
+    $$("[data-facebtn]").forEach(button => button.onclick = () => $(`[data-facecap][data-facesrc="${button.dataset.facebtn}"]`)?.click());
+    $("#obChangeLicense").onclick = resetLicenseUpload;
+    $$("[data-facecap]").forEach(inp => inp.onchange = async (e) => {
       if (!e.target.files || !e.target.files.length) return;
-      if (!Store.s.idSession || Store.s.idSession.id !== s.id) return;
-      s.faceAt = new Date().toISOString();
-      Store.save();
-      render(); window.scrollTo(0, 0);
+      const file = e.target.files[0], generation = ++faceGeneration;
+      e.target.value = '';
+      let result;
+      try { result = await RIDE_PRICE_SCAN.validateImage(file); }
+      catch { result = { ok: false }; }
+      if (!live() || generation !== faceGeneration || !document.contains(inp)) return;
+      if (!result.ok) {
+        let note = $('#obFaceNote');
+        if (!note) { note = document.createElement('p'); note.id = 'obFaceNote'; note.setAttribute('role', 'alert'); note.className = 'rp-notice rp-notice--conflict'; $('.rp-page', surface).appendChild(note); }
+        note.textContent = scannerImageError(result.reason);
+        return;
+      }
+      if (saveSession({ faceAt: new Date().toISOString() })) { render(); window.scrollTo(0, 0); }
     });
+  }
+
+  function resetLicenseUpload() {
+    const reset = { photoAt:null, persona:null, matchId:null, matchResolvedAt:null, faceAt:null, addressChoice:null, addressFrom:null, addressConfirmedAt:null, doneAt:null };
+    if (saveSession(reset)) { render(); window.scrollTo(0, 0); }
   }
 
   function renderAddress() {
@@ -2995,37 +3361,34 @@ route("idverify", () => {
     const lic = { address: p.address, city: p.city, state: p.state, zip: p.zip };
     const linked = s.matchId ? Store.customer(s.matchId) : null;
     const crm = linked ? { address: linked.address, city: linked.city, state: linked.state, zip: linked.zip } : null;
-    const same = crm && `${crm.address}|${crm.zip}`.toLowerCase() === `${lic.address}|${lic.zip}`.toLowerCase();
+    const crmComplete = scannerHasCompleteAddress(crm);
+    const same = crmComplete && ['address', 'city', 'state', 'zip'].every(key =>
+      String(crm[key] || '').trim().toLowerCase() === String(lic[key] || '').trim().toLowerCase());
     const fmt = (a) => `${a.address}, ${a.city}, ${a.state} ${a.zip}`;
-    const choose = (a) => { s.addressChoice = a; s.addressFrom = crm && a === crm ? "record" : "license"; s.addressConfirmedAt = new Date().toISOString(); s.doneAt = new Date().toISOString(); Store.save(); render(); window.scrollTo(0, 0); };
+    const choose = (a) => { if (!scannerHasCompleteAddress(a)) return; const now = new Date().toISOString(); if (saveSession({ addressChoice: a, addressFrom: crm && a === crm ? "record" : "license", addressConfirmedAt: now, doneAt: now })) { render(); window.scrollTo(0, 0); } };
     view().innerHTML = shell(`
       ${heroHtml("Registration", "Confirm registration address", "This address is used for vehicle registration and deal calculations — confirming it here means nobody asks you to type it again.")}
-      ${crm && !same ? `
-      <p class="ob-helper" style="margin-top:0">The address on the license differs from the one on file. Which should be used?</p>
-      <div class="ob-addressoptions">
-        <button type="button" class="ob-addressoption" data-pick="lic"><strong>${esc(fmt(lic))}</strong><span>From the license just uploaded</span></button>
-        <button type="button" class="ob-addressoption" data-pick="crm"><strong>${esc(fmt(crm))}</strong><span>Already on the Ride Price record</span></button>
-      </div>` : `
-      <div class="ob-addresscard">
-        <div class="ob-addresshead"><div><div class="ob-addresstitle">Registration address</div><div class="ob-source">From the uploaded license</div></div>${same ? `<span class="ob-badge">Matches record</span>` : `<span class="ob-pill">Required</span>`}</div>
-        <div class="ob-addressvalue">${esc(fmt(lic))}</div>
-        ${same ? `<div class="ob-matchline">✓ Matches the customer record</div>` : ""}
-        <button type="button" class="ob-primary" data-pick="lic">Use this address</button>
-      </div>`}`);
+      ${crmComplete && !same ? `
+      <div class="rp-notice rp-notice--conflict">The address on the license differs from the one on file.</div>
+      <div class="rp-group">
+        <button type="button" class="rp-row" data-pick="lic"><span class="rp-row__body"><span class="rp-row__title">${esc(fmt(lic))}</span><span class="rp-row__sub">From the license just uploaded</span></span><span class="rp-row__chevron"></span></button>
+        <button type="button" class="rp-row" data-pick="crm"><span class="rp-row__body"><span class="rp-row__title">${esc(fmt(crm))}</span><span class="rp-row__sub">Already on the Ride Price record</span></span><span class="rp-row__chevron"></span></button>
+      </div><div class="rp-dock"></div>` : `
+      <div class="rp-kv"><div class="rp-kv__head">Registration address</div><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(fmt(lic))}</span><span class="rp-row__sub">${same ? "Matches record" : "From the uploaded license"}</span></span></div></div>
+      <div class="rp-dock"><button type="button" class="rp-primary" data-pick="lic">Use this address</button></div>`}
+      <button type="button" class="rp-link" id="obChangeLicense">Use a different license photo</button>`);
     $$("[data-pick]").forEach(b => b.onclick = () => choose(b.dataset.pick === "crm" ? crm : lic));
+    $("#obChangeLicense").onclick = resetLicenseUpload;
   }
 
   function renderDoneView() {
     view().innerHTML = shell(`
-      <div class="ob-ready"><div class="ob-readycheck">✓</div><h2>You&rsquo;re all set</h2>
-        <p>Your information went directly to Ride Price — the advisor never receives your license image through text or email.</p></div>
-      <div class="ob-statuslist">
-        <div class="ob-statusrow"><span class="ob-statusicon">✓</span><div><div class="ob-statuslabel">Identity photo</div></div><span class="ob-statusvalue">Captured</span></div>
-        <div class="ob-statusrow"><span class="ob-statusicon">✓</span><div><div class="ob-statuslabel">License photo</div></div><span class="ob-statusvalue">Received</span></div>
-        <div class="ob-statusrow"><span class="ob-statusicon pending">•</span><div><div class="ob-statuslabel">Second license side</div><div class="ob-statussub">Can be added later when a workflow requires it</div></div><span class="ob-statusvalue pending">Pending</span></div>
-        <div class="ob-statusrow"><span class="ob-statusicon">✓</span><div><div class="ob-statuslabel">Registration address</div></div><span class="ob-statusvalue">Confirmed</span></div>
+      ${heroHtml("Customer identity", "You&rsquo;re all set")}
+      <div class="rp-notice rp-notice--success">Training details saved on this device</div>
+      <div class="rp-group">
+        ${[["Identity photo", "Captured", true], ["License photo", "Received", true], ["Second license side", "Pending", false], ["Registration address", "Confirmed", true]].map(([title, state, ready]) => `<div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(title)}</span></span><span class="rp-status${ready ? " rp-status--positive" : ""}">${esc(state)}</span></div>`).join("")}
       </div>
-      <a class="ob-primary ob-linkbtn" href="#/customers">Return to advisor view</a>`);
+      <div class="rp-dock"><a class="rp-primary" href="#/customers">Return to advisor view</a></div>`);
   }
 
   render();
@@ -3054,12 +3417,19 @@ function continueVisit(deal) {
   navigate((STAGES[deal.stage] || STAGES.discovery).route(deal));
 }
 function startVisit(customerId) {
+  const cust = Store.customer(customerId);
+  if (!cust) { toast("Customer is no longer available. Find the customer again."); return false; }
   /* owner's protocol 2026-09-15: "duplicate customer entries in the showroom
      are not permitted" — a customer already in the showroom is taken to that
      visit, never given a second one (OB-034; the same rule as PR #107's guard
-     on Home, at the one place every start passes through) */
+     on Home, at the one place every start passes through). What the caller
+     changed before handing over (a finished upload attached) is saved here
+     as it would be on a new visit. */
   const already = Store.s.deals.find(d => d.customerId === customerId && inShowroom(d));
-  if (already) { const c0 = Store.customer(customerId) || {}; toast([c0.first, c0.last].filter(Boolean).join(" ") + " is already in the showroom"); navigate(`#/discovery/${already.id}`); return; }
+  if (already) {
+    try { Store.save(); } catch (error) { toast("Changes were not saved. Try again."); return false; }
+    toast([cust.first, cust.last].filter(Boolean).join(" ") + " is already in the showroom"); navigate(`#/discovery/${already.id}`); return true;
+  }
   const deal = {
     id: uid("d"), dealNo: Store.mintDealNo(), customerId, stock: null, dealType: "finance", stage: "discovery",
     /* owner's protocol 2026-09-15: a Team Lead's visit is under no salesperson
@@ -3081,7 +3451,6 @@ function startVisit(customerId) {
     menu: { step: 1, barsDone: [], custom: [], customSource: null, selectedProgram: null, initials: "", ackSigned: false },
     forms: { selected: [], finalized: false }
   };
-  const cust = Store.customer(customerId);
   const tier = RIDE_PRICE_CALC.creditTier(cust.creditScore || 700);
   deal.desk.apr = tier.agreedApr;
   deal.desk.leaseFactor = tier.leaseFactor;
@@ -3092,15 +3461,24 @@ function startVisit(customerId) {
      the code keeps doing what it did (it checks in). */
   deal.visit = { arrivedAt: deal.createdAt };
   /* OB-055: the resolver's steps on the way here are spent (see stepsDone) */
+  const hadEpoch = Object.prototype.hasOwnProperty.call(Store.s, "obEpoch"), previousEpoch = Store.s.obEpoch;
   Store.s.obEpoch = (Store.s.obEpoch || 0) + 1;
-  Store.s.deals.push(deal); Store.save();
+  Store.s.deals.push(deal);
+  try { Store.save(); }
+  catch (error) {
+    const at = Store.s.deals.indexOf(deal); if (at !== -1) Store.s.deals.splice(at, 1);
+    if (hadEpoch) Store.s.obEpoch = previousEpoch; else delete Store.s.obEpoch;
+    toast("Visit was not saved. Try again.");
+    return false;
+  }
   navigate(`#/discovery/${deal.id}`);
+  return true;
 }
 
 /* ============================================================
    LICENSE SCAN — prop-license capture, match & verify (demo)
    Recognition is simulated: only the 5 printed training props
-   can ever resolve (see assets/scan.js). Photos are never stored.
+   can ever resolve (see assets/scan.js). Front drafts are browser-local.
    ============================================================ */
 /* the printed prop face keeps its own silhouette — the licence artwork the
    training documents render and print, untouched by the scan chrome */
@@ -3108,31 +3486,157 @@ const SCAN_SILHOUETTE = `<svg viewBox="0 0 40 48" xmlns="http://www.w3.org/2000/
 
 /* Certain matches apply silently; ambiguous ones (`ask` set) get a confirmation
    prompt in the scan flow. Name+DOB-differs falls through: that's a different person. */
+function scannerIdentityToken(value) {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
+}
+function scannerLicenseToken(value) {
+  return typeof value === "string" ? value.replace(/[^a-z0-9]/gi, "").toLowerCase() : "";
+}
+function scannerHasCompleteAddress(value) {
+  return ['address', 'city', 'state', 'zip'].every(key => typeof value?.[key] === 'string' && value[key].trim());
+}
+function scannerValidDate(value) {
+  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  return year > 0 && month >= 1 && month <= 12 && day >= 1 && day <= [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month - 1];
+}
+function scannerToday() {
+  const now = new Date();
+  return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+}
+function scannerImageError(reason) {
+  if (reason === 'file-too-large') return 'Choose a photo no larger than 20 MB.';
+  if (reason === 'image-too-large') return 'Choose a photo no larger than 64 megapixels.';
+  if (reason === 'unsupported-image') return 'Choose a supported photo format.';
+  return 'That photo could not be read. Choose another image.';
+}
+function scannerHasReviewablePersona(value) {
+  return !!(value && typeof value === 'object'
+    && ['first', 'last', 'dob', 'address', 'city', 'state', 'zip'].every(key => typeof value[key] === 'string')
+    && value.license && typeof value.license === 'object'
+    && ['number', 'state', 'expires'].every(key => typeof value.license[key] === 'string'));
+}
+function scannerHasCompletePersona(value) {
+  return !!(scannerHasReviewablePersona(value)
+    && ['first', 'last', 'dob', 'address', 'city', 'state', 'zip'].every(key => value[key].trim())
+    && ['number', 'state', 'expires'].every(key => value.license[key].trim())
+    && scannerValidDate(value.dob) && value.dob <= scannerToday() && scannerValidDate(value.license.expires));
+}
+function scannerSecureSessionInvalid(value) {
+  if (!value || typeof value !== 'object') return false;
+  /* D-OB6: a link goes out on ONE channel, and the other is stored blank.
+     The chosen channel must be valid; the other is blank or valid. A session
+     with no channel predates the choice and is read as Text. */
+  const byEmail = value.channel === 'Email';
+  if (byEmail ? !validCustomerEmail(value.email) : !validCustomerPhone(value.phone)) return true;
+  if (byEmail ? (value.phone && !validCustomerPhone(value.phone)) : (value.email && !validCustomerEmail(value.email))) return true;
+  if (value.photoAt && !scannerHasCompletePersona(value.persona)) return true;
+  if (value.faceAt && !value.photoAt) return true;
+  if (value.addressConfirmedAt && (!value.faceAt || !scannerHasCompleteAddress(value.addressChoice))) return true;
+  return !!(value.doneAt && (!value.photoAt || !value.faceAt || !value.addressConfirmedAt || !scannerHasCompleteAddress(value.addressChoice)));
+}
+function scannerIdentityConflict(existing, incoming) {
+  const norm = scannerIdentityToken;
+  const a = existing.license, b = incoming.license;
+  if (existing.dob && incoming.dob && existing.dob !== incoming.dob) return true;
+  if (existing.first && incoming.first && norm(existing.first) !== norm(incoming.first)) return true;
+  if (existing.last && incoming.last && norm(existing.last) !== norm(incoming.last)) return true;
+  const aNumber = scannerLicenseToken(a?.number), bNumber = scannerLicenseToken(b?.number);
+  const aState = scannerLicenseToken(a?.state), bState = scannerLicenseToken(b?.state);
+  if (!aNumber || !bNumber) return false;
+  if (aNumber !== bNumber) return true;
+  return !!(aState && bState && aState !== bState);
+}
+function scannerCanLink(existing, incoming) {
+  if (scannerIdentityConflict(existing, incoming)) return false;
+  const norm = scannerLicenseToken;
+  const existingNumber = norm(existing.license?.number), incomingNumber = norm(incoming.license?.number);
+  const existingState = norm(existing.license?.state), incomingState = norm(incoming.license?.state);
+  return !!(existingNumber && incomingNumber && existingState && incomingState
+    && existingNumber === incomingNumber && existingState === incomingState);
+}
+function normalizeCustomerPhone(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
+}
+function validCustomerPhone(value) {
+  return /^\d{10}$/.test(normalizeCustomerPhone(value));
+}
+function validCustomerEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+}
 function findLicenseMatch(p) {
-  const norm = (s) => String(s || "").replace(/[^a-z0-9]/gi, "").toLowerCase();
+  const norm = scannerIdentityToken, licenseNorm = scannerLicenseToken;
   const cs = Store.s.customers;
-  const nameEq = (x) => x.first.toLowerCase() === p.first.toLowerCase() && x.last.toLowerCase() === p.last.toLowerCase();
-  /* two states can issue the same number — require the state too when both sides have one */
-  let c = cs.find(x => x.license && norm(x.license.number) === norm(p.license.number)
-    && (!x.license.state || !p.license.state || norm(x.license.state) === norm(p.license.state)));
-  if (c) return { type: "license number", customer: c };
-  c = cs.find(x => x.dob && x.dob === p.dob && nameEq(x));
-  if (c) return { type: "date of birth and name", customer: c };
-  c = cs.find(x => x.dob && x.dob === p.dob);
-  if (c) return { type: "date of birth", customer: c, ask: "dob" };
-  /* a profile that exists only because a secure upload link was sent — made
-     remotely, no license ever read — carries a CLAIMED name, not a verified
-     identity, so it is never taken as a name-only match. What links it is
-     the phone number, and only after the guest reads the code back (seed
-     v023: Marcus). Once a license is on it, it matches like any record. */
-  c = cs.find(x => !x.dob && nameEq(x) && !(x.createdVia === "link" && !x.license));
-  if (c) return { type: "name", customer: c, ask: "name" };
-  return { type: null, customer: null };
+  const nameEq = x => norm(x.first) === norm(p.first) && norm(x.last) === norm(p.last);
+  const result = (candidates, type, ask) => {
+    if (!candidates.length) return null;
+    const customer = candidates[0], conflict = scannerIdentityConflict(customer, p);
+    return { type, customer, ask: candidates.length > 1 ? "candidate" : conflict ? "conflict" : ask,
+      conflict, candidates: candidates.length > 1 ? candidates : undefined };
+  };
+  return result(cs.filter(x => {
+    const savedNumber = licenseNorm(x.license?.number), scannedNumber = licenseNorm(p.license?.number);
+    const savedState = licenseNorm(x.license?.state), scannedState = licenseNorm(p.license?.state);
+    return savedNumber && scannedNumber && savedState && scannedState
+      && savedNumber === scannedNumber && savedState === scannedState;
+  }), "license number", null)
+    || result(cs.filter(x => x.dob && x.dob === p.dob && nameEq(x)), "date of birth and name", "identity")
+    || result(cs.filter(x => x.dob && x.dob === p.dob), "date of birth", "dob")
+    || result(cs.filter(x => !x.dob && nameEq(x) && !(x.createdVia === "link" && !x.license)), "name", "name")
+    || { type: null, customer: null };
+}
+function scannerSessionCustomer(match, persona) {
+  if (!match?.customer || match.candidates || match.conflict) return null;
+  if (match.type === "license number") return match.customer;
+  const savedNumber = scannerLicenseToken(match.customer.license?.number);
+  const incomingNumber = scannerLicenseToken(persona.license?.number);
+  const savedState = scannerLicenseToken(match.customer.license?.state);
+  const incomingState = scannerLicenseToken(persona.license?.state);
+  return match.type === "date of birth and name" && savedNumber && savedNumber === incomingNumber && !savedState && incomingState
+    ? match.customer : null;
 }
 
+function scannerHasCompletion(draft) {
+  return !!draft && Object.prototype.hasOwnProperty.call(draft, 'completion');
+}
+function scannerCompletionMission(m) {
+  if (!m || !['driver', 'cobuyer'].includes(m.kind) || typeof m.dealId !== 'string' || !m.dealId) return false;
+  if (m.back == null) return true;
+  if (typeof m.back !== 'string') return false;
+  const path = /^#\/([a-z]+)\/([^/?#]+)$/.exec(m.back);
+  return !!(path && path[2] === m.dealId && routes.some(r => r.pattern === path[1] + '/:id'));
+}
+function scannerValidCompletion(draft) {
+  const p = draft?.completion, m = draft?.mission;
+  if (!p || draft.mode !== 'customer' || !scannerCompletionMission(m) || !['scan', 'lookup'].includes(p.source) || typeof p.wasExisting !== 'boolean' || typeof p.customerId !== 'string' || !p.customerId || typeof p.primaryCustomerId !== 'string' || !p.primaryCustomerId) return false;
+  const deal = Store.deal(m.dealId), customer = Store.customer(p.customerId);
+  if (!deal || !customer || !Store.customer(p.primaryCustomerId) || deal.customerId !== p.primaryCustomerId || customer.id === deal.customerId) return false;
+  const co = deal.coBuyerId && Store.customer(deal.coBuyerId);
+  return m.kind !== 'cobuyer' || !co || co.id === customer.id;
+}
 function openScanFlow(opts) {
   const o = Object.assign({ mode: "customer" }, opts);
-  const st = { frontDone: false, persona: null, match: null, render: null, saved: false, manNum: "", manState: "NY", stage: "front", sv: null, pick: null, fields: {}, procFile: null };
+  const tdDealId = o.mode === 'testdrive' ? o.deal?.id : null;
+  const tdPrimary = o.mode === 'testdrive' ? o.deal?.customerId : null;
+  const coPrimary = o.mode === 'cobuyer' ? o.deal.customerId : null;
+  const coAtOpen = o.mode === 'cobuyer' ? (o.deal.coBuyerId || null) : null;
+  const coTarget = coAtOpen && Store.customer(coAtOpen) ? coAtOpen : null;
+  function coBuyerAllowed(customer, mustExist = false) {
+    if (o.mode !== 'cobuyer') return true;
+    if (customer.id === coPrimary) { renderBlock(undefined, customer); return false; }
+    const current = Store.deal(o.deal.id);
+    if (current !== o.deal || current.customerId !== coPrimary || !Store.customer(coPrimary) || (current.coBuyerId || null) !== coAtOpen
+      || (coTarget && customer.id !== coTarget)
+      || (mustExist && Store.customer(customer.id) !== customer)
+      || (Store.customer(customer.id) && Store.customer(customer.id) !== customer)) {
+      renderBlock('different', customer); return false;
+    }
+    return true;
+  }
+  const missionPrimary = o.mission && Store.deal(o.mission.dealId)?.customerId;
+  const st = { frontImage: null, backImage: null, pairReviewed: false, frontDone: false, persona: null, match: null, render: null, saved: false, manNum: "", manState: "NY", stage: "front", sv: null, pick: null, fields: {}, pendingCapture: null, captureGen: 0 };
   modal("Scan Driver's License", `<div id="scanBody"></div>`);
   const body = $("#scanBody");
   /* the scan is a Task on the kit (owner's scan-license package v023): two
@@ -3157,6 +3661,8 @@ function openScanFlow(opts) {
   /* one teardown for every exit path — dismissal, navigation, or save */
   function cleanup(navigated) {
     st.cancelled = true;
+    st.captureGen += 1;
+    st.pendingCapture = null;
     window.removeEventListener("hashchange", abandon);
     backEl.removeEventListener("click", onDismiss);
     document.removeEventListener("click", leaveGuard, true);
@@ -3178,7 +3684,7 @@ function openScanFlow(opts) {
      instantly. The close control asks through requestClose() on its own. */
   function leaveGuard(e) {
     if (st.cancelled || st.saved || !document.contains(backEl)) return;
-    if (e.target !== backEl || !st.frontDone) return;
+    if (e.target !== backEl || !(st.frontDone || st.backImage)) return;
     e.preventDefault(); e.stopImmediatePropagation();
     renderLeaveConfirm();
   }
@@ -3186,9 +3692,59 @@ function openScanFlow(opts) {
   backEl.addEventListener("click", onDismiss);
   window.addEventListener("hashchange", abandon);
   const done = () => { closeModal(); cleanup(false); };
-  const requestClose = () => { if (st.frontDone && !st.saved) renderLeaveConfirm(); else done(); };
+  const requestClose = () => { if ((st.frontDone || st.backImage) && !st.saved) renderLeaveConfirm(); else done(); };
   const live = () => !st.cancelled && document.contains(body);
 
+  const draftKey = o.mode === 'cobuyer' ? 'cobuyer:' + o.deal.id : o.deal ? 'customer:' + o.deal.customerId : 'unassigned';
+  const draftSubjectCustomerId = o.mode === 'cobuyer' ? coTarget || null : o.deal?.customerId || null;
+  const draftOf = () => Store.s.licenseDrafts?.[draftKey];
+  /* main's storage listener re-reads the store when another tab saves, so the store's own draft base (Store.save's DraftConflictError check) follows the other tab. The scanner keeps the copy of its draft it last saw and refuses to overwrite or delete a newer one: codex's same-key stale-save guard. */
+  let seenDraft = JSON.stringify(draftOf() ?? null);
+  const draftMoved = () => JSON.stringify(draftOf() ?? null) !== seenDraft;
+  const movedError = () => Object.assign(new Error("This scan changed in another tab. Reload before saving again."), { name: "DraftConflictError" });
+  function completionDraft(customer, wasExisting, source) {
+    const previous = draftOf(), m = o.mission;
+    if (scannerHasCompletion(previous) && (previous.completion.customerId !== customer.id || previous.mission?.kind !== m?.kind || previous.mission?.dealId !== m?.dealId)) throw new Error('A different attachment is pending');
+    if (o.mode !== 'customer' || !m) return null;
+    if (!scannerCompletionMission(m)) throw new Error('The attachment destination is unavailable');
+    const draft = { mode: 'customer', mission: { kind: m.kind, dealId: m.dealId, back: m.back }, completion: { customerId: customer.id, primaryCustomerId: missionPrimary, source, wasExisting }, savedAt: new Date().toISOString() };
+    // Validate the destination before the surrounding transaction inserts a new identity.
+    const deal = Store.deal(m.dealId), co = deal?.coBuyerId && Store.customer(deal.coBuyerId);
+    if (!deal || deal.customerId !== missionPrimary || customer.id === deal.customerId || (m.kind === 'cobuyer' && co && co.id !== customer.id)) throw new Error('The attachment is no longer available');
+    return draft;
+  }
+  function persistDraft(remove = false, selectedCustomer = null) {
+    if (selectedCustomer && !currentScannerCustomer(selectedCustomer)) return false;
+    if (selectedCustomer && !coBuyerAllowed(selectedCustomer, true)) return false;
+    const hadCoBuyer = o.deal && Object.prototype.hasOwnProperty.call(o.deal, 'coBuyerId');
+    const previousCoBuyer = o.deal?.coBuyerId;
+    const before = Store.s.licenseDrafts;
+    const next = { ...(before || {}) };
+    try {
+      if (remove) {
+        const pending = selectedCustomer ? completionDraft(selectedCustomer, true, 'lookup') : null;
+        if (pending) next[draftKey] = pending; else delete next[draftKey];
+      } else {
+        if (scannerHasCompletion(next[draftKey])) throw new Error('An attachment is pending');
+        next[draftKey] = { frontImage: st.frontImage, ...(st.backImage ? { backImage: st.backImage } : {}), persona: st.persona, corrected: !!st.corrected, mode: o.mode,
+          mission: o.mission ? { kind:o.mission.kind, dealId:o.mission.dealId, back:o.mission.back } : null,
+          subjectCustomerId: draftSubjectCustomerId, savedAt: new Date().toISOString() };
+      }
+      if (draftMoved()) throw movedError(); Store.s.licenseDrafts = next;
+      if (selectedCustomer && o.mode === 'cobuyer') o.deal.coBuyerId = selectedCustomer.id;
+      Store.save(); seenDraft = JSON.stringify(draftOf() ?? null); return true;
+    }
+    catch (error) {
+      if (before === undefined) delete Store.s.licenseDrafts; else Store.s.licenseDrafts = before;
+      if (selectedCustomer && o.mode === 'cobuyer') {
+        if (hadCoBuyer) o.deal.coBuyerId = previousCoBuyer; else delete o.deal.coBuyerId;
+      }
+      scanSaveError(error, selectedCustomer ? "customer" : remove ? "discard" : "scan"); return false;
+    }
+  }
+  async function frontPreview(file) {
+    return RIDE_PRICE_SCAN.previewFile(file);
+  }
   /* ---- the Task chrome: title "Scan license", the two-part step as the
      subtitle, the DEMO band as the only environment marker (no wordmark, no
      progress bar, no training chip — v023). The eyebrow names the mode. ---- */
@@ -3200,7 +3756,7 @@ function openScanFlow(opts) {
   const initials = (first, last) => esc(((first || " ")[0] + (last || " ")[0]).toUpperCase().trim() || "?");
   /* everything that belongs to the guest just scanned — cleared wherever a
      fresh scan starts, so nothing leaks into the next guest's journey */
-  const resetGuest = () => { st.frontDone = false; st.persona = null; st.match = null; st.sv = null; st.pick = null; st.fields = {}; st.procFile = null; };
+  const resetGuest = () => { st.captureGen += 1; st.pendingCapture = null; st.backImage = null; st.frontImage = null; st.corrected = false; st.editContacts = null; st.pairReviewed = false; st.frontDone = false; st.persona = null; st.match = null; st.sv = null; st.addressChoice = null; st.pick = null; st.fields = {}; };
   const doneMark = () => `<span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>`;
   /* both cells are markup by contract — callers esc() their own values */
   const kvRow = (labelHtml, valueHtml) => `<div class="rp-kv__row"><span>${labelHtml}</span><span>${valueHtml}</span></div>`;
@@ -3212,7 +3768,7 @@ function openScanFlow(opts) {
   const field = (id, label, type, value, placeholder) => `<div class="rp-field"><label class="rp-field__label" for="${id}">${label}</label><input class="rp-field__input" id="${id}" type="${type}"${type === "tel" ? ` inputmode="tel"` : ""} autocomplete="off" placeholder="${esc(placeholder || "")}" value="${esc(value || "")}"></div>`;
   const dateField = (id, label, value) => `<div class="rp-field"><label class="rp-field__label" for="${id}">${label}</label><input class="rp-field__input" id="${id}" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(value || "")}"></div>`;
   /* the kit's option row (title, sub, radio) — one on at a time */
-  const option = (key, titleHtml, subHtml, on) => `<button type="button" class="rp-option${on ? " rp-option--on" : ""}" data-opt="${key}"><span><span class="rp-option__title">${titleHtml}</span><span class="rp-option__sub">${subHtml}</span></span><span class="rp-radio${on ? " rp-radio--on" : ""}">${on ? rpGlyph("check") : ""}</span></button>`;
+  const option = (key, titleHtml, subHtml, on) => `<button type="button" class="rp-option${on ? " rp-option--on" : ""}" data-opt="${key}" aria-pressed="${!!on}"><span><span class="rp-option__title">${titleHtml}</span><span class="rp-option__sub">${subHtml}</span></span><span class="rp-radio${on ? " rp-radio--on" : ""}">${on ? rpGlyph("check") : ""}</span></button>`;
   /* the role control repaints whichever screen is up, so a pick already made
      has to survive it: keep st.pick when this surface actually offers it (the
      confirm's same/new and the conflict sheet's link/separate are disjoint
@@ -3225,7 +3781,7 @@ function openScanFlow(opts) {
       st.pick = b.dataset.opt;
       $$("[data-opt]", root).forEach(x => {
         const on = x === b, r = $(".rp-radio", x);
-        x.classList.toggle("rp-option--on", on); r.classList.toggle("rp-radio--on", on); r.innerHTML = on ? rpGlyph("check") : "";
+        x.setAttribute("aria-pressed", String(on)); x.classList.toggle("rp-option--on", on); r.classList.toggle("rp-radio--on", on); r.innerHTML = on ? rpGlyph("check") : "";
       });
     });
     /* the initial state has to agree with st.pick after the line above kept
@@ -3233,7 +3789,7 @@ function openScanFlow(opts) {
        is "new" */
     $$("[data-opt]", root).forEach(x => {
       const on = x.dataset.opt === st.pick, r = $(".rp-radio", x);
-      x.classList.toggle("rp-option--on", on); r.classList.toggle("rp-radio--on", on); r.innerHTML = on ? rpGlyph("check") : "";
+      x.setAttribute("aria-pressed", String(on)); x.classList.toggle("rp-option--on", on); r.classList.toggle("rp-radio--on", on); r.innerHTML = on ? rpGlyph("check") : "";
     });
   }
   /* what the advisor has typed but not yet saved, across a repaint: the role
@@ -3244,28 +3800,54 @@ function openScanFlow(opts) {
   const restoreFields = () => { $$("input[id]", body).forEach(i => { if (st.fields[i.id] !== undefined) i.value = st.fields[i.id]; }); };
   /* every screen is the kit's Task skeleton inside the modal; a sheet left
      open by the screen before is closed with it, listeners and all */
-  function screen(content, dockHtml) {
+  function screen(content, dockHtml, focusHeading = true) {
     sheets.close();
-    body.innerHTML = chShell({ template: "task", title: "Scan license", step: stepLabel(), closeId: "scClose" }, content, dockHtml, { scrim: "scScrim", sheet: "scSheet" });
+    body.innerHTML = chShell({ template: "task", title: "Scan license", step: stepLabel(), closeId: "scClose", hideRole: true }, content, dockHtml, { scrim: "scScrim", sheet: "scSheet" });
+    const heading = $('.rp-title', body);
+    if (heading && focusHeading) { heading.tabIndex = -1; heading.focus(); }
   }
   /* the camera and the library are hidden file inputs; the dock's real
      buttons open them — a label cannot be the kit's button */
   const CAPTURE_INPUTS = `<input type="file" accept="image/*" capture="environment" data-cap data-src="camera" hidden><input type="file" accept="image/*" data-cap data-src="library" hidden>`;
+  function continueManually(beforeDone) {
+    if (st.frontDone && !persistDraft()) return false;
+    const continuation = st.frontDone ? draftOf() : null;
+    if (beforeDone) beforeDone();
+    done();
+    if (o.onManual) o.onManual(continuation);
+    else {
+      scanManualDraft = continuation; scanWantsCreate = true;
+      if (location.hash === '#/customers') router(); else navigate('#/customers');
+    }
+    return true;
+  }
   function wire(renderFn) {
     st.render = renderFn;
     $$("[data-cap]", body).forEach(inp => inp.onchange = () => {
       const f = inp.files && inp.files[0];
-      if (f && st.onCapture) st.onCapture(f);
+      inp.value = "";
+      if (f && st.onCapture) st.onCapture(f, inp.dataset.src || "library");
     });
     $$("[data-cap-btn]", body).forEach(b => b.onclick = () => { const inp = $(`[data-cap][data-src="${b.dataset.capBtn}"]`, body); if (inp) inp.click(); });
     const close = $("#scClose", body); if (close) close.onclick = requestClose;
-    chWireRole(sheets, () => { if (!st.render) return; syncFields(); st.render(); restoreFields(); }, body);
+    // Role switching is intentionally unavailable inside the scanner.
   }
   const openSheet = (html, onMount) => sheets.open(html, (sheet) => { if (onMount) onMount(sheet, sheets.close); });
 
   /* leaving a part-done scan asks once, in the kit's dialog */
+  const leaveConfirmOpen = () => {
+    const sheet = $('#scSheet', body);
+    return !!(sheet && !sheet.hidden && $('#scSaveLater', sheet));
+  };
   function renderLeaveConfirm() {
-    chDialog(sheets, "Leave the scan?", "The captured photos and parsed details will be discarded.", "Leave the scan", () => done(), "Keep scanning");
+    openSheet(`${chSheetHead("Leave the scan?")}<p class="rp-sheet__sub">Keep the unfinished scan on this browser, or discard it explicitly.</p>
+      ${primary('id="scSaveLater"', 'Save and return')}${link('id="scDiscard"', 'Discard scan')}${link('id="scKeep" data-sheet-close autofocus', 'Keep scanning')}`, sheet => {
+      $('#scSaveLater', sheet).onclick = () => { if (persistDraft()) done(); };
+      $('#scDiscard', sheet).onclick = () => { if (persistDraft(true)) { resetGuest(); done(); } };
+      const keep = $('#scKeep', sheet);
+      keep.onclick = () => { sheets.close(); if (st.pendingCapture) renderCaptureReview(st.pendingCapture, false); };
+      keep.focus();
+    });
   }
 
   /* ---- Screen 1: scan. Front and back are phases of one architecture. ---- */
@@ -3278,64 +3860,125 @@ function openScanFlow(opts) {
           ? `<div class="rp-capture__barcode" aria-hidden="true"><i></i></div>`
           : `<div class="rp-capture__card" aria-hidden="true"><div class="rp-capture__portrait">${rpGlyph("customers")}</div><div class="rp-capture__lines"><i></i><i></i><i></i></div></div>`}</div>
         <p class="rp-capture__hint">${isBack ? "Flip to the back" : "Position the front inside the frame"}</p>
-        ${isBack ? `<div class="rp-capture__state">${doneMark()}Front captured · ready for the back</div>` : ""}
-      </div>${CAPTURE_INPUTS}`,
+        ${isBack ? `<div class="rp-capture__state">${doneMark()}Front captured · ready for the back</div>` : st.backImage ? `<div class="rp-capture__state">${doneMark()}Back captured · front needed</div>` : ""}
+      </div>${!isBack && st.backImage ? `<button type="button" class="rp-link" id="scBackLater">Front unavailable · save for later</button>` : ''}${isBack ? `<button type="button" class="rp-link" id="scLater">Back unavailable · save for later</button>` : ''}${o.mode === 'customer' && !st.backImage ? '<button type="button" class="rp-link" id="scWithout">Continue without a complete license</button>' : ''}${CAPTURE_INPUTS}`,
       chDock(primary(`data-cap-btn="camera"`, isBack ? "Capture back" : "Take photo"), link(`data-cap-btn="library"`, "Choose from library")));
-    st.onCapture = isBack ? (file) => renderProcessing(file) : (file) => {
-      st.frontDone = true;
-      /* opportunistic: if this photo already shows the barcode side, skip the
-         wait — recognition still only ever reads the known prop barcodes */
-      const gen = st.frontGen = (st.frontGen || 0) + 1;
-      RIDE_PRICE_SCAN.recognizeFile(file).then((res) => {
-        if (res && res.ok && res.persona && !st.cancelled && st.frontGen === gen && st.stage === "back" && document.contains(body)) {
-          toast("Barcode detected on that photo — skipping ahead");
-          renderProcessing(null, res.persona);
-        }
-      }).catch(() => { /* front photo without a barcode is the normal case */ });
-      renderScan("back");
-    };
+    st.onCapture = (file, source) => prepareCapture(file, source, side);
+    const backLater = $('#scBackLater', body); if (backLater) backLater.onclick = () => { if (persistDraft()) done(); };
+    const later = $('#scLater', body); if (later) later.onclick = () => { if (persistDraft()) done(); };
+    const without = $('#scWithout', body); if (without) without.onclick = () => continueManually();
     wire(() => renderScan(side));
   }
 
-  /* processing and the CRM search are system states, not journey steps: they
-     render inline on the capture card, with no action to take. Every entry
-     takes a generation token; navigating away or a newer read invalidates the
-     old resolve (review lesson 5 — a stale recognizeFile must never paint
-     this screen). */
-  function renderProcessing(file, personaAlready) {
-    st.stage = "processing";
-    const gen = st.procGen = (st.procGen || 0) + 1;
-    const mine = () => live() && st.procGen === gen;
-    st.procFile = file;
-    screen(`${hero("Scan driver&rsquo;s license")}
-      <div class="rp-capture">
-        <div class="rp-capture__frame"><div class="rp-capture__barcode" aria-hidden="true"><i></i></div></div>
-        <p class="rp-capture__hint">Reading the license</p>
-        <div class="rp-capture__state">${doneMark()}Front and back captured</div>
-      </div>`);
-    /* a repaint (the role switch) re-reads the same file: a new generation, the old resolve discarded */
-    /* only the persona THIS call was given — st.persona may still hold the
-       previous guest's (the block screen's rescan leaves it), and a repaint
-       that reused it would resolve the new capture to the old identity */
-    wire(() => renderProcessing(st.procFile, personaAlready));
-    const settle = (p) => { if (!mine()) return; if (p) { st.persona = p; afterRecognize(); } else renderReject(); };
-    if (personaAlready) { setTimeout(() => settle(personaAlready), 700); return; }
-    RIDE_PRICE_SCAN.recognizeFile(file).then((res) => {
-      setTimeout(() => settle(res && res.ok ? res.persona : null), 500);
-    }).catch(() => { if (mine()) renderReject(); });
+  /* A selected image stays outside accepted scanner state until the advisor
+     reviews the actual pixels and chooses Use. Recognition may describe the
+     candidate, but it may not attach it. A generation token prevents a late
+     preview or barcode read from replacing a newer choice or painting after
+     this flow closes. */
+  const captureCurrent = (gen) => live() && st.captureGen === gen;
+  function captureProblem(read, expectedSide) {
+    if (!read || typeof read !== 'object') return 'That photo could not be read.';
+    if (read?.failed) return scannerImageError(read.reason);
+    if (read?.reason === 'multiple-documents') return 'More than one license is visible.';
+    if (['file-too-large', 'image-too-large', 'unsupported-image'].includes(read?.reason)) return scannerImageError(read.reason);
+    if (read?.reason) return scannerImageError(read.reason);
+    if (read?.ok && !scannerHasReviewablePersona(read.persona)) return 'Barcode details could not be reviewed.';
+    if (read?.ok && st.backImage) return 'The back is already saved.';
+    if (read?.ok === true) return '';
+    if (read?.ok !== false) return 'That photo could not be read.';
+    if (expectedSide === 'back') return 'The barcode could not be read.';
+    return '';
   }
-
-  /* failed read is an exception sheet over the capture screen — the advisor
-     never leaves the scanner to recover. One line of camera guidance. */
-  function renderReject() {
-    renderScan("back");
-    openSheet(`${chSheetHead("We couldn’t read the license")}
-      <p class="rp-sheet__sub">Keep the whole barcode inside the frame and avoid glare.</p>
-      ${primary("data-sheet-close", "Try again")}
-      ${o.mode === "customer" ? link("data-manual", "Find customer manually") : ""}`, (sheet, close) => {
-      const m = $("[data-manual]", sheet);
-      if (m) m.onclick = () => { close(); renderManual(); };
-    });
+  function renderCaptureReview(pending = st.pendingCapture, focusHeading = true) {
+    if (!pending || pending !== st.pendingCapture) return;
+    st.stage = 'capture-review';
+    /* A late decode/read may finish behind the leave decision. Keep that
+       decision on top; Keep scanning paints the settled candidate afterward. */
+    if (leaveConfirmOpen()) return;
+    const side = pending.side || pending.expectedSide;
+    const label = side === 'back' ? 'back' : 'front';
+    const useBusy = pending.checking || pending.replacing || pending.committing;
+    const replaceBusy = pending.committing;
+    const stateText = pending.replacing ? 'Checking replacement' : pending.committing ? 'Saving selection' : pending.checking ? 'Checking image' : pending.problem || (pending.needsCorrection ? 'Some details need review' : `Ready to use ${label}`);
+    const replaceSource = pending.source === 'camera' ? 'camera' : 'library';
+    const replaceLabel = pending.source === 'camera' ? 'Retake' : 'Choose another';
+    const useAttrs = `data-capture-use${pending.attachable && !useBusy ? '' : ' disabled aria-disabled="true"'}`;
+    screen(`${hero(pending.checking || pending.replacing ? 'Review photo' : `Review ${label}`)}
+      <div class="rp-capture" data-capture-review="${label}">
+        <div class="rp-capture__frame"><img class="rp-capture__image" data-capture-preview src="${esc(pending.preview)}" alt="Selected ${label} of driver&rsquo;s license"></div>
+        <div class="rp-capture__state" role="status">${pending.attachable && !pending.problem && !pending.checking ? doneMark() : ''}${esc(stateText)}</div>
+      </div>
+      ${pending.problem && pending.manualAllowed && !useBusy && o.mode === 'customer' ? link('data-manual', 'Find customer manually') : ''}
+      ${CAPTURE_INPUTS}`,
+      chDock(primary(useAttrs, `Use ${label}`), link(`data-cap-btn="${replaceSource}" data-capture-replace${replaceBusy ? ' disabled aria-disabled="true"' : ''}`, replaceLabel)), focusHeading);
+    st.onCapture = (file, source) => prepareCapture(file, source, pending.expectedSide);
+    const use = $('[data-capture-use]', body);
+    if (use && !use.disabled) use.onclick = () => acceptCapture(pending);
+    const manual = $('[data-manual]', body);
+    if (manual) manual.onclick = () => { st.captureGen += 1; renderManual(); };
+    wire(() => renderCaptureReview(st.pendingCapture));
+  }
+  async function prepareCapture(file, source, expectedSide) {
+    const gen = ++st.captureGen;
+    const previous = st.pendingCapture;
+    if (previous) {
+      previous.replacing = true;
+      renderCaptureReview(previous, false);
+    }
+    try {
+      const preview = await frontPreview(file);
+      if (!captureCurrent(gen)) return;
+      const pending = { gen, file, source: source === 'camera' ? 'camera' : 'library', expectedSide, side: expectedSide, preview, checking: true, replacing: false, committing: false, attachable: false, needsCorrection: false, persona: null, problem: '' };
+      st.pendingCapture = pending;
+      renderCaptureReview(pending);
+      let read;
+      try { read = await RIDE_PRICE_SCAN.recognizeFile(file); }
+      catch (error) { read = { ok: false, reason: error?.message || 'unreadable-image', failed: true }; }
+      if (!captureCurrent(gen) || st.pendingCapture !== pending) return;
+      pending.checking = false;
+      pending.read = read;
+      pending.problem = captureProblem(read, expectedSide);
+      pending.manualAllowed = expectedSide === 'back' && ((!read?.ok && !read?.reason) || !!read?.failed);
+      if (!pending.problem && read?.ok) {
+        pending.side = 'back'; pending.persona = read.persona; pending.needsCorrection = !scannerHasCompletePersona(read.persona); pending.attachable = true;
+      } else if (!pending.problem && expectedSide === 'front') {
+        pending.side = 'front'; pending.attachable = true;
+      }
+      renderCaptureReview(pending, false);
+    } catch (error) {
+      if (!captureCurrent(gen)) return;
+      st.pendingCapture = previous || null;
+      toast(scannerImageError(error?.message));
+      if (previous?.checking) { st.pendingCapture = null; prepareCapture(previous.file, previous.source, previous.expectedSide); }
+      else if (previous) { previous.replacing = false; renderCaptureReview(previous, false); }
+      else renderScan(expectedSide);
+    }
+  }
+  function acceptCapture(pending) {
+    if (!pending || pending !== st.pendingCapture || !pending.attachable || pending.checking || pending.replacing || pending.committing) return;
+    pending.committing = true;
+    const use = $('[data-capture-use]', body);
+    if (use) { use.disabled = true; use.setAttribute('aria-disabled', 'true'); }
+    const previous = { frontImage: st.frontImage, backImage: st.backImage, frontDone: st.frontDone, persona: st.persona, pairReviewed: st.pairReviewed };
+    if (pending.side === 'front') {
+      st.frontImage = pending.preview;
+      st.frontDone = true;
+      if (!st.backImage) st.persona = null;
+    } else {
+      st.backImage = pending.preview;
+      st.persona = pending.persona;
+    }
+    st.pairReviewed = false;
+    if (!persistDraft()) {
+      Object.assign(st, previous);
+      pending.committing = false;
+      if (use) { use.disabled = false; use.removeAttribute('aria-disabled'); }
+      return;
+    }
+    st.pendingCapture = null;
+    st.captureGen += 1;
+    if (st.frontDone && st.backImage && scannerHasReviewablePersona(st.persona)) renderPairReview();
+    else renderScan(st.frontDone ? 'back' : 'front');
   }
 
   /* manual CRM search (exception sheet): by license number and issuing state
@@ -3349,32 +3992,168 @@ function openScanFlow(opts) {
       </div>
       ${primary(`id="mnGo"`, "Search")}
       <div id="mnOut"></div>`, (sheet, close) => {
+      const clearResults = () => { $("#mnOut", sheet).innerHTML = ""; };
+      $("#mnNum", sheet).oninput = clearResults;
+      $("#mnState", sheet).oninput = clearResults;
       const run = () => {
+        clearResults();
         st.manNum = $("#mnNum", sheet).value.trim();
         st.manState = $("#mnState", sheet).value.trim().toUpperCase();
-        if (!st.manNum) return markMissing(sheet, [{ el: $("#mnNum", sheet), msg: "Required" }]);
-        const norm = (s) => String(s || "").replace(/[^a-z0-9]/gi, "").toLowerCase();
-        const hit = Store.s.customers.find(x => x.license && norm(x.license.number) === norm(st.manNum)
-          && (!x.license.state || !st.manState || norm(x.license.state) === norm(st.manState)));
-        $("#mnOut", sheet).innerHTML = hit
-          ? `<div class="rp-section">Results (1)</div><div class="rp-group"><div class="rp-row"><span class="rp-initials">${initials(hit.first, hit.last)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(hit.first + " " + hit.last)}</span><span class="rp-row__sub">${esc(licLine(hit.license))}</span></span><button type="button" class="rp-button-navy" data-use>Use</button></div></div>`
-          : `<div class="rp-empty"><strong>No match</strong>No customer carries that license number${st.manState ? " in " + esc(st.manState) : ""}.${o.mode === "customer" ? link("data-create", "Create new customer") : ""}</div>`;
-        const use = $("[data-use]", sheet);
-        if (use) use.onclick = () => { close(); done(); if (o.onDone) o.onDone(hit, null, { type: "license number", customer: hit }); };
+        const norm = scannerLicenseToken;
+        const number = norm(st.manNum), state = norm(st.manState), missing = [];
+        if (!number) missing.push({ el: $("#mnNum", sheet), msg: "Required" });
+        if (!state) missing.push({ el: $("#mnState", sheet), msg: "Required" });
+        if (markMissing(sheet, missing)) return;
+        const hits = Store.s.customers.filter(x => {
+          const savedNumber = norm(x.license?.number), savedState = norm(x.license?.state);
+          return savedNumber && savedState && savedNumber === number && savedState === state;
+        });
+        const rows = hits.map(hit => `<div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(hit.first + " " + hit.last)}</span><span class="rp-row__sub">${esc([licLine(hit.license), hit.phone || hit.email || "No contact on file"].join(" · "))}</span></span></div>`).join("");
+        const duplicateReturn = o.mode === "customer" ? "Return to customer search" : "Return to deal";
+        $("#mnOut", sheet).innerHTML = hits.length === 1
+          ? `<div class="rp-section">Results (1)</div><div class="rp-group"><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(hits[0].first + " " + hits[0].last)}</span><span class="rp-row__sub">${esc(licLine(hits[0].license))}</span></span><button type="button" class="rp-button-navy" data-use="0">Use</button></div></div>`
+          : hits.length > 1
+            ? `<div class="rp-notice rp-notice--conflict"><strong>Duplicate license records</strong>Find the customer by name before continuing.</div><div class="rp-section">Matches (${hits.length})</div><div class="rp-group">${rows}</div>${link("data-find-name", duplicateReturn)}`
+            : `<div class="rp-empty"><strong>No match</strong>No customer carries that license number${st.manState ? " in " + esc(st.manState) : ""}.${o.mode === "customer" ? link("data-create", "Create new customer") : ""}</div>`;
+        $$('[data-use]', sheet).forEach(use => use.onclick = () => {
+          const hit = hits[Number(use.dataset.use)];
+          if (scannerLicenseToken(hit?.license?.number) !== number || scannerLicenseToken(hit?.license?.state) !== state) return staleScannerCustomer();
+          if (!persistDraft(true, hit)) return;
+          if (o.onContinue) {
+            if (o.onContinue(hit, null, { type: "license number", customer: hit }) === false) return;
+            close(); done(); return;
+          }
+          close(); done(); if (o.onDone) o.onDone(hit, null, { type: "license number", customer: hit });
+        });
+        const findByName = $('[data-find-name]', sheet);
+        if (findByName) findByName.onclick = () => {
+          if (!persistDraft(true)) return;
+          close(); done();
+          if (o.mode === "customer" && location.hash !== "#/customers") navigate("#/customers");
+        };
         const cr = $("[data-create]", sheet);
         /* an entry with no onManual (the deals-queue camera) still gets a real
            create path: Find a Customer opens with the manual fallback ready
            (the PR #49 fix — the flag is consumed exactly once) */
-        if (cr) cr.onclick = () => {
-          close(); done();
-          if (o.onManual) return o.onManual();
-          scanWantsCreate = true;
-          if (location.hash === "#/customers") router(); else navigate("#/customers");
-        };
+        if (cr) cr.onclick = () => continueManually(close);
       };
       $("#mnGo", sheet).onclick = run;
       $("#mnNum", sheet).onkeydown = (e) => { if (e.key === "Enter") run(); };
+      if (scannerLicenseToken(st.manNum) && scannerLicenseToken(st.manState)) run();
     });
+  }
+
+  function renderPairReview() {
+    st.stage = 'review';
+    screen(`${hero('Review both sides')}
+      <p class="rp-sheet__sub">Compare the name and license number on the front with the barcode details. The demo does not compare them automatically.</p>
+      <img src="${esc(st.frontImage)}" alt="Saved front photo for identity comparison" style="width:100%;border-radius:14px">
+      <div class="rp-kv">${kvRow(st.corrected ? 'Reviewed name' : 'Name from barcode', esc(fullName(st.persona)))}${kvRow(st.corrected ? 'Reviewed license' : 'License from barcode', esc(licLine(st.persona.license)))}</div>
+      <label class="rp-check"><input type="checkbox" id="scPairMatch"><span>I checked the name and license number. Both sides belong to the same person.</span></label>
+      ${link('id="scPairMismatch"', 'These sides do not match')}`, chDock(primary('id="scPairContinue"', 'Continue')));
+    $('#scPairContinue', body).onclick = () => {
+      if (!$('#scPairMatch', body).checked) return toast('Compare both sides and confirm the match before continuing.');
+      st.pairReviewed = true; afterRecognize();
+    };
+    $('#scPairMismatch', body).onclick = () => { if (persistDraft(true)) { resetGuest(); renderScan('front'); toast('Capture both sides of the same license. No customer record was changed.'); } };
+    wire(renderPairReview);
+  }
+  function validDraft(draft) {
+    const expectedMission = o.mission || null, savedMission = draft?.mission || null;
+    const missionMatches = !expectedMission && !savedMission || !!(expectedMission && savedMission && expectedMission.kind === savedMission.kind && expectedMission.dealId === savedMission.dealId);
+    const imageValid = image => typeof image === 'string' && image.length < 2000000 && /^data:image\/jpeg;base64,[A-Za-z0-9+/=]+$/.test(image);
+    const front = imageValid(draft?.frontImage), backOnly = !draft?.frontImage && imageValid(draft?.backImage) && validDraftPersona(draft?.persona);
+    return !!draft && missionMatches && (draft.mode === o.mode || (o.deal && ['customer', 'testdrive'].includes(o.mode) && ['customer', 'testdrive'].includes(draft.mode))) && (front || backOnly)
+      && (!draft.backImage || imageValid(draft.backImage));
+  }
+  function validDraftPersona(p) {
+    return scannerHasReviewablePersona(p);
+  }
+  function draftSubjectState(draft) {
+    const hasSubject = Object.prototype.hasOwnProperty.call(draft, 'subjectCustomerId');
+    let savedId = hasSubject
+      ? typeof draft.subjectCustomerId === 'string' && draft.subjectCustomerId ? draft.subjectCustomerId : draft.subjectCustomerId === null ? null : undefined
+      : draftKey.startsWith('customer:') ? draftKey.slice('customer:'.length) : draftKey === 'unassigned' ? null : undefined;
+    const currentId = draftSubjectCustomerId;
+    const savedCustomer = typeof savedId === 'string' ? Store.customer(savedId) : null;
+    const currentCustomer = typeof currentId === 'string' ? Store.customer(currentId) : null;
+    const bound = o.mode === 'cobuyer' || draftKey.startsWith('customer:');
+    const stale = bound && (savedId === undefined || savedId !== currentId || (savedId !== null && !savedCustomer) || (currentId !== null && !currentCustomer));
+    return { savedId, currentId, savedCustomer, currentCustomer, legacy: !hasSubject, stale };
+  }
+  function draftResumeContext(draft, subject = draftSubjectState(draft)) {
+    const persona = validDraftPersona(draft.persona) ? draft.persona : null;
+    const primary = o.deal && Store.customer(o.deal.customerId);
+    let role = 'Unassigned guest', owner = 'No customer linked';
+    if (o.mission?.kind === 'driver') { role = 'Additional driver'; owner = persona ? fullName(persona) : 'Not yet linked'; }
+    else if (o.mission?.kind === 'cobuyer') { role = 'Co-buyer'; owner = persona ? fullName(persona) : 'Not yet linked'; }
+    else if (o.mode === 'cobuyer' && subject.savedCustomer) { role = 'Co-buyer'; owner = fullName(subject.savedCustomer); }
+    else if (o.mode === 'cobuyer') { role = 'Co-buyer'; owner = persona ? fullName(persona) : 'Not yet linked'; }
+    else if (subject.savedCustomer || primary) { role = 'Customer'; owner = fullName(subject.savedCustomer || primary); }
+    else if (persona) { role = 'Scanned guest'; owner = fullName(persona); }
+    const sides = draft.frontImage && draft.backImage ? 'Front and back captured' : draft.frontImage ? 'Front captured · back needed' : 'Back captured · front needed';
+    const rawSavedAt = typeof draft.savedAt === 'string' ? draft.savedAt.trim() : '';
+    const parsedSavedAt = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(rawSavedAt) ? Date.parse(rawSavedAt) : NaN;
+    const savedAt = Number.isFinite(parsedSavedAt) && new Date(parsedSavedAt).toISOString() === rawSavedAt ? rawSavedAt : '';
+    const stamp = savedAt ? new Date(savedAt) : new Date(NaN);
+    const saved = Number.isNaN(stamp.getTime()) ? 'Saved on this browser' : stamp.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    return { role, owner, sides, saved, savedAt };
+  }
+  function renderResume() {
+    st.stage = 'resume';
+    const draft = draftOf(); seenDraft = JSON.stringify(draft ?? null);
+    if (scannerHasCompletion(draft)) {
+      const expected = o.mission;
+      if (!scannerValidCompletion(draft) || !expected || draft.mission.kind !== expected.kind || draft.mission.dealId !== expected.dealId) {
+        screen(`${hero('Pending attachment unavailable')}`, chDock(primary('id="scCompletionDiscard"', 'Discard pending attachment')));
+        $('#scCompletionDiscard', body).onclick = () => { if (persistDraft(true)) { done(); router(); } };
+        wire(renderResume); return;
+      }
+      st.saved = true;
+      renderDone(Store.customer(draft.completion.customerId), draft.completion.wasExisting, draft.completion.source);
+      return;
+    }
+    if (!validDraft(draft)) {
+      screen(`${hero('Saved scan unavailable')}`, chDock(primary('id="scResumeDiscard"', 'Discard and start a new scan')));
+      $('#scResumeDiscard', body).onclick = () => { if (persistDraft(true)) { resetGuest(); renderScan('front'); } };
+      wire(renderResume); return;
+    }
+    const subject = draftSubjectState(draft), context = draftResumeContext(draft, subject);
+    if (subject.stale) {
+      const savedOwner = subject.savedCustomer ? fullName(subject.savedCustomer) : validDraftPersona(draft.persona) ? fullName(draft.persona) : 'Identity unavailable';
+      const currentOwner = subject.currentCustomer ? fullName(subject.currentCustomer) : 'None attached';
+      const subjectLabel = o.mode === 'cobuyer' ? 'Co-buyer' : 'Customer';
+      screen(`${hero('Saved scan needs review')}<div class="rp-notice rp-notice--conflict" role="alert"><strong>${subjectLabel} changed</strong>This saved scan cannot be resumed for the current ${subjectLabel.toLowerCase()}.</div>
+        <div class="rp-kv" data-draft-owner data-draft-stale data-saved-at="${esc(context.savedAt)}">
+          ${kvRow('Saved for', esc(savedOwner))}${kvRow(`Current ${subjectLabel.toLowerCase()}`, esc(currentOwner))}${kvRow('Captured', esc(context.sides))}${kvRow('Saved', esc(context.saved))}
+        </div>`, chDock(primary('id="scResumeDiscard"', 'Discard and start a new scan')));
+      $('#scResumeDiscard', body).onclick = () => { if (persistDraft(true)) { resetGuest(); renderScan('front'); } };
+      wire(renderResume); return;
+    }
+    screen(`${hero('Resume license scan')}<div class="rp-kv" data-draft-owner data-saved-at="${esc(context.savedAt)}">
+        ${kvRow('Draft for', `${esc(context.role)} · ${esc(context.owner)}`)}
+        ${kvRow('Captured', esc(context.sides))}
+        ${kvRow('Saved', esc(context.saved))}
+      </div>
+      <img src="${esc(draft.frontImage || draft.backImage)}" alt="Saved license ${draft.frontImage ? 'front' : 'back — front still needed'}" style="width:100%;max-height:240px;object-fit:contain;border-radius:16px">
+      ${link('id="scResumeDiscard"', 'Discard and start a new scan')}`, chDock(primary('id="scResume"', 'Resume scan')));
+    $('#scResume', body).onclick = async () => {
+      const gen = st.resumeGen = (st.resumeGen || 0) + 1;
+      const current = () => live() && st.stage === 'resume' && st.resumeGen === gen && draftOf() === draft;
+      try {
+        for (const source of [draft.frontImage, draft.backImage].filter(Boolean)) { const img = new Image(); img.src = source; await img.decode(); }
+        if (!current()) return;
+      } catch {
+        if (!current()) return;
+        screen(`${hero('Saved photo unavailable')}`, chDock(primary('id="scResumeDiscard"', 'Discard and start a new scan')));
+        $('#scResumeDiscard', body).onclick = () => { if (persistDraft(true)) { resetGuest(); renderScan('front'); } };
+        wire(renderResume); return;
+      }
+      st.frontImage = draft.frontImage || null; st.backImage = draft.backImage || null; st.corrected = draft.corrected === true; st.frontDone = !!st.frontImage; st.persona = validDraftPersona(draft.persona) ? draft.persona : null;
+      if (!st.frontDone) renderScan('front'); else if (st.persona) renderPairReview(); else renderScan('back');
+    };
+    $('#scResumeDiscard', body).onclick = () => { st.resumeGen = (st.resumeGen || 0) + 1; if (persistDraft(true)) { resetGuest(); renderScan('front'); } };
+    wire(renderResume);
   }
 
   /* recognition succeeded — route by mode, then by the match cascade. A
@@ -3382,28 +4161,54 @@ function openScanFlow(opts) {
      (never merged silently); nothing on file creates. */
   function afterRecognize() {
     const p = st.persona;
+    if (!st.pairReviewed) return renderPairReview();
     if (o.mode === "testdrive") return renderVerifyTd(p);
     const m = findLicenseMatch(p);
-    if (o.mode === "cobuyer" && m.customer) {
+    if (o.mode === "cobuyer" && m.customer && !m.ask) {
       if (m.customer.id === o.deal.customerId) return renderBlock();
-      if (m.customer.id === o.deal.coBuyerId) return renderBlock("already");
+      if (!coBuyerAllowed(m.customer)) return;
     }
+    if (o.mode === 'cobuyer' && coTarget && (!m.customer || m.customer.id !== coTarget || scannerIdentityConflict(m.customer, p))) return renderBlock('different');
+    if (m.candidates && m.type === "license number") {
+      st.manNum = p.license.number; st.manState = p.license.state;
+      return renderManual();
+    }
+    if (m.candidates) return renderCandidates(m);
     if (m.customer) { st.match = m; return renderConfirm(m); }
     st.match = m;
     renderNewCustomer();
   }
 
+  function renderCandidates(m) {
+    st.stage = "confirm";
+    screen(`${hero("Choose customer")}<div class="rp-group">${m.candidates.map((c, i) => `<button type="button" class="rp-row" data-candidate="${i}"><span class="rp-row__body"><span class="rp-row__title">${esc(fullName(c))}</span><span class="rp-row__sub">${esc([c.dob ? dateUS(c.dob) : "", c.license?.number || ""].filter(Boolean).join(" · "))}</span></span></button>`).join("")}</div>`, chDock(primary('data-new-guest', 'Different guest')));
+    $$('[data-candidate]', body).forEach(b => b.onclick = () => {
+      const customer = m.candidates[Number(b.dataset.candidate)];
+      st.sv = null; st.addressChoice = null; st.pick = null;
+      st.match = { type: m.type, customer, ask: "candidate", conflict: scannerIdentityConflict(customer, st.persona) };
+      renderConfirm(st.match);
+    });
+    $('[data-new-guest]', body).onclick = () => { st.match = null; st.sv = null; st.addressChoice = null; st.pick = null; renderNewCustomer(); };
+    wire(() => renderCandidates(m));
+  }
+  function identityConflictNotice() {
+    let note = $('#scIdentityConflict', body);
+    if (!note) { note = document.createElement('p'); note.id = 'scIdentityConflict'; note.setAttribute('role', 'alert'); $('.rp-page', body).appendChild(note); }
+    note.textContent = 'These identity details conflict. The existing customer has not been changed.';
+    note.scrollIntoView({ block: 'nearest' });
+    return false;
+  }
   /* hard block, no override: the scan resolved to a person already on this deal */
-  function renderBlock(kind) {
+  function renderBlock(kind, customer = st.persona) {
     st.stage = "block";
-    screen(`${hero(kind === "already" ? "Already the co-buyer" : "That&rsquo;s the primary buyer")}
-      <div class="rp-notice rp-notice--conflict"><strong>${esc(fullName(st.persona))}</strong>${kind === "already"
-        ? "This license resolves to the person already attached as the co-buyer."
+    screen(`${hero(kind === "different" ? "Co-buyer does not match" : "That&rsquo;s the primary buyer")}
+      <div class="rp-notice rp-notice--conflict"><strong>${esc(fullName(customer))}</strong>${kind === "different"
+        ? "The co-buyer on this deal has not been changed. Reopen the scanner from Buyers to continue."
         : "A person can&rsquo;t co-sign their own loan — the co-buyer must be a different guest."}</div>`,
       chDock(primary("data-rescan", "Scan a different license"), link("data-cancel", "Cancel")));
-    $("[data-rescan]", body).onclick = () => { resetGuest(); renderScan("front"); };
+    $("[data-rescan]", body).onclick = () => { if (persistDraft(true)) { resetGuest(); renderScan("front"); } };
     $("[data-cancel]", body).onclick = () => done();
-    wire(() => renderBlock(kind));
+    wire(() => renderBlock(kind, customer));
   }
 
   /* one label per type findLicenseMatch() can return — the tag states the
@@ -3422,9 +4227,9 @@ function openScanFlow(opts) {
   function seedSv(ex) {
     const p = st.persona;
     return st.sv = st.sv || {
-      first: p.first, middle: p.middle || "", last: p.last,
+      first: p.first, middle: typeof p.middle === 'string' && p.middle.trim() ? p.middle : ex?.middle || "", last: p.last,
       dob: p.dob || "", address: p.address, city: p.city, state: p.state, zip: p.zip,
-      email: ex ? ex.email : "", phone: ex ? ex.phone : "",
+      email: ex ? ex.email : st.editContacts?.email || "", phone: ex ? ex.phone : st.editContacts?.phone || "",
       license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
     };
   }
@@ -3435,7 +4240,7 @@ function openScanFlow(opts) {
     email: st.sv.email, phone: st.sv.phone,
     license: { number: st.sv.license.number, state: st.sv.license.state, expires: st.sv.license.expires }
   });
-  const normPhone = (s) => String(s || "").replace(/\D/g, "");
+  const normPhone = normalizeCustomerPhone;
 
   /* what the scanned license changes on the record — delta-only (the board):
      when nothing changed, nothing is listed. The new value alone; the row
@@ -3443,7 +4248,7 @@ function openScanFlow(opts) {
   function deltasFor(ex, sv) {
     const chg = [];
     const push = (label, oldV, newV, isDate) => { if (newV && (!oldV || String(oldV) !== String(newV))) chg.push({ label, newV, isDate }); };
-    push("Name", ex.first + " " + ex.last, sv.first + " " + sv.last);
+    push("Name", fullName(ex), fullName(sv));
     push("Date of birth", ex.dob, sv.dob, true);
     push("License", ex.license && ex.license.number ? licLine(ex.license) : "", licLine(sv.license));
     push("Expires", ex.license && ex.license.expires, sv.license.expires, true);
@@ -3460,19 +4265,24 @@ function openScanFlow(opts) {
     const p = st.persona, ex = m.customer;
     const sv = seedSv(ex);
     const chg = deltasFor(ex, sv);
-    const needContact = !ex.phone || !ex.email; /* both channels required (owner rule) */
+    const needPhone = !validCustomerPhone(ex.phone), needEmail = !validCustomerEmail(ex.email);
+    const needContact = needPhone || needEmail; /* both usable channels required (owner rule) */
     const ask = !!m.ask;
-    const basis = BASIS[m.type] || "Match found";
+    const onDeal = o.mode === "cobuyer" && (ex.id === o.deal.customerId || (ex.id === o.deal.coBuyerId && ex.id !== coTarget));
+    const basis = m.conflict ? "Needs review" : BASIS[m.type] || "Match found";
     const last4 = ex.license && ex.license.number ? ex.license.number.slice(-4) : null;
     const addsDob = !!(p.dob && !ex.dob);
+    const currentAddressComplete = scannerHasCompleteAddress(ex);
+    const addressChanged = scannerHasCompleteAddress(sv) && (!currentAddressComplete || ["address", "city", "state", "zip"].some(k => String(ex[k] || "").trim().toLowerCase() !== String(sv[k] || "").trim().toLowerCase()));
     screen(`${hero("Confirm customer")}
+      ${m.conflict ? '<p id="scIdentityConflict" role="alert">These identity details conflict. The existing customer has not been changed.</p>' : ''}
       <div class="rp-match">
-        <div class="rp-match__head"><span class="rp-initials">${initials(ex.first, ex.last)}</span>
-          <span class="rp-row__body"><span class="rp-row__title">${esc(fullName(ex))}</span><span class="rp-row__sub">Existing customer${last4 ? " · license ending " + esc(last4) : ""}${o.mode === "cobuyer" ? " · will be attached as the co-buyer" : ""}</span></span>
-          <span class="rp-tag rp-tag--match">${esc(basis)}</span></div>
+        <div class="rp-match__head">
+          <span class="rp-row__body"><span class="rp-row__title">${esc(fullName(ex))}</span><span class="rp-row__sub">Existing customer${last4 ? " · license ending " + esc(last4) : ""}${onDeal ? " · already on this deal" : o.mode === "cobuyer" ? (ex.id === coTarget ? " · current co-buyer" : " · will be attached as the co-buyer") : ""}</span></span>
+          <span class="rp-tag ${m.conflict ? "rp-tag--required" : "rp-tag--match"}">${esc(basis)}</span></div>
         ${ask ? "" : `<div class="rp-step">${doneMark()}<div><span class="rp-step__title">Identity matched</span></div><span class="rp-status rp-status--positive">${esc(BASIS_SHORT[m.type] || "Match")}</span></div>`}
         ${needContact
-          ? `<div class="rp-step"><span class="rp-step__mark"></span><div><span class="rp-step__title">Contact incomplete</span></div><span class="rp-status">${!ex.phone && !ex.email ? "Phone & email needed" : !ex.phone ? "Phone needed" : "Email needed"}</span></div>`
+          ? `<div class="rp-step"><span class="rp-step__mark"></span><div><span class="rp-step__title">Contact incomplete</span></div><span class="rp-status">${needPhone && needEmail ? "Phone & email needed" : needPhone ? "Phone needed" : "Email needed"}</span></div>`
           : `<div class="rp-step">${doneMark()}<div><span class="rp-step__title">Phone &amp; email on file</span></div><span class="rp-status rp-status--positive">Complete</span></div>`}
       </div>
       <div style="height:16px"></div>
@@ -3480,31 +4290,66 @@ function openScanFlow(opts) {
         ${kvRow("Name", esc(fullName(p)))}${kvRow("Date of birth", p.dob ? esc(dateUS(p.dob)) : "—")}${kvRow("License", esc(licLine(p.license)))}${kvRow("Address", esc(fmtAddr(p)))}</div>`
       : chg.length ? `<div class="rp-kv"><div class="rp-kv__head">Updates from this license · ${chg.length}</div>
         ${chg.map(c2 => kvRow(esc(c2.label), esc(c2.isDate ? dateUS(c2.newV) : c2.newV))).join("")}</div>` : ""}
-      ${needContact ? `${!ex.phone ? field("svPhone", "Mobile phone", "tel", sv.phone, "(718) 555-5555") : ""}${!ex.email ? field("svEmail", "Email", "email", sv.email, "name@testing.com") : ""}` : ""}
-      ${ask ? option("same", `Same person — update ${esc(ex.first)}&rsquo;s record`, `Adds the license${addsDob ? " and date of birth" : ""} to the profile`, true)
+      ${addressChanged ? `<fieldset class="rp-kv" id="scAddressChoice"><legend class="rp-kv__head">Registration address</legend>${currentAddressComplete ? `<label class="rp-check"><input type="radio" name="scAddress" value="current" ${st.addressChoice === 'current' ? 'checked' : ''}><span>Keep current address<br>${esc(fmtAddr(ex))}</span></label>` : ''}<label class="rp-check"><input type="radio" name="scAddress" value="license" ${st.addressChoice === 'license' ? 'checked' : ''}><span>Use license address<br>${esc(fmtAddr(sv))}</span></label></fieldset>` : ''}
+      ${link('id="scEditLicense"', 'Edit license details')}
+      ${needContact ? `${needPhone ? field("svPhone", "Mobile phone", "tel", sv.phone, "(718) 555-5555") : ""}${needEmail ? field("svEmail", "Email", "email", sv.email, "name@testing.com") : ""}` : ""}
+      ${ask ? option("same", onDeal ? "Same person — already on this deal" : `Same person — update ${esc(ex.first)}&rsquo;s record`, onDeal ? "Cannot be added as another buyer" : `Adds the license${addsDob ? " and date of birth" : ""} to the profile`, true)
         + option("new", "Different guest — create new", "Starts a new customer from the license", false) : ""}`,
       ask ? chDock(primary("data-save", "Continue"))
           : chDock(primary("data-save", "Confirm &amp; continue"), link("data-notme", `This isn&rsquo;t ${esc(ex.first)}`)));
-    if (ask) wireOptions(body, "same");
-    const toCreate = () => { st.match = { type: null, customer: null }; st.sv = null; renderNewCustomer(); };
+    if (ask) wireOptions(body, null);
+    $('#scEditLicense', body).onclick = () => editLicense();
+    $$('[name="scAddress"]', body).forEach(input => input.onchange = () => { st.addressChoice = input.value; });
+    const toCreate = () => { st.match = { type: null, customer: null }; st.sv = null; st.addressChoice = null; renderNewCustomer(); };
     $("[data-save]", body).onclick = () => {
+      if (ask && !st.pick) return toast("Choose the customer identity before continuing");
       if (ask && st.pick === "new") return toCreate();
+      if (scannerIdentityConflict(ex, svVals())) return identityConflictNotice();
       if (needContact) {
-        if (!ex.phone) sv.phone = $("#svPhone", body).value.trim();
-        if (!ex.email) sv.email = $("#svEmail", body).value.trim();
+        if (needPhone) sv.phone = $("#svPhone", body).value.trim();
+        if (needEmail) sv.email = $("#svEmail", body).value.trim();
         const bad = [];
-        if (!sv.phone) bad.push({ el: $("#svPhone", body), msg: "Required" });
-        if (!sv.email) bad.push({ el: $("#svEmail", body), msg: "Required" });
-        if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
+        if (needPhone && !validCustomerPhone(sv.phone)) bad.push({ el: $("#svPhone", body), msg: sv.phone ? "Enter a 10-digit phone" : "Required" });
+        if (needEmail && !validCustomerEmail(sv.email)) bad.push({ el: $("#svEmail", body), msg: sv.email ? "Enter a valid email" : "Required" });
+        if (markMissing(body, bad)) return toast("Check the errors beside each field");
       }
-      saveFrom(svVals(), ex);
+      if (addressChanged && (!st.addressChoice || (st.addressChoice === 'current' && !currentAddressComplete))) return toast('Choose a complete registration address before continuing');
+      const values = svVals();
+      if (addressChanged && st.addressChoice === 'current') ['address', 'city', 'state', 'zip'].forEach(k => values[k] = ex[k] || '');
+      saveFrom(values, ex);
     };
     const notme = $("[data-notme]", body); if (notme) notme.onclick = toCreate;
     wire(() => renderConfirm(m));
   }
 
-  /* new customer: identity is a read-only summary from the license — the
-     advisor never retypes card data. The only asks are what a license cannot
+  function editLicense() {
+    const source = structuredClone(st.persona);
+    if ($('#svPhone', body)) st.sv.phone = $('#svPhone', body).value.trim();
+    if ($('#svEmail', body)) st.sv.email = $('#svEmail', body).value.trim();
+    const fields = [['First','First name',source.first],['Last','Last name',source.last],['Dob','Date of birth',source.dob],['Number','License number',source.license.number],['Issuer','Issuing state',source.license.state],['Expires','Expiration date',source.license.expires],['Address','Street address',source.address],['City','City',source.city],['State','State',source.state],['Zip','ZIP code',source.zip]];
+    openSheet(`${chSheetHead('Edit license details')}${fields.map(([id,label,value]) => field('scEdit'+id, label, ['Dob','Expires'].includes(id) ? 'date' : 'text', value, '')).join('')}${primary('id="scEditSave"','Review changes')}`, sheet => {
+      $('#scEditSave', sheet).onclick = () => {
+        const values = {}, bad = [];
+        fields.forEach(([id]) => { const el = $('#scEdit'+id, sheet); values[id] = el.value.trim(); if (!['Dob', 'Expires'].includes(id) && (!values[id] || !el.checkValidity())) bad.push({el,msg:'Enter a valid value'}); });
+        for (const id of ['Dob', 'Expires']) if (!scannerValidDate(values[id])) bad.push({el: $('#scEdit'+id, sheet), msg: 'Enter a valid date'});
+        const today = new Date(), localToday = [today.getFullYear(), String(today.getMonth()+1).padStart(2,'0'), String(today.getDate()).padStart(2,'0')].join('-');
+        if (values.Dob > localToday) bad.push({el: $('#scEditDob', sheet), msg: 'Date of birth cannot be in the future'});
+        if (markMissing(sheet, bad)) return;
+        const sameIdentity = values.First === source.first && values.Last === source.last && values.Dob === source.dob && values.Number === source.license.number && values.Issuer === source.license.state;
+        const previousEdit = { persona: st.persona, corrected: st.corrected, editContacts: st.editContacts };
+        st.editContacts = sameIdentity ? {phone: st.sv.phone, email: st.sv.email} : null;
+        st.persona = {...source, first:values.First,last:values.Last,dob:values.Dob,address:values.Address,city:values.City,state:values.State,zip:values.Zip,license:{...source.license,number:values.Number,state:values.Issuer,expires:values.Expires}};
+        st.corrected = true;
+        if (!persistDraft()) { Object.assign(st, previousEdit); return; }
+        clearTimeout(toastTimer); $("#toast")?.remove();
+        st.sv = null; st.addressChoice = null; st.match = null; st.pick = null; st.pairReviewed = false;
+        renderPairReview();
+      };
+    });
+  }
+
+  /* new customer: identity starts as a summary with an explicit correction sheet — the
+     advisor can correct extracted details before confirmation. Contact fields collect what a license cannot
      say: phone and email (both required; owner rule). No credit score is
      asked (owner, 2026-08-25) — the record starts at the neutral default. */
   function renderNewCustomer() {
@@ -3517,6 +4362,7 @@ function openScanFlow(opts) {
         ${kvRow("Date of birth", sv.dob ? esc(dateUS(sv.dob)) : "—")}
         ${kvRow("Address", esc(fmtAddr(sv)))}
       </div>
+      ${link('id="scEditLicense"', 'Edit license details')}
       ${field("svPhone", "Mobile phone", "tel", sv.phone, "(718) 555-5555")}
       ${field("svEmail", "Email", "email", sv.email, "name@testing.com")}`,
       chDock(primary("data-save", o.mode === "cobuyer" ? "Add as co-buyer" : "Create customer")));
@@ -3527,48 +4373,133 @@ function openScanFlow(opts) {
          typed, the number is read first — one already on file opens the
          conflict sheet, and on the link path the profile's own email
          completes the record. Every path that CREATES requires both. */
-      if (!sv.phone) { requireContact(svVals()); return; }
       saveFrom(svVals(), null);
     };
+    $("#scEditLicense", body).onclick = () => editLicense();
     wire(renderNewCustomer);
   }
 
   /* single save tail for every path (direct, phone-link, phone-keep): write
      the store, then the local done state — no ceremonial success screen */
-  function finishSave(cust, wasExisting, warnMsg) {
-    if (o.mode === "cobuyer") o.deal.coBuyerId = cust.id;
-    Store.save();
+  function scanSaveError(error, operation = "customer") {
+    const sheet = $('#scSheet', body);
+    const host = sheet && !sheet.hidden ? sheet : $('.rp-page', body);
+    let message = $('#scSaveError', body);
+    if (!message) { message = document.createElement('p'); message.id = 'scSaveError'; message.setAttribute('role', 'alert'); }
+    host.appendChild(message);
+    const lead = operation === 'discard' ? 'Scan was not discarded. Your unfinished scan is still here. ' : operation === 'scan' ? 'Scan was not saved. Your captured photos and entries are still here. ' : 'Customer was not saved. Your entries are still here. ';
+    message.textContent = lead +
+      (error.name === 'StaleCustomerError' ? 'The customer or deal changed. Close this scan and reopen it.' : error.name === 'DraftConflictError' ? 'This scan changed in another tab. Reload before saving again.' : error.name === 'QuotaExceededError' ? 'Storage is full. Free space and try again.' : 'Try again.');
+    message.scrollIntoView({ block: 'nearest' });
+  }
+  function staleScannerCustomer() {
+    scanSaveError({ name: 'StaleCustomerError' });
+    return false;
+  }
+  function currentScannerCustomer(customer) {
+    return customer && Store.customer(customer.id) === customer ? true : staleScannerCustomer();
+  }
+  function finishSave(cust, wasExisting, warnMsg, update) {
+    // Enforce the relationship before any identity mutation, regardless of entry path.
+    if (wasExisting && !currentScannerCustomer(cust)) return false;
+    if (!coBuyerAllowed(cust, wasExisting)) return false;
+    if (!st.pairReviewed) { renderPairReview(); return false; }
+    if (wasExisting && scannerIdentityConflict(cust, update || svVals())) return identityConflictNotice();
+    if (!wasExisting && Store.s.customers.some(existing => {
+      const existingNumber = scannerLicenseToken(existing.license?.number), newNumber = scannerLicenseToken(cust.license?.number);
+      const existingState = scannerLicenseToken(existing.license?.state), newState = scannerLicenseToken(cust.license?.state);
+      return existingNumber && newNumber && existingState && newState && existingNumber === newNumber && existingState === newState;
+    })) {
+      return identityConflictNotice();
+    }
+    const completed = Object.assign({}, cust, update || {});
+    // An incomplete extraction must be corrected, not erase known dates or
+    // mark a document complete using values from an older license.
+    if (!scannerHasCompletePersona(completed)) {
+      editLicense();
+      toast('Complete the license details before saving.');
+      return false;
+    }
+    if (!validCustomerPhone(completed.phone) || !validCustomerEmail(completed.email)) {
+      sheets.close();
+      const missing = [!validCustomerPhone(completed.phone) ? 'Valid mobile phone' : '', !validCustomerEmail(completed.email) ? 'Valid email' : ''].filter(Boolean);
+      let note = $('#scContactRequired', body);
+      if (!note) { note = document.createElement('p'); note.id = 'scContactRequired'; note.setAttribute('role', 'alert'); $('.rp-page', body).appendChild(note); }
+      note.textContent = missing.join(' and ') + ' required before saving.';
+      return false;
+    }
+    const previousDrafts = Store.s.licenseDrafts;
+    const previous = wasExisting ? JSON.parse(JSON.stringify(cust)) : null;
+    const hadCoBuyer = o.deal && Object.prototype.hasOwnProperty.call(o.deal, 'coBuyerId');
+    const previousCoBuyer = o.deal?.coBuyerId;
+    try {
+      if (update) {
+        const incoming = { ...update };
+        if (wasExisting && !(typeof incoming.middle === 'string' && incoming.middle.trim())) delete incoming.middle;
+        Object.assign(cust, incoming);
+      }
+      const now = new Date().toISOString();
+      cust.onboard = { ...(cust.onboard || {}), licensePhotoAt: now, secondSide: 'received', licenseSides: { front: true, back: true, reviewedAt: now, method: 'advisor-comparison' }, address: wasExisting && st.addressChoice === 'current' ? { ...(previous.onboard?.address || {}) } : { confirmedAt: now, source: 'license' } };
+      const pending = completionDraft(cust, wasExisting, 'scan');
+      if (draftMoved()) throw movedError(); Store.s.licenseDrafts = { ...(previousDrafts || {}) };
+      if (pending) Store.s.licenseDrafts[draftKey] = pending; else delete Store.s.licenseDrafts[draftKey];
+      if (!wasExisting) Store.s.customers.push(cust);
+      if (o.mode === 'cobuyer') o.deal.coBuyerId = cust.id;
+      Store.save(); seenDraft = JSON.stringify(draftOf() ?? null);
+    } catch (error) {
+      if (previousDrafts === undefined) delete Store.s.licenseDrafts; else Store.s.licenseDrafts = previousDrafts;
+      if (wasExisting) {
+        Object.keys(cust).forEach(k => delete cust[k]);
+        Object.assign(cust, previous);
+      } else {
+        const at = Store.s.customers.indexOf(cust);
+        if (at !== -1) Store.s.customers.splice(at, 1);
+      }
+      if (o.mode === 'cobuyer') {
+        if (hadCoBuyer) o.deal.coBuyerId = previousCoBuyer;
+        else delete o.deal.coBuyerId;
+      }
+      scanSaveError(error);
+      return false;
+    }
     if (o.mode === "cobuyer") {
-      done(); toast(warnMsg || "Co-buyer added — " + cust.first + " " + cust.last);
+      done(); toast(warnMsg || (coTarget ? "Co-buyer license updated — " : "Co-buyer added — ") + cust.first + " " + cust.last);
       if (o.onDone) o.onDone(cust, st.persona, st.match);
-      return;
+      return true;
     }
     st.saved = true;
+    clearTimeout(toastTimer); $('#toast')?.remove();
     if (warnMsg) toast(warnMsg);
     renderDone(cust, wasExisting);
+    return true;
   }
 
   /* every path that writes a NEW record writes a complete one: the same
      required set and the same marks as Create Customer, on the form underneath */
   function requireContact(vals) {
     const bad = customerMissing(vals, "sv", body);
-    if (markMissing(body, bad)) { toast("Fill in the fields marked in red"); return false; }
+    if (markMissing(body, bad)) { toast("Check the errors beside each field"); return false; }
     return true;
   }
 
   function saveFrom(vals, ex) {
+    // Summary screens have no editable identity fields for markMissing.
+    // Route partial extraction to correction before contact or duplicate checks.
+    if (!scannerHasCompletePersona(vals)) {
+      editLicense();
+      toast('Complete the license details before saving.');
+      return;
+    }
     const phoneDigits = normPhone(vals.phone);
     const mkNew = () => {
       const cust = Object.assign({ id: uid("c"), creditScore: 700, createdAt: new Date().toISOString() }, vals);
-      Store.s.customers.push(cust);
       return cust;
     };
     if (ex) {
       /* matched already — a typed phone belonging to someone ELSE is likelier a typo
          or a shared phone than a wrong match: warn, don't switch */
       const other = phoneDigits && Store.s.customers.find(x => x.id !== ex.id && normPhone(x.phone) === phoneDigits);
-      Object.assign(ex, vals);
-      finishSave(ex, true, other ? "Saved — heads up: that phone number is also on file for " + other.first + " " + other.last : null);
+      finishSave(ex, true, other ? "Saved — heads up: that phone number is also on file for " + other.first + " " + other.last : null, vals);
     } else {
       /* about to create — the typed phone is the last chance to catch a duplicate */
       const dup = phoneDigits && Store.s.customers.find(x => normPhone(x.phone) === phoneDigits);
@@ -3588,6 +4519,7 @@ function openScanFlow(opts) {
   function nearMatches(vals) {
     const lc = (s) => String(s || "").trim().toLowerCase();
     return Store.s.customers.filter(x => {
+      if (o.mode === "cobuyer" && (x.id === o.deal.customerId || x.id === o.deal.coBuyerId)) return false;
       if (lc(x.last) === lc(vals.last) && lc(x.first)[0] === lc(vals.first)[0]) return true;
       return !!(vals.dob && x.dob === vals.dob);
     }).slice(0, 5);
@@ -3597,13 +4529,14 @@ function openScanFlow(opts) {
      second record for the same person is written — never merged silently */
   function renderDuplicates(cands, vals, mkNew) {
     openSheet(`${chSheetHead("Possible duplicate")}
-      <div class="rp-group">${cands.map((c2, i) => `<button type="button" class="rp-row" data-pik="${i}"><span class="rp-initials">${initials(c2.first, c2.last)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(fullName(c2))}</span><span class="rp-row__sub">${esc(c2.phone || c2.email || "No contact on file")}</span></span><span class="rp-row__chevron"></span></button>`).join("")}</div>
+      <div class="rp-group">${cands.map((c2, i) => `<button type="button" class="rp-row" data-pik="${i}"><span class="rp-row__body"><span class="rp-row__title">${esc(fullName(c2))}</span><span class="rp-row__sub">${esc(c2.phone || c2.email || "No contact on file")}</span></span><span class="rp-row__chevron"></span></button>`).join("")}</div>
       <p class="rp-sheet__sub">Creating new adds a second record with this name.</p>
       ${primary("data-none", "Create new customer")}`, (sheet, close) => {
       $$("[data-pik]", sheet).forEach(b => b.onclick = () => {
         close();
-        st.match = { type: "your selection", customer: cands[+b.dataset.pik] };
-        st.sv = null;
+        st.match = { type: "your selection", customer: cands[+b.dataset.pik], ask: "selection" };
+        st.pick = null;
+        st.sv = null; st.addressChoice = null;
         renderConfirm(st.match);
       });
       $("[data-none]", sheet).onclick = () => { close(); finishSave(mkNew(), false); };
@@ -3615,16 +4548,19 @@ function openScanFlow(opts) {
      Nothing merges until the number is verified. */
   function renderPhoneConflict(dup, vals, mkNew) {
     const isPrimary = o.mode === "cobuyer" && dup.id === o.deal.customerId;
+    const canLink = !isPrimary && scannerCanLink(dup, vals);
     const via = dup.createdVia === "link" ? "created from a secure upload link" : "an existing customer";
     openSheet(`${chSheetHead("This number is already in use")}
       <div class="rp-notice rp-notice--conflict"><strong>${esc(vals.phone)}</strong>On ${esc(dup.first + " " + dup.last)}&rsquo;s profile — ${via}, ${dup.license && dup.license.number ? "license on file" : "no license on file"}.${isPrimary ? " That&rsquo;s the primary buyer on this deal, so linking isn&rsquo;t available." : ""}</div>
-      ${isPrimary ? "" : option("link", "Verify the number and link this license", "The scanned license joins the existing profile", true)}
+      ${!canLink ? "" : option("link", "Verify the number and link this license", "The scanned license joins the existing profile", true)}
       ${option("separate", "Keep profiles separate", "Creates a second customer record", isPrimary)}
       <div style="height:8px"></div>
       ${primary("data-continue", "Continue")}
       ${link("data-pfix", "Use a different number")}`, (sheet, close) => {
-      wireOptions(sheet, isPrimary ? "separate" : "link");
+      wireOptions(sheet, null);
       $("[data-continue]", sheet).onclick = () => {
+        if (!st.pick) return toast("Choose how to continue");
+        if (st.pick === "link" && !scannerCanLink(dup, vals)) return identityConflictNotice();
         close();
         if (st.pick === "link") return renderVerifyCode(dup, vals);
         if (!requireContact(vals)) return; /* a second record needs its own email */
@@ -3646,7 +4582,7 @@ function openScanFlow(opts) {
   function linkOnto(c, vals) {
     const v = Object.assign({}, vals);
     if (!v.email) delete v.email;
-    Object.assign(c, v);
+    return v;
   }
 
   /* linking overwrites someone's existing record off a TYPED number, so it is
@@ -3655,8 +4591,10 @@ function openScanFlow(opts) {
      field, because the kit draws the boxes as static cells. Wrong code
      merges nothing. */
   function renderVerifyCode(dup, vals) {
+    if (!scannerCanLink(dup, vals)) return identityConflictNotice();
     const mint = () => String(Math.floor(100000 + Math.random() * 900000));
-    let code = mint(), timer = null;
+    // Browser-demo lifetime only; a production provider must enforce its own challenge policy.
+    let code = mint(), expiresAt = Date.now() + 10 * 60 * 1000, timer = null;
     openSheet(`${chSheetHead("Verify the phone number")}
       <p class="rp-sheet__sub">Enter the six-digit code sent to ${esc(vals.phone)}.</p>
       <div class="rp-code" id="svCode">${Array.from({ length: 6 }, (_, i) => `<div class="rp-code__box${i === 0 ? " rp-code__box--active" : ""}" aria-hidden="true"></div>`).join("")}</div>
@@ -3664,24 +4602,56 @@ function openScanFlow(opts) {
       ${primary("data-verify", "Verify &amp; link")}
       ${link("data-resend", "Resend code")}`, (sheet, close) => {
       const inp = $("#svCodeInput", sheet), boxes = $$(".rp-code__box", sheet);
-      const paint = () => { const v = inp.value; boxes.forEach((b, i) => { b.textContent = v[i] || ""; b.classList.toggle("rp-code__box--active", i === Math.min(v.length, 5)); }); };
-      inp.oninput = () => { inp.value = inp.value.replace(/\D/g, "").slice(0, 6); paint(); };
-      $("#svCode", sheet).onclick = () => inp.focus();
+      const paint = () => {
+        const v = inp.value, position = document.activeElement === inp ? inp.selectionStart : v.length;
+        boxes.forEach((b, i) => { b.textContent = v[i] || ""; b.classList.toggle("rp-code__box--active", i === Math.min(position ?? v.length, 5)); });
+      };
+      inp.oninput = () => {
+        const raw = inp.value, caret = raw.slice(0, inp.selectionStart ?? raw.length).replace(/\D/g, "").length;
+        inp.value = raw.replace(/\D/g, "").slice(0, 6);
+        inp.setSelectionRange(Math.min(caret, 6), Math.min(caret, 6));
+        markMissing(sheet, []); paint();
+      };
+      // Normalize clipboard separators before maxlength can truncate a valid code.
+      inp.onpaste = event => {
+        if (!event.clipboardData) return;
+        event.preventDefault();
+        const digits = event.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6);
+        const start = digits.length === 6 ? 0 : (inp.selectionStart ?? 0);
+        const end = digits.length === 6 ? inp.value.length : (inp.selectionEnd ?? start);
+        inp.value = (inp.value.slice(0, start) + digits + inp.value.slice(end)).slice(0, 6);
+        const caret = Math.min(start + digits.length, inp.value.length);
+        inp.setSelectionRange(caret, caret);
+        markMissing(sheet, []); paint();
+      };
+      inp.onkeyup = inp.onclick = inp.onselect = inp.onfocus = paint;
+      $("#svCode", sheet).onclick = event => {
+        const index = boxes.indexOf(event.target.closest(".rp-code__box"));
+        inp.focus();
+        if (index >= 0) inp.setSelectionRange(Math.min(index, inp.value.length), Math.min(index + 1, inp.value.length));
+        paint();
+      };
       /* demo mode (owner, v023 — decided): the text "arrives" about a second
          after the sheet opens — the six boxes fill as if the guest read the
          code back — and Verify & link proceeds. Nothing leaves the device
          (invariant 2) and the code is shown nowhere else. A field the
-         advisor has already started is left alone. Production behaviour is
-         unchanged: the guest reads the code, the advisor types it. */
-      const arrive = () => { clearTimeout(timer); timer = setTimeout(() => { if (document.contains(inp) && !inp.value) { inp.value = code; paint(); } }, 1000); };
+         advisor has already started is left alone. This is not production
+         delivery or proof of phone ownership. */
+      const arrive = () => { clearTimeout(timer); timer = setTimeout(() => { if (document.contains(inp) && !inp.value) { inp.value = code; markMissing(sheet, []); paint(); } }, 1000); };
       arrive();
-      $("[data-resend]", sheet).onclick = () => { code = mint(); inp.value = ""; paint(); arrive(); };
+      $("[data-resend]", sheet).onclick = () => {
+        const next = mint();
+        code = next === code ? String(100000 + (Number(code) - 100000 + 1) % 900000) : next;
+        expiresAt = Date.now() + 10 * 60 * 1000;
+        inp.value = ""; markMissing(sheet, []); paint(); arrive();
+      };
       $("[data-verify]", sheet).onclick = () => {
+        if (!scannerCanLink(dup, vals)) return identityConflictNotice();
+        if (Date.now() >= expiresAt) return markMissing(sheet, [{ el: inp, msg: "Code expired. Resend code." }]);
         const typed = inp.value;
         if (typed !== code) return markMissing(sheet, [{ el: inp, msg: typed ? "Code doesn’t match" : "Required" }]);
-        clearTimeout(timer); close();
-        linkOnto(dup, vals);
-        finishSave(dup, true);
+        clearTimeout(timer);
+        finishSave(dup, true, null, linkOnto(dup, vals));
       };
     });
   }
@@ -3689,9 +4659,10 @@ function openScanFlow(opts) {
   /* completion is local feedback on the confirm surface — the success
      notice, the customer, and the visit as the dominant next action. "Scan
      another" restarts in place with a clean slate. */
-  function renderDone(cust, wasExisting) {
+  function renderDone(cust, wasExisting, source = 'scan') {
     st.stage = "done";
-    screen(`<div class="rp-notice rp-notice--success">${doneMark()}Customer ready · ${wasExisting ? "profile updated" : "new profile created"}</div>
+    const completedDraft = draftOf();
+    screen(`<div class="rp-notice rp-notice--success">${doneMark()}${source === 'lookup' ? 'Customer selected' : `Customer ready · ${wasExisting ? "profile updated" : "new profile created"}`}</div>
       ${hero(esc(fullName(cust)))}
       <div class="rp-kv">
         ${kvRow("License", cust.license && cust.license.number ? esc(licLine(cust.license)) : "—")}
@@ -3699,25 +4670,32 @@ function openScanFlow(opts) {
         ${kvRow("Email", esc(cust.email || "—"))}
         ${kvRow("Address", cust.address && cust.city ? esc(fmtAddr(cust)) : "—")}
       </div>`,
-      chDock(primary("data-go", "Continue to visit"), link("data-more", "Scan another license")));
-    $("[data-go]", body).onclick = () => { done(); if (o.onDone) o.onDone(cust, st.persona, st.match); };
+      chDock(primary("data-go", o.completionLabel || "Continue to visit"), link("data-more", "Scan another license")));
+    $("[data-go]", body).onclick = () => {
+      if (scannerHasCompletion(completedDraft) && draftOf() !== completedDraft) { renderResume(); return; }
+      // A fallible resolver handoff keeps its completed identity and retry action.
+      if (o.onContinue) {
+        if (o.onContinue(cust, st.persona, st.match) === false) return;
+        done();
+      } else { done(); if (o.onDone) o.onDone(cust, st.persona, st.match); }
+    };
     /* a fresh scan needs a clean slate: the old persona, working values and
        match must not leak into the next guest's journey */
     $("[data-more]", body).onclick = () => {
+      if (scannerHasCompletion(draftOf()) && !persistDraft(true)) return;
       resetGuest();
       st.saved = false; st.manNum = ""; st.manState = "NY";
       renderScan("front");
     };
-    wire(() => renderDone(cust, wasExisting));
+    wire(() => renderDone(cust, wasExisting, source));
   }
 
-  /* test-drive mode: verify the card in hand for the drive. On a name
-     mismatch the card may belong to someone else — fill the agreement but
-     never write that identity onto this customer's record. */
+  /* Test Drive verifies the customer on this visit. A conflicting card is
+     rejected and its draft cleared before another capture is offered. */
   function renderVerifyTd(p) {
     st.stage = "td";
     const c = o.deal ? Store.customer(o.deal.customerId) : null;
-    const mismatch = c && (c.first.toLowerCase() !== p.first.toLowerCase() || c.last.toLowerCase() !== p.last.toLowerCase());
+    const mismatch = c && (scannerIdentityToken(c.first) !== scannerIdentityToken(p.first) || scannerIdentityToken(c.last) !== scannerIdentityToken(p.last));
     screen(`${hero(mismatch ? "Check the name" : "License read")}
       ${mismatch
         ? `<div class="rp-notice rp-notice--conflict"><strong>${esc(p.first + " " + p.last)}</strong>The license reads a different name from this deal&rsquo;s customer, ${esc(c.first + " " + c.last)}. The name on file won&rsquo;t be changed here.</div>`
@@ -3728,16 +4706,48 @@ function openScanFlow(opts) {
       ${dateField("svDob", "Date of birth", dateUS(p.dob))}`,
       chDock(primary(`id="svSave"`, "Use these details")));
     $("#svSave", body).onclick = () => {
+      if (!o.deal || Store.deal(tdDealId) !== o.deal || o.deal.customerId !== tdPrimary || c?.id !== tdPrimary) return staleScannerCustomer();
+      if (!currentScannerCustomer(c)) return false;
       const expText = $("#svDlExp", body).value.trim(), dobText = $("#svDob", body).value.trim();
       const expires = expText ? dateISO(expText) : "";
       const dob = dobText ? dateISO(dobText) : "";
       const lic = { number: $("#svDl", body).value.trim(), state: $("#svDlState", body).value.trim(), expires };
       const bad = [];
       if (!lic.number) bad.push({ el: $("#svDl", body), msg: "Required" });
-      if (expText && !expires) bad.push({ el: $("#svDlExp", body), msg: "Enter MM/DD/YYYY" });
-      if (dobText && !dob) bad.push({ el: $("#svDob", body), msg: "Enter MM/DD/YYYY" });
-      if (markMissing(body, bad)) return toast("Fill in the fields marked in red");
-      if (c && !mismatch) { c.dob = dob || c.dob; c.license = lic; Store.save(); }
+      if (!lic.state) bad.push({ el: $("#svDlState", body), msg: "Required" });
+      if (!expText) bad.push({ el: $("#svDlExp", body), msg: "Required" });
+      else if (!expires) bad.push({ el: $("#svDlExp", body), msg: "Enter MM/DD/YYYY" });
+      if (!dobText) bad.push({ el: $("#svDob", body), msg: "Required" });
+      else if (!dob) bad.push({ el: $("#svDob", body), msg: "Enter MM/DD/YYYY" });
+      else if (new Date(dob + 'T00:00:00').getTime() > Date.now()) bad.push({ el: $("#svDob", body), msg: "Date of birth cannot be in the future" });
+      if (markMissing(body, bad)) return toast("Check the errors beside each field");
+      if (c && scannerIdentityConflict(c, Object.assign({}, p, { dob, license: lic }))) {
+        /* Any rejected completed scan is unsafe to resume for this customer.
+           Retire its saved photo even when the printed name happens to match
+           but the birthday or license number proves it is another identity. */
+        if (!persistDraft(true)) return;
+        resetGuest(); renderScan("front");
+        return identityConflictNotice();
+      }
+      if (c && !mismatch) {
+        const oldDob = c.dob, oldLicense = c.license, oldOnboard = c.onboard, oldDrafts = Store.s.licenseDrafts;
+        const hadDob = Object.prototype.hasOwnProperty.call(c, 'dob');
+        const hadLicense = Object.prototype.hasOwnProperty.call(c, 'license');
+        try {
+          const now = new Date().toISOString();
+          c.dob = dob || c.dob; c.license = lic;
+          c.onboard = { ...(oldOnboard || {}), licensePhotoAt: now, secondSide: 'received', licenseSides: { front: true, back: true, reviewedAt: now, method: 'advisor-comparison' } };
+          if (draftMoved()) throw movedError(); Store.s.licenseDrafts = { ...(oldDrafts || {}) }; delete Store.s.licenseDrafts[draftKey]; Store.save();
+        }
+        catch (error) {
+          if (oldOnboard === undefined) delete c.onboard; else c.onboard = oldOnboard;
+          if (oldDrafts === undefined) delete Store.s.licenseDrafts; else Store.s.licenseDrafts = oldDrafts;
+          if (hadDob) c.dob = oldDob; else delete c.dob;
+          if (hadLicense) c.license = oldLicense; else delete c.license;
+          scanSaveError(error);
+          return;
+        }
+      }
       done();
       /* samePerson is the name verdict taken BEFORE any field was edited —
          a caller must not re-derive it from the editable license number */
@@ -3746,7 +4756,8 @@ function openScanFlow(opts) {
     wire(() => renderVerifyTd(p));
   }
 
-  renderScan("front");
+  if (draftOf()) renderResume();
+  else renderScan("front");
 }
 
 /* ============================================================
@@ -4676,7 +5687,7 @@ route("testdrive/:id", ({ id }) => {
   function licenseState() {
     const lic = c.license;
     if (!lic || !lic.number) return { ok: false, meta: "No license on file", short: "No license on file" };
-    if (c.onboard && c.onboard.secondSide === "pending") return { ok: false, meta: "Front received · back still needed", short: "License back pending" };
+    if (c.onboard && c.onboard.secondSide === "pending") return { ok: false, meta: "License incomplete · another side or review needed", short: "License review pending" };
     /* "unexpired" is a claim about a date: no date, or one that does not
        parse, is not ready either (review find) */
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(lic.expires || "");
@@ -4910,12 +5921,11 @@ route("testdrive/:id", ({ id }) => {
            else's license */
         const matched = !!(p && p.samePerson === true && cust && cust.license && p.license && cust.license.number === p.license.number);
         if (matched) {
-          cust.onboard = Object.assign({}, cust.onboard, { licensePhotoAt: new Date().toISOString(), secondSide: "received" });
-          Store.save();
+          /* Scan evidence was committed with the identity by openScanFlow. */
         } else {
           toast("The card reads a different name — this customer's license was not changed");
         }
-        if (location.hash === `#/testdrive/${deal.id}`) render();
+        if (location.hash === `#/testdrive/${deal.id}`) { teardown(); router(); }
       }
     });
   }
@@ -6409,7 +7419,7 @@ route("desk/:id", ({ id }) => {
     $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; if (b.dataset.sheetOpen === "buyers") buyers = null; draw(); });
     /* the buyers sheet is its own module with its own states; the screen keeps
        the handle so a re-render reopens it where it was, not at the top */
-    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, () => draw()); }
+    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, reopen => { if (reopen) ui.sheet = "buyers"; draw(); }); }
     else if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
   }
   let buyers = null;
@@ -6663,7 +7673,9 @@ route("credit/:id", ({ id }) => {
     return redirect(`#/desk/${deal.id}`);
   }
   const c = Store.customer(deal.customerId);
-  const app = deal.creditApp;
+  if (!c) return redirect("#/deals");
+  const primaryId = c.id;
+  const app = deal.creditApp?.customerId === primaryId ? deal.creditApp : null;
 
   renderChrome("Credit Application", "", "");
   document.body.dataset.screen = "credit";
@@ -6672,6 +7684,27 @@ route("credit/:id", ({ id }) => {
   /* resolve the record, not just the id — a dangling coBuyerId must behave as
      "no co-buyer" here exactly as it does in dealTitle() and the submit guard */
   const cbRec = () => deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
+  let coSubject = cbRec();
+  const currentSubjects = () => Store.deal(deal.id) === deal && deal.customerId === primaryId && Store.customer(primaryId) === c && cbRec() === coSubject;
+  function requireSubjects() {
+    if (currentSubjects()) return true;
+    toast("The applicants changed. Reopen the credit application.");
+    return false;
+  }
+  const currentApproval = approval => currentSubjects() && approval === deal.creditApp && approval?.approved && !approval.withdrawnAt && approval.customerId === primaryId && (approval.coBuyerId || null) === (coSubject?.id || null);
+  const identityFields = customer => ({ first: customer.first, middle: customer.middle || "", last: customer.last,
+    dob: dateUS(customer.dob || ""), dl: customer.license?.number || "", phone: customer.phone, email: customer.email,
+    address: customer.address, city: customer.city, state: customer.state, zip: customer.zip });
+  const identitySnapshot = identityFields(c);
+  const remoteFor = target => {
+    const subject = target === "cobuyer" ? cbRec() : c;
+    const rec = deal.creditRemote?.[target];
+    if (!subject && target === "cobuyer" && rec?.customerId === null && rec.primaryCustomerId === primaryId) {
+      // An invitation may precede attachment, but has no recipient identity or consent.
+      return { customerId: null, primaryCustomerId: primaryId, channel: rec.channel, to: rec.to, sentAt: rec.sentAt, openedAt: rec.openedAt };
+    }
+    return subject && rec?.customerId === subject.id && rec.primaryCustomerId === primaryId ? rec : {};
+  };
 
   const v = Store.vehicle(deal.stock);
   const r = RIDE_PRICE_CALC.calc(deal, v);
@@ -6708,7 +7741,8 @@ route("credit/:id", ({ id }) => {
   };
   /* co-applicant identity prefills from the record, never from typed state */
   const seedCo = () => {
-    const cb = cbRec(); if (!cb) return;
+    const cb = cbRec();
+    if (!cb) { Object.assign(F, { coFirst: "", coLast: "", coDob: "", coDl: "", coAddr: "", coZip: "", coCity: "", coState: "" }); return; }
     Object.assign(F, { coFirst: cb.first, coLast: cb.last, coDob: dateUS(cb.dob || ""), coDl: (cb.license && cb.license.number) || "", coAddr: cb.address || "", coZip: cb.zip || "", coCity: cb.city || "", coState: cb.state || "" });
   };
   /* a draft the advisor already marked ready comes back the way they left it,
@@ -6718,10 +7752,17 @@ route("credit/:id", ({ id }) => {
      replacing the co-buyer would otherwise reopen the application with the new
      person's name beside the previous person's date of birth, licence and
      address, and submit() would persist it. */
-  if (deal.creditApp && deal.creditApp.draft) Object.assign(F, deal.creditApp.draft);
-  if (creditWorking && creditWorking.id === deal.id) Object.assign(F, creditWorking.form);
+  const savedWork = creditWorking?.id === deal.id && creditWorking.customerId === primaryId ? creditWorking : null;
+  const savedDraft = app?.draft ? app : null;
+  if (savedDraft) Object.assign(F, savedDraft.draft);
+  if (savedWork) Object.assign(F, savedWork.form);
+  if ((savedWork || savedDraft)?.coBuyerId !== (coSubject?.id || null)) F.consent = false;
+  const priorIdentity = savedWork?.identitySnapshot || savedDraft?.identitySnapshot;
+  for (const key of Object.keys(identitySnapshot)) {
+    if (!priorIdentity || priorIdentity[key] !== identitySnapshot[key]) F[key] = identitySnapshot[key];
+  }
   seedCo();
-  creditWorking = { id: deal.id, form: F, step: creditWorking && creditWorking.id === deal.id ? creditWorking.step : null };
+  creditWorking = { id: deal.id, customerId: primaryId, coBuyerId: coSubject?.id || null, identitySnapshot, form: F, step: savedWork?.step || null };
 
   const STEP_NAMES = ["Applicant", "Residence", "Employment", "Review"];
   const st = { step: 1, err: null };
@@ -6791,7 +7832,7 @@ route("credit/:id", ({ id }) => {
      fields, and the joint-credit authorization only she can give (§19). Absent
      is Waiting — never false, and never assumed done. */
   const coState = () => {
-    const rec = (deal.creditRemote && deal.creditRemote.cobuyer) || {};
+    const rec = remoteFor("cobuyer");
     return {
       rec, sent: !!rec.sentAt, opened: !!rec.openedAt,
       identity: !!rec.identityAt, fields: !!rec.fieldsAt, authorized: !!rec.authorizedAt,
@@ -6842,7 +7883,7 @@ route("credit/:id", ({ id }) => {
     const ctas = (o.ctas || []).map((x, i) => `<button type="button" class="${i === 0 && !o.blocked ? "rp-appl__cta--primary" : ""}" data-appl-cta="${esc(x.act)}">${esc(x.label)}</button>`).join("");
     return `<div class="rp-appl${o.blocked ? " rp-appl--blocked" : ""}">
       <div class="rp-appl__bar${o.ok ? "" : " rp-appl__bar--wait"}"><i style="width:${o.pct}%"></i></div>
-      <div class="rp-appl__head"><span class="rp-initials">${esc(initials)}</span>
+      <div class="rp-appl__head">
         <span class="rp-row__body"><span class="rp-appl__name">${esc(o.name)}</span><span class="rp-appl__role">${esc(o.role)}</span></span>
         <span class="rp-status${o.ok ? " rp-status--positive" : ""}">${esc(o.status)}</span></div>
       ${items || ctas ? `<div class="rp-appl__body">${items ? `<ul>${items}</ul>` : ""}<div class="rp-appl__cta">${ctas}</div></div>` : ""}</div>`;
@@ -6878,7 +7919,8 @@ route("credit/:id", ({ id }) => {
     paint(content, dock);
     $$("[data-idcap]").forEach(inp => inp.onchange = (e) => {
       if (!e.target.files || !e.target.files.length) return; /* a cancelled picker verifies nothing */
-      deal.identity = { verifiedAt: new Date().toISOString() };
+      if (!requireSubjects()) return;
+      deal.identity = { customerId: primaryId, verifiedAt: new Date().toISOString() };
       /* his identity record is a document, and it files here (§19a) */
       jacketReceive(deal, "idverify-primary", "app");
       Store.save();
@@ -7076,7 +8118,7 @@ route("credit/:id", ({ id }) => {
 
     $$("[data-atype]").forEach(el => el.onclick = () => { F.appType = el.dataset.atype; draw(); });
     $$("[data-seg]").forEach(b => b.onclick = () => { F[b.dataset.seg] = b.dataset.val; draw(); });
-    $$("[data-flag]").forEach(b => b.onclick = () => { F[b.dataset.flag] = !F[b.dataset.flag]; draw(); });
+    $$("[data-flag]").forEach(b => b.onclick = () => { if (!requireSubjects()) return; F[b.dataset.flag] = !F[b.dataset.flag]; draw(); });
     const rec = $("[data-record]"); if (rec) rec.onclick = () => { ui.recordOpen = !ui.recordOpen; draw(); };
     const scan = $("#caCoScan"); if (scan) scan.onclick = () => coScan();
     $$("[data-appl-cta]").forEach(b => b.onclick = () => applAction(b.dataset.applCta));
@@ -7087,7 +8129,7 @@ route("credit/:id", ({ id }) => {
     };
     const back = $("#caBack"); if (back) back.onclick = () => { st.step = 1; draw(); };
     const mark = $("#caMarkReady"); if (mark) mark.onclick = () => markReady();
-    const park = $("#caPark"); if (park) park.onclick = () => { markReady(true); navigate("#/deals"); };
+    const park = $("#caPark"); if (park) park.onclick = () => { if (markReady(true)) navigate("#/deals"); };
   }
 
   /* an applicant panel's own actions */
@@ -7103,33 +8145,38 @@ route("credit/:id", ({ id }) => {
   /* the co-buyer scan returns into THIS flow rather than rebuilding the route
      from scratch, so the step and the draft survive it */
   function coScan() {
+    if (!requireSubjects()) return;
     openScanFlow({ mode: "cobuyer", deal, onDone: () => {
-      const cb = cbRec();
-      if (cb) {
-        /* she was verified in person: that is her identity record, and it
-           files as her own document (§19a) */
-        deal.creditRemote = deal.creditRemote || {};
-        const rec = deal.creditRemote.cobuyer = deal.creditRemote.cobuyer || {};
-        if (!rec.identityAt) { rec.identityAt = new Date().toISOString(); jacketReceive(deal, "idverify-cobuyer", "app"); }
-        Store.save();
-        seedCo();
-      }
+      /* Scanner completion records capture and the buyer relationship. It does
+         not perform the separate person/identity verification in this lane. */
+      if (deal.customerId !== primaryId || Store.customer(primaryId) !== c || Store.deal(deal.id) !== deal) { router(); return; }
+      if (coSubject?.id !== cbRec()?.id) F.consent = false;
+      coSubject = cbRec();
+      creditWorking.coBuyerId = coSubject?.id || null;
+      seedCo();
       document.body.dataset.canvas = "kit";
       draw();
     } });
   }
   const channelWord = () => {
-    const rec = (deal.creditRemote && deal.creditRemote.cobuyer) || {};
+    const rec = remoteFor("cobuyer");
     return rec.channel === "email" ? "email" : "text";
   };
 
   function markReady(parked) {
-    const a = deal.creditApp = deal.creditApp || {};
+    if (!requireSubjects()) return false;
+    const previous = deal.creditApp;
+    const reusable = previous && !previous.approved && !previous.submitted && !previous.withdrawnAt && previous.customerId === primaryId && (previous.coBuyerId || null) === (coSubject?.id || null);
+    const a = deal.creditApp = reusable ? previous : previous ? { priorApplication: previous } : {};
+    a.customerId = primaryId;
+    a.coBuyerId = coSubject?.id || null;
+    a.identitySnapshot = identitySnapshot;
     a.status = "pending-cobuyer";
     a.primaryReadyAt = new Date().toISOString();
     a.draft = Object.assign({}, F);
     Store.save();
     if (!parked) draw();
+    return true;
   }
 
   /* ---------------- the sheets ---------------- */
@@ -7141,7 +8188,7 @@ route("credit/:id", ({ id }) => {
        does, so the status view can name the channel actually used */
     const toCo = ui.sheet === "link-cobuyer";
     const who = toCo ? co : c;
-    const rec = toCo ? cs.rec : ((deal.creditRemote && deal.creditRemote.applicant) || {});
+    const rec = toCo ? cs.rec : remoteFor("applicant");
     const name = who ? `${who.first} ${who.last}` : "the co-buyer";
     const ctx = `Deal #${esc(deal.dealNo)} · ${esc(custName)}${toCo ? ` · joint application · to ${esc(name)}` : ""}`;
     if (rec.sentAt) {
@@ -7180,19 +8227,24 @@ route("credit/:id", ({ id }) => {
     $$("[data-channel]", sheet).forEach(b => b.onclick = () => { ui.channel = b.dataset.channel; draw(); });
     const send = $("#caLinkSend", sheet);
     if (send) send.onclick = () => {
+      if (!requireSubjects()) return;
       const to = $("#caLinkTo", sheet).value.trim();
       if (!to) { $("#caLinkErr", sheet).hidden = false; return; }
       const target = ui.sheet === "link-cobuyer" ? "cobuyer" : "applicant";
       deal.creditRemote = deal.creditRemote || {};
-      const prev = deal.creditRemote[target] || {};
-      deal.creditRemote[target] = Object.assign({}, prev, { channel: ui.channel || "text", to, sentAt: new Date().toISOString() });
+      const subject = target === "cobuyer" ? cbRec() : c;
+      const prev = remoteFor(target);
+      deal.creditRemote[target] = Object.assign({}, prev, { customerId: subject?.id || null, primaryCustomerId: primaryId, channel: ui.channel || "text", to, sentAt: new Date().toISOString() });
       Store.save();
       draw();
     };
     const resend = $("#caResend", sheet);
     if (resend) resend.onclick = () => {
+      if (!requireSubjects()) return;
       const target = ui.sheet === "link-cobuyer" ? "cobuyer" : "applicant";
-      deal.creditRemote[target].sentAt = new Date().toISOString();
+      const rec = remoteFor(target);
+      if (!rec.sentAt || rec.primaryCustomerId !== primaryId) return;
+      deal.creditRemote[target] = { ...rec, sentAt: new Date().toISOString() };
       Store.save();
       draw();
     };
@@ -7259,6 +8311,10 @@ route("credit/:id", ({ id }) => {
      the term total multiply out against each other (§17). */
   function approvedScreen() {
     const a = deal.creditApp;
+    if (!currentApproval(a)) {
+      ui.mode = deal.identity?.customerId === primaryId && deal.identity.verifiedAt ? "wizard" : "identity";
+      return draw();
+    }
     const agreedApr = a.agreedApr != null ? a.agreedApr : deal.desk.apr;
     const approvedApr = a.approvedApr != null ? a.approvedApr : a.qualifiedApr;
     const base = RIDE_PRICE_CALC.calc(deal, v);
@@ -7291,11 +8347,17 @@ route("credit/:id", ({ id }) => {
     /* re-presenting hands the phone back to desking's present mode on the
        APPROVED number: the customer agreed to a payment, and a new payment is
        a new agreement (§18) */
-    if (rp) rp.onclick = () => { deal.desk.apr = approvedApr; delete deal.desk.customerChose; Store.save(); navigate(`#/desk/${deal.id}`); };
+    if (rp) rp.onclick = () => {
+      if (!requireSubjects()) return;
+      if (!currentApproval(a)) { toast("The approval changed. Reopen the credit application."); return; }
+      deal.desk.apr = approvedApr; delete deal.desk.customerChose; Store.save(); navigate(`#/desk/${deal.id}`);
+    };
   }
 
   /* ---------------- submit ---------------- */
   function submit() {
+    if (!requireSubjects()) return;
+    if (!(deal.identity?.customerId === primaryId && deal.identity.verifiedAt)) { ui.mode = "identity"; draw(); return; }
     /* a joint application with nobody attached cannot go to a lender */
     if (isJoint() && !cbRec()) {
       st.err = { keys: new Map(), summary: "No co-buyer is attached." };
@@ -7315,7 +8377,11 @@ route("credit/:id", ({ id }) => {
     const submittedAt = new Date().toISOString();
     const outcome = RIDE_PRICE_DATA.approvalOutcome;
     const base = v ? RIDE_PRICE_CALC.calc(deal, v) : null;
+    const former = deal.creditApp;
+    const priorApplication = former && (former.submitted || former.approved || former.withdrawnAt) ? former : former?.priorApplication || null;
     deal.creditApp = {
+      ...(priorApplication ? { priorApplication } : {}),
+      customerId: primaryId, coBuyerId: isJoint() ? cbRec().id : null,
       submitted: submittedAt, approved: true, status: "approved",
       /* the lender's answer is the demo's own seeded outcome: a rate derived
          from a credit tier would put this deal at 2.49% and contradict every
@@ -7326,7 +8392,7 @@ route("credit/:id", ({ id }) => {
       leaseFactor: Math.max(0.00001, tier.leaseFactor - 0.0003),
       employer: F.employer,
       form: {
-        consent: { electronicSignature: true, acceptedAt: submittedAt },
+        consent: { customerId: primaryId, coBuyerId: isJoint() ? cbRec().id : null, electronicSignature: true, acceptedAt: submittedAt },
         dob: dateISO(F.dob), coDob: dateISO(F.coDob) || null,
         creditType: F.creditType, primaryUse: F.primaryUse,
         joint: isJoint(), coRel: isJoint() ? F.coRel : "",
@@ -7371,7 +8437,18 @@ route("credit/:id", ({ id }) => {
     $$("[data-buyers-open]").forEach(b => b.onclick = () => { ui.sheet = "buyers"; buyers = null; draw(); });
     /* the buyers sheet is its own module with its own states; the screen holds
        the handle so a re-render reopens it where it was rather than at the top */
-    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, () => draw()); }
+    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, reopen => {
+      if (deal.customerId !== primaryId || Store.customer(primaryId) !== c || Store.deal(deal.id) !== deal) { sheets.close(); router(); return; }
+      const refreshed = identityFields(c);
+      for (const key of Object.keys(refreshed)) if (identitySnapshot[key] !== refreshed[key]) F[key] = refreshed[key];
+      Object.assign(identitySnapshot, refreshed);
+      if (coSubject?.id !== cbRec()?.id) F.consent = false;
+      coSubject = cbRec();
+      creditWorking.coBuyerId = coSubject?.id || null;
+      seedCo();
+      if (reopen) ui.sheet = "buyers";
+      draw();
+    }); }
     else if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
   }
   let buyers = null;
@@ -7435,10 +8512,10 @@ route("credit/:id", ({ id }) => {
   creditInputOff = off;
   window.addEventListener("hashchange", onLeave);
 
-  /* the gate comes before the application; an already-approved deal never
-     re-gates, and a deal parked on a pending co-buyer opens on Review */
-  if (app && app.approved) ui.mode = "approved";
-  else if (!(deal.identity && deal.identity.verifiedAt)) ui.mode = "identity";
+  /* Only approval bound to the current applicants bypasses the gate.
+     Historical unbound records remain stored, but establish no current proof. */
+  if (currentApproval(app)) ui.mode = "approved";
+  else if (!(deal.identity?.customerId === primaryId && deal.identity.verifiedAt)) ui.mode = "identity";
   else {
     ui.mode = "wizard";
     if (app && app.status === "pending-cobuyer") st.step = 4;
@@ -7454,7 +8531,10 @@ route("demo/cobuyer-ready", () => {
   const deal = Store.deal("d-demo1");
   if (!deal) return redirect("#/deals");
   deal.creditRemote = deal.creditRemote || {};
-  const rec = deal.creditRemote.cobuyer = deal.creditRemote.cobuyer || { channel: "text", to: "(347) 555-1212", sentAt: new Date().toISOString() };
+  const customer = Store.customer(deal.coBuyerId);
+  if (!customer) return redirect(`#/credit/${deal.id}`);
+  const previous = deal.creditRemote.cobuyer;
+  const rec = deal.creditRemote.cobuyer = previous?.customerId === customer.id && previous.primaryCustomerId === deal.customerId ? previous : { customerId: customer.id, primaryCustomerId: deal.customerId, channel: "text", to: customer.phone || "", sentAt: new Date().toISOString() };
   /* minutes AGO: the screen states when she did each thing, and a stamp ahead
      of the clock claims a verification that has not happened yet — the same
      reason seedArrival() puts John's arrival in the past */
@@ -8325,7 +9405,7 @@ route("menu/:id", ({ id }) => {
     chFitDock();
     chWireRole(sheets, draw);
     $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; if (b.dataset.sheetOpen === "buyers") buyers = null; draw(); });
-    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, () => draw()); }
+    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, reopen => { if (reopen) ui.sheet = "buyers"; draw(); }); }
     else if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
   }
 
@@ -8537,7 +9617,12 @@ function menuChosenProducts(deal) {
   return (p && p.products) || [];
 }
 
-function jacketState(deal, docId) { return jacketRead(deal).docs[docId] || null; }
+function jacketState(deal, docId) {
+  const filed = jacketRead(deal).docs[docId] || null;
+  if (docId !== "form-license" || !filed) return filed;
+  const progress = licenseProgress(deal);
+  return progress.ready && Array.isArray(filed.subjects) && filed.subjects.length === progress.buyers.length && progress.buyers.every(b => filed.subjects.some(s => s.customerId === b.customerId && s.receiptRevision === b.record.receiptRevision)) ? filed : null;
+}
 
 function jacketCounts(deal) {
   const docs = jacketDocs(deal);
@@ -8594,6 +9679,7 @@ function chJacketChip(deal) {
    capture appends to. There is no second store of sides — jacketDocs() gives
    the document, this says whether one side of it is already in (§19a). */
 function jacketPartial(deal, docId) {
+  if (docId === "form-license") return licenseProgress(deal).buyers.some(b => b.record?.sides?.front && !b.record?.sides?.back);
   const m = clientMeta(docId);
   const r = jacketClient(deal)[docId];
   return !!(m && m.missingPage && r && r.state === "rejected" && r.rejectedReason === m.missingPage.title && !jacketState(deal, docId));
@@ -8604,16 +9690,30 @@ function jacketGaps(deal) {
   return jacketDocs(deal).filter(d => !jacketState(deal, d.id)).map(d => d.label + " — not in the deal jacket");
 }
 
-function jacketReceive(deal, docId, how, note) {
+function jacketReceive(deal, docId, how, note, persist = true, customerId) {
   const j = jacketOf(deal);
+  if (docId === "form-license") {
+    const id = customerId || deal.customerId;
+    if (!licenseBuyerIds(deal).includes(id) || !Store.customer(id)) return;
+    const before = JSON.parse(JSON.stringify(j));
+    try {
+      const r = clientRecord(deal, docId, id, true);
+      r.manualReceipts = [...(r.manualReceipts || []), { how, by: roleName(), at: new Date().toISOString(), ...(note ? { note } : {}) }];
+      syncLicenseReceipt(deal);
+      if (persist) Store.save();
+    } catch (error) { deal.jacket = before; throw error; }
+    return;
+  }
   if (!jacketDocs(deal).some(d => d.id === docId) && !j.extra.includes(docId)) j.extra.push(docId);
   j.docs[docId] = { how, by: roleName(), at: new Date().toISOString() };
   if (note) j.docs[docId].note = note;
-  Store.save();
+  if (persist) Store.save();
 }
 
 function jacketRemove(deal, docId) {
   const j = jacketOf(deal);
+  const before = docId === "form-license" ? JSON.parse(JSON.stringify(j)) : null;
+  const photoSubjects = docId === "form-license" ? [...new Set([...licenseBuyerIds(deal), ...Object.keys(licenseContainer(deal)?.buyers || {})])] : [];
   delete j.docs[docId];
   /* taking a document back out returns it to "not yet collected" — the
      client pipeline record goes with it, or the row would wear a stale
@@ -8621,7 +9721,9 @@ function jacketRemove(deal, docId) {
      rightly skips accepted records). Review find. */
   if (j.client) delete j.client[docId];
   if (j.req) delete j.req[docId];
-  Store.save();
+  try { Store.save(); }
+  catch (error) { if (before) deal.jacket = before; throw error; }
+  photoSubjects.forEach(id => clientPhotosClear(deal.id, docId, id));
 }
 
 /* jacketRequest and its j.req stamp are retired: the client pipeline record
@@ -8710,6 +9812,70 @@ function jacketClientOf(deal) {
   if (!j.client) j.client = {};
   return j.client;
 }
+// License receipt belongs to a person, while the Jacket retains one required item.
+function licenseBuyerIds(deal) {
+  return [...new Set([deal?.customerId, deal?.coBuyerId].filter(id => typeof id === "string" && id.length))];
+}
+function licenseContainer(deal, create = false) {
+  const cl = create ? jacketClientOf(deal) : jacketClient(deal);
+  let value = cl["form-license"];
+  if (create && (!value || !value.buyers || typeof value.buyers !== "object" || Array.isArray(value.buyers))) {
+    value = cl["form-license"] = { buyers: {}, state: "requested", ...(value ? { legacy: value } : {}) };
+  }
+  return value;
+}
+function clientRecord(deal, docId, customerId, create = false) {
+  if (docId !== "form-license") {
+    const cl = create ? jacketClientOf(deal) : jacketClient(deal);
+    return cl[docId] || (create ? (cl[docId] = {}) : undefined);
+  }
+  const id = customerId || deal.customerId;
+  const container = licenseContainer(deal, create);
+  if (!container?.buyers || typeof id !== "string" || !id) return undefined;
+  if (Object.prototype.hasOwnProperty.call(container.buyers, id)) return container.buyers[id];
+  if (!create) return undefined;
+  const record = { customerId: id, state: "requested", receiptRevision: 0 };
+  Object.defineProperty(container.buyers, id, { value: record, enumerable: true, writable: true, configurable: true });
+  return record;
+}
+function setClientRecord(deal, docId, customerId, record) {
+  if (docId !== "form-license") { jacketClientOf(deal)[docId] = record; return; }
+  const container = licenseContainer(deal, true);
+  const id = customerId || deal.customerId;
+  if (record === undefined) delete container.buyers[id];
+  else Object.defineProperty(container.buyers, id, { value: record, enumerable: true, writable: true, configurable: true });
+}
+function licenseReviewValid(record, customerId) {
+  return !!(record && record.customerId === customerId && record.sides?.front?.receivedAt && record.sides?.back?.receivedAt && Number.isInteger(record.receiptRevision) && record.receiptRevision > 0 && record.review?.customerId === customerId && record.review.receiptRevision === record.receiptRevision && record.review.reviewedAt && record.state === "accepted");
+}
+function licenseProgress(deal) {
+  const buyers = licenseBuyerIds(deal).map(customerId => {
+    const customer = Store.customer(customerId), record = clientRecord(deal, "form-license", customerId);
+    return { customerId, customer, record, complete: !!(record?.customerId === customerId && record?.sides?.front?.receivedAt && record?.sides?.back?.receivedAt), reviewed: !!customer && licenseReviewValid(record, customerId) };
+  });
+  const validPair = typeof deal?.customerId === "string" && (!deal.coBuyerId || (typeof deal.coBuyerId === "string" && deal.coBuyerId !== deal.customerId));
+  return { buyers, ready: validPair && buyers.length > 0 && buyers.every(b => b.reviewed), received: buyers.some(b => b.record?.sides?.front?.receivedAt || b.record?.sides?.back?.receivedAt || b.record?.manualReceipts?.length), missing: buyers.filter(b => !b.reviewed).length };
+}
+function licenseCaptureContext(deal, customerId) {
+  const record = clientRecord(deal, "form-license", customerId);
+  return { deal, customer: Store.customer(customerId), primaryId: deal.customerId, coBuyerId: deal.coBuyerId || null, record, receiptRevision: record?.receiptRevision };
+}
+function licenseContextValid(deal, customerId, context) {
+  if (!context || Store.deal(deal.id) !== deal || context.deal !== deal || Store.customer(customerId) !== context.customer || !context.customer || !licenseBuyerIds(deal).includes(customerId) || deal.customerId !== context.primaryId || (deal.coBuyerId || null) !== (context.coBuyerId || null)) return false;
+  const record = clientRecord(deal, "form-license", customerId);
+  return record === context.record && record?.receiptRevision === context.receiptRevision;
+}
+function syncLicenseReceipt(deal) {
+  const container = licenseContainer(deal, true), progress = licenseProgress(deal), j = jacketOf(deal);
+  container.state = progress.ready ? "accepted" : progress.received ? "received" : "requested";
+  if (progress.ready) {
+    if (!jacketState(deal, "form-license")) j.docs["form-license"] = { how: "review", by: roleName(), at: new Date().toISOString(), subjects: progress.buyers.map(b => ({ customerId: b.customerId, receiptRevision: b.record.receiptRevision })) };
+  } else if (j.docs["form-license"]) {
+    container.priorFilings = [...(container.priorFilings || []), j.docs["form-license"]];
+    delete j.docs["form-license"];
+  }
+  return progress;
+}
 /* which of the three this deal actually needs, still in flight */
 function clientQueue(deal) {
   const need = jacketDocs(deal).map(d => d.id);
@@ -8719,7 +9885,7 @@ function jacketLedgers(deal) {
   const docs = jacketDocs(deal);
   const cl = jacketClient(deal);
   const accepted = docs.filter(d => jacketState(deal, d.id)).length;
-  const landed = docs.filter(d => !jacketState(deal, d.id) && cl[d.id] && cl[d.id].state !== "requested").length;
+  const landed = docs.filter(d => !jacketState(deal, d.id) && (d.id === "form-license" ? licenseProgress(deal).received : cl[d.id] && cl[d.id].state !== "requested")).length;
   return { total: docs.length, accepted, received: accepted + landed, missing: docs.length - accepted };
 }
 
@@ -8728,38 +9894,65 @@ function jacketLedgers(deal) {
    second copy of it is how a removed document once read "Requested" forever
    (the two-ledger bug the jacket comment describes). One function, two
    callers. */
-function jacketSendRequest(deal, ids) {
+function jacketSendRequest(deal, ids, customerId, options = {}) {
   const j = jacketOf(deal);
   const cl = jacketClientOf(deal);
+  const before = JSON.parse(JSON.stringify(j));
+  const references = ids.flatMap(docId => (docId === "form-license" ? (customerId ? [customerId] : licenseBuyerIds(deal)) : [undefined]).map(id => ({ docId, id, record: clientRecord(deal, docId, id) })));
   const at = new Date().toISOString();
+  try {
   j.reqSentAt = at;
   ids.forEach(qid => {
+    if (qid === "form-license") {
+      const recipients = customerId ? [customerId] : licenseBuyerIds(deal);
+      recipients.forEach(id => {
+        if (!licenseBuyerIds(deal).includes(id) || !Store.customer(id)) return;
+        const record = clientRecord(deal, qid, id, true);
+        record.requestedAt = at;
+        if (options.linkSent) record.linkSentAt = at;
+      });
+      licenseContainer(deal, true).requestedAt = at;
+      syncLicenseReceipt(deal);
+      return;
+    }
     /* a rejected record keeps its rejection and its preserved pages: the
        reason, and the side already on file, are exactly what the retake
        needs. What every document on the send gets is the send's stamp. */
     if (!cl[qid] || cl[qid].state === "requested") cl[qid] = { state: "requested" };
     cl[qid].requestedAt = at;
+    if (options.linkSent) cl[qid].linkSentAt = at;
   });
   Store.save();
+  } catch (error) {
+    deal.jacket = before;
+    references.forEach(({ docId, id, record }) => {
+      if (!record) return;
+      const restored = clientRecord(deal, docId, id);
+      Object.keys(record).forEach(key => delete record[key]);
+      Object.assign(record, restored);
+      setClientRecord(deal, docId, id, record);
+    });
+    throw error;
+  }
 }
 
 /* the photos a client captures live for THIS session only — a JS map of
    object URLs, never the Store, never localStorage (owner decision + the
    quota measurement). A reload forgets them; the records survive. */
 const CLIENT_PHOTOS = {};
-function clientPhotoKey(dealId, docId) { return dealId + ":" + docId; }
-function clientPhotos(dealId, docId) { return CLIENT_PHOTOS[clientPhotoKey(dealId, docId)] || []; }
-function clientPhotosSet(dealId, docId, urls) { CLIENT_PHOTOS[clientPhotoKey(dealId, docId)] = urls; }
-function clientPhotoDrop(dealId, docId, idx) {
-  const urls = clientPhotos(dealId, docId);
+function clientPhotoKey(dealId, docId, customerId) { return docId === "form-license" ? JSON.stringify([dealId, docId, customerId || Store.deal(dealId)?.customerId || null]) : dealId + ":" + docId; }
+function clientPhotos(dealId, docId, customerId) { return CLIENT_PHOTOS[clientPhotoKey(dealId, docId, customerId)] || []; }
+function clientPhotosSet(dealId, docId, urls, customerId) { CLIENT_PHOTOS[clientPhotoKey(dealId, docId, customerId)] = urls; }
+function clientPhotoDrop(dealId, docId, idx, customerId) {
+  const urls = clientPhotos(dealId, docId, customerId);
   const gone = urls.splice(idx, 1);
   gone.forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} });
 }
 /* replacing a page set must revoke the old URLs, or every recapture leaks
    the earlier blobs for the rest of the session */
-function clientPhotosClear(dealId, docId) {
-  clientPhotos(dealId, docId).forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} });
-  clientPhotosSet(dealId, docId, []);
+function clientPhotosClear(dealId, docId, customerId) {
+  clientPhotos(dealId, docId, customerId).forEach(u => { try { URL.revokeObjectURL(u); } catch (e) {} });
+  clientPhotosSet(dealId, docId, [], customerId);
 }
 
 /* the prototype stamps these with a time, which reads right on the day and
@@ -8776,7 +9969,8 @@ const drStamp = (iso) => {
 
 /* the simulated instant verification (owner's prototype, 2026-08-18): a
    missing page blocks until the count is met, the insurance card is flagged
-   once on its first complete attempt, everything else verifies on the spot.
+   once on its first complete attempt; other non-license documents use the
+   simulated check. License images are receipts pending explicit buyer review.
    Nothing reads a photo (invariant 4) — each document's beat sheet lives on
    its clientDocs entry, and the jacket record says the check was simulated. */
 /* the first-attempt beat's text, with its date computed at run time */
@@ -8785,10 +9979,11 @@ function drFirstIssueText(m) {
   return m.firstIssue.title + " (" + dte.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + ")";
 }
 
-function drIssueFor(deal, docId) {
+function drIssueFor(deal, docId, customerId = deal.customerId) {
   const m = clientMeta(docId);
-  const r = jacketClient(deal)[docId] || {};
-  const pages = clientPhotos(deal.id, docId).length || r.pages || 0;
+  const r = clientRecord(deal, docId, customerId) || {};
+  const pages = clientPhotos(deal.id, docId, customerId).length;
+  if (docId === "form-license" && pages > 2) return "Too many images — select the front and back.";
   if (m.minPages && pages < m.minPages && m.missingPage) return m.missingPage.title;
   if (m.firstIssue && !(r.tries > 0)) return drFirstIssueText(m);
   return null;
@@ -8798,36 +9993,58 @@ function drIssueFor(deal, docId) {
    It replaces the old three-card coaching screen (owner, 2026-08-26): the
    customer is told plainly and given the retake, not taught photography. */
 const DR_UNREADABLE = "Too blurry to read";
-function drRejectUnreadable(deal, docId) {
-  const rc = jacketClientOf(deal);
-  const r = rc[docId] || (rc[docId] = {});
+function drRejectUnreadable(deal, docId, customerId = deal.customerId, context = null) {
+  const previous = deal.jacket === undefined ? undefined : JSON.parse(JSON.stringify(deal.jacket));
+  const oldRecord = clientRecord(deal,docId,customerId), oldData = oldRecord ? JSON.parse(JSON.stringify(oldRecord)) : null;
+  try {
+  if (docId === "form-license" && !licenseContextValid(deal, customerId, context || licenseCaptureContext(deal, customerId))) throw Error("The buyer or receipt changed. Reopen the document.");
+  const r = clientRecord(deal, docId, customerId, true);
   r.tries = (r.tries || 0) + 1;
   r.receivedAt = new Date().toISOString();
   r.state = "rejected";
   r.rejectedReason = DR_UNREADABLE;
+  if (docId === "form-license") { delete r.review; delete r.acceptedAt; r.receiptRevision = (Number.isInteger(r.receiptRevision) ? r.receiptRevision : 0) + 1; syncLicenseReceipt(deal); }
   Store.save();
   return { ok: false, issue: DR_UNREADABLE };
+  } catch (error) {
+    if (previous === undefined) delete deal.jacket; else deal.jacket = previous;
+    if(oldRecord){Object.keys(oldRecord).forEach(k=>delete oldRecord[k]);Object.assign(oldRecord,oldData);setClientRecord(deal,docId,customerId,oldRecord);}
+    toast("Upload was not saved. Try again."); return null;
+  }
 }
 
-function drAutoVerify(deal, docId) {
-  const clw = jacketClientOf(deal);
-  const r = clw[docId] || (clw[docId] = {});
-  const issue = drIssueFor(deal, docId);
+function drAutoVerify(deal, docId, persist = true, customerId = deal.customerId, context = null) {
+  if (docId === "form-license" && !licenseContextValid(deal, customerId, context || licenseCaptureContext(deal, customerId))) throw Error("The buyer or receipt changed. Reopen the document.");
+  const r = clientRecord(deal, docId, customerId, true);
+  const issue = drIssueFor(deal, docId, customerId);
   r.tries = (r.tries || 0) + 1;
   r.receivedAt = new Date().toISOString();
-  r.pages = clientPhotos(deal.id, docId).length || 1;
+  r.pages = clientPhotos(deal.id, docId, customerId).length;
   r.draftPages = r.pages;
+  if (docId === "form-license") {
+    r.customerId = customerId;
+    r.receiptRevision = (Number.isInteger(r.receiptRevision) ? r.receiptRevision : 0) + 1;
+    delete r.review; delete r.acceptedAt;
+    r.sides = { front: r.pages > 0 ? { receivedAt: r.receivedAt, via: drSideVia(r, r.pages)[0] } : null,
+      back: r.pages > 1 ? { receivedAt: r.receivedAt, via: drSideVia(r, r.pages)[1] } : null };
+    r.state = issue ? "rejected" : "received";
+    r.rejectedReason = issue || null;
+    syncLicenseReceipt(deal);
+    if (persist) Store.save();
+    return issue ? { ok: false, issue } : { ok: true, reviewPending: true };
+  }
+  r.pages = r.pages || 1;
   if (issue) {
     r.state = "rejected";
     r.rejectedReason = issue;
-    Store.save();
+    if (persist) Store.save();
     return { ok: false, issue };
   }
   r.state = "accepted";
   r.acceptedAt = r.receivedAt;
   r.rejectedReason = null;
-  Store.save();
-  jacketReceive(deal, docId, "sort");
+  if (persist) Store.save();
+  jacketReceive(deal, docId, "sort", undefined, persist);
   return { ok: true };
 }
 
@@ -8836,7 +10053,7 @@ function drAutoVerify(deal, docId) {
    during the gesture so it tracks the fingers, then commits to state. */
 function drPinchZoom(stage, st, onEnd) {
   if (!stage) return;
-  const art = () => stage.querySelector(".dr-photo, .dr-photoart");
+  const art = () => stage.querySelector(".dr-photo, .dr-photoart, .customer-upload-image, .document-review-image");
   const gap = (t) => Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
   let start = 0, from = 1;
   stage.addEventListener("touchstart", (e) => {
@@ -8883,24 +10100,28 @@ function drCustomerTouched(r) {
   const n = Math.max(r.pages || 0, r.draftPages || 0, (r.sideVia || []).length);
   return drSideVia(r, n).some(v => v === "customer");
 }
-function drStampSides(deal, docId, indices, via) {
-  const r = jacketClient(deal)[docId]; if (!r) return;
+function drStampSides(deal, docId, indices, via, persist = true, customerId = deal.customerId) {
+  const r = clientRecord(deal, docId, customerId); if (!r) return;
   r.sideVia = r.sideVia || [];
-  for (const i of indices) r.sideVia[i] = via;
-  Store.save();
+  for (const i of indices) {
+    r.sideVia[i] = via;
+    const side = i === 0 ? "front" : i === 1 ? "back" : null;
+    if (side && r.sides?.[side]) r.sides[side].via = via;
+  }
+  if (persist) Store.save();
 }
 /* the indices from `from` to the end of the current set */
-function drSidesFrom(deal, docId, from) {
-  const n = clientPhotos(deal.id, docId).length;
+function drSidesFrom(deal, docId, from, customerId = deal.customerId) {
+  const n = clientPhotos(deal.id, docId, customerId).length;
   return Array.from({ length: Math.max(0, n - from) }, (_, k) => from + k);
 }
 /* returns the index the new pages START at: 0 when the set was replaced (a
    retake), the old length when a missing page was appended. A retake that
    replaces one page with one page leaves the count unchanged, so "count
    before" cannot tell the caller which pages are new — this can (review find). */
-function drAddShots(deal, docId, files) {
+function drAddShots(deal, docId, files, retainReplaced = false, customerId = deal.customerId) {
   const m = clientMeta(docId);
-  const r = jacketClient(deal)[docId];
+  const r = clientRecord(deal, docId, customerId);
   /* Preserving is for the RETAKE of one missing side: it keeps the side
      already on file so the new one lands beside it. A capture that supplies
      the whole document is a replacement — preserving there leaves a blank
@@ -8909,8 +10130,11 @@ function drAddShots(deal, docId, files) {
   const preserving = r && r.state === "rejected" && m.missingPage
     && r.rejectedReason === m.missingPage.title
     && !(m.minPages && files.length >= m.minPages);
-  if (!preserving) clientPhotosClear(deal.id, docId);
-  const urls = clientPhotos(deal.id, docId).slice();
+  if (!preserving) {
+    if (retainReplaced) clientPhotosSet(deal.id, docId, [], customerId);
+    else clientPhotosClear(deal.id, docId, customerId);
+  }
+  const urls = clientPhotos(deal.id, docId, customerId).slice();
   /* photos live only in the session that captured them (owner decision);
      after a reload the record still says one page arrived but the set is
      empty. Keep the record's count as empty slots — every renderer already
@@ -8919,8 +10143,80 @@ function drAddShots(deal, docId, files) {
   if (preserving) while (urls.length < (r.pages || 0)) urls.push(null);
   const from = urls.length;
   Array.from(files).forEach(f => urls.push(drPreviewUrl(f)));
-  clientPhotosSet(deal.id, docId, urls);
+  clientPhotosSet(deal.id, docId, urls, customerId);
   return from;
+}
+
+/* Commit a customer upload, acceptance and side provenance together. Keep
+   prior previews alive until persistence succeeds so a failed retake can retry. */
+function drCommitClientUpload(deal, docId, prepare, provenance, customerId = deal.customerId, context = null) {
+  const previous = deal.jacket === undefined ? undefined : JSON.parse(JSON.stringify(deal.jacket));
+  const previousRecord = clientRecord(deal, docId, customerId);
+  const previousRecordData = previousRecord ? JSON.parse(JSON.stringify(previousRecord)) : null;
+  const previousSides = previousRecord?.sides ? JSON.parse(JSON.stringify(previousRecord.sides)) : null;
+  const priorPhotos = clientPhotos(deal.id, docId, customerId).slice();
+  const revoke = urls => urls.forEach(url => { if (url) { try { URL.revokeObjectURL(url); } catch {} } });
+  let prepared;
+  try {
+    if (docId === "form-license" && !licenseContextValid(deal, customerId, context || licenseCaptureContext(deal, customerId))) throw Error("The buyer or receipt changed. Reopen the document.");
+    prepared = prepare();
+    const result = drAutoVerify(deal, docId, false, customerId, context);
+    provenance(prepared);
+    if (docId === "form-license") {
+      const record = clientRecord(deal, docId, customerId);
+      if ((prepared?.from ?? prepared) > 0 && previousSides?.front) record.sides.front = previousSides.front;
+      if (record.sides.front) record.sides.front.via = drSideVia(record, record.pages)[0];
+      if (record.sides.back) record.sides.back.via = drSideVia(record, record.pages)[1];
+      syncLicenseReceipt(deal);
+    }
+    Store.save();
+    revoke(priorPhotos.filter(url => !clientPhotos(deal.id, docId, customerId).includes(url)));
+    const superseded = ["Upload was not saved. Try again."];
+    if (result.ok && previousRecordData?.rejectedReason) superseded.push(
+      "Blocked: " + previousRecordData.rejectedReason,
+      "Upload blocked: " + previousRecordData.rejectedReason);
+    if (superseded.includes($("#toast")?.textContent)) { clearTimeout(toastTimer); $("#toast").remove(); }
+    return result;
+  } catch (error) {
+    if (previous === undefined) delete deal.jacket; else deal.jacket = previous;
+    if (previousRecord) { Object.keys(previousRecord).forEach(k => delete previousRecord[k]); Object.assign(previousRecord, previousRecordData); setClientRecord(deal, docId, customerId, previousRecord); }
+    if (!prepared?.retainOnFailure) revoke(clientPhotos(deal.id, docId, customerId).filter(url => !priorPhotos.includes(url)));
+    clientPhotosSet(deal.id, docId, priorPhotos, customerId);
+    toast('Upload was not saved. Try again.');
+    return null;
+  }
+}
+
+/* Review belongs to the exact captured pair and buyer visible to the advisor.
+   Receipt alone never produces this record or verifies a person's identity. */
+async function drReviewLicense(deal, customerId, expected) {
+  const sameContext = () => licenseContextValid(deal, customerId, expected);
+  if (!sameContext()) { toast("The buyer or receipt changed. Reopen the document."); return null; }
+  const record = clientRecord(deal, "form-license", customerId);
+  const photos = clientPhotos(deal.id, "form-license", customerId).slice();
+  if (record?.state !== "received" || !record?.sides?.front || !record?.sides?.back || !record.receiptRevision || photos.length !== 2 || photos.some(u => !u)) {
+    toast("Capture both sides before reviewing the license."); return null;
+  }
+  const usable = await Promise.all(photos.map(url => new Promise(resolve => {
+    const img = new Image(); let settled = false;
+    const finish = ok => { if (settled) return; settled = true; clearTimeout(timer); img.onload = img.onerror = null; resolve(ok); };
+    const timer = setTimeout(() => finish(false), 5000);
+    img.onload = () => finish(img.naturalWidth > 0 && img.naturalHeight > 0); img.onerror = () => finish(false); img.src = url;
+  })));
+  if (!usable.every(Boolean)) { toast("Capture both sides again before reviewing the license."); return null; }
+  if (!sameContext() || photos.some((u,i) => clientPhotos(deal.id,"form-license",customerId)[i] !== u)) { toast("The buyer or receipt changed. Reopen the document."); return null; }
+  const previous = JSON.parse(JSON.stringify(deal.jacket));
+  try {
+    const at = new Date().toISOString();
+    record.review = { customerId, receiptRevision: record.receiptRevision, reviewedAt: at, by: roleName() };
+    record.state = "accepted"; record.acceptedAt = at; record.rejectedReason = null;
+    syncLicenseReceipt(deal); Store.save();
+    if (["Upload was not saved. Try again.", "Review was not saved. Try again.",
+      "License received — awaiting review.", "License sides received. Review needed.",
+      "Batch saved. License review pending."
+    ].includes($("#toast")?.textContent)) { clearTimeout(toastTimer); $("#toast").remove(); }
+    return { ok: true };
+  } catch (error) { deal.jacket = previous; const restored = clientRecord(deal,"form-license",customerId); Object.keys(record).forEach(k=>delete record[k]);Object.assign(record,restored);setClientRecord(deal,"form-license",customerId,record);toast("Review was not saved. Try again.");return null; }
 }
 
 /* remove a hand-added document from the deal entirely — computed ones stay */
@@ -9084,6 +10380,12 @@ route("jacket/:id", ({ id }) => {
      needed whether or not a link went out (§19a). */
   function rowState(d) {
     if (inJacket(d)) return { label: "Complete", cls: "rp-doc__state--done" };
+    if (d.id === "form-license") {
+      const p = licenseProgress(deal);
+      if (p.buyers.some(b => b.complete && !b.reviewed)) return { label: "Review needed", cls: "rp-doc__state--part" };
+      if (p.received) return { label: "Receipt incomplete", cls: "rp-doc__state--part" };
+      return { label: p.buyers.some(b => b.record?.requestedAt) ? "Requested" : "Needed", cls: "" };
+    }
     if (licenseHalfIn(d)) return { label: "Back needed", cls: "rp-doc__state--part" };
     const r = jacketClient(deal)[d.id];
     if (r && r.state === "rejected") return { label: "Retake needed", cls: "rp-doc__state--part" };
@@ -9095,6 +10397,7 @@ route("jacket/:id", ({ id }) => {
      drew between a machine check and a person's word is kept word for word */
   function receivedLine(d) {
     const st = jacketState(deal, d.id); if (!st) return "";
+    if (d.id === "form-license" && st.how === "review") return "Both sides reviewed for each buyer · " + jacketStamp(st.at);
     const how = st.how === "scan" ? "Camera scan · verified"
       : st.how === "client" ? "Customer upload · accepted"
         : st.how === "sort" ? "Snap & Sort · auto-filed (demo)"
@@ -9106,6 +10409,7 @@ route("jacket/:id", ({ id }) => {
   /* the why-line an outstanding row wears: its responsibility first, so an
      advisor can tell at a glance whose job it is without opening it (§26) */
   function whyLine(d) {
+    if (d.id === "form-license") return licenseProgress(deal).buyers.map(b => `${b.customer ? b.customer.first + " " + b.customer.last : "Buyer unavailable"}: ${b.reviewed ? "reviewed" : b.complete ? "review needed" : b.record?.sides?.front ? "back needed" : b.record?.sides?.back ? "front needed" : "both sides needed"}`).join(" · ");
     const st = rowState(d);
     if (st.label === "Back needed" && d.id === "form-license") {
       const r = jacketClient(deal)[d.id];
@@ -9271,7 +10575,7 @@ route("jacket/:id", ({ id }) => {
     wire(custWaiting, addable, docs);
     /* a sheet that owns its own state is re-opened after the redraw its own
        change caused, or attaching a co-buyer would close the sheet that did it */
-    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, () => render()); }
+    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, reopen => { if (reopen) ui.sheet = "buyers"; render(); }); }
     /* keep the advisor where they were working. The page can be shorter after
        a document moves buckets, so clamp rather than restoring blind. */
     const page = $(".rp-page");
@@ -9326,8 +10630,10 @@ route("jacket/:id", ({ id }) => {
        the CUSTOMER did with the link, and an in-showroom scan is not the
        customer opening or uploading anything (review find). */
     const cl = jacketClient(deal);
-    const asked = CLIENT_QUEUE_IDS.filter(qid => cl[qid] && (cl[qid].state === "requested" ? cl[qid].via !== "advisor" : drCustomerTouched(cl[qid])));
-    const uploaded = asked.filter(qid => cl[qid].state !== "requested");
+    const asked = CLIENT_QUEUE_IDS.filter(qid => qid === "form-license"
+      ? licenseProgress(deal).buyers.some(b => b.record?.requestedAt || drCustomerTouched(b.record || {}))
+      : cl[qid] && (cl[qid].state === "requested" ? cl[qid].via !== "advisor" : drCustomerTouched(cl[qid])));
+    const uploaded = asked.filter(qid => qid === "form-license" ? licenseProgress(deal).buyers.some(b => drCustomerTouched(b.record || {})) : cl[qid].state !== "requested");
     const step = (label, value, pending) => `<div class="rp-kv__row"><span>${esc(label)}</span><span>${esc(value)}${pending ? "" : ""}</span></div>`;
     sheets.open(`${chSheetHead("Customer request")}
       <p class="rp-sheet__sub">Sent to ${esc(custName)}${cst && cst.phone ? " · " + esc(cst.phone) : ""}</p>
@@ -9351,7 +10657,14 @@ route("jacket/:id", ({ id }) => {
      scanned back, uploaded signed or marked received; it is never offered the
      customer's upload path, and the sheet says what it is. */
   function docSheet(d) {
+    if (d.id === "form-license" && licenseBuyerIds(deal).length > 1) {
+      sheets.open(`${chSheetHead(d.label)}<div class="rp-group">${licenseProgress(deal).buyers.map(b => `<a class="rp-row" href="#/docreview/${esc(deal.id)}/form-license/${encodeURIComponent(b.customerId)}"><span class="rp-row__body"><span class="rp-row__title">${esc(b.customer ? b.customer.first + " " + b.customer.last : "Buyer unavailable")}</span><span class="rp-row__sub">${b.reviewed ? "Reviewed" : b.complete ? "Review needed" : "Capture license sides"}</span></span><span class="rp-row__chevron"></span></a>`).join("")}</div>${inJacket(d) ? '<button type="button" class="rp-link" id="jkUndo">Take back out</button>' : ''}`, sh => {
+        const undo = $("#jkUndo", sh); if (undo) undo.onclick = () => takeBackOut(d);
+      });
+      return;
+    }
     if (inJacket(d)) return recordSheet(d);
+    if (d.id === "form-license" && licenseProgress(deal).received) return navigate(`#/docreview/${deal.id}/form-license/${encodeURIComponent(deal.customerId)}`);
     const resp = responsibility(d);
     if (resp === "customer" && licenseHalfIn(d)) return licenseSheet(d);
 
@@ -9431,7 +10744,9 @@ route("jacket/:id", ({ id }) => {
      says how far the count moves before it moves it (§25). */
   function markSheet(d) {
     const led = jacketLedger(deal);
-    const after = d.kind === "required" ? `${led.requiredFiled + 1} of ${led.requiredTotal}` : `${led.requiredFiled} of ${led.requiredTotal}`;
+    const customerId = d.id === "form-license" ? deal.customerId : undefined;
+    const context = customerId ? licenseCaptureContext(deal, customerId) : null;
+    const after = d.kind === "required" && d.id !== "form-license" ? `${led.requiredFiled + 1} of ${led.requiredTotal}` : `${led.requiredFiled} of ${led.requiredTotal}`;
     sheets.open(`${chSheetHead("Mark received")}
       <p class="rp-sheet__sub">${esc(d.label)} · ${esc(RESP_TAG[responsibility(d)].toLowerCase())}</p>
       <div class="rp-field"><label class="rp-field__label" for="jkNote">Source or note (optional)</label>
@@ -9439,41 +10754,55 @@ route("jacket/:id", ({ id }) => {
       ${consequences("Nothing is read and nothing is verified", [
         `Recorded against this deal as taken in by ${esc(roleName())}`,
         "Ride Price did not scan the document or check its contents",
-        d.kind === "required"
+        d.id === "form-license" ? `Receipt only — sides and review remain required; the count stays ${esc(after)}` : d.kind === "required"
           ? `The count moves by one — this item only, to ${esc(after)}`
           : `Counted as an optional document — the required count stays at ${esc(after)}`
       ])}
       <button type="button" class="rp-primary" id="jkMarkGo">Mark received</button>`,
       (sh) => {
         $("#jkMarkGo", sh).onclick = () => {
-          jacketReceive(deal, d.id, "hand", ($("#jkNote", sh).value || "").trim());
+          if (context && !licenseContextValid(deal, customerId, context)) return toast("The buyer or receipt changed. Reopen the document.");
+          try { jacketReceive(deal, d.id, "hand", ($("#jkNote", sh).value || "").trim(), true, customerId); }
+          catch {
+            if (context && Store.deal(deal.id) === deal && Store.customer(customerId) === context.customer && deal.customerId === context.primaryId && (deal.coBuyerId || null) === context.coBuyerId) Object.assign(context, licenseCaptureContext(deal, customerId));
+            return toast("Receipt was not saved. Try again.");
+          }
           sheets.close(); render();
         };
       });
   }
 
   /* 08 — what the jacket holds for something already in, and the way back out */
+  function takeBackOut(d) {
+    try { if (jacketRemove(deal, d.id) === false) return; }
+    catch { toast("Document was not removed. Try again."); return; }
+    if ($("#toast")?.textContent === "Document was not removed. Try again.") { clearTimeout(toastTimer); $("#toast").remove(); }
+    sheets.close(); render();
+  }
   function recordSheet(d) {
     const st = jacketState(deal, d.id); if (!st) return;
     /* a deal form opens as a printable, which needs the catalog unit — with
        none, the print route would only send the reader back to this jacket */
-    const viewable = d.origin !== "outside"
-      ? (printable ? `#/print/${esc(deal.id)}/${esc(d.id)}` : null)
-      : (st.how === "client" || st.how === "sort") && CLIENT_QUEUE_IDS.includes(d.id)
-        ? `#/docreview/${esc(deal.id)}/${esc(d.id)}` : null;
+    const viewable = d.id === "form-license" && st.how === "review"
+      ? `#/docreview/${encodeURIComponent(deal.id)}/form-license/${encodeURIComponent(deal.customerId)}`
+      : d.origin !== "outside"
+        ? (printable ? `#/print/${encodeURIComponent(deal.id)}/${encodeURIComponent(d.id)}` : null)
+        : (st.how === "client" || st.how === "sort") && CLIENT_QUEUE_IDS.includes(d.id)
+          ? `#/docreview/${encodeURIComponent(deal.id)}/${encodeURIComponent(d.id)}` : null;
     sheets.open(`${chSheetHead(d.label)}
       <p class="rp-sheet__sub">${esc(receivedLine(d))}</p>
-      <p class="rp-count">${st.how === "scan" ? "Verified — the app read the marker it printed on this page."
+      <p class="rp-count">${st.how === "review" ? "Both license sides were explicitly reviewed for each current buyer. This is document review, not identity verification."
+        : st.how === "scan" ? "Verified — the app read the marker it printed on this page."
         : st.how === "sort" ? "Auto-filed by Snap &amp; Sort (demo — a simulated check)."
           : st.how === "client" ? "Uploaded by the customer through the secure link and accepted after review."
             : st.how === "esign" ? "Signed electronically in the app and filed by the act of signing."
               : st.how === "app" ? "Ride Price created this record itself when the event happened. Nobody handed anything over, and nothing was scanned."
                 : "Taken in by hand. The jacket keeps the record, not the paper."}${st.note ? " Note: " + esc(st.note) : ""}${d.kind === "optional" ? " Counted as an optional document — it is not part of the required package." : ""}</p>
-      ${viewable ? `<a class="rp-primary" href="${esc(viewable)}" style="display:grid;place-items:center">View</a>` : ""}
+      ${viewable ? `<a class="rp-primary" id="jkView" href="${esc(viewable)}" style="display:grid;place-items:center">View</a>` : ""}
       <button type="button" class="rp-link" id="jkUndo">Take back out</button>
       ${d.added ? `<button type="button" class="rp-link" id="jkDrop">Remove from this deal</button>` : ""}`,
       (sh) => {
-        $("#jkUndo", sh).onclick = () => { jacketRemove(deal, d.id); sheets.close(); render(); };
+        $("#jkUndo", sh).onclick = () => takeBackOut(d);
         const drop = $("#jkDrop", sh);
         if (drop) drop.onclick = () => { jacketDrop(deal, d.id); sheets.close(); toast("Taken off this deal"); render(); };
       });
@@ -9540,7 +10869,8 @@ route("jacket/:id", ({ id }) => {
 
   /* the customer documents run the same instant check the secure link runs */
   function openCam(docId, useCamera) {
-    camDoc = docId;
+    const customerId = docId === "form-license" ? deal.customerId : undefined;
+    camDoc = { docId, customerId, context: docId === "form-license" ? licenseCaptureContext(deal, customerId) : null };
     const inp = $(useCamera ? "#jkCam" : "#jkFile");
     if (inp) { inp.value = ""; inp.click(); }
   }
@@ -9565,29 +10895,28 @@ route("jacket/:id", ({ id }) => {
 
     const onPick = (inp) => () => {
       if (!inp.files || !inp.files.length || !camDoc) return;
-      const docId = camDoc;
-      const from = drAddShots(deal, docId, inp.files);
-      const result = drAutoVerify(deal, docId);
-      /* the record says WHO captured it: without this, an in-showroom scan
-         made the tracking sheet claim the customer opened the link and
-         uploaded — actions they never took (review find). The flag is
-         whole-document, so it is set only when this capture REPLACED the set;
-         appending a missing side to a front the customer sent stamps that
-         side alone. */
-      const rec = jacketClient(deal)[docId];
-      if (rec) {
-        if (from === 0) { rec.via = "advisor"; rec.sideVia = []; }
-        drStampSides(deal, docId, drSidesFrom(deal, docId, from), "advisor");
-      }
-      Store.save();
+      const { docId, customerId, context } = camDoc;
+      const result = drCommitClientUpload(deal, docId,
+        () => drAddShots(deal, docId, inp.files, true, customerId),
+        from => {
+          /* Stamp advisor capture without rewriting an earlier customer side.
+             Receipt and provenance persist together, or both roll back. */
+          const rec = clientRecord(deal, docId, customerId);
+          if (rec) {
+            if (from === 0) { rec.via = "advisor"; rec.sideVia = []; }
+            drStampSides(deal, docId, drSidesFrom(deal, docId, from, customerId), "advisor", false, customerId);
+          }
+        }, customerId, context);
+      inp.value = "";
+      if (!result) return;
       /* §25 — the confirmation names the ONE document it resolved, so the
          screen never implies the capture cleared anything else. It is state
          for exactly one render: the note tells the advisor what changed, and
          the next thing they do is not still about this. */
       const label = (docMeta(docId) || {}).label || "The document";
-      toast(result.ok ? "✓ " + label + " filed. Nothing else moved." : "Blocked: " + result.issue);
+      toast(docId === "form-license" && result.ok ? "License sides received. Review needed." : result.ok ? "✓ " + label + " filed. Nothing else moved." : "Blocked: " + result.issue);
       camDoc = null;
-      ui.justFiled = result.ok ? label : null;
+      ui.justFiled = result.ok && docId !== "form-license" ? label : null;
       render();
       ui.justFiled = null;
     };
@@ -9748,91 +11077,101 @@ route("docreq/:id/:mode", ({ id }) => redirect("#/jacket/" + id));
 route("clientlink/:id", ({ id }) => drClientLink(id, "landing"));
 route("clientlink/:id/:start", ({ id, start }) => drClientLink(id, start));
 
-function drClientLink(id, startScreen) {
+route("clientlink/:id/:start/:customerId", ({ id, start, customerId }) => drClientLink(id, start, customerId));
+
+function drClientLink(id, startScreen, recipientId) {
   const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const ds = RIDE_PRICE_DATA.dealership;
-  const cst = Store.customer(deal.customerId);
+  const customerId = recipientId || deal.customerId;
+  const cst = Store.customer(customerId);
+  if (!cst || !licenseBuyerIds(deal).includes(customerId)) return redirect("#/jacket/" + deal.id);
+  let recipientContext = licenseCaptureContext(deal, customerId);
   const v = Store.vehicle(deal.stock);
   const st = { screen: startScreen === "sms" ? "sms" : "landing", docId: null, badPhoto: false, zoom: 1, page: 0, source: "camera" };
-  /* the sheet's Escape handler, held in the view's scope so every render can
-     detach the previous one — see wire(). Leaving the route entirely does NOT
-     re-run wire(), so the teardown below is what stops a listener outliving
-     the whole view: its closeSheet() calls render(), which would paint this
-     view over whichever route the user has since moved to (CodeRabbit, #50).
-     Same shape as the scan journey's and Snap All's own hashchange cleanup. */
-  let sheetKey = null;
+  const drafts = new Map();
+  const photos = docId => drafts.get(docId)?.urls || clientPhotos(deal.id, docId, customerId);
+  function draftSet(docId, urls) {
+    const draft = drafts.get(docId) || { urls: [], owned: new Set() };
+    const committed = clientPhotos(deal.id, docId, customerId);
+    urls.forEach(u => { if (u && !committed.includes(u)) draft.owned.add(u); });
+    draft.urls = urls; drafts.set(docId, draft);
+  }
+  function draftDrop(docId, idx) { const urls=photos(docId).slice(); urls.splice(idx,1); draftSet(docId,urls); }
+  function discardDraft(docId) {
+    drafts.get(docId)?.owned.forEach(u => { if (!clientPhotos(deal.id,docId,customerId).includes(u)) { try { URL.revokeObjectURL(u); } catch {} } });
+    drafts.delete(docId);
+  }
+  function discardDrafts() {
+    Array.from(drafts.keys()).forEach(discardDraft);
+  }
+  function addDraft(docId, files) {
+    const record=rec(docId), meta=clientMeta(docId);
+    const preserve=record?.state==='rejected' && record.rejectedReason===meta.missingPage?.title && files.length<(meta.minPages||1);
+    const urls=preserve?photos(docId).slice():[];
+    if(preserve)while(urls.length<(record.pages||0))urls.push(null);
+    const from=urls.length;Array.from(files).forEach(file=>urls.push(drPreviewUrl(file)));draftSet(docId,urls);return from;
+  }
+
   function drClientCleanup() {
-    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+    discardDrafts();
     window.removeEventListener("hashchange", drClientCleanup);
   }
   window.addEventListener("hashchange", drClientCleanup);
-
   renderChrome("Client link", dealTitle(deal), "");
   document.body.dataset.screen = "clientlink";
+  document.body.dataset.canvas = "kit";
+  const sheets = chSheetOpener("cuScrim", "cuSheet", () => { if (st.screen === "detail") st.screen = "landing"; });
+  const shell = (title, content, actions = "") => chShell({template:"task",title,closeId:"cuClose",closeLabel:"Demo advisor view",hideRole:true,banner:false /* PI-005 (docs/workflows/portal-interaction): a customer's page draws no dealership band; the .dr-demoexit below stays the trainer's marked way back */},content,actions ? `<div class="rp-dock">${actions}</div>` : "",{scrim:"cuScrim",sheet:"cuSheet"});
+  const action = (attrs, label, primary = false) => `<button type="button" class="${primary ? "rp-primary" : "rp-link"}" ${attrs}>${label}</button>`;
+  const context = () => `<p class="rp-section">${esc(cst.first)} ${esc(cst.last)} · Request #${esc(deal.dealNo || "")}</p>`;
 
-  const cl = () => jacketClient(deal);
-  const rec = (docId) => cl()[docId] || null;
-  const stateOf = (docId) => jacketState(deal, docId) ? "accepted" : (rec(docId) ? rec(docId).state : "needed");
-  const queueIds = () => CLIENT_QUEUE_IDS.filter(q => jacketDocs(deal).some(d => d.id === q));
-  const doneCount = () => queueIds().filter(q => stateOf(q) === "accepted").length;
 
-  function trustHeader(sub) {
-    return `<div class="dr-trust">
-      <div class="dr-dealerline"><span class="dr-logomark">${esc(drLogoMark())}</span>
-        <span class="dr-dealercopy"><b>${esc(ds.name)}</b><span>${esc(Store.s.advisor)} · Sales Advisor · ${esc(ds.phone)}</span></span></div>
-      ${sub}
-    </div>`;
-  }
+  const rec = (docId) => clientRecord(deal, docId, customerId);
+  const stateOf = (docId) => (docId === "form-license" ? licenseReviewValid(rec(docId), customerId) : jacketState(deal, docId)) ? "accepted" : (rec(docId) ? rec(docId).state : "needed");
+  const queueIds = () => CLIENT_QUEUE_IDS.filter(q => (customerId === deal.customerId || q === "form-license") && jacketDocs(deal).some(d => d.id === q));
+  const doneCount = () => queueIds().filter(q => ["received", "accepted"].includes(stateOf(q))).length;
+
+
 
   /* each row carries its own camera trigger (owner's prototype): Add Photo
      opens the native capture, the simulated check answers on the spot.
      Legacy "received" records (pre-2026-08-18 saves) still render sanely. */
+
   function clientRowHtml(docId) {
-    const d = docMeta(docId); const m = clientMeta(docId);
-    const s = stateOf(docId); const r = rec(docId);
-    const blocked = s === "rejected";
-    const status = s === "accepted" ? "Verified" : s === "received" ? "Sent — being reviewed" : blocked ? "Needs a new photo" : "";
-    const cls = s === "accepted" ? "accepted" : s === "received" ? "received" : "rejected";
-    /* the right-hand control is one word, or a status pill once the document
-       has a state of its own (owner prototype, 2026-08-26) */
-    const action = s === "accepted"
-      ? `<span class="dr-pill dr-pill--ok">Verified</span>`
-      /* a blocked row keeps its ONE-TAP retake: the prototype makes the row
-         itself the control, which costs the customer an extra tap on the very
-         screen where they are already stuck. The crimson status line under the
-         title carries the "fix needed" meaning instead of a pill. */
-      : `<button type="button" class="dr-clientadd" data-trigger-upload="${esc(docId)}" aria-controls="drUpl-${esc(docId)}">${blocked ? "Retake Photo" : s === "received" ? "Replace" : "Add"}</button><input id="drUpl-${esc(docId)}" class="dr-hiddeninput" type="file" accept="image/*" capture="environment" data-upload-input="${esc(docId)}">`;
-    /* the row body opens the document's own screen — what we need, a good
-       example, the other capture methods and the multi-page review. The row's
-       own subtitle says what the document IS; its state says where it stands. */
-    return `<div class="dr-clientrow">
-      <span class="dr-rowicon" aria-hidden="true">${DR_ROW_ICON[docId] || DR_ROW_ICON.default}</span>
-      <button type="button" class="dr-itemcopy dr-itemopen" ${s === "accepted" ? "disabled" : `data-detail="${esc(docId)}"`}>
-        <b>${esc(d.label)}</b>
-        <span class="dr-rowsub">${esc(m.sub || "")}</span>
-        ${status ? `<span class="dr-status dr-status--${cls}">${esc(status)}</span>` : ""}${blocked ? `<span class="dr-blockhint">${esc(r.rejectedReason || "")}</span>` : ""}
+    const d=docMeta(docId),m=clientMeta(docId),state=stateOf(docId),r=rec(docId);
+    const accepted=state==="accepted",blocked=state==="rejected";
+    const status=accepted?(docId==="form-license"?"Reviewed":"Verified"):state==="received"?"Sent — being reviewed":blocked?(r.rejectedReason||"Needs a new photo"):"";
+    return `<div class="rp-row">
+      <span class="rp-tile" aria-hidden="true">${rpGlyph(docId==="form-license"?"license":"document")}</span>
+      <button type="button" class="rp-row__body customer-upload-open" ${accepted?"disabled":`data-detail="${esc(docId)}"`}>
+        <span class="rp-row__title">${esc(d.label)}</span><span class="rp-row__sub">${esc(m.sub||"")}</span>
+        ${status?`<span class="rp-row__sub">${esc(status)}</span>`:""}
       </button>
-      ${action}
+      ${accepted?`<span class="rp-status rp-status--positive">${docId==="form-license"?"Reviewed":"Verified"}</span>`:`<button type="button" class="rp-row__action ch-hit" data-trigger-upload="${esc(docId)}" aria-controls="drUpl-${esc(docId)}">${blocked?"Retake":state==="received"?"Replace":"Add"}</button><input id="drUpl-${esc(docId)}" type="file" accept="image/*" capture="environment" data-upload-input="${esc(docId)}" hidden>`}
     </div>`;
   }
 
+
+
   function render() {
-    const host = view();
-    if (st.screen === "sms") host.innerHTML = smsScreen();
-    else if (st.screen === "receipt") host.innerHTML = receiptScreen();
-    else if (st.screen === "review") host.innerHTML = reviewScreen();
-    else host.innerHTML = landingScreen();
-    /* the document's own detail is a sheet ON the list — the list is drawn
-       first and stays behind it (owner, 2026-08-27) */
-    if (st.screen === "detail") host.insertAdjacentHTML("beforeend", detailSheet());
-    /* the advisor DEBUG strip does not belong on a page a customer opens from
-       a text message (open audit finding; owner prototype, 2026-08-26). The
-       trainer keeps one clearly-marked way back to the advisor view. */
-    host.insertAdjacentHTML("beforeend", `<button type="button" class="dr-demoexit" data-dbg="advisor">Demo · advisor view</button>`);
+    const target=st.screen;
+    sheets.close(); st.screen=target;
+    const host=view();
+    host.innerHTML=st.screen==="sms"?smsScreen():st.screen==="receipt"?receiptScreen():st.screen==="review"?reviewScreen():landingScreen();
+    if(st.screen==="detail") {
+      const opener=$$('[data-detail]',host).find(b=>b.dataset.detail===st.docId);
+      opener?.focus();
+      sheets.open(detailSheet());
+    }
     wire();
+    /* the trainer's one clearly-marked way back rides INSIDE the kit page, as on Snap All (owner prototype 2026-08-26; ui-context: ".dr-demoexit moved inside .rp-page") — the top-bar X alone is an unmarked control on a customer's page */
+    $(".rp-page",host)?.insertAdjacentHTML("beforeend",`<button type="button" class="dr-demoexit" data-dbg="advisor">Demo · advisor view</button>`);
     drWireDebug(deal);
-    drPinchZoom($(".dr-stage"), st, render);
+    $("#cuClose").onclick=()=>navigate("#/jacket/"+deal.id);
+    drPinchZoom($(".customer-upload-preview"),st,render);
+    chFitDock();
   }
+
 
   /* the document's own screen: what we need, a good example, the capture
      methods, and the demo switch that exercises the unreadable refusal */
@@ -9840,132 +11179,65 @@ function drClientLink(id, startScreen) {
      (owner, 2026-08-27) — the customer keeps their place. The long
      requirement paragraph is gone: the `checks` are the very things the
      reader looks for, so listing them is shorter AND truer than prose. */
+
   function detailSheet() {
-    const d = docMeta(st.docId); const m = clientMeta(st.docId);
-    const r = rec(st.docId);
-    const note = m.multiNote || "";
-    const noteHead = note.split(".")[0];
-    const act = (kind, ico, label, sub, primary) => `<button type="button" class="dr-sheetact${primary ? " dr-sheetact--primary" : ""}" data-capture="${kind}">
-      <span class="dr-sheetact__ico" aria-hidden="true">${ico}</span>
-      <span><b>${esc(label)}</b><span>${esc(sub)}</span></span>
-      <span class="dr-sheetact__go" aria-hidden="true">›</span></button>`;
-    return `<div class="dr-sheetback" id="drSheetBack">
-      <div class="dr-sheet" role="dialog" aria-modal="true" aria-label="${esc(d.label)}">
-        <span class="dr-sheet__handle" aria-hidden="true"></span>
-        <div class="dr-sheet__head">
-          <div><span class="dr-sheet__eyebrow">What we need</span>
-            <h2>${esc(d.label)}</h2>
-            <span class="dr-sheet__sub">${esc(m.sub || "")}</span></div>
-          <button type="button" class="dr-sheet__x" data-back-landing aria-label="Close">×</button>
-        </div>
-        ${r && r.state === "rejected" ? `<p class="dr-sheetnote dr-sheetnote--warn"><b>${esc(r.rejectedReason || "")}</b></p>` : ""}
-        ${note ? `<p class="dr-sheetnote"><b>${esc(noteHead)}.</b>${m.altIncome ? ` <button type="button" class="dr-linkbtn" data-other-income>Other income type</button>` : ""}</p>` : ""}
-        <div class="dr-sheetacts">
-          ${act("camera", rpIcon("camera"), "Take a photo", "Use your phone camera", true)}
-          ${act("library", rpIcon("images"), "Choose from library", "Select an existing photo")}
-          ${act("pdf", rpIcon("file"), "Choose a PDF", "If you have a file instead")}
-        </div>
-        <p class="dr-sheetnote"><button type="button" class="dr-linkbtn" data-example>See a good example</button></p>
-        <label class="opt-row dr-badtoggle"><input type="checkbox" id="drBad" ${st.badPhoto ? "checked" : ""}><span class="opt-row__label">Demo only: simulate an unreadable photo.</span></label>
-        <input type="file" accept="image/*" capture="environment" id="drCapCam" hidden>
-        <input type="file" accept="image/*" multiple id="drCapLib" hidden>
-        <input type="file" accept="application/pdf" id="drCapPdf" hidden>
-      </div>
-    </div>`;
+    const d=docMeta(st.docId),m=clientMeta(st.docId),r=rec(st.docId);
+    const option=(kind,glyph,label,sub)=>`<button type="button" class="rp-row" data-capture="${kind}"><span class="rp-tile" aria-hidden="true">${rpGlyph(glyph)}</span><span class="rp-row__body"><span class="rp-row__title">${label}</span><span class="rp-row__sub">${sub}</span></span><span class="rp-row__chevron" aria-hidden="true"></span></button>`;
+    return `<div class="rp-sheet__head"><h2 class="rp-sheet__title">${esc(d.label)}</h2><button type="button" class="rp-sheet__close" data-sheet-close aria-label="Close">${rpGlyph("close")}</button></div>
+      <p class="rp-section">${esc(m.sub||"")}</p>
+      ${r?.state==="rejected"?`<div class="rp-notice" role="status">${esc(r.rejectedReason||"")}</div>`:""}
+      ${m.multiNote?`<p class="rp-section">${esc(m.multiNote.split(".")[0])}.</p>`:""}
+      <div class="rp-group">${option("camera","scan","Take a photo","Use your phone camera")}${option("library","upload","Choose from library","Select an existing photo")}${option("pdf","document","Choose a PDF","If you have a file instead")}</div>
+      ${m.altIncome?action('data-other-income','Other income type'):""}
+      ${action('data-example','See a good example')}
+      <label class="rp-check"><input type="checkbox" id="drBad" ${st.badPhoto?"checked":""}><span>Demo only: simulate an unreadable photo.</span></label>
+      <input type="file" accept="image/*" capture="environment" id="drCapCam" hidden><input type="file" accept="image/*" multiple id="drCapLib" hidden><input type="file" accept="application/pdf" id="drCapPdf" hidden>`;
   }
 
+
   /* the multi-page review, before anything is committed */
+
   function reviewScreen() {
-    const urls = clientPhotos(deal.id, st.docId);
-    const pages = Math.max(1, urls.length);
-    st.page = Math.min(st.page, pages - 1);
-    const u = urls[st.page];
-    return `<div class="dr-client">
-      <div class="dr-detailhead"><button class="dr-back" data-back-detail aria-label="Back">‹</button><b>Review capture</b></div>
-      <div class="dr-clientbody">
-        <div class="dr-stage">${u
-          ? `<img class="dr-photo" src="${esc(u)}" alt="Captured page ${st.page + 1}" style="transform:scale(${st.zoom})">`
-          : `<div class="dr-photoart" style="transform:scale(${st.zoom})"></div>`}
-          <div class="dr-zoom"><button type="button" data-zoom="-" aria-label="Zoom out">−</button><button type="button" data-zoom="+" aria-label="Zoom in">＋</button></div></div>
-        ${u ? "" : `<p class="hint" style="text-align:center">A PDF cannot be drawn without a reader library, so this page shows a placeholder — the record still counts it.</p>`}
-        <div class="dr-pagetools"><button type="button" data-page="-" ${st.page === 0 ? "disabled" : ""} aria-label="Previous page">←</button><b>${st.page + 1} of ${pages}</b><button type="button" data-page="+" ${st.page >= pages - 1 ? "disabled" : ""} aria-label="Next page">→</button></div>
-        <div class="dr-reviewactions"><button type="button" data-retake>↻ Retake</button><button type="button" data-add-page>＋ Add page</button></div>
-        <div class="dr-reviewactions"><button type="button" data-move="-" ${st.page === 0 ? "disabled" : ""}>Move earlier</button><button type="button" data-move="+" ${st.page >= pages - 1 ? "disabled" : ""}>Move later</button></div>
-        <button type="button" class="dr-savelater" data-del-page ${urls.length <= 1 ? "disabled" : ""}>Delete this page</button>
-        <p class="hint" style="text-align:center">Reorder or delete pages before you send them. The photos stay on this device and are never uploaded or kept.</p>
-        <button type="button" class="dr-clientcta" data-use>${pages > 1 ? `Done (${pages})` : "Use this"}</button>
-        <input type="file" accept="image/*" capture="environment" id="drCapMore" hidden>
-      </div>
-    </div>`;
+    const urls=photos(st.docId),pages=Math.max(1,urls.length);st.page=Math.min(st.page,pages-1);const u=urls[st.page];
+    const chip=(attrs,label,disabled=false)=>`<button type="button" class="rp-chip" ${attrs} ${disabled?"disabled":""}>${label}</button>`;
+    return shell("Review capture",`${context()}<h1 class="rp-title">${esc(docMeta(st.docId).label)}</h1>
+      <div class="rp-capture"><div class="customer-upload-preview">${u?`<img class="customer-upload-image" src="${esc(u)}" alt="Captured page ${st.page+1}" style="transform:scale(${st.zoom})">`:`<div class="rp-empty"><strong>Preview unavailable</strong>PDF preview unavailable in this demo.</div>`}</div></div>
+      <p class="rp-section">Page ${st.page+1} of ${pages}</p>
+      <div class="rp-chiprow" aria-label="Document pages">${chip('data-page="-" aria-label="Previous page"','Previous',st.page===0)}${chip('data-page="+" aria-label="Next page"','Next',st.page>=pages-1)}</div>
+      <div class="rp-chiprow" aria-label="Document zoom">${chip('data-zoom="-"','Zoom out')}${chip('data-zoom="+"','Zoom in')}</div>
+      <div class="rp-group"><button type="button" class="rp-row" data-retake><span class="rp-row__title">Retake this page</span></button><button type="button" class="rp-row" data-add-page><span class="rp-row__title">Add page</span></button></div>
+      <div class="rp-chiprow" aria-label="Page order">${chip('data-move="-"','Move earlier',st.page===0)}${chip('data-move="+"','Move later',st.page>=pages-1)}</div>
+      ${action('data-del-page '+(urls.length<=1?'disabled':''),'Delete this page')}
+      <input type="file" accept="image/*" capture="environment" id="drCapMore" hidden>`,action('data-use',pages>1?`Done (${pages})`:"Use this",true)+action('data-back-detail','Back to documents'));
   }
+
 
   /* the coaching screen the demo toggle reaches */
 
+
   function smsScreen() {
-    const first = (Store.s.advisor || "").split(" ")[0];
-    const n = clientQueue(deal).length || queueIds().length;
-    return `<div class="dr-client dr-sms">
-      <div class="dr-smstop"><span class="dr-smsback">‹</span><span class="dr-logomark">${esc(drLogoMark())}</span>
-        <span class="dr-dealercopy"><b>${esc(ds.name)} · ${esc(first)}</b><span>${esc(ds.phone)}</span></span></div>
-      <div class="dr-msgwrap">
-        <div class="dr-bubble">${esc(ds.name)} — ${esc(first)} here.<br><br>To finish paperwork on your ${esc(drVehicleShort(v))}, please upload your ${n} required item${n === 1 ? "" : "s"} here:<br><br><a href="#" data-open-client>rideprice.com/u/${esc(deal.dealNo || "")}</a></div>
-      </div>
-      <div class="dr-smsfooter"><span>＋</span><span class="dr-msginput">Text Message</span><span class="dr-smssend">↑</span></div>
-    </div>`;
+    const first=(Store.s.advisor||"").split(" ")[0],n=queueIds().length;
+    return shell("Document request",`${context()}<h1 class="rp-title">${esc(ds.name)}</h1><div class="rp-group"><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(first)} · Sales Advisor</span><span class="rp-row__sub">${esc(ds.phone)}</span></span></div><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">Your document request</span><span class="rp-row__sub">To finish paperwork on your ${esc(drVehicleShort(v))}, please add your ${n} required item${n===1?"":"s"}.</span></span></div></div>`,action('data-open-client','Open document request',true));
   }
+
+
 
   function landingScreen() {
-    const sent = doneCount();
-    const all = queueIds().length;
-    const pct = all ? Math.round((sent / all) * 100) : 0;
-    /* one dominant action: submit once everything is ready, otherwise the
-       quiet way out. Snap All stays as the batch path for a customer holding
-       all three documents at once. */
-    const bottom = sent === all && all
-      ? `<button class="dr-clientcta dr-clientcta--green" data-receipt>Submit documents ✓</button>`
-      : `${clientQueue(deal).length ? `<button class="dr-clientcta" data-snapall>Add documents</button>` : ""}
-         ${sent ? `<button class="dr-clientcta dr-clientcta--secondary" data-receipt>Submit what's ready (${sent}/${all})</button>` : ""}
-         <button class="dr-clientcta dr-clientcta--text" data-save-later>Save &amp; finish later</button>`;
-    return `<div class="dr-client">
-      ${trustHeader(`<div class="dr-trustmeta"><b>${esc(drVehicleShort(v))}</b> · Deal #${esc(deal.dealNo || "")}</div>`)}
-      <div class="dr-clientbody">
-        <p class="dr-eyebrow">Secure document upload</p>
-        <h1>Upload your documents</h1>
-        <div class="dr-progress">
-          <div class="dr-progress__row"><span>${sent} of ${all} ready</span><span>${pct}%</span></div>
-          <div class="dr-progress__track" role="progressbar" aria-valuemin="0" aria-valuemax="${all}" aria-valuenow="${sent}" aria-label="${sent} of ${all} documents ready">
-            <span class="dr-progress__fill" style="width:${pct}%"></span></div>
-        </div>
-        <p class="dr-seclab">Requested documents</p>
-        ${queueIds().map(clientRowHtml).join("")}
-        <p class="dr-demonote">Training demo — this page sends nothing and stores nothing off this device.</p>
-      </div>
-      <div class="dr-clientbottom">${bottom}</div>
-    </div>`;
+    const sent=doneCount(),all=queueIds().length,pct=all?Math.round(sent/all*100):0;
+    const bottom=sent===all&&all?action('data-receipt','Submit documents',true):`${clientQueue(deal).length?action('data-snapall','Add documents',true):""}${sent?action('data-receipt',`Submit what's ready (${sent}/${all})`):""}${action('data-save-later','Save &amp; finish later')}`;
+    return shell("Your documents",`${context()}<h1 class="rp-title">Upload your documents</h1><p class="rp-section">${sent} of ${all} ready</p><div class="rp-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${all}" aria-valuenow="${sent}" aria-label="Documents ready"><div class="rp-progress__bar" style="width:${pct}%"></div></div><h2 class="rp-section">Requested documents</h2><div class="rp-group">${queueIds().map(clientRowHtml).join("")}</div><p class="rp-section">Training demo · files stay on this device.</p>`,bottom);
   }
 
+
+
   function receiptScreen() {
-    const okIds = queueIds().filter(q => stateOf(q) === "accepted");
-    const missing = queueIds().filter(q => stateOf(q) !== "accepted");
-    return `<div class="dr-client">
-      ${trustHeader(`<div class="dr-trustmeta"><b>Thanks${cst ? ", " + esc(cst.first) : ""}.</b> Verified documents move into the Deal Jacket immediately.</div>`)}
-      <div class="dr-clientbody">
-        <h1>Your documents</h1>
-        ${okIds.length ? okIds.map(q => {
-          const d = docMeta(q); const jst = jacketState(deal, q);
-          const urls = clientPhotos(deal.id, q);
-          return `<div class="dr-clientrow">
-            ${urls[0] ? `<img class="dr-rthumb" src="${esc(urls[0])}" alt="">` : `<span class="dr-rthumb"></span>`}
-            <span class="dr-itemcopy"><b>${esc(d.label)}</b><span class="dr-status dr-status--accepted">Verified · ${esc(drStamp(jst && jst.at) || "just now")}</span></span>
-            <span class="dr-chip dr-chip--accepted">In the Jacket</span></div>`;
-        }).join("") : `<div class="dr-needbox"><b>No documents have been verified yet.</b></div>`}
-        ${missing.length
-          ? `<div class="dr-needbox"><b>${missing.length} still needed</b><span>${missing.map(q => esc(docMeta(q).label)).join(" · ")}</span></div>`
-          : `<div class="dr-success"><b>All ${okIds.length} requested items are verified.</b><p>They are already in the Deal Jacket.</p></div>`}
-        <button class="dr-savelater" data-back-landing>${missing.length ? "Back to upload" : "Back to status"}</button>
-      </div>
-    </div>`;
+    const okIds=queueIds().filter(q=>stateOf(q)==="accepted"),pending=queueIds().filter(q=>stateOf(q)==="received"),missing=queueIds().filter(q=>!["accepted","received"].includes(stateOf(q)));
+    return shell("Document receipt",`${context()}<h1 class="rp-title">Your documents</h1>
+      ${okIds.length?`<div class="rp-group">${okIds.map(q=>{const jst=jacketState(deal,q);return `<div class="rp-row"><span class="rp-tile" aria-hidden="true">${rpGlyph(q==="form-license"?"license":"document")}</span><span class="rp-row__body"><span class="rp-row__title">${esc(docMeta(q).label)}</span><span class="rp-row__sub">${q==="form-license"?"Reviewed":"Verified"} · ${esc(drStamp(q==="form-license"?rec(q)?.review?.reviewedAt:jst?.at)||"just now")}</span></span><span class="rp-status rp-status--positive">${jst?"In the Jacket":"Reviewed"}</span></div>`}).join("")}</div>`:`<div class="rp-notice">No documents have been filed yet.</div>`}
+      ${pending.length?`<div class="rp-group"><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${pending.length} awaiting review</span><span class="rp-row__sub">${pending.map(q=>esc(docMeta(q).label)).join(" · ")}</span></span></div></div>`:""}
+      ${missing.length?`<div class="rp-group"><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${missing.length} still needed</span><span class="rp-row__sub">${missing.map(q=>esc(docMeta(q).label)).join(" · ")}</span></span></div></div>`:pending.length?"":`<div class="rp-notice">All ${okIds.length} requested items are reviewed. ${okIds.every(q=>jacketState(deal,q))?"They are already in the Deal Jacket.":"The deal's remaining buyer documents still need review."}</div>`}`,action('data-back-landing',missing.length?"Back to upload":"Back to status",true));
   }
+
 
   /* commit whatever the review holds, through the one verification engine */
   /* provenance travels WITH the draft pages. st.draftVia is parallel to the
@@ -9976,46 +11248,49 @@ function drClientLink(id, startScreen) {
      (review find: moving a customer's back ahead of the advisor's front
      stamped the advisor's page as the customer's). */
   const draftSeed = () => {
-    const r = jacketClient(deal)[st.docId] || {};
-    return drSideVia(r, clientPhotos(deal.id, st.docId).length);
+    const r = rec(st.docId) || {};
+    return drSideVia(r, photos(st.docId).length);
   };
   const draftAfterAdd = (from) => {
-    const n = clientPhotos(deal.id, st.docId).length;
+    const n = photos(st.docId).length;
     const kept = (st.draftVia || draftSeed()).slice(0, from);
     st.draftVia = kept.concat(Array.from({ length: n - from }, () => "customer"));
   };
   function useCapture() {
-    const result = drAutoVerify(deal, st.docId);
-    const r = jacketClient(deal)[st.docId];
-    if (r) { r.sideVia = (st.draftVia || draftSeed()).slice(); Store.save(); }
+    const result = drCommitClientUpload(deal, st.docId, () => {
+      const captured = photos(st.docId).slice();
+      // A later back keeps the original front receipt, including after its
+      // session preview expires. Replacing or moving that front is a new receipt.
+      const originalFront = clientPhotos(deal.id, st.docId, customerId)[0] ?? null;
+      const keptFront = st.docId === "form-license" && !!rec(st.docId)?.sides?.front
+        && captured.length > 0 && captured[0] === originalFront;
+      clientPhotosSet(deal.id, st.docId, captured, customerId);
+      return {from:keptFront ? 1 : 0,retainOnFailure:true};
+    }, () => {
+      const r = rec(st.docId);
+      if (r) r.sideVia = (st.draftVia || draftSeed()).slice();
+    }, customerId, recipientContext);
+    if (!result) return;
+    const completedDraft = drafts.get(st.docId);
+    completedDraft?.owned.forEach(u => { if (!clientPhotos(deal.id,st.docId,customerId).includes(u)) { try { URL.revokeObjectURL(u); } catch {} } });
+    drafts.delete(st.docId); recipientContext = licenseCaptureContext(deal, customerId);
     st.draftVia = null;
-    toast(result.ok ? "✓ Verified instantly and added to the Deal Jacket." : "Upload blocked: " + result.issue);
+    toast(result.ok ? (result.reviewPending ? "License received — awaiting review." : "✓ Verified instantly and added to the Deal Jacket.") : "Upload blocked: " + result.issue);
     st.screen = "landing"; st.zoom = 1; st.page = 0; render();
   }
 
   function wire() {
     $$("[data-open-client]").forEach(a => a.onclick = (e) => { e.preventDefault(); st.screen = "landing"; render(); });
     $$("[data-back-landing]").forEach(b => b.onclick = () => { st.screen = "landing"; st.zoom = 1; render(); });
-    /* a sheet dismisses the way sheets do: tap the dimmed list behind it, or
-       press Escape. wire() runs on EVERY render, so detaching first is what
-       guarantees exactly zero or one listener no matter which path closed the
-       sheet — the X uses the generic data-back-landing handler, which does not
-       know about this one, and a leaked listener would later yank the customer
-       back to the list from a different screen (CodeRabbit, PR #50). */
-    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
-    const sheetBack = $("#drSheetBack");
-    if (sheetBack) {
-      const closeSheet = () => { st.screen = "landing"; st.zoom = 1; render(); };
-      sheetKey = (e) => { if (e.key === "Escape") { e.stopPropagation(); closeSheet(); } };
-      document.addEventListener("keydown", sheetKey, true);
-      sheetBack.addEventListener("click", (e) => { if (e.target === sheetBack) closeSheet(); });
-    }
     $$("[data-back-detail]").forEach(b => b.onclick = () => { st.screen = "detail"; st.zoom = 1; render(); });
     $$("[data-save-later]").forEach(b => b.onclick = () => toast("Saved. Reopen this same link to continue where you left off."));
     $$("[data-receipt]").forEach(b => b.onclick = () => { st.screen = "receipt"; render(); });
-    $$("[data-snapall]").forEach(b => b.onclick = () => navigate("#/snapall/" + deal.id + "/client"));
+    $$("[data-snapall]").forEach(b => b.onclick = () => navigate("#/snapall/" + deal.id + "/client/" + customerId));
     $$("[data-detail]").forEach(b => b.onclick = () => {
-      st.docId = b.dataset.detail; st.badPhoto = false; st.zoom = 1; st.page = 0; st.screen = "detail"; render();
+      if (drafts.has(st.docId)) drafts.get(st.docId).via = st.draftVia?.slice();
+      st.docId = b.dataset.detail; st.badPhoto = false; st.zoom = 1; st.page = 0; st.screen = "detail";
+      st.draftVia = drafts.get(st.docId)?.via?.slice() || null;
+      render();
     });
     $$("[data-example]").forEach(b => b.onclick = () => toast("A good photo: all four corners visible, current dates, readable text."));
     $$("[data-other-income]").forEach(b => b.onclick = () => toast("Other income type noted — your advisor can request the right alternative."));
@@ -10030,10 +11305,14 @@ function drClientLink(id, startScreen) {
     $$("[data-upload-input]").forEach(inp => inp.onchange = () => {
       if (!inp.files || !inp.files.length) return;
       const docId = inp.dataset.uploadInput;
-      const from = drAddShots(deal, docId, inp.files);
-      const result = drAutoVerify(deal, docId);
-      drStampSides(deal, docId, drSidesFrom(deal, docId, from), "customer");
-      toast(result.ok ? "✓ Verified instantly and added to the Deal Jacket." : "Upload blocked: " + result.issue);
+      const result = drCommitClientUpload(deal, docId,
+        () => drAddShots(deal, docId, inp.files, true, customerId),
+        from => drStampSides(deal, docId, drSidesFrom(deal, docId, from, customerId), "customer", false, customerId), customerId, recipientContext);
+      inp.value = '';
+      if (!result) return;
+      discardDraft(docId); if(st.docId === docId) st.draftVia = null;
+      recipientContext = licenseCaptureContext(deal, customerId);
+      toast(result.ok ? (result.reviewPending ? "License received — awaiting review." : "✓ Verified instantly and added to the Deal Jacket.") : "Upload blocked: " + result.issue);
       render();
     });
     /* the considered path: a capture method, then the review */
@@ -10047,7 +11326,9 @@ function drClientLink(id, startScreen) {
          says why and offers its one-tap retake. */
       if (st.badPhoto) {
         st.badPhoto = false;
-        drRejectUnreadable(deal, st.docId);
+        const rejected = drRejectUnreadable(deal, st.docId, customerId, recipientContext);
+        if (!rejected) return;
+        recipientContext = licenseCaptureContext(deal, customerId);
         toast("Upload blocked: " + DR_UNREADABLE);
         st.screen = "landing"; render(); return;
       }
@@ -10060,49 +11341,49 @@ function drClientLink(id, startScreen) {
         if (!inp.files || !inp.files.length) return;
         /* a fresh capture replaces the working set, except while the block
            is a missing page — then it adds to it (same rule as the fast path) */
-        const from = drAddShots(deal, st.docId, inp.files);
+        const from = addDraft(st.docId, inp.files);
         draftAfterAdd(from);
-        st.page = Math.max(0, clientPhotos(deal.id, st.docId).length - 1);
+        st.page = Math.max(0, photos(st.docId).length - 1);
         st.zoom = 1; st.screen = "review"; render();
       };
     });
     const more = $("#drCapMore");
     if (more) more.onchange = () => {
       if (!more.files || !more.files.length) return;
-      const urls = clientPhotos(deal.id, st.docId).slice();
+      const urls = photos(st.docId).slice();
       const add = Array.from(more.files).map(drPreviewUrl);
       const via = st.draftVia || draftSeed();
       if (more.dataset.replace === "1") {
-        try { URL.revokeObjectURL(urls[st.page]); } catch (e) {}
+        /* Draft replacements retain original URLs until commit or cancellation. */
         urls.splice(st.page, 1, ...add);
         via.splice(st.page, 1, ...add.map(() => "customer"));
       } else { urls.push(...add); via.push(...add.map(() => "customer")); st.page = urls.length - 1; }
       st.draftVia = via;
       more.dataset.replace = "";
-      clientPhotosSet(deal.id, st.docId, urls);
+      draftSet(st.docId, urls);
       render();
     };
     $$("[data-retake]").forEach(b => b.onclick = () => { if (more) { more.dataset.replace = "1"; more.value = ""; more.click(); } });
     $$("[data-add-page]").forEach(b => b.onclick = () => { if (more) { more.dataset.replace = ""; more.value = ""; more.click(); } });
     $$("[data-del-page]").forEach(b => b.onclick = () => {
       const via = st.draftVia || draftSeed(); via.splice(st.page, 1); st.draftVia = via;
-      clientPhotoDrop(deal.id, st.docId, st.page);
+      draftDrop(st.docId, st.page);
       st.page = Math.max(0, st.page - 1); render();
     });
     $$("[data-move]").forEach(b => b.onclick = () => {
-      const urls = clientPhotos(deal.id, st.docId).slice();
+      const urls = photos(st.docId).slice();
       const to = b.dataset.move === "+" ? st.page + 1 : st.page - 1;
       if (to < 0 || to >= urls.length) return;
       [urls[st.page], urls[to]] = [urls[to], urls[st.page]];
       const via = st.draftVia || draftSeed(); [via[st.page], via[to]] = [via[to], via[st.page]]; st.draftVia = via;
-      clientPhotosSet(deal.id, st.docId, urls);
+      draftSet(st.docId, urls);
       st.page = to; render();
     });
     $$("[data-zoom]").forEach(b => b.onclick = () => {
       st.zoom = b.dataset.zoom === "+" ? Math.min(1.9, st.zoom + .15) : Math.max(.75, st.zoom - .15); render();
     });
     $$("[data-page]").forEach(b => b.onclick = () => {
-      const pages = Math.max(1, clientPhotos(deal.id, st.docId).length);
+      const pages = Math.max(1, photos(st.docId).length);
       st.page = b.dataset.page === "+" ? Math.min(pages - 1, st.page + 1) : Math.max(0, st.page - 1);
       st.zoom = 1; render();
     });
@@ -10113,9 +11394,9 @@ function drClientLink(id, startScreen) {
 }
 
 /* ---------------- the document view: the photos, and how it got here ----------------
-   The owner's prototype made this read-only (2026-08-18): verification is
-   instant and simulated, so there is no second Accept — the screen shows the
-   pages, the record, and says plainly that the check was scripted. */
+   LS-116 separates license receipt from explicit review. The license viewer
+   records review of the current buyer's captured pair; this does not verify
+   identity. Other document types retain their existing simulated checks. */
 
 /* ============================================================
    VIEW: Document Review V2 — owner's replication package, 2026-09-02.
@@ -10144,18 +11425,29 @@ function drClientLink(id, startScreen) {
    exactly the package's "front received, back needed" — and it is never
    called verified.
    ============================================================ */
-route("docreview/:id/:docId", ({ id, docId }) => {
+route("docreview/:id/:docId", documentReviewView);
+route("docreview/:id/:docId/:customerId", documentReviewView);
+function documentReviewView({ id, docId, customerId }) {
   const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const d = docMeta(docId); const m = clientMeta(docId);
   if (!d || !m) return redirect("#/jacket/" + id);
-  const c = Store.customer(deal.customerId);
+  const license = docId === "form-license";
+  const subjectId = customerId || deal.customerId;
+  const c = Store.customer(subjectId);
+  if (license && (!c || !licenseBuyerIds(deal).includes(subjectId))) return redirect("#/jacket/" + id);
+  const viewerPrimaryId = deal.customerId, viewerCoBuyerId = deal.coBuyerId || null;
+  function requireViewerSubject() {
+    if (!license || (Store.deal(id) === deal && Store.customer(subjectId) === c && deal.customerId === viewerPrimaryId && (deal.coBuyerId || null) === viewerCoBuyerId && licenseBuyerIds(deal).includes(subjectId))) return true;
+    toast("The buyer changed. Reopen the document.");
+    return false;
+  }
 
   /* the viewer's own state: which side is shown, and whether it is zoomed */
-  const st = { side: 0, zoom: 1 };
-  let sheetKey = null;
+  const st = { side: 0, zoom: 1, reviewing: false, dead: false };
+  const sheets = chSheetOpener("drvScrim", "drvSheet");
 
-  const rec = () => jacketClient(deal)[docId] || null;
-  const urls = () => clientPhotos(deal.id, docId);
+  const rec = () => clientRecord(deal, docId, subjectId) || null;
+  const urls = () => clientPhotos(deal.id, docId, subjectId);
   /* how many pages have actually ARRIVED. A bare { state: "requested" }
      record — which is precisely what jacketSendRequest writes — means the
      customer has been asked and has sent nothing, so it counts as zero. An
@@ -10177,32 +11469,27 @@ route("docreview/:id/:docId", ({ id, docId }) => {
      needs. Not a general compliance state — only what is missing HERE. A
      document that was merely requested has no exception to show yet. */
   const missingIdx = () => {
-    const r = rec(); if (!r || r.state === "requested") return -1;
+    const r = rec(); if (!r || r.state === "requested") return license ? 0 : -1;
     const need = m.minPages || 1;
     return captured() < need ? captured() : -1;
   };
 
-  const closeSheet = () => {
-    const sc = $("#drvScrim"); if (sc) sc.classList.remove("show");
-    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
-  };
-  const teardown = () => { closeSheet(); window.removeEventListener("hashchange", teardown); };
+  const closeSheet = () => sheets.close();
+  const teardown = () => { st.dead = true; closeSheet(); window.removeEventListener("hashchange", teardown); };
   window.addEventListener("hashchange", teardown);
-  const openSheet = (html, onMount) => {
-    const sh = $("#drvSheet"); if (!sh) return;
-    sh.innerHTML = `<div class="m-handle"></div>${html}`;
-    $("#drvScrim").classList.add("show");
-    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
-    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
-    document.addEventListener("keydown", sheetKey, true);
-    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
-    if (onMount) onMount(sh);
-  };
+  const openSheet = (html, onMount) => sheets.open(html, onMount);
 
   /* one status, derived once and read by both the card and the dock — the
      label and the action must never describe different states (lesson 7) */
   function status() {
     const r = rec(), done = jacketState(deal, docId), miss = missingIdx();
+    if (license) {
+      if (licenseReviewValid(r, subjectId)) return { kind: "good", title: "License reviewed", body: "Review recorded for this buyer." };
+      if (miss >= 0) return { kind: "warn", title: `${sideNames()[miss] || "Front"} needed`, body: captured() ? "One side received." : "No license images received." };
+      if (r?.state === "rejected") return { kind: "warn", title: r.rejectedReason || "New capture needed", body: "Review has not been recorded." };
+      if (urls().filter(Boolean).length < 2) return { kind: "warn", title: "Recapture to review", body: "Receipt retained. Preview unavailable in this session." };
+      return { kind: "warn", title: "Ready for review", body: "Both sides received. Review pending." };
+    }
     if (done) {
       /* V3: the disclosure is one short sentence. What checked it is the
          Verification row under the card, not this title. */
@@ -10256,14 +11543,16 @@ route("docreview/:id/:docId", ({ id, docId }) => {
   /* what checked it, in plain words. "Simulated" is the demo's honesty line:
      nothing here reads a photo. */
   function verificationLine() {
+    if (license) return "Not verified";
     const done = jacketState(deal, docId); if (!done) return null;
     return done.how === "sort" ? "Simulated" : done.how === "scan" ? "Marker read" : done.how === "esign" ? "Signed in the app"
       : done.how === "client" ? "Reviewed" : done.how === "app" ? "Recorded by the app" : "Marked received";
   }
 
   function render() {
+    if (!requireViewerSubject()) return;
     renderChrome(d.label, "", "");
-    document.body.dataset.canvas = "master";
+    document.body.dataset.canvas = "kit";
     document.body.dataset.screen = "docreview";
 
     const names = sideNames();
@@ -10278,53 +11567,58 @@ route("docreview/:id/:docId", ({ id, docId }) => {
        V3: once complete, the dock goes and the top-left Back is the only
        way out — a second labelled Back was the duplicate the package bans. */
     const r0 = rec();
+    const reviewed = license && licenseReviewValid(r0, subjectId);
+    const reviewReady = license && !reviewed && r0?.state === "received" && have === 2 && urls().filter(Boolean).length === 2;
+    const recapture = license && !reviewed && miss < 0 && !reviewReady;
+    const hasDock = miss >= 0 || reviewReady || recapture;
+    const reviewContext = license ? licenseCaptureContext(deal, subjectId) : null;
     const waiting = miss >= 0 && !!(r0 && r0.linkSentAt);
     const ctx = [c ? `${c.first} ${c.last}` : null, deal.dealNo ? `Deal #${deal.dealNo}` : null].filter(Boolean).join(" · ");
 
-    view().innerHTML = `
-      <div class="m-app drv-app${miss >= 0 ? " drv-app--dock" : ""}">
-        <header class="drv-top">
-          <button type="button" class="drv-icon" id="drvBack" aria-label="Back to Deal Jacket">&lsaquo;</button>
-          <div class="drv-topcopy">
-            <div class="drv-title">${esc(d.label)}</div>
-            <div class="drv-meta">${esc(ctx)}</div>
-          </div>
-          <button type="button" class="drv-icon" id="drvMore" aria-label="More document actions">&hellip;</button>
-        </header>
-        <main class="drv-page">
-          <div class="drv-viewer" id="drvViewer">
-            ${u
-              ? `<img class="drv-paper${st.zoom > 1 ? " drv-paper--zoom" : ""}" src="${esc(u)}" alt="${esc(d.label)} — ${esc(names[st.side] || "page")}" style="transform:scale(${esc(st.zoom)})">`
-              : `<div class="drv-placeholder"><span class="drv-phmark">TRAINING PREVIEW</span>
-                   <b>${esc(d.label)}${names[st.side] ? " &middot; " + esc(names[st.side].toUpperCase()) : ""}</b>
-                   <p>The photo lived only in the session that captured it. The record is what the jacket keeps.</p></div>`}
-          </div>
-          <div class="drv-sides">
-            ${names.map((n, i) => {
-              const need = i >= have;
-              return `<button type="button" class="drv-side${need ? " drv-side--need" : i === st.side ? " on" : ""}" data-side="${esc(i)}">
-                ${esc(n)} &middot; ${need ? "Needed" : "Received"}</button>`;
-            }).join("")}
-          </div>
-          <section class="drv-status">
-            <div class="drv-statusrow">
-              <span class="drv-dot drv-dot--${esc(s.kind)}">${s.kind === "good" ? rpIcon("check") : "!"}</span>
-              <div class="drv-statuscopy"><strong>${esc(s.title)}</strong><p>${esc(s.body)}</p></div>
-            </div>
-            <div class="drv-detail"><span>Source</span><strong>${sourceLine()}</strong></div>
-            ${verificationLine() ? `<div class="drv-detail"><span>Verification</span><strong>${esc(verificationLine())}</strong></div>` : ""}
-            ${waiting ? `<div class="drv-waiting">${rpIcon("clock")} Link sent &middot; waiting for customer upload</div>` : ""}
-          </section>
-        </main>
-        ${miss >= 0 ? `<div class="drv-dock">
-          <button type="button" class="tv-primary drv-go" id="drvAdd">${waiting ? "Manage" : "Add"} missing ${esc((names[miss] || "page").toLowerCase())}</button>
-        </div>` : ""}
+    const detail = (label, valueHtml) => `<div class="rp-kv__row"><span>${esc(label)}</span><span>${valueHtml}</span></div>`;
+    view().innerHTML = chShell({ template: "task", title: d.label, closeId: "drvBack", closeLabel: "Back to Deal Jacket", hideRole: true }, `
+      <div class="rp-section">${esc(ctx)}</div>
+      <button type="button" class="rp-link" id="drvMore">Document actions</button>
+      ${license && licenseBuyerIds(deal).length > 1 ? `<div class="rp-chiprow" aria-label="License owner">${licenseBuyerIds(deal).map(cid => {
+        const buyer = Store.customer(cid);
+        return `<button type="button" class="rp-chip${cid === subjectId ? " rp-chip--on" : ""}" aria-pressed="${cid === subjectId}" data-license-buyer="${esc(cid)}">${esc(buyer ? `${buyer.first} ${buyer.last}` : "Unavailable buyer")}</button>`;
+      }).join("")}</div>` : ""}
+      <div class="rp-capture"><div class="document-review-preview" id="drvViewer">
+        ${u ? `<img class="document-review-image" src="${esc(u)}" alt="${esc(d.label)} — ${esc(names[st.side] || "page")}" style="transform:scale(${esc(st.zoom)})">`
+          : `<div class="rp-empty"><strong>Preview unavailable</strong>${esc(d.label)} · ${esc(names[st.side] || "page")}<p>Only the receipt record is saved between sessions.</p></div>`}
+      </div></div>
+      <div class="rp-chiprow" aria-label="Document pages">
+        ${names.map((n, i) => {
+          const need = i >= have;
+          return `<button type="button" class="rp-chip${!need && i === st.side ? " rp-chip--on" : ""}" aria-pressed="${!need && i === st.side}" data-side="${esc(i)}">${esc(n)} · ${need ? "Needed" : "Received"}</button>`;
+        }).join("")}
       </div>
-      <div class="m-scrim" id="drvScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="drvSheet"></div></div>`;
+      <section class="rp-group" aria-label="Document status">
+        <div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(s.title)}</span><span class="rp-row__sub">${esc(s.body)}</span></span></div>
+      </section>
+      <div class="rp-kv">
+        ${detail("Source", sourceLine())}
+        ${reviewed ? detail("Reviewed by", esc(r0.review.by) + " · " + esc(jacketStamp(r0.review.reviewedAt))) : ""}
+        ${verificationLine() ? detail("Verification", esc(verificationLine())) : ""}
+      </div>
+      ${waiting ? `<div class="rp-notice">Link sent · waiting for customer upload</div>` : ""}`,
+      hasDock ? chDock(reviewReady ? `<button type="button" class="rp-primary" id="drvReview"${st.reviewing ? " disabled" : ""}>${st.reviewing ? "Saving review…" : "Mark reviewed"}</button>`
+        : `<button type="button" class="rp-primary" id="drvAdd">${recapture ? "Recapture license" : `${waiting ? "Manage" : "Add"} missing ${esc((names[miss] || "page").toLowerCase())}`}</button>`) : "",
+      { scrim: "drvScrim", sheet: "drvSheet" });
+    chFitDock();
 
     $("#drvBack").onclick = () => navigate("#/jacket/" + deal.id);
     $("#drvMore").onclick = moreSheet;
     const add = $("#drvAdd"); if (add) add.onclick = addSideSheet;
+    $$("[data-license-buyer]").forEach(button => button.onclick = () => navigate(`#/docreview/${deal.id}/${docId}/${button.dataset.licenseBuyer}`));
+    const review = $("#drvReview");
+    if (review) review.onclick = async () => {
+      if (!requireViewerSubject()) return;
+      if (st.reviewing) return;
+      st.reviewing = true; review.disabled = true;
+      try { await drReviewLicense(deal, subjectId, reviewContext); }
+      finally { st.reviewing = false; if (!st.dead) render(); }
+    };
     $$("[data-side]").forEach(b => b.onclick = () => {
       const i = Number(b.dataset.side);
       /* tapping a side that has not arrived offers the way to get it, rather
@@ -10332,8 +11626,6 @@ route("docreview/:id/:docId", ({ id, docId }) => {
       if (i >= captured()) return addSideSheet();
       st.side = i; st.zoom = 1; render();
     });
-    const scrim = $("#drvScrim");
-    scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
     /* gesture zoom, as the package asks: double-tap toggles, pinch is
        continuous. No permanent +/- buttons on the viewer. */
     const stage = $("#drvViewer");
@@ -10343,46 +11635,43 @@ route("docreview/:id/:docId", ({ id, docId }) => {
 
   /* the exception sheet: the two ways this app can actually get a side */
   function addSideSheet() {
+    if (!requireViewerSubject()) return;
+    const captureContext = license ? licenseCaptureContext(deal, subjectId) : null;
+    const replacing = license && captured() >= 2;
     const names = sideNames();
     const miss = Math.max(0, missingIdx());
     const what = (names[miss] || "page").toLowerCase();
-    const choice = (icon, title, sub, attr) => `<button type="button" class="drv-choice" ${attr}>
-      <span class="drv-well">${rpIcon(icon)}</span>
-      <span class="drv-choicecopy"><strong>${esc(title)}</strong><span>${esc(sub)}</span></span>
-      <span class="drv-chev" aria-hidden="true">&rsaquo;</span></button>`;
+    const choice = (icon, title, sub, attr) => `<button type="button" class="rp-row" ${attr}>
+      <span class="rp-tile">${rpGlyph(icon)}</span>
+      <span class="rp-row__body"><span class="rp-row__title">${esc(title)}</span><span class="rp-row__sub">${esc(sub)}</span></span>
+      <span class="rp-row__chevron" aria-hidden="true"></span></button>`;
     openSheet(`
-      <h2 class="tv-sheettitle drv-sheettitle">Add ${esc(what)} of ${esc(d.label.toLowerCase())}</h2>
-      <section class="drv-choices">
-        ${choice("camera", "Scan " + what + " now", "Use this device to capture the missing side.", `id="drvScan"`)}
+      <div class="rp-sheet__head"><h2 class="rp-sheet__title">${replacing ? "Replace license images" : `Add ${esc(what)} of ${esc(d.label.toLowerCase())}`}</h2><button type="button" class="rp-sheet__close" data-sheet-close aria-label="Close">${rpGlyph("close")}</button></div>
+      <section class="rp-group">
+        ${choice("scan", replacing ? "Capture license" : "Scan " + what + " now", replacing ? "New front and back images" : "Capture the missing side", `id="drvScan"`)}
         ${choice("upload", "Send secure upload link", "Customer uploads directly into Ride Price.", `id="drvLink"`)}
       </section>
-      <input id="drvFile" class="drv-file" type="file" accept="image/*" capture="environment" hidden>
-      <p class="drv-note">Uploads go directly into Ride Price &mdash; never through the salesperson&rsquo;s phone.${(rec() || {}).linkSentAt
-        ? ` Link already sent &mdash; demo: <a href="#/clientlink/${esc(deal.id)}">open the customer view</a> on this device.` : ""}</p>`, (sh) => {
+      <input id="drvFile" class="drv-file" type="file" accept="image/*" capture="environment"${license ? " multiple" : ""} hidden>
+      <p class="rp-sheet__sub">Uploads go directly into Ride Price &mdash; never through the salesperson&rsquo;s phone.${(rec() || {}).linkSentAt
+        ? ` Link already sent &mdash; demo: <a href="#/clientlink/${esc(deal.id)}/landing/${esc(subjectId)}">open the customer view</a> on this device.` : ""}</p>`, (sh) => {
       const file = $("#drvFile", sh);
       $("#drvScan", sh).onclick = () => { file.value = ""; file.click(); };
       file.onchange = () => {
         if (!file.files || !file.files.length) return;
-        const from = drAddShots(deal, docId, file.files);
-        const result = drAutoVerify(deal, docId);
-        /* this sheet captures on THIS device — the advisor’s. Without the
-           marker the jacket counts it as customer activity and the tracking
-           sheet claims they opened the link and uploaded, which they never
-           did. The same fix was already made for the jacket’s camera pick
-           (review find); this capture site was missed. Absent via still
-           means the customer’s own device. */
-        const cr = jacketClient(deal)[docId];
-        if (cr) {
-          /* V3: provenance is PER SIDE. Only the side captured here is the
-             advisor's; the front the customer sent stays theirs, so Source
-             can read "Customer upload + advisor capture" instead of
-             rewriting the whole document's history. via:"advisor" is NOT
-             set here — that flag means every side. */
-          drStampSides(deal, docId, drSidesFrom(deal, docId, from), "advisor");
-          delete cr.linkSentAt;
-          Store.save();
-        }
-        void result;
+        if (!requireViewerSubject()) { file.value = ""; return; }
+        const result = drCommitClientUpload(deal, docId,
+          () => drAddShots(deal, docId, file.files, true, subjectId),
+          from => {
+            /* This device captured the new side; keep any earlier customer's
+               provenance and pending link intact if persistence fails. */
+            const cr = clientRecord(deal, docId, subjectId);
+            if (cr) {
+              drStampSides(deal, docId, drSidesFrom(deal, docId, from, subjectId), "advisor", false, subjectId);
+              delete cr.linkSentAt;
+            }
+          }, subjectId, captureContext);
+        file.value = "";
+        if (!result) return;
         /* V3: no success sheet, no toast. The viewer switches to the side
            that just arrived and the card says what the document now is. */
         closeSheet();
@@ -10390,12 +11679,11 @@ route("docreview/:id/:docId", ({ id, docId }) => {
         render();
       };
       $("#drvLink", sh).onclick = () => {
-        jacketSendRequest(deal, [docId]);
-        /* jacketSendRequest leaves a record that already holds a side
-           alone, so the front stays on file; this marker is what the card's
-           waiting strip and the dock's "Manage" label read */
-        const cr = jacketClient(deal)[docId];
-        if (cr) { cr.linkSentAt = new Date().toISOString(); Store.save(); }
+        if (!requireViewerSubject()) return;
+        if (license && !licenseContextValid(deal, subjectId, captureContext)) { toast("The license context changed. Reopen the document."); return; }
+        try { jacketSendRequest(deal, [docId], license ? subjectId : undefined, { linkSent: true }); }
+        catch { toast("Request was not saved. Try again."); return; }
+        if ($("#toast")?.textContent === "Request was not saved. Try again.") { clearTimeout(toastTimer); $("#toast").remove(); }
         /* V3: no confirmation sheet — the card shows the waiting state */
         closeSheet(); render();
       };
@@ -10406,19 +11694,21 @@ route("docreview/:id/:docId", ({ id, docId }) => {
      dock's primary (package rule) */
   function moreSheet() {
     openSheet(`
-      <h2 class="tv-sheettitle drv-sheettitle">Document actions</h2>
-      <section class="drv-choices">
-        <button type="button" class="drv-choice" id="drvZoom">
-          <span class="drv-well">${rpIcon("radar")}</span>
-          <span class="drv-choicecopy"><strong>${st.zoom > 1 ? "Reset zoom" : "Zoom document"}</strong><span>Double-tap or pinch the document does the same.</span></span>
-          <span class="drv-chev" aria-hidden="true">&rsaquo;</span></button>
+      <div class="rp-sheet__head"><h2 class="rp-sheet__title">Document actions</h2><button type="button" class="rp-sheet__close" data-sheet-close aria-label="Close">${rpGlyph("close")}</button></div>
+      <section class="rp-group">
+        ${license ? `<button type="button" class="rp-row" id="drvRetake"><span class="rp-row__body"><span class="rp-row__title">Replace license images</span></span></button>` : ""}
+        <button type="button" class="rp-row" id="drvZoom">
+          <span class="rp-tile">${rpGlyph("search")}</span>
+          <span class="rp-row__body"><span class="rp-row__title">${st.zoom > 1 ? "Reset zoom" : "Zoom document"}</span><span class="rp-row__sub">Double-tap or pinch the document</span></span>
+          <span class="rp-row__chevron" aria-hidden="true"></span></button>
       </section>`, (sh) => {
       $("#drvZoom", sh).onclick = () => { st.zoom = st.zoom > 1 ? 1 : 1.6; closeSheet(); render(); };
+      const retake = $("#drvRetake", sh); if (retake) retake.onclick = () => { closeSheet(); addSideSheet(); };
     });
   }
 
   render();
-});
+}
 
 /* ============================================================
    VIEW: Snap All Documents — burst capture + simulated auto-sort
@@ -10439,16 +11729,21 @@ route("docreview/:id/:docId", ({ id, docId }) => {
    customer", which hides the role control. That is the 2026-08-27 decision
    ("no app bar, no role switch" on the client's page) kept with the kit's own
    device rather than a rule of ours over one of its classes. */
-route("snapall/:id/:origin", ({ id, origin }) => {
+route("snapall/:id/:origin", snapAllView);
+route("snapall/:id/:origin/:customerId", snapAllView);
+function snapAllView({ id, origin, customerId }) {
   const deal = Store.deal(id); if (!deal) return redirect("#/deals");
-  const backHash = origin === "advisor" ? "#/jacket/" + deal.id : "#/clientlink/" + deal.id;
+  const subjectId = customerId || deal.customerId;
+  if (!Store.customer(subjectId) || !licenseBuyerIds(deal).includes(subjectId)) return redirect("#/jacket/" + deal.id);
+  const licenseContext = licenseCaptureContext(deal, subjectId);
+  const backHash = origin === "advisor" ? "#/jacket/" + deal.id : `#/clientlink/${deal.id}/landing/${subjectId}`;
   /* the sort's targets: the customer documents still outstanding */
-  const targets = clientQueue(deal);
+  const targets = clientQueue(deal).filter(docId => docId !== "form-license" || !licenseReviewValid(clientRecord(deal, docId, subjectId), subjectId));
   /* redirect, not navigate: after a committed batch empties the queue, Back
      re-enters this route, and a pushed guard would bounce forward forever —
      the same trap the retired composer hash had (review find) */
   if (!targets.length) return redirect(backHash);
-  const cst = Store.customer(deal.customerId);
+  const cst = Store.customer(subjectId);
   const custName = cst ? cst.first + " " + cst.last : "";
   const clientSide = origin !== "advisor";
   const sheets = chSheetOpener("saScrim", "saSheet");
@@ -10495,13 +11790,14 @@ route("snapall/:id/:origin", ({ id, origin }) => {
          first, then the document's own first-attempt beat. Without this a
          two-sided document could pass here on a single shot while the same
          photo is refused one screen away. */
-      const rec = jacketClient(deal)[tid] || {};
+      const rec = clientRecord(deal, tid, subjectId) || {};
       if (m.minPages && shots.length < m.minPages && m.missingPage)
         return Object.assign(base, { status: "attention", kind: "pages", issue: m.missingPage.title, fix: m.missingPage.action || "Add the page" });
       if (m.firstIssue && !(rec.tries > 0) && !st.beat[tid]) {
         st.beat[tid] = true;
         return Object.assign(base, { status: "attention", kind: "issue", issue: drFirstIssueText(m), fix: "Retake" });
       }
+      if (tid === "form-license") return Object.assign(base, { status: "received", detail: "Both sides captured · review pending" });
       return Object.assign(base, { status: "verified", detail: "Matched: " + (cst ? custName : "this deal") + " · " + m.sortDetail });
     });
     /* an exception the advisor already ruled on survives the next pass, and
@@ -10525,6 +11821,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
   }
 
   function acceptRow(r) {
+    if (r.id === "form-license") return;
     st.overrides[r.id] = { issue: r.issue, kind: r.kind };
     r.status = "verified"; r.override = true;
     r.detail = "Accepted with exception — " + r.issue;
@@ -10542,15 +11839,26 @@ route("snapall/:id/:origin", ({ id, origin }) => {
   }
 
   function commit() {
+    if (st.dead || !licenseContextValid(deal, subjectId, licenseContext)) { toast("The document context changed. Reopen the batch."); return; }
     const at = new Date().toISOString();
-    const clw = jacketClientOf(deal);
+    const previous = deal.jacket === undefined ? undefined : JSON.parse(JSON.stringify(deal.jacket));
+    const priorPhotos = new Map(st.results.map(r => [r.id, clientPhotos(deal.id, r.id, subjectId).slice()]));
+    const priorLicense = clientRecord(deal, "form-license", subjectId);
+    try {
     st.results.forEach(r => {
       if (r.status === "missing") return;
       /* the kept shots become this document's pages — the same session-only
          home every client capture uses; the records are what persists */
-      clientPhotosClear(deal.id, r.id);
-      clientPhotosSet(deal.id, r.id, r.shots.map(s => s.url));
-      const rec = clw[r.id] || (clw[r.id] = {});
+      clientPhotosSet(deal.id, r.id, r.shots.map(s => s.url), subjectId);
+      if (r.id === "form-license") {
+        // A batch replaces the complete set, including provenance of removed sides.
+        clientRecord(deal, r.id, subjectId, true).sideVia = r.shots.map(() => origin === "advisor" ? "advisor" : "customer");
+        drAutoVerify(deal, r.id, false, subjectId);
+        drStampSides(deal, r.id, r.shots.map((_, index) => index), origin === "advisor" ? "advisor" : "customer", false, subjectId);
+        syncLicenseReceipt(deal);
+        return;
+      }
+      const rec = clientRecord(deal, r.id, subjectId, true);
       rec.pages = r.shots.length;
       rec.draftPages = r.shots.length;
       rec.receivedAt = at;
@@ -10564,7 +11872,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       rec.tries = (rec.tries || 0) + 1; /* a burst pass counts as an attempt, so a later per-row retake is not re-flagged */
       if (r.status === "verified") {
         rec.state = "accepted"; rec.acceptedAt = at; rec.rejectedReason = null;
-        jacketReceive(deal, r.id, "sort", r.override ? "Accepted with exception — " + r.issue : "");
+        jacketReceive(deal, r.id, "sort", r.override ? "Accepted with exception — " + r.issue : "", false);
       } else {
         /* an unresolved flag files as a rejection, so the existing redo loop
            carries it: the client link shows the reason, Review stays open */
@@ -10572,6 +11880,21 @@ route("snapall/:id/:origin", ({ id, origin }) => {
       }
     });
     Store.save();
+    } catch (error) {
+      if (previous === undefined) delete deal.jacket; else deal.jacket = previous;
+      if (priorLicense) {
+        const restored = clientRecord(deal, "form-license", subjectId);
+        Object.keys(priorLicense).forEach(key => delete priorLicense[key]);
+        Object.assign(priorLicense, restored);
+        setClientRecord(deal, "form-license", subjectId, priorLicense);
+      }
+      priorPhotos.forEach((urls, docId) => clientPhotosSet(deal.id, docId, urls, subjectId));
+      toast("Batch was not saved. Try again.");
+      return;
+    }
+    priorPhotos.forEach((urls, docId) => urls.forEach(url => {
+      if (url && !clientPhotos(deal.id, docId, subjectId).includes(url)) { try { URL.revokeObjectURL(url); } catch {} }
+    }));
     /* Every shot belongs to a row by construction: buildResults deals ALL of
        them onto the queue, and a pick that lands while the results are up
        re-sorts (see settled), so there is nothing here to release that the
@@ -10579,7 +11902,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
        leftovers stood here until mutation testing showed nothing could ever
        reach it; snapall2 asserts the invariant instead. */
     st.shots = []; /* the kept URLs now belong to the documents */
-    toast("Batch sorted. Verified documents moved into the Deal Jacket.");
+    toast(st.results.some(r => r.id === "form-license" && r.status === "received") ? "Batch saved. License review pending." : "Batch saved.");
     navigate(backHash);
   }
 
@@ -10640,8 +11963,9 @@ route("snapall/:id/:origin", ({ id, origin }) => {
         </div></div>
       ${needs ? `<div class="sa-doc__acts">
           <button type="button" class="sa-act sa-act--fix ch-hit" data-sa-retake="${esc(r.id)}">${saIcon(r.kind === "pages" ? "plus" : "camera", "")}${esc(r.fix || "Retake")}</button>
-          <button type="button" class="sa-act ch-hit" data-sa-accept="${esc(r.id)}">Accept anyway</button>
+          ${r.id === "form-license" ? "" : `<button type="button" class="sa-act ch-hit" data-sa-accept="${esc(r.id)}">Accept anyway</button>`}
         </div>`
+        : r.status === "received" ? `<div class="sa-doc__status"><span class="rp-status rp-status--warn">Review pending</span></div>`
         : r.status === "verified" ? `<div class="sa-doc__status">
           <span class="rp-status ${r.override ? "rp-status--warn" : "rp-status--positive"}">${r.override ? "Exception accepted" : "Verified"}</span>
           ${r.override ? `<button type="button" class="sa-act ch-hit" data-sa-undo="${esc(r.id)}">Undo</button>` : ""}
@@ -10651,6 +11975,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
 
   function resultsScreen() {
     const ok = st.results.filter(r => r.status === "verified");
+    const received = st.results.filter(r => r.status === "received");
     const attn = st.results.filter(r => r.status === "attention");
     const missing = st.results.filter(r => r.status === "missing");
     const landed = st.results.length - missing.length;
@@ -10664,6 +11989,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
         <button type="button" class="sa-more ch-hit" id="saMore">${saIcon("plus", "")}Take more</button>
       </div>
       ${group("Verified", ok)}
+      ${group("Review pending", received)}
       ${group("Needs attention", attn)}
       ${group("Still needed", missing)}
       <p class="sa-note">${saIcon("lock", "")}<span>Demo — the sorting is simulated. Nothing is read from your photos and they never leave this device.</span></p>`;
@@ -10673,7 +11999,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
 
   function dockHtml() {
     if (st.screen === "sorting") return null;
-    if (st.screen === "results") return chDock(`<button type="button" class="rp-primary" id="saSave">Confirm &amp; save to deal jacket</button>`);
+    if (st.screen === "results") return chDock(`<button type="button" class="rp-primary" id="saSave">Confirm &amp; save</button>`);
     const n = st.shots.length;
     /* the destination is on show even with nothing to send there — a primary
        that is missing until the batch is non-empty leaves the screen with no
@@ -10886,7 +12212,7 @@ route("snapall/:id/:origin", ({ id, origin }) => {
   }
 
   render();
-});
+}
 
 /* ============================================================
    DOCUMENT DATA — the shared layer every recreated form draws on
