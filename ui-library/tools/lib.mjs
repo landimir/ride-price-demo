@@ -89,6 +89,15 @@ export class Session {
      page taller than the phone is captured full-length — never cropped. */
   async shot(path, { maxHeight = 3200, focus = null } = {}) {
     mkdirSync(dirname(path), { recursive: true });
+    /* every step here is driven by script, and Chrome paints its focus ring
+       for script-moved focus the way it does for a keyboard — so the close
+       button a sheet focuses when it opens wore a black ring in 28 pictures
+       that a finger tap never shows (measured 2026-09-18 on the scanner: by
+       touch, no ring on any step; by script, a ring on every title that took
+       focus). Clear a keyboard-only ring before the picture; a text field
+       keeps its focus, which a phone does show. */
+    await this.c.eval(`(() => { const a = document.activeElement;
+      if (a && a !== document.body && a.matches(":focus-visible") && !a.matches("input:not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]), textarea, select, [contenteditable]:not([contenteditable=false])")) a.blur(); })()`);
     /* a step may name the element that changed; on a fixed-bar page the
        viewport shot then shows that region (a user would have scrolled to it) */
     if (focus) await this.c.eval(`(() => { const el = document.querySelector(${JSON.stringify(focus)}); if (el) el.scrollIntoView({ block: "center" }); })()`);

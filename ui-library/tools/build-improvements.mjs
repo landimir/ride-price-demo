@@ -24,6 +24,19 @@ const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "
 const SEV = ["Critical", "Major", "Minor", "Observation"];
 const PRI = ["High", "Medium", "Low"];
 const TYPES = ["Existing Comment Expanded", "Newly Detected UI Issue", "Pattern Opportunity"];
+/* where a recommendation stands (owner, 2026-09-18: the board ranked every
+   one, closed or not, so nine of its top ten were already done). Read from the
+   recommendation's own note, never guessed; open and partly built rank, the
+   rest stay as the record of what was recommended and how it ended. */
+const STATUSES = ["open", "partly-built", "built", "resolved", "superseded", "obsolete"];
+const STATUS_LABEL = { open: "Open", "partly-built": "Partly built", built: "Built", resolved: "Resolved", superseded: "Superseded", obsolete: "Obsolete" };
+const isOpen = (r) => r.status === "open" || r.status === "partly-built";
+/* a real calendar day, not just the shape of one: 2026-02-30 fails */
+const isValidDate = (value) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value || "")) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.valueOf()) && parsed.toISOString().slice(0, 10) === value;
+};
 const typeKey = (t) => ({ "Existing Comment Expanded": "expanded", "Newly Detected UI Issue": "new", "Pattern Opportunity": "pattern" }[t] || "other");
 const issueById = Object.fromEntries(issues.map(i => [i.id, i]));
 const flowById = Object.fromEntries(manifest.flows.map(f => [f.id, f]));
@@ -60,6 +73,9 @@ for (const a of matrix.areas) {
     if (!PRI.includes(r.priority)) problems.push(`${r.id}: priority ${r.priority}`);
     if (!TYPES.includes(r.findingType)) problems.push(`${r.id}: findingType ${r.findingType}`);
     for (const p of r.patterns || []) if (!patternById[p]) problems.push(`${r.id}: pattern ${p} is not in matrix.patterns`);
+    if (!STATUSES.includes(r.status)) problems.push(`${r.id}: status ${r.status} is not one of ${STATUSES.join(", ")}`);
+    else if (!isOpen(r) && (!r.statusNote || !isValidDate(r.closedOn))) problems.push(`${r.id}: a ${r.status} recommendation needs a statusNote saying what closed it and a real closedOn date (YYYY-MM-DD)`);
+    else if (isOpen(r) && r.closedOn) problems.push(`${r.id}: an ${r.status} recommendation carries a closedOn date`);
   }
 }
 if (problems.length) { console.error("screen-improvement-matrix.json is inconsistent:\n  " + problems.join("\n  ")); process.exit(1); }
@@ -67,8 +83,11 @@ if (problems.length) { console.error("screen-improvement-matrix.json is inconsis
 const reviewed = matrix.areas.filter(a => a.status === "reviewed");
 const pending = manifest.flows.filter(f => !reviewed.some(a => a.flowId === f.id));
 const allRecs = reviewed.flatMap(a => (a.recommendations || []).map(r => ({ ...r, flowId: a.flowId, flow: a.flow })));
+const openRecs = allRecs.filter(isOpen), closedRecs = allRecs.filter(r => !isOpen(r));
 const count = (list, key, vals) => vals.reduce((o, v) => (o[v] = list.filter(x => x[key] === v).length, o), {});
 const sevTotals = count(allRecs, "severity", SEV), priTotals = count(allRecs, "priority", PRI), typeTotals = count(allRecs, "findingType", TYPES);
+const priOpen = count(openRecs, "priority", PRI);
+const statusLine = (r) => `${STATUS_LABEL[r.status]}${r.statusNote ? ` — ${r.statusNote}` : ""}${r.closedOn ? ` (closed ${r.closedOn})` : ""}`;
 const screenOf = (a, r) => flowById[a.flowId].screens.find(s => s.screenshot === r.screenshot);
 const pad2 = (n) => String(n).padStart(2, "0");
 const stamp = matrix.updated || "";
@@ -115,6 +134,9 @@ a{color:inherit}
 .cards{display:grid;gap:12px;min-width:0}
 .rec{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}
 .rec--High{border-left:4px solid var(--high)}.rec--Medium{border-left:4px solid var(--med)}.rec--Low{border-left:4px solid var(--low)}
+.rec.rec--closed{background:#fbfbfd;border-left-color:#c9ccd8}.rec--closed h4{color:var(--muted)}
+.st{display:inline-block;border-radius:99px;padding:2px 9px;font-size:10.5px;font-weight:800;letter-spacing:.3px;vertical-align:middle}.st--open{background:#e7f0fb;color:#1e5aa8}.st--partly-built{background:#fdf3dc;color:#8a5a00}.st--built,.st--resolved{background:#e3f4ea;color:#1b6b3a}.st--superseded,.st--obsolete{background:#eceef3;color:#5b6070}
+.rec .stnote{margin:-4px 0 8px;font-size:12px;color:var(--muted)}
 .rec .top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}.rec .top .id{font-weight:800;color:var(--navy);font-size:12px;font-family:ui-monospace,Consolas,monospace}
 .rec h4{margin:2px 0 8px;font-size:14px;color:var(--navy)}
 .rec .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}.rec .grid>div{min-width:0}
@@ -153,9 +175,10 @@ const masterHref = (flowId, sc) => `index.html#${esc(flowId)}-${esc(sc.key)}`;
 const screenByShot = (shot) => { for (const f of manifest.flows) { const s = f.screens.find(x => x.screenshot === shot); if (s) return { f, s }; } return null; };
 
 const refList = (refs) => refs && refs.length ? `<ul class="refs">${refs.map(r => `<li><a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.app)}</a> <span>— ${esc(r.shows)}</span></li>`).join("")}</ul>` : "";
-const recCard = (r) => `<article class="rec rec--${esc(r.priority)}" id="${esc(r.id)}">
-  <div class="top"><span class="id">${esc(r.id)}</span>${typeBadge(r.findingType)}${sevBadge(r.severity)}${priBadge(r.priority)}<span class="type">${esc(r.category)}</span>${r.source ? `<span class="type type--src">${esc(r.source)}</span>` : ""}</div>
+const recCard = (r) => `<article class="rec rec--${esc(r.priority)}${isOpen(r) ? "" : " rec--closed"}" id="${esc(r.id)}">
+  <div class="top"><span class="id">${esc(r.id)}</span><span class="st st--${esc(r.status)}">${esc(STATUS_LABEL[r.status])}</span>${typeBadge(r.findingType)}${sevBadge(r.severity)}${priBadge(r.priority)}<span class="type">${esc(r.category)}</span>${r.source ? `<span class="type type--src">${esc(r.source)}</span>` : ""}</div>
   <h4>${esc(r.title || r.issueSummary)}</h4>
+  ${r.statusNote || r.closedOn ? `<p class="stnote">${esc(r.statusNote || "")}${r.closedOn ? `${r.statusNote ? " · " : ""}closed ${esc(r.closedOn)}` : ""}</p>` : ""}
   <div class="grid">
     <div><h5>A · What is wrong on the screen</h5><p>${esc(r.issueSummary)}</p>${r.existingComment ? `<p class="also">Builds on <b>${esc(r.existingComment)}</b>${r.commentAssessment ? ` — ${esc(r.commentAssessment)}` : ""}</p>` : ""}</div>
     <div><h5>B · Why it is a problem</h5><p>${esc(r.whyItMatters)}</p></div>
@@ -186,7 +209,7 @@ const areaHtml = (a) => {
   const recs = a.recommendations || [];
   const byShot = {}; for (const r of recs) (byShot[r.screenshot] ||= []).push(r);
   return `<section class="area" id="${esc(a.flowId)}">
-  <header><h2>${esc(a.flow)}<small>${f.screens.length} screens · ${recs.length} recommendation${recs.length === 1 ? "" : "s"}</small></h2><span class="meta">reviewed ${esc(a.reviewedOn || stamp)}</span></header>
+  <header><h2>${esc(a.flow)}<small>${f.screens.length} screens · ${recs.length} recommendation${recs.length === 1 ? "" : "s"} · ${recs.filter(isOpen).length} open</small></h2><span class="meta">reviewed ${esc(a.reviewedOn || stamp)}</span></header>
   ${f.description ? `<p class="notes">${esc(f.description)}</p>` : ""}
   ${a.direction ? dirHtml(a.direction) : ""}
   <div class="works"><div><h4>What already works</h4><p>${esc(a.whatWorks)}</p></div><div><h4>Strongest recommendations</h4><ol>${(a.strongest || []).map(s => `<li>${esc(s)}</li>`).join("")}</ol></div></div>
@@ -198,7 +221,7 @@ const patternsHtml = (matrix.patterns || []).length ? `<section class="patterns"
 ${(matrix.patterns || []).filter(p => allRecs.some(r => (r.patterns || []).includes(p.id))).map(p => `<div class="pat" id="${esc(p.id)}"><h3>${esc(p.id)} · ${esc(p.name)}</h3><p><b>Common pattern:</b> ${esc(p.commonPattern)}</p><p><b>Lesson for Ride Price:</b> ${esc(p.lesson)}</p>${refList(p.references)}<p class="used">Used by: ${allRecs.filter(r => (r.patterns || []).includes(p.id)).map(r => `<a href="#${esc(r.id)}">${esc(r.id)}</a>`).join(", ")}</p></div>`).join("")}</section>` : "";
 
 const sideHtml = manifest.flows.map(f => { const a = reviewed.find(x => x.flowId === f.id); return a
-  ? `<a href="#${esc(f.id)}"><span><span class="dot dot--done"></span>${esc(f.title)}</span><small>${(a.recommendations || []).length}</small></a>`
+  ? `<a href="#${esc(f.id)}"><span><span class="dot dot--done"></span>${esc(f.title)}</span><small>${(a.recommendations || []).length} · ${(a.recommendations || []).filter(isOpen).length} open</small></a>`
   : `<a class="pending" href="#pending"><span><span class="dot"></span>${esc(f.title)}</span><small>next</small></a>`; }).join("");
 
 const html = `<!DOCTYPE html>
@@ -216,10 +239,10 @@ const html = `<!DOCTYPE html>
       <div><h1>Ride Price Mobile UI — Improvement View</h1>
         <p>The second layer on the flow library: the same screenshots, their existing comment cards, and — for each — a stronger diagnosis, what better mobile apps do (Mobbin references), and what Ride Price should do next while staying Ride Price: navy foundation, orange-to-pink gradient for the one main action, Poppins, one button radius.</p>
         <p>Reviewed <b>one product area at a time</b>. The original screenshot always stays as the reference point; nothing here is a redesign.</p></div>
-      <div class="stats"><div class="stat"><b>${reviewed.length} / ${manifest.flows.length}</b><span>areas reviewed</span></div><div class="stat"><b>${allRecs.length}</b><span>recommendations</span></div><div class="stat"><b>${(matrix.patterns || []).filter(p => allRecs.some(r => (r.patterns || []).includes(p.id))).length}</b><span>Mobbin patterns</span></div>
-        <div class="stat"><b>${priTotals.High}</b><span>${priBadge("High")}</span></div><div class="stat"><b>${priTotals.Medium}</b><span>${priBadge("Medium")}</span></div><div class="stat"><b>${priTotals.Low}</b><span>${priBadge("Low")}</span></div></div>
+      <div class="stats"><div class="stat"><b>${reviewed.length} / ${manifest.flows.length}</b><span>areas reviewed</span></div><div class="stat"><b>${allRecs.length}</b><span>recommendations · ${openRecs.length} open</span></div><div class="stat"><b>${(matrix.patterns || []).filter(p => allRecs.some(r => (r.patterns || []).includes(p.id))).length}</b><span>Mobbin patterns</span></div>
+        <div class="stat"><b>${priOpen.High}</b><span>${priBadge("High")} open</span></div><div class="stat"><b>${priOpen.Medium}</b><span>${priBadge("Medium")} open</span></div><div class="stat"><b>${priOpen.Low}</b><span>${priBadge("Low")} open</span></div></div>
     </section>
-    <p class="legend"><b>Finding types:</b> ${typeBadge("Existing Comment Expanded")} the library already flagged it, deepened here · ${typeBadge("Newly Detected UI Issue")} found by looking at the screenshot · ${typeBadge("Pattern Opportunity")} nothing broken, a better structure exists · <b>Severity</b> is the audit scale; <b>priority</b> is the order to fix in.</p>
+    <p class="legend"><b>Finding types:</b> ${typeBadge("Existing Comment Expanded")} the library already flagged it, deepened here · ${typeBadge("Newly Detected UI Issue")} found by looking at the screenshot · ${typeBadge("Pattern Opportunity")} nothing broken, a better structure exists · <b>Severity</b> is the audit scale; <b>priority</b> is the order to fix in · <b>Status</b> is where each one stands: ${STATUSES.map(s => `<span class="st st--${s}">${STATUS_LABEL[s]}</span>`).join(" ")} — a closed one stays as the record of what was recommended.</p>
     ${reviewed.map(areaHtml).join("")}
     ${pending.length ? `<section class="pendbox" id="pending"><h2>Not yet reviewed — next in line</h2><p class="notes">Areas are taken one at a time, in the order the flow library lists them. Their existing comment cards stand in the flow library until their turn.</p><ol>${pending.map(f => `<li>${esc(f.title)} <small>(${f.screens.length} screens${issues.filter(i => f.screens.some(s => s.screenshot === i.screenshot)).length ? `, ${issues.filter(i => f.screens.some(s => s.screenshot === i.screenshot)).length} existing comment${issues.filter(i => f.screens.some(s => s.screenshot === i.screenshot)).length === 1 ? "" : "s"}` : ""})</small></li>`).join("")}</ol></section>` : ""}
     ${patternsHtml}
@@ -242,7 +265,7 @@ const md = [];
 md.push(`# Ride Price Mobile UI — Improvement Report`, "", `Improvement view ${matrix.version || ""} · built on flow library ${version.version || ""} (app ${String(version.appCommit || "").slice(0, 7)}) · matrix updated ${stamp}`, "",
   `This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.`, "",
   `**Areas are reviewed one at a time.** ${reviewed.length} of ${manifest.flows.length} so far; the rest are listed at the end in the order they will be taken.`, "",
-  `| | Count |`, `|---|---|`, `| Recommendations | ${allRecs.length} |`,
+  `| | Count |`, `|---|---|`, `| Recommendations | ${allRecs.length} |`, `| Open, including partly built | ${openRecs.length} |`, `| Closed — built, resolved, superseded or obsolete | ${closedRecs.length} |`,
   ...TYPES.map(t => `| ${t} | ${typeTotals[t]} |`), ...PRI.map(p => `| ${p} priority | ${priTotals[p]} |`), ...SEV.map(s => `| Severity ${s} | ${sevTotals[s]} |`), "",
   `Finding types: **Existing Comment Expanded** — the library already flagged it and this deepens it · **Newly Detected UI Issue** — found by looking at the screenshot · **Pattern Opportunity** — nothing is broken, a better structure exists. Severity keeps the audit's scale; priority is the order to fix in, and a Minor that repeats across screens can be High.`, "");
 for (const a of reviewed) {
@@ -256,6 +279,7 @@ for (const a of reviewed) {
   for (const r of recs) {
     const sc = screenOf(a, r);
     md.push(`### ${r.id} — ${r.title || r.issueSummary}`, "",
+      `- **Status:** ${statusLine(r)}`,
       `- **Screen:** ${pad2(sc.step)} ${sc.screen} (\`${r.screenshot}\`)${r.alsoOn && r.alsoOn.length ? ` — also on ${r.alsoOn.map(x => { const m = screenByShot(x); return m ? `${m.f.title} · ${pad2(m.s.step)} ${m.s.screen}` : x; }).join("; ")}` : ""}`,
       `- **Type:** ${r.findingType}${r.existingComment ? ` (builds on ${r.existingComment}${r.commentAssessment ? ` — ${r.commentAssessment}` : ""})` : ""} · **Category:** ${r.category} · **Severity:** ${r.severity} · **Priority:** ${r.priority} · **Fix size:** ${r.fixSize}`, "",
       `**A. Current Ride Price screen.** ${r.issueSummary}`, "",
@@ -271,14 +295,19 @@ writeFileSync(join(REPORTS, "ui-improvement-report.md"), md.join("\n"));
 
 /* ============================ the opportunity board ============================ */
 const rank = (r) => PRI.indexOf(r.priority) * 10 + SEV.indexOf(r.severity) - (r.alsoOn ? Math.min(r.alsoOn.length, 5) * 0.5 : 0);
-const top = [...allRecs].sort((x, y) => rank(x) - rank(y)).slice(0, 10);
-const repeats = allRecs.filter(r => r.alsoOn && r.alsoOn.length);
-const byFlow = reviewed.map(a => ({ flow: a.flow, n: (a.recommendations || []).length, high: (a.recommendations || []).filter(r => r.priority === "High").length })).sort((x, y) => y.high - x.high || y.n - x.n);
-const board = [`# Ride Price Mobile UI — Opportunity Board`, "", `Updated ${stamp} · ${reviewed.length} of ${manifest.flows.length} product areas reviewed · ${allRecs.length} recommendations so far. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.`, "",
-  `## Top opportunities (by priority, then severity, then how widely they repeat)`, "", `_This table ranks every recommendation in the matrix. The matrix carries no status field yet, so it also lists recommendations whose own notes record them as built, resolved or superseded — read each entry's notes before acting on it._`, "", `| # | Id | Area | Opportunity | Priority | Severity | Size |`, `|---|---|---|---|---|---|---|`,
-  ...top.map((r, i) => `| ${i + 1} | ${r.id} | ${r.flow} | ${r.title || r.issueSummary} | ${r.priority} | ${r.severity} | ${r.fixSize} |`), "",
-  `## Which areas need the most attention`, "", `| Area | Recommendations | High priority |`, `|---|---|---|`, ...byFlow.map(b => `| ${b.flow} | ${b.n} | ${b.high} |`), "",
-  `## Issues that repeat across screens`, "", ...(repeats.length ? repeats.map(r => `- **${r.id}** — ${r.title || r.issueSummary} — on ${1 + r.alsoOn.length} screens (${r.flow}${r.alsoOn.map(x => { const m = screenByShot(x); return m && m.f.title !== r.flow ? "; " + m.f.title : ""; }).filter((v, i, arr) => v && arr.indexOf(v) === i).join("")})`) : ["_None recorded yet._"]), "",
+const top = [...openRecs].sort((x, y) => rank(x) - rank(y)).slice(0, 10);
+const closedByRank = [...closedRecs].sort((x, y) => rank(x) - rank(y));
+const repeats = openRecs.filter(r => r.alsoOn && r.alsoOn.length);
+const byFlow = reviewed.map(a => { const rs = a.recommendations || [], open = rs.filter(isOpen); return { flow: a.flow, open: open.length, high: open.filter(r => r.priority === "High").length, closed: rs.length - open.length }; }).sort((x, y) => y.high - x.high || y.open - x.open);
+const board = [`# Ride Price Mobile UI — Opportunity Board`, "", `Updated ${stamp} · ${reviewed.length} of ${manifest.flows.length} product areas reviewed · ${allRecs.length} recommendations so far, ${openRecs.length} open. This board is generated from the screen improvement matrix and grows as each area is reviewed — until every area is in, "top" means top of what has been reviewed.`, "",
+  `## Top opportunities (open only — by priority, then severity, then how widely they repeat)`, "",
+  ...(top.length ? [`| # | Id | Area | Opportunity | Priority | Severity | Size | Status |`, `|---|---|---|---|---|---|---|---|`,
+    ...top.map((r, i) => `| ${i + 1} | ${r.id} | ${r.flow} | ${r.title || r.issueSummary} | ${r.priority} | ${r.severity} | ${r.fixSize} | ${STATUS_LABEL[r.status]}${r.statusNote ? ` — ${r.statusNote}` : ""} |`)] : ["_Nothing is open._"]), "",
+  `## Closed`, "", `_Kept as the record of what was recommended and how it ended — out of the ranking. Each status is read from the recommendation's own note._`, "",
+  ...(closedByRank.length ? [`| Id | Area | Recommendation | Status | How it closed | Closed on |`, `|---|---|---|---|---|---|`,
+    ...closedByRank.map(r => `| ${r.id} | ${r.flow} | ${r.title || r.issueSummary} | ${STATUS_LABEL[r.status]} | ${r.statusNote} | ${r.closedOn} |`)] : ["_None yet._"]), "",
+  `## Which areas need the most attention`, "", `| Area | Open | High priority, open | Closed |`, `|---|---|---|---|`, ...byFlow.map(b => `| ${b.flow} | ${b.open} | ${b.high} | ${b.closed} |`), "",
+  `## Open issues that repeat across screens`, "", ...(repeats.length ? repeats.map(r => `- **${r.id}** — ${r.title || r.issueSummary} — on ${1 + r.alsoOn.length} screens (${r.flow}${r.alsoOn.map(x => { const m = screenByShot(x); return m && m.f.title !== r.flow ? "; " + m.f.title : ""; }).filter((v, i, arr) => v && arr.indexOf(v) === i).join("")})`) : ["_None open._"]), "",
   `## Biggest overall gains`, "", ...(matrix.board && matrix.board.biggestGains ? matrix.board.biggestGains.map(s => `- ${s}`) : ["_Written once enough areas are reviewed to compare._"]), "",
   `## Where to start`, "", ...(matrix.board && matrix.board.whereToStart ? matrix.board.whereToStart.map((s, i) => `${i + 1}. ${s}`) : ["_See the top of this board._"]), ""];
 writeFileSync(join(REPORTS, "opportunity-board.md"), board.join("\n"));
@@ -294,4 +323,4 @@ for (const p of pats) {
 if (!pats.length) refmd.push("_No patterns recorded yet._", "");
 writeFileSync(join(REPORTS, "mobbin-reference-summary.md"), refmd.join("\n"));
 
-console.log(`improvement view: ${reviewed.length}/${manifest.flows.length} areas, ${allRecs.length} recommendations, ${pats.length} patterns → master-flow/improvement-view.html, reports/ui-improvement-report.md, reports/opportunity-board.md, reports/mobbin-reference-summary.md`);
+console.log(`improvement view: ${reviewed.length}/${manifest.flows.length} areas, ${allRecs.length} recommendations (${openRecs.length} open), ${pats.length} patterns → master-flow/improvement-view.html, reports/ui-improvement-report.md, reports/opportunity-board.md, reports/mobbin-reference-summary.md`);

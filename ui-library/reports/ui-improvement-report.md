@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Improvement Report
 
-Improvement view v001 · built on flow library v035 (app a6501c9) · matrix updated 2026-09-18
+Improvement view v001 · built on flow library v037 (app 6b59aea) · matrix updated 2026-09-18
 
 This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.
 
@@ -9,6 +9,8 @@ This report takes each product area of the Ride Price mobile experience, starts 
 | | Count |
 |---|---|
 | Recommendations | 21 |
+| Open, including partly built | 5 |
+| Closed — built, resolved, superseded or obsolete | 16 |
 | Existing Comment Expanded | 2 |
 | Newly Detected UI Issue | 12 |
 | Pattern Opportunity | 7 |
@@ -78,6 +80,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-001 — The only forward action sits in the hardest thumb zone while 60% of the screen is empty
 
+- **Status:** Open — still open on Home: the owner's call, since New visit sits on his own title-row layout
 - **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 05 Stage filter — no match; Home — Active Floor & Navigation · 04 Active floor (Team Lead); Home — Active Floor & Navigation · 07 Funded history in range; Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver
 - **Type:** Pattern Opportunity · **Category:** interaction · **Severity:** Major · **Priority:** High · **Fix size:** medium
 
@@ -97,6 +100,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-002 — Finished deals hide behind a 20px grey caption
 
+- **Status:** Resolved — Home v3 removed the Archived fold (closed 2026-08-28)
 - **Screen:** 07 Funded history in range (`current/01-home-and-navigation/07-funded-history.png`)
 - **Type:** Existing Comment Expanded (builds on RP-UI-017 — The audit finding this expanded was RESOLVED and retired in library v009 — the Archived fold it described no longer exists.) · **Category:** interaction · **Severity:** Minor · **Priority:** High · **Fix size:** small
 
@@ -115,6 +119,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-003 — The card does not say what comes next, and the search-field camera promises the wrong scan
 
+- **Status:** Partly built — PR #44 built the Next line; the camera half is still open
 - **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 04 Active floor (Team Lead); Home — Active Floor & Navigation · 05 Stage filter — no match; Home — Active Floor & Navigation · 07 Funded history in range
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
 
@@ -134,6 +139,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-004 — The drawer spends the brand gradient on a selected state
 
+- **Status:** Open
 - **Screen:** 02 More sheet — secondary navigation (`current/01-home-and-navigation/02-more-sheet.png`) — also on Home — Active Floor & Navigation · 03 Reset demo data — confirm
 - **Type:** Newly Detected UI Issue · **Category:** visual · **Severity:** Minor · **Priority:** Low · **Fix size:** small
 
@@ -152,6 +158,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-005 — A filter with no matches contradicts the title and offers no way back
 
+- **Status:** Open
 - **Screen:** 05 Stage filter — no match (`current/01-home-and-navigation/05-stage-filter-empty.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
@@ -170,6 +177,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-006 — No login by design — keep the 'who am I' cue consistent
 
+- **Status:** Open — its Home-switch part superseded by owner ruling B (2026-09-18)
 - **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 04 Active floor (Team Lead)
 - **Type:** Existing Comment Expanded (builds on RP-UI-023 — accurate — it records a decision and stays an Observation. Where the identity cue lives today: Home's band names the acting person ('Acting as …'); the switch itself is made in Customer Onboarding (owner ruling B, 2026-09-18) and confirms with a toast ('Now acting as Team Lead — Jordan Reyes'). (As filed, before that ruling, the name appeared only in the drawer header and the toast, and the app bar showed the role but never the name.)) · **Category:** informational · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
@@ -187,6 +195,7 @@ Converges with: RP-IMP-002 (Done / Funded becomes a pill with a count — the ow
 
 ### RP-IMP-007 — Role-aware queue: same four identifiers for everyone, dense rows for the Team Lead, a Next line for the advisor
 
+- **Status:** Built — PR #44, after the owner's corrections on built screenshots (closed 2026-08-23)
 - **Screen:** 01 My deals (landing — Advisor) (`current/01-home-and-navigation/01-deals-queue.png`) — also on Home — Active Floor & Navigation · 04 Active floor (Team Lead); Home — Active Floor & Navigation · 07 Funded history in range
 - **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Major · **Priority:** High · **Fix size:** medium
 
@@ -243,6 +252,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-008 — The training-license help links tear down the scan, and the demo guidance whispers
 
+- **Status:** Resolved — PR #49 (closed 2026-08-26)
 - **Screen:** 01 Scan — front of license (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 03 Scan — flip to the back; Scan Driver's License · 04 Review back — the barcode could not be read
 - **Type:** Newly Detected UI Issue · **Category:** interaction · **Severity:** Major · **Priority:** High · **Fix size:** small
 
@@ -261,6 +271,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-009 — Where the scan journey lives: full screen, bottom sheets, or the current modal (owner question Q2)
 
+- **Status:** Built — the full-screen journey: the owner's answer to Q2 (2026-08-23), built in PR #46 (closed 2026-08-24)
 - **Screen:** 01 Scan — front of license (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 07 Confirm customer (certain match); Scan Driver's License · 10 Phone already in use (sheet)
 - **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Major · **Priority:** Medium · **Fix size:** major
 
@@ -279,6 +290,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-010 — Summary-first verify — both reviewers propose it; it reverses decision 11 (owner question Q1)
 
+- **Status:** Built — PR #46; decision 11 reversed by the owner (closed 2026-08-24)
 - **Screen:** 09 New customer (prop 3) (`current/03-license-scan/09-scan-new-customer.png`) — also on Scan Driver's License · 07 Confirm customer (certain match)
 - **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Major · **Priority:** High · **Fix size:** medium
 
@@ -298,6 +310,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-011 — The verify CTAs understate what they do — they also start the visit
 
+- **Status:** Resolved — PR #49 (closed 2026-08-26)
 - **Screen:** 07 Confirm customer (certain match) (`current/03-license-scan/07-scan-confirm.png`) — also on Scan Driver's License · 09 New customer (prop 3)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Minor · **Priority:** High · **Fix size:** small
 
@@ -315,6 +328,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-012 — The possible-match screen asks a high-stakes question with a one-line clue
 
+- **Status:** Resolved — PRs #46/#49 (closed 2026-08-26)
 - **Screen:** 07 Confirm customer (certain match) (`current/03-license-scan/07-scan-confirm.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Major · **Priority:** High · **Fix size:** small
 
@@ -332,6 +346,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-013 — The phone-conflict screen hides the number it is warning about
 
+- **Status:** Resolved — PR #49, with the owner's 2026-08-25 addition (closed 2026-08-26)
 - **Screen:** 10 Phone already in use (sheet) (`current/03-license-scan/10-scan-conflict.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Major · **Priority:** High · **Fix size:** small
 
@@ -349,6 +364,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-014 — The refusal explains four things in one small paragraph
 
+- **Status:** Resolved — PR #49 (closed 2026-08-26)
 - **Screen:** 04 Review back — the barcode could not be read (`current/03-license-scan/04-scan-reject.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
 
@@ -360,12 +376,13 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 - [Chime](https://mobbin.com/screens/b5f8b32b-2309-426f-9dbc-5007eaf680ef) — Common scan issues as short coaching bullets
 - [Chase UK](https://mobbin.com/screens/36260299-2210-4fe6-8f64-83b025e12e25) — One explanation, one matched recovery action
 
-**D. Ride Price adaptation.** RESOLVED (PR #49): the refusal now says one thing — 'We couldn't find the barcode. Keep the whole barcode visible and avoid glare.' — and the demo boundary lives in its own one-line hint. — AS ORIGINALLY WRITTEN (kept as the record of what was recommended; the status above is the current state): Restructure the copy only: the headline stays; then two short lines — 'In this demo, only the 5 printed training licenses can be read.' and 'Blurry or shadowed photo? Retake usually fixes it.' — then the two actions as today (Retake primary per decision 13, Enter manually secondary). No diagnosis is claimed the app cannot make. **Stays:** Retake-then-manual order (decision 13); the neutral teaching voice; no cause classification (invariant 4).
+**D. Ride Price adaptation.** RESOLVED (PR #49), and shorter still since the scanner merged in PR #106: a failed read is reviewed inline on 'Review back', which shows the photo and one status line — 'The barcode could not be read.' — with Retake (Choose another for a library photo) and Find customer manually, while Use back stays disabled. (PR #49's version said 'We couldn't find the barcode. Keep the whole barcode visible and avoid glare.' with the demo boundary in its own one-line hint.) — AS ORIGINALLY WRITTEN (kept as the record of what was recommended; the status above is the current state): Restructure the copy only: the headline stays; then two short lines — 'In this demo, only the 5 printed training licenses can be read.' and 'Blurry or shadowed photo? Retake usually fixes it.' — then the two actions as today (Retake primary per decision 13, Enter manually secondary). No diagnosis is claimed the app cannot make. **Stays:** Retake-then-manual order (decision 13); the neutral teaching voice; no cause classification (invariant 4).
 
 *Implementation note:* The refusal step's copy block in openScanFlow(); pairs with RP-IMP-008's prop peek. 2026-09-18 (library v035): PR #106 replaced the refusal sheet with an inline Review back — the unreadable photo stays on screen with one line, "The barcode could not be read.", Use back disabled, Retake and Find customer manually on the screen (the owner chose this version). The four-ideas-in-one-paragraph copy is gone; re-assess this entry against the new screen.
 
 ### RP-IMP-015 — The processing state sets no time expectation
 
+- **Status:** Resolved — PR #49 (closed 2026-08-26)
 - **Screen:** 03 Scan — flip to the back (`current/03-license-scan/03-scan-back.png`)
 - **Type:** Newly Detected UI Issue · **Category:** informational · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
@@ -382,6 +399,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-016 — The dialog height jumps twice around the one-second spinner
 
+- **Status:** Obsolete — the journey went full-screen, so no dialog is left to jump (closed 2026-08-27)
 - **Screen:** 03 Scan — flip to the back (`current/03-license-scan/03-scan-back.png`)
 - **Type:** Newly Detected UI Issue · **Category:** visual · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
@@ -398,6 +416,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-017 — The back step could show what the barcode side should look like
 
+- **Status:** Resolved — PR #49 (closed 2026-08-26)
 - **Screen:** 03 Scan — flip to the back (`current/03-license-scan/03-scan-back.png`)
 - **Type:** Pattern Opportunity · **Category:** visual · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
 
@@ -415,6 +434,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-018 — Small capture-step polish: the photo action as a visible button, the status attached, Retake labelled
 
+- **Status:** Superseded — the v3 camera panel, PR #49 (closed 2026-08-26)
 - **Screen:** 01 Scan — front of license (`current/03-license-scan/01-scan-front.png`) — also on Scan Driver's License · 03 Scan — flip to the back
 - **Type:** Newly Detected UI Issue · **Category:** visual · **Severity:** Minor · **Priority:** Low · **Fix size:** small
 
@@ -432,6 +452,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-019 — Closing mid-scan discards captured work silently
 
+- **Status:** Resolved — PR #49 (closed 2026-08-26)
 - **Screen:** 07 Confirm customer (certain match) (`current/03-license-scan/07-scan-confirm.png`) — also on Scan Driver's License · 03 Scan — flip to the back
 - **Type:** Newly Detected UI Issue · **Category:** interaction · **Severity:** Minor · **Priority:** Medium · **Fix size:** small
 
@@ -448,6 +469,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-020 — The step chips: strong orientation, at a vertical price — recorded disagreement
 
+- **Status:** Superseded — five step dots in the one-row chrome, PR #49 (closed 2026-08-26)
 - **Screen:** 01 Scan — front of license (`current/03-license-scan/01-scan-front.png`)
 - **Type:** Pattern Opportunity · **Category:** visual · **Severity:** Observation · **Priority:** Low · **Fix size:** small
 
@@ -464,6 +486,7 @@ First run of the best-of-both loop: the owner exported this flow's ZIP from the 
 
 ### RP-IMP-021 — Step 0 — the how-it-works intro with the advisor word track
 
+- **Status:** Built — scan journey v2 (PR #46), then trimmed by the owner's corrections (closed 2026-08-24)
 - **Screen:** 01 Scan — front of license (`current/03-license-scan/01-scan-front.png`)
 - **Type:** Pattern Opportunity · **Category:** structural · **Severity:** Minor · **Priority:** High · **Fix size:** small
 

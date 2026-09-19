@@ -1,6 +1,6 @@
-# Ride Price Mobile UI — UX Audit (v036)
+# Ride Price Mobile UI — UX Audit (v037)
 
-Captured 2026-09-18T21:08:21.345Z · viewport 390×844 · app 142422e52b913c56abc7bedcbb8557007f2779e9
+Captured 2026-09-19T03:06:19.834Z · viewport 390×844 · app 6b59aeadcc2fd947a93732f4f8031c065ac168e2
 
 | Severity | Count |
 |---|---|

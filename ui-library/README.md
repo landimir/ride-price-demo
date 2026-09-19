@@ -12,7 +12,7 @@ that causes each transition, the branches, and the UX findings attached to the e
 | `master-flow/index.html` | The master visual flow — all flows left-to-right with actions, branches, issues, lightbox |
 | `reports/flow-manifest.json` | Machine-readable flows: every screen with its screenshot, hash, action → next, branches, issues, automated checks |
 | `master-flow/improvement-view.html` | The improvement system's companion page: per area, the original screenshots + existing comment cards + the deepened diagnosis, Mobbin reference direction, and the Ride Price adaptation |
-| `reports/screen-improvement-matrix.json` | Hand-maintained source of truth for the improvement system — one area at a time; recommendations, owner directions/decisions, Mobbin patterns |
+| `reports/screen-improvement-matrix.json` | Hand-maintained source of truth for the improvement system — one area at a time; recommendations with their status, owner directions/decisions, Mobbin patterns |
 | `reports/ui-improvement-report.md` · `reports/opportunity-board.md` · `reports/mobbin-reference-summary.md` | Generated from the matrix by `tools/build-improvements.mjs` |
 | `reports/ux-audit.md` | Findings by severity (Critical / Major / Minor / Observation) with screen and area to investigate |
 | `reports/issues.json` | The audited findings (hand-maintained source for the audit and the master page) |
@@ -26,7 +26,8 @@ that causes each transition, the branches, and the UX findings attached to the e
 ## Rules
 - Mobile only. The viewport never changes between versions so screenshots compare.
 - Screenshots are untouched captures. Nothing is redesigned, recopied or fixed while documenting —
-  problems are recorded, not solved.
+  problems are recorded, not solved. The one thing cleared before a picture is a keyboard-only focus
+  ring, which a finger tap never draws (see How the tools work).
 - The app's simulated flows run against the seeded demo data on a local static server in headless
   Chrome. No real data, no real sends, no destructive actions.
 
@@ -45,7 +46,12 @@ then read the added/changed screenshots, edit `reports/issues.json`, and run
 `reports/screen-improvement-matrix.json` (one product area per review round,
 owner decisions recorded as they land), then
 `node ride-price-ui-library/tools/build-improvements.mjs` regenerates the
-improvement view and its three reports. `tools/preview-improvements.mjs`
+improvement view and its three reports. Every recommendation carries a
+`status` — open, partly-built, built, resolved, superseded or obsolete — read
+from its own note, never guessed; a closed one says what closed it
+(`statusNote`) and when (`closedOn`). Only open and partly built ones rank on
+the opportunity board; the rest are listed under Closed as the record, and the
+builder stops on a missing or incomplete status. `tools/preview-improvements.mjs`
 renders it headless for a visual check. Individual flows: `node ride-price-ui-library/tools/capture.mjs <flowId>` (each flow is stamped with the repo commit at capture time — `RP_COMMIT` from update.mjs, else `git rev-parse HEAD`). After touching the automated checks in `lib.mjs`, run `node ride-price-ui-library/tools/selfcheck.mjs`: it drives the overlap check over `tools/fixtures/overlap.html`, where text scrolled under a pinned dialog footer must NOT count and two texts drawn on top of each other must. It also proves the barcode fixture cache ignores anything captured the old way, and that no flow ships the same image twice — two byte-identical screenshots inside one flow mean a step did not advance, which is how v019 published “Both sides received” as a copy of the screen before it.
 
 ## How the tools work
@@ -56,7 +62,9 @@ the action that leads onward, and branch pointers (`flowId/stepKey`). `capture.m
 or open drawer at the viewport only; a page with a fixed bottom bar at the viewport plus a secondary
 full-length `.scroll.png`; any other page taller than the phone full-length, capped at 3,200px —
 never cropped), and runs automated visual checks (horizontal overflow, off-screen elements, clipped
-text, text overlap, small touch targets). `build.mjs` renders the master page and reports from the
+text, text overlap, small touch targets). Before each picture it clears a keyboard-only focus ring:
+the steps are driven by script, which Chrome treats like a keyboard, and a finger tap never draws
+that ring; a focused text field keeps its focus, as it does on a phone. `build.mjs` renders the master page and reports from the
 manifest plus the audited `issues.json`. `update.mjs` wraps it all with versioning and the changelog.
 
 ## Downloads

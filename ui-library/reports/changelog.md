@@ -1,5 +1,83 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v037 — 2026-09-19
+
+App commit: 6b59aea · 20 flows · 146 screens · previous: v036
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · More sheet — secondary navigation
+- Home — Active Floor & Navigation · Reset demo data — confirm
+- Home — Active Floor & Navigation · Date range / history sheet
+- Customer Onboarding — the Customer Resolver · Switch role — only in Customer Onboarding
+- Customer Onboarding — the Customer Resolver · Send secure upload link (sheet)
+- Scan Driver's License · Scan — front of license
+- Scan Driver's License · Scan — flip to the back
+- Scan Driver's License · Confirm customer (certain match)
+- Scan Driver's License · Confirm customer (ambiguous — prop 1)
+- Scan Driver's License · New customer (prop 3)
+- Scan Driver's License · Phone already in use (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Scan Driver's License · Customer ready
+- Training Documents · License preview — both sides
+- Training Documents · Registration preview
+- Discovery Session · Discovery — mid-interview, Back appears
+- Discovery Session · Discovery — the last question is the hand-off
+- Discovery Session · Visit details (sheet)
+- Vehicle Selection · Vehicle details — sheet
+- Vehicle Selection · What's next? — after choosing
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Browse inventory (no visit)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Buyers on the Deal (Co-Buyer) · Buyers on this deal
+- Buyers on the Deal (Co-Buyer) · Co-buyer attached
+- Buyers on the Deal (Co-Buyer) · Co-buyer — contextual actions
+- Buyers on the Deal (Co-Buyer) · Remove — second tap confirms
+- Buyers on the Deal (Co-Buyer) · Team Lead — Change roles visible
+- Buyers on the Deal (Co-Buyer) · Change buyer roles? — confirmation
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Document row — contextual actions
+- Deal Jacket & Compliance · Mark received — a person's word
+- Deal Jacket & Compliance · Add optional document
+- Deal Jacket & Compliance · Driver's License — back still needed
+- Customer document request (from the jacket) · Request documents — secure link
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Client Document Upload (customer's phone) · What we need — bottom sheet
+- Snap All — burst capture · Sorting the batch
+- Snap All — burst capture · Review one photo
+- Snap All — burst capture · Leaving an unsorted batch
+- Document Review (advisor) · Add back of driver's license
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+What changed for real: the black focus box is gone (PR #118). The license scanner draws no box around its titles any more (scan front, scan back, both confirm screens, new customer, customer ready). The library now clears a keyboard-only focus ring before each picture, so 28 sheet pictures lose the ring around × and the reset and Snap All leave-guard confirmations lose it on their first link. A finger tap never drew either ring. The improvement view and the opportunity board carry a status on every recommendation (PR #116). Every other changed screenshot differs by live values only: clock times (5:10 PM became 11:09 PM), the verification code, a visit number, the print pages’ deal-jacket marker barcode, a text caret and a spinner frame. No issue resolved; none added.
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v036 — 2026-09-18
 
 App commit: 142422e · 20 flows · 146 screens · previous: v035
