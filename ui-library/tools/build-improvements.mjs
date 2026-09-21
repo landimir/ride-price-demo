@@ -27,10 +27,15 @@ const TYPES = ["Existing Comment Expanded", "Newly Detected UI Issue", "Pattern 
 /* where a recommendation stands (owner, 2026-09-18: the board ranked every
    one, closed or not, so nine of its top ten were already done). Read from the
    recommendation's own note, never guessed; open and partly built rank, the
-   rest stay as the record of what was recommended and how it ended. */
-const STATUSES = ["open", "partly-built", "built", "resolved", "superseded", "obsolete"];
-const STATUS_LABEL = { open: "Open", "partly-built": "Partly built", built: "Built", resolved: "Resolved", superseded: "Superseded", obsolete: "Obsolete" };
+   rest stay as the record of what was recommended and how it ended. Deferred
+   is the owner's "not now" after seeing it (RP-IMP-001, 2026-09-19): out of
+   the ranking, kept on the record, reopened only on his word. */
+const STATUSES = ["open", "partly-built", "built", "resolved", "superseded", "obsolete", "deferred"];
+const STATUS_LABEL = { open: "Open", "partly-built": "Partly built", built: "Built", resolved: "Resolved", superseded: "Superseded", obsolete: "Obsolete", deferred: "Deferred" };
 const isOpen = (r) => r.status === "open" || r.status === "partly-built";
+/* the closed statuses in words, from the list itself, so a new one cannot be left out of a label */
+const orList = (xs) => xs.length > 1 ? `${xs.slice(0, -1).join(", ")} or ${xs[xs.length - 1]}` : xs.join("");
+const CLOSED_WORDS = orList(STATUSES.filter(s => !isOpen({ status: s })).map(s => STATUS_LABEL[s].toLowerCase()));
 /* a real calendar day, not just the shape of one: 2026-02-30 fails */
 const isValidDate = (value) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value || "")) return false;
@@ -135,7 +140,7 @@ a{color:inherit}
 .rec{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#fff}
 .rec--High{border-left:4px solid var(--high)}.rec--Medium{border-left:4px solid var(--med)}.rec--Low{border-left:4px solid var(--low)}
 .rec.rec--closed{background:#fbfbfd;border-left-color:#c9ccd8}.rec--closed h4{color:var(--muted)}
-.st{display:inline-block;border-radius:99px;padding:2px 9px;font-size:10.5px;font-weight:800;letter-spacing:.3px;vertical-align:middle}.st--open{background:#e7f0fb;color:#1e5aa8}.st--partly-built{background:#fdf3dc;color:#8a5a00}.st--built,.st--resolved{background:#e3f4ea;color:#1b6b3a}.st--superseded,.st--obsolete{background:#eceef3;color:#5b6070}
+.st{display:inline-block;border-radius:99px;padding:2px 9px;font-size:10.5px;font-weight:800;letter-spacing:.3px;vertical-align:middle}.st--open{background:#e7f0fb;color:#1e5aa8}.st--partly-built{background:#fdf3dc;color:#8a5a00}.st--built,.st--resolved{background:#e3f4ea;color:#1b6b3a}.st--superseded,.st--obsolete,.st--deferred{background:#eceef3;color:#5b6070}
 .rec .stnote{margin:-4px 0 8px;font-size:12px;color:var(--muted)}
 .rec .top{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px}.rec .top .id{font-weight:800;color:var(--navy);font-size:12px;font-family:ui-monospace,Consolas,monospace}
 .rec h4{margin:2px 0 8px;font-size:14px;color:var(--navy)}
@@ -265,7 +270,7 @@ const md = [];
 md.push(`# Ride Price Mobile UI — Improvement Report`, "", `Improvement view ${matrix.version || ""} · built on flow library ${version.version || ""} (app ${String(version.appCommit || "").slice(0, 7)}) · matrix updated ${stamp}`, "",
   `This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.`, "",
   `**Areas are reviewed one at a time.** ${reviewed.length} of ${manifest.flows.length} so far; the rest are listed at the end in the order they will be taken.`, "",
-  `| | Count |`, `|---|---|`, `| Recommendations | ${allRecs.length} |`, `| Open, including partly built | ${openRecs.length} |`, `| Closed — built, resolved, superseded or obsolete | ${closedRecs.length} |`,
+  `| | Count |`, `|---|---|`, `| Recommendations | ${allRecs.length} |`, `| Open, including partly built | ${openRecs.length} |`, `| Closed — ${CLOSED_WORDS} | ${closedRecs.length} |`,
   ...TYPES.map(t => `| ${t} | ${typeTotals[t]} |`), ...PRI.map(p => `| ${p} priority | ${priTotals[p]} |`), ...SEV.map(s => `| Severity ${s} | ${sevTotals[s]} |`), "",
   `Finding types: **Existing Comment Expanded** — the library already flagged it and this deepens it · **Newly Detected UI Issue** — found by looking at the screenshot · **Pattern Opportunity** — nothing is broken, a better structure exists. Severity keeps the audit's scale; priority is the order to fix in, and a Minor that repeats across screens can be High.`, "");
 for (const a of reviewed) {

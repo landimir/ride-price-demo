@@ -1,5 +1,60 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v038 — 2026-09-21
+
+App commit: 70ba840 · 20 flows · 146 screens · previous: v037
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Funded history in range
+- Scan Driver's License · Find customer manually (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — question 1, customer-first
+- Discovery Session · Discovery — mid-interview, Back appears
+- Discovery Session · Discovery — the last question is the hand-off
+- Discovery Session · Visit details (sheet)
+- Discovery Session · Stage-aware — a vehicle chosen upstream
+- Base Payment Agreement · Agreement — ready to sign
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — the resolver's entries
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — exception accepted
+- Snap All — burst capture · The license now complete
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+What changed for real: nothing in the app. PR #120 recorded the owner's answer on Home's New visit, which stays top right. The improvement matrix marks RP-IMP-001 deferred, a new status: off the ranking, kept on the record. That moved main to 70ba840, so the library catches up with it; no portal file changed since v037 (app 6b59aea). The improvement view and its three reports carry the new status. The v037 archive keeps what v037 published: the update had copied #120's five improvement files into it, and they were restored from bc6a714. Every changed screenshot differs by live values only: dates and clock times (Sep 18, 11:09 PM became Sep 21, 10:02 AM), expiry dates counted from today (Nov 2 became Nov 5), the verification code, a visit number, the print pages' deal-jacket marker barcode, two text carets and a spinner frame. Two agreement scroll captures changed with their dates as well. The one exception is the Discovery answer box: Chrome now draws its native resize grip as diagonal hatching. This machine's Chrome moved from 152 to 153, and no app file changed. No issue resolved; none added.
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v037 — 2026-09-19
 
 App commit: 6b59aea · 20 flows · 146 screens · previous: v036

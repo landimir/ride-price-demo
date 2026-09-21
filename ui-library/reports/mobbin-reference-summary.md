@@ -1,6 +1,6 @@
 # Ride Price — Mobbin Reference Summary
 
-Updated 2026-09-18. One entry per reference family used by the improvement review so far. Each was looked up on Mobbin for a specific Ride Price problem; the screens are listed so they can be opened, and the lesson is what Ride Price takes — structure and clarity, never the other app's brand. Nothing here says "copy X": the adaptation always re-expresses the pattern in Ride Price's navy, gradient, Poppins and existing components.
+Updated 2026-09-19. One entry per reference family used by the improvement review so far. Each was looked up on Mobbin for a specific Ride Price problem; the screens are listed so they can be opened, and the lesson is what Ride Price takes — structure and clarity, never the other app's brand. Nothing here says "copy X": the adaptation always re-expresses the pattern in Ride Price's navy, gradient, Poppins and existing components.
 
 ## M3 · Work queue / home with one dominant action
 
@@ -13,7 +13,7 @@ Updated 2026-09-18. One entry per reference family used by the improvement revie
 
 **Common pattern across the references:** Title with a count, segmented filters with counts, a clean card/row list where each row's second line is a plain status sentence, one create action, and 'done' as a first-class filter.
 
-**Lesson most relevant to Ride Price:** Ride Price's queue already has the right bones. The gains are the card's next-step line, a real place for finished deals, and the single action under the thumb.
+**Lesson most relevant to Ride Price:** Ride Price's queue already has the right bones. The gains were the card's next-step line (built), a real place for finished deals (built) and the single action under the thumb (deferred: the owner kept New visit top right, 2026-09-19).
 
 **Should influence:** Home — Deals Queue; any future list screen (vehicles, customers).
 
@@ -83,9 +83,9 @@ Used by: RP-IMP-005
 
 **Common pattern across the references:** The forward action lives in a thin bottom bar (white, hairline, one strong button, sometimes a summary value beside it); the page content scrolls under it; the header orients but does not act.
 
-**Lesson most relevant to Ride Price:** Give the gradient action a fixed home at the bottom on phones — the same home on every screen — and let the page bar carry the title, count and context only.
+**Lesson most relevant to Ride Price:** Give the gradient action a fixed home at the bottom on phones and let the page bar carry the title, count and context only. On Home this is deferred: the owner kept New visit top right (2026-09-19, RP-IMP-001).
 
-**Should influence:** Home, Find a Customer, Training pages now; Desking, Credit Application and the Finance Menu later (same rule, bigger gain).
+**Should influence:** Home: deferred — the owner kept New visit top right (2026-09-19, RP-IMP-001, the one recommendation that uses this pattern), so nothing here is due now. As first scoped: Home, Find a Customer and the Training pages first; Desking, Credit Application and the Finance Menu later (same rule, bigger gain).
 
 Used by: RP-IMP-001
 

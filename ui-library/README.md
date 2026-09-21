@@ -47,8 +47,8 @@ then read the added/changed screenshots, edit `reports/issues.json`, and run
 owner decisions recorded as they land), then
 `node ride-price-ui-library/tools/build-improvements.mjs` regenerates the
 improvement view and its three reports. Every recommendation carries a
-`status` — open, partly-built, built, resolved, superseded or obsolete — read
-from its own note, never guessed; a closed one says what closed it
+`status` — open, partly-built, built, resolved, superseded, obsolete or deferred
+(the owner's "not now" after seeing it) — read from its own note, never guessed; a closed one says what closed it
 (`statusNote`) and when (`closedOn`). Only open and partly built ones rank on
 the opportunity board; the rest are listed under Closed as the record, and the
 builder stops on a missing or incomplete status. `tools/preview-improvements.mjs`
