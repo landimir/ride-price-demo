@@ -1,6 +1,6 @@
 # Ride Price Mobile UI — Improvement Report
 
-Improvement view v001 · built on flow library v038 (app 70ba840) · matrix updated 2026-09-19
+Improvement view v001 · built on flow library v039 (app 31860b6) · matrix updated 2026-09-19
 
 This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.
 

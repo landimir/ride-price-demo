@@ -1,5 +1,48 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v039 — 2026-09-21
+
+App commit: 31860b6 · 20 flows · 146 screens · previous: v038
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Discovery — mid-interview, Back appears
+- Discovery Session · Visit details (sheet)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+What changed for real: nothing in the app. PR #122 gave every agent one rule file (RULES.md, with AGENTS.md and ASSIGNMENTS.md beside it), a lock so only one test run uses the harness at a time, and the shared diary. This library's update.mjs now takes that lock for the whole update. It moved main to 31860b6, so the library catches up; no portal file changed since v038 (app 70ba840). Every changed screenshot differs by live values only, captured the same day: clock times (10:02 AM became 3:03 PM), the verification code, a visit number, the print pages' deal-jacket marker barcode, a text caret and a spinner frame. Two agreement scroll captures changed with their times as well. No issue resolved; none added.
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v038 — 2026-09-21
 
 App commit: 70ba840 · 20 flows · 146 screens · previous: v037

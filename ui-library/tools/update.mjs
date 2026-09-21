@@ -9,7 +9,11 @@ import { LIB, CURRENT, REPORTS, MASTER, VERSIONS, join, writeFileSync, mkdirSync
 import { readFileSync, cpSync, readdirSync, rmSync, statSync } from "node:fs";
 import { execSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { holdRunLock } from "../../harness/run-lock.mjs";
 
+/* the whole update is one test run: wait for another agent's run to finish
+   before touching anything, and hand the lock to the capture it starts */
+await holdRunLock({ note: "flow library update" });
 const read = (p, fb) => existsSync(p) ? JSON.parse(readFileSync(p, "utf8")) : fb;
 const mfPath = join(REPORTS, "flow-manifest.json"), verPath = join(REPORTS, "version.json"), issPath = join(REPORTS, "issues.json");
 const prevVersion = read(verPath, null);
