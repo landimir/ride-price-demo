@@ -7182,6 +7182,16 @@ route("desk/:id", ({ id }) => {
       ${deal.trade.rebates ? kvRow("Rebate", `−${money(deal.trade.rebates)}`, "customer cash — applies to a cash purchase, not tied to financing") : ""}
       ${deal.trade.has ? kvRow("Trade credit", `−${money(r.netTrade)}`) : ""}
       <div class="rp-kv__row" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Total due</span><span style="font-weight:760">${money(r.totalDue)}</span></div></div>`;
+    /* D-SM5 = B (owner, 2026-09-22: "D-SM5 is B for now"): the trial close the
+       huddle wrote down is read back to the advisor here, under the payment,
+       before the phone is turned round — in the customer's own words, in Work
+       only. The presented screen never draws it. The row is the kit's
+       rp-group / rp-row, the shape the option grid already uses to read back
+       the payment the customer named. */
+    const trial = String((deal.huddle && deal.huddle.trialClose) || "").trim();
+    const trialRow = () => trial ? `<div class="rp-group" id="dkTrial"><div class="rp-row"><span class="rp-row__body">
+      <span class="rp-row__title">Trial close — in the customer&rsquo;s words</span>
+      <span class="rp-row__sub">&ldquo;${esc(trial)}&rdquo;</span></span></div></div>` : "";
 
     const content = `<div class="rp-eyebrow">Desking</div>
       <h1 class="rp-title">Calculate payments</h1>
@@ -7191,6 +7201,7 @@ route("desk/:id", ({ id }) => {
       ${asked ? `<div class="rp-notice"><span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>Sent to ${esc(RIDE_PRICE_DATA.dealership.teamLead)} for approval · ${esc(timeUS(asked))}</div>` : ""}
       ${segment()}
       ${priceHero(r, !chose)}
+      ${trialRow()}
       ${isCash() ? cashColumn() : ""}
       ${isCash() || isLease() ? "" : `<div class="rp-group"><button type="button" class="rp-row" id="dkOptions">
         <span class="rp-row__body"><span class="rp-row__title">Payment options</span>
