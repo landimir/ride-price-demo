@@ -1976,7 +1976,7 @@ route("deals", () => {
     const arrived = arrivedLabel(d);
     const body = `
       <span class="rp-row__body"><span class="rp-row__title">${esc(name)}</span>
-      <span class="rp-row__sub dq-visitmeta">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)}</span></span>
+      <span class="rp-row__sub dq-visitmeta">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)}${isTeamLead() && !d.advisor ? " · Not assigned" : ""}</span></span>
       <span class="rp-row__chevron"></span>`;
     /* the row is a button when the visit has a sheet (HOME_PRESENCE) and the
        stage's link otherwise; the four things it shows are the same either way */
@@ -1993,10 +1993,23 @@ route("deals", () => {
     const d = Store.deal(id); if (!d) return;
     const c = Store.customer(d.customerId), st = STAGES[d.stage] || STAGES.discovery, b = dealBucket(d);
     const name = c ? c.first + " " + c.last : "—", arrived = arrivedLabel(d);
-    openSheet5(`${chSheetHead(name)}<p class="rp-sheet__sub">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)}</p>
+    /* owner's protocol 2026-09-15 (OB-056), rehomed 2026-09-22 (D-SM4 = B): the
+       Team Lead assigns a visit they registered to a salesperson — a referral —
+       from the floor, not from inside the customer's conversation */
+    const lead = isTeamLead();
+    openSheet5(`${chSheetHead(name)}<p class="rp-sheet__sub">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)}${lead ? " · " + (d.advisor ? esc(d.advisor) : "Not assigned") : ""}</p>
       <button type="button" class="rp-primary" id="dqVisitOpen">Open deal</button>
+      ${lead ? `<button type="button" class="rp-link ch-hit" id="dqAssign">${d.advisor ? "Reassign" : "Assign to an advisor"}</button>` : ""}
       <button type="button" class="rp-link ch-hit" id="dqVisitEnd">Left the showroom</button>`, (sheet) => {
       $("#dqVisitOpen", sheet).onclick = () => { closeSheet5(); navigate(st.route(d)); };
+      const assign = $("#dqAssign", sheet);
+      if (assign) assign.onclick = () => {
+        const names = [RIDE_PRICE_DATA.dealership.advisor, ...(RIDE_PRICE_DATA.otherAdvisors || [])];
+        openSheet5(`${chSheetHead("Assign " + name.split(" ")[0] + "'s visit")}<p class="rp-sheet__sub">The advisor it goes to sees it in My deals at once</p>
+          <div class="rp-group">${names.map(n => `<button type="button" class="rp-row" data-assign="${esc(n)}"><span class="rp-row__body"><span class="rp-row__title">${esc(n)}</span><span class="rp-row__sub">${n === d.advisor ? "Has it now" : "Advisor"}</span></span><span class="rp-row__chevron"></span></button>`).join("")}</div>`, (sh) => {
+          $$("[data-assign]", sh).forEach(b => b.onclick = () => { d.advisor = b.dataset.assign; Store.save(); toast("Assigned to " + b.dataset.assign); closeSheet5(); router(); });
+        });
+      };
       $("#dqVisitEnd", sheet).onclick = () => {
         chDialog(sheets, `${name} left the showroom?`, "The visit ends now. The deal stays where it is.", "End the visit", () => {
           d.visit = Object.assign({}, d.visit, { endedAt: new Date().toISOString(), endedBy: roleName() });
@@ -5102,7 +5115,7 @@ window.addEventListener("beforeunload", e => {
   if (consultationDirtyVisits.size) { e.preventDefault(); e.returnValue = ""; }
 });
 route("discovery/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const customer = Store.customer(deal.customerId);
   const discovery = deal.discovery;
   const TOPICS = 6; /* current vehicle · size & space · seating & family · drivetrain · lane support · reverse safety */
