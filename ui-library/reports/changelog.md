@@ -1,5 +1,49 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v040 — 2026-09-22
+
+App commit: 8bc4db8 · 20 flows · 146 screens · previous: v039
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Scan Driver's License · Find customer manually (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Discovery Session · Visit details (sheet)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — the resolver's entries
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Customer document request (from the jacket) · Customer request — delivery status
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+
+### Removed
+- none
+
+No portal asset changed between v039 and v040 (PR #124 added the scenario map and the harness tools only); every screen listed as changed differs by a clock time or a minted number, and the automated checks moved only where a time is printed. The version exists so the library names the same commit as `main`.
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v039 — 2026-09-21
 
 App commit: 31860b6 · 20 flows · 146 screens · previous: v038
