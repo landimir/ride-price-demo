@@ -439,6 +439,8 @@ const Store = (function () {
     localStorage.setItem(KEY, JSON.stringify(next));
     if (hasDrafts) state.licenseDrafts = merged;
     draftBase = copyDrafts(merged); malformedAtLoad = null;
+    /* announced only after the write succeeded; a route holding a dirty draft retires it */
+    window.dispatchEvent(new Event("ride-price:store-saved"));
   }
   function reset() { localStorage.removeItem(KEY); state = fresh(); draftBase = {}; malformedAtLoad = null; save(); }
 
@@ -5079,223 +5081,190 @@ function regPropHtml(r) {
    The early object is a VISIT in user-facing language. A deal id still
    exists underneath; it is simply not what the advisor is shown.
    ============================================================ */
+/* ============================================================
+   VIEW: Discovery — the guided consultation (D-SM1 = B, D-SM2 = A)
+   The archived guided Discovery of 2026-09-10, ported onto the kit as it
+   ships. No opener: the screen opens on the first stage. One stage per
+   topic, a sample slide, the customer's sample reply as chips, ✓ confirms,
+   Skip leaves a topic out; the profile at the end is the hand-off, and ✓
+   there sets the visit's stage and opens Vehicle selection. Sample replies
+   only — no microphone, transcription or extraction, ever.
+   ============================================================ */
+/* Dirty drafts belong to the session, not a route instance. Store.save
+   writes the entire store; a successful retry makes all drafts durable. */
+const consultationDirtyVisits = new Set();
+window.addEventListener("ride-price:store-saved", () => {
+  consultationDirtyVisits.clear();
+  const line = document.querySelector("#discoveryConsultation .rp-voice__label");
+  if (line) line.textContent = line.dataset.ready || "";
+});
+window.addEventListener("beforeunload", e => {
+  if (consultationDirtyVisits.size) { e.preventDefault(); e.returnValue = ""; }
+});
 route("discovery/:id", ({ id }) => {
-  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
-  const c = Store.customer(deal.customerId);
-  const qs = RIDE_PRICE_DATA.discoveryQuestions;
-  /* a vehicle may legitimately exist if one was selected upstream — the rule
-     is that Discovery never invents one, not that it hides a real choice */
-  const v = deal.stock ? Store.vehicle(deal.stock) : null;
-  const jkc = jacketCounts(deal);
-  const custName = `${c.first} ${c.last}`;
-  let idx = 0;
-
-  /* the golden's shell: back, wordmark, role. No crumb block. */
-  const dvTop = () => `<div class="dv-top">
-    <button type="button" class="dv-back" id="dvBack" aria-label="Back">‹</button>
-    <div class="dv-brand"><span>Ride</span> PRICE</div>
-    <span class="dv-spacer"></span>
-    <button type="button" class="dv-role" id="dvRole">${isTeamLead() ? "Team Lead" : "Advisor"}</button>
-  </div>`;
-
-  /* ONE row. The left half opens Visit details; the right is Jacket. Both
-     clear the 40px floor. Stage-aware per the package: the vehicle appears
-     here only once one has actually been selected. */
-  const contextRow = () => `<div class="dv-context">
-    <button type="button" class="dv-ctxmain" id="dvVisit">
-      <strong>${esc(custName)}</strong>
-      <span>&middot; ${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Discovery"}</span>
-    </button>
-    <a class="dv-jacket" href="#/jacket/${esc(deal.id)}" aria-label="Deal Jacket — ${esc(jacketChipText(deal))} required documents complete${jkc.missing ? `, ${esc(jkc.missing)} still outstanding` : ""}">
-      <span class="dv-jacket__box">${rpIcon("folder")}<b>${esc(jacketChipText(deal))}</b></span>
-    </a>
-  </div>`;
-
-  let sheetKey = null;
-  const closeSheet = () => {
-    const sc = $("#dvScrim"); if (sc) sc.classList.remove("show");
-    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
+  const deal = Store.deal(id); if (!deal) return navigate("#/deals");
+  const customer = Store.customer(deal.customerId);
+  const discovery = deal.discovery;
+  const TOPICS = 6; /* current vehicle · size & space · seating & family · drivetrain · lane support · reverse safety */
+  const replies = [
+    "Keeps: heated seats, CarPlay, blind spot warning.",
+    "Mainly cargo. The dogs take the back. Extra passenger space would be a bonus.",
+    "Usually four. Five when my sister visits. Two dogs every weekend.",
+    "Must. We go upstate in winter and I do not want to think about it.",
+    "It matters. My wife does the Midtown run every day — that would help her.",
+    "Yes. Warnings are fine but I want it to stop if it has to."
+  ];
+  const state = discovery.consultation || {
+    accepted: {}, skipped: {}, position: 0, intro: true, confirmed: false,
+    selections: { heatedSeats: true, carPlay: true, blindSpot: true, powerLiftgate: false, sunroof: false, secondRow: true, thirdRow: false, captainsChairs: false, laneCentering: true, reverseBraking: true }
   };
-  const teardown = () => { closeSheet(); window.removeEventListener("hashchange", teardown); };
-  window.addEventListener("hashchange", teardown);
-  const openSheet = (html, onMount) => {
-    const sh = $("#dvSheet"); if (!sh) return;
-    sh.innerHTML = `<div class="m-handle"></div>${html}`;
-    $("#dvScrim").classList.add("show");
-    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
-    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
-    document.addEventListener("keydown", sheetKey, true);
-    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
-    if (onMount) onMount(sh);
+  const isUnsaved = () => consultationDirtyVisits.has(deal.id);
+  let redo = false;
+  const used = i => !state.skipped[i] && !!state.accepted[i];
+  const outstanding = () => { for (let i = 0; i < TOPICS; i++) if (!state.accepted[i] && !state.skipped[i]) return i; return undefined; };
+  const filters = () => {
+    const must = [], keep = [], nice = [];
+    if (used(0)) {
+      if (state.selections.blindSpot) must.push("blindSpot");
+      ["heatedSeats", "carPlay", "powerLiftgate", "sunroof"].forEach(k => { if (state.selections[k]) keep.push(k); });
+    }
+    if (used(1)) must.push("cargoRoom");
+    if (used(3)) must.push("awd");
+    if (used(4) && state.selections.laneCentering) nice.push("laneCentering");
+    if (used(5) && state.selections.reverseBraking) nice.push("reverseBraking");
+    if (used(2)) ["thirdRow", "captainsChairs"].forEach(k => { if (state.selections[k]) nice.push(k); });
+    return { version: 2, source: "consultation-confirmed", must, keep, nice, minSeats: used(2) ? 5 : null, dogsWeekly: used(2) };
   };
-
-  /* everything the old crumb row shouted, disclosed on demand instead */
-  function visitSheet() {
-    const co = deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
-    const addr = c.onboard && c.onboard.address && c.onboard.address.confirmedAt;
-    /* three identity states, not two (review-lessons pattern 4). Formal
-       verification is deal.identity, recorded by the Lending Lane much
-       later; a licence photographed at onboarding is c.onboard.licensePhotoAt.
-       Reading only the first shows a scanned-in customer as an amber
-       "not verified", which tells the advisor something false. */
-    const idOk = deal.identity && deal.identity.verifiedAt;
-    const idScan = c.onboard && c.onboard.licensePhotoAt;
-    const idPill = idOk ? ["", "Identity confirmed"]
-      : idScan ? [" dv-status--scan", "Licence photo on file"]
-      : [" dv-status--wait", "Identity not verified"];
-    openSheet(`
-      <h2 class="dv-sheettitle">Visit details</h2>
-      <div class="dv-seclab">Customer</div>
-      <div class="dv-row">
-        <div class="dv-rowmain"><div class="dv-rowname">${esc(custName)}</div>
-          <div class="dv-rowsub">Primary buyer</div></div>
-        <span class="dv-status${idPill[0]}">${idPill[1]}</span>
-      </div>
-      <button type="button" class="dv-row dv-row--link" id="dvCoBuyer" data-buyers="${esc(deal.id)}">
-        <div class="dv-rowmain"><div class="dv-rowname">Co-buyer</div></div>
-        <span class="dv-rowval${co ? " dv-rowval--strong" : ""}">${co ? esc(`${co.first} ${co.last}`) : "None added"}</span>
-        <span class="dv-chev" aria-hidden="true">&rsaquo;</span>
-      </button>
-      <div class="dv-seclab">Visit</div>
-      ${deal.advisor ? `<div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Advisor</div></div>
-        <span class="dv-rowval dv-rowval--strong">${esc(deal.advisor)}</span></div>`
-      : isTeamLead() ? `<button type="button" class="dv-row dv-row--link" id="dvAssign">
-        <div class="dv-rowmain"><div class="dv-rowsub">Advisor</div></div>
-        <span class="dv-rowval">Not assigned</span><span class="dv-chev" aria-hidden="true">&rsaquo;</span></button>`
-      : `<div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Advisor</div></div><span class="dv-rowval">Not assigned</span></div>`}
-      <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Stage</div></div>
-        <span class="dv-rowval dv-rowval--strong">${esc((STAGES[deal.stage] || {}).label || deal.stage)}</span></div>
-      <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Visit #</div></div>
-        <span class="dv-rowval dv-rowval--strong">V${esc(deal.dealNo || "—")}</span></div>
-      <div class="dv-row"><div class="dv-rowmain"><div class="dv-rowsub">Registration address</div></div>
-        <span class="dv-rowval dv-rowval--strong">${addr ? "Confirmed" : "Not confirmed"}</span></div>
-      <div class="dv-seclab">Vehicle</div>
-      ${v ? `<div class="dv-row"><div class="dv-rowmain">
-          <div class="dv-rowname">${esc(`${v.year} ${v.make} ${v.model}`)}</div>
-          <div class="dv-rowsub">Selected before this session</div></div></div>`
-        : `<div class="dv-row"><div class="dv-rowmain">
-            <div class="dv-rowname">No vehicle selected</div>
-            <div class="dv-rowsub">Vehicle context appears after Discovery.</div></div></div>`}
-      <div class="dv-actions"><button type="button" class="dv-sheetbtn" data-sheet-close>Done</button></div>`, (sh) => {
-      /* the delegated [data-buyers] handler on document opens the buyers
-         sheet; close this one first so they do not stack */
-      const cb = $("#dvCoBuyer", sh);
-      if (cb) cb.addEventListener("click", closeSheet);
-      const as = $("#dvAssign", sh);
-      if (as) as.onclick = assignSheet;
-    });
+  const invalidate = () => { state.confirmed = false; discovery.done = false; delete discovery.consultationFilters; };
+  function save() {
+    discovery.consultation = state;
+    try { Store.save(); }
+    catch { consultationDirtyVisits.add(deal.id); }
+    const line = $("#discoveryConsultation .rp-voice__label");
+    if (line) line.textContent = isUnsaved() ? "Not saved · tap ✓ to retry" : line.dataset.ready;
+    return !isUnsaved();
   }
-  /* owner's protocol 2026-09-15 (OB-056): the Team Lead assigns a visit they
-     registered to a salesperson — a referral. One pick; the visit then shows
-     under that advisor's My deals. */
-  function assignSheet() {
-    const names = [RIDE_PRICE_DATA.dealership.advisor, ...(RIDE_PRICE_DATA.otherAdvisors || [])];
-    openSheet(`
-      <h2 class="dv-sheettitle">Assign to an advisor</h2>
-      ${names.map(n => `<button type="button" class="dv-row dv-row--link" data-assign="${esc(n)}"><div class="dv-rowmain"><div class="dv-rowname">${esc(n)}</div></div><span class="dv-chev" aria-hidden="true">&rsaquo;</span></button>`).join("")}
-      <div class="dv-actions"><button type="button" class="dv-sheetbtn" data-sheet-close>Cancel</button></div>`, (sh) => {
-      $$("[data-assign]", sh).forEach(b => b.onclick = () => {
-        deal.advisor = b.dataset.assign; Store.save();
-        toast("Assigned to " + b.dataset.assign); closeSheet(); render();
-      });
-    });
+  function change(fn) {
+    const active = document.activeElement;
+    const feature = active && active.dataset.feature;
+    fn();
+    save();
+    render();
+    const target = feature ? Array.from(document.querySelectorAll("[data-feature]")).find(b => b.dataset.feature === feature) : $("#dcQuestion");
+    if (target) target.focus({ preventScroll: true });
   }
-
+  /* the kit board's frames: 1 the intro slide, 2–6 the topics (lane support and reverse safety share 6), 7 the profile */
+  function frameIndex() {
+    if (state.position === TOPICS) return 7;
+    if (state.position === 0) return state.intro ? 1 : 2;
+    return [2, 3, 4, 5, 6, 6][state.position] || 2;
+  }
+  function advance() {
+    const next = outstanding();
+    change(() => { state.position = next === undefined ? TOPICS : next; state.intro = next === 0 && !state.accepted[0]; redo = false; });
+  }
+  function accept() {
+    if (isUnsaved()) { if (save()) render(); return; }
+    if (state.position === 0 && state.intro) { change(() => { state.intro = false; }); return; }
+    if (state.position === TOPICS) {
+      const missing = outstanding();
+      if (missing !== undefined) { change(() => { state.position = missing; state.intro = false; }); return; }
+      const previous = { confirmed: state.confirmed, done: discovery.done, filters: discovery.consultationFilters, stage: deal.stage };
+      state.confirmed = true; discovery.done = true; discovery.consultationFilters = filters();
+      if (deal.stage === "discovery") deal.stage = "vehicle";
+      if (!save()) { state.confirmed = previous.confirmed; discovery.done = previous.done; discovery.consultationFilters = previous.filters; deal.stage = previous.stage; return; }
+      navigate(`#/vehicles/${deal.id}`); return;
+    }
+    const position = state.position;
+    const transcript = position === 0 ? "Keeps: " + Object.keys(state.selections).filter(k => ["heatedSeats", "carPlay", "blindSpot", "powerLiftgate", "sunroof"].includes(k) && state.selections[k]).map(k => consultationLabel(k)).join(", ") + "."
+      : position === 4 && !state.selections.laneCentering ? "Lane centering not selected."
+      : position === 5 && !state.selections.reverseBraking ? "Reverse braking not selected."
+      : replies[position];
+    state.accepted[position] = { transcript, simulated: true };
+    delete state.skipped[position];
+    invalidate();
+    if (!save()) return;
+    advance();
+  }
+  function skip() {
+    if (isUnsaved()) { if (save()) render(); return; }
+    state.skipped[state.position] = true; delete state.accepted[state.position];
+    invalidate();
+    if (!save()) return;
+    advance();
+  }
   function render() {
-    const q = qs[idx];
-    const saved = deal.discovery.answers[q.key] || "";
-    const last = idx === qs.length - 1;
-    const pct = Math.round(((idx + 1) / qs.length) * 100);
-
-    /* no crumbs: dealTitle() would build the Deal #/"no vehicle yet" line this
-       screen exists to remove. The master canvas hides .pagebar anyway, but
-       not building it is the guarantee that survives a CSS change. */
-    renderChrome("Discovery Session", "", "");
-    document.body.dataset.canvas = "master";
+    renderChrome("Discovery", "", "");
+    document.body.dataset.canvas = "kit";
     document.body.dataset.screen = "discovery";
-
-    view().innerHTML = `
-      <div class="m-app">
-        ${dvTop()}
-        <main class="dv-main">
-          <div class="dv-eyebrow">Customer discovery</div>
-          <h1 class="dv-title">Discovery Session</h1>
-          ${contextRow()}
-          <div class="dv-progress"><span style="width:${pct}%"></span></div>
-
-          <section class="dv-question">
-            <div class="dv-cats">Trips · Family · Pets · Activities · Commute · Drive</div>
-            <h2 class="dv-qtitle">${esc(q.title)}</h2>
-            <p class="dv-qhint">${esc(q.hint)}</p>
-            <textarea class="dv-answer" id="dvAns" placeholder="Capture the conversation in their words…">${esc(saved)}</textarea>
-            <div class="dv-autosave"><i></i><span id="dvSaved">Autosaved to customer discovery</span></div>
-            <div class="dv-qactions">
-              ${idx === 0 ? "" : `<button type="button" class="dv-secondary" id="dvBackQ">← Back</button>`}
-              <span class="dv-grow"></span>
-              <button type="button" class="dv-primary" id="dvNext">${last ? "Find vehicles →" : "Next →"}</button>
-            </div>
-          </section>
-        </main>
-      </div>
-      <div class="m-scrim" id="dvScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="dvSheet"></div></div>`;
-
-    $("#dvBack").onclick = () => history.back();
-    $("#dvRole").onclick = () => $("#hamburgerBtn").click();
-    $("#dvVisit").onclick = visitSheet;
-    const scrim = $("#dvScrim");
-    if (scrim) scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
-
-    const ans = $("#dvAns");
-    ans.focus();
-    /* autosave is the package's word, so it has to be true: every keystroke
-       persists, not just the Next tap */
-    ans.oninput = () => { saveAns(); };
-
-    const back = $("#dvBackQ");
-    if (back) back.onclick = () => { saveAns(); idx--; render(); };
-    $("#dvNext").onclick = () => {
-      saveAns();
-      if (!last) { idx++; render(); return; }
-      /* the questions really are answered, so record that now. The STAGE is
-         a different claim: it says where the visit has got to, and the visit
-         has not reached vehicle selection until the advisor goes there. The
-         package's own rule 10 is that context may evolve only after the step
-         actually happens, and "Back to questions" below must not leave a
-         visit sitting in a stage it never entered. Advanced on the link that
-         navigates, the way #toDesk and #toDesk2 already do. */
-      deal.discovery.done = true;
-      Store.save();
-      /* the golden's hand-off is STATUS ROWS, not prose (rule 12: the
-         hierarchy explains the screen), and it must state plainly that no
-         vehicle is chosen yet. The answer count is the real one — the golden
-         hard-codes 7, but an advisor can reach here with blanks. */
-      const answered = qs.filter(q2 => (deal.discovery.answers[q2.key] || "").trim()).length;
-      openSheet(`
-        <h2 class="dv-sheettitle">Discovery complete</h2>
-        <div class="dv-row">
-          <div class="dv-rowmain"><div class="dv-rowname">${esc(custName)}</div>
-            <div class="dv-rowsub">${esc(answered)} of ${esc(qs.length)} discovery answers saved</div></div>
-          <span class="dv-status">Complete</span>
-        </div>
-        <div class="dv-row">
-          <div class="dv-rowmain"><div class="dv-rowname">Vehicle</div>
-            <div class="dv-rowsub">${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Not selected yet"}</div></div>
-        </div>
-        <div class="dv-actions">
-          <a class="dv-sheetbtn dv-sheetbtn--primary" id="dvToVehicles" href="#/vehicles/${esc(deal.id)}">Find matching vehicles</a>
-          <button type="button" class="dv-sheetbtn" data-sheet-close>Back to questions</button>
-        </div>`, (sh) => {
-        const go = $("#dvToVehicles", sh);
-        if (go) go.onclick = () => { if (deal.stage === "discovery") { deal.stage = "vehicle"; Store.save(); } };
-      });
+    view().innerHTML = RIDE_PRICE_DISCOVERY_V031[frameIndex()];
+    const screen = $(".rp-screen"); screen.id = "discoveryConsultation";
+    const end = document.createElement("span"); end.className = "dc-top-end"; end.setAttribute("aria-hidden", "true");
+    const role = $(".rp-role"); if (role) role.replaceWith(end); else $(".rp-topbar").lastElementChild.replaceWith(end);
+    $(".rp-topbar__title").textContent = `${customer.first} ${customer.last}`;
+    const close = $(".rp-topbar__close"); close.type = "button"; close.setAttribute("aria-label", "Return to visits");
+    close.onclick = () => { if (save()) navigate("#/deals"); };
+    const q = $(".rp-stage__q"); q.id = "dcQuestion"; q.tabIndex = -1; q.setAttribute("role", "heading"); q.setAttribute("aria-level", "1");
+    const ai = $(".rp-ai__text"); ai.id = "dcAssistant"; ai.setAttribute("role", "status"); ai.setAttribute("aria-live", "polite");
+    if (state.position === 0 && !state.intro) ai.textContent = redo ? "Sample reply reset. Choose what to keep." : "Sample reply: choose what you would keep.";
+    if (state.position === 4) ai.textContent = state.selections.laneCentering ? "Sample: lane centering would help the commute." : "Lane centering not selected.";
+    if (state.position === 5) ai.textContent = state.selections.reverseBraking ? "Sample: braking, not just warnings, in reverse." : "Reverse braking not selected.";
+    const chipKeys = state.position === 0 ? ["heatedSeats", "carPlay", "blindSpot", "powerLiftgate", "sunroof"] : state.position === 2 ? ["secondRow", "thirdRow", "captainsChairs"] : ["laneCentering", "reverseBraking"];
+    if (state.position !== TOPICS) $$(".rp-chipf").forEach((chip, i) => {
+      const key = chipKeys[i]; if (!key) return;
+      const button = document.createElement("button"); button.type = "button"; button.className = "rp-chipf" + (state.selections[key] ? " rp-chipf--on" : "");
+      button.innerHTML = (state.selections[key] ? rpGlyph("check") : "") + esc(consultationLabel(key));
+      button.setAttribute("aria-pressed", String(!!state.selections[key])); button.dataset.feature = key;
+      if (state.position === 4 && key === "reverseBraking" || state.position === 5 && key === "laneCentering") button.disabled = true;
+      button.onclick = () => change(() => { state.selections[key] = !state.selections[key]; delete state.accepted[state.position]; invalidate(); });
+      chip.replaceWith(button);
+    });
+    if (state.position === TOPICS) {
+      const labelBox = $(".rp-stage__labels"); labelBox.replaceChildren();
+      const f = filters();
+      [...f.must, ...f.keep, ...f.nice].forEach(key => { const chip = document.createElement("span"); chip.className = "rp-chipf rp-chipf--on"; chip.innerHTML = rpGlyph("check") + esc(consultationLabel(key)); labelBox.append(chip); });
+      if (f.minSeats) { const chip = document.createElement("span"); chip.className = "rp-chipf rp-chipf--on"; chip.innerHTML = rpGlyph("check") + `Seats ${esc(f.minSeats)}+`; labelBox.append(chip); }
+      ai.textContent = "Does that reflect the sample replies you confirmed?";
+    }
+    const play = $(".rp-stage__play");
+    if (play) { const button = document.createElement("button"); button.type = "button"; button.className = play.className; button.innerHTML = play.innerHTML; button.setAttribute("aria-label", "View sample slide; no video supplied"); play.replaceWith(button); }
+    /* Skip lives on the stage's own screen: a topic can be left out, never a stage in the middle of nowhere */
+    if (state.position !== TOPICS && !(state.position === 0 && state.intro)) {
+      const skipBtn = document.createElement("button"); skipBtn.type = "button"; skipBtn.className = "rp-link"; skipBtn.id = "dcSkip"; skipBtn.textContent = "Skip this topic";
+      skipBtn.onclick = skip; $(".rp-ai").after(skipBtn);
+    }
+    const wireVoice = (selector, label, action) => {
+      const old = $(selector); const button = document.createElement("button"); button.type = "button"; button.className = old.className; button.innerHTML = old.innerHTML;
+      button.setAttribute("aria-label", label); button.onclick = action; old.replaceWith(button);
     };
-  }
-  function saveAns() {
-    const el = $("#dvAns"); if (!el) return;
-    deal.discovery.answers[qs[idx].key] = el.value; Store.save();
+    const profile = state.position === TOPICS;
+    wireVoice(".rp-voice__accept", profile ? "Confirm the profile and find vehicles" : "Confirm sample reply and advance", accept);
+    wireVoice(".rp-voice__cancel", profile ? "Change something" : "Retry this sample reply", () => {
+      if (isUnsaved()) { if (save()) render(); return; }
+      if (profile) { change(() => { state.position = 0; state.intro = false; invalidate(); }); return; }
+      change(() => { delete state.accepted[state.position]; invalidate(); redo = true; });
+    });
+    const line = $(".rp-voice__label");
+    line.dataset.ready = profile ? "✓ find vehicles · × change something" : "No microphone · ✓ sample reply · × retry";
+    line.textContent = isUnsaved() ? "Not saved · tap ✓ to retry" : line.dataset.ready;
+    line.setAttribute("role", "status");
+    /* The dots are a static demonstration, never a claim of microphone activity. */
+    $(".rp-voice__dots").setAttribute("aria-hidden", "true");
   }
   render();
 });
+function consultationLabel(key) {
+  return ({ awd: "AWD", cargoRoom: "Cargo room", blindSpot: "Blind spot warning", heatedSeats: "Heated seats", carPlay: "CarPlay", powerLiftgate: "Power liftgate", sunroof: "Sunroof", laneCentering: "Lane centering", reverseBraking: "Reverse braking", secondRow: "Second row space", thirdRow: "Third row access", captainsChairs: "Captain’s chairs" })[key] || key;
+}
+
+function consultationMatch(vehicle, profile) {
+  const facts = vehicle.consultationFeatures || {};
+  const has = key => key === "awd" ? vehicle.drive === "AWD" : facts[key] === true;
+  return {
+    matches: profile.must.every(has) && (!profile.minSeats || vehicle.seats >= profile.minSeats),
+    score: profile.keep.filter(has).length * 2 + profile.nice.filter(has).length
+  };
+}
 
 /* ============================================================
    VIEW: Vehicle Search
@@ -5464,7 +5433,9 @@ route("vehicles/:id", ({ id }) => {
   const bodies = [...new Set(RIDE_PRICE_DATA.inventory.map(v => v.body))];
   const cust = deal ? Store.customer(deal.customerId) : null;
   /* the browse state survives sheet opens but resets on route entry */
-  const ui = { type: "All", make: "All", body: "All", maxPrice: null, sort: "hi", search: "", sheet: null };
+  const candidateProfile = deal && deal.discovery && deal.discovery.consultationFilters;
+  const profile = candidateProfile && ["must", "keep", "nice"].every(k => Array.isArray(candidateProfile[k])) ? candidateProfile : null;
+  const ui = { type: "All", make: "All", body: "All", maxPrice: null, sort: profile ? "match" : "hi", search: "", sheet: null, discovery: !!profile };
   /* the sheet's own closes — scrim, Escape, the × — report back, so the
      next render does not raise the sheet again */
   const sheets = chSheetOpener("vsScrim", "vsSheet", () => { ui.sheet = null; });
@@ -5477,11 +5448,14 @@ route("vehicles/:id", ({ id }) => {
     if (ui.maxPrice) list = list.filter(v => v.selling <= ui.maxPrice);
     const q = ui.search.trim().toLowerCase();
     if (q) list = list.filter(v => [v.make, v.model, v.trim, v.stock, v.vin].join(" ").toLowerCase().includes(q));
-    list.sort((a, b) => ui.sort === "hi" ? b.selling - a.selling : a.selling - b.selling);
+    if (ui.discovery && profile) list = list.filter(v => consultationMatch(v, profile).matches);
+    list.sort((a, b) => ui.sort === "match" && ui.discovery && profile
+      ? consultationMatch(b, profile).score - consultationMatch(a, profile).score || a.selling - b.selling
+      : ui.sort === "hi" ? b.selling - a.selling : a.selling - b.selling);
     return list;
   }
   const filterCount = () => (ui.make !== "All" ? 1 : 0) + (ui.body !== "All" ? 1 : 0) + (ui.maxPrice ? 1 : 0);
-  const clearAll = () => { ui.type = "All"; ui.make = "All"; ui.body = "All"; ui.maxPrice = null; ui.search = ""; };
+  const clearAll = () => { ui.type = "All"; ui.make = "All"; ui.body = "All"; ui.maxPrice = null; ui.search = ""; ui.discovery = false; ui.sort = "hi"; };
 
   /* the five next steps — unchanged targets, the board's words */
   const JOURNEY = [
@@ -5544,7 +5518,7 @@ route("vehicles/:id", ({ id }) => {
       <div class="rp-section">Make</div><div class="rp-chips">${chip("make", "All", "All")}${makes.map(m => chip("make", m, m)).join("")}</div>
       <div class="rp-section">Body style</div><div class="rp-chips">${chip("body", "All", "All")}${bodies.map(b => chip("body", b, b)).join("")}</div>
       <div class="rp-field"><label class="rp-field__label" for="mMaxPrice">Max price</label><input class="rp-field__input" id="mMaxPrice" type="number" inputmode="numeric" step="1000" placeholder="No limit" value="${esc(ui.maxPrice || "")}"></div>
-      <div class="rp-section">Sort</div><div class="rp-chips">${chip("sort", "hi", "Price: high to low")}${chip("sort", "lo", "Price: low to high")}</div>
+      <div class="rp-section">Sort</div><div class="rp-chips">${ui.discovery ? chip("sort", "match", "Discovery match") : ""}${chip("sort", "hi", "Price: high to low")}${chip("sort", "lo", "Price: low to high")}</div>
       <div style="height:8px"></div>
       <button type="button" class="rp-primary" data-sheet-close>Show ${n} vehicle${n === 1 ? "" : "s"}</button>
       <button type="button" class="rp-link" id="mClearAll">Clear all</button>`;
@@ -5556,13 +5530,14 @@ route("vehicles/:id", ({ id }) => {
     const content = `
       <div class="rp-eyebrow">${deal ? "Vehicle selection" : "Inventory"}</div>
       <h1 class="rp-title">${deal ? "Choose a vehicle" : "Browse inventory"}</h1>
+      ${profile ? `<div class="rp-notice">${ui.discovery ? `Discovery musts: ${esc(profile.must.map(consultationLabel).join(" · ") || "None")}${profile.minSeats ? ` · ${esc(profile.minSeats)}+ seats` : ""}` : "Discovery filters off"} <button type="button" class="rp-link" id="vsDiscovery">${ui.discovery ? "Turn off Discovery filters" : "Turn on Discovery filters"}</button></div>` : ""}
       <div class="rp-search">${rpGlyph("search")}<input class="rp-search__input" id="vsSearch" placeholder="Make, model, stock or VIN" value="${esc(ui.search)}" aria-label="Search inventory"></div>
       <div class="rp-chips rp-chips--rail" role="group" aria-label="Vehicle type">
         ${["All", "New", "Used", "CPO"].map(t => `<button type="button" class="rp-chip${ui.type === t ? " rp-chip--on" : ""}" data-type="${t}" aria-pressed="${ui.type === t}">${t}</button>`).join("")}
         <button type="button" class="rp-chip" id="vsFilters" aria-label="More filters">Filters${fc ? `<span class="rp-chip__count">${fc}</span>` : ""}</button>
       </div>
       <div class="rp-listhead"><div><div class="rp-section">Available vehicles</div><div class="rp-listhead__meta">${list.length} vehicle${list.length === 1 ? "" : "s"}</div></div>
-        <button type="button" class="rp-sort" id="vsSort">Price: ${ui.sort === "hi" ? "high to low" : "low to high"}${rpGlyph("chevron-down")}</button></div>
+        <button type="button" class="rp-sort" id="vsSort">${ui.sort === "match" ? "Discovery match" : `Price: ${ui.sort === "hi" ? "high to low" : "low to high"}`}${rpGlyph("chevron-down")}</button></div>
       ${list.length ? list.map(v => vehicleHtml(v, false)).join("") : `<div class="rp-empty"><strong>No vehicles match</strong>Nothing in stock fits those filters.<div style="height:12px"></div><button type="button" class="rp-button-navy" id="vsClearEmpty">Clear all filters</button></div>`}`;
     const ids = { scrim: "vsScrim", sheet: "vsSheet" };
     if (!ui.sheet) sheets.close(); /* a sheet the last render left up takes its listeners with it */
@@ -5590,6 +5565,8 @@ route("vehicles/:id", ({ id }) => {
     $$(".rp-chip[data-type]").forEach(b => b.onclick = () => { ui.type = b.dataset.type; render(); });
     $("#vsFilters").onclick = () => { ui.sheet = { kind: "filters" }; render(); };
     $("#vsSort").onclick = () => { ui.sort = ui.sort === "hi" ? "lo" : "hi"; render(); };
+    const discoveryToggle = $("#vsDiscovery");
+    if (discoveryToggle) discoveryToggle.onclick = () => { ui.discovery = !ui.discovery; ui.sort = ui.discovery ? "match" : "hi"; render(); };
     $$("[data-detail]").forEach(el => el.onclick = () => { ui.sheet = { kind: "details", stock: el.dataset.detail }; render(); });
     const clearEmpty = $("#vsClearEmpty");
     if (clearEmpty) clearEmpty.onclick = () => { clearAll(); render(); };

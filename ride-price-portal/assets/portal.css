@@ -2641,3 +2641,8 @@ body:not([data-canvas="kit"]) { font-family: var(--app-font); font-feature-setti
 .tl-dot[hidden] { display: none; }
 @media print { .tl-dot { display: none; } }
 .tl-text { width: 100%; min-height: 56vh; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; overflow: auto; resize: vertical; }
+
+/* ---------- Discovery — the guided consultation (2026-09-22) ----------
+   Supporting semantics only; the kit's classes are untouched. The top bar's
+   end slot is a spacer the width of the close circle so the title centres. */
+.dc-top-end { display: block; width: 44px; }

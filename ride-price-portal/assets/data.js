@@ -222,6 +222,9 @@ const RIDE_PRICE_DATA = {
      like every other spec in this catalog. */
   inventory: [
     { stock: "7H21313", colorCode: "BK", weight: 3890, seats: 5, cyl: 4, fuel: "G", vin: "5NMS4DAL4NH457995", year: 2022, make: "Hyundai", model: "Santa Fe", trim: "Limited", body: "SUV", type: "New",
+      /* Fictional consultation fixture: what the guided Discovery can match on. Not equipment verification;
+         a feature unspecified on any vehicle stays unknown, never inferred from trim names or blurbs. */
+      consultationFeatures: { cargoRoom: true, blindSpot: true, heatedSeats: true, carPlay: true },
       /* the seed prices this unit at selling $41,431 against MSRP $42,910 with
          accessories as the only additions — the demo deal's every downstream
          figure (taxable base $26,700.00, amount financed $38,577.12) derives
@@ -276,15 +279,6 @@ const RIDE_PRICE_DATA = {
       blurb: "All-weather package, 11.6\" touchscreen, adaptive cruise." }
   ],
 
-  discoveryQuestions: [
-    { key: "week", title: "Describe a week in the life of your vehicle.", hint: "Commute, errands, road trips — paint the picture." },
-    { key: "trips", title: "What trips do you take — near and far?", hint: "Weekend getaways? Mountains? Long highway drives?" },
-    { key: "family", title: "Who rides with you?", hint: "Family, kids, carpool — how many seats do you really use?" },
-    { key: "pets", title: "Any pets along for the ride?", hint: "Cargo space, seat protection, hair-friendly interiors." },
-    { key: "activities", title: "What activities does your vehicle support?", hint: "Sports gear, camping, towing, home projects." },
-    { key: "commute", title: "Tell me about your commute and parking.", hint: "Miles per year? Garage or street? Highway or city?" },
-    { key: "drive", title: "How do you like a car to drive?", hint: "Sporty, comfortable, quiet, commanding view?" }
-  ],
 
   testDriveTerms: [
     "I have a valid driver's license to operate a motor vehicle in this state and I presently have in effect liability and property damage insurance that meets or exceeds the minimum state requirements.",
