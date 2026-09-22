@@ -2098,11 +2098,11 @@ a.rp-card { display: block; }
 /* the screen's title takes focus after a navigation (chFocusScreen, Phase 2 of
    the Home workflow) so the reading position moves with the screen. It is not
    a control, so it draws no ring — the attribute is the app's, not a kit class.
-   A dialog does the same inside #modalBack: the dialog itself takes focus when
-   it opens, and the license scanner moves focus to its title on every step, so
-   a keyboard drew a thick black box around "Confirm customer" (owner,
-   2026-09-18: "I don't want that around"). Controls keep their ring. */
-#view [tabindex="-1"]:focus, #modalBack [tabindex="-1"]:focus { outline: 0; }
+   Dialog containers and scanner titles also receive programmatic focus as
+   reading-position targets. Interactive controls retain their keyboard ring. */
+#view [tabindex="-1"]:focus,
+#modalBack [tabindex="-1"]:focus,
+#scanBody .rp-title[tabindex="-1"]:focus { outline: 0; }
 /* the test log's hand-over field (touchlog.js): the app's own input, monospace
    and full-width, on the kit canvas; the log is read here or selected whole */
 .tl-text { width: 100%; min-height: 56vh; font: 12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; white-space: pre; overflow: auto; resize: vertical; }

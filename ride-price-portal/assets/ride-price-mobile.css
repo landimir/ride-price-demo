@@ -762,8 +762,9 @@ svg { display: block; }
 /* Consistent heading-to-content spacing throughout scanner confirmation. */
 #scanBody .rp-title + .rp-match, #scanBody .rp-title + .rp-kv { margin-top: 18px; }
 
-/* Scanner action labels retain white text with at least 4.5:1 contrast. */
+/* Scanner action labels and links retain at least 4.5:1 contrast. */
 #scanBody .rp-primary { background: linear-gradient(100deg, #b85400, #d60047); }
+#scanBody .rp-link { color: var(--rp-navy); }
 #scAddressChoice { border: 0; padding: 12px 16px; min-width: 0; }
 #scAddressChoice .rp-check { margin: 12px 0; }
 #scanBody .rp-sheet { max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; }

@@ -3655,7 +3655,7 @@ function openScanFlow(opts) {
     return true;
   }
   const missionPrimary = o.mission && Store.deal(o.mission.dealId)?.customerId;
-  const st = { frontImage: null, backImage: null, pairReviewed: false, frontDone: false, persona: null, match: null, render: null, saved: false, manNum: "", manState: "NY", stage: "front", sv: null, pick: null, fields: {}, pendingCapture: null, captureGen: 0 };
+  const st = { frontImage: null, backImage: null, pairReviewed: false, frontDone: false, persona: null, match: null, render: null, saved: false, manNum: "", manState: "NY", stage: "front", sv: null, pick: null, fields: {}, pendingCapture: null, captureGen: 0, matchGen: 0, matching: false };
   modal("Scan Driver's License", `<div id="scanBody"></div>`);
   const body = $("#scanBody");
   /* the scan is a Task on the kit (owner's scan-license package v023): two
@@ -3681,6 +3681,8 @@ function openScanFlow(opts) {
   function cleanup(navigated) {
     st.cancelled = true;
     st.captureGen += 1;
+    st.matchGen += 1;
+    st.matching = false;
     st.pendingCapture = null;
     window.removeEventListener("hashchange", abandon);
     backEl.removeEventListener("click", onDismiss);
@@ -3719,6 +3721,7 @@ function openScanFlow(opts) {
   const draftOf = () => Store.s.licenseDrafts?.[draftKey];
   /* main's storage listener re-reads the store when another tab saves, so the store's own draft base (Store.save's DraftConflictError check) follows the other tab. The scanner keeps the copy of its draft it last saw and refuses to overwrite or delete a newer one: codex's same-key stale-save guard. */
   let seenDraft = JSON.stringify(draftOf() ?? null);
+  let boundDraftKey = null, seenBoundDraft = null;
   const draftMoved = () => JSON.stringify(draftOf() ?? null) !== seenDraft;
   const movedError = () => Object.assign(new Error("This scan changed in another tab. Reload before saving again."), { name: "DraftConflictError" });
   function completionDraft(customer, wasExisting, source) {
@@ -3739,10 +3742,26 @@ function openScanFlow(opts) {
     const previousCoBuyer = o.deal?.coBuyerId;
     const before = Store.s.licenseDrafts;
     const next = { ...(before || {}) };
+    let boundTarget = null;
     try {
       if (remove) {
         const pending = selectedCustomer ? completionDraft(selectedCustomer, true, 'lookup') : null;
-        if (pending) next[draftKey] = pending; else delete next[draftKey];
+        const bindIncomplete = selectedCustomer && o.mode === 'customer' && !o.mission && st.frontDone && !st.persona;
+        if (pending) next[draftKey] = pending;
+        else if (bindIncomplete) {
+          const targetKey = 'customer:' + selectedCustomer.id;
+          const existing = next[targetKey];
+          const retryingOwnBoundDraft = targetKey !== draftKey && boundDraftKey === targetKey
+            && JSON.stringify(existing ?? null) === seenBoundDraft;
+          if (targetKey !== draftKey && existing && !retryingOwnBoundDraft) throw movedError();
+          if (!retryingOwnBoundDraft) {
+            const source = next[draftKey] || {}, { backImage, persona, ...safe } = source;
+            next[targetKey] = { ...safe, frontImage: st.frontImage, mode: 'customer', mission: null,
+              subjectCustomerId: selectedCustomer.id, savedAt: new Date().toISOString() };
+            delete next[draftKey];
+          }
+          boundTarget = targetKey;
+        } else delete next[draftKey];
       } else {
         if (scannerHasCompletion(next[draftKey])) throw new Error('An attachment is pending');
         next[draftKey] = { frontImage: st.frontImage, ...(st.backImage ? { backImage: st.backImage } : {}), persona: st.persona, corrected: !!st.corrected, mode: o.mode,
@@ -3751,7 +3770,9 @@ function openScanFlow(opts) {
       }
       if (draftMoved()) throw movedError(); Store.s.licenseDrafts = next;
       if (selectedCustomer && o.mode === 'cobuyer') o.deal.coBuyerId = selectedCustomer.id;
-      Store.save(); seenDraft = JSON.stringify(draftOf() ?? null); return true;
+      Store.save(); seenDraft = JSON.stringify(draftOf() ?? null);
+      if (boundTarget) { boundDraftKey = boundTarget; seenBoundDraft = JSON.stringify(next[boundTarget] ?? null); }
+      return true;
     }
     catch (error) {
       if (before === undefined) delete Store.s.licenseDrafts; else Store.s.licenseDrafts = before;
@@ -3775,7 +3796,7 @@ function openScanFlow(opts) {
   const initials = (first, last) => esc(((first || " ")[0] + (last || " ")[0]).toUpperCase().trim() || "?");
   /* everything that belongs to the guest just scanned — cleared wherever a
      fresh scan starts, so nothing leaks into the next guest's journey */
-  const resetGuest = () => { st.captureGen += 1; st.pendingCapture = null; st.backImage = null; st.frontImage = null; st.corrected = false; st.editContacts = null; st.pairReviewed = false; st.frontDone = false; st.persona = null; st.match = null; st.sv = null; st.addressChoice = null; st.pick = null; st.fields = {}; };
+  const resetGuest = () => { boundDraftKey = null; seenBoundDraft = null; st.captureGen += 1; st.matchGen += 1; st.matching = false; st.pendingCapture = null; st.backImage = null; st.frontImage = null; st.corrected = false; st.editContacts = null; st.pairReviewed = false; st.frontDone = false; st.persona = null; st.match = null; st.sv = null; st.addressChoice = null; st.pick = null; st.fields = {}; };
   const doneMark = () => `<span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>`;
   /* both cells are markup by contract — callers esc() their own values */
   const kvRow = (labelHtml, valueHtml) => `<div class="rp-kv__row"><span>${labelHtml}</span><span>${valueHtml}</span></div>`;
@@ -3859,12 +3880,21 @@ function openScanFlow(opts) {
     return !!(sheet && !sheet.hidden && $('#scSaveLater', sheet));
   };
   function renderLeaveConfirm() {
+    /* A result that arrives while this decision is open must not dismiss the
+       sheet by rendering the next screen. Keeping the scan deliberately
+       retries the lookup from the still-reviewed pair. */
+    const retryMatch = st.matching;
+    if (retryMatch) { st.matchGen += 1; st.matching = false; }
     openSheet(`${chSheetHead("Leave the scan?")}<p class="rp-sheet__sub">Keep the unfinished scan on this browser, or discard it explicitly.</p>
       ${primary('id="scSaveLater"', 'Save and return')}${link('id="scDiscard"', 'Discard scan')}${link('id="scKeep" data-sheet-close autofocus', 'Keep scanning')}`, sheet => {
       $('#scSaveLater', sheet).onclick = () => { if (persistDraft()) done(); };
       $('#scDiscard', sheet).onclick = () => { if (persistDraft(true)) { resetGuest(); done(); } };
       const keep = $('#scKeep', sheet);
-      keep.onclick = () => { sheets.close(); if (st.pendingCapture) renderCaptureReview(st.pendingCapture, false); };
+      keep.onclick = () => {
+        sheets.close();
+        if (st.pendingCapture) renderCaptureReview(st.pendingCapture, false);
+        else if (retryMatch && st.pairReviewed) renderPairReview();
+      };
       keep.focus();
     });
   }
@@ -3902,7 +3932,13 @@ function openScanFlow(opts) {
     if (['file-too-large', 'image-too-large', 'unsupported-image'].includes(read?.reason)) return scannerImageError(read.reason);
     if (read?.reason) return scannerImageError(read.reason);
     if (read?.ok && !scannerHasReviewablePersona(read.persona)) return 'Barcode details could not be reviewed.';
-    if (read?.ok && st.backImage) return 'The back is already saved.';
+    if (read?.ok && st.backImage) {
+      const savedNumber = scannerLicenseToken(st.persona?.license?.number), incomingNumber = scannerLicenseToken(read.persona?.license?.number);
+      const savedState = scannerLicenseToken(st.persona?.license?.state), incomingState = scannerLicenseToken(read.persona?.license?.state);
+      const sameSavedBack = !!(savedNumber && incomingNumber && savedState && incomingState && savedNumber === incomingNumber && savedState === incomingState);
+      if (expectedSide === 'front') return sameSavedBack ? 'That is the back already saved. Capture the front instead.' : 'A back photo is already saved. Capture the front of that license instead.';
+      return 'The back is already saved.';
+    }
     if (read?.ok === true) return '';
     if (read?.ok !== false) return 'That photo could not be read.';
     if (expectedSide === 'back') return 'The barcode could not be read.';
@@ -3947,15 +3983,20 @@ function openScanFlow(opts) {
     try {
       const preview = await frontPreview(file);
       if (!captureCurrent(gen)) return;
-      const pending = { gen, file, source: source === 'camera' ? 'camera' : 'library', expectedSide, side: expectedSide, preview, checking: true, replacing: false, committing: false, attachable: false, needsCorrection: false, persona: null, problem: '' };
+      const repeatedSide = expectedSide === 'back' && preview === st.frontImage ? 'front'
+        : expectedSide === 'front' && preview === st.backImage ? 'back' : '';
+      const pending = { gen, file, source: source === 'camera' ? 'camera' : 'library', expectedSide, side: repeatedSide || expectedSide, preview, checking: !repeatedSide, replacing: false, committing: false, attachable: false, needsCorrection: false, persona: null,
+        problem: repeatedSide ? `That is the ${repeatedSide} already saved. Capture the ${expectedSide} instead.` : '' };
       st.pendingCapture = pending;
       renderCaptureReview(pending);
+      if (repeatedSide) return;
       let read;
       try { read = await RIDE_PRICE_SCAN.recognizeFile(file); }
       catch (error) { read = { ok: false, reason: error?.message || 'unreadable-image', failed: true }; }
       if (!captureCurrent(gen) || st.pendingCapture !== pending) return;
       pending.checking = false;
       pending.read = read;
+      if (read?.ok && expectedSide === 'front' && st.backImage) pending.side = 'back';
       pending.problem = captureProblem(read, expectedSide);
       pending.manualAllowed = expectedSide === 'back' && ((!read?.ok && !read?.reason) || !!read?.failed);
       if (!pending.problem && read?.ok) {
@@ -4110,7 +4151,8 @@ function openScanFlow(opts) {
     else if (o.mode === 'cobuyer') { role = 'Co-buyer'; owner = persona ? fullName(persona) : 'Not yet linked'; }
     else if (subject.savedCustomer || primary) { role = 'Customer'; owner = fullName(subject.savedCustomer || primary); }
     else if (persona) { role = 'Scanned guest'; owner = fullName(persona); }
-    const sides = draft.frontImage && draft.backImage ? 'Front and back captured' : draft.frontImage ? 'Front captured · back needed' : 'Back captured · front needed';
+    const reviewableBack = !!(draft.backImage && persona);
+    const sides = draft.frontImage && reviewableBack ? 'Front and back captured' : draft.frontImage ? 'Front captured · back needed' : 'Back captured · front needed';
     const rawSavedAt = typeof draft.savedAt === 'string' ? draft.savedAt.trim() : '';
     const parsedSavedAt = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(rawSavedAt) ? Date.parse(rawSavedAt) : NaN;
     const savedAt = Number.isFinite(parsedSavedAt) && new Date(parsedSavedAt).toISOString() === rawSavedAt ? rawSavedAt : '';
@@ -4168,7 +4210,11 @@ function openScanFlow(opts) {
         $('#scResumeDiscard', body).onclick = () => { if (persistDraft(true)) { resetGuest(); renderScan('front'); } };
         wire(renderResume); return;
       }
-      st.frontImage = draft.frontImage || null; st.backImage = draft.backImage || null; st.corrected = draft.corrected === true; st.frontDone = !!st.frontImage; st.persona = validDraftPersona(draft.persona) ? draft.persona : null;
+      st.frontImage = draft.frontImage || null; st.persona = validDraftPersona(draft.persona) ? draft.persona : null;
+      /* A legacy back without reviewable barcode facts is still evidence that
+         needs replacement, not an accepted side that may block its own retry. */
+      st.backImage = st.persona ? draft.backImage || null : null;
+      st.corrected = draft.corrected === true; st.frontDone = !!st.frontImage;
       if (!st.frontDone) renderScan('front'); else if (st.persona) renderPairReview(); else renderScan('back');
     };
     $('#scResumeDiscard', body).onclick = () => { st.resumeGen = (st.resumeGen || 0) + 1; if (persistDraft(true)) { resetGuest(); renderScan('front'); } };
@@ -4178,11 +4224,59 @@ function openScanFlow(opts) {
   /* recognition succeeded — route by mode, then by the match cascade. A
      certain match confirms; an ambiguous one asks on the same confirm screen
      (never merged silently); nothing on file creates. */
-  function afterRecognize() {
+  async function afterRecognize() {
     const p = st.persona;
     if (!st.pairReviewed) return renderPairReview();
     if (o.mode === "testdrive") return renderVerifyTd(p);
-    const m = findLicenseMatch(p);
+    /* Customer search is an asynchronous boundary even while this demo's
+       default adapter reads the local store synchronously. Bind its answer
+       to this guest and this scanner instance before it can paint or write:
+       a future CRM adapter, a rejected request, or a result that arrives
+       after discard/close/navigation follows the same rule. */
+    const gen = ++st.matchGen;
+    st.matching = true;
+    const continueButton = $('#scPairContinue', body);
+    if (continueButton) { continueButton.disabled = true; continueButton.setAttribute('aria-disabled', 'true'); }
+    let m;
+    const currentCustomer = customer => !!(customer && typeof customer.id === 'string' && Store.customer(customer.id) === customer);
+    const relationship = customer => {
+      const sameName = scannerIdentityToken(customer.first) === scannerIdentityToken(p.first)
+        && scannerIdentityToken(customer.last) === scannerIdentityToken(p.last);
+      const savedNumber = scannerLicenseToken(customer.license?.number), incomingNumber = scannerLicenseToken(p.license?.number);
+      const savedState = scannerLicenseToken(customer.license?.state), incomingState = scannerLicenseToken(p.license?.state);
+      if (savedNumber && incomingNumber && savedState && incomingState && savedNumber === incomingNumber && savedState === incomingState) return 'license number';
+      if (customer.dob && customer.dob === p.dob && sameName) return 'date of birth and name';
+      if (customer.dob && customer.dob === p.dob) return 'date of birth';
+      if (!customer.dob && sameName && !(customer.createdVia === 'link' && !customer.license)) return 'name';
+      return null;
+    };
+    const normalizeResult = value => {
+      if (!value || typeof value !== 'object') return null;
+      if (value.type === null && value.customer === null && value.candidates === undefined) return { type: null, customer: null };
+      if (!currentCustomer(value.customer) || relationship(value.customer) !== value.type) return null;
+      let candidates;
+      if (value.candidates !== undefined) {
+        if (!Array.isArray(value.candidates) || value.candidates.length < 2 || value.candidates[0] !== value.customer
+          || new Set(value.candidates.map(candidate => candidate.id)).size !== value.candidates.length
+          || !value.candidates.every(candidate => currentCustomer(candidate) && relationship(candidate) === value.type)) return null;
+        candidates = value.candidates;
+      }
+      const conflict = scannerIdentityConflict(value.customer, p);
+      const prompts = { 'license number': null, 'date of birth and name': 'identity', 'date of birth': 'dob', 'name': 'name' };
+      return { type: value.type, customer: value.customer, ask: candidates ? 'candidate' : conflict ? 'conflict' : prompts[value.type], conflict, candidates };
+    };
+    try {
+      m = normalizeResult(await Promise.resolve(findLicenseMatch(p)));
+      if (!m) throw new Error('Invalid customer-search result');
+    } catch (error) {
+      if (!live() || st.matchGen !== gen || st.persona !== p || !st.pairReviewed) return;
+      st.matching = false;
+      const retry = $('#scPairContinue', body);
+      if (retry) { retry.disabled = false; retry.removeAttribute('aria-disabled'); }
+      return toast('Customer search unavailable. Try again.');
+    }
+    if (!live() || st.matchGen !== gen || st.persona !== p || !st.pairReviewed) return;
+    st.matching = false;
     if (o.mode === "cobuyer" && m.customer && !m.ask) {
       if (m.customer.id === o.deal.customerId) return renderBlock();
       if (!coBuyerAllowed(m.customer)) return;
@@ -5704,7 +5798,6 @@ route("testdrive/:id", ({ id }) => {
     <button type="button" class="dv-back" id="tdBack" aria-label="Back">‹</button>
     <div class="dv-brand"><span>Ride</span> PRICE</div>
     <span class="dv-spacer"></span>
-    <button type="button" class="dv-role" id="tdRole">${isTeamLead() ? "Team Lead" : "Advisor"}</button>
   </div>`;
   /* counted on every render: signing files the agreement, and the badge
      must say so on the very next paint (review find) */
@@ -5875,7 +5968,6 @@ route("testdrive/:id", ({ id }) => {
       <div class="m-scrim" id="tdScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="tdSheet"></div></div>`;
 
     $("#tdBack").onclick = () => history.back();
-    $("#tdRole").onclick = () => $("#hamburgerBtn").click();
     $("#tdDeal").onclick = dealSheet;
     const scrim = $("#tdScrim");
     scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
