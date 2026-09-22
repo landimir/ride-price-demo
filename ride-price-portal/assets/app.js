@@ -2007,7 +2007,11 @@ route("deals", () => {
         const names = [RIDE_PRICE_DATA.dealership.advisor, ...(RIDE_PRICE_DATA.otherAdvisors || [])];
         openSheet5(`${chSheetHead("Assign " + name.split(" ")[0] + "'s visit")}<p class="rp-sheet__sub">The advisor it goes to sees it in My deals at once</p>
           <div class="rp-group">${names.map(n => `<button type="button" class="rp-row" data-assign="${esc(n)}"><span class="rp-row__body"><span class="rp-row__title">${esc(n)}</span><span class="rp-row__sub">${n === d.advisor ? "Has it now" : "Advisor"}</span></span><span class="rp-row__chevron"></span></button>`).join("")}</div>`, (sh) => {
-          $$("[data-assign]", sh).forEach(b => b.onclick = () => { d.advisor = b.dataset.assign; Store.save(); toast("Assigned to " + b.dataset.assign); closeSheet5(); router(); });
+          $$("[data-assign]", sh).forEach(b => b.onclick = () => {
+            const previous = d.advisor; d.advisor = b.dataset.assign;
+            try { Store.save(); } catch (error) { d.advisor = previous; toast("Changes were not saved. Try again."); return; }
+            toast("Assigned to " + b.dataset.assign); closeSheet5(); router();
+          });
         });
       };
       $("#dqVisitEnd", sheet).onclick = () => {
