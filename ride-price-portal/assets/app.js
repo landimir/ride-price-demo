@@ -103,6 +103,10 @@ const Store = (function () {
     return {
       id: "d-demo1", dealNo: 48201, customerId: "c-demo1", stock: "7H21313", dealType: "finance",
       stage: "desking", createdAt: "2026-07-14T17:20:00Z",
+      /* John's deal is Ashley's from the start. Only a page load used to stamp
+         it (the migration for blobs saved before advisors existed), so Reset
+         demo data left Home empty until a reload (W-001) */
+      advisor: RIDE_PRICE_DATA.dealership.advisor,
       /* SEED-DATA v022: John is in the showroom, arrived 11:38 today — presence
          is this stamp, his deal stays Desking */
       visit: { arrivedAt: seedArrival() },
@@ -1583,7 +1587,18 @@ function chTabbar(active) {
   }).join("")}</nav>`;
 }
 /* the action dock — Task only: one primary, at most one text link under it */
-const chDock = (primaryHtml, linkHtml) => `<div class="rp-dock">${primaryHtml}${linkHtml || ""}</div>`;
+const chDock = (primaryHtml, linkHtml) => `<div class="rp-dock" data-born="${Date.now()}">${primaryHtml}${linkHtml || ""}</div>`;
+/* A finger's second tap must not land on the next screen's choice (W-008): a
+   double tap on New visit's Confirm & start visit answered the duplicate
+   question drawn in the same spot ("Use John Smith on file") unseen. A dock
+   drawn less than DOCK_SETTLE_MS ago ignores pointer taps; a keyboard press
+   or a scripted click (detail 0) still goes through. */
+const DOCK_SETTLE_MS = 350;
+document.addEventListener("click", (e) => {
+  if (!e.isTrusted || e.detail === 0) return;
+  const dock = e.target && e.target.closest ? e.target.closest(".rp-dock[data-born]") : null;
+  if (dock && Date.now() - Number(dock.dataset.born) < DOCK_SETTLE_MS) { e.preventDefault(); e.stopImmediatePropagation(); }
+}, true);
 /* the whole frame: the kit's screen skeletons. Only .rp-page scrolls. The
    scrim and sheet live INSIDE the screen, hidden until opened. */
 /* opts.banner === false: a screen the CUSTOMER holds (Snap All from the text
@@ -1812,7 +1827,12 @@ function dealNextAction(d) {
     case "desking":
       if (d.trade && d.trade.has && !(Number(d.trade.value) > 0)) return "Pending Trade Appraisal";
       if (!d.huddle || !d.huddle.done) return "Game Plan With the Team Lead";
-      return "Customer Reviewing Quote";
+      /* the pencil's own steps, read from what the deal records: a quote is
+         under review only once it has been presented (W-011) */
+      if (d.desk && d.desk.approvalRequestedAt) return "Waiting for Team Lead Approval";
+      if (d.desk && d.desk.customerChose) return "Customer Chose · Submit for Approval";
+      if (d.desk && d.desk.presentedAt) return "Customer Reviewing Quote";
+      return "Working the Pencil";
     case "signed": return "Base Signed · Credit App Next";
     case "credit": return "Credit Application In Progress";
     case "complete": return "Funded";
@@ -2916,7 +2936,14 @@ route("customers", () => {
       catch (error) { Store.s.idSession = previous; toast("Saved upload was not discarded. Try again."); return; }
       stepsDone(); st.sessionResolving = false; st.mode = "idle"; render();
     };
-    const man = $("#obManual"); if (man) man.onclick = () => { st.manualDraft = null; st.mode = "manual"; st.forceNew = false; step(); render(); window.scrollTo(0, 0); };
+    const man = $("#obManual"); if (man) man.onclick = () => {
+      st.manualDraft = null; st.mode = "manual"; st.forceNew = false; step(); render(); window.scrollTo(0, 0);
+      /* the name just searched for is the name to type (W-007) — only a search
+         that reads as a name: letters and a name's punctuation, never a phone,
+         an email or a licence number */
+      const q = (st.q || "").trim(), nameField = $("#obName");
+      if (nameField && !nameField.value && /^[A-Za-z][A-Za-z .'’-]*[A-Za-z.]$/.test(q)) nameField.value = q;
+    };
     /* D-OB1: the two answers on the "already on file" screen */
     const useOn = $("#obUseOnFile"); if (useOn) useOn.onclick = () => { st.found = st.dupe.c; st.mode = "found"; step(); render(); window.scrollTo(0, 0); };
     const anyway = $("#obCreateAnyway"); if (anyway) anyway.onclick = () => { st.forceNew = true; const d = st.dupe.draft; st.mode = "manual"; step(); render(); $("#obName").value = d.name; $("#obPhone").value = d.phone; $("#obEmail").value = d.email; $("#obAddr").value = d.addr; window.scrollTo(0, 0); };
@@ -7211,9 +7238,9 @@ route("desk/:id", ({ id }) => {
       ${chipRow()}
       ${vehicleRow()}
       <div class="rp-field"><label class="rp-field__label" for="hTrial">Trial close — in the customer&rsquo;s words</label>
-        <textarea class="rp-textarea" id="hTrial" placeholder="&ldquo;If the numbers make sense, we&rsquo;d take it today.&rdquo;">${esc(h.trialClose || "")}</textarea></div>
+        <textarea class="rp-textarea" id="hTrial" placeholder="Word for word, e.g. &ldquo;If it&rsquo;s under $650, we&rsquo;ll sign today.&rdquo;">${esc(h.trialClose || "")}</textarea></div>
       <div class="rp-field"><label class="rp-field__label" for="hNamed">Payment the customer named</label>
-        <input class="rp-field__input" id="hNamed" value="${esc(h.namedPayment || "")}" placeholder="Around $700 a month"></div>
+        <input class="rp-field__input" id="hNamed" value="${esc(h.namedPayment || "")}" placeholder="e.g. under $650 a month"></div>
       <div class="rp-section">How are they paying?</div>
       <div class="rp-choice-grid" id="hPayRow" role="radiogroup" aria-label="How are they paying">
         ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" class="rp-option${paying === k ? " rp-option--on" : ""}" data-pay="${k}" role="radio" aria-checked="${paying === k}">
@@ -7315,6 +7342,7 @@ route("desk/:id", ({ id }) => {
     $$("[data-type]").forEach(b => b.onclick = () => {
       if (deal.dealType !== b.dataset.type) {
         delete deal.desk.customerChose; delete deal.desk.approvalRequestedAt; delete deal.desk.approvalRequestedBy;
+        delete deal.desk.presentedAt;   /* a new deal type is a quote the customer has not seen */
       }
       deal.dealType = b.dataset.type; Store.save(); draw();
     });
@@ -7430,7 +7458,12 @@ route("desk/:id", ({ id }) => {
     Store.save();
     ui.mode = "pencil"; ui.sel = null; draw();
   }
-  function goPresent() { ui.sel = null; ui.mode = "present"; draw(); }
+  /* the first time the phone is turned round is written down, so Home can say
+     "Customer Reviewing Quote" only once there is a quote to review (W-011) */
+  function goPresent() {
+    if (!deal.desk.presentedAt) { deal.desk.presentedAt = new Date().toISOString(); Store.save(); }
+    ui.sel = null; ui.mode = "present"; draw();
+  }
 
   /* ---------- the sheets ---------- */
   function sheetHtml() {
@@ -8447,7 +8480,7 @@ route("credit/:id", ({ id }) => {
     if (rp) rp.onclick = () => {
       if (!requireSubjects()) return;
       if (!currentApproval(a)) { toast("The approval changed. Reopen the credit application."); return; }
-      deal.desk.apr = approvedApr; delete deal.desk.customerChose; Store.save(); navigate(`#/desk/${deal.id}`);
+      deal.desk.apr = approvedApr; delete deal.desk.customerChose; delete deal.desk.presentedAt; Store.save(); navigate(`#/desk/${deal.id}`);
     };
   }
 
