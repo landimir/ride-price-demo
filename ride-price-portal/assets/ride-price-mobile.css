@@ -20,7 +20,11 @@
   --rp-navy-deep: #070B19;
   --rp-orange: #FF7A00;
   --rp-pink: #FF0055;
-  --rp-blue: #3478F6;
+  /* The owner's ruling, 2026-09-23 (W-012 = B, docs/workflows/redesign/
+     visuals/decision-w012-links.png): one blue for every text link and text
+     action, darkened from #3478F6 (3.6:1 on the pencil's canvas, under the
+     4.5:1 small text needs) to #1D5ED6 (5.2:1 there, 5.8:1 on white) */
+  --rp-blue: #1D5ED6;
   --rp-green: #168753;
   --rp-amber: #B25E00;
   --rp-danger: #E0392C;
@@ -762,9 +766,10 @@ svg { display: block; }
 /* Consistent heading-to-content spacing throughout scanner confirmation. */
 #scanBody .rp-title + .rp-match, #scanBody .rp-title + .rp-kv { margin-top: 18px; }
 
-/* Scanner action labels and links retain at least 4.5:1 contrast. */
+/* Scanner action labels retain at least 4.5:1 contrast. Its links take the
+   kit's own blue again: --rp-blue now passes everywhere (W-012 = B), so the
+   scanner-only navy (#117) is gone and every link in the app is one colour. */
 #scanBody .rp-primary { background: linear-gradient(100deg, #b85400, #d60047); }
-#scanBody .rp-link { color: var(--rp-navy); }
 #scAddressChoice { border: 0; padding: 12px 16px; min-width: 0; }
 #scAddressChoice .rp-check { margin: 12px 0; }
 #scanBody .rp-sheet { max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; }

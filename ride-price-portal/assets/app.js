@@ -1466,6 +1466,9 @@ const view = () => $("#view");
 /* screen state at module level so typing and pill picks survive re-renders;
    the brand logo resets both and re-pulls the queue (owner spec) */
 const dealsUI = { q: "", pipe: "all", range: "today", from: "", to: "", funded: false };
+/* the floor's Review opens the pencil with the Team Lead's approval sheet up
+   (W-004); the desk route reads it once and clears it */
+let deskOpenSheet = null;
 
 /* Two queues, one route (owner, 2026-08-23): the Team Lead's floor view is
    UNCHANGED from the original — All / Desking / F&I-Docs pills, the classic
@@ -1608,9 +1611,11 @@ document.addEventListener("click", (e) => {
 function chShell(opts, content, dockHtml, sheetIds) {
   const task = opts.template === "task";
   const ids = sheetIds || { scrim: "chScrim", sheet: "chSheet" };
-  /* opts.cls carries a kit screen modifier the caller owns — today only
-     rp-screen--present, the desking mode where the phone is turned to the
-     customer (the kit hides the role control and darkens the close itself) */
+  /* opts.cls carries a kit screen modifier the caller owns — rp-screen--present,
+     the desking mode where the phone is turned to the customer (the kit hides
+     the role control and darkens the close itself), and rp-screen--gate, the
+     pencil while its approval waits (W-004): the kit's gate dock, opaque
+     behind a disabled primary, as the finance menu's sign-off gate has it */
   return `<div class="rp-screen ${task ? "rp-screen--task" + (dockHtml ? "" : " rp-screen--nodock") : "rp-screen--destination"}${opts.cls ? " " + opts.cls : ""}">
     ${opts.banner === false ? "" : chBanner()}${chTop(opts)}
     <main class="rp-page rp-stack">${content}</main>
@@ -1816,6 +1821,74 @@ const DEAL_BUCKETS = [
   { id: "done", label: "Done", chip: "DONE", badge: "badge--done", stages: ["complete"] }
 ];
 const dealBucket = (d) => DEAL_BUCKETS.find(b => b.stages.indexOf(d.stage) >= 0) || DEAL_BUCKETS[0];
+/* what a deal's badge and its visit say: its own stage, not its bucket (the
+   owner's ruling, 2026-09-23, W-010 = C — a deal still in Discovery read
+   "Desking"). The Team Lead's chips keep filtering by bucket. */
+const stageLabel = (d) => (STAGES[d.stage] || STAGES.discovery).label;
+
+/* ---------- the Team Lead's approval of the customer's choice (W-004) ----------
+   The owner's ruling, 2026-09-23 ("Build it as drawn",
+   docs/workflows/redesign/visuals/decision-w004-approval.png): the advisor
+   submits the payment the customer chose, the Team Lead approves it or sends
+   it back with a note, and the base payment agreement waits for the answer.
+
+   An approval is of NUMBERS. It holds while the pencil still prices the choice
+   it was given for: the same term, the same money down, the same payment to
+   the cent. Change anything under it (the rate, a rebate, an accessory, the
+   trade's value) and the customer is looking at a quote they have not seen,
+   so the choice comes off, and the request or the approval with it: the rule
+   a new deal type already followed on the pencil. A signed agreement is its
+   own record, and nothing here reaches past it. */
+function deskChoiceHolds(d) {
+  const ch = d && d.desk && d.desk.customerChose;
+  if (!ch) return false;
+  const v = Store.vehicle(d.stock);
+  if (!v) return true;   /* nothing to price it against: left as it stands */
+  const r = RIDE_PRICE_CALC.calc(d, v);
+  const lease = d.dealType === "lease" || d.dealType === "onepay";
+  const figure = d.dealType === "cash" ? r.totalDue : d.dealType === "onepay" ? r.onePayTotal : r.payment;
+  const down = d.dealType === "cash" ? 0 : lease ? d.desk.dueAtSigning : d.desk.downPayment;
+  return Math.round(figure * 100) === Math.round(ch.payment * 100) && (ch.term || 0) === (r.term || 0) && ch.down === down;
+}
+/* the choice, the request and the answer come off together */
+function clearDeskChoice(desk) {
+  delete desk.customerChose; delete desk.approvalRequestedAt; delete desk.approvalRequestedBy;
+  delete desk.approvedAt; delete desk.approvedBy;
+}
+/* a choice the numbers moved out from under comes off, and the pencil says
+   why until the advisor presents again. True when it changed the deal; the
+   caller saves. */
+function settleDeskChoice(d) {
+  const k = d && d.desk;
+  if (!k || !k.customerChose || (d.basePayment && d.basePayment.signedAt) || deskChoiceHolds(d)) return false;
+  k.choiceCleared = { at: new Date().toISOString(), was: k.customerChose, dealType: d.dealType,
+    had: k.approvedAt ? "approved" : k.approvalRequestedAt ? "asked" : "" };
+  clearDeskChoice(k);
+  return true;
+}
+/* where the approval stands, read by the pencil, Home's card, the Team Lead's
+   floor and the agreement's guard, so none of them can disagree */
+function deskApproval(d) {
+  const k = (d && d.desk) || {};
+  if (k.customerChose && k.approvedAt) return "approved";
+  if (k.customerChose && k.approvalRequestedAt) return "asked";
+  if (!k.customerChose && k.sentBack) return "sent-back";
+  return "";
+}
+/* the customer's choice in the pencil's words, "60 months · $1,000 down ·
+   $701.79 / mo", and in the floor's sentence, "60 months, $1,000 down,
+   $701.79 a month" */
+function deskChoiceLine(ch, type) {
+  return type === "cash" ? `${money(ch.payment)} total`
+    : type === "onepay" ? `${ch.term} months · ${money(ch.payment)} paid in full`
+    : `${ch.term} months · ${money0(ch.down)} down · ${money(ch.payment)} / mo`;
+}
+function deskChoiceWords(ch, type) {
+  return type === "cash" ? `${money(ch.payment)} cash`
+    : type === "onepay" ? `${ch.term} months, ${money(ch.payment)} paid in full`
+    : type === "lease" ? `${ch.term} months, ${money0(ch.down)} at signing, ${money(ch.payment)} a month`
+    : `${ch.term} months, ${money0(ch.down)} down, ${money(ch.payment)} a month`;
+}
 
 /* the card's status line — the deal's immediate next action, read from the
    same state the screen behind the tap will show */
@@ -1829,7 +1902,9 @@ function dealNextAction(d) {
       if (!d.huddle || !d.huddle.done) return "Game Plan With the Team Lead";
       /* the pencil's own steps, read from what the deal records: a quote is
          under review only once it has been presented (W-011) */
-      if (d.desk && d.desk.approvalRequestedAt) return "Waiting for Team Lead Approval";
+      if (deskApproval(d) === "approved") return "Approved · Base Payment Agreement";
+      if (deskApproval(d) === "asked") return "Waiting for Team Lead Approval";
+      if (deskApproval(d) === "sent-back") return "Sent Back · Present Again";
       if (d.desk && d.desk.customerChose) return "Customer Chose · Submit for Approval";
       if (d.desk && d.desk.presentedAt) return "Customer Reviewing Quote";
       return "Working the Pencil";
@@ -1857,6 +1932,12 @@ route("deals", () => {
      appears under no salesperson until the Team Lead assigns it — a referral;
      the Team Lead's floor shows it at once */
   const mine = Store.s.deals.filter(d => lead || d.advisor === Store.s.advisor);
+  /* a choice the numbers moved out from under comes off before anything reads
+     it (W-004): the floor must not ask the Team Lead to approve a payment the
+     pencil no longer shows */
+  let settled = false;
+  mine.forEach(d => { if (settleDeskChoice(d)) settled = true; });
+  if (settled) Store.save();
   const bySeen = (a, b) => (b.createdAt || "").localeCompare(a.createdAt || "");
   /* v3: In showroom is a separate active-visits section, not a deal stage */
   /* v022: presence is its own list and never moves a deal out of the deal
@@ -1969,7 +2050,7 @@ route("deals", () => {
        the month and day it funded */
     const fundedISO = fundedOnISO(d);
     const fundedOn = d.stage === "complete" && lead && fundedISO ? " · " + new Date(fundedISO).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
-    const chip = d.stage === "complete" ? (lead ? "Funded" + fundedOn : "Done") : b.label;
+    const chip = d.stage === "complete" ? (lead ? "Funded" + fundedOn : "Done") : stageLabel(d);
     const positive = d.stage === "complete";
     /* the "Next:" › is the kit's, generated by CSS — no chevron element */
     return `<a class="rp-card dq-row" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
@@ -1991,12 +2072,11 @@ route("deals", () => {
   function visitRow(d) {
     const c = Store.customer(d.customerId);
     const st = STAGES[d.stage] || STAGES.discovery;
-    const b = dealBucket(d);
     const name = c ? c.first + " " + c.last : "—";
     const arrived = arrivedLabel(d);
     const body = `
       <span class="rp-row__body"><span class="rp-row__title">${esc(name)}</span>
-      <span class="rp-row__sub dq-visitmeta">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)}${isTeamLead() && !d.advisor ? " · Not assigned" : ""}</span></span>
+      <span class="rp-row__sub dq-visitmeta">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(stageLabel(d))}${isTeamLead() && !d.advisor ? " · Not assigned" : ""}</span></span>
       <span class="rp-row__chevron"></span>`;
     /* the row is a button when the visit has a sheet (HOME_PRESENCE) and the
        stage's link otherwise; the four things it shows are the same either way */
@@ -2017,7 +2097,7 @@ route("deals", () => {
        Team Lead assigns a visit they registered to a salesperson — a referral —
        from the floor, not from inside the customer's conversation */
     const lead = isTeamLead();
-    openSheet5(`${chSheetHead(name)}<p class="rp-sheet__sub">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)}${lead ? " · " + (d.advisor ? esc(d.advisor) : "Not assigned") : ""}</p>
+    openSheet5(`${chSheetHead(name)}<p class="rp-sheet__sub">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(stageLabel(d))}${lead ? " · " + (d.advisor ? esc(d.advisor) : "Not assigned") : ""}</p>
       <button type="button" class="rp-primary" id="dqVisitOpen">Open deal</button>
       ${lead ? `<button type="button" class="rp-link ch-hit" id="dqAssign">${d.advisor ? "Reassign" : "Assign to an advisor"}</button>` : ""}
       <button type="button" class="rp-link ch-hit" id="dqVisitEnd">Left the showroom</button>`, (sheet) => {
@@ -2057,7 +2137,8 @@ route("deals", () => {
       ${lead ? `<div class="rp-filter">
         <span id="dqDateSummary"></span>
         <button type="button" class="rp-filter__control" id="dqDateBtn"><span id="dqDateLabel"></span>${rpGlyph("chevron-down")}</button>
-      </div>` : ""}
+      </div>
+      <div id="dqNeeds"></div>` : ""}
       <div id="dqShowroom"></div>
       ${lead ? `<div class="rp-section">Deals</div>
       <div class="rp-chips" role="group" aria-label="Filter deals by stage">
@@ -2096,6 +2177,22 @@ route("deals", () => {
       if (al) { al.dismissed = true; Store.save(); }
       paint();
     });
+    /* W-004 · what waits on the Team Lead, in the kit's alert (as drawn): one
+       per request, oldest first, the count on the first. Not filtered by the
+       search: work waiting on the Team Lead is not a search result. */
+    if (lead) {
+      const asks = act.filter(d => deskApproval(d) === "asked")
+        .sort((a, b) => String(a.desk.approvalRequestedAt).localeCompare(String(b.desk.approvalRequestedAt)));
+      const at = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+      $("#dqNeeds").innerHTML = asks.map((d, i) => {
+        const c = Store.customer(d.customerId), name = c ? c.first + " " + c.last : "—";
+        return `<div class="rp-alert" data-needs="${esc(d.id)}">
+          ${i === 0 ? `<div class="rp-alert__title">Needs you · ${asks.length} approval${asks.length === 1 ? "" : "s"}</div>` : ""}
+          <div class="rp-alert__body">${esc(name)} — ${esc(d.desk.approvalRequestedBy || dealAdvisor(d))} asks you to approve ${esc(deskChoiceWords(d.desk.customerChose, d.dealType))} · ${esc(at(d.desk.approvalRequestedAt))}</div>
+          <button type="button" class="rp-alert__action" data-review="${esc(d.id)}">Review</button></div>`;
+      }).join("");
+      $$("[data-review]").forEach(b => b.onclick = () => { deskOpenSheet = { id: b.dataset.review, sheet: "approve" }; navigate(`#/desk/${b.dataset.review}`); });
+    }
     $("#dqShowroom").innerHTML = (showroom.length || lead) ? showroomHtml(showRows) : "";
     $$("[data-visit]").forEach(b => b.onclick = () => openVisitSheet(b.dataset.visit));
     if (lead) {
@@ -2635,7 +2732,7 @@ route("customers", () => {
        so the address rules still apply to the new visit. */
     const od = !missionDeal && !st.forceNew ? openDealFor(c.id) : null;
     if (od) {
-      const b = dealBucket(od), arrived = arrivedLabel(od), who = od.advisor || "no salesperson yet";
+      const arrived = arrivedLabel(od), who = od.advisor || "no salesperson yet";
       return shell(`
       ${heroHtml("Customer onboarding", "Customer found")}
       ${contextPill()}
@@ -2646,7 +2743,7 @@ route("customers", () => {
         <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
         <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
       </section>
-      <div class="rp-notice" id="obOpenVisit"><strong>${inShowroom(od) ? "Already in the showroom" : "Has an open deal"}</strong><br>${arrived && inShowroom(od) ? "Arrived " + esc(arrived) + " · " : ""}${esc(b.label)} · with ${esc(who)}</div>`, "Step 2 of 3",
+      <div class="rp-notice" id="obOpenVisit"><strong>${inShowroom(od) ? "Already in the showroom" : "Has an open deal"}</strong><br>${arrived && inShowroom(od) ? "Arrived " + esc(arrived) + " · " : ""}${esc(stageLabel(od))} · with ${esc(who)}</div>`, "Step 2 of 3",
         /* the "anyway" is offered only once the visit has ended: while the customer is in the showroom startVisit refuses a second visit (owner's protocol, 2026-09-15), so the link would promise what the app will not do */
         chDock(primaryBtn("obContinue", "Continue " + esc(c.first) + "'s visit"), inShowroom(od) ? "" : linkBtn("obNewVisit", "Start a new visit anyway")));
     }
@@ -7024,8 +7121,12 @@ route("desk/:id", ({ id }) => {
     mode: deal.huddle.done ? "pencil" : "huddle",
     open: { price: true, residual: false, trade: false, rebates: false, accessories: false, feetax: false },
     sheet: null,
-    sel: null      /* the cell the customer is looking at in present mode */
+    sel: null,     /* the cell the customer is looking at in present mode */
+    note: "", noteErr: false   /* the Team Lead's send-back note, kept while the sheet is up (W-004) */
   };
+  /* the floor's Review lands here with the approval sheet up (W-004) */
+  if (deskOpenSheet && deskOpenSheet.id === deal.id && ui.mode === "pencil") ui.sheet = deskOpenSheet.sheet;
+  deskOpenSheet = null;
   const sheets = chSheetOpener("dkScrim", "dkSheet", () => { ui.sheet = null; });
 
   /* ---------- the numbers ---------- */
@@ -7291,9 +7392,30 @@ route("desk/:id", ({ id }) => {
 
   /* ---------- 02 / 06 / 07 / 08 · the pencil ---------- */
   function pencilScreen() {
+    if (settleDeskChoice(deal)) Store.save();
     const r = RIDE_PRICE_CALC.calc(deal, v);
     const chose = deal.desk.customerChose;
     const asked = deal.desk.approvalRequestedAt;
+    const approved = deskApproval(deal) === "approved";
+    const lead = isTeamLead();
+    const leadName = RIDE_PRICE_DATA.dealership.teamLead, leadFirst = leadName.split(" ")[0];
+    /* where the approval stands, as a row on the screen and never a toast
+       (§24): asked, answered, sent back with the Team Lead's note, or come off
+       because the numbers moved (W-004) */
+    const approvalNotice = () => {
+      const k = deal.desk, mark = `<span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>`;
+      if (approved) return `<div class="rp-notice rp-notice--success" id="dkApproval">${mark}Approved by ${esc(k.approvedBy || leadName)} · ${esc(timeUS(k.approvedAt))}</div>`;
+      if (chose && asked) return `<div class="rp-notice" id="dkApproval">${mark}${lead
+        ? `${esc(k.approvalRequestedBy || dealAdvisor(deal))} asked for your approval · ${esc(timeUS(asked))}`
+        : `Sent to ${esc(leadName)} for approval · ${esc(timeUS(asked))} — the agreement opens when ${esc(leadFirst)} approves`}</div>`;
+      if (!chose && k.sentBack) return `<div class="rp-notice rp-notice--working" id="dkSentBack">${lead
+        ? `Sent back to ${esc(k.sentBack.to || dealAdvisor(deal))}` : `Sent back by ${esc(k.sentBack.by || leadName)}`}: &ldquo;${esc(k.sentBack.note)}&rdquo;</div>`;
+      if (!chose && k.choiceCleared) {
+        const cc = k.choiceCleared;
+        return `<div class="rp-notice rp-notice--working" id="dkChoiceCleared"><strong>The numbers changed after ${esc(c.first)} chose</strong>${esc(deskChoiceLine(cc.was, cc.dealType))} is no longer on the pencil${cc.had === "approved" ? `, and ${esc(leadName)}&rsquo;s approval came off with it` : cc.had === "asked" ? `, and the request to ${esc(leadName)} was withdrawn` : ""}. Present the new payment.</div>`;
+      }
+      return "";
+    };
     const cashColumn = () => `<div class="rp-kv"><div class="rp-kv__head">Cash purchase</div>
       ${kvRow("Your price", money(v.selling + v.includedOptions))}
       ${r.accessories ? kvRow("Accessories", money(r.accessories)) : ""}
@@ -7316,8 +7438,8 @@ route("desk/:id", ({ id }) => {
       <h1 class="rp-title">Calculate payments</h1>
       ${chipRow()}
       ${isCash() ? "" : vehicleRow()}
-      ${chose ? `<div class="rp-notice rp-notice--success"><span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>Customer chose ${isCash() ? `${money(chose.payment)} total` : deal.dealType === "onepay" ? `${chose.term} months · ${money(chose.payment)} paid in full` : `${chose.term} months · ${money0(chose.down)} down · ${money(chose.payment)} / mo`}</div>` : ""}
-      ${asked ? `<div class="rp-notice"><span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>Sent to ${esc(RIDE_PRICE_DATA.dealership.teamLead)} for approval · ${esc(timeUS(asked))}</div>` : ""}
+      ${chose ? `<div class="rp-notice rp-notice--success"><span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>Customer chose ${esc(deskChoiceLine(chose, deal.dealType))}</div>` : ""}
+      ${approvalNotice()}
       ${segment()}
       ${priceHero(r, !chose)}
       ${trialRow()}
@@ -7328,20 +7450,28 @@ route("desk/:id", ({ id }) => {
         <span class="rp-row__chevron"></span></button></div>`}
       ${accordions(r)}`;
 
-    const dock = chose && !asked
-      ? chDock(`<button type="button" class="rp-primary" id="dkSubmit">Submit for Team Lead approval</button>`, `<button type="button" class="rp-link" id="dkPresent">Present again</button>`)
-      : chose && asked
-        ? chDock(`<button type="button" class="rp-primary" id="dkContinue">Continue — base payment agreement</button>`, `<button type="button" class="rp-link" id="dkPresent">Present again</button>`)
-        : chDock(`<button type="button" class="rp-primary" id="dkPresent">Present to customer</button>`,
-          `<button type="button" class="rp-link" id="dkCompare">${isCash() ? "Compare" : "Compare finance and lease"}</button>`);
-    render(content, dock);
+    /* W-004 · the agreement waits for the Team Lead. The advisor submits, then
+       waits with the primary shown and disabled, and can still present again;
+       the Team Lead answers from the same sheet the floor's Review opens. */
+    const again = `<button type="button" class="rp-link" id="dkPresent">Present again</button>`;
+    const dock = !chose
+      ? chDock(`<button type="button" class="rp-primary" id="dkPresent">Present to customer</button>`,
+        `<button type="button" class="rp-link" id="dkCompare">${isCash() ? "Compare" : "Compare finance and lease"}</button>`)
+      : approved
+        ? chDock(`<button type="button" class="rp-primary" id="dkContinue">Continue — base payment agreement</button>`, again)
+        : lead
+          ? chDock(`<button type="button" class="rp-primary" id="dkReview">Review and approve</button>`, again)
+          : asked
+            ? chDock(`<button type="button" class="rp-primary" id="dkWaiting" disabled>Waiting for ${esc(leadFirst)}&rsquo;s approval</button>`, again)
+            : chDock(`<button type="button" class="rp-primary" id="dkSubmit">Submit for Team Lead approval</button>`, again);
+    render(content, dock, chose && asked && !approved && !lead ? "gate" : undefined);
 
     /* a new deal type is a new structure, so the payment the customer agreed
        to is no longer the payment on screen — the choice comes off with it
        rather than sitting over a number they never saw */
     $$("[data-type]").forEach(b => b.onclick = () => {
       if (deal.dealType !== b.dataset.type) {
-        delete deal.desk.customerChose; delete deal.desk.approvalRequestedAt; delete deal.desk.approvalRequestedBy;
+        clearDeskChoice(deal.desk);      /* and the Team Lead's answer with it (W-004) */
         delete deal.desk.presentedAt;   /* a new deal type is a quote the customer has not seen */
       }
       deal.dealType = b.dataset.type; Store.save(); draw();
@@ -7352,15 +7482,21 @@ route("desk/:id", ({ id }) => {
     const cmp = $("#dkCompare"); if (cmp) cmp.onclick = () => { ui.mode = "compare"; draw(); };
     const submit = $("#dkSubmit");
     if (submit) submit.onclick = () => {
-      /* the request is recorded on the screen, not announced in a toast: the
-         Team Lead's own approval screen is not drawn yet, and a waiting role
-         still gets the action it has (§23, §24) */
+      /* the request is recorded on the screen, not announced in a toast
+         (§23, §24), and the Team Lead's floor lists it under Needs you (W-004).
+         Asked once: a second tap finds it already asked. */
+      if (!deal.desk.customerChose || deal.desk.approvalRequestedAt) return draw();
       deal.desk.approvalRequestedAt = new Date().toISOString();
       deal.desk.approvalRequestedBy = Store.s.advisor;
       Store.save(); draw();
     };
+    const review = $("#dkReview");
+    if (review) review.onclick = () => { ui.sheet = "approve"; draw(); };
     const cont = $("#dkContinue");
     if (cont) cont.onclick = () => {
+      /* the agreement opens on an approval that still holds, and on nothing else (W-004) */
+      if (settleDeskChoice(deal)) Store.save();
+      if (deskApproval(deal) !== "approved") return draw();
       deal.basePayment = { signedAt: null, snapshot: RIDE_PRICE_CALC.calc(deal, v) };
       if (deal.stage === "desking") deal.stage = "signed";
       Store.save();
@@ -7446,27 +7582,92 @@ route("desk/:id", ({ id }) => {
   /* the customer's own tap is the trial close: it writes the structure they
      chose onto the deal and hands the phone back to Work (§15) */
   function commit() {
+    const prev = deal.desk.customerChose;
+    let next;
     if (!isCash() && !isLease()) {
       const cell = ui.sel || recommended();
       deal.desk.term = cell.term;
       deal.desk.downPayment = cell.down;
-      deal.desk.customerChose = { term: cell.term, down: cell.down, payment: cell.payment, at: new Date().toISOString() };
+      next = { term: cell.term, down: cell.down, payment: cell.payment, at: new Date().toISOString() };
     } else {
       const r = RIDE_PRICE_CALC.calc(deal, v);
-      deal.desk.customerChose = { term: r.term || 0, down: isCash() ? 0 : deal.desk.dueAtSigning, payment: heroFigure(r), at: new Date().toISOString() };
+      next = { term: r.term || 0, down: isCash() ? 0 : deal.desk.dueAtSigning, payment: heroFigure(r), at: new Date().toISOString() };
     }
+    /* the same choice keeps its request and its answer; a different one is a
+       new question for the Team Lead (W-004). Either answers the Team Lead's
+       note and the changed numbers, so both notices come off. */
+    const same = !!prev && prev.term === next.term && prev.down === next.down && Math.round(prev.payment * 100) === Math.round(next.payment * 100);
+    if (!same) clearDeskChoice(deal.desk);
+    deal.desk.customerChose = same ? prev : next;
+    delete deal.desk.sentBack; delete deal.desk.choiceCleared;
     Store.save();
     ui.mode = "pencil"; ui.sel = null; draw();
   }
   /* the first time the phone is turned round is written down, so Home can say
      "Customer Reviewing Quote" only once there is a quote to review (W-011) */
   function goPresent() {
-    if (!deal.desk.presentedAt) { deal.desk.presentedAt = new Date().toISOString(); Store.save(); }
+    const k = deal.desk;
+    /* presenting again answers the Team Lead's note and the changed numbers:
+       both notices come off here (W-004) */
+    if (!k.presentedAt || k.sentBack || k.choiceCleared) {
+      if (!k.presentedAt) k.presentedAt = new Date().toISOString();
+      delete k.sentBack; delete k.choiceCleared;
+      Store.save();
+    }
     ui.sel = null; ui.mode = "present"; draw();
+  }
+
+  /* ---------- W-004 · the Team Lead's answer ---------- */
+  /* the numbers being approved, from the pencil's own calculator, so the sheet
+     cannot show a payment the pencil does not (as drawn: the payment, the money
+     down, the price, the trade) */
+  function approveSheetHtml() {
+    const k = deal.desk, leadName = RIDE_PRICE_DATA.dealership.teamLead;
+    if (!isTeamLead()) return `${chSheetHead("Approval")}
+      <p class="rp-sheet__sub">Only ${esc(leadName)} can approve this deal.</p>
+      <button type="button" class="rp-primary" data-sheet-close>Done</button>`;
+    /* nothing left to answer: the choice came off, or it is answered already */
+    if (!k.customerChose || k.approvedAt) return `${chSheetHead(k.approvedAt ? "Already approved" : "Nothing to approve")}
+      <p class="rp-sheet__sub">${k.approvedAt
+        ? `Approved by ${esc(k.approvedBy || leadName)} · ${esc(timeUS(k.approvedAt))}. The agreement is open.`
+        : `${esc(c.first)}&rsquo;s choice is no longer on the pencil, so there is nothing to approve. It comes back to you when the customer chooses again.`}</p>
+      <button type="button" class="rp-primary" data-sheet-close>Done</button>`;
+    const r = RIDE_PRICE_CALC.calc(deal, v);
+    const saving = v.msrp - (v.selling + v.includedOptions);
+    const equity = (deal.trade.value || 0) - (deal.trade.payoff || 0);
+    const row = (t, sub) => `<div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(t)}</span><span class="rp-row__sub">${esc(sub)}</span></span></div>`;
+    const rows = [
+      isCash() ? row("Total due", `${money(r.totalDue)} · cash, no financing`)
+        : deal.dealType === "onepay" ? row("Total due", `${money(r.onePayTotal)} · ${r.term} months · ${r.miles.toLocaleString()} mi/yr, paid in full`)
+        : isLease() ? row("Payment", `${money(r.payment)} / mo · ${r.term} months · ${r.miles.toLocaleString()} mi/yr`)
+        : row("Payment", `${money(r.payment)} / mo · ${r.term} months · ${deal.desk.apr}% APR`),
+      isCash() || deal.dealType === "onepay" ? "" : isLease() ? row("Due at signing", money0(deal.desk.dueAtSigning)) : row("Cash down", money0(deal.desk.downPayment)),
+      row("Price", `${money(v.selling + v.includedOptions)}${saving > 0 ? ` · saves ${money(saving)}` : ""}`),
+      deal.trade.has ? row("Trade", equity >= 0 ? `+${money(equity)} after payoff` : `−${money(-equity)} negative equity`) : ""
+    ].join("");
+    const asked = k.approvalRequestedAt, who = k.approvalRequestedBy || dealAdvisor(deal);
+    return `${chSheetHead(`Approve ${c.first}’s deal?`)}
+      <p class="rp-sheet__sub">${asked ? `${esc(who)} asked at ${esc(timeUS(asked))}. The agreement waits for your answer.` : "Nobody has asked yet. Approving opens the agreement."}</p>
+      <div class="rp-group">${rows}</div>
+      <button type="button" class="rp-primary" id="dkApprove">Approve</button>
+      ${asked ? `<button type="button" class="rp-link ch-hit" id="dkSendBack">Send back with a note</button>` : `<button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>`}`;
+  }
+  /* sending back needs a note: it is the one thing the advisor reads next */
+  function sendBackSheetHtml() {
+    const who = deal.desk.approvalRequestedBy || dealAdvisor(deal), first = String(who).split(" ")[0];
+    return `${chSheetHead(`Send back to ${first}`)}
+      <p class="rp-sheet__sub">${esc(c.first)}&rsquo;s choice comes off the pencil. Your note stays there for ${esc(first)} until the next presentation.</p>
+      <div class="rp-field${ui.noteErr ? " rp-field--error" : ""}"><label class="rp-field__label" for="dkNote">What should change?</label>
+        <textarea class="rp-textarea" id="dkNote" maxlength="280" placeholder="e.g. Hold the $1,000 down and show 72 months."${ui.noteErr ? ` aria-invalid="true" aria-describedby="dkNoteErr" style="border:1.5px solid var(--rp-danger)"` : ""}>${esc(ui.note)}</textarea>
+        ${ui.noteErr ? `<div class="rp-field__err" id="dkNoteErr">Write a note first. It is what ${esc(first)} reads on the pencil.</div>` : ""}</div>
+      <button type="button" class="rp-primary" id="dkSendBackGo">Send back to ${esc(first)}</button>
+      <button type="button" class="rp-link ch-hit" id="dkSendBackCancel">Back to the numbers</button>`;
   }
 
   /* ---------- the sheets ---------- */
   function sheetHtml() {
+    if (ui.sheet === "approve") return approveSheetHtml();
+    if (ui.sheet === "sendback") return sendBackSheetHtml();
     if (ui.sheet === "itemize") {
       const r = RIDE_PRICE_CALC.calc(deal, v);
       return `${chSheetHead("What is included")}
@@ -7506,6 +7707,30 @@ route("desk/:id", ({ id }) => {
       <button type="button" class="rp-primary" id="dkTermsSave">Save terms</button>`;
   }
   function wireSheet(sheet) {
+    /* W-004 · answered by the Team Lead only, only while the choice still
+       holds, and once: a second tap finds it answered */
+    const approve = $("#dkApprove", sheet);
+    if (approve) approve.onclick = () => {
+      if (settleDeskChoice(deal)) Store.save();
+      if (!isTeamLead() || !deal.desk.customerChose || deal.desk.approvedAt) return draw();
+      deal.desk.approvedAt = new Date().toISOString();
+      deal.desk.approvedBy = RIDE_PRICE_DATA.dealership.teamLead;
+      Store.save(); ui.sheet = null; sheets.close(); draw();
+    };
+    const back = $("#dkSendBack", sheet);
+    if (back) back.onclick = () => { ui.sheet = "sendback"; ui.noteErr = false; draw(); };
+    const keep = $("#dkSendBackCancel", sheet);
+    if (keep) keep.onclick = () => { ui.note = $("#dkNote", sheet).value; ui.noteErr = false; ui.sheet = "approve"; draw(); };
+    const go = $("#dkSendBackGo", sheet);
+    if (go) go.onclick = () => {
+      const note = $("#dkNote", sheet).value.trim();
+      if (!note) { ui.note = ""; ui.noteErr = true; draw(); const f = $("#dkNote"); if (f) f.focus(); return; }
+      if (settleDeskChoice(deal)) Store.save();
+      if (!isTeamLead() || !deal.desk.customerChose || !deal.desk.approvalRequestedAt || deal.desk.approvedAt) { ui.sheet = "approve"; return draw(); }
+      deal.desk.sentBack = { at: new Date().toISOString(), by: RIDE_PRICE_DATA.dealership.teamLead, to: deal.desk.approvalRequestedBy || dealAdvisor(deal), note };
+      clearDeskChoice(deal.desk);
+      Store.save(); ui.note = ""; ui.noteErr = false; ui.sheet = null; sheets.close(); draw();
+    };
     $$("[data-acc]", sheet).forEach(b => b.onclick = () => {
       const id2 = b.dataset.acc;
       const at = deal.desk.accessories.indexOf(id2);
@@ -7533,7 +7758,7 @@ route("desk/:id", ({ id }) => {
     view().innerHTML = chShell({
       template: "task", title: custName, closeId: "dkClose",
       closeLabel: present ? "Done — back to work" : "Close",
-      cls: present ? "rp-screen--present" : ""
+      cls: present ? "rp-screen--present" : mode === "gate" ? "rp-screen--gate" : ""
     }, content, dockHtml, { scrim: "dkScrim", sheet: "dkSheet" });
     /* Close leaves the screen it is on: from present mode it is Done and hands
        the phone back to the advisor, from the option grid it returns to the
@@ -7574,6 +7799,15 @@ route("compare/:id", ({ id }) => redirect(`#/desk/${id}`));
    ============================================================ */
 route("agreement/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal || !deal.stock) return redirect("#/deals");
+  /* the agreement waits for the Team Lead (W-004): a deal still waiting on its
+     approval, sent back, or whose choice came off under it goes back to its
+     pencil, which says which. A signed agreement, or a deal that reached here
+     without asking at all, is not stopped. */
+  if (!(deal.basePayment && deal.basePayment.signedAt)) {
+    if (settleDeskChoice(deal)) Store.save();
+    const k = deal.desk || {};
+    if ((k.approvalRequestedAt && !k.approvedAt) || k.sentBack || k.choiceCleared) return redirect(`#/desk/${deal.id}`);
+  }
   const v = Store.vehicle(deal.stock);
   const c = Store.customer(deal.customerId);
   const r = RIDE_PRICE_CALC.calc(deal, v);
@@ -8480,7 +8714,8 @@ route("credit/:id", ({ id }) => {
     if (rp) rp.onclick = () => {
       if (!requireSubjects()) return;
       if (!currentApproval(a)) { toast("The approval changed. Reopen the credit application."); return; }
-      deal.desk.apr = approvedApr; delete deal.desk.customerChose; delete deal.desk.presentedAt; Store.save(); navigate(`#/desk/${deal.id}`);
+      /* the Team Lead's approval was of the old payment, and comes off with the choice (W-004) */
+      deal.desk.apr = approvedApr; clearDeskChoice(deal.desk); delete deal.desk.presentedAt; Store.save(); navigate(`#/desk/${deal.id}`);
     };
   }
 
