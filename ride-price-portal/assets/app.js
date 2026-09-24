@@ -7799,14 +7799,15 @@ route("compare/:id", ({ id }) => redirect(`#/desk/${id}`));
    ============================================================ */
 route("agreement/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal || !deal.stock) return redirect("#/deals");
-  /* the agreement waits for the Team Lead (W-004): a deal still waiting on its
-     approval, sent back, or whose choice came off under it goes back to its
-     pencil, which says which. A signed agreement, or a deal that reached here
-     without asking at all, is not stopped. */
+  /* the agreement waits for the Team Lead (W-004): a deal the customer chose
+     on that is not yet approved (never submitted, or still waiting), sent back,
+     or whose choice came off under it goes back to its pencil, which says which
+     step is next. A signed agreement, or a deal with no choice on it at all, is
+     not stopped. */
   if (!(deal.basePayment && deal.basePayment.signedAt)) {
     if (settleDeskChoice(deal)) Store.save();
     const k = deal.desk || {};
-    if ((k.approvalRequestedAt && !k.approvedAt) || k.sentBack || k.choiceCleared) return redirect(`#/desk/${deal.id}`);
+    if ((k.customerChose && deskApproval(deal) !== "approved") || (k.approvalRequestedAt && !k.approvedAt) || k.sentBack || k.choiceCleared) return redirect(`#/desk/${deal.id}`);
   }
   const v = Store.vehicle(deal.stock);
   const c = Store.customer(deal.customerId);
@@ -8714,8 +8715,7 @@ route("credit/:id", ({ id }) => {
     if (rp) rp.onclick = () => {
       if (!requireSubjects()) return;
       if (!currentApproval(a)) { toast("The approval changed. Reopen the credit application."); return; }
-      /* the Team Lead's approval was of the old payment, and comes off with the choice (W-004) */
-      deal.desk.apr = approvedApr; clearDeskChoice(deal.desk); delete deal.desk.presentedAt; Store.save(); navigate(`#/desk/${deal.id}`);
+      deal.desk.apr = approvedApr; delete deal.desk.customerChose; Store.save(); navigate(`#/desk/${deal.id}`);
     };
   }
 
