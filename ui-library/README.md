@@ -1,7 +1,7 @@
 # Ride Price Mobile UI Flow Library
 
-An internal, Mobbin-style visual record of the Ride Price portal: every mobile flow captured from
-the working application at **390 × 844**, organised into sequential user journeys, with the action
+An internal visual record, in the manner of a library of real app screens, of the Ride Price portal: every mobile flow captured from
+the working application at **390 × 844**, organized into sequential user journeys, with the action
 that causes each transition, the branches, and the UX findings attached to the exact screen.
 
 **Start here:** open [`master-flow/index.html`](master-flow/index.html) in a browser.
@@ -11,9 +11,9 @@ that causes each transition, the branches, and the UX findings attached to the e
 | `current/<area>/NN-name.png` | The current capture, one numbered screenshot per meaningful step, grouped by product area |
 | `master-flow/index.html` | The master visual flow — all flows left-to-right with actions, branches, issues, lightbox |
 | `reports/flow-manifest.json` | Machine-readable flows: every screen with its screenshot, hash, action → next, branches, issues, automated checks |
-| `master-flow/improvement-view.html` | The improvement system's companion page: per area, the original screenshots + existing comment cards + the deepened diagnosis, Mobbin reference direction, and the Ride Price adaptation |
-| `reports/screen-improvement-matrix.json` | Hand-maintained source of truth for the improvement system — one area at a time; recommendations with their status, owner directions/decisions, Mobbin patterns |
-| `reports/ui-improvement-report.md` · `reports/opportunity-board.md` · `reports/mobbin-reference-summary.md` | Generated from the matrix by `tools/build-improvements.mjs` |
+| `master-flow/improvement-view.html` | The improvement system's companion page: per area, the original screenshots + existing comment cards + the deepened diagnosis, reference direction, and the Ride Price adaptation |
+| `reports/screen-improvement-matrix.json` | Hand-maintained source of truth for the improvement system — one area at a time; recommendations with their status, owner directions/decisions, reference patterns |
+| `reports/ui-improvement-report.md` · `reports/opportunity-board.md` · `reports/reference-summary.md` | Generated from the matrix by `tools/build-improvements.mjs` |
 | `reports/ux-audit.md` | Findings by severity (Critical / Major / Minor / Observation) with screen and area to investigate |
 | `reports/issues.json` | The audited findings (hand-maintained source for the audit and the master page) |
 | `reports/changelog.md` | Per-version added / changed / removed flows and screens, new / resolved issues |
@@ -71,7 +71,8 @@ manifest plus the audited `issues.json`. `update.mjs` wraps it all with versioni
 The master page carries two kinds of download, both built in the browser from the screenshots the
 page already shows (so the page must be served from a web address — the public link — not opened as
 a file). Each flow's header has a **⬇** menu: the flow as one composed image (PNG), or its
-screenshots plus a README with the route, notes, branch lines and findings (ZIP). The app bar's
+screenshots, each with its full-length picture when it has one, plus a README with the route, notes,
+branch lines and findings (ZIP). The app bar's
 **⬇ All** menu downloads the **whole library** as one ZIP: a folder per flow with exactly the files
 the per-flow ZIP produces, a top-level README naming the version and listing the flows, and
 `reports/changelog.md` and `reports/version.json`. The archive is store-only (PNGs are already

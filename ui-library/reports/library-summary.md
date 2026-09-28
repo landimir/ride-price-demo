@@ -1,44 +1,44 @@
 # Ride Price Mobile UI Library
 
-Version: v040
-Captured: 2026-09-22T02:37:30.670Z
-App commit: 8bc4db86b9b212e65649fe01ad724c042ea4e8a6
+Version: v043
+Captured: 2026-09-28T15:36:50.628Z
+App commit: 35497ff836c44402d7bbd22176e864067d26db3d
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 146
-Branches documented: 78
+Screens documented: 368
+Branches documented: 110
 
 UX Audit:
 - Critical: 0
-- Major: 1
-- Minor: 9
-- Observation: 9
+- Major: 14
+- Minor: 31
+- Observation: 8
 
 ## Flows
 
 | # | Flow | Screens | Entry |
 |---|---|---|---|
-| 1 | Home — Active Floor & Navigation | 9 | entry point |
-| 2 | Customer Onboarding — the Customer Resolver | 11 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap New visit |
-| 3 | Scan Driver's License | 12 | Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver — Tap Scan physical license |
-| 4 | Training Documents | 4 | Home — Active Floor & Navigation · 02 More sheet — secondary navigation — Training documents |
-| 5 | Discovery Session | 6 | Customer Onboarding — the Customer Resolver · 04 Customer found — confirm + registration address — Confirm address & start visit |
-| 6 | Vehicle Selection | 8 | Discovery Session · 04 Discovery complete (sheet) — Tap Find matching vehicles |
-| 7 | Test Drive Agreement | 7 | Vehicle Selection · 05 What's next? — after choosing — Tap Test Drive |
-| 8 | Trade-In Evaluation & Proof of Ownership | 5 | Vehicle Selection · 05 What's next? — after choosing — Tap Trade Appraisal |
-| 9 | Desking — Calculate Payments | 8 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap the deal card (Continue) |
-| 10 | Base Payment Agreement | 3 | Desking — Calculate Payments · 06 Back in Work — the customer chose — Tap Submit for Team Lead approval, then Continue |
-| 11 | Credit Application (Lending Lane) | 9 | Base Payment Agreement · 02 Agreement — signed — Tap Continue |
-| 12 | Buyers on the Deal (Co-Buyer) | 7 | Discovery Session · 05 Visit details (sheet) — Tap Co-buyer in Visit details |
-| 13 | F&I Product Presentation | 4 | Finance Menu — Sign-Off Gate and Four Stages · 06 Stage 2 — Choose a protection package — Tap Present on Product presentation |
-| 14 | Finance Menu — Sign-Off Gate and Four Stages | 14 | Credit Application (Lending Lane) · 09 Approved (simulated) — Continue → Manager sign-off |
-| 15 | Deal Jacket & Compliance | 8 | Discovery Session · 01 Discovery — question 1, customer-first — Tap the Jacket chip in the context row |
-| 16 | Customer document request (from the jacket) | 3 | Deal Jacket & Compliance · 01 Deal Jacket — funding readiness — Tap Request N documents |
-| 17 | Client Document Upload (customer's phone) | 10 | Customer document request (from the jacket) · 03 Customer request — delivery status — Open the customer's phone |
-| 18 | Snap All — burst capture | 9 | Deal Jacket & Compliance · 01 Deal Jacket — funding readiness — Tap Capture all here instead |
-| 19 | Document Review (advisor) | 3 | Deal Jacket & Compliance · 06 Completed — already in the jacket — Tap a received customer document, then View |
-| 20 | Documents — Print Center & Printables | 6 | Finance Menu — Sign-Off Gate and Four Stages · 12 Stage 4 — Final review — Tap Open on Print centre |
+| 1 | Home — Active Floor & Navigation | 24 | entry point |
+| 2 | Customer Onboarding — the Customer Resolver | 25 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap New visit |
+| 3 | Scan Driver's License | 25 | Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver — Tap Scan physical license |
+| 4 | Training Documents | 8 | Home — Active Floor & Navigation · 02 More sheet — secondary navigation — Training documents |
+| 5 | Discovery — the guided consultation | 14 | Customer Onboarding — the Customer Resolver · 04 Customer found — confirm + registration address — Confirm address & start visit |
+| 6 | Vehicle Selection | 17 | Discovery — the guided consultation · 09 The profile — the hand-off — Tap ✓ on the profile |
+| 7 | Test Drive Agreement | 29 | Vehicle Selection · 09 What's next? — after choosing — Tap Test Drive |
+| 8 | Trade-In Evaluation & Proof of Ownership | 17 | Vehicle Selection · 09 What's next? — after choosing — Tap Trade Appraisal |
+| 9 | Desking — Calculate Payments | 29 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap the deal card (Continue) |
+| 10 | Base Payment Agreement | 11 | Desking — Calculate Payments · 06 Back in Work — the customer chose — Tap Submit for Team Lead approval; the Team Lead approves; then Continue |
+| 11 | Credit Application (Lending Lane) | 21 | Base Payment Agreement · 02 Agreement — signed — Tap Continue |
+| 12 | Buyers on the Deal (Co-Buyer) | 17 | Credit Application (Lending Lane) · 04 Joint — co-buyer needed — Tap the Buyers row |
+| 13 | F&I Product Presentation | 13 | Finance Menu — Sign-Off Gate and Four Stages · 08 Stage 2 — Choose a protection package — Tap Present each product |
+| 14 | Finance Menu — Sign-Off Gate and Four Stages | 28 | Credit Application (Lending Lane) · 14 Approved at the agreed rate — Continue → Manager sign-off |
+| 15 | Deal Jacket & Compliance | 20 | Desking — Calculate Payments · 02 Pencil — Finance — Tap the Jacket chip |
+| 16 | Customer document request (from the jacket) | 8 | Deal Jacket & Compliance · 01 Deal Jacket — funding readiness — Tap Request N documents |
+| 17 | Client Document Upload (customer's phone) | 18 | Customer document request (from the jacket) · 05 Customer request — delivery status (waiting) — Open the customer's phone |
+| 18 | Snap All — burst capture | 15 | Deal Jacket & Compliance · 01 Deal Jacket — funding readiness — Tap Capture all here instead |
+| 19 | Document Review (advisor) | 10 | Deal Jacket & Compliance · 10 Completed — already in the jacket — Tap a received customer document, then View |
+| 20 | Documents — Print Center & Printables | 19 | Finance Menu — Sign-Off Gate and Four Stages · 17 Stage 4 — Final review — Tap Open on Print center |
 
 ## Incomplete or failed captures
 
