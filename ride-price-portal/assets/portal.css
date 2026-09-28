@@ -38,7 +38,7 @@ body {
   background: var(--bg); color: var(--ink); font-size: 15px; line-height: 1.55;
 }
 /* native system type only (owner rule, 2026-08-27): hierarchy comes from
-   size, weight and spacing — never from a display face. No Google Fonts.
+   size, weight and spacing — never from a display face. No hosted web fonts.
    The UI kit supersedes this for the MOBILE CHROME only (2026-09-04); one
    token holds the app face so the printables can ask for it by name. */
 html, body, button, input, select, textarea {
@@ -291,8 +291,11 @@ label.f .seg { display: flex; }
    long product label used to push its amount onto the next line, left
    aligned, and the money column stopped being a column — the one thing a
    price list is for. The label now wraps inside its own column and the
-   amount stays right-aligned beside it. */
-.lines li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto); gap: 14px; align-items: start; padding: 6px 0; border-bottom: 1px dashed #ecebf4; }
+   amount stays right-aligned beside it. The label has a floor (phase 4a):
+   a long prose value ("2016 Toyota RAV4 · $15,500 / payoff $10,750") took
+   the whole row on a phone and squeezed its label to nothing — "Trade" one
+   letter a line. Now the value wraps at its spaces beside the label. */
+.lines li { display: grid; grid-template-columns: minmax(min(6em, 40%), 1fr) minmax(0, auto); gap: 14px; align-items: start; padding: 6px 0; border-bottom: 1px dashed #ecebf4; }
 /* The value column is right-aligned and stays beside its label. It is NOT
    `white-space: nowrap`: these rows also carry prose values ("2018 Hyundai
    Tucson · $15,500.00 value"), and forcing those onto one line overflowed
@@ -345,167 +348,8 @@ label.f .seg { display: flex; }
 .pay-hero .amt { font-size: 34px; font-weight: 600; color: #7ef0a9; font-variant-numeric: tabular-nums; }
 .pay-hero .sub { font-size: 12.5px; color: #e6e4f5; }
 
-/* the pencil's sticky payment bar (audit RP-UI-001) — the prototype shows it
-   at every width: a white blur bar pinned to the bottom so the payment and
-   Continue are always in reach, however deep the terms scroll. */
-.desk-sticky {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
-  display: flex; align-items: center; justify-content: space-between; gap: 14px;
-  /* the side padding centres the bar contents onto the 620px pencil column */
-  padding: 12px max(20px, calc((100% - 620px) / 2)) calc(12px + env(safe-area-inset-bottom, 0px));
-  background: rgba(255, 255, 255, .96); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
-  border-top: 1px solid #ebebeb;
-}
-.desk-sticky__copy { display: flex; flex-direction: column; min-width: 0; }
-.desk-sticky__copy > span { font-size: 11px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; color: var(--muted); }
-.desk-sticky__val { display: flex; align-items: baseline; gap: 5px; }
-.desk-sticky__copy b { font-size: 24px; font-weight: 750; color: var(--ink); letter-spacing: -.5px; }
-.desk-sticky__unit { font-size: 15px; font-weight: 750; color: var(--ink); }
-.desk-sticky__go { min-width: 132px; }
-
-/* ---------- desking v2 (owner's desking prototype, 2026-08-27) ----------
-   The prototype's layout and component structure replicated 1:1 — typography
-   scale, spacing, borders, toggles, inputs — with the owner's theming rules:
-   the app's top header keeps the Ride Price brand as-is; standard structural
-   elements keep neutral default styling; the RP accent appears ONLY on the
-   two note banners (left stripe + tint) and the primary action (gradient).
-   Type is the native system stack app-wide (owner rule, 2026-08-27) —
-   hierarchy through size and weight, never a display face. ------- */
+/* desking's screens draw the kit's own top bar, so the page bar stays hidden there */
 body[data-screen="desk"] .pagebar { display: none; }
-.dk-wrap { max-width: 620px; margin: 0 auto; padding: 8px 20px 120px; }
-.dk-eyebrow { font-size: 12px; font-weight: 600; color: #717171; letter-spacing: .02em; margin-bottom: 8px; }
-.dk-wrap h1 { font-size: 29px; line-height: 1.08; letter-spacing: -.75px; margin: 0 0 8px; font-weight: 750; color: var(--ink); }
-.dk-meta { color: var(--muted); font-size: 14px; line-height: 1.45; margin-bottom: 22px; }
-.dk-meta b { color: var(--ink); }
-.dk-headrow { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-.dk-linkbtn { border: 0; background: transparent; padding: 2px 0; color: var(--ink); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: 3px; font-size: 13px; cursor: pointer; }
-.dk-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 24px; }
-.dk-chip {
-  border: 1px solid #dddddd; background: #fff; border-radius: 999px; min-height: 40px; padding: 0 14px;
-  font: inherit; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 7px;
-  color: var(--ink); text-decoration: none; cursor: pointer;
-}
-.dk-chip b { font-weight: 600; }
-.dk-section { border-top: 1px solid #ebebeb; padding: 24px 0; }
-.dk-section:first-of-type { border-top: 0; padding-top: 0; }
-.dk-h2 { font-size: 18px; letter-spacing: -.3px; margin: 0; font-weight: 600; color: var(--ink); }
-.dk-subline { font-size: 13px; color: var(--muted); margin: 4px 0 0; line-height: 1.4; }
-.dk-sechead { margin-bottom: 14px; }
-.dk-card { border: 1px solid #dddddd; border-radius: 16px; background: #fff; }
-.dk-card--pad { padding: 4px 18px; }
-/* the pay-choice grid: a radio group drawn as cards */
-.dk-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.dk-choice {
-  border: 1px solid #dddddd; border-radius: 14px; padding: 14px; background: #fff; text-align: left;
-  min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 10px;
-  font: inherit; font-weight: 600; color: var(--ink); cursor: pointer;
-}
-.dk-choice .dot { width: 20px; height: 20px; border: 1.5px solid #b0b0b0; border-radius: 50%; flex: none; }
-.dk-choice.active { border: 2px solid var(--ink); padding: 13px; }
-.dk-choice.active .dot { border: 6px solid var(--ink); }
-.dk-lab { display: block; font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--ink); }
-input.dk-input, input.dk-money, textarea.dk-textarea {
-  width: 100%; border: 1px solid #b0b0b0; border-radius: 12px; background: #fff; min-height: 52px;
-  padding: 0 14px; outline: none; font: inherit; font-size: 16px; color: var(--ink);
-}
-textarea.dk-textarea { padding: 13px 14px; min-height: 94px; resize: vertical; }
-.dk-input:focus, .dk-money:focus, .dk-textarea:focus { border: 2px solid var(--ink); padding-left: 13px; }
-.dk-moneywrap { position: relative; }
-.dk-moneywrap::before { content: "$"; position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-weight: 600; color: var(--ink); }
-input.dk-money { padding-left: 30px; }
-.dk-money:focus { padding-left: 29px; }
-/* switch rows: the prototype's row layout carrying the app's own toggle */
-.dk-switchrow { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0; border-top: 1px solid #ebebeb; }
-.dk-switchrow:first-child { border-top: 0; }
-.dk-switchcopy { font-size: 15px; line-height: 1.35; color: var(--ink); }
-.dk-switchcopy small { display: block; color: var(--muted); margin-top: 4px; font-size: 13px; }
-/* the two note banners — the RP accent's home (owner rule): stripe + tint */
-.dk-notice {
-  background: rgba(179, 54, 75, .05); border-left: 3px solid var(--crimson);
-  border-radius: 14px; padding: 14px 15px; font-size: 14px; line-height: 1.48; color: var(--ink);
-}
-.dk-notice strong { display: block; margin-bottom: 4px; }
-/* the one primary action per screen — the RP conversion gradient */
-.dk-primary {
-  border: 0; background: var(--grad); color: #fff; font: inherit; font-weight: 750; min-height: 52px;
-  border-radius: var(--btn-r); padding: 0 18px; cursor: pointer; box-shadow: 0 4px 10px rgba(229, 80, 78, .18);
-}
-.dk-secondary {
-  border: 1px solid var(--ink); background: #fff; color: var(--ink); font: inherit; font-weight: 700;
-  min-height: 48px; border-radius: var(--btn-r); padding: 0 16px; cursor: pointer;
-}
-.dk-actions { display: grid; grid-template-columns: 1fr 1.35fr; gap: 10px; margin-top: 14px; }
-/* deal-type segmented control */
-.dk-seg { display: flex; border: 1px solid #dddddd; border-radius: 999px; padding: 4px; gap: 2px; background: #fff; overflow: auto; scrollbar-width: none; margin-bottom: 18px; }
-.dk-seg::-webkit-scrollbar { display: none; }
-.dk-seg button { border: 0; background: transparent; border-radius: 999px; padding: 10px 15px; white-space: nowrap; font: inherit; font-weight: 700; font-size: 13px; flex: 1; min-width: max-content; color: var(--ink); cursor: pointer; }
-.dk-seg button.active { background: var(--ink); color: #fff; }
-/* vehicle row */
-.dk-vehicle { display: grid; grid-template-columns: 92px 1fr; gap: 14px; align-items: center; margin-bottom: 18px; }
-.dk-vehicle-art { width: 92px; height: 76px; border-radius: 14px; display: grid; place-items: center; border: 1px solid #ebebeb; font-size: 34px; }
-.dk-vehicle h3 { font-size: 16px; margin: 0 0 5px; line-height: 1.25; color: var(--ink); }
-.dk-vehicle p { font-size: 12px; color: var(--muted); margin: 2px 0; line-height: 1.35; }
-/* the payment hero — .pay-hero and .amt stay for the fee harness */
-.dk-hero { border-radius: 24px; background: #fff; border: 1px solid #dddddd; padding: 22px 20px 20px; margin: 8px 0 18px; text-align: left; }
-.dk-hero .hero-top { font-size: 13px; color: var(--muted); font-weight: 600; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.dk-hero .amt { font-size: 44px; letter-spacing: -1.5px; line-height: 1; font-weight: 750; margin: 12px 0 8px; color: var(--ink); font-variant-numeric: tabular-nums; }
-.dk-hero .amt .unit { font-size: 16px; letter-spacing: 0; color: var(--muted); font-weight: 600; margin-left: 4px; }
-.dk-hero .sub { font-size: 15px; color: var(--muted); line-height: 1.45; }
-.dk-hero .acts { display: flex; gap: 10px; margin-top: 18px; }
-.dk-hero .acts button { flex: 1; }
-/* price rows */
-.dk-prices .row { display: flex; justify-content: space-between; gap: 20px; padding: 11px 0; border-top: 1px solid #ebebeb; font-size: 14px; }
-.dk-prices .row:first-child { border-top: 0; }
-.dk-prices .row span { color: var(--muted); }
-.dk-prices .row b { white-space: nowrap; color: var(--ink); font-variant-numeric: tabular-nums; }
-.dk-prices .row.total { font-size: 16px; border-top: 1px solid var(--ink); }
-.dk-prices .row.total span { color: var(--ink); }
-/* accordions */
-details.dk-acc { border-top: 1px solid #ebebeb; }
-details.dk-acc:first-child { border-top: 0; }
-details.dk-acc summary { list-style: none; min-height: 64px; display: flex; align-items: center; gap: 14px; font-weight: 700; cursor: pointer; padding: 0 2px; color: var(--ink); }
-details.dk-acc summary::-webkit-details-marker { display: none; }
-details.dk-acc summary::after { content: "＋"; font-size: 22px; font-weight: 400; color: var(--muted); margin-left: auto; }
-details.dk-acc[open] summary::after { content: "−"; }
-details.dk-acc summary .dk-accsum { margin-left: auto; margin-right: 6px; color: var(--muted); font-weight: 600; font-size: 13px; }
-details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
-.dk-accbody { padding: 2px 0 22px; }
-/* accessories as hairline rows */
-.dk-accessory { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 13px 0; border-top: 1px solid #ebebeb; }
-.dk-accessory:first-child { border-top: 0; }
-.dk-accessory label { display: flex; align-items: flex-start; gap: 12px; font-size: 14px; line-height: 1.3; color: var(--ink); cursor: pointer; }
-.dk-accessory input { width: 20px; height: 20px; accent-color: var(--ink); margin: 0; flex: none; }
-.dk-accessory b { font-size: 14px; white-space: nowrap; color: var(--ink); }
-.dk-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.dk-3col { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.dk-opt { border: 1px solid #dddddd; background: #fff; border-radius: var(--btn-r); min-height: 48px; font: inherit; font-weight: 700; font-size: 13px; color: var(--ink); cursor: pointer; }
-.dk-opt.active { background: var(--ink); border-color: var(--ink); color: #fff; }
-/* word track keeps its own warning tone — not one of the accent targets */
-.dk-wordtrack { background: #fff8f2; border-radius: 14px; padding: 16px; font-size: 14px; line-height: 1.55; color: var(--ink); }
-.dk-wordtrack .label { font-size: 11px; color: #b35a00; font-weight: 600; letter-spacing: .08em; margin-bottom: 7px; }
-.dk-wordtrack .stop { margin-top: 10px; color: #c13515; font-weight: 700; font-size: 13px; }
-/* the compare sheet */
-.dk-scrim { position: fixed; inset: 0; background: rgba(0, 0, 0, .42); z-index: 80; opacity: 0; pointer-events: none; transition: .18s ease; }
-.dk-scrim.show { opacity: 1; pointer-events: auto; }
-.dk-sheet {
-  position: fixed; left: 0; right: 0; bottom: 0; z-index: 81; background: #fff; border-radius: 24px 24px 0 0;
-  box-shadow: 0 -12px 32px rgba(0, 0, 0, .14); max-height: 90vh; overflow: auto;
-  transform: translateY(105%); visibility: hidden; /* keeps the closed sheet out of the tab order */
-  transition: transform .26s cubic-bezier(.2, .8, .2, 1), visibility 0s .26s;
-  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
-}
-.dk-sheet.show { transform: translateY(0); visibility: visible; transition: transform .26s cubic-bezier(.2, .8, .2, 1), visibility 0s 0s; }
-.dk-sheet-inner { max-width: 620px; margin: auto; padding: 10px 20px 24px; }
-.dk-handle { width: 42px; height: 5px; border-radius: 999px; background: #d0d0d0; margin: 0 auto 16px; }
-.dk-sheetbar { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 14px; }
-.dk-sheetbar h2 { font-size: 22px; margin: 0; letter-spacing: -.45px; color: var(--ink); }
-.dk-close { width: 40px; height: 40px; flex: none; border-radius: 50%; border: 0; background: #f7f7f7; font-size: 20px; display: grid; place-items: center; cursor: pointer; color: var(--ink); }
-.dk-cmpcard { border: 1px solid #dddddd; border-radius: 16px; padding: 18px; margin-top: 12px; text-align: left; }
-.dk-cmpcard h3 { margin: 0; font-size: 17px; color: var(--ink); }
-.dk-cmpcard .top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.dk-cmpcard .price { font-size: 28px; font-weight: 750; letter-spacing: -1px; margin: 12px 0; color: var(--ink); font-variant-numeric: tabular-nums; }
-.dk-badge { font-size: 11px; font-weight: 750; border: 1px solid #dddddd; border-radius: 999px; padding: 7px 10px; background: #f7f7f7; color: var(--ink); white-space: nowrap; }
-.dk-wide { width: 100%; margin-top: 14px; }
 
 /* credit gradient bar */
 .credit-bar { margin: 10px 0 4px; }
@@ -991,6 +835,8 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
 .prop-back-top { font-size: 2.7mm; font-weight: 600; letter-spacing: 1px; text-align: center; padding: 2.2mm 0 1.6mm; }
 .prop-barcode { display: block; width: 78mm; height: 18mm; margin: 0 auto; }
 .prop-fine { font-size: 2mm; color: #777; padding: 1.6mm 4mm 0; line-height: 1.55; }
+/* LS-037/039: a license that cannot take a test drive says so on the customer's record, in the kit's amber */
+.sc-lic-limit { color: var(--rp-amber); font-weight: 700; }
 
 /* ---------- training registrations (printable trade-in props) ----------
    Laid out like a New York registration document — the portrait card from the
@@ -1069,6 +915,27 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
   transform: rotate(-24deg); font-family: var(--font, inherit);
   font-size: 24mm; font-weight: 600; letter-spacing: 2mm; color: rgba(199, 62, 99, .32);
 }
+
+/* ---------- payoff-statement prop (the owner's payoff scanner, 2026-09-26) ----------
+   A lender's letter, drawn as a training prop: white paper, the lender's name
+   as its letterhead, the figures a payoff statement carries, and the portal's
+   own marker at its foot for the scanner to read. Millimetres, like the other
+   props, so it prints at a believable size. */
+.pay-card {
+  position: relative; width: 112mm; box-sizing: border-box; background: #fff;
+  border: 1px dashed #a9a6c9; border-radius: 2.5mm; padding: 5mm 6mm 4mm;
+  color: #1b1b33; flex: 0 0 auto; box-shadow: var(--shadow);
+  font-family: var(--font, inherit); font-size: 3.4mm; line-height: 1.35;
+}
+.pay-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 3mm; padding-bottom: 2.5mm; border-bottom: .5mm solid #1f3b63; }
+.pay-head b { font-family: Georgia, "Times New Roman", serif; font-size: 5.2mm; font-weight: 700; color: #1f3b63; }
+.pay-title { margin: 3.5mm 0 2.5mm; font-size: 4.4mm; font-weight: 800; letter-spacing: .02em; }
+.pay-lines > div, .pay-figures > div { display: flex; justify-content: space-between; gap: 4mm; padding: 1.1mm 0; }
+.pay-lines span, .pay-figures span { color: #55576b; }
+.pay-lines b { font-weight: 600; text-align: right; }
+.pay-figures { margin-top: 2.5mm; padding-top: 1.5mm; border-top: .3mm solid #c9c9d6; }
+.pay-figures b { font-size: 4.2mm; font-weight: 800; }
+.pay-legend { margin-top: 3mm; font-size: 2.4mm; letter-spacing: .08em; color: #8a8ca0; text-align: center; }
 
 /* ---------- deal jacket ----------
    Desktop splits outstanding from collected, because "what is still missing"
@@ -1177,14 +1044,11 @@ details.dk-acc[open] summary .dk-accsum { visibility: hidden; }
    a slot means adding it here, not restyling an SVG at the call site. */
 .dr-rowicon svg,
 .dr-sheetact__ico svg,
-.dk-chip svg,
 .scan-tip__icon svg {
   width: 21px; height: 21px; fill: none; stroke: currentColor;
   stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round;
 }
 .scan-tip__icon svg { width: 17px; height: 17px; }
-.dk-chip svg { width: 16px; height: 16px; }
-.dk-vehicle-art .m-carsvg { width: 74%; }
 .dr-rowsub { display: block; font-size: 13px; color: var(--muted); margin-top: 2px; }
 .dr-status { display: block; font-size: 12px; font-weight: 700; margin-top: 3px; }
 .dr-status--received { color: #8a6207; }
@@ -1454,9 +1318,6 @@ body[data-screen="clientlink"] { background: #fff; }
    takes it back, and the reason stays on the row above it either way */
 .sa-doc__status { display: flex; align-items: center; gap: 10px; margin: 10px 0 8px 48px; }
 .sa-doc__status .sa-act { min-height: 40px; }
-/* the honest note about the sort — above the dock, never under it (RP-UI-039) */
-.sa-note { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 1.5; color: var(--rp-muted); margin: 16px 0 12px; }
-.sa-note svg { width: 15px; height: 15px; flex: none; margin-top: 1px; }
 
 /* --- while the batch is being dealt onto the queue --- */
 .sa-sorting { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding-bottom: 40px; }
@@ -1472,6 +1333,63 @@ body[data-screen="clientlink"] { background: #fff; }
    gradient (owner, 2026-09-09 for Snap All and 2026-09-10 for the other two).
    Chrome rather than one screen's, since chDialog draws every one of them. */
 .ch-confirmcopy { font-size: 14px; line-height: 1.5; color: var(--rp-muted); margin: 8px 0 18px; }
+/* the scanner's Find customer manually sheet: its results land in #mnOut,
+   right under the gradient Search button, and the label heading them sat
+   inside the button's own glow, reading as part of the button (RP-UI-045).
+   The kit puts 16px before a section label that follows something only
+   inside .rp-stack; this sheet lays its parts out itself, so its results
+   take that same 16px here. The kit's classes are untouched. */
+#mnOut:not(:empty) { margin-top: 16px; }
+/* the vehicle card's MSRP beside its price is never struck out (W-039, the
+   owner's answer of 2026-09-24): a struck-out MSRP reads as a saving, and two
+   of the demo's cars sell above theirs. It keeps the small muted look the kit
+   gives the struck one; the kit's classes are untouched. */
+.rp-vehicle__msrp { font-size: 11px; color: var(--rp-muted); }
+/* ---- your kit's open gaps, answered on 2026-09-24 ----
+   The kit changes only on a picture you approve, and you approved these for
+   its next revision, so the app carries each here as the one rule its picture
+   drew; the kit's classes stay as they ship.
+   RP-UI-031 and RP-UI-050 (visuals/kit-gaps-proposal.png): five controls under
+   your 40px floor take the kit's own invisible hit area, as its role pill,
+   chips and sheet close have, and nothing seen changes — the wordmark (23px
+   tall), Jordan's date control (20px), the resolver's Search (36px), the
+   inventory sort (19px) and a segment's item (the training documents' tabs,
+   the pencil's deal type: 36px). The target is 40px tall, centred on the
+   control, whatever its own height. */
+.rp-wordmark, .rp-filter__control, .rp-button-navy, .rp-sort, .rp-segment__item { position: relative; }
+.rp-wordmark::before, .rp-filter__control::before, .rp-button-navy::before, .rp-sort::before, .rp-segment__item::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: max(40px, 100%); transform: translateY(-50%);
+}
+/* RP-UI-044: on a page, an unchosen option row takes the kit's surface and
+   separator, so it reads as a choice and not as loose text; inside a sheet it
+   stays as the kit draws it */
+.rp-page .rp-option:not(.rp-option--on) { background: var(--rp-surface); border-color: var(--rp-separator); }
+/* RP-UI-053: a chip that cannot be used takes the kit's own disabled look,
+   the primary button's */
+.rp-chip:disabled { opacity: .32; filter: grayscale(1); }
+/* W-033: error text in the kit's own darker red, #B3261E, already its error
+   heading's colour — 5.9:1 on the page and 6.5:1 on white, where the kit's
+   #E0392C gave its 11.5px text 3.9:1 and 4.4:1. The field's border keeps the
+   kit's red: a border needs 3:1, and has it */
+body .rp-field__err { color: #B3261E; }
+/* W-037 (visuals/signoff-gate-proposal.png): the labelled dock takes the band
+   the kit gives its action dock on a gated screen, so what rests under its top
+   edge no longer reads through its label; a screen with nothing under its dock
+   looks the same */
+.rp-screen .rp-signoff { background: linear-gradient(180deg, rgba(242, 242, 247, 0) 0%, var(--rp-canvas) 12%, var(--rp-canvas) 100%); }
+/* FP-014 (visuals/fi-kit-proposal.png, the F&I presentation): the mileage
+   slider. The kit has no range control; a native one in the kit's navy, 40px
+   tall to the touch (RP-UI-029), the track as the browser draws it */
+.rp-range { display: block; width: 100%; height: 40px; margin: 0; accent-color: var(--rp-navy); }
+/* the touch floor, 40px for every control (owner, 2026-08-31), on the app's
+   own search fields (RP-UI-029): the kit's search field is 46px tall, but
+   the input inside it is one line of text, 25px, so a tap on the field
+   above or below the text did nothing. Each of the app's search inputs now
+   fills its field's height. Nothing seen changes (the input draws no box of
+   its own, and its text stays in the middle), and the kit's classes are
+   untouched. The Buyers sheet's own search (#byQ) is the credit
+   application's lane, so it is left as it is. */
+#dealSearch, #obSearch, #vsSearch { align-self: stretch; }
 
 
 /* phone-only pieces, hidden above 720 */
@@ -1508,6 +1426,8 @@ body[data-screen="clientlink"] { background: #fff; }
   .reg-overprint span { color: rgba(0, 0, 0, .22); }
   .reg-sampletag { border-color: #000; color: #000; }
   .reg-legend { color: #000; }
+  .pay-card { box-shadow: none; border-color: #999; page-break-inside: avoid; break-inside: avoid; margin-bottom: 8mm; }
+  .pay-legend { color: #000; }
   /* the MV-82 boxes print pure black; the section-head tint may be dropped
      by the UA, so it never carries meaning — the border does */
   .mv-sec { border-color: #000; }
@@ -1648,9 +1568,6 @@ body[data-screen="clientlink"] { background: #fff; }
   .sig-box { font-size: 20px; padding: 10px 12px; min-height: 56px; }
   .pay-hero { padding: 14px 12px; }
   .pay-hero .amt { font-size: 28px; }
-  /* the desking hero is the star of its screen — the phone shrink is for the old navy hero only */
-  .dk-hero.pay-hero { padding: 22px 20px 20px; }
-  .dk-hero.pay-hero .amt { font-size: 44px; }
   .vcard .vprice { flex-wrap: wrap; }
 
   /* on-screen document previews — printed geometry is untouched */
@@ -1796,87 +1713,6 @@ body[data-canvas="kit"] .view { max-width: none; padding: 0; }
 
 /* filters sheet */
 
-.dk-cmpgrid { display: grid; gap: 14px; margin-top: 18px; }
-@media (min-width: 860px) {
-  body[data-canvas="master"] .dk-wrap--wide { max-width: 880px; }
-  body[data-canvas="master"] .dk-cmpgrid { grid-template-columns: 1fr 1fr; align-items: start; }
-}
-.dk-cmphead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.dk-cmphead b { font-size: 18px; font-weight: 740; letter-spacing: -.015em; }
-.dk-typerow { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
-/* always used together with .m-chip, whose min-height: 40px clamps it — a
-   height here is a declaration that can never apply */
-.dk-typechip { padding: 0 12px; font-size: 12px; }
-.dk-cmpcard .price .unit { font-size: 16px; font-weight: 750; }
-
-/* the desking system rides the master canvas: primary actions wear the
-   signature gradient (owner ruling 2026-08-27, outranking the package's
-   no-gradient default) and the notice tint follows the accent token */
-body[data-canvas="master"] .dk-primary,
-body[data-canvas="master"] .desk-sticky__go {
-  background: var(--grad); border-radius: 12px; min-height: 52px; font-weight: 750; font-size: 15px; box-shadow: none;
-}
-body[data-canvas="master"] .dk-primary:hover,
-body[data-canvas="master"] .desk-sticky__go:hover { filter: brightness(1.06); }
-body[data-canvas="master"] .dk-secondary { border-radius: 12px; min-height: 48px; }
-body[data-canvas="master"] .dk-notice { background: #FFF3ED; border-left-color: var(--accent); }
-body[data-canvas="master"] .dk-wrap { max-width: 430px; padding: 8px 20px 120px; }
-body[data-canvas="master"] .desk-sticky { padding-left: max(20px, calc((100% - 430px) / 2)); padding-right: max(20px, calc((100% - 430px) / 2)); }
-.desk-sticky__copy > .desk-sticky__sub { font-size: 12px; font-weight: 400; letter-spacing: 0; text-transform: none; color: var(--muted); margin-top: 2px; }
-
-/* ---- Base Payment Agreement (bp- family; owner's base-payment golden,
-   2026-08-27). Anatomy transcribed verbatim: summary card, party
-   surfaces, flat term rows, sign / signed panels, contextual action
-   rows, and the redesk-sheet extras. Colors ride the master tokens. */
-.bp-summary { border: 1px solid var(--line); border-radius: 24px; padding: 20px; background: #fff; }
-.bp-sumtop { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; }
-.bp-sumlabel { font-size: 13px; color: var(--muted); font-weight: 600; }
-.bp-payment { font-size: 42px; line-height: 1; letter-spacing: -.045em; font-weight: 650; margin-top: 7px; color: var(--ink); }
-.bp-paymeta { font-size: 14px; color: var(--muted); margin-top: 7px; }
-.bp-status { height: 32px; padding: 0 11px; border-radius: 999px; display: inline-flex; align-items: center; font-size: 12px; font-weight: 700; background: var(--surface); white-space: nowrap; }
-.bp-status--signed { background: #EDF7ED; color: #15651A; }
-.bp-divider { height: 1px; background: var(--line-soft); margin: 18px 0; }
-.bp-vehline { font-size: 15px; font-weight: 650; }
-.bp-vehmeta { font-size: 13px; color: var(--muted); margin-top: 5px; line-height: 1.4; }
-.bp-h2 { font-size: 18px; font-weight: 720; letter-spacing: -.02em; margin: 0 0 12px; color: var(--ink); }
-.bp-parties { display: grid; gap: 12px; }
-.bp-party { padding: 14px; background: var(--surface); border-radius: 16px; }
-.bp-pname { font-size: 14px; font-weight: 700; }
-.bp-pmeta { font-size: 12.5px; color: var(--muted); line-height: 1.5; margin-top: 5px; }
-.bp-terms { border-top: 1px solid var(--line); }
-.bp-trow { display: flex; justify-content: space-between; gap: 20px; padding: 14px 0; border-bottom: 1px solid var(--line-soft); font-size: 14px; line-height: 1.35; }
-.bp-trow span:first-child { color: var(--muted); }
-.bp-trow strong { text-align: right; font-weight: 650; }
-.bp-trow--total { font-size: 15px; }
-.bp-trow--pay { font-size: 16px; border-bottom: 0; padding-bottom: 4px; }
-.bp-trow--pay span:first-child { color: var(--ink); font-weight: 650; }
-.bp-trow--pay strong { font-weight: 750; }
-.bp-ack { font-size: 13px; line-height: 1.58; color: #444; margin: 0; }
-.bp-ack strong { color: var(--ink); }
-.bp-signpanel { border: 1px solid var(--line); border-radius: 20px; padding: 18px; background: #fff; }
-.bp-lab { display: block; font-size: 13px; font-weight: 650; margin-bottom: 8px; }
-.bp-nameinput { width: 100%; height: 50px; border: 1px solid #BDBDBD; border-radius: 12px; padding: 0 14px; font: inherit; font-size: 16px; outline: 0; background: #fff; color: var(--ink); }
-.bp-nameinput:focus { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-.bp-sigpreview { height: 72px; margin-top: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); display: flex; align-items: center; padding: 0 16px; color: #333; font-family: "Snell Roundhand", "Segoe Script", cursive; font-size: 28px; font-style: italic; }
-.bp-sighelp { font-size: 12px; color: var(--muted); line-height: 1.4; margin-top: 9px; }
-.bp-signed { border: 1px solid var(--line); border-radius: 20px; padding: 18px; }
-.bp-signedhead { display: flex; justify-content: space-between; gap: 14px; align-items: center; }
-.bp-check { width: 42px; height: 42px; border-radius: 50%; background: #EDF7ED; color: var(--success); display: grid; place-items: center; font-weight: 850; font-size: 20px; flex: none; }
-.bp-signedtitle { font-size: 16px; font-weight: 720; }
-.bp-signedtime { font-size: 12px; color: var(--muted); margin-top: 3px; }
-.bp-signedsig { margin-top: 16px; padding: 16px; border-radius: 12px; background: var(--surface); font-family: "Snell Roundhand", "Segoe Script", cursive; font-size: 28px; font-style: italic; }
-.bp-actions { border-top: 1px solid var(--line); margin-top: 14px; }
-.bp-actrow { width: 100%; min-height: 58px; border: 0; border-bottom: 1px solid var(--line-soft); background: #fff; display: flex; align-items: center; justify-content: space-between; gap: 14px; text-align: left; padding: 0 2px; cursor: pointer; font: inherit; color: var(--ink); text-decoration: none; }
-.bp-actcopy strong { display: block; font-size: 14px; }
-.bp-actcopy small { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
-.bp-chev { font-size: 20px; color: var(--muted); }
-.bp-sheetcopy { font-size: 14px; line-height: 1.5; color: var(--muted); margin: 10px 0 18px; }
-.bp-highlight { padding: 14px; background: var(--surface); border-radius: 16px; margin: 4px 0 18px; }
-.bp-highlight strong { display: block; font-size: 14px; }
-.bp-highlight span { display: block; font-size: 12px; color: var(--muted); margin-top: 4px; }
-.bp-sheetacts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.bp-danger { height: 48px; border: 1px solid var(--crimson); border-radius: 12px; background: #fff; color: var(--crimson); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; padding: 0 18px; }
-
 /* ---- F&I Product Presentation (mp- family; owner's presentation golden,
    2026-08-27). Anatomy transcribed verbatim: the product rail, the one
    product card, compare rows, the mileage card, inline actions, the
@@ -1938,11 +1774,13 @@ button.m-rolepill { font: inherit; cursor: pointer; }
    moved onto the UI kit with the owner's package v032 (2026-09-04), so its
    cards, dock, progress bar, validation grammar and approval hierarchy are the
    kit's classes now, and the 129 rules that drew them are gone. These five
-   survive because two other surfaces still use them: the customer's own
-   secure-upload session (#/idverify) borrows the white app column and the
-   eyebrow, and the Team Lead's date range on Home uses the field row, its
-   label and its input. A rule kept for a caller that no longer exists is dead
-   weight the next reader has to disprove. */
+   were kept for the surfaces outside it. On this line of work one caller is
+   left, the test log's text box (the input): the Team Lead's date range moved
+   onto the kit's own fields in phase 4u (W-046), and the customer's
+   secure-upload session no longer borrows the app column or the eyebrow. The
+   five stay because the lending lane's own branch still carries callers of
+   each; they go once it has merged and none is left. A rule kept for a caller
+   that no longer exists is dead weight the next reader has to disprove. */
 .ca-app { width: 100%; max-width: 720px; margin: 0 auto; min-height: 100vh; background: #fff; padding-bottom: 112px; }
 .ca-eyebrow { font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .02em; text-transform: uppercase; margin-bottom: 8px; }
 .ca-fieldrow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -2134,10 +1972,6 @@ body:not([data-canvas="kit"]) a:not([class]) { color: var(--blue); }
 @media (min-width: 431px) {
   body[data-canvas="master"] { background: #F5F5F5; }
   body[data-canvas="master"] .m-app { box-shadow: 0 0 0 1px rgba(0, 0, 0, .04); }
-  /* the desking family renders in .dk-wrap, not .m-app — it needs the same
-     white column the golden's .app keeps on the grey backdrop, or wide
-     phones show grey-on-grey surfaces (owner's phone, 2026-08-27) */
-  body[data-canvas="master"] .dk-wrap { background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .04); min-height: 100vh; }
 }
 
 /* ============================================================
@@ -2160,10 +1994,6 @@ body[data-canvas="master"] {
   --jk2-bad-bg: #FFF0ED;
 }
 body[data-canvas="master"] {
-  /* Discovery V2 keeps the package theme.css question surface — the one
-     dark presentation object on an otherwise light canvas */
-  --dv-surface: #1D194B;
-  --dv-accent: #FFB340;
   --fm-ok: #168A62;
   --fm-ok-bg: #EAF7F2;
   --fm-warn: #8A5A00;
@@ -2177,301 +2007,27 @@ body[data-canvas="master"] {
    package v034 (2026-09-04), so its stage pills, cards, status lists, package
    pills, product rows, withheld figure and dock are the kit's classes now, and
    the 80 rules that drew them are gone. The --fm-* status TOKENS above stay:
-   the print centre, discovery, the trade screen, the test drive and the
-   document viewer all read them, and they were never menu geometry.
+   the document viewer reads them (the print centre, discovery, the trade
+   screen and the test drive did too, and are kit screens now), and they
+   were never menu geometry.
    ---------- */
 
-/* ---------- Documents / Print Center V2 (owner's replication package,
-   2026-08-30) — a document utility, not a dashboard. Geometry transcribed
-   from the golden: 24px group containers with hairline dividers, 46px icon
-   wells at 14px radius, rows whose height is content-driven, and a preview
-   whose chrome is one compact toolbar so the paper is the primary object.
-
-   The old screen's standalone cards, its per-row "Preview & print" link and
-   its nine repeated "Ready" badges are all named acceptance failures in the
-   package; status now appears only on an exception. ---------- */
-.pc-main { padding: 22px 18px 36px; }
-.pc-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.pc-title { font-size: 32px; font-weight: 780; letter-spacing: -.7px; line-height: 1.06; margin: 6px 0 8px; }
-/* two quiet lines, never a row of chips (locked) */
-.pc-meta { margin: 8px 0 20px; }
-.pc-metaline { font-size: 14px; line-height: 1.45; color: var(--muted); }
-.pc-metaline strong { color: var(--ink); font-weight: 650; }
-
-/* the single dominant action — gradient per the owner's standing override,
-   where the golden draws flat black */
-.pc-hero { width: 100%; min-height: 56px; border: 0; border-radius: 16px; background: var(--grad); color: #fff; font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; margin-bottom: 24px; }
-
-.pc-sechead { display: flex; align-items: baseline; gap: 8px; margin: 22px 2px 8px; }
-.pc-sechead h2 { font-size: 19px; font-weight: 750; letter-spacing: -.3px; margin: 0; }
-.pc-count { font-size: 13px; color: var(--muted); }
-
-.pc-group { background: #fff; border: 1px solid var(--line); border-radius: 24px; overflow: hidden; }
-/* the whole row is the tap target; there is no secondary action inside it */
-.pc-row { display: grid; grid-template-columns: 46px minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 15px 16px; border-bottom: 1px solid var(--line-soft); text-decoration: none; color: inherit; min-height: 68px; }
-.pc-row:last-child { border-bottom: 0; }
-.pc-row:active { background: var(--surface); }
-.pc-icon { width: 46px; height: 46px; border-radius: 14px; background: var(--surface-2); display: grid; place-items: center; }
-.pc-icon svg { width: 22px; height: 22px; fill: none; stroke: var(--ink); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
-.pc-rowmain { min-width: 0; }
-.pc-rowtitle { display: block; font-size: 16px; font-weight: 700; line-height: 1.3; }
-.pc-rowmeta { display: block; font-size: 13px; color: var(--muted); margin-top: 3px; }
-.pc-rowright { display: flex; align-items: center; gap: 8px; }
-/* status is an exception, never a repeated "Ready" (locked) */
-.pc-flag { font-size: 12px; font-weight: 700; color: var(--fm-warn); background: var(--fm-warn-bg); border-radius: 999px; padding: 6px 9px; white-space: nowrap; }
-.pc-chev { font-size: 24px; line-height: 1; color: #999; padding-left: 6px; }
-.pc-empty { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 20px; font-size: 15px; line-height: 1.5; color: var(--muted); }
-
-.pc-actions { display: grid; gap: 10px; margin-top: 18px; }
-.pc-btn { min-height: 54px; border-radius: 16px; border: 1.5px solid var(--ink); background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 700; cursor: pointer; display: grid; place-items: center; text-decoration: none; }
-.pc-btn--primary { background: var(--grad); color: #fff; border-color: transparent; }
-
-/* the preview: one compact toolbar, and never a second dock repeating it */
-.pc-toolbar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: rgba(247, 247, 247, .97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--line-soft); }
-.pc-toolspacer { flex: 1; }
-.pc-back { font-size: 16px; font-weight: 700; color: var(--ink); text-decoration: none; padding: 12px 4px; min-height: 44px; display: inline-flex; align-items: center; }
-.pc-print { border: 0; background: none; font: inherit; font-size: 16px; font-weight: 700; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 12px 4px; min-height: 44px; }
-.pc-paperwrap { padding: 18px 14px 34px; }
-
+/* ---------- Documents / Print Center on the kit (phase 4a, 2026-09-23) ----------
+   Documents and its preview are kit screens. The owner's package (V2,
+   2026-08-30) still holds rule for rule — a document utility, not a
+   dashboard: two quiet context lines, one container per group, status only
+   as an exception, one dominant packet action, and a preview whose chrome is
+   one compact bar and one Print / PDF. What prints is the preview's print
+   root, beside the kit's screen: the screen is the viewport and hides its
+   overflow, so in print it is the screen that disappears — as the training
+   documents do. ---------- */
+.pc-printroot { display: none; }
 @media print {
-  .pc-toolbar { display: none !important; }
-  .pc-paperwrap { padding: 0; }
-}
-
-/* ---------- Discovery Session V2 (owner's replication package, 2026-08-31)
-   Customer-first: the screen shows the customer and the stage, and nothing
-   about a vehicle until one has actually been selected. Geometry from the
-   golden — a 58px shell, one 46px context row where three stacked rows used
-   to be (RP-UI-005), a 4px progress line, then the question on the dark
-   presentation surface the package keeps. ---------- */
-.dv-top { height: 58px; background: #fff; border-bottom: 1px solid #ececec; display: flex; align-items: center; gap: 10px; padding: 0 14px; position: sticky; top: 0; z-index: 20; }
-.dv-back { width: 44px; height: 44px; border: 0; background: transparent; border-radius: 50%; font-size: 28px; line-height: 1; color: var(--ink); cursor: pointer; }
-.dv-brand { font-size: 18px; font-weight: 800; letter-spacing: -.2px; }
-.dv-brand span { color: var(--accent); }
-.dv-spacer { flex: 1; }
-.dv-role { min-height: 40px; border: 1px solid #d5d5d5; background: #fff; border-radius: 999px; padding: 0 13px; font: inherit; font-weight: 700; color: var(--ink); cursor: pointer; }
-
-.dv-main { padding: 20px 16px 28px; }
-.dv-eyebrow { font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.dv-title { font-size: 30px; font-weight: 750; letter-spacing: -.6px; line-height: 1.06; margin: 5px 0 12px; }
-
-/* ONE row, replacing the deal line + Buyer + Jacket + Deals-list stack */
-.dv-context { min-height: 46px; border: 1px solid var(--line); background: #fff; border-radius: 16px; display: flex; align-items: center; gap: 8px; padding: 0 8px 0 14px; margin-bottom: 16px; }
-.dv-ctxmain { flex: 1; min-width: 0; min-height: 44px; border: 0; background: none; text-align: left; padding: 10px 0; font: inherit; color: var(--ink); cursor: pointer; display: flex; align-items: baseline; gap: 7px; }
-.dv-ctxmain strong { font-size: 14px; font-weight: 750; white-space: nowrap; }
-.dv-ctxmain span { font-size: 13px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-/* Package rule 5 asks for a 44px+ tap target; the golden's own CSS sets
-   .jacket to height:40px. Same answer as RP-UI-015: the visible chip keeps the
-   golden's geometry exactly, the anchor around it carries the touch floor. */
-.dv-jacket { min-height: 44px; display: inline-flex; align-items: center; text-decoration: none; flex: none; border-radius: 12px; }
-.dv-jacket__box { min-width: 46px; height: 40px; background: var(--surface-2); border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 5px; font-weight: 800; color: var(--ink); padding: 0 9px; }
-.dv-jacket:focus-visible { outline: none; }
-.dv-jacket:focus-visible .dv-jacket__box { outline: 2px solid var(--ink); outline-offset: 2px; }
-.dv-jacket svg { width: 17px; height: 17px; fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-
-.dv-progress { height: 4px; background: #e7e7e7; border-radius: 999px; overflow: hidden; margin: 0 0 18px; }
-.dv-progress > span { display: block; height: 100%; background: var(--grad); border-radius: 999px; transition: width .2s ease; }
-
-/* the approved dark presentation surface for the question itself */
-.dv-question { background: var(--dv-surface); color: #fff; border-radius: 24px; padding: 24px 20px 18px; box-shadow: var(--shadow-lg); }
-.dv-cats { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--dv-accent); line-height: 1.5; margin-bottom: 22px; }
-.dv-qtitle { font-size: 27px; line-height: 1.12; letter-spacing: -.4px; margin: 0 0 8px; }
-.dv-qhint { margin: 0 0 20px; font-size: 15px; line-height: 1.4; color: #d6d3ed; }
-.dv-answer { width: 100%; min-height: 120px; resize: vertical; border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff; border-radius: 16px; padding: 15px; font: inherit; font-size: 16px; line-height: 1.45; outline: none; }
-.dv-answer::placeholder { color: #aaa6c7; }
-.dv-answer:focus { border-color: rgba(255,255,255,.55); }
-.dv-autosave { display: flex; align-items: center; gap: 8px; margin-top: 13px; font-size: 12px; color: #aaa6c7; }
-.dv-autosave i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex: none; }
-.dv-qactions { display: flex; align-items: center; gap: 10px; margin-top: 18px; }
-.dv-grow { flex: 1; }
-.dv-secondary { min-height: 50px; border: 1px solid rgba(255,255,255,.75); background: #fff; color: var(--dv-surface); border-radius: 16px; padding: 0 18px; font: inherit; font-weight: 750; cursor: pointer; }
-.dv-primary { min-height: 50px; border: 0; background: var(--grad); color: #fff; border-radius: 16px; padding: 0 20px; font: inherit; font-weight: 800; cursor: pointer; box-shadow: 0 10px 24px rgba(255,56,92,.22); }
-
-/* Visit details — everything the old crumb row shouted, on demand */
-/* scoped to .m-sheet on purpose: the shared `.m-sheet h2` is (0,1,1) and
-   outranks a lone class, so an unscoped .dv-sheettitle silently loses its
-   size, margin and tracking — review-lessons pattern 15. */
-.m-sheet .dv-sheettitle { font-size: 24px; font-weight: 780; letter-spacing: -.4px; margin: 0 0 16px; }
-.dv-sheetsay { font-size: 15px; line-height: 1.5; color: var(--muted); margin: 0 0 4px; }
-.dv-seclab { font-size: 11px; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 22px 0 8px; }
-.dv-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--line-soft); }
-/* the co-buyer row is the sheet's one tappable row — the golden's linkrow */
-.dv-row--link { width: 100%; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; min-height: 48px; }
-.dv-row--link:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; border-radius: 8px; }
-.dv-chev { flex: none; font-size: 20px; color: var(--muted); line-height: 1; }
-.dv-rowmain { flex: 1; min-width: 0; }
-.dv-rowname { font-size: 16px; font-weight: 750; }
-.dv-rowsub { font-size: 14px; color: var(--muted); margin-top: 2px; }
-.dv-rowval { font-size: 15px; color: var(--muted); }
-.dv-rowval--strong { color: var(--ink); font-weight: 750; }
-.dv-status { flex: none; font-size: 12px; font-weight: 750; border-radius: 999px; padding: 7px 10px; color: var(--fm-ok); background: var(--fm-ok-bg); }
-.dv-status--scan { color: var(--ink); background: var(--surface-2); }
-.dv-status--wait { color: var(--fm-warn); background: var(--fm-warn-bg); }
-.dv-actions { display: grid; gap: 10px; margin-top: 18px; }
-.dv-sheetbtn { min-height: 52px; border-radius: 16px; border: 1.5px solid var(--ink); background: #fff; color: var(--ink); font: inherit; font-size: 16px; font-weight: 750; cursor: pointer; display: grid; place-items: center; text-decoration: none; }
-.dv-sheetbtn--primary { background: var(--grad); color: #fff; border-color: transparent; }
-
-@media (max-width: 390px) {
-  .dv-main { padding-left: 14px; padding-right: 14px; }
-  .dv-title { font-size: 28px; }
-  .dv-question { padding: 22px 18px 17px; }
-  .dv-qtitle { font-size: 25px; }
-}
-
-/* ============================================================
-   Trade-In Evaluation V2 (tv- family) — owner's replication package,
-   2026-09-01. Rides the master canvas; the header and the compact Deal
-   Context Bar reuse the dv- shell (same component, one definition). The
-   golden's geometry, the house tokens; the two standing owner overrides:
-   the signature gradient on primary actions, line icons over glyphs.
-   ============================================================ */
-body[data-screen="trade"] .m-app { padding-bottom: 104px; }
-.tv-main { padding: 18px 16px 8px; }
-
-.tv-card { background: #fff; border: 1px solid var(--line); border-radius: 24px; padding: 18px; margin: 14px 0; }
-.tv-cardtitle { font-size: 21px; margin: 0 0 2px; letter-spacing: -.2px; }
-.tv-cardsub { color: var(--muted); font-size: 14px; margin-bottom: 4px; }
-.tv-field { display: block; margin: 15px 0 0; }
-.tv-label { display: block; font-size: 13px; font-weight: 700; margin: 0 0 7px; color: var(--ink); }
-.tv-labnote { font-weight: 500; color: var(--muted); }
-.tv-input { width: 100%; border: 1px solid #d1d1d1; background: #fff; border-radius: 14px; padding: 12px 14px; min-height: 48px; font: inherit; font-size: 16px; color: var(--ink); }
-.tv-input:focus { outline: none; border-color: var(--ink); }
-.tv-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.tv-seg { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid #d5d5d5; border-radius: 14px; overflow: hidden; }
-.tv-seg button { border: 0; border-right: 1px solid #e7e7e7; background: #fff; min-height: 47px; padding: 0 4px; font: inherit; font-size: 13px; font-weight: 700; color: var(--ink); cursor: pointer; }
-.tv-seg button:last-child { border-right: 0; }
-.tv-seg button.on { background: var(--navy); color: #fff; }
-
-.tv-primary { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 54px; border: 0; border-radius: 16px; background: var(--grad); color: #fff; font: inherit; font-weight: 800; cursor: pointer; text-decoration: none; text-align: center; padding: 0 18px; margin-top: 16px; box-shadow: 0 10px 24px rgba(255,56,92,.22); }
-.tv-secondary { display: inline-flex; align-items: center; justify-content: center; width: 100%; min-height: 54px; border: 1px solid var(--navy); border-radius: 16px; background: #fff; color: var(--navy); font: inherit; font-weight: 750; cursor: pointer; margin-top: 14px; }
-.tv-link { border: 0; background: none; text-decoration: underline; text-underline-offset: 3px; min-height: 44px; padding: 8px 2px; font: inherit; font-weight: 650; color: var(--ink); cursor: pointer; }
-
-.tv-hero { background: var(--navy); color: #fff; border-radius: 22px; padding: 18px; margin: 16px 0 2px; }
-.tv-hero__lab { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: #b8b5d1; font-weight: 750; }
-.tv-hero__amt { font-size: 39px; font-weight: 750; letter-spacing: -.8px; margin: 4px 0; font-variant-numeric: tabular-nums; }
-.tv-hero__sub { color: #d7d5e8; font-size: 14px; }
-
-.tv-ownrow { display: flex; align-items: center; gap: 12px; padding: 12px 0 4px; }
-.tv-sicon { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; flex: none; }
-.tv-sicon--ok { background: var(--fm-ok-bg, #eaf7f2); color: var(--green); }
-.tv-sicon--need { background: #fff6e8; color: #9b5c00; }
-.tv-owncopy { flex: 1; min-width: 0; }
-.tv-owncopy b { display: block; font-size: 16px; }
-.tv-owncopy span { display: block; font-size: 12.5px; color: var(--muted); }
-.tv-badge { border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 750; white-space: nowrap; flex: none; }
-.tv-badge--warn { background: #fff6e8; color: #9b5c00; }
-.tv-badge--good { background: var(--fm-ok-bg, #eaf7f2); color: var(--green); }
-.tv-gaps { background: #fff6e8; border-radius: 18px; padding: 12px 14px; margin-top: 12px; }
-.tv-gapitem { display: flex; gap: 10px; padding: 8px 0; font-size: 14px; line-height: 1.35; }
-.tv-gapitem span { color: #9b5c00; font-weight: 800; flex: none; }
-.tv-formsnote { font-size: 12.5px; color: var(--muted); margin: 12px 0 0; line-height: 1.4; }
-
-.tv-dock { position: fixed; z-index: 15; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,.97); border-top: 1px solid #e6e6e6; padding: 10px 16px calc(10px + env(safe-area-inset-bottom)); display: flex; align-items: center; gap: 12px; }
-.tv-dockmeta { flex: 1; min-width: 0; }
-.tv-dockmeta span { display: block; font-size: 12px; color: var(--muted); }
-.tv-dockmeta b { display: block; font-size: 17px; font-weight: 750; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tv-dock .tv-dockgo { width: auto; min-width: 178px; margin-top: 0; flex: none; }
-
-/* scoped under .m-sheet on purpose: the shared `.m-sheet h2` is (0,1,1)
-   and outranks a lone class — review-lessons pattern 15, caught on the
-   dv- family by review and not repeated here. */
-.m-sheet .tv-sheettitle { font-size: 24px; font-weight: 780; letter-spacing: -.4px; margin: 0 0 8px; }
-.tv-choice { padding: 13px 0; border-bottom: 1px solid #eee; }
-.tv-choice:last-of-type { border-bottom: 0; }
-.tv-choicelabel { font-weight: 700; margin-bottom: 8px; font-size: 15px; }
-.tv-tri { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
-.tv-tri button { border: 1px solid #d6d6d6; background: #fff; border-radius: 12px; min-height: 44px; font: inherit; font-size: 14px; font-weight: 700; color: var(--ink); cursor: pointer; }
-.tv-tri button.on { background: var(--navy); color: #fff; border-color: var(--navy); }
-.tv-detlab { font-size: 12px; color: var(--muted); }
-.tv-detval { font-weight: 700; font-size: 16px; margin-top: 2px; }
-.tv-sheetactions { display: grid; gap: 9px; margin-top: 18px; }
-.tv-sheetactions .tv-primary, .tv-sheetactions .tv-secondary { margin-top: 0; }
-
-@media (max-width: 390px) {
-  .tv-main { padding-left: 14px; padding-right: 14px; }
-  .tv-grid2 { grid-template-columns: 1fr; gap: 0; }
-  .tv-dock .tv-dockgo { min-width: 150px; }
-}
-.tv-link--quiet { display: block; margin: 2px auto 0; color: var(--muted); }
-
-/* ============================================================
-   Test Drive Agreement V2 (td- family) — owner's replication package,
-   2026-09-01. Rides the master canvas; the header and Deal Context Bar are
-   the dv- shell, the card, dock, inputs and sheet actions are the tv-
-   components (same component, one definition). What is new here is the
-   operational row, the terms summary, the callout, the active-session
-   card, the signing pieces and the completion mark — the golden's
-   geometry, the house tokens, and the two standing owner overrides: the
-   signature gradient on primary actions, line icons over glyphs.
-   ============================================================ */
-body[data-screen="testdrive"] .m-app { padding-bottom: 104px; }
-body[data-screen="testdrive"] .m-app.td-nodock { padding-bottom: 40px; }
-.td-list { padding: 0; overflow: hidden; }
-.td-list--sheet { margin: 0 0 4px; }
-.td-row { min-height: 68px; padding: 13px 16px; display: flex; align-items: center; gap: 12px; border-top: 1px solid #ececec; }
-.td-row:first-child { border-top: 0; }
-.td-row--go { width: 100%; border: 0; border-top: 1px solid #ececec; background: #fff; font: inherit; text-align: left; color: var(--ink); cursor: pointer; }
-.td-row--go:first-child { border-top: 0; }
-.td-row--flat { padding-left: 4px; padding-right: 4px; min-height: 56px; }
-.td-rowicon { width: 38px; height: 38px; border-radius: 12px; background: var(--surface-2); display: grid; place-items: center; flex: none; }
-.td-rowicon svg { width: 20px; height: 20px; fill: none; stroke: var(--ink); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
-.td-rowmain { min-width: 0; flex: 1; }
-.td-rowtitle { font-size: 15px; font-weight: 650; }
-.td-rowmeta { font-size: 13px; color: var(--muted); margin-top: 3px; }
-.td-status { font-size: 12px; font-weight: 700; padding: 7px 9px; border-radius: 999px; white-space: nowrap; flex: none; }
-.td-status--ok { color: var(--green); background: var(--fm-ok-bg, #eaf7f2); }
-.td-status--warn { color: #9b5c00; background: #fff6e8; }
-.td-link { border: 0; background: none; padding: 8px 2px; min-height: 40px; display: inline-flex; align-items: center; font: inherit; font-weight: 650; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; flex: none; }
-.td-link--wide { width: 100%; justify-content: center; margin-top: 6px; }
-.td-chev { flex: none; font-size: 22px; color: var(--muted); line-height: 1; }
-.td-cardtitle { font-size: 16px; font-weight: 700; margin: 0 0 4px; }
-.td-cardsub { font-size: 13px; color: var(--muted); line-height: 1.4; margin: 0; }
-.td-summary { display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; margin-top: 16px; font-size: 14px; }
-.td-summary .k { color: var(--muted); }
-.td-summary .v { text-align: right; font-weight: 650; }
-.td-callout { padding: 14px 15px; border-radius: 16px; background: var(--surface-2); margin-top: 14px; font-size: 13px; line-height: 1.45; color: var(--muted); }
-.td-callout strong { color: var(--ink); }
-
-/* the active session */
-.td-session { margin-top: 14px; background: #fff; border: 1px solid var(--line); border-radius: 28px; padding: 26px 20px; text-align: center; }
-.td-live { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; border-radius: 999px; background: var(--fm-ok-bg, #eaf7f2); color: var(--green); font-size: 13px; font-weight: 700; }
-.td-live i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); }
-.td-art { width: 112px; height: 82px; border-radius: 22px; background: #eef4f9; margin: 28px auto 18px; display: grid; place-items: center; }
-.td-art .m-carsvg { width: 86px; }
-.td-herovehicle { font-size: 21px; font-weight: 720; }
-.td-meta { font-size: 14px; color: var(--muted); line-height: 1.5; }
-.td-timer { font-size: 46px; letter-spacing: -1.5px; font-weight: 680; margin: 14px 0 4px; font-variant-numeric: tabular-nums; }
-
-/* signing */
-.m-sheet .td-sheettitle { margin: 0; }
-.td-sheetsub { font-size: 14px; color: var(--muted); line-height: 1.45; margin: -8px 0 14px; }
-.td-terms { font-size: 13px; line-height: 1.5; color: #555; background: var(--surface-2); border-radius: 18px; padding: 14px; margin-top: 4px; }
-.td-terms strong { color: var(--ink); }
-.td-terms p { margin: 6px 0 0; }
-.td-terms ol { padding-left: 20px; margin: 8px 0 0; }
-.td-terms li { margin: 8px 0; }
-.td-check { display: flex; align-items: flex-start; gap: 10px; margin: 15px 0; cursor: pointer; }
-.td-check input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--ink); }
-.td-check span { font-size: 14px; line-height: 1.4; padding-top: 2px; }
-.td-sig { height: 180px; border: 1px dashed #bbb; border-radius: 18px; background: #fafafa; display: flex; align-items: center; justify-content: center; margin: 8px 0 14px; }
-.td-sigline { font-family: "Segoe Script", "Bradley Hand", cursive; font-size: 34px; transform: rotate(-3deg); color: var(--navy-2); }
-
-/* completion */
-.td-doneicon { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: var(--fm-ok-bg, #eaf7f2); margin: 28px auto 18px; }
-.td-doneicon svg { width: 38px; height: 38px; fill: none; stroke: var(--green); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.td-center { text-align: center; }
-.td-list--done { margin-top: 26px; }
-.td-list .td-status, .td-list .td-link { margin-left: auto; }
-
-@media (max-width: 390px) {
-  .td-row { padding-left: 14px; padding-right: 14px; }
-  .td-timer { font-size: 42px; }
-}
-
-/* on a wide screen the fixed dock hugs the 430px column it belongs to
-   instead of stretching across the viewport (shared by the trade screen) */
-@media (min-width: 720px) {
-  .tv-dock { left: 50%; right: auto; width: min(430px, 100%); transform: translateX(-50%); border-left: 1px solid #ececec; border-right: 1px solid #ececec; }
+  body[data-screen="printpreview"] .rp-screen { display: none !important; }
+  body[data-screen="printpreview"] .pc-printroot { display: block !important; }
+  /* the label's floor is the phone's; on paper the rows keep the grid they always printed with, so what
+     prints is unchanged, page breaks included (CodeRabbit on #152) */
+  .lines li { grid-template-columns: minmax(0, 1fr) minmax(0, auto); }
 }
 
 /* ============================================================
@@ -2493,7 +2049,7 @@ body[data-screen="testdrive"] .m-app.td-nodock { padding-bottom: 40px; }
    document's own width in mm; the wrapper's height follows the scale so no
    space is left under it. */
 .tdoc-preview { background: #fafafa; border-radius: 20px; padding: 14px; margin: 0; overflow: hidden; }
-.tdoc-preview .prop-card, .tdoc-preview .reg-card {
+.tdoc-preview .prop-card, .tdoc-preview .reg-card, .tdoc-preview .pay-card {
   transform-origin: top left;
   transform: scale(var(--tdoc-scale, 1));
   margin-bottom: 0;
@@ -2509,7 +2065,7 @@ body[data-screen="testdrive"] .m-app.td-nodock { padding-bottom: 40px; }
   .tdoc-page { page-break-after: always; break-after: page; }
   .tdoc-page:last-child { page-break-after: auto; break-after: auto; }
   .tdoc-page .prop-card { page-break-inside: avoid; break-inside: avoid; margin-bottom: 6mm; }
-  .tdoc-page .reg-card { page-break-inside: avoid; break-inside: avoid; }
+  .tdoc-page .reg-card, .tdoc-page .pay-card { page-break-inside: avoid; break-inside: avoid; }
 }
 
 /* ============================================================
@@ -2632,7 +2188,9 @@ body:not([data-canvas="kit"]) { font-family: var(--app-font); font-feature-setti
 .customer-upload-open { text-align: inherit; min-height: 40px; }
 
 /* the send-link sheet's helper toggle (OB-047): a plain checkbox row in the field's rhythm */
-.ob-helperrow { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 1.35; cursor: pointer; }
+/* min-height: the row is the checkbox's target, and its two lines of text
+   came to 38px, under the 40px floor (RP-UI-029) */
+.ob-helperrow { display: flex; align-items: center; gap: 10px; font-size: 14px; line-height: 1.35; cursor: pointer; min-height: 40px; }
 .ob-helperrow input { width: 20px; height: 20px; margin: 0; flex: none; }
 
 /* the test log's read-only field (touchlog.js): the whole log, monospace, select-all-copy */

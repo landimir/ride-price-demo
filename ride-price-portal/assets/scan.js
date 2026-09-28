@@ -16,10 +16,20 @@ const RIDE_PRICE_SCAN = (function () {
 
   const payloadFor = (id) => ((id & 0xF) << 4) | ((id ^ 0xF) & 0xF);
 
+  /* LS-039 (the owner's answer of 2026-09-24, B): a license from outside the US carries its own barcode, which
+     this reader cannot read. The Ontario training prop prints this marker where a US prop prints its number, so
+     the reader can say why it read nothing */
+  const NOT_US = 15;
   function idFromPayload(p) {
     const hi = (p >> 4) & 0xF, lo = p & 0xF;
     if (lo !== ((hi ^ 0xF) & 0xF)) return 0;
-    return (hi >= 1 && hi <= 5) ? hi : 0;
+    if (hi === NOT_US) return NOT_US;
+    /* the prop whose barcode carries this code (LS-037/039 added 6 to 8; a prop's code is its number unless
+       data.js gives it another, so no card's code reads backwards as another card's) */
+    const known = typeof RIDE_PRICE_DATA !== "undefined" && RIDE_PRICE_DATA.licenseProps;
+    if (!known) return hi >= 1 && hi <= 5 ? hi : 0;
+    const prop = known.find((x) => (x.code || x.prop) === hi && x.kind !== "foreign");
+    return prop ? prop.prop : 0;
   }
 
   function runWidths(id) {
@@ -251,6 +261,7 @@ const RIDE_PRICE_SCAN = (function () {
       }
       if (found.size === 1) {
         const id = found.values().next().value;
+        if (id === NOT_US) return { ok: false, reason: "not-us" };
         return { ok: true, prop: id, persona: personaFor(id) };
       }
     } catch (e) {
@@ -265,5 +276,5 @@ const RIDE_PRICE_SCAN = (function () {
     return RIDE_PRICE_DATA.licenseProps.find(p => p.prop === id) || null;
   }
 
-  return { barcodeSVG, recognizeFile, personaFor, validateImage, previewFile };
+  return { barcodeSVG, recognizeFile, personaFor, validateImage, previewFile, NOT_US };
 })();

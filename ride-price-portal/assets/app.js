@@ -24,22 +24,23 @@ const Store = (function () {
 
   /* the funded contract in the seed (chrome rule v022): Priya Patel, a 2023
      Kia Telluride the catalog does not stock — the deal's own vehicle
-     snapshot carries it. Complete, finalized, dated Aug 14, so it appears
-     only behind the Team Lead's date control with funded included. */
+     snapshot carries it. Complete, finalized, funded 15 days before today
+     (KA-031: RIDE_PRICE_DATA.seedFundedAt), so it appears only behind the Team
+     Lead's date control with funded included, and "Last 30 days" always holds it. */
   function seedFundedDeal() {
     return {
       id: "d-demo2", dealNo: 48044, customerId: "c-demo3", stock: null, dealType: "finance",
       vehicle: { vin: "5XYP3DHC4PG312907", stock: "7K11842", year: 2023, make: "Kia", model: "Telluride" },
       /* the Team Lead handled it, so the advisor's own list never shows it —
          the seed says it is visible only behind the date control */
-      stage: "complete", createdAt: "2026-08-14T15:05:00Z", advisor: RIDE_PRICE_DATA.dealership.teamLead,
+      stage: "complete", createdAt: RIDE_PRICE_DATA.seedFundedAt, advisor: RIDE_PRICE_DATA.dealership.teamLead,
       discovery: { answers: {}, done: true }, testDrive: { done: true }, huddle: { done: true },
       /* the same trade literal startVisit builds, and deliberately byte-identical
          to it: two constructors that disagree split the demo into two shapes.
          No `payoff` — the note at startVisit says why. */
       trade: { has: false, value: 0, rebates: 0, applyTaxCredit: true },
       desk: { term: 72, apr: 4.9, downPayment: 2500, leaseTerm: 36, milesPerYear: 12000, leaseFactor: 0.0015, dueAtSigning: 2500, accessories: [], daysToFirst: 45 },
-      basePayment: null, creditApp: { approved: true, lender: "US Bank" },
+      basePayment: null, creditApp: { approved: true, lender: "Ride Price Financial" },
       menu: { step: 4, barsDone: [1, 2, 3, 4], custom: [], customSource: null, selectedProgram: null, initials: "PP", ackSigned: true },
       forms: { selected: [], finalized: true },
       /* a contract does not fund with an empty jacket. Every document
@@ -54,7 +55,7 @@ const Store = (function () {
     };
   }
   function fundedJacketDocs() {
-    const at = "2026-08-14T15:05:00Z", by = RIDE_PRICE_DATA.dealership.teamLead;
+    const at = RIDE_PRICE_DATA.seedFundedAt, by = RIDE_PRICE_DATA.dealership.teamLead;
     const out = {};
     /* a funded contract's jacket holds everything that shape of deal needs,
        the lending lane's own records included: it was approved and delivered,
@@ -74,7 +75,7 @@ const Store = (function () {
      Team Lead when it funded (LS-116 per-buyer receipt, revision 1). No
      photos — the record is the demo's history, not an image of anyone. */
   function fundedLicenseReceipt() {
-    const at = "2026-08-14T15:05:00Z", by = RIDE_PRICE_DATA.dealership.teamLead;
+    const at = RIDE_PRICE_DATA.seedFundedAt, by = RIDE_PRICE_DATA.dealership.teamLead;
     const side = { receivedAt: at, via: "advisor" };
     return { "form-license": { state: "accepted", buyers: { "c-demo3": {
       customerId: "c-demo3", state: "accepted", receiptRevision: 1, receivedAt: at, acceptedAt: at, pages: 2,
@@ -108,14 +109,14 @@ const Store = (function () {
          demo data left Home empty until a reload (W-001) */
       advisor: RIDE_PRICE_DATA.dealership.advisor,
       /* SEED-DATA v022: John is in the showroom, arrived 11:38 today — presence
-         is this stamp, his deal stays Desking */
+         is this stamp, John's deal stays Desking */
       visit: { arrivedAt: seedArrival() },
       discovery: { answers: { week: "Daily commute to Midtown, weekend trips upstate.", family: "Two kids, one dog." }, done: true },
       testDrive: { done: true, completedMiles: 12 },
       /* the trade is the vehicle on John's registration prop (training pair
          01): a 2016 Toyota RAV4, VIN 4T1TRAININGSAMP01. The seed's own
-         reasoning — the registration he hands over as proof of ownership has
-         to name the car he is trading, which v021's Tucson did not.
+         reasoning — the registration John hands over as proof of ownership has
+         to name the car being traded, which v021's Tucson did not.
          There is deliberately NO `year` key, dropped 2026-09-09 together with
          the load() migration that used to stamp one. The description already
          says 2016 and `descYear` reads it back on every render, so a stored
@@ -128,8 +129,8 @@ const Store = (function () {
          `value` and `payoff` stay as literals for the reason the year cannot:
          nothing can re-derive them. They are the demo's equity story — $4,750
          of it — and NOT this formula's answer for a 2016 at 61,200 miles,
-         which is $5,650; evaluating the untouched seed re-prices it, as the
-         VIN migration in load() also notes. The
+         which is $5,650. Evaluating the untouched seed keeps it: only a
+         changed year, mileage or condition prices the trade again (W-038). The
          ownership answers are read from the documents on file (§13b): the
          title is in hand with one lien recorded, the vehicle is not paid off,
          and the payoff statement expired 01/01/2025 — one gap, the only one. */
@@ -139,9 +140,9 @@ const Store = (function () {
         ownership: seedTradeOwnership(), ownershipReviewedAt: "2026-09-04T13:40:00Z"
       },
       /* the huddle is still to be run — the advisor confirms it — but the two
-         things the customer already said are on the record, in his own words,
+         things the customer already said are on the record, in John's own words,
          because the desking screens read them back: the trial close is quoted
-         when presenting, and the payment he named picks the recommended cell */
+         when presenting, and the payment John named picks the recommended cell */
       huddle: { done: false, trialClose: "If the numbers make sense, we'd take it today.", namedPayment: "Around $700 a month" },
       desk: { term: 60, apr: 3.5, downPayment: 1000, leaseTerm: 36, milesPerYear: 12000, leaseFactor: 0.00117, dueAtSigning: 1000, accessories: ["mats", "tint"], daysToFirst: 45 },
       basePayment: null, creditApp: null,
@@ -153,10 +154,11 @@ const Store = (function () {
   }
 
   /* the answers the trade documents produce, in the app's own tri-state terms:
-     title in hand, one lien on it (Harbor Auto Finance), not paid off, a payoff
+     title in hand, one lien on it (Ride Price Auto Finance), not paid off, a payoff
      statement on file that expired 01/01/2025, and the customer is the titled
      owner. tradeOwnershipGaps() reads exactly one gap out of this — the expired
-     payoff — which is what the seed says Team Lead sign-off is waiting on. */
+     payoff. The seed made it the Team Lead's; the owner ruled a payoff is
+     editable (2026-09-26, KA-001), so it is the advisor's to update. */
   function seedTradeOwnership() {
     return {
       titleInHand: true, lienOnTitle: true, paidOff: false,
@@ -167,7 +169,7 @@ const Store = (function () {
   /* stamped this morning so the records read like today's work, and recorded
      by hand — nothing in the seed was ever scanned or machine-checked */
   /* The license front was captured in the Customer Resolver at 11:41, three
-     minutes after he arrived — this visit, not a historical profile scan. The
+     minutes after John arrived — this visit, not a historical profile scan. The
      row therefore reads "Back needed" and never a bare "Needed", which would
      send the advisor to ask for a document the store already holds (§19a).
 
@@ -261,7 +263,7 @@ const Store = (function () {
       demo.trade.vin = "KM8TRAININGSAMP06"; minted = true;
     }
     /* the seed trade became the vehicle on John's registration prop on
-       2026-09-04 — a 2016 Toyota RAV4 — because the registration he hands
+       2026-09-04 — a 2016 Toyota RAV4 — because the registration John hands
        over as proof of ownership names that car and the old Tucson matched no
        prop. Only a trade that is still the untouched seed Tucson is rewritten
        (identity, not appraisal: desc, VIN and mileage together), so a trade
@@ -397,7 +399,7 @@ const Store = (function () {
       if (src) { state.customers.push(Object.assign({}, src)); minted = true; }
     }
     /* the scan-license package (seed v023) put Marcus Alvarez in the CRM
-       before any scan — the profile his secure link created — and moved
+       before any scan — the profile Marcus's secure link created — and moved
        Cheri to Grand Army Plaza. Same guards as above: the record by id, and
        the address only while it is still the old seed value, because an
        address somebody changed is theirs. */
@@ -409,10 +411,22 @@ const Store = (function () {
       const src = RIDE_PRICE_DATA.seedCustomers.find(x => x.id === "c-demo2");
       if (src) { Object.assign(seedC, { address: src.address, city: src.city, state: src.state, zip: src.zip }); minted = true; }
     }
-    if (minted) save();
+    /* a refused save while loading no longer stops the app opening: the page
+       draws, and says the phone did not save (phase 2). Only the phone's own
+       refusal is that (the names isStorageError reads, defined further down);
+       any other error keeps its own path. */
+    if (minted) {
+      loadError = null;
+      try { save(); }
+      catch (e) { if (e && (e.name === "QuotaExceededError" || e.name === "SecurityError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED")) loadError = e; else throw e; }
+    }
     return state;
   }
+  let loadError = null;   /* a save the phone refused while loading (phase 2) */
   function save() {
+    /* the tester's switch "Saving on this phone · Failing" refuses here, with
+       the error a full phone raises (phase 2) */
+    if (typeof RIDE_PRICE_SERVICES !== "undefined") RIDE_PRICE_SERVICES.checkSave();
     // Preserve drafts an unrelated stale tab has not edited. This is a local
     // read/merge/write safeguard, not a cross-process atomic transaction.
     const raw = localStorage.getItem(KEY);
@@ -446,11 +460,15 @@ const Store = (function () {
     /* announced only after the write succeeded; a route holding a dirty draft retires it */
     window.dispatchEvent(new Event("ride-price:store-saved"));
   }
-  function reset() { localStorage.removeItem(KEY); state = fresh(); draftBase = {}; malformedAtLoad = null; save(); }
+  /* Reset demo data sets the tester's switches back to normal too (phase 2) */
+  /* said first, before the switches go back to normal: a photo kept for a deal about to be replaced is dropped
+     before the keeper can wake and file it into that deal (W-096) */
+  function reset() { window.dispatchEvent(new Event("ride-price:reset")); if (typeof RIDE_PRICE_SERVICES !== "undefined") RIDE_PRICE_SERVICES.reset(); localStorage.removeItem(KEY); state = fresh(); draftBase = {}; malformedAtLoad = null; save(); }
 
   return {
     load, save, reset, mintDealNo,
     get s() { return state; },
+    get loadError() { return loadError; },
     customer(id) { return state.customers.find(c => c.id === id); },
     deal(id) { return state.deals.find(d => d.id === id); },
     vehicle(stock) { return RIDE_PRICE_DATA.inventory.find(v => v.stock === stock); }
@@ -480,6 +498,14 @@ const dateISO = (us) => {
 };
 const uid = (p) => p + "-" + Math.random().toString(36).slice(2, 9);
 const money = RIDE_PRICE_CALC.money, money0 = RIDE_PRICE_CALC.money0;
+/* a deal's taxes and fees, alike wherever a total sits over the rows it names: the store's fees and the sales
+   tax, and a lease's acquisition fee, which is in the lease's price. The disposition fee is charged at lease end
+   and is not counted (CodeRabbit on #163). Finance and cash results carry no acquisition fee. */
+/* the charges a deal carries once: a purchase's fees and its sales tax; a lease's fees and its acquisition fee, which
+   are in its price. A lease's tax is paid with each payment, so one month of it is never added to charges paid once:
+   the figure then meant nothing (MR-12, Desking's DK-025). feesAndTaxLine says a lease's tax a month beside it. */
+const feesAndTax = (r) => (r.fees || 0) + (r.acquisitionFee != null ? r.acquisitionFee : ((r.taxes && r.taxes.total) || 0));
+const feesAndTaxLine = (r) => money(feesAndTax(r)) + (r.acquisitionFee != null ? ` + ${money((r.taxes && r.taxes.total) || 0)} / mo` : "");
 const today = () => new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
 let toastTimer;
@@ -489,12 +515,15 @@ function toast(msg) {
   t.textContent = msg;
   /* a bar pinned to the bottom of a phone is where the user just tapped — a
      toast there would cover the button, and an instruction covering the
-     button it is about is no instruction (owner, 2026-09-08). Four surfaces
+     button it is about is no instruction (owner, 2026-09-08). Three surfaces
      are measured: a dialog's pinned foot, the customer upload page's sticky
-     action bar (owner prototype, 2026-08-26), the Base Payment Agreement's
-     sticky bar (`.desk-sticky`, named for the route it used to live on), and
-     the Master Replication dock. Measured, not assumed: a bar sitting short
-     of the bottom, or none at all, keeps the CSS default.
+     action bar (owner prototype, 2026-08-26), and the kit's labelled dock on
+     the Test Drive and the Trade-In (phases 4b and 4c; it replaced the Master
+     Replication dock, `.tv-dock`, which no screen draws now). The Base Payment
+     Agreement's sticky bar (`.desk-sticky`) went when the agreement moved onto
+     the kit (the #158 picture), and the agreement says nothing in a toast.
+     Measured, not assumed: a bar sitting short of the bottom, or none at all,
+     keeps the CSS default.
 
      2026-09-09 — this comment promised "the lowest one wins" while the code
      was a || chain that stopped at the FIRST selector to match anything at
@@ -529,7 +558,7 @@ function toast(msg) {
   const place = () => {
     // Scanner recovery must leave both camera and gallery actions unobstructed.
     // Include the converted document viewer; other kit docks keep their existing behavior.
-    const tops = [$("#modalBack .modal__foot"), $(".dr-clientbottom"), $(".desk-sticky"), $(".tv-dock"), $("#scanBody .rp-dock"), ["docreview", "clientlink"].includes(document.body.dataset.screen) ? $("#view .rp-dock") : null]
+    const tops = [$("#modalBack .modal__foot"), $(".dr-clientbottom"), $("#scanBody .rp-dock"), ["testdrive", "trade"].includes(document.body.dataset.screen) ? $("#view .rp-signoff") : null, ["docreview", "clientlink"].includes(document.body.dataset.screen) ? $("#view .rp-dock") : null]
       .filter(Boolean).map(el => el.getBoundingClientRect())
       .filter(r => r.bottom > window.innerHeight - 80)
       .map(r => r.top);
@@ -627,6 +656,26 @@ function markMissing(root, bad) {
   return bad.length;
 }
 
+/* the same marks on the owner's kit (W-044): markMissing's line is styled only
+   inside the old portal's label.f, so on a kit field it read as plain body
+   text under a crimson border painted inline over the kit's own. A miss on a
+   kit field (rp-field) takes the kit's error as its components show it: the
+   line rp-field__err, the field rp-field--error, and the kit's danger border
+   with no inline colour over it. The scanner did this for its own fields
+   since phase 3d; it is every kit form's helper since phase 4u. */
+function kitMissing(root, bad) {
+  const n = markMissing(root, bad);
+  $$(".rp-field--error", root).forEach(field => field.classList.remove("rp-field--error"));
+  $$(".f-err", root).forEach(line => {
+    line.classList.add("rp-field__err"); line.style.display = "block";
+    const field = line.closest(".rp-field"); if (!field) return;
+    field.classList.add("rp-field--error");
+    const input = line.previousElementSibling;
+    if (input && input.classList.contains("rp-field__input")) input.style.borderColor = "";
+  });
+  return n;
+}
+
 /* the customer record's required set — ONE place for Create Customer and the
    license-scan verify form: first & last name, email AND phone (both
    required — owner rule 2026-08-23), address & ZIP. Field ids are
@@ -669,6 +718,7 @@ function initialsModal(programLabel, onAccept) {
 }
 
 const DEAL_TYPES = { finance: "Finance", lease: "Lease", cash: "Cash", onepay: "One Pay" };
+const TYPE_AS = { finance: "a finance deal", lease: "a lease", cash: "a cash deal", onepay: "One Pay" };
 const STAGES = {
   discovery: { label: "Discovery", badge: "badge--new", route: (d) => `#/discovery/${d.id}` },
   vehicle: { label: "Vehicle Selection", badge: "badge--new", route: (d) => `#/vehicles/${d.id}` },
@@ -766,7 +816,7 @@ document.addEventListener("click", (e) => {
    Removal returns to a STATE, not to the beginning: the count falls to one
    buyer, the Jacket does not fall, and the removed person keeps the full
    customer row — initials, name, phone — plus a dated audit line naming who
-   removed her and what was withdrawn. Reattaching her starts a NEW
+   removed the co-buyer and what was withdrawn. Reattaching them starts a NEW
    application; a withdrawn one is never reopened. */
 
 /* has anything happened that removal would undo? A credit pull has no record
@@ -787,6 +837,50 @@ function creditLive(deal) {
   const a = deal.creditApp;
   return !!(a && a.approved && !a.withdrawnAt);
 }
+/* a lender's rate that moved from the one the customer agreed to (§18). The
+   approved payment is agreed only once the customer has chosen it, after the
+   lender's answer and at the approved rate, and the Team Lead has approved
+   that choice; the agreement then signs at it. Until then the credit
+   application's way on is to re-present, the Finance Menu's gate waits, and
+   no screen says the new payment was agreed (KA-002, W-050). Null when
+   nothing moved: a finance deal on a live approval only. */
+function rateMove(d) {
+  const a = d && d.creditApp;
+  if (!a || !creditLive(d) || (d.dealType && d.dealType !== "finance")) return null;
+  const agreedApr = a.agreedApr != null ? a.agreedApr : null;
+  const approvedApr = a.approvedApr != null ? a.approvedApr : a.qualifiedApr;
+  if (agreedApr == null || approvedApr == null || agreedApr === approvedApr) return null;
+  const v = Store.vehicle(d.stock);
+  if (!v) return null;
+  const base = RIDE_PRICE_CALC.calc(d, v);
+  const approvedPay = RIDE_PRICE_CALC.round2(RIDE_PRICE_CALC.amortize(base.amountFinanced, approvedApr, base.term));
+  const k = d.desk || {}, ch = k.customerChose;
+  /* chosen: the customer's own tap on the approved payment, after the answer; agreed: and the Team Lead approved it */
+  const chose = !!ch && k.apr === approvedApr && Math.round(ch.payment * 100) === Math.round(approvedPay * 100) && (!a.submitted || ch.at > a.submitted);
+  const agreed = chose && deskApproval(d) === "approved";
+  const snap = d.basePayment && d.basePayment.signedAt ? d.basePayment.snapshot : null;
+  return {
+    agreedApr, agreedPay: a.agreedPayment != null ? a.agreedPayment : null, approvedApr, approvedPay, term: base.term,
+    chose: chose ? { at: ch.at, payment: ch.payment } : null,
+    reagreed: agreed ? { at: ch.at, payment: ch.payment } : null,
+    /* signed AT the new terms: the approved rate and its payment, not an older agreement whose payment happens to
+       round to the same cents (CodeRabbit on #190) */
+    signed: agreed && !!snap && snap.apr === approvedApr && Math.round((snap.payment || 0) * 100) === Math.round(approvedPay * 100)
+  };
+}
+/* the figures an agreement prints, frozen with it: the calculation, and the
+   five inputs its printout used to read live — the MSRP, the selling price,
+   the rebates, the trade's value and payoff, the down payment — and a lease's
+   due at signing, which the signed screen shows (BP-010). A signed document
+   never recomputes, and that means every value in the line, not just the
+   first (RP-UI-060). */
+function agreementSnapshot(deal, v, r = RIDE_PRICE_CALC.calc(deal, v)) {
+  return Object.assign({}, r, {
+    msrp: v.msrp, selling: v.selling + v.includedOptions, rebates: deal.trade.rebates || 0,
+    tradeValue: deal.trade.value || 0, tradePayoff: deal.trade.payoff || 0, downPayment: deal.desk.downPayment || 0,
+    dueAtSigning: deal.desk.dueAtSigning || 0, dealType: deal.dealType
+  });
+}
 /* everyone already on the deal is filtered out at the SOURCE, so a duplicate
    can never be offered rather than being offered and then refused */
 function buyersFind(deal, query) {
@@ -805,12 +899,16 @@ function buyersFind(deal, query) {
 function buyersConsequences(deal) {
   const out = [];
   const a = deal.creditApp;
+  /* each line names the co-buyer, never a guessed pronoun (W-088; the owner,
+     2026-09-26: every line names the person it is about) */
+  const cb = deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
+  const Name = cb && cb.first ? cb.first : "The co-buyer", name = cb && cb.first ? cb.first : "the co-buyer";
   if (a && !a.withdrawnAt && a.submitted) {
     out.push("The joint application is withdrawn — it cannot be converted to an individual one");
-    out.push("Her joint-credit authorization is void");
+    out.push(`${Name}'s joint-credit authorization is void`);
   }
-  if (deal.menu && deal.menu.ackSigned) out.push("Her signed benefits acknowledgment is void and must be re-signed if she returns");
-  if (a && !a.withdrawnAt && a.approved) out.push("The credit pull already made stays on her file — removal does not undo it");
+  if (deal.menu && deal.menu.ackSigned) out.push(`${Name}'s signed benefits acknowledgment is void and must be re-signed if ${name} returns`);
+  if (a && !a.withdrawnAt && a.approved) out.push(`The credit pull already made stays on ${name}'s file — removal does not undo it`);
   return out;
 }
 /* the removal itself: the pointer comes off, the person is kept, and what was
@@ -880,14 +978,18 @@ function buyersKitSheet(deal, sheets, onChange) {
   const consequencesBlock = () => {
     const list = buyersConsequences(deal);
     if (!list.length) return "";
-    return `<div class="rp-consequences"><strong>What removing her does</strong>
+    const who = co();
+    return `<div class="rp-consequences"><strong>What removing ${esc(who && who.first ? who.first : "the co-buyer")} does</strong>
       <ul>${list.map(x => `<li>${esc(x)}</li>`).join("")}</ul></div>`;
   };
   /* every reassuring row states its own limit once credit activity exists —
      "kept" and "retained" are half-truths on their own (§21) */
-  const keptRows = () => `<div class="rp-kv">
-    ${kvRow("Her customer profile", "Kept", "the person is not deleted — her credit history from this deal is not erased")}
+  const keptRows = () => {
+    const x = co(), Nm = x && x.first ? x.first : "The co-buyer", nm = x && x.first ? x.first : "the co-buyer";
+    return `<div class="rp-kv">
+    ${kvRow(`${Nm}'s customer profile`, "Kept", `the person is not deleted — ${nm}'s credit history from this deal is not erased`)}
     ${kvRow("Jacket documents", "Retained", "the documents stay in the jacket — marked withdrawn, not removed")}</div>`;
+  };
 
   function html() {
     const c = Store.customer(deal.customerId);
@@ -914,8 +1016,8 @@ function buyersKitSheet(deal, sheets, onChange) {
     }
 
     if (ui.state === "actions" && cb) {
-      /* the sheet names who she is and what state she is in, because it covers
-         the page header (§18a) */
+      /* the sheet names the co-buyer and the co-buyer's state, because it
+         covers the page header (§18a) */
       const sub = creditActivity(deal)
         ? `Co-buyer on this deal · on a submitted joint application`
         : `Co-buyer on this deal · no credit activity yet`;
@@ -923,10 +1025,10 @@ function buyersKitSheet(deal, sheets, onChange) {
         <p class="rp-sheet__sub">${esc(sub)}</p>
         <div class="rp-group">
           ${tileRow("View customer profile", "Phone, email, address, history", "customers", `id="byView"`)}
-          ${tileRow("Scan her license", "She is here in the showroom", "license", `id="byScan"`)}
-          ${tileRow("Send secure upload link", "She uploads from her own phone", "upload", `id="byLink"`)}
+          ${tileRow(`Scan ${cb.first}'s license`, `${cb.first} is here in the showroom`, "license", `id="byScan"`)}
+          ${tileRow("Send secure upload link", `On ${cb.first}'s own phone`, "upload", `id="byLink"`)}
         </div>
-        ${req ? `<div class="rp-notice rp-notice--working"><strong>Removal requested</strong>${esc(req.by)} asked a Team Lead at ${esc(timeUS(req.at))} — it is theirs to approve</div>` : ""}
+        ${req ? `<div class="rp-notice rp-notice--working"><strong>Removal requested</strong>${esc(req.by)} asked a Team Lead</div>` : ""}
         <div style="height:6px"></div>
         <button type="button" class="rp-dialog__button rp-dialog__button--destructive" style="width:100%;height:52px;border-radius:15px" id="byRemove">Remove from deal</button>`;
     }
@@ -938,7 +1040,7 @@ function buyersKitSheet(deal, sheets, onChange) {
           <p class="rp-sheet__sub">Second tap confirms</p>
           <div class="rp-kv">
             ${kvRow("Relationship", "Comes off the deal")}
-            ${kvRow("Her customer profile", "Kept")}
+            ${kvRow(`${cb.first}'s customer profile`, "Kept")}
             ${kvRow("Credit activity", "None yet")}</div>
           ${actions("Cancel", "Remove from deal", "danger")}`;
       }
@@ -947,12 +1049,12 @@ function buyersKitSheet(deal, sheets, onChange) {
          disabled — because authority follows consequence (§21). */
       if (!isTeamLead()) {
         return `${chSheetHead(`Remove ${cb.first} from this deal?`)}
-          <p class="rp-sheet__sub">She is on a submitted joint application · a Team Lead must approve this</p>
+          <p class="rp-sheet__sub">${esc(cb.first)} is on a submitted joint application · a Team Lead must approve this</p>
           ${consequencesBlock()}${keptRows()}
           ${actions("Cancel", "Ask a Team Lead", "primary")}`;
       }
       return `${chSheetHead(`Remove ${cb.first} from this deal?`)}
-        <p class="rp-sheet__sub">Team Lead action${req ? ` · requested by the ${esc(req.byRole === "teamlead" ? "Team Lead" : "advisor")} ${esc(timeUS(req.at))}` : ""}</p>
+        <p class="rp-sheet__sub">Team Lead action${req ? ` · requested by the ${esc(req.byRole === "teamlead" ? "Team Lead" : "advisor")}` : ""}</p>
         ${consequencesBlock()}${keptRows()}
         ${actions("Cancel", "Remove from deal", "danger")}`;
     }
@@ -976,10 +1078,10 @@ function buyersKitSheet(deal, sheets, onChange) {
     const removedRow = removed && !cb ? (() => {
       const person = Store.customer(removed.customerId);
       if (!person) return "";
-      const line = `Removed ${timeUS(removed.at)} by ${removed.by}${removed.withdrew.length ? " · " + removed.withdrew.join(" · ") : ""}`;
+      const line = `Removed${removed.withdrew.length ? " · " + removed.withdrew.join(" · ") : ""}`;
       return `<div class="rp-section">Removed from this deal</div>
         ${buyerRow(person, "Removed", true, `data-removed="${esc(person.id)}"`, [line])}
-        <p class="rp-fine" style="text-align:left;margin:-4px 0 12px">Tap for her profile and the withdrawn application — reattaching her starts a new application, it does not reopen that one.</p>`;
+        <p class="rp-fine" style="text-align:left;margin:-4px 0 12px">Tap for ${esc(person.first)}'s profile and the withdrawn application — reattaching ${esc(person.first)} starts a new application, it does not reopen that one.</p>`;
     })() : "";
 
     return `${chSheetHead("Buyers on this deal")}
@@ -1035,7 +1137,7 @@ function buyersKitSheet(deal, sheets, onChange) {
       const wasAttached = !!cb;
       sheets.close();
       /* both scanner entries hand back into THIS flow — from the add sheet to
-         the attached state, from her actions back to her actions */
+         the attached state, from the co-buyer's actions back to those actions */
       openScanFlow({ mode: "cobuyer", deal, onDone: () => {
         document.body.dataset.canvas = "kit";
         ui.state = wasAttached ? "actions" : "list";
@@ -1146,13 +1248,13 @@ function openBuyersSheet(dealId) {
       sheet.innerHTML = `<div class="m-handle"></div>
         <div class="by2-head"><h2>Remove ${esc(cb.first)} from this deal?</h2></div>
         <p class="by2-sub">${consequences.length
-          ? (mustAsk ? "She is on a submitted joint application — a Team Lead must approve this"
+          ? (mustAsk ? `${esc(cb.first)} is on a submitted joint application — a Team Lead must approve this`
             : `Team Lead action${req ? ` · requested by the ${esc(req.byRole === "teamlead" ? "Team Lead" : "advisor")}` : ""}`)
           : "Second tap confirms"}</p>
         ${consequences.length
-          ? `<div class="by2-confirmcard"><strong>What removing her does</strong>
+          ? `<div class="by2-confirmcard"><strong>What removing ${esc(cb.first)} does</strong>
               <ul>${consequences.map(x => `<li>${esc(x)}</li>`).join("")}</ul>
-              <p>Her customer profile is <b>kept</b> — the person is not deleted, and her credit history from this deal is not erased. Jacket documents are <b>retained</b>, marked withdrawn rather than removed.</p></div>`
+              <p>${esc(cb.first)}'s customer profile is <b>kept</b> — the person is not deleted, and ${esc(cb.first)}'s credit history from this deal is not erased. Jacket documents are <b>retained</b>, marked withdrawn rather than removed.</p></div>`
           : `<div class="by2-confirmcard"><strong>The relationship comes off the deal.</strong>
               <p>${esc(cb.first + " " + cb.last)}'s customer profile is kept — nothing about the person is deleted.</p></div>`}
         <div class="by2-confirmrow">
@@ -1551,21 +1653,34 @@ const rpGlyph = (name) => RP_GLYPH[name] || RP_GLYPH.document;
    for it, because a helper nobody calls is a helper that rots — the files are
    the asset, and the mark can load one directly when it needs to. */
 const CH_TABS = [["deals", "#/deals", "deals", "Deals"], ["inventory", "#/vehicles/browse", "inventory", "Inventory"], ["customers", "#/customers", "customers", "Customers"], ["more", null, "more", "More"]];
-const roleInitials = () => isTeamLead() ? "TL" : "A";
-/* the banner slot — Advisor: sample data; Team Lead: who is being acted as,
-   with the inline Switch that opens the role sheet */
+/* the banner slot — Advisor: sample data; Team Lead: who is being acted as.
+   It carries no Switch: roles switch in one place (kit §28, KA-030) */
 /* where the role control may appear: Customer Onboarding only, never inside
    Scan License (context/customer-identity-style.md). Owner, 2026-09-18, shown
    Home with and without it: "B The codex way." */
 const ROLE_SWITCH_SCREENS = ["resolver"];
 function roleSwitchAllowed() { return ROLE_SWITCH_SCREENS.includes(document.body.dataset.screen) && !document.querySelector("#scanBody"); }
 function chBanner() {
+  /* phase 2: the band tells the truth about the environment first — the phone
+     offline (for real, or a tester's switch), then any tester switch that is
+     on, so a tester never forgets one; Change opens the switches over the
+     screen that is up */
+  const S = typeof RIDE_PRICE_SERVICES !== "undefined" ? RIDE_PRICE_SERVICES : null;
+  const change = '<button type="button" class="rp-banner__action" data-switches-open>Change</button>';
+  if (S && S.anyOffline()) return `<div class="rp-banner" data-band="offline"><span class="rp-banner__dot"></span><span class="rp-banner__tag">OFFLINE</span><span class="rp-banner__text">${S.mode("saving") === "failing" ? "This phone is not saving your work" : "Your work is saved on this phone"}</span>${S.reallyOffline() ? "" : change}</div>`;
+  if (S && S.on().length) return `<div class="rp-banner" data-band="switches"><span class="rp-banner__dot"></span><span class="rp-banner__tag">DEMO</span><span class="rp-banner__text">Tester: ${esc(S.describe())}</span>${change}</div>`;
   return isTeamLead()
-    ? `<div class="rp-banner"><span class="rp-banner__dot"></span><span class="rp-banner__tag">DEMO</span><span class="rp-banner__text">Acting as ${esc(roleName())}</span>${roleSwitchAllowed() ? '<button type="button" class="rp-banner__action" data-role-open>Switch</button>' : ""}</div>`
+    ? `<div class="rp-banner"><span class="rp-banner__dot"></span><span class="rp-banner__tag">DEMO</span><span class="rp-banner__text">Acting as ${esc(roleName())}</span></div>`
     : `<div class="rp-banner"><span class="rp-banner__dot"></span><span class="rp-banner__tag">DEMO</span><span class="rp-banner__text">Sample data only</span></div>`;
 }
-/* the role control — identical on both templates; tapping opens the role sheet */
-const chRole = () => !roleSwitchAllowed() ? "" : `<button type="button" class="rp-role" data-role-open aria-label="Switch role"><span class="rp-role__avatar">${roleInitials()}</span>${isTeamLead() ? "Team Lead" : "Advisor"}${rpGlyph("chevron-down")}</button>`;
+/* kit v022.25 §28: role is not chrome. No top bar carries a role control; its
+   third column is an empty 44 so the title sits on the true centre. Roles switch
+   in one place, Switch roles on New visit: the kit's own row, last on the page,
+   saying who is acting, opening the role sheet. The kit's older §3 also gave
+   the Team Lead's band a Switch there, so Jordan saw two controls (KA-030); the
+   owner left the choice to us (2026-09-26) and §28 wins: one control, for
+   Ashley and Jordan alike. The band still says who is acting. */
+const chSwitchRoles = () => !roleSwitchAllowed() ? "" : `<div class="rp-group"><button type="button" class="rp-row" id="obRole" data-role-open><span class="rp-tile">${rpGlyph("customers")}</span><span class="rp-row__body"><span class="rp-row__title">Switch roles</span><span class="rp-row__sub">${esc(roleName())} · ${isTeamLead() ? "Team Lead" : "Advisor"}</span></span><span class="rp-row__chevron"></span></button></div>`;
 /* the wordmark: the words "Ride Price" — the kit's class, the kit's gradient */
 const chWordmark = () => `<a class="rp-wordmark" href="#/deals" aria-label="Ride Price — Deals">Ride Price</a>`;
 /* the top bar for either template */
@@ -1574,9 +1689,9 @@ function chTop(opts) {
     return `<header class="rp-topbar">
       <button type="button" class="rp-topbar__close" id="${opts.closeId || "chClose"}" aria-label="${esc(opts.closeLabel || "Close")}">${rpGlyph("close")}</button>
       <div class="rp-topbar__title">${esc(opts.title)}${opts.step ? `<small>${esc(opts.step)}</small>` : ""}</div>
-      ${opts.hideRole || !roleSwitchAllowed() ? `<span aria-hidden="true" style="width:44px"></span>` : chRole()}</header>`;
+      <span aria-hidden="true"></span></header>`;
   }
-  return `<header class="rp-topbar">${chWordmark()}${chRole()}</header>`;
+  return `<header class="rp-topbar">${chWordmark()}<span aria-hidden="true"></span></header>`;
 }
 /* the floating tab bar — Destination only; the kit refuses it on a task */
 function chTabbar(active) {
@@ -1591,6 +1706,11 @@ function chTabbar(active) {
 }
 /* the action dock — Task only: one primary, at most one text link under it */
 const chDock = (primaryHtml, linkHtml) => `<div class="rp-dock" data-born="${Date.now()}">${primaryHtml}${linkHtml || ""}</div>`;
+/* phase 2 · the same dock with a line over its primary (the kit's gate note):
+   what the button is waiting on — still working, waiting for a connection.
+   A screen whose dock has one carries rp-screen--gate, so the page does not
+   show through it. */
+const chGateDock = (noteHtml, primaryHtml, linkHtml) => `<div class="rp-dock" data-born="${Date.now()}">${noteHtml ? `<div class="rp-gatenote">${noteHtml}</div>` : ""}${primaryHtml}${linkHtml || ""}</div>`;
 /* A finger's second tap must not land on the next screen's choice (W-008): a
    double tap on New visit's Confirm & start visit answered the duplicate
    question drawn in the same spot ("Use John Smith on file") unseen. A dock
@@ -1714,13 +1834,13 @@ function chFitDock(dockSel) {
   if (need > have) page.style.paddingBottom = need + "px";
 }
 const chSheetHead = (title) => `<div class="rp-sheet__head"><h2 class="rp-sheet__title">${esc(title)}</h2><button type="button" class="rp-sheet__close" data-sheet-close aria-label="Close">${rpGlyph("close")}</button></div>`;
-/* the role sheet — one definition, opened from the role control or the
-   banner's Switch on any of the 19 screens */
+/* the role sheet — one definition, opened from Switch roles on New visit, the
+   one role control (kit §28, KA-030), and titled as that row is */
 function chRoleSheet(sheets, afterSwitch) {
   if (!roleSwitchAllowed()) return;
   const lead = isTeamLead();
   const opt = (key, title, sub, on) => `<button type="button" class="rp-option${on ? " rp-option--on" : ""}" data-role="${key}"><span><span class="rp-option__title">${title}</span><span class="rp-option__sub">${sub}</span></span><span class="rp-radio${on ? " rp-radio--on" : ""}">${on ? rpGlyph("check") : ""}</span></button>`;
-  sheets.open(`${chSheetHead("Switch role")}
+  sheets.open(`${chSheetHead("Switch roles")}
     ${opt("advisor", "Advisor", "Guided queue with the next action on each deal", !lead)}
     ${opt("teamlead", "Team Lead", "Active floor, showroom visits, and date-based history", lead)}`, (sheet) => {
     $$("[data-role]", sheet).forEach(b => b.onclick = () => {
@@ -1754,12 +1874,14 @@ function chWireRole(sheets, afterSwitch, root) {
 
    `keepLabel` names the opposite of the action rather than saying Cancel: the
    pair reads Remove photo / Keep photo, Leave capture / Keep capturing. */
-function chDialog(sheets, title, body, actionLabel, onConfirm, keepLabel) {
+function chDialog(sheets, title, body, actionLabel, onConfirm, keepLabel, onKeep) {
+  /* onKeep: where Keep goes back to, when the dialog stands in for a sheet the screen still has open (W-113) */
   sheets.open(`<h2 class="rp-sheet__title">${esc(title)}</h2>
     <p class="ch-confirmcopy">${esc(body)}</p>
     <button type="button" class="rp-primary" id="chDialogGo">${esc(actionLabel)}</button>
-    <button type="button" class="rp-link ch-hit" data-sheet-close autofocus>${esc(keepLabel || "Cancel")}</button>`, (sheet) => {
+    <button type="button" class="rp-link ch-hit" ${onKeep ? 'id="chDialogKeep"' : "data-sheet-close"} autofocus>${esc(keepLabel || "Cancel")}</button>`, (sheet) => {
     $("#chDialogGo", sheet).onclick = () => { sheets.close(); onConfirm(); };
+    const keep = $("#chDialogKeep", sheet); if (keep) keep.onclick = () => onKeep();
   });
 }
 /* the More sheet: secondary destinations, and the reset behind the kit's
@@ -1772,11 +1894,98 @@ function chDialog(sheets, title, body, actionLabel, onConfirm, keepLabel) {
    preview, so More carries one row — the screen that hands the log over.
    Drawn only when the recorder is loaded. */
 function tlRows() {
-  const L = window.RIDE_PRICE_TOUCHLOG; if (!L) return "";
-  const n = L.count();
+  /* the testers' group: the switches first (phase 2, the owner's picture A —
+     in More in every copy of the demo), then the test log when its recorder
+     is loaded */
+  const S = typeof RIDE_PRICE_SERVICES !== "undefined" ? RIDE_PRICE_SERVICES : null;
+  const switches = S ? `<button type="button" class="rp-row" id="dqSwitches"><span class="rp-tile">${rpGlyph("more")}</span><span class="rp-row__body"><span class="rp-row__title">Tester switches</span><span class="rp-row__sub">${S.on().length ? esc(S.describe().replace(/^./, (x) => x.toUpperCase())) : "Everything normal"}</span></span><span class="rp-row__chevron"></span></button>` : "";
+  const L = window.RIDE_PRICE_TOUCHLOG;
+  const n = L ? L.count() : 0;
+  const log = L ? `<a class="rp-row" href="#/demo/testlog" id="dqLogSend"><span class="rp-tile">${rpGlyph("upload")}</span><span class="rp-row__body"><span class="rp-row__title">Send test log</span><span class="rp-row__sub">${L.on() ? "Recording · " : L.designated() ? "Stopped · " : ""}${n ? n + " event" + (n === 1 ? "" : "s") : "nothing yet"}</span></span><span class="rp-row__chevron"></span></a>` : "";
+  if (!switches && !log) return "";
   return `<div class="rp-group rp-group--spaced">
-    <a class="rp-row" href="#/demo/testlog" id="dqLogSend"><span class="rp-tile">${rpGlyph("upload")}</span><span class="rp-row__body"><span class="rp-row__title">Send test log</span><span class="rp-row__sub">${L.on() ? "Recording · " : L.designated() ? "Stopped · " : ""}${n ? n + " event" + (n === 1 ? "" : "s") : "nothing yet"}</span></span><span class="rp-row__chevron"></span></a>
+    ${switches}${log}
     </div>`;
+}
+/* ---------- phase 2 · the phone refusing to save, and the tester switches ----------
+   The owner's pictures, approved 2026-09-23 (docs/workflows/redesign/visuals/
+   decision-services-*.png): the switches live in More in every copy of the
+   demo (A); every pretend server's answer has one look, and the phone refusing
+   to save is said in plain words with Try again (F) — never a toast, never a
+   screen that quietly stops. */
+const isStorageError = (e) => !!e && (e.name === "QuotaExceededError" || e.name === "SecurityError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED");
+/* the change is still in the page, so a retry that succeeds keeps it; the
+   screen is then drawn again from what is saved. "Still not saved" answers a
+   Try again the phone refused, and only that. */
+function notSaved(again, onSaved) {
+  const pages = document.querySelectorAll(".rp-page"), host = pages[pages.length - 1] || view();
+  if (!host) return;
+  const html = `<div class="rp-alert" id="rpNotSaved" role="alert">
+    <div class="rp-alert__title">This phone didn’t save that</div>
+    <div class="rp-alert__body">${again ? "Still not saved. " : ""}Try again. If it keeps happening, the phone’s storage is full or private browsing is on. Everything you entered is still here.</div>
+    <button type="button" class="rp-alert__action" id="rpNotSavedRetry">Try again</button></div>`;
+  const old = document.querySelector("#rpNotSaved");
+  if (old) old.outerHTML = html; else host.insertAdjacentHTML("afterbegin", html);
+  const retry = document.querySelector("#rpNotSavedRetry");
+  if (retry) retry.onclick = () => {
+    try { Store.save(); }
+    catch (e) { if (!isStorageError(e)) throw e; notSaved(true, onSaved); return; }
+    const box = document.querySelector("#rpNotSaved"); if (box) box.remove();
+    /* a save that finishes something (Save & finish later) finishes it on the
+       same page; any other redraws the screen (CodeRabbit on #137) */
+    if (onSaved) onSaved(); else router();
+  };
+}
+/* a save made while a screen draws: the screen draws either way, and a refused
+   save says so once it has */
+function saveSoft() {
+  try { Store.save(); return true; }
+  catch (e) { if (!isStorageError(e)) throw e; setTimeout(notSaved, 0); return false; }
+}
+/* the sheet of whatever kit screen is up, for the band's Change — the one on
+   top, so the scanner's own screen answers inside the scanner */
+function screenSheets() {
+  const all = document.querySelectorAll(".rp-screen"), screen = all[all.length - 1];
+  const sc = screen && screen.querySelector(".rp-scrim[id]"), sh = screen && screen.querySelector(".rp-sheet[id]");
+  return sc && sh ? chSheetOpener(sc.id, sh.id) : null;
+}
+/* the band follows the switches and the phone's own connection, in place:
+   the role's Switch keeps the handler its screen gave it */
+function refreshBand() {
+  /* every band on the page: the scanner draws its own over the screen's */
+  document.querySelectorAll(".rp-banner").forEach((band) => {
+    const box = document.createElement("div"); box.innerHTML = chBanner();
+    const next = box.firstElementChild; if (!next) return;
+    const oldRole = band.querySelector("[data-role-open]"), newRole = next.querySelector("[data-role-open]");
+    if (oldRole && newRole) newRole.replaceWith(oldRole);
+    band.replaceWith(next);
+  });
+}
+/* the tester switches: one row per pretend server saying what it does now, a
+   chooser per server, and a way back to normal. They live on this phone, not
+   in the demo's data. */
+function openSwitches(sheets) {
+  const S = RIDE_PRICE_SERVICES;
+  const nameOf = (id) => (S.modesFor(id).find((m) => m.id === S.mode(id)) || { name: "Normal" }).name;
+  const showList = () => sheets.open(`${chSheetHead("Tester switches")}
+    <p class="rp-sheet__sub">What the pretend servers do in this demo, for testing. A customer never sees this.</p>
+    <div class="rp-group">${S.list().map((s) => `<button type="button" class="rp-row" data-switch="${esc(s.id)}"><span class="rp-row__body"><span class="rp-row__title">${esc(s.name)}</span><span class="rp-row__sub">${esc(nameOf(s.id))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}</div>
+    ${S.on().length ? `<button type="button" class="rp-link ch-hit" id="swReset">Set everything back to normal</button>` : ""}`, (sheet) => {
+    $$("[data-switch]", sheet).forEach((b) => b.onclick = () => showChooser(b.dataset.switch));
+    const reset = $("#swReset", sheet); if (reset) reset.onclick = () => { S.reset(); showList(); };
+  });
+  const showChooser = (id) => {
+    const s = S.list().find((x) => x.id === id); if (!s) return showList();
+    const cur = S.mode(id);
+    sheets.open(`${chSheetHead(s.name)}
+      <p class="rp-sheet__sub">${esc(s.what)}. Pick what it does next time.</p>
+      ${S.modesFor(id).map((m) => { const on = m.id === cur; return `<button type="button" class="rp-option${on ? " rp-option--on" : ""}" data-mode="${esc(m.id)}" aria-pressed="${on}"><span><span class="rp-option__title">${esc(m.name)}</span><span class="rp-option__sub">${esc(m.what)}</span></span><span class="rp-radio${on ? " rp-radio--on" : ""}">${on ? rpGlyph("check") : ""}</span></button>`; }).join("")}
+      <button type="button" class="rp-primary" id="swDone" style="margin-top:8px">Done</button>`, (sheet) => {
+      $$("[data-mode]", sheet).forEach((b) => b.onclick = () => { S.set(id, b.dataset.mode); showChooser(id); });
+      $("#swDone", sheet).onclick = () => showList();
+    });
+  };
+  showList();
 }
 function chMoreSheet(sheets) {
   /* flat glyph tiles: a row group is all-flat or all-glass, and this one has
@@ -1789,7 +1998,7 @@ function chMoreSheet(sheets) {
     <div class="rp-group">
     ${row("#/vehicles/browse", "inventory", "Inventory", "Browse or search vehicles")}
     ${row("#/customers", "customers", "New customer visit", "Open the customer resolver")}
-    ${row("#/props", "document", "Training documents", "Prop licenses and registrations")}
+    ${row("#/props", "document", "Training documents", "Prop licenses, registrations and payoffs")}
     ${row("../ride-price-training-hub/index.html", "hub", "Training hub", "Guides and practice flows")}
     </div>
     ${tlRows()}
@@ -1797,6 +2006,7 @@ function chMoreSheet(sheets) {
     <button type="button" class="rp-row rp-row--destructive" id="dqReset"><span class="rp-tile">${rpGlyph("trash")}</span><span class="rp-row__body"><span class="rp-row__title">Reset demo data</span><span class="rp-row__sub">Return the demo to its original seed state</span></span><span class="rp-row__chevron"></span></button>
     </div>`, (sheet) => {
     $$("[data-here]", sheet).forEach(a => a.onclick = (e) => { e.preventDefault(); sheets.close(); });
+    const sw = $("#dqSwitches", sheet); if (sw) sw.onclick = () => openSwitches(sheets);
     $("#dqReset", sheet).onclick = () => {
       sheets.close();
       /* the kit's dialog, in place of the app-wide confirm (Home 03) */
@@ -1834,14 +2044,47 @@ const stageLabel = (d) => (STAGES[d.stage] || STAGES.discovery).label;
 
    An approval is of NUMBERS. It holds while the pencil still prices the choice
    it was given for: the same term, the same money down, the same payment to
-   the cent. Change anything under it (the rate, a rebate, an accessory, the
-   trade's value) and the customer is looking at a quote they have not seen,
-   so the choice comes off, and the request or the approval with it: the rule
-   a new deal type already followed on the pencil. A signed agreement is its
-   own record, and nothing here reaches past it. */
+   the cent, from the same inputs. Change anything under it (the rate, a
+   rebate, an accessory, the trade's value) and the customer is looking at a
+   quote they have not seen, so the choice comes off, and the request or the
+   approval with it: the rule a new deal type already followed on the pencil.
+   That holds when the payment does not move to the cent as well: a rate
+   changed in its third decimal is terms nobody approved (CodeRabbit on #184).
+   A signed agreement is its own record, and nothing here reaches past it. */
+/* every input the pencil prices a choice from (calc.js reads these of the
+   deal and nothing else), each for the deal type that reads it, and the
+   words the pencil names it by when it moves */
+const DESK_INPUT_WORDS = { type: "the deal type", car: "the car", accessories: "the accessories", trade: "the trade",
+  rebate: "the rebate", rate: "the rate", term: "the term", miles: "the miles a year", down: "the money down" };
+function deskInputs(d) {
+  const k = d.desk || {}, t = d.trade || {};
+  const lease = d.dealType === "lease" || d.dealType === "onepay", cash = d.dealType === "cash";
+  const at = { type: d.dealType || "finance", car: d.stock || null, accessories: [...(k.accessories || [])].sort().join(" "),
+    trade: `${t.value || 0} ${t.payoff || 0}${lease ? "" : ` ${!!t.applyTaxCredit}`}`, rebate: t.rebates || 0 };
+  if (lease) Object.assign(at, { rate: k.leaseFactor, term: k.leaseTerm, miles: k.milesPerYear });
+  else if (!cash) Object.assign(at, { rate: k.apr, term: k.term });
+  if (d.dealType === "lease") at.down = k.dueAtSigning;
+  else if (!lease && !cash) at.down = k.downPayment;
+  return at;
+}
+/* the first input that moved under a choice, in the pencil's words; "" when
+   none did, or when the choice was made before choices kept their inputs */
+function deskInputMoved(ch, d) {
+  const was = ch && ch.inputs;
+  if (!was || typeof was !== "object") return "";
+  const now = deskInputs(d);
+  const key = Object.keys(DESK_INPUT_WORDS).find((x) => (was[x] ?? null) !== (now[x] ?? null));
+  if (!key) return "";
+  return key === "down" && d.dealType === "lease" ? "the money at signing" : DESK_INPUT_WORDS[key];
+}
 function deskChoiceHolds(d) {
   const ch = d && d.desk && d.desk.customerChose;
-  if (!ch) return false;
+  return !!ch && !deskInputMoved(ch, d) && deskNumbersHold(d);
+}
+/* the three numbers the customer saw, priced again: the same term, the same
+   money down, the same payment to the cent */
+function deskNumbersHold(d) {
+  const ch = d.desk.customerChose;
   const v = Store.vehicle(d.stock);
   if (!v) return true;   /* nothing to price it against: left as it stands */
   const r = RIDE_PRICE_CALC.calc(d, v);
@@ -1861,11 +2104,99 @@ function clearDeskChoice(desk) {
 function settleDeskChoice(d) {
   const k = d && d.desk;
   if (!k || !k.customerChose || (d.basePayment && d.basePayment.signedAt) || deskChoiceHolds(d)) return false;
+  /* what moved, when the payment itself did not: the pencil names it rather
+     than saying the payment is gone */
+  const moved = deskInputMoved(k.customerChose, d);
   k.choiceCleared = { at: new Date().toISOString(), was: k.customerChose, dealType: d.dealType,
-    had: k.approvedAt ? "approved" : k.approvalRequestedAt ? "asked" : "" };
+    had: k.approvedAt ? "approved" : k.approvalRequestedAt ? "asked" : "", ...(moved && deskNumbersHold(d) ? { moved } : {}) };
   clearDeskChoice(k);
   return true;
 }
+/* W-110 · a signed payment the Trade-In would move. What John signed stays the
+   deal's until it is set aside, and only on the advisor's word: the kit's
+   dialog shows the payment signed and the one this trade makes, and only its
+   gradient changes the trade. Everything given on the old payment comes off
+   with the signature — the desk choice and its approval (the pencil says why),
+   the finance menu's sign-off and its ask, the terms presented, John's package
+   initials and the benefits acknowledgment, the menu back at its first step —
+   and the History lines they carried are kept in the set-aside's record, so the
+   History still says who did each, and who set the signature aside. The deal then goes back through the pencil's own loop — present,
+   choose, approve, sign — as a rate the lender moved does (#190). A finalized
+   deal is not reopened here. */
+function dealFigure(d, r) {
+  return d.dealType === "cash" ? r.totalDue : d.dealType === "onepay" ? r.onePayTotal : r.payment;
+}
+function signedTradeMove(d, next) {
+  const bp = d && d.basePayment;
+  if (!(bp && bp.signedAt) || (d.forms && d.forms.finalized)) return null;
+  const v = Store.vehicle(d.stock); if (!v) return null;
+  const t = d.trade || {}, cents = (x) => Math.round((x || 0) * 100);
+  const value = "value" in next ? next.value : t.value, payoff = "payoff" in next ? next.payoff : t.payoff;
+  if (cents(value) === cents(t.value) && cents(payoff) === cents(t.payoff)) return null;
+  const after = Object.assign({}, d, { trade: Object.assign({}, t, { value, payoff }) });
+  return { signed: dealFigure(d, bp.snapshot || RIDE_PRICE_CALC.calc(d, v)), now: dealFigure(d, RIDE_PRICE_CALC.calc(after, v)),
+    unit: d.dealType === "cash" || d.dealType === "onepay" ? "" : " / mo" };
+}
+function setAsideSignature(d, why) {
+  const bp = d.basePayment;
+  if (!(bp && bp.signedAt)) return false;
+  const line = (e) => `${e.at}|${e.what}|${e.who}`;
+  const before = dealHistory(d);
+  const figure = bp.snapshot ? signedFigure(d) : null;
+  d.basePayment = null;
+  delete d.signoff;
+  const M = d.menu = d.menu || {};
+  M.ackSigned = false; delete M.ackName; delete M.ackSignedAt;
+  delete M.approvalRequestedAt; delete M.approvalRequestedBy;
+  M.termsPresented = false; delete M.termsPresentedAt;
+  M.selectedProgram = null; M.initials = ""; delete M.acceptedAt;
+  M.step = 1; M.maxStep = 1;
+  if (["signed", "credit", "menu", "forms"].includes(d.stage)) d.stage = "desking";
+  /* the choice the new numbers moved out from under comes off now, with its note for the pencil */
+  settleDeskChoice(d);
+  const after = new Set(dealHistory(d).map(line));
+  (d.setAside = d.setAside || []).push({ at: new Date().toISOString(), by: roleName(), why, figure, sigName: bp.sigName || "",
+    kept: before.filter((e) => !after.has(line(e))).map((e) => ({ at: e.at, what: e.what, who: e.who })) });
+  return true;
+}
+function signedChangeDialog(sheets, d, mv, onGo, words = { with: "With this trade", go: "Change the trade" }, onKeep) {
+  const first = (Store.customer(d.customerId) || {}).first || "The customer";
+  chDialog(sheets, `Change ${first}'s signed payment?`,
+    `${first} signed ${money(mv.signed)}${mv.unit}. ${words.with} it is ${money(mv.now)}${mv.nowUnit ?? mv.unit}, and ${first} signs again.`,
+    words.go, onGo, "Keep the signed payment", onKeep);
+}
+/* the payment John signed, read in the deal type John signed: the agreement's snapshot keeps its type (#199) */
+function signedFigure(d) {
+  const bp = d && d.basePayment;
+  return bp && bp.snapshot ? dealFigure({ dealType: bp.snapshot.dealType || d.dealType }, bp.snapshot) : null;
+}
+const figureUnit = (type) => type === "cash" || type === "onepay" ? "" : " / mo";
+/* W-113 · the pencil after John signs. A change on the pencil that would move
+   the payment John signed asks first, as a changed trade does (W-110): the
+   deal type, the term, the miles, the accessories, the terms, or a choice made
+   again on the presented screen. The change is priced on a copy of the deal;
+   the dialog shows the payment signed and the one the change makes, and only
+   its gradient makes the change and sets the signature aside. A change that
+   moves nothing John signed is made as before. A finalized deal is not
+   reopened here. */
+function signedDeskMove(d, apply) {
+  const bp = d && d.basePayment;
+  if (!(bp && bp.signedAt) || (d.forms && d.forms.finalized)) return null;
+  const v = Store.vehicle(d.stock); if (!v) return null;
+  const signedType = (bp.snapshot && bp.snapshot.dealType) || d.dealType;
+  const signed = signedFigure(d) ?? dealFigure(d, RIDE_PRICE_CALC.calc(d, v));
+  /* only while the deal still prices at what John signed: once the lender's rate has moved it (the credit
+     application's Re-present the new payment, #190), that loop presents again and John signs again, and the pencil
+     does not ask on the presented screen what is already decided */
+  if (d.dealType === signedType && Math.round(dealFigure(d, RIDE_PRICE_CALC.calc(d, v)) * 100) !== Math.round(signed * 100)) return null;
+  const after = JSON.parse(JSON.stringify(d)); apply(after);
+  const now = dealFigure(after, RIDE_PRICE_CALC.calc(after, v));
+  if (after.dealType === signedType && Math.round(signed * 100) === Math.round(now * 100)) return null;
+  return { signed, now, unit: figureUnit(signedType), nowUnit: figureUnit(after.dealType) };
+}
+/* what the History says a set-aside came from */
+const SET_ASIDE_WHY = { trade: "the trade changed", type: "the deal type changed", term: "the term changed", miles: "the miles changed",
+  accessories: "the accessories changed", terms: "the terms changed", choice: "a new choice" };
 /* where the approval stands, read by the pencil, Home's card, the Team Lead's
    floor and the agreement's guard, so none of them can disagree */
 function deskApproval(d) {
@@ -1912,8 +2243,15 @@ function dealNextAction(d) {
     case "credit": return "Credit Application In Progress";
     case "complete": return "Funded";
   }
-  /* menu / forms — the sign-off gate first, then the documents */
-  if (d.stage === "menu" && !d.signoff) return "Awaiting Team Lead Sign-Off";
+  /* menu / forms — the sign-off gate first, then the documents; a rate the lender moved holds the gate until
+     the customer has the new payment, and the line says which step it waits on (KA-002) */
+  if (d.stage === "menu" && !d.signoff) {
+    const rm = rateMove(d);
+    if (rm && !rm.chose) return "Rate Moved · Present the New Payment";
+    if (rm && !rm.reagreed) return "New Payment Chosen · Waiting for Team Lead Approval";
+    if (rm && !rm.signed) return "New Payment Agreed · Sign the Agreement";
+    return "Awaiting Team Lead Sign-Off";
+  }
   const led = jacketLedgers(d);
   if (led.missing > 0) {
     const q = clientQueue(d);
@@ -1937,7 +2275,7 @@ route("deals", () => {
      pencil no longer shows */
   let settled = false;
   mine.forEach(d => { if (settleDeskChoice(d)) settled = true; });
-  if (settled) Store.save();
+  if (settled) saveSoft();
   const bySeen = (a, b) => (b.createdAt || "").localeCompare(a.createdAt || "");
   /* v3: In showroom is a separate active-visits section, not a deal stage */
   /* v022: presence is its own list and never moves a deal out of the deal
@@ -1987,7 +2325,11 @@ route("deals", () => {
       const f = dealsUI.from ? new Date(dealsUI.from + "T00:00") : null;
       let t = dealsUI.to ? new Date(dealsUI.to + "T00:00") : null;
       if (t) { t = new Date(t); t.setDate(t.getDate() + 1); }
-      return { from: f, to: t, label: (dealsUI.from || "…") + " – " + (dealsUI.to || "…") };
+      /* the range as a person reads it, "Sep 10 – Sep 20", "From Sep 10",
+         "Until Sep 20" (W-048): it joined the raw dates, "2026-09-10 – …" */
+      const md = (iso) => new Date(iso + "T00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      const label = dealsUI.from && dealsUI.to ? `${md(dealsUI.from)} – ${md(dealsUI.to)}` : dealsUI.from ? `From ${md(dealsUI.from)}` : dealsUI.to ? `Until ${md(dealsUI.to)}` : "Custom range";
+      return { from: f, to: t, label };
     }
     return { from: d0, to: null, label: "Today" };
   };
@@ -2032,7 +2374,7 @@ route("deals", () => {
   /* one deal row (v3): the four identifiers hold for every role — name, the
      mono VIN/STK line with honest Pending fallbacks, the vehicle, the stage
      chip — plus the advisor's Next line, and the chevron as the tap cue */
-  function dealRow(d, { next = true } = {}) {
+  function dealRow(d, { next = true, advisor = false } = {}) {
     const c = Store.customer(d.customerId);
     const st = STAGES[d.stage] || STAGES.discovery;
     const b = dealBucket(d);
@@ -2052,14 +2394,24 @@ route("deals", () => {
     const fundedOn = d.stage === "complete" && lead && fundedISO ? " · " + new Date(fundedISO).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "";
     const chip = d.stage === "complete" ? (lead ? "Funded" + fundedOn : "Done") : stageLabel(d);
     const positive = d.stage === "complete";
+    /* W-002 (the #159 picture, the owner's answer of 2026-09-24): on the Team
+       Lead's floor each card names its advisor under the customer, and its next
+       step, the Team Lead's own said as theirs ("with you", "your approval").
+       A Team Lead's own visit has no advisor until one is assigned (OB-043 B,
+       OB-056): its card says "Not assigned", as the showroom row does, never
+       dealAdvisor's fallback, the demo's advisor (CodeRabbit on #197) */
+    const nextWords = lead
+      ? String(dealNextAction(d)).replace(/ With the Team Lead$/i, " with you").replace(/Team Lead (Approval|Sign-Off)/i, (m, w) => "your " + w.toLowerCase())
+      : dealNextAction(d);
     /* the "Next:" › is the kit's, generated by CSS — no chevron element */
     return `<a class="rp-card dq-row" href="${esc(st.route(d))}" aria-label="Open ${esc(name)}'s deal">
       <span class="rp-badge${positive ? " rp-badge--positive" : ""}">${esc(chip)}</span>
       <div class="rp-card__name">${esc(name)}</div>
+      ${advisor ? `<div class="rp-card__meta dq-advisor">${d.advisor ? esc(d.advisor) : "Not assigned"}</div>` : ""}
       ${veh ? `<div class="rp-card__line">${esc(veh)}</div>` : ""}
       ${ids}
       ${vehicleStatusHtml(d)}
-      ${next && b.id !== "done" ? `<div class="rp-card__next">Next: ${esc(dealNextAction(d))}</div>` : ""}
+      ${next && b.id !== "done" ? `<div class="rp-card__next">Next: ${esc(nextWords)}</div>` : ""}
     </a>`;
   }
 
@@ -2076,7 +2428,7 @@ route("deals", () => {
     const arrived = arrivedLabel(d);
     const body = `
       <span class="rp-row__body"><span class="rp-row__title">${esc(name)}</span>
-      <span class="rp-row__sub dq-visitmeta">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(stageLabel(d))}${isTeamLead() && !d.advisor ? " · Not assigned" : ""}</span></span>
+      <span class="rp-row__sub dq-visitmeta">${arrived ? "Arrived " + esc(arrived) + " · " : ""}${esc(stageLabel(d))}${isTeamLead() ? " · " + (d.advisor ? esc(d.advisor) : "Not assigned") : ""}</span></span>
       <span class="rp-row__chevron"></span>`;
     /* the row is a button when the visit has a sheet (HOME_PRESENCE) and the
        stage's link otherwise; the four things it shows are the same either way */
@@ -2179,19 +2531,58 @@ route("deals", () => {
     });
     /* W-004 · what waits on the Team Lead, in the kit's alert (as drawn): one
        per request, oldest first, the count on the first. Not filtered by the
-       search: work waiting on the Team Lead is not a search result. */
+       search: work waiting on the Team Lead is not a search result. W-041 (as
+       the #159 picture drew it; the owner, 2026-09-26): the Finance Menu's
+       sign-off, asked for and not yet given, waits here too, beside the desk
+       approvals, and its Review opens the sign-off where Jordan approves.
+       W-005 (the #159 picture; the owner's answer of 2026-09-24): so does an
+       advisor's ask to remove a co-buyer, and its Review opens that removal in
+       the deal's Buyers sheet, where Jordan already approves it. With a removal
+       among them they are requests, as drawn, not approvals. */
     if (lead) {
-      const asks = act.filter(d => deskApproval(d) === "asked")
-        .sort((a, b) => String(a.desk.approvalRequestedAt).localeCompare(String(b.desk.approvalRequestedAt)));
-      const at = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-      $("#dqNeeds").innerHTML = asks.map((d, i) => {
-        const c = Store.customer(d.customerId), name = c ? c.first + " " + c.last : "—";
-        return `<div class="rp-alert" data-needs="${esc(d.id)}">
-          ${i === 0 ? `<div class="rp-alert__title">Needs you · ${asks.length} approval${asks.length === 1 ? "" : "s"}</div>` : ""}
-          <div class="rp-alert__body">${esc(name)} — ${esc(d.desk.approvalRequestedBy || dealAdvisor(d))} asks you to approve ${esc(deskChoiceWords(d.desk.customerChose, d.dealType))} · ${esc(at(d.desk.approvalRequestedAt))}</div>
-          <button type="button" class="rp-alert__action" data-review="${esc(d.id)}">Review</button></div>`;
+      /* who asked: the name recorded, or the deal's advisor; an ask recorded only as the role, on a deal no
+         advisor has yet, names no one it cannot know (CodeRabbit on #197) */
+      const askedBy = (who) => who && who !== "advisor" ? who : null;
+      const asks = [
+        ...act.filter(d => deskApproval(d) === "asked")
+          .map(d => ({ d, kind: "desk", at: d.desk.approvalRequestedAt, by: askedBy(d.desk.approvalRequestedBy), what: `approve ${deskChoiceWords(d.desk.customerChose, d.dealType)}` })),
+        ...act.filter(d => d.menu && d.menu.approvalRequestedAt && !d.signoff)
+          .map(d => ({ d, kind: "menu", at: d.menu.approvalRequestedAt, by: askedBy(d.menu.approvalRequestedBy), what: "approve the finance menu" })),
+        ...act.filter(d => d.coBuyerId && d.coBuyerRemoveRequest && d.coBuyerRemoveRequest.customerId === d.coBuyerId && Store.customer(d.coBuyerId))
+          .map(d => { const cb = Store.customer(d.coBuyerId);
+            return { d, kind: "remove", at: d.coBuyerRemoveRequest.at, by: askedBy(d.coBuyerRemoveRequest.by), what: `remove ${cb.first} ${cb.last} as co-buyer` }; }),
+        /* LS-045 / LS-046: a license that disagrees with the record waits for Jordan too. It lives on the customer,
+           so a walk-in's has no deal, and the row names the customer from the record */
+        ...Store.s.customers.flatMap(c => (c.identityReviews || []).filter(r => !r.answer).map(r => ({
+          d: r.dealId && Store.deal(r.dealId) || null, c, r, kind: "identity", at: r.askedAt, by: askedBy(r.askedBy),
+          what: r.kind === "birthday" ? `confirm ${c.first}’s birthday` : `confirm ${c.first}’s license` })))
+      ].sort((a, b) => String(a.at).localeCompare(String(b.at)));
+      /* a request from before today says its day: last night's 9:14 PM read as tonight's the next morning (Desking's DK-052) */
+      const at = (iso) => {
+        const t = new Date(iso), now = new Date(), day = (x) => new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime();
+        const time = t.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }), ago = Math.round((day(now) - day(t)) / 864e5);
+        return ago <= 0 ? time : ago === 1 ? `yesterday, ${time}` : `${t.toLocaleDateString("en-US", { month: "short", day: "numeric" })}, ${time}`;
+      };
+      const word = asks.some(x => x.kind === "remove" || x.kind === "identity") ? "request" : "approval";
+      $("#dqNeeds").innerHTML = asks.map((x, i) => {
+        const d = x.d, c = x.c || (d ? Store.customer(d.customerId) : null), name = c ? c.first + " " + c.last : "—";
+        return `<div class="rp-alert" data-needs="${esc(d ? d.id : x.r.id)}" data-needs-kind="${x.kind}">
+          ${i === 0 ? `<div class="rp-alert__title">Needs you · ${asks.length} ${word}${asks.length === 1 ? "" : "s"}</div>` : ""}
+          <div class="rp-alert__body">${esc(name)} — ${esc(x.by || (d && d.advisor) || "An advisor")} asks you to ${esc(x.what)} · ${esc(at(x.at))}</div>
+          <button type="button" class="rp-alert__action" data-review="${esc(d ? d.id : "")}" data-review-kind="${x.kind}"${x.kind === "identity" ? ` data-review-customer="${esc(x.c.id)}" data-review-id="${esc(x.r.id)}"` : ""}>Review</button></div>`;
       }).join("");
-      $$("[data-review]").forEach(b => b.onclick = () => { deskOpenSheet = { id: b.dataset.review, sheet: "approve" }; navigate(`#/desk/${b.dataset.review}`); });
+      $$("[data-review]").forEach(b => b.onclick = () => {
+        if (b.dataset.reviewKind === "menu") { navigate(`#/menu/${b.dataset.review}`); return; }
+        if (b.dataset.reviewKind === "identity") {
+          /* LS-045: Jordan's review, over Home: both values, and the record changed only on Confirm */
+          const c = Store.customer(b.dataset.reviewCustomer), r = c && (c.identityReviews || []).find(x => x.id === b.dataset.reviewId && !x.answer);
+          if (!c || !r) { paint(); return; }
+          openSheet5(identityReviewHtml(c, r), (sh) => wireIdentityReview(sh, c, r, () => { closeSheet5(); paint(); }));
+          return;
+        }
+        deskOpenSheet = b.dataset.reviewKind === "remove" ? { id: b.dataset.review, sheet: "buyers", buyers: "remove" } : { id: b.dataset.review, sheet: "approve" };
+        navigate(`#/desk/${b.dataset.review}`);
+      });
     }
     $("#dqShowroom").innerHTML = (showroom.length || lead) ? showroomHtml(showRows) : "";
     $$("[data-visit]").forEach(b => b.onclick = () => openVisitSheet(b.dataset.visit));
@@ -2208,12 +2599,15 @@ route("deals", () => {
       const pool = act.filter(d => dealsUI.pipe === "all" || dealPipe(d) === dealsUI.pipe);
       const rows = pool.filter(matches);
       $("#dealList").innerHTML = rows.length
-        ? `<div>${rows.map(d => dealRow(d, { next: false })).join("")}</div>`
+        ? `<div>${rows.map(d => dealRow(d, { advisor: true })).join("")}</div>`
         : `<div class="rp-empty"><strong>${pool.length ? "No deals match that search" : "No deals in this stage"}</strong>${pool.length ? "Try another name, VIN, or stock number." : "Choose another stage or start a new visit."}</div>`;
-      const hist = fundedInRange().filter(matches);
+      const inRange = fundedInRange(), hist = inRange.filter(matches);
+      /* an empty state names the next action (KA-025, §5): a search that missed says so, as the floor's own does */
       $("#dqFunded").innerHTML = dealsUI.funded
         ? `<div class="rp-section">Funded · ${hist.length} <span>${esc(w.label)}</span></div>
-           ${hist.length ? `<div>${hist.map(d => dealRow(d, { next: false })).join("")}</div>` : `<div class="rp-empty"><strong>No funded contracts</strong>None in this range.</div>`}`
+           ${hist.length ? `<div>${hist.map(d => dealRow(d, { next: false })).join("")}</div>`
+             : inRange.length ? `<div class="rp-empty"><strong>No funded contracts match that search</strong>Try another name, VIN, or stock number.</div>`
+             : `<div class="rp-empty"><strong>No funded contracts</strong>Choose a wider date range.</div>`}`
         : "";
     } else {
       const active = actRows;
@@ -2266,20 +2660,30 @@ route("deals", () => {
      funded toggle; funded left the active chips for good */
   const dateBtn = $("#dqDateBtn");
   if (dateBtn) dateBtn.onclick = () => {
-    const options = [["today", "Today", "Default active-floor view"], ["yesterday", "Yesterday", "Review floor activity in this period"], ["7d", "Last 7 days", "Review floor activity in this period"], ["30d", "Last 30 days", "Review floor activity in this period"], ["custom", "Custom range", "Choose a specific start and end date"]];
+    /* the ranges by name only (KA-025): the line each carried under it said one instruction four times (§5) */
+    const options = [["today", "Today"], ["yesterday", "Yesterday"], ["7d", "Last 7 days"], ["30d", "Last 30 days"], ["custom", "Custom range"]];
     openSheet5(`${chSheetHead("Date range")}
-      ${options.map(([key, label, sub]) => `<button type="button" class="rp-option${dealsUI.range === key ? " rp-option--on" : ""}" data-range="${key}"><span><span class="rp-option__title">${label}</span><span class="rp-option__sub">${sub}</span></span><span class="rp-radio${dealsUI.range === key ? " rp-radio--on" : ""}">${dealsUI.range === key ? rpGlyph("check") : ""}</span></button>`).join("")}
+      ${options.map(([key, label]) => `<button type="button" class="rp-option${dealsUI.range === key ? " rp-option--on" : ""}" data-range="${key}"><span><span class="rp-option__title">${label}</span></span><span class="rp-radio${dealsUI.range === key ? " rp-radio--on" : ""}">${dealsUI.range === key ? rpGlyph("check") : ""}</span></button>`).join("")}
       <div id="dqCustomWrap"${dealsUI.range === "custom" ? "" : " hidden"} style="margin-top:12px">
-        <div class="ca-fieldrow">
-          <div><label class="ca-lab" for="dqFrom">From</label><input class="ca-input" id="dqFrom" type="date" value="${esc(dealsUI.from)}"></div>
-          <div><label class="ca-lab" for="dqTo">To</label><input class="ca-input" id="dqTo" type="date" value="${esc(dealsUI.to)}"></div>
-        </div>
+        <div class="rp-field"><label class="rp-field__label" for="dqFrom">From</label><input class="rp-field__input" id="dqFrom" type="date" value="${esc(dealsUI.from)}"></div>
+        <div class="rp-field"><label class="rp-field__label" for="dqTo">To</label><input class="rp-field__input" id="dqTo" type="date" value="${esc(dealsUI.to)}"></div>
         <button type="button" class="rp-primary" id="dqApplyRange">Apply range</button>
       </div>
       <button type="button" class="rp-toggle-row" id="dqFundedToggle" role="switch" aria-checked="${dealsUI.funded ? "true" : "false"}" style="width:100%">Include funded contracts<span class="rp-toggle${dealsUI.funded ? " rp-toggle--on" : ""}"></span></button>`, (sheet) => {
       $$("[data-range]", sheet).forEach(b => b.onclick = () => {
+        /* choosing a custom range is not applying one (W-047): the tick moves
+           to Custom range and its dates open, and the floor keeps its range
+           until Apply. It used to switch at the tap, so closing the sheet left
+           a range of no dates, "… – … · active floor", under "Today" ticked */
+        if (b.dataset.range === "custom") {
+          $$("[data-range]", sheet).forEach(o => {
+            const on = o === b, radio = $(".rp-radio", o);
+            o.classList.toggle("rp-option--on", on);
+            if (radio) { radio.classList.toggle("rp-radio--on", on); radio.innerHTML = on ? rpGlyph("check") : ""; }
+          });
+          $("#dqCustomWrap", sheet).hidden = false; return;
+        }
         dealsUI.range = b.dataset.range;
-        if (dealsUI.range === "custom") { $("#dqCustomWrap", sheet).hidden = false; return; }
         closeSheet5(); paint();
       });
       const apply = $("#dqApplyRange", sheet);
@@ -2287,8 +2691,13 @@ route("deals", () => {
         const from = $("#dqFrom", sheet), to = $("#dqTo", sheet);
         /* a range that starts after it ends matched nothing and the history
            read "None in this range" with no reason (HN-021). Refused on the
-           field, the sheet stays open; either date alone is still open-ended. */
-        if (markMissing(sheet, from.value && to.value && from.value > to.value ? [{ el: from, msg: "Starts after the To date" }] : [])) return;
+           field, the sheet stays open; either date alone is still open-ended.
+           The two dates are the kit's own fields, and the miss its own error
+           (W-046, W-044): they were the credit application's old boxes. With
+           no date at all there is no range, so it is refused as well (W-047). */
+        const bad = !from.value && !to.value ? [{ el: from, msg: "Choose at least one date" }]
+          : from.value && to.value && from.value > to.value ? [{ el: from, msg: "Starts after the To date" }] : [];
+        if (kitMissing(sheet, bad)) return;
         dealsUI.from = from.value; dealsUI.to = to.value;
         dealsUI.range = "custom";
         closeSheet5(); paint();
@@ -2332,7 +2741,7 @@ route("customers", () => {
      handed over until finish() or a Close from the first step clears it. The
      "open" hint (manual / scan / sendlink) is consumed on the first render
      only, so a reload lands on the same screen without re-opening a door. */
-  if (resolverMission) { Store.s.mission = pendingCompletion ? Object.assign({}, resolverMission, { open: null }) : resolverMission; Store.save(); resolverMission = null; }
+  if (resolverMission) { Store.s.mission = pendingCompletion ? Object.assign({}, resolverMission, { open: null }) : resolverMission; saveSoft(); resolverMission = null; }
   const storedMission = Store.s.licenseDrafts?.unassigned?.mission || null;
   const missionCandidate = pendingCompletion ? storedMission : Store.s.mission || storedMission;
   /* the store's own errand passes through unfiltered, exactly as on main, so
@@ -2341,7 +2750,7 @@ route("customers", () => {
      filtered here, because clearMission() cannot remove that one */
   const mission = missionCandidate && (missionCandidate === Store.s.mission || ((missionCandidate.kind === "cobuyer" || missionCandidate.kind === "driver") && (pendingCompletion || Store.deal(missionCandidate.dealId)))) ? missionCandidate : null;
   const openOnce = mission ? mission.open || null : null;
-  if (mission && mission.open) { mission.open = null; Store.save(); }
+  if (mission && mission.open) { mission.open = null; saveSoft(); }
   const clearMission = () => { if (Store.s.mission) { Store.s.mission = null; Store.save(); } stepsDone(); }; const deadMission = x => !!(x && (x.kind === "driver" || x.kind === "cobuyer") && !Store.deal(x.dealId)); const leaveDeadMission = () => { try { clearMission(); } catch (error) { /* leave anyway: a stale errand is refused again at the next door */ } redirect("#/deals"); };
   /* OB-054/055 (his second log, 2026-09-15): once the errand is over — a visit
      started, a link cancelled, the resolver closed — the steps pushed on the
@@ -2529,12 +2938,12 @@ route("customers", () => {
      a history entry whose state can rebuild the screen — ids, never records —
      so Back walks the steps the way Close does, and from the first step Back
      leaves the resolver as it always did. A reload lands on the same step. */
-  const snap = () => ({ ob: st.mode, epoch: Store.s.obEpoch || 0, q: st.q, results: st.results ? st.results.map(c => c.id) : null, found: st.found ? st.found.id : null, forceNew: st.forceNew, dupe: st.dupe ? { id: st.dupe.c.id, why: st.dupe.why, draft: st.dupe.draft } : null, resolving: !!st.sessionResolving });
+  const snap = () => ({ ob: st.mode, epoch: Store.s.obEpoch || 0, q: st.q, results: st.results ? st.results.map(c => c.id) : null, found: st.found ? st.found.id : null, forceNew: st.forceNew, forceNewFor: st.forceNewFor || null, dupe: st.dupe ? { id: st.dupe.c.id, why: st.dupe.why, draft: st.dupe.draft } : null, resolving: !!st.sessionResolving });
   const step = () => { history.pushState(snap(), "", location.hash); };
   const restore = (h) => {
     if (!h || !h.ob) return false;
     if ((h.epoch || 0) !== (Store.s.obEpoch || 0)) { history.replaceState(null, "", location.hash); return "stale"; }
-    st.mode = h.ob; st.q = h.q || ""; st.forceNew = !!h.forceNew; st.sessionResolving = !!h.resolving && !!session();
+    st.mode = h.ob; st.q = h.q || ""; st.forceNew = !!h.forceNew; st.forceNewFor = h.forceNewFor || null; st.sessionResolving = !!h.resolving && !!session();
     st.results = h.results ? h.results.map(id => Store.customer(id)).filter(Boolean) : null;
     st.found = h.found ? Store.customer(h.found) : null;
     st.dupe = h.dupe && Store.customer(h.dupe.id) ? { c: Store.customer(h.dupe.id), why: h.dupe.why, draft: h.dupe.draft } : null;
@@ -2703,7 +3112,8 @@ route("customers", () => {
       ${st.results ? "" : `
       <div class="rp-section">Recent customers</div><div class="rp-group">
         ${recent.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc(rowSub(c))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
-      </div>`}`, "Step 1 of 3");
+      </div>`}
+      ${chSwitchRoles()}`, "Step 1 of 3");
   }
 
   function resultsHtml() {
@@ -2769,16 +3179,46 @@ route("customers", () => {
     const { c, why, draft } = st.dupe;
     const hard = why !== "name";
     const line = [c.phone, c.email, c.address && c.city ? c.address + ", " + c.city : ""].filter(Boolean).map(esc).join(" · ");
-    return shell(`
-      ${heroHtml("Customer onboarding", hard ? "Already on file" : "Same name on file")}
-      ${contextPill()}
-      <section class="rp-match">
+    const recordCard = `<section class="rp-match">
         <div class="rp-match__head">
           <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">Existing Ride Price customer</span></span>
           <span class="rp-tag rp-tag--match">${hard ? (why === "phone" ? "Same phone" : why === "email" ? "Same email" : "Same license") : "Same name"}</span></div>
         <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
         <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
-      </section>
+      </section>`;
+    /* W-006 (the owner's answer of 2026-09-24, as decision-w006-typed-name.png
+       drew it): when the name typed is not the name on file, one hurried tap on
+       "Use John Smith on file" started Nadia's visit on John's record, and
+       Nadia's name was nowhere on the screen. So the screen shows what was
+       typed beside the record and asks, the way the scanner's Confirm customer
+       asks when a license and a record disagree: Same person or Different
+       person, nothing chosen until the advisor chooses. When the names match,
+       D-OB1 stands as it was: the record is the primary. What was typed is the
+       kit's small-headed list, apart from the record and from the question, as
+       the picture drew it (claude-c on #200: the three blocks touched). */
+    const typed = String((draft && draft.name) || "").trim();
+    const same = (a, b) => a.toLowerCase().replace(/\s+/g, " ") === b.toLowerCase().replace(/\s+/g, " ");
+    if (hard && typed && !same(typed, nameOf(c))) {
+      const pick = st.dupePick || null;
+      const opt = (key, title, sub) => `<button type="button" class="rp-option${pick === key ? " rp-option--on" : ""}" data-dup="${key}" aria-pressed="${pick === key}"><span><span class="rp-option__title">${title}</span><span class="rp-option__sub">${sub}</span></span><span class="rp-radio${pick === key ? " rp-radio--on" : ""}">${pick === key ? rpGlyph("check") : ""}</span></button>`;
+      const shared = why === "phone" ? "this phone" : why === "email" ? "this email" : "this license";
+      return shell(`
+      ${heroHtml("Customer onboarding", "Already on file")}
+      ${contextPill()}
+      ${recordCard}
+      <div class="rp-kv" id="obTyped" style="margin-top:16px"><div class="rp-kv__head">What you typed</div>
+        <div class="rp-kv__row"><span>Name</span><span>${esc(typed)}</span></div>
+        ${draft.phone ? `<div class="rp-kv__row"><span>Mobile phone</span><span>${esc(draft.phone)}</span></div>` : ""}
+        ${draft.email ? `<div class="rp-kv__row"><span>Email</span><span>${esc(draft.email)}</span></div>` : ""}
+      </div><div style="height:16px"></div>
+      ${opt("same", `Same person — use ${esc(nameOf(c))} on file`, `The visit starts on ${esc(nameOf(c))}&rsquo;s record`)}
+      ${opt("new", `Different person — create ${esc(typed)}&rsquo;s record`, `A new record for ${esc(typed)}, sharing ${shared}`)}`, "Step 2 of 3",
+        chDock(primaryBtn("obDupContinue", "Continue")));
+    }
+    return shell(`
+      ${heroHtml("Customer onboarding", hard ? "Already on file" : "Same name on file")}
+      ${contextPill()}
+      ${recordCard}
       <div class="rp-notice" id="obDupeNotice">${hard ? `<strong>${esc(nameOf(c))} is already on file</strong><br>${line}` : `<strong>A ${esc(nameOf(c))} is already on file</strong><br>Is this the same person? ${line}`}</div>`, "Step 2 of 3",
       chDock(primaryBtn("obUseOnFile", "Use " + esc(nameOf(c)) + " on file"), linkBtn("obCreateAnyway", hard ? "Create a new record anyway" : "No — create a new record")));
   }
@@ -2789,13 +3229,19 @@ route("customers", () => {
       ${heroHtml("Customer onboarding", "Whose upload is this?")}
       <section class="rp-match"><div class="rp-match__head">
         <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(p))}</span><span class="rp-row__sub">Remote session${p.dob ? " · born " + esc(p.dob) : ""}</span></span>
-        <span class="rp-tag rp-tag--match">Identity captured</span></div></section>
+        ${s.faceNoMatch ? "" : `<span class="rp-tag rp-tag--match">Identity captured</span>`}</div></section>
       <div class="rp-notice" id="obWhoseNotice"><strong>${esc(nameOf(c))} already holds ${esc(s.phone)}</strong><br>The upload reads ${esc(nameOf(p))}. Is this the same person?</div>`, "Step 3 of 3",
       chDock(primaryBtn("obCreateOwn", "Create " + esc(nameOf(p))), linkBtn("obItIs", "It is " + esc(c.first || nameOf(c)) + " — update the record")));
   }
 
   /* ---- manual fallback: minimum typing, one address field ---- */
   function manualHtml() {
+    /* the action names what it does for the page's mission, in the words the
+       remote-ready screen already uses: a co-buyer or a driver joins a visit
+       that is already open, so "start visit" promised something that was
+       running (RP-UI-057) */
+    const kind = (mission || {}).kind;
+    const go = kind === "cobuyer" ? "Attach as co-buyer" : kind === "driver" ? "Add as driver" : "Confirm & start visit";
     return shell(`
       ${heroHtml("Customer onboarding", "No license available")}
       <div class="rp-field"><label class="rp-field__label" for="obName">Full name</label><input class="rp-field__input" id="obName" placeholder="First Last"></div>
@@ -2803,7 +3249,7 @@ route("customers", () => {
       <div class="rp-field"><label class="rp-field__label" for="obEmail">Email</label><input class="rp-field__input" id="obEmail" type="email" placeholder="name@testing.com"></div>
       <div class="rp-field"><label class="rp-field__label" for="obAddr">Registration address</label><input class="rp-field__input" id="obAddr" placeholder="Street, city, ST 12345">
         <div id="obAddrHint"></div></div>`, "Step 2 of 3",
-      chDock(primaryBtn("obManualSave", "Confirm & start visit"), linkBtn("obBack", "Back to resolver")));
+      chDock(primaryBtn("obManualSave", go), linkBtn("obBack", "Back to resolver")));
   }
 
   /* ---- remote session: waiting + ready (advisor side) ---- */
@@ -2812,20 +3258,24 @@ route("customers", () => {
     const row = (okFlag, label, sub, value) => `<div class="rp-step"><span class="rp-step__mark${okFlag ? " rp-step__mark--done" : ""} ob-statusicon${okFlag ? "" : " pending"}">${okFlag ? rpGlyph("check") : ""}</span><div><span class="rp-step__title">${label}</span>${sub ? `<span class="rp-step__sub">${sub}</span>` : ""}</div><span class="rp-status${okFlag ? " rp-status--positive" : ""} ob-statusvalue${okFlag ? "" : " pending"}">${value}</span></div>`;
     /* the channels are what is on record so far; the address arrives with
        the licence (v022 Onboarding 08) */
+    /* the link path's second step (RP-UI-033): the search is Step 1 and the
+       customer's upload, once it lands, is Step 3. This screen said "Step 3 of
+       3" as well, so step 2 never appeared on the link path. */
     return shell(`
       ${heroHtml("Customer onboarding", "Waiting for customer")}
       <div class="rp-notice">Secure link sent · ${esc(s.phone || s.email)}${s.helper ? (s.phone ? " (a helper's number)" : " (a helper's address)") : ""} · ${esc(s.channel)}</div>
       <div class="rp-steps">
         ${row(true, "Link sent", "Secure Ride Price session created", "Complete")}
         ${row(!!s.photoAt, "License photo", s.photoAt ? "Read from the training prop" : "Waiting for customer upload", s.photoAt ? "Received" : "Pending")}
-        ${row(!!s.faceAt, "Identity photo", s.faceAt ? "Captured on the customer's device" : "Face step follows the upload", s.faceAt ? "Captured" : "Pending")}
+        ${s.faceAt && s.faceNoMatch ? row(false, "Identity photo", "Didn’t match the license · check it in person", "Check in person")
+          : row(!!s.faceAt, "Identity photo", s.faceAt ? "Captured on the customer's device" : "Face step follows the upload", s.faceAt ? "Captured" : "Pending")}
         ${row(!!s.addressConfirmedAt, "Registration address", s.addressConfirmedAt ? "Confirmed by the customer" : "Customer confirms the extracted address", s.addressConfirmedAt ? "Confirmed" : "Pending")}
       </div>
       <div class="rp-section">Channels</div>
       <div class="rp-group">
         <div class="rp-match__kv" style="border-top:0"><span>Mobile</span><span>${esc(s.phone || "Not on record")}</span></div>
         <div class="rp-match__kv"><span>Email</span><span>${esc(s.email || "Not on record")}</span></div>
-      </div>`, "Step 3 of 3",
+      </div>`, "Step 2 of 3",
       chDock(`<a class="rp-primary" href="#/idverify">Open customer view</a>`, linkBtn("obCancelSession", "Cancel this secure link")));
   }
 
@@ -2846,12 +3296,13 @@ route("customers", () => {
     return shell(`
       ${heroHtml("Customer onboarding", "Customer identified")}
       ${needsResolution ? `<div class="rp-notice rp-notice--conflict"><strong>Duplicate customer records</strong>Select the matching customer before attaching this upload.</div>` : ""}
+      ${s.faceNoMatch ? `<div class="rp-notice rp-notice--working" id="obNoMatchNote"><strong>The photo didn’t match the license</strong>Check ${esc(p.first)}’s ID in person.</div>` : ""}
       <section class="rp-match"><div class="rp-match__head">
         <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(p))}</span><span class="rp-row__sub">Remote session${linked ? " · existing customer" : ""}${s.helper ? (s.phone ? " · answered from a helper's number" : " · answered from a helper's address") : ""}</span></span>
-        <span class="rp-tag rp-tag--match">Identity captured</span></div></section>
+        ${s.faceNoMatch ? "" : `<span class="rp-tag rp-tag--match">Identity captured</span>`}</div></section>
       <div class="rp-steps" style="margin-top:14px">
         ${row(true, "Secure session", "Opened on the customer's device", "Complete")}
-        ${row(true, "Identity photo", "Captured and discarded", "Captured")}
+        ${s.faceNoMatch ? row(false, "Identity photo", "Didn’t match the license · check it in person", "Check in person") : row(true, "Identity photo", "Captured and discarded", "Captured")}
         ${row(true, "License photo", "Read from the upload", "Received")}
         ${row(false, "Second license side", "Request later only when a workflow needs it", "Pending")}
       </div>
@@ -3043,7 +3494,30 @@ route("customers", () => {
     };
     /* D-OB1: the two answers on the "already on file" screen */
     const useOn = $("#obUseOnFile"); if (useOn) useOn.onclick = () => { st.found = st.dupe.c; st.mode = "found"; step(); render(); window.scrollTo(0, 0); };
-    const anyway = $("#obCreateAnyway"); if (anyway) anyway.onclick = () => { st.forceNew = true; const d = st.dupe.draft; st.mode = "manual"; step(); render(); $("#obName").value = d.name; $("#obPhone").value = d.phone; $("#obEmail").value = d.email; $("#obAddr").value = d.addr; window.scrollTo(0, 0); };
+    const createAnyway = () => { st.forceNew = true; const d = st.dupe.draft; st.forceNewFor = { id: st.dupe.c.id, why: st.dupe.why, name: d.name }; st.mode = "manual"; step(); render(); $("#obName").value = d.name; $("#obPhone").value = d.phone; $("#obEmail").value = d.email; $("#obAddr").value = d.addr; window.scrollTo(0, 0); };
+    const anyway = $("#obCreateAnyway"); if (anyway) anyway.onclick = createAnyway;
+    /* W-006: an answer first, said above the two rows when Continue comes without one (as the scanner says it) */
+    /* a choice is marked where it stands, as the scanner's wireOptions marks it: a redraw lost the focus (claude-c on #200) */
+    $$("[data-dup]").forEach(b => b.onclick = () => {
+      st.dupePick = b.dataset.dup;
+      $$("[data-dup]").forEach(x => {
+        const on = x === b, r = $(".rp-radio", x);
+        x.setAttribute("aria-pressed", String(on)); x.classList.toggle("rp-option--on", on); r.classList.toggle("rp-radio--on", on); r.innerHTML = on ? rpGlyph("check") : "";
+      });
+      const note = $("#obDupNote"); if (note) note.remove();
+    });
+    const dupGo = $("#obDupContinue"); if (dupGo) dupGo.onclick = () => {
+      if (!st.dupePick) {
+        let note = $("#obDupNote");
+        if (!note) { note = document.createElement("p"); note.id = "obDupNote"; note.className = "rp-field__err"; note.setAttribute("role", "alert"); $("[data-dup]").insertAdjacentElement("beforebegin", note); }
+        note.textContent = "Choose Same person or Different person to go on.";
+        note.scrollIntoView({ block: "nearest" });
+        return;
+      }
+      const pickNow = st.dupePick; st.dupePick = null;
+      if (pickNow === "same") { st.found = st.dupe.c; st.mode = "found"; step(); render(); window.scrollTo(0, 0); return; }
+      createAnyway();
+    };
     /* D-OB3: whose upload — create the person it reads, or update the record on that number */
     const own = $("#obCreateOwn"); if (own) own.onclick = () => { const w = st.whose; st.whose = null; st.mode = "remote-ready"; attachUpload(null, true); };
     const itIs = $("#obItIs"); if (itIs) itIs.onclick = () => { const w = st.whose; st.whose = null; st.mode = "remote-ready"; attachUpload(w.c, true); };
@@ -3074,26 +3548,32 @@ route("customers", () => {
       if (!email) bad.push({ el: $("#obEmail"), msg: "Required" });
       else if (!validCustomerEmail(email)) bad.push({ el: $("#obEmail"), msg: "Needs an @ and a dot" });
       if (!parsed) bad.push({ el: $("#obAddr"), msg: $("#obAddr").value.trim() ? "Needs a street, a town and a ZIP — e.g. 20 Ditmars Blvd, Astoria, NY 11106" : "Required" });
-      if (markMissing(view(), bad)) return;
+      /* on the kit's fields, in the kit's own error (W-044) */
+      if (kitMissing(view(), bad)) return;
       /* D-OB1: nothing is written while someone is on file for this phone,
          email or name — the screen says who, and creating anyway is the
          advisor's deliberate second tap (measured before: a second John Smith
          on John's own number, no warning) */
-      if (!st.forceNew) {
-        const hit = onFile({ phone, email, name });
-        if (hit) { st.dupe = { c: hit.c, why: hit.why, draft: { name, phone, email, addr: $("#obAddr").value } }; st.mode = "dupe"; step(); render(); window.scrollTo(0, 0); return; }
-      }
+      /* "Different person" holds for the draft it was given on (claude-c on #200): the name changed, or another
+         record on file, and the question comes back, so a second John Smith is never made on John's phone unasked */
+      const hit = onFile({ phone, email, name });
+      const g = st.forceNew ? st.forceNewFor : null, norm = (v) => String(v || "").trim().toLowerCase().replace(/\s+/g, " ");
+      const granted = !!(g && hit && g.id === hit.c.id && g.why === hit.why && norm(g.name) === norm(name));
+      if (hit && !granted) { st.dupe = { c: hit.c, why: hit.why, draft: { name, phone, email, addr: $("#obAddr").value } }; st.dupePick = null; st.mode = "dupe"; step(); render(); window.scrollTo(0, 0); return; }
       const c = {
         id: uid("c"), first: parts.slice(0, -1).join(" "), middle: "", last: parts[parts.length - 1],
         phone, email, creditScore: 700, createdAt: new Date().toISOString()
       };
       const priorDrafts = Store.s.licenseDrafts;
       try {
-        const unfinished = st.manualDraft && priorDrafts?.unassigned &&
-          JSON.stringify(priorDrafts.unassigned) === JSON.stringify(st.manualDraft) ? priorDrafts.unassigned : null;
+        /* the unfinished scan handed over is found by what it holds, under whichever key it waits: a walk-in's own
+           since LS-084, or 'unassigned' from before it */
+        const unfinishedKey = st.manualDraft && priorDrafts ? Object.keys(priorDrafts).find((k) => (k === 'unassigned' || k.startsWith('walkin:'))
+          && JSON.stringify(priorDrafts[k]) === JSON.stringify(st.manualDraft)) || null : null;
+        const unfinished = unfinishedKey ? priorDrafts[unfinishedKey] : null;
         if (unfinished) {
           c.onboard = { secondSide: 'pending', licenseSides: { front: true, reviewedAt: null } };
-          Store.s.licenseDrafts = { ...priorDrafts, ['customer:' + c.id]: { ...unfinished, subjectCustomerId: c.id } }; delete Store.s.licenseDrafts.unassigned;
+          Store.s.licenseDrafts = { ...priorDrafts, ['customer:' + c.id]: { ...unfinished, subjectCustomerId: c.id } }; delete Store.s.licenseDrafts[unfinishedKey];
         }
         Store.s.customers.push(c);
         confirmAddress(c, parsed, 'typed', false);
@@ -3184,20 +3664,21 @@ route("customers", () => {
       /* an EXISTING record takes the upload before the buyer-role guard runs: it is that
          person's own identity, and it stays whatever the mission then decides.
          Measured against the old portal: a refused driver attach left John
-         Smith holding the licence he had just uploaded — the upload's whole
+         Smith holding the licence John had just uploaded — the upload's whole
          point. The first version of the orphan fix withheld even that, so the
          session could only be discarded and the upload was lost. */
       const stampOnboard = (x) => {
         Object.assign(x, { address: a.address, city: a.city, state: a.state, zip: a.zip });
         x.onboard = Object.assign({}, x.onboard, {
-          phoneAt: s.doneAt, faceAt: s.faceAt, licensePhotoAt: s.photoAt, secondSide: "pending", licenseSides: { barcode: true, reviewedAt: null },
+          /* faceNoMatch: the identity check said no on the customer's own phone; the deal's jacket asks for the ID in person */
+          phoneAt: s.doneAt, faceAt: s.faceAt, faceNoMatch: s.faceNoMatch ? true : undefined, licensePhotoAt: s.photoAt, secondSide: "pending", licenseSides: { barcode: true, reviewedAt: null },
           address: { confirmedAt: s.addressConfirmedAt, source: "license" }
         });
       };
       if (c) {
         Object.assign(c, {
           first: p.first, middle: typeof p.middle === 'string' && p.middle.trim() ? p.middle : c.middle || "", last: p.last, dob: p.dob || c.dob,
-          license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
+          license: licenseRecordOf(p)
         });
         /* the session's channels fill a gap, never overwrite: the advisor typed
            them into the link sheet, and a record's own email is the customer's */
@@ -3233,7 +3714,7 @@ route("customers", () => {
         c = {
           id: uid("c"), first: p.first, middle: p.middle || "", last: p.last, dob: p.dob || "",
           phone: s.helper ? "" : s.phone, email: s.email, creditScore: 700, createdAt: new Date().toISOString(),
-          license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
+          license: licenseRecordOf(p)
         };
         if (s.helper) c.helperPhone = s.phone;
         Store.s.customers.push(c);
@@ -3259,19 +3740,36 @@ route("customers", () => {
     }
   }
 
-  function openSendSheet() {
+  /* `v` brings the sheet back as it was — the channel, what was typed, the
+     helper box — with `v.problem` saying what went wrong last time (phase 2,
+     the owner's picture G): a link that did not go out, a dropped connection */
+  function openSendSheet(v) {
+    v = v || {};
+    const ch0 = v.channel === "Email" ? "Email" : "Text";
+    const problem = v.problem || "";
+    const other = ch0 === "Text" ? "Email" : "Text";
+    const alert = problem === "failed"
+      ? `<div class="rp-alert" role="alert" id="obSendProblem" style="margin:4px 0 14px"><div class="rp-alert__title">${ch0 === "Text" ? "The text didn’t go out" : "The email didn’t go out"}</div><div class="rp-alert__body">${ch0 === "Text" ? "The number wasn’t reached, and nothing was sent. Try again, or send the link by email instead." : "The address wasn’t reached, and nothing was sent. Try again, or send the link by text instead."}</div></div>`
+      : problem === "storage"
+        ? `<div class="rp-alert" role="alert" id="obSendProblem" style="margin:4px 0 14px"><div class="rp-alert__title">This phone didn’t save the link</div><div class="rp-alert__body">Try again. If it keeps happening, the phone’s storage is full or private browsing is on.</div></div>`
+        : "";
+    const primary = problem === "offline"
+      ? `<div class="rp-gatenote" id="obSendWait">It sends by itself when you are back online.</div><button type="button" class="rp-primary" id="obSendGo" disabled>Waiting for a connection</button>`
+      : `<button type="button" class="rp-primary" id="obSendGo">${problem ? "Try again" : "Send secure link"}</button>`;
+    const way = problem === "failed" ? `<button type="button" class="rp-link ch-hit" id="obSendOther">Send by ${other.toLowerCase()} instead</button>`
+      : problem === "offline" ? `<button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>` : "";
     openSheet4(`${sheetHead4("Send secure upload link")}
-      <div class="rp-segment" id="obChannel"><button type="button" class="rp-segment__item rp-segment__item--on active" data-ch="Text">Text</button><button type="button" class="rp-segment__item" data-ch="Email">Email</button></div>
-      <div class="rp-field" id="obLinkPhoneRow"><label class="rp-field__label" for="obLinkPhone">Customer mobile</label><input class="rp-field__input" id="obLinkPhone" type="tel" placeholder="(555) 555-5555"></div>
-      <div class="rp-field" id="obLinkEmailRow" hidden><label class="rp-field__label" for="obLinkEmail">Email</label><input class="rp-field__input" id="obLinkEmail" type="email" placeholder="name@testing.com"></div>
-      <label class="rp-field ob-helperrow"><input type="checkbox" id="obLinkHelper"> <span id="obLinkHelperText">This number belongs to someone helping the customer</span></label>
-      <button type="button" class="rp-primary" id="obSendGo">Send secure link</button>`, (sheet) => {
+      <div class="rp-segment" id="obChannel"><button type="button" class="rp-segment__item${ch0 === "Text" ? " rp-segment__item--on active" : ""}" data-ch="Text">Text</button><button type="button" class="rp-segment__item${ch0 === "Email" ? " rp-segment__item--on active" : ""}" data-ch="Email">Email</button></div>
+      <div class="rp-field" id="obLinkPhoneRow"><label class="rp-field__label" for="obLinkPhone">Customer mobile</label><input class="rp-field__input" id="obLinkPhone" type="tel" placeholder="(555) 555-5555" value="${esc(v.phone || "")}"></div>
+      <div class="rp-field" id="obLinkEmailRow" hidden><label class="rp-field__label" for="obLinkEmail">Email</label><input class="rp-field__input" id="obLinkEmail" type="email" placeholder="name@testing.com" value="${esc(v.email || "")}"></div>
+      <label class="rp-field ob-helperrow"><input type="checkbox" id="obLinkHelper"${v.helper ? " checked" : ""}> <span id="obLinkHelperText">This number belongs to someone helping the customer</span></label>
+      ${alert}${primary}${way}`, (sheet) => {
       /* D-OB6 (owner, 2026-09-15, Option B — "they should only be required to
          provide the contact method they have available"): the segment at the
          top picks the channel and the sheet shows that one field. The other
          is not asked for. If both were ever on a session, the phone comes
          first ("we will prioritize the phone number"). */
-      let channel = "Text";
+      let channel = ch0;
       const showChannel = () => {
         const text = channel === "Text";
         $("#obLinkPhoneRow", sheet).hidden = !text; $("#obLinkEmailRow", sheet).hidden = text;
@@ -3283,30 +3781,100 @@ route("customers", () => {
         showChannel(); const f = $(channel === "Text" ? "#obLinkPhone" : "#obLinkEmail", sheet); if (f) f.focus();
       });
       showChannel();
-      $("#obSendGo", sheet).onclick = () => {
+      const values = () => ({ channel, phone: $("#obLinkPhone", sheet).value, email: $("#obLinkEmail", sheet).value, helper: !!($("#obLinkHelper", sheet) && $("#obLinkHelper", sheet).checked) });
+      const otherWay = $("#obSendOther", sheet);
+      if (otherWay) otherWay.onclick = () => {
+        openSendSheet(Object.assign(values(), { channel: other, problem: "" }));
+        const f = $(other === "Text" ? "#obLinkPhone" : "#obLinkEmail"); if (f) f.focus();
+      };
+      /* the chosen channel's field, checked the same way before either send:
+         the one the advisor taps and the one that goes by itself when the
+         connection is back */
+      const contactProblems = (root, ch) => {
+        const text = ch === "Text";
+        const phone = text ? fmtPhone($("#obLinkPhone", root).value) : "", email = text ? "" : $("#obLinkEmail", root).value.trim();
+        const bad = [];
+        if (text && !phone) bad.push({ el: $("#obLinkPhone", root), msg: "Required" });
+        else if (text && !phoneOk(phone)) bad.push({ el: $("#obLinkPhone", root), msg: "Ten digits" });
+        if (!text && !email) bad.push({ el: $("#obLinkEmail", root), msg: "Required" });
+        else if (!text && !emailOk(email)) bad.push({ el: $("#obLinkEmail", root), msg: "Needs an @ and a dot" });
+        return bad;
+      };
+      /* offline: it sends by itself once the connection is back, while this sheet is up */
+      if (problem === "offline") {
+        const again = () => {
+          if (!document.contains(sheet) || sheet.hidden || !$("#obSendWait", sheet)) return off();
+          if (RIDE_PRICE_SERVICES.reallyOffline() || RIDE_PRICE_SERVICES.mode("links") === "offline") return;
+          off();
+          const v = Object.assign(values(), { problem: "" });
+          if (!contactProblems(sheet, channel).length) return sendLink(v);
+          /* the field was cleared or changed while offline: nothing goes out, and
+             the sheet comes back ready to send, the field saying what it needs */
+          openSendSheet(v);
+          const back = $("#obSheet"); if (back) markMissing(back, contactProblems(back, v.channel));
+        };
+        const off = () => { window.removeEventListener("ride-price:switches", again); window.removeEventListener("online", again); };
+        window.addEventListener("ride-price:switches", again); window.addEventListener("online", again);
+      }
+      const go = $("#obSendGo", sheet);
+      if (go && !go.disabled) go.onclick = () => {
         /* one channel, the chosen one; the other field is not read (D-OB6).
            The record rule (both channels on every record, v3) is set aside
            for a link by his ruling: the record made from the upload carries
            what was provided. The manual form still asks for both (D-OB4). */
-        const text = channel === "Text";
-        const phone = text ? fmtPhone($("#obLinkPhone", sheet).value) : "", email = text ? "" : $("#obLinkEmail", sheet).value.trim();
-        const bad = [];
-        if (text && !phone) bad.push({ el: $("#obLinkPhone", sheet), msg: "Required" });
-        else if (text && !phoneOk(phone)) bad.push({ el: $("#obLinkPhone", sheet), msg: "Ten digits" });
-        if (!text && !email) bad.push({ el: $("#obLinkEmail", sheet), msg: "Required" });
-        else if (!text && !emailOk(email)) bad.push({ el: $("#obLinkEmail", sheet), msg: "Needs an @ and a dot" });
-        if (markMissing(sheet, bad)) return;
-        /* OB-047 (from his D-OB3 answer): a helper's number is the helper's —
-           it never becomes the customer's phone and matches no record */
-        const helper = !!($("#obLinkHelper", sheet) && $("#obLinkHelper", sheet).checked);
-        Store.s.idSession = { id: uid("s"), phone, email, channel, helper, sentAt: new Date().toISOString(), photoAt: null, persona: null, matchId: null, faceAt: null, addressChoice: null, addressFrom: null, addressConfirmedAt: null, doneAt: null };
-        /* a link sent on the buyers sheet's mission attaches as co-buyer when
-           it completes — recorded on the session, which outlives this page */
-        if (missionDeal) Store.s.idSession.mission = { kind: mission.kind, dealId: missionDeal.id, back: mission.back };
-        Store.save();
-        closeSheet4();
-        st.mode = "waiting"; step(); render(); window.scrollTo(0, 0);
+        if (kitMissing(sheet, contactProblems(sheet, channel))) return; /* the kit's own error (W-044) */
+        sendLink(values());
       };
+    });
+  }
+  /* phase 2 · the link goes through the services layer: the button says what
+     it is doing, a line says when it is slow, and it goes once. A link that
+     does not go out, a dropped connection or an ended session comes back to
+     this sheet with what was typed (the owner's pictures A–E and G). */
+  function sendLink(v) {
+    const sheet = $("#obSheet"); if (!sheet) return;
+    const go = $("#obSendGo", sheet);
+    if (!go || go.getAttribute("aria-busy") === "true") return;
+    const text = v.channel !== "Email";
+    const phone = text ? fmtPhone(v.phone) : "", email = text ? "" : String(v.email || "").trim();
+    go.textContent = text ? "Sending the text…" : "Sending the email…";
+    go.setAttribute("aria-busy", "true"); go.setAttribute("aria-disabled", "true");
+    /* this send, on this screen: the button is this sheet's own, gone when the resolver is */
+    const alive = () => document.contains(go);
+    const slow = setTimeout(() => {
+      if (!alive() || sheet.hidden || $("#obSendSlow", sheet)) return;
+      go.insertAdjacentHTML("beforebegin", `<div class="rp-gatenote" id="obSendSlow">Still sending. ${text ? "Texts" : "Emails"} usually arrive within a minute.</div>`);
+    }, 3000);
+    RIDE_PRICE_SERVICES.call("links").then(() => {
+      clearTimeout(slow);
+      if (!alive()) return;
+      /* OB-047 (from his D-OB3 answer): a helper's number is the helper's —
+         it never becomes the customer's phone and matches no record */
+      const before = Store.s.idSession;
+      Store.s.idSession = { id: uid("s"), phone, email, channel: text ? "Text" : "Email", helper: !!v.helper, sentAt: new Date().toISOString(), photoAt: null, persona: null, matchId: null, faceAt: null, addressChoice: null, addressFrom: null, addressConfirmedAt: null, doneAt: null };
+      /* a link sent on the buyers sheet's mission attaches as co-buyer when
+         it completes — recorded on the session, which outlives this page */
+      if (missionDeal) Store.s.idSession.mission = { kind: mission.kind, dealId: missionDeal.id, back: mission.back };
+      try { Store.save(); }
+      catch (e) { if (!isStorageError(e)) throw e; Store.s.idSession = before; return openSendSheet(Object.assign({}, v, { problem: "storage" })); }
+      closeSheet4();
+      st.mode = "waiting"; step(); render(); window.scrollTo(0, 0);
+    }, (err) => {
+      clearTimeout(slow);
+      if (!alive()) return;
+      const kind = (err && err.kind) || "failed";
+      if (kind === "session") return openLinkSession(v);
+      openSendSheet(Object.assign({}, v, { problem: kind }));
+    });
+  }
+  /* phase 2 · the session ended (picture E): sign in again, nothing lost */
+  function openLinkSession(v) {
+    openSheet4(`${sheetHead4("Your session ended")}
+      <p class="rp-sheet__sub">Sign in again to send the link. Nothing you entered is lost.</p>
+      <button type="button" class="rp-primary" id="obSignIn">Sign in again</button>
+      <button type="button" class="rp-link ch-hit" id="obNotNow">Not now</button>`, (sheet) => {
+      $("#obSignIn", sheet).onclick = () => { RIDE_PRICE_SERVICES.signIn(); openSendSheet(Object.assign({}, v, { problem: "" })); sendLink(Object.assign({}, v, { problem: "" })); };
+      $("#obNotNow", sheet).onclick = () => openSendSheet(Object.assign({}, v, { problem: "" }));
     });
   }
 
@@ -3356,6 +3924,9 @@ route("idverify", () => {
   document.body.dataset.screen = "identity-upload";
   const s = Store.s.idSession;
   let surface = null, readGeneration = 0, faceGeneration = 0;
+  /* the advisor the customer is told about: a co-buyer's or a driver's link joins a deal, and that deal's own advisor
+     sees the customer (claude-c on #201 and #202); a new visit is the floor's advisor's, as finish() stamps */
+  const advisorFirst = () => { const d = s && s.mission ? Store.deal(s.mission.dealId) : null; return String((d ? d.advisor : Store.s.advisor) || "").split(" ")[0]; };
   const live = () => location.hash === '#/idverify' && Store.s.idSession === s && surface && document.contains(surface);
   function saveSession(update) {
     if (!live()) return false;
@@ -3374,8 +3945,32 @@ route("idverify", () => {
     return true;
   }
 
-  const shell = (content) => chShell({ template: "task", title: "Identity upload", hideRole: true, banner: false /* PI-005 (docs/workflows/portal-interaction): a customer's page draws no dealership band */ }, content);
+  const shell = (content) => chShell({ template: "task", title: "Identity upload", banner: false /* PI-005 (docs/workflows/portal-interaction): a customer's page draws no dealership band */ }, content);
   const heroHtml = (eyebrow, title) => `<div><div class="rp-section">${eyebrow}</div><h1 class="rp-title">${title}</h1></div>`;
+  /* phase 2 · the customer's own page answers through the same pretend
+     servers (the tester's "License reading" and "Identity check" switches),
+     in the customer's words: what happened, that the photo is kept, and the
+     way on — no dealership band, no toast. Offline, it goes by itself once
+     the connection is back. */
+  let custWait = null;
+  const custBack = () => {
+    if (!custWait || !live()) return;
+    const S = RIDE_PRICE_SERVICES; if (S.reallyOffline() || S.mode(custWait.id) === "offline") return;
+    const again = custWait.again; custWait = null; again();
+  };
+  window.addEventListener("ride-price:switches", custBack); window.addEventListener("online", custBack);
+  window.addEventListener("hashchange", () => { window.removeEventListener("ride-price:switches", custBack); window.removeEventListener("online", custBack); }, { once: true });
+  function custProblem(host, id, kind, again, words) {
+    custWait = kind === "offline" ? { id, again } : null;
+    const T = kind === "offline" ? ["You’re offline", "Your photo is kept. " + words.offline, ""]
+      : kind === "session" ? ["Your secure session ended", "Open the link from your text again to go on. Your photo is kept.", "Open the link again"]
+      : [words.failed, "Your photo is kept. Try again in a moment.", "Try again"];
+    host.innerHTML = `<div class="rp-alert" role="alert" data-cust-problem="${kind}"><div class="rp-alert__title">${T[0]}</div><div class="rp-alert__body">${T[1]}</div>${T[2] ? `<button type="button" class="rp-alert__action" data-cust-again>${T[2]}</button>` : ""}</div>`;
+    const b = host.querySelector("[data-cust-again]");
+    if (b) b.onclick = () => { if (kind === "session") RIDE_PRICE_SERVICES.signIn(); again(); };
+  }
+  const READ_WORDS = { failed: "We couldn’t read your license just now", offline: "It’s read as soon as you’re back online." };
+  const CHECK_WORDS = { failed: "We couldn’t check your photo just now", offline: "It’s checked as soon as you’re back online." };
   function mount() {
     surface = view().firstElementChild;
     const dock = $('.rp-dock', surface);
@@ -3445,19 +4040,33 @@ route("idverify", () => {
         if (current()) note.textContent = 'Couldn’t read that photo. Try the printed training prop’s barcode side, or choose another photo.';
       };
       const oldError = $('#obSaveError'); if (oldError) oldError.remove();
-      note.textContent = 'Reading…';
-      Promise.resolve().then(() => RIDE_PRICE_SCAN.recognizeFile(f)).then((res) => {
-        if (!current()) return;
-        if (res?.reason === 'multiple-documents') { note.textContent = 'More than one license found. Choose a photo of one license.'; return; }
-        if (['file-too-large', 'image-too-large', 'unsupported-image'].includes(res?.reason)) { note.textContent = scannerImageError(res.reason); return; }
-        if (!(res && res.ok && res.persona)) return failedRead();
-        const m = findLicenseMatch(res.persona), matchedCustomer = scannerSessionCustomer(m, res.persona);
-        note.textContent = '';
-        if (saveSession({ photoAt: new Date().toISOString(), persona: res.persona,
-          matchId: matchedCustomer ? matchedCustomer.id : null, matchResolvedAt: null })) {
-          render(); window.scrollTo(0, 0);
-        }
-      }).catch(failedRead);
+      /* phase 2 · the read is a pretend server: still reading, didn't answer,
+         offline and an ended session are said here, the photo kept */
+      const readIt = () => {
+        note.textContent = 'Reading…';
+        const slow = setTimeout(() => { if (current() && note.textContent === 'Reading…') note.textContent = 'Still reading your license. This can take up to a minute.'; }, 3000);
+        RIDE_PRICE_SERVICES.call('reading', () => RIDE_PRICE_SCAN.recognizeFile(f)).then((res) => {
+          clearTimeout(slow);
+          if (!current()) return;
+          if (res?.reason === 'multiple-documents') { note.textContent = 'More than one license found. Choose a photo of one license.'; return; }
+          /* LS-039: a license from outside the US is not read; the advisor adds it with the customer in person */
+          if (res?.reason === 'not-us') { note.textContent = `A license from outside the US can’t be read here. ${advisorFirst() || 'Your advisor'} will add it with you at the dealership.`; return; }
+          if (['file-too-large', 'image-too-large', 'unsupported-image'].includes(res?.reason)) { note.textContent = scannerImageError(res.reason); return; }
+          if (!(res && res.ok && res.persona)) return failedRead();
+          const m = findLicenseMatch(res.persona), matchedCustomer = scannerSessionCustomer(m, res.persona);
+          note.textContent = '';
+          if (saveSession({ photoAt: new Date().toISOString(), persona: res.persona,
+            matchId: matchedCustomer ? matchedCustomer.id : null, matchResolvedAt: null })) {
+            render(); window.scrollTo(0, 0);
+          }
+        }, (error) => {
+          clearTimeout(slow);
+          if (!current()) return;
+          if (error && error.name === 'ServiceError') return custProblem(note, 'reading', error.kind, readIt, READ_WORDS);
+          failedRead();
+        }).catch(failedRead);
+      };
+      readIt();
     });
   }
 
@@ -3466,7 +4075,7 @@ route("idverify", () => {
     view().innerHTML = shell(`
       ${heroHtml("Identity verification", "Confirm it&rsquo;s you", "Take a quick photo so the dealership can confirm you match the license that was uploaded.")}
       <div class="rp-notice">License read · ${esc(p.first + " " + p.last)}</div>
-      <div class="rp-empty"><strong>Identity photo</strong>Demo only. The photo is checked on this device and discarded. No biometric match occurs.</div>
+      <div class="rp-empty"><strong>Identity photo</strong>Demo only. The photo is checked on this device and discarded.</div>
       <div class="rp-dock">
         <button type="button" class="rp-primary" data-facebtn="camera">Take identity photo</button>
         <button type="button" class="rp-link" data-facebtn="library">Choose a photo</button>
@@ -3490,14 +4099,41 @@ route("idverify", () => {
         note.textContent = scannerImageError(result.reason);
         return;
       }
-      if (saveSession({ faceAt: new Date().toISOString() })) { render(); window.scrollTo(0, 0); }
+      /* phase 2 · the identity check is a pretend server: the photo counts
+         only once it answers; its states are said here, the photo kept */
+      let note = $('#obFaceNote');
+      if (!note) { note = document.createElement('div'); note.id = 'obFaceNote'; $('.rp-page', surface).appendChild(note); }
+      note.className = ''; note.removeAttribute('role');
+      const checkIt = () => {
+        note.innerHTML = '<p class="rp-notice" role="status">Checking your photo…</p>';
+        const here = () => live() && generation === faceGeneration && document.contains(note);
+        const slow = setTimeout(() => { if (live() && generation === faceGeneration && document.contains(note) && !note.querySelector('[data-cust-problem]')) note.innerHTML = '<p class="rp-notice" role="status">Still checking your photo. This can take up to a minute.</p>'; }, 3000);
+        RIDE_PRICE_SERVICES.call('identity').then((answer) => {
+          clearTimeout(slow);
+          if (!live() || generation !== faceGeneration) return;
+          /* the check can answer no: the photo does not match the license (the owner's answer of 2026-09-24). Nothing
+             is blocked for the customer: the photo counts, the next step says the advisor will check it in person,
+             and the advisor's screens and the deal's jacket say so */
+          const noMatch = !!answer && answer.match === false;
+          if (saveSession({ faceAt: new Date().toISOString(), faceNoMatch: noMatch || null })) { render(); window.scrollTo(0, 0); }
+        }, (error) => {
+          clearTimeout(slow);
+          if (!here()) return;
+          custProblem(note, 'identity', (error && error.kind) || 'failed', checkIt, CHECK_WORDS);
+        });
+      };
+      checkIt();
     });
   }
 
   function resetLicenseUpload() {
-    const reset = { photoAt:null, persona:null, matchId:null, matchResolvedAt:null, faceAt:null, addressChoice:null, addressFrom:null, addressConfirmedAt:null, doneAt:null };
+    const reset = { photoAt:null, persona:null, matchId:null, matchResolvedAt:null, faceAt:null, faceNoMatch:null, addressChoice:null, addressFrom:null, addressConfirmedAt:null, doneAt:null };
     if (saveSession(reset)) { render(); window.scrollTo(0, 0); }
   }
+
+  /* what the customer reads when the identity check said no (the owner's answer of 2026-09-24): said on the steps
+     after, in the name of the advisor who will see the customer (advisorFirst), and nothing blocked */
+  const noMatchNotice = () => `<div class="rp-notice rp-notice--working" role="status" id="obFaceNoMatch"><strong>We couldn’t match your photo to your license</strong>${esc(advisorFirst() || "Your advisor")} will check it with you at the dealership.</div>`;
 
   function renderAddress() {
     const p = s.persona;
@@ -3511,6 +4147,7 @@ route("idverify", () => {
     const choose = (a) => { if (!scannerHasCompleteAddress(a)) return; const now = new Date().toISOString(); if (saveSession({ addressChoice: a, addressFrom: crm && a === crm ? "record" : "license", addressConfirmedAt: now, doneAt: now })) { render(); window.scrollTo(0, 0); } };
     view().innerHTML = shell(`
       ${heroHtml("Registration", "Confirm registration address", "This address is used for vehicle registration and deal calculations — confirming it here means nobody asks you to type it again.")}
+      ${s.faceNoMatch ? noMatchNotice() : ""}
       ${crmComplete && !same ? `
       <div class="rp-notice rp-notice--conflict">The address on the license differs from the one on file.</div>
       <div class="rp-group">
@@ -3528,8 +4165,9 @@ route("idverify", () => {
     view().innerHTML = shell(`
       ${heroHtml("Customer identity", "You&rsquo;re all set")}
       <div class="rp-notice rp-notice--success">Training details saved on this device</div>
+      ${s.faceNoMatch ? noMatchNotice() : ""}
       <div class="rp-group">
-        ${[["Identity photo", "Captured", true], ["License photo", "Received", true], ["Second license side", "Pending", false], ["Registration address", "Confirmed", true]].map(([title, state, ready]) => `<div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(title)}</span></span><span class="rp-status${ready ? " rp-status--positive" : ""}">${esc(state)}</span></div>`).join("")}
+        ${[s.faceNoMatch ? ["Identity photo", "To check in person", false] : ["Identity photo", "Captured", true], ["License photo", "Received", true], ["Second license side", "Pending", false], ["Registration address", "Confirmed", true]].map(([title, state, ready]) => `<div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(title)}</span></span><span class="rp-status${ready ? " rp-status--positive" : ""}">${esc(state)}</span></div>`).join("")}
       </div>
       <div class="rp-dock"><a class="rp-primary" href="#/customers">Return to advisor view</a></div>`);
   }
@@ -3691,6 +4329,90 @@ function scannerIdentityConflict(existing, incoming) {
   if (aNumber !== bNumber) return true;
   return !!(aState && bState && aState !== bState);
 }
+/* LS-045 / LS-046 (the owner's answers of 2026-09-24, B, as decision-scanner-birthday.png drew LS-045): two
+   conflicts are not the advisor's choice. A license on file whose birthday is not the record's ("birthday"), and the
+   record's name and birthday on a license with another number ("license"): a Team Lead confirms which is right, and
+   nothing changes until then. Any other conflict keeps its screen. The request is kept on the customer's record,
+   identityReviews, and answered once, by a Team Lead */
+function scannerReviewKind(m, ex, p) {
+  if (!m || !ex || !p) return null;
+  const same = (a, b) => scannerIdentityToken(a) === scannerIdentityToken(b), t = scannerLicenseToken;
+  if (m.type === "license number" && same(ex.first, p.first) && same(ex.last, p.last) && ex.dob && p.dob && ex.dob !== p.dob) return "birthday";
+  if (m.type === "date of birth and name" && ex.license && t(ex.license.number) && p.license
+    && (t(ex.license.number) !== t(p.license.number) || t(ex.license.state) !== t(p.license.state))) return "license";
+  return null;
+}
+/* the latest request of that kind about this very license: its birthday, or its number and state */
+function scannerReviewOf(c, kind, p) {
+  const t = scannerLicenseToken;
+  const same = (r) => kind === "birthday" ? r.scanned.dob === p.dob
+    : !!r.scanned.license && t(r.scanned.license.number) === t(p.license.number) && t(r.scanned.license.state) === t(p.license.state);
+  return (c.identityReviews || []).filter((r) => r.kind === kind && same(r)).slice(-1)[0] || null;
+}
+function identityReviewValue(kind, side) {
+  return kind === "birthday" ? dateUS(side.dob) : side.license ? `${side.license.number} · ${side.license.state}` : "—";
+}
+/* has the record moved since the request was made (another tab, another answer)? Then it is closed, not answered */
+function identityReviewStale(c, r) {
+  return r.kind === "birthday" ? c.dob !== r.onFile.dob : JSON.stringify(c.license || null) !== JSON.stringify(r.onFile.license || null);
+}
+/* the Team Lead's review: both values, nothing chosen until Jordan chooses, the record changed only on Confirm. Drawn
+   in Home's sheet from Needs you, and in the scanner's when the Team Lead scans */
+function identityReviewHtml(c, r) {
+  const birthday = r.kind === "birthday", row = (k, v) => `<div class="rp-kv__row"><span>${k}</span><span>${v}</span></div>`;
+  const asker = r.askedBy && r.askedBy !== "advisor" ? r.askedBy : "An advisor";
+  const at = new Date(r.askedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  /* chSheetHead escapes its own title: the name goes in as typed (claude-c on the branch) */
+  const head = chSheetHead(`${c.first} ${c.last}’s ${birthday ? "birthday" : "license"}`);
+  if (identityReviewStale(c, r)) return `${head}
+    <div class="rp-notice rp-notice--working" role="status" id="idReviewStale"><strong>${esc(c.first)}’s record changed since ${esc(asker)} asked</strong></div>
+    <button type="button" class="rp-primary" id="idReviewClose">Close the request</button>`;
+  const opt = (key, title, sub) => `<button type="button" class="rp-option" data-idpick="${key}" aria-pressed="false"><span><span class="rp-option__title">${title}</span><span class="rp-option__sub">${sub}</span></span><span class="rp-radio"></span></button>`;
+  return `${head}
+    <div class="rp-kv" id="idReviewFacts">
+      ${row("On file", esc(identityReviewValue(r.kind, r.onFile)))}${row("On this license", esc(identityReviewValue(r.kind, r.scanned)))}
+      ${birthday && c.license && c.license.number ? row("License", esc(c.license.number + " · " + c.license.state)) : ""}
+      ${c.phone ? row("Phone", esc(c.phone)) : ""}
+      ${row("Asked by", esc(asker + ", " + at))}
+    </div>
+    ${opt("scanned", `The license is right — ${esc(identityReviewValue(r.kind, r.scanned))}`, birthday ? `${esc(c.first)}’s record takes it` : `${esc(c.first)}’s record takes this license`)}
+    ${opt("onFile", `The record is right — ${esc(identityReviewValue(r.kind, r.onFile))}`, "Nothing changes, and this license is not added")}
+    <button type="button" class="rp-primary" id="idReviewGo">Confirm</button>`;
+}
+function wireIdentityReview(sh, c, r, onDone) {
+  let pick = null;
+  const say = (text, before) => { let n = $("#idReviewNote", sh); if (!n) { n = document.createElement("p"); n.id = "idReviewNote"; n.className = "rp-field__err"; n.setAttribute("role", "alert"); before.insertAdjacentElement("beforebegin", n); } n.textContent = text; };
+  const answer = (p) => {
+    const before = JSON.parse(JSON.stringify(c));
+    if (p === "scanned") {
+      if (r.kind === "birthday") c.dob = r.scanned.dob;
+      else {
+        const L = r.scanned.license, t = scannerLicenseToken;
+        if (Store.s.customers.some((x) => x.id !== c.id && x.license && t(x.license.number) === t(L.number) && t(x.license.state) === t(L.state))) return say("That license is on another customer’s record.", $("#idReviewGo", sh));
+        c.license = L;
+      }
+    }
+    /* a Team Lead's own request is on the record only once answered, in this save (CodeRabbit on #206); a refused
+       save puts the record back, the request with it */
+    let live = (c.identityReviews || []).find((x) => x.id === r.id);
+    if (!live) { live = r; c.identityReviews = (c.identityReviews || []).concat(r); }
+    live.answer = { at: new Date().toISOString(), by: roleName(), pick: p };
+    try { Store.save(); }
+    catch (error) { Object.keys(c).forEach((k) => delete c[k]); Object.assign(c, before); return say("Not saved. Try again.", $("#idReviewGo, #idReviewClose", sh)); }
+    onDone(p);
+  };
+  const close = $("#idReviewClose", sh); if (close) close.onclick = () => answer("stale");
+  $$("[data-idpick]", sh).forEach((b) => b.onclick = () => {
+    pick = b.dataset.idpick;
+    $$("[data-idpick]", sh).forEach((x) => { const on = x === b, rd = $(".rp-radio", x); x.setAttribute("aria-pressed", String(on)); x.classList.toggle("rp-option--on", on); rd.classList.toggle("rp-radio--on", on); rd.innerHTML = on ? rpGlyph("check") : ""; });
+    const n = $("#idReviewNote", sh); if (n) n.remove();
+  });
+  const go = $("#idReviewGo", sh); if (go) go.onclick = () => {
+    if (!pick) return say("Choose which is right to go on.", $("[data-idpick]", sh));
+    if (identityReviewStale(c, r)) return answer("stale");
+    answer(pick);
+  };
+}
 function scannerCanLink(existing, incoming) {
   if (scannerIdentityConflict(existing, incoming)) return false;
   const norm = scannerLicenseToken;
@@ -3799,16 +4521,24 @@ function openScanFlow(opts) {
      registered before this flow's hashchange listener, so it runs first) */
   const prevCanvas = document.body.dataset.canvas, roleAtOpen = Store.s.role;
   document.body.dataset.canvas = "kit";
-  const sheets = chSheetOpener("scScrim", "scSheet");
+  /* what the open sheet binds while it is up (the code sheet's "back
+     online" listeners) comes off when the sheet closes, when another sheet
+     replaces it, and when the scan ends (CodeRabbit on #140) */
+  let sheetOff = null;
+  const offSheet = () => { const off = sheetOff; sheetOff = null; if (off) off(); };
+  const sheets = chSheetOpener("scScrim", "scSheet", offSheet);
 
   /* one teardown for every exit path — dismissal, navigation, or save */
   function cleanup(navigated) {
     st.cancelled = true;
+    offSheet();
     st.captureGen += 1;
     st.matchGen += 1;
     st.matching = false;
     st.pendingCapture = null;
     window.removeEventListener("hashchange", abandon);
+    window.removeEventListener("ride-price:switches", onServicesBack);
+    window.removeEventListener("online", onServicesBack);
     backEl.removeEventListener("click", onDismiss);
     document.removeEventListener("click", leaveGuard, true);
     sheets.close();
@@ -3836,11 +4566,31 @@ function openScanFlow(opts) {
   document.addEventListener("click", leaveGuard, true);
   backEl.addEventListener("click", onDismiss);
   window.addEventListener("hashchange", abandon);
+  /* phase 2 · a read or a search waiting for a connection goes by itself
+     once the connection is back */
+  const onServicesBack = () => {
+    if (!live()) return;
+    const S = RIDE_PRICE_SERVICES; if (S.reallyOffline()) return;
+    const pc = st.pendingCapture;
+    if (pc && pc.service === 'offline' && S.mode('reading') !== 'offline') { if (!manualOpen()) readPending(pc, true); }
+    else if (st.search && st.search.state === 'offline' && S.mode('search') !== 'offline') afterRecognize();
+  };
+  window.addEventListener("ride-price:switches", onServicesBack);
+  window.addEventListener("online", onServicesBack);
   const done = () => { closeModal(); cleanup(false); };
   const requestClose = () => { if ((st.frontDone || st.backImage) && !st.saved) renderLeaveConfirm(); else done(); };
   const live = () => !st.cancelled && document.contains(body);
 
-  const draftKey = o.mode === 'cobuyer' ? 'cobuyer:' + o.deal.id : o.deal ? 'customer:' + o.deal.customerId : 'unassigned';
+  /* LS-084 (the owner's answer of 2026-09-24, B): each walk-in's unfinished scan is kept under its own key, and the
+     scanner lists them by the name each read, so a new guest starts clean. A co-buyer's or a driver's errand keeps
+     'unassigned', with its pending attachment, and a deal's own scan keeps its customer's key */
+  const walkin = o.mode === 'customer' && !o.deal && !o.mission;
+  const newWalkinKey = () => 'walkin:' + uid('sd');
+  let draftKey = o.mode === 'cobuyer' ? 'cobuyer:' + o.deal.id : o.deal ? 'customer:' + o.deal.customerId : walkin ? newWalkinKey() : 'unassigned';
+  /* the walk-ins' unfinished scans; one saved before this build, under 'unassigned' with no errand and no pending
+     attachment, is one of them */
+  const walkinKeys = (all = Store.s.licenseDrafts || {}) =>
+    Object.keys(all).filter((k) => k.startsWith('walkin:') || (k === 'unassigned' && all[k] && !all[k].mission && !scannerHasCompletion(all[k])));
   const draftSubjectCustomerId = o.mode === 'cobuyer' ? coTarget || null : o.deal?.customerId || null;
   const draftOf = () => Store.s.licenseDrafts?.[draftKey];
   /* main's storage listener re-reads the store when another tab saves, so the store's own draft base (Store.save's DraftConflictError check) follows the other tab. The scanner keeps the copy of its draft it last saw and refuses to overwrite or delete a newer one: codex's same-key stale-save guard. */
@@ -3848,12 +4598,15 @@ function openScanFlow(opts) {
   let boundDraftKey = null, seenBoundDraft = null;
   const draftMoved = () => JSON.stringify(draftOf() ?? null) !== seenDraft;
   const movedError = () => Object.assign(new Error("This scan changed in another tab. Reload before saving again."), { name: "DraftConflictError" });
-  function completionDraft(customer, wasExisting, source) {
+  /* the done screen's heads-up (a phone number also on another record) is kept with the pending attachment, so
+     the scanner reopened on it says it again (CodeRabbit on #145) */
+  function completionDraft(customer, wasExisting, source, phoneWarning = null) {
     const previous = draftOf(), m = o.mission;
     if (scannerHasCompletion(previous) && (previous.completion.customerId !== customer.id || previous.mission?.kind !== m?.kind || previous.mission?.dealId !== m?.dealId)) throw new Error('A different attachment is pending');
     if (o.mode !== 'customer' || !m) return null;
     if (!scannerCompletionMission(m)) throw new Error('The attachment destination is unavailable');
-    const draft = { mode: 'customer', mission: { kind: m.kind, dealId: m.dealId, back: m.back }, completion: { customerId: customer.id, primaryCustomerId: missionPrimary, source, wasExisting }, savedAt: new Date().toISOString() };
+    /* phoneWhose: the words Show whose reveals (LS-068), kept with the warning so a reopened scanner still has them */
+    const draft = { mode: 'customer', mission: { kind: m.kind, dealId: m.dealId, back: m.back }, completion: { customerId: customer.id, primaryCustomerId: missionPrimary, source, wasExisting, ...(typeof phoneWarning === 'string' && phoneWarning ? { phoneWarning } : {}), ...(typeof phoneWarning === 'string' && phoneWarning && typeof st.alsoWhose === 'string' && st.alsoWhose ? { phoneWhose: st.alsoWhose } : {}) }, savedAt: new Date().toISOString() };
     // Validate the destination before the surrounding transaction inserts a new identity.
     const deal = Store.deal(m.dealId), co = deal?.coBuyerId && Store.customer(deal.coBuyerId);
     if (!deal || deal.customerId !== missionPrimary || customer.id === deal.customerId || (m.kind === 'cobuyer' && co && co.id !== customer.id)) throw new Error('The attachment is no longer available');
@@ -3891,6 +4644,11 @@ function openScanFlow(opts) {
         next[draftKey] = { frontImage: st.frontImage, ...(st.backImage ? { backImage: st.backImage } : {}), persona: st.persona, corrected: !!st.corrected, mode: o.mode,
           mission: o.mission ? { kind:o.mission.kind, dealId:o.mission.dealId, back:o.mission.back } : null,
           subjectCustomerId: draftSubjectCustomerId, savedAt: new Date().toISOString() };
+        /* the same license scanned twice is one unfinished scan (LS-084): the older one goes */
+        if (walkin && validDraftPersona(st.persona)) {
+          const tok = (p) => scannerLicenseToken(p.license?.number) + '|' + scannerLicenseToken(p.license?.state), mine = tok(st.persona);
+          for (const k of walkinKeys(next)) if (k !== draftKey && validDraftPersona(next[k].persona) && tok(next[k].persona) === mine) delete next[k];
+        }
       }
       if (draftMoved()) throw movedError(); Store.s.licenseDrafts = next;
       if (selectedCustomer && o.mode === 'cobuyer') o.deal.coBuyerId = selectedCustomer.id;
@@ -3920,7 +4678,7 @@ function openScanFlow(opts) {
   const initials = (first, last) => esc(((first || " ")[0] + (last || " ")[0]).toUpperCase().trim() || "?");
   /* everything that belongs to the guest just scanned — cleared wherever a
      fresh scan starts, so nothing leaks into the next guest's journey */
-  const resetGuest = () => { boundDraftKey = null; seenBoundDraft = null; st.captureGen += 1; st.matchGen += 1; st.matching = false; st.pendingCapture = null; st.backImage = null; st.frontImage = null; st.corrected = false; st.editContacts = null; st.pairReviewed = false; st.frontDone = false; st.persona = null; st.match = null; st.sv = null; st.addressChoice = null; st.pick = null; st.fields = {}; };
+  const resetGuest = () => { boundDraftKey = null; seenBoundDraft = null; st.captureGen += 1; st.matchGen += 1; st.matching = false; st.search = null; st.pendingCapture = null; st.backImage = null; st.frontImage = null; st.corrected = false; st.editContacts = null; st.pairReviewed = false; st.frontDone = false; st.persona = null; st.match = null; st.sv = null; st.addressChoice = null; st.pick = null; st.fields = {}; };
   const doneMark = () => `<span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>`;
   /* both cells are markup by contract — callers esc() their own values */
   const kvRow = (labelHtml, valueHtml) => `<div class="rp-kv__row"><span>${labelHtml}</span><span>${valueHtml}</span></div>`;
@@ -3966,7 +4724,7 @@ function openScanFlow(opts) {
      open by the screen before is closed with it, listeners and all */
   function screen(content, dockHtml, focusHeading = true) {
     sheets.close();
-    body.innerHTML = chShell({ template: "task", title: "Scan license", step: stepLabel(), closeId: "scClose", hideRole: true }, content, dockHtml, { scrim: "scScrim", sheet: "scSheet" });
+    body.innerHTML = chShell({ template: "task", title: "Scan license", step: stepLabel(), closeId: "scClose", cls: /rp-gatenote/.test(dockHtml || "") ? "rp-screen--gate" : "" }, content, dockHtml, { scrim: "scScrim", sheet: "scSheet" });
     const heading = $('.rp-title', body);
     if (heading && focusHeading) { heading.tabIndex = -1; heading.focus(); }
   }
@@ -3996,21 +4754,38 @@ function openScanFlow(opts) {
     const close = $("#scClose", body); if (close) close.onclick = requestClose;
     // Role switching is intentionally unavailable inside the scanner.
   }
-  const openSheet = (html, onMount) => sheets.open(html, (sheet) => { if (onMount) onMount(sheet, sheets.close); });
+  const openSheet = (html, onMount) => { offSheet(); return sheets.open(html, (sheet) => { if (onMount) onMount(sheet, sheets.close); }); };
 
-  /* leaving a part-done scan asks once, in the kit's dialog */
+  /* leaving a part-done scan asks once, in the kit's dialog. Discard scan is
+     the kit's destructive row, set apart below the two safe choices — as the
+     app draws its other destructive action, the reset (W-013) — never a text
+     link beside Keep scanning. */
   const leaveConfirmOpen = () => {
     const sheet = $('#scSheet', body);
     return !!(sheet && !sheet.hidden && $('#scSaveLater', sheet));
   };
+  /* phase 3c · while Find customer manually is up, a photo waiting for the
+     connection waits on: reading it would repaint the review and close the
+     sheet under the advisor. Back on the photo (the sheet closed, nothing
+     else over it), it reads if the connection came back meanwhile. */
+  const manualOpen = () => {
+    const sheet = $('#scSheet', body);
+    return !!(sheet && !sheet.hidden && $('#mnNum', sheet));
+  };
+  function backFromManual() {
+    const pc = st.pendingCapture, S = RIDE_PRICE_SERVICES, sheet = $('#scSheet', body);
+    if (!live() || !pc || (sheet && !sheet.hidden) || pc.service !== 'offline' || S.reallyOffline() || S.mode('reading') === 'offline') return;
+    readPending(pc, true);
+  }
   function renderLeaveConfirm() {
     /* A result that arrives while this decision is open must not dismiss the
        sheet by rendering the next screen. Keeping the scan deliberately
        retries the lookup from the still-reviewed pair. */
     const retryMatch = st.matching;
-    if (retryMatch) { st.matchGen += 1; st.matching = false; }
+    if (retryMatch) { st.matchGen += 1; st.matching = false; st.search = null; }   /* Keep scanning shows Continue, not a search nothing is running */
     openSheet(`${chSheetHead("Leave the scan?")}<p class="rp-sheet__sub">Keep the unfinished scan on this browser, or discard it explicitly.</p>
-      ${primary('id="scSaveLater"', 'Save and return')}${link('id="scDiscard"', 'Discard scan')}${link('id="scKeep" data-sheet-close autofocus', 'Keep scanning')}`, sheet => {
+      ${primary('id="scSaveLater"', 'Save and return')}${link('id="scKeep" data-sheet-close autofocus', 'Keep scanning')}
+      <div class="rp-group rp-group--spaced"><button type="button" class="rp-row rp-row--destructive" id="scDiscard"><span class="rp-tile">${rpGlyph("trash")}</span><span class="rp-row__body"><span class="rp-row__title">Discard scan</span></span></button></div>`, sheet => {
       $('#scSaveLater', sheet).onclick = () => { if (persistDraft()) done(); };
       $('#scDiscard', sheet).onclick = () => { if (persistDraft(true)) { resetGuest(); done(); } };
       const keep = $('#scKeep', sheet);
@@ -4027,7 +4802,7 @@ function openScanFlow(opts) {
   function renderScan(side) {
     const isBack = side === "back";
     st.stage = isBack ? "back" : "front";
-    screen(`${hero("Scan driver&rsquo;s license")}
+    screen(`${hero("Scan driver&rsquo;s license")}${restartHtml()}${fileProblemHtml()}
       <div class="rp-capture">
         <div class="rp-capture__frame">${isBack
           ? `<div class="rp-capture__barcode" aria-hidden="true"><i></i></div>`
@@ -4049,13 +4824,18 @@ function openScanFlow(opts) {
      preview or barcode read from replacing a newer choice or painting after
      this flow closes. */
   const captureCurrent = (gen) => live() && st.captureGen === gen;
+  /* phase 3 · each problem says what happened and then the way on (the
+     owner's brief: never a problem without its next step) */
+  const RETAKE = 'Take it again, or choose another photo.';
   function captureProblem(read, expectedSide) {
-    if (!read || typeof read !== 'object') return 'That photo could not be read.';
+    if (!read || typeof read !== 'object') return 'That photo could not be read. ' + RETAKE;
     if (read?.failed) return scannerImageError(read.reason);
-    if (read?.reason === 'multiple-documents') return 'More than one license is visible.';
+    if (read?.reason === 'multiple-documents') return 'More than one license is visible. Take the photo again with only this license in the frame.';
+    /* LS-039 (the owner's answer of 2026-09-24, B): a license from outside the US is not read, and the advisor types it */
+    if (read?.reason === 'not-us') return 'A license from outside the US can’t be read here. Find the customer manually.';
     if (['file-too-large', 'image-too-large', 'unsupported-image'].includes(read?.reason)) return scannerImageError(read.reason);
     if (read?.reason) return scannerImageError(read.reason);
-    if (read?.ok && !scannerHasReviewablePersona(read.persona)) return 'Barcode details could not be reviewed.';
+    if (read?.ok && !scannerHasReviewablePersona(read.persona)) return 'Barcode details could not be reviewed. Take the back again.';
     if (read?.ok && st.backImage) {
       const savedNumber = scannerLicenseToken(st.persona?.license?.number), incomingNumber = scannerLicenseToken(read.persona?.license?.number);
       const savedState = scannerLicenseToken(st.persona?.license?.state), incomingState = scannerLicenseToken(read.persona?.license?.state);
@@ -4064,9 +4844,45 @@ function openScanFlow(opts) {
       return 'The back is already saved.';
     }
     if (read?.ok === true) return '';
-    if (read?.ok !== false) return 'That photo could not be read.';
-    if (expectedSide === 'back') return 'The barcode could not be read.';
+    if (read?.ok !== false) return 'That photo could not be read. ' + RETAKE;
+    if (expectedSide === 'back') return 'The barcode could not be read. Hold the card flat, out of glare, with the whole barcode inside the frame, and take it again.';
     return '';
+  }
+  /* phase 3d · a field the scanner marks takes the kit's own error line
+     (rp-field__err, the field rp-field--error): markMissing writes the old
+     portal's line, which a kit field leaves unstyled. Since phase 4u it is
+     kitMissing, every kit form's helper, which also lifts markMissing's
+     inline crimson off a kit input so the kit's own danger border shows —
+     and off every refused kit field, not only the input before its line
+     (CodeRabbit on #145) */
+  function scanMissing(root, bad) {
+    const n = kitMissing(root, bad);
+    bad.forEach(({ el }) => { if (el && el.closest('.rp-field')) el.style.borderColor = ''; });
+    return n;
+  }
+  /* phase 3d · what a step still needs is said beside it, in the same line,
+     rather than in a toast that disappears */
+  function scanNote(id, anchor, where, text) {
+    let note = document.getElementById(id);
+    if (!note) { note = document.createElement('p'); note.id = id; note.className = 'rp-field__err'; note.setAttribute('role', 'alert'); anchor.insertAdjacentElement(where, note); }
+    note.textContent = text;
+    note.scrollIntoView({ block: 'nearest' });
+    return false;
+  }
+  /* phase 3d · after "These sides do not match", the front screen says what
+     happened and that nothing was changed — once, at the top */
+  function restartHtml() {
+    const r = st.restarted; st.restarted = false;
+    return r ? '<div class="rp-notice rp-notice--working" role="status" id="scRestarted"><strong>Both photos cleared</strong>Capture the front and back of the same license. No customer record was changed.</div>' : '';
+  }
+  /* phase 3 · a file the scanner cannot use is said on the screen — once,
+     at the top — rather than in a toast that disappears. On the photo's
+     review it stays through the read and any redraw until the advisor acts
+     on the photo: another photo chosen, or this one used (CodeRabbit on
+     #141). Elsewhere it is said once. */
+  function fileProblemHtml(keep = false) {
+    const p = st.fileProblem; if (!keep) st.fileProblem = null;
+    return p ? `<div class="rp-alert" role="alert" id="scFileProblem"><div class="rp-alert__title">That file couldn’t be used</div><div class="rp-alert__body">${esc(p)} Nothing was added to the scan.</div></div>` : '';
   }
   function renderCaptureReview(pending = st.pendingCapture, focusHeading = true) {
     if (!pending || pending !== st.pendingCapture) return;
@@ -4078,26 +4894,39 @@ function openScanFlow(opts) {
     const label = side === 'back' ? 'back' : 'front';
     const useBusy = pending.checking || pending.replacing || pending.committing;
     const replaceBusy = pending.committing;
-    const stateText = pending.replacing ? 'Checking replacement' : pending.committing ? 'Saving selection' : pending.checking ? 'Checking image' : pending.problem || (pending.needsCorrection ? 'Some details need review' : `Ready to use ${label}`);
+    const svc = pending.service; /* phase 2: the reader answered with a state, not a read */
+    const stateText = pending.replacing ? 'Checking replacement' : pending.committing ? 'Saving selection' : pending.checking ? 'Checking image' : svc === 'offline' ? 'Waiting for a connection' : svc ? 'Not read yet' : pending.problem || (pending.needsCorrection ? 'Some details need review' : `Ready to use ${label}`);
     const replaceSource = pending.source === 'camera' ? 'camera' : 'library';
     const replaceLabel = pending.source === 'camera' ? 'Retake' : 'Choose another';
     const useAttrs = `data-capture-use${pending.attachable && !useBusy ? '' : ' disabled aria-disabled="true"'}`;
-    screen(`${hero(pending.checking || pending.replacing ? 'Review photo' : `Review ${label}`)}
+    const replace = link(`data-cap-btn="${replaceSource}" data-capture-replace${replaceBusy ? ' disabled aria-disabled="true"' : ''}`, replaceLabel);
+    const dock = pending.replacing ? chDock(primary(useAttrs, `Use ${label}`), replace)
+      : svc === 'offline' ? chGateDock('It reads by itself when you are back online.', primary('disabled', 'Waiting for a connection'), replace)
+      : svc ? chDock(primary('data-read-again', 'Try again'), replace)
+      : pending.checking && pending.slow ? chGateDock('Still reading. The license reader usually answers within a minute.', primary(useAttrs, `Use ${label}`), replace)
+      : chDock(primary(useAttrs, `Use ${label}`), replace);
+    const readProblem = svc === 'failed' && !pending.replacing ? `<div class="rp-alert" role="alert" id="scReadProblem"><div class="rp-alert__title">The license reader didn’t answer</div><div class="rp-alert__body">The photo is kept. ${o.mode === 'customer' ? 'Try again, or find the customer by hand.' : 'Try again in a moment.'}</div></div>` : '';
+    screen(`${hero(pending.checking || pending.replacing ? 'Review photo' : `Review ${label}`)}${readProblem}${fileProblemHtml(true)}
       <div class="rp-capture" data-capture-review="${label}">
         <div class="rp-capture__frame"><img class="rp-capture__image" data-capture-preview src="${esc(pending.preview)}" alt="Selected ${label} of driver&rsquo;s license"></div>
         <div class="rp-capture__state" role="status">${pending.attachable && !pending.problem && !pending.checking ? doneMark() : ''}${esc(stateText)}</div>
       </div>
-      ${pending.problem && pending.manualAllowed && !useBusy && o.mode === 'customer' ? link('data-manual', 'Find customer manually') : ''}
+      ${(pending.problem && pending.manualAllowed || svc) && !useBusy && o.mode === 'customer' ? link('data-manual', 'Find customer manually') : ''}
       ${CAPTURE_INPUTS}`,
-      chDock(primary(useAttrs, `Use ${label}`), link(`data-cap-btn="${replaceSource}" data-capture-replace${replaceBusy ? ' disabled aria-disabled="true"' : ''}`, replaceLabel)), focusHeading);
+      dock, focusHeading);
     st.onCapture = (file, source) => prepareCapture(file, source, pending.expectedSide);
     const use = $('[data-capture-use]', body);
     if (use && !use.disabled) use.onclick = () => acceptCapture(pending);
     const manual = $('[data-manual]', body);
     if (manual) manual.onclick = () => { st.captureGen += 1; renderManual(); };
+    const again = $('[data-read-again]', body);
+    if (again) again.onclick = () => readPending(pending, true);
     wire(() => renderCaptureReview(st.pendingCapture));
   }
-  async function prepareCapture(file, source, expectedSide) {
+  async function prepareCapture(file, source, expectedSide, retry = false) {
+    /* a photo chosen takes the last refusal away; the photo read again
+       after a refused replacement keeps it */
+    if (!retry) st.fileProblem = null;
     const gen = ++st.captureGen;
     const previous = st.pendingCapture;
     if (previous) {
@@ -4114,29 +4943,72 @@ function openScanFlow(opts) {
       st.pendingCapture = pending;
       renderCaptureReview(pending);
       if (repeatedSide) return;
-      let read;
-      try { read = await RIDE_PRICE_SCAN.recognizeFile(file); }
-      catch (error) { read = { ok: false, reason: error?.message || 'unreadable-image', failed: true }; }
-      if (!captureCurrent(gen) || st.pendingCapture !== pending) return;
-      pending.checking = false;
-      pending.read = read;
-      if (read?.ok && expectedSide === 'front' && st.backImage) pending.side = 'back';
-      pending.problem = captureProblem(read, expectedSide);
-      pending.manualAllowed = expectedSide === 'back' && ((!read?.ok && !read?.reason) || !!read?.failed);
-      if (!pending.problem && read?.ok) {
-        pending.side = 'back'; pending.persona = read.persona; pending.needsCorrection = !scannerHasCompletePersona(read.persona); pending.attachable = true;
-      } else if (!pending.problem && expectedSide === 'front') {
-        pending.side = 'front'; pending.attachable = true;
-      }
-      renderCaptureReview(pending, false);
+      await readPending(pending);
     } catch (error) {
       if (!captureCurrent(gen)) return;
       st.pendingCapture = previous || null;
-      toast(scannerImageError(error?.message));
-      if (previous?.checking) { st.pendingCapture = null; prepareCapture(previous.file, previous.source, previous.expectedSide); }
+      st.fileProblem = scannerImageError(error?.message);
+      if (previous?.checking) { st.pendingCapture = null; prepareCapture(previous.file, previous.source, previous.expectedSide, true); }
       else if (previous) { previous.replacing = false; renderCaptureReview(previous, false); }
       else renderScan(expectedSide);
     }
+  }
+  /* phase 2 · the license reader is one of the pretend servers (the tester's
+     "License reading" switch). Its answer lands on this review, the photo
+     kept: still reading (a line over the button), didn't answer (Try again,
+     or find the customer by hand), waiting for a connection (it reads by
+     itself when the connection is back) and an ended session (sign in
+     again). Normal answers at once, as it always has. */
+  async function readPending(pending, again = false) {
+    /* phase 3c · LS-132: Find customer manually moves the generation on so a
+       late read cannot paint over its sheet; a Try again tapped afterwards is
+       this photo's read again, not one to drop */
+    if (again && st.pendingCapture === pending) pending.gen = ++st.captureGen;
+    const gen = pending.gen, expectedSide = pending.expectedSide;
+    const current = () => captureCurrent(gen) && st.pendingCapture === pending;
+    /* a photo the advisor has moved on from (Find customer manually) is not read
+       again behind the sheet, nor left "Checking image" with Use disabled */
+    if (!current()) return;
+    pending.checking = true; pending.slow = false; pending.service = null;
+    if (again) renderCaptureReview(pending, false);
+    const slow = setTimeout(() => { if (current() && pending.checking) { pending.slow = true; renderCaptureReview(pending, false); } }, 3000);
+    let read;
+    try { read = await RIDE_PRICE_SERVICES.call('reading', () => RIDE_PRICE_SCAN.recognizeFile(pending.file)); }
+    catch (error) {
+      if (error && error.name === 'ServiceError') {
+        clearTimeout(slow);
+        if (!current()) return;
+        pending.checking = false; pending.slow = false; pending.service = error.kind;
+        renderCaptureReview(pending, false);
+        if (error.kind === 'session') readSession(pending);
+        return;
+      }
+      read = { ok: false, reason: error?.message || 'unreadable-image', failed: true };
+    }
+    clearTimeout(slow);
+    if (!current()) return;
+    pending.checking = false; pending.slow = false;
+    pending.read = read;
+    if (read?.ok && expectedSide === 'front' && st.backImage) pending.side = 'back';
+    pending.problem = captureProblem(read, expectedSide);
+    pending.manualAllowed = expectedSide === 'back' && ((!read?.ok && (!read?.reason || read.reason === 'not-us')) || !!read?.failed);
+    if (!pending.problem && read?.ok) {
+      pending.side = 'back'; pending.persona = read.persona; pending.needsCorrection = !scannerHasCompletePersona(read.persona); pending.attachable = true;
+    } else if (!pending.problem && expectedSide === 'front') {
+      pending.side = 'front'; pending.attachable = true;
+    }
+    renderCaptureReview(pending, false);
+  }
+  /* the session ended while reading (the owner's picture E): sign in again
+     reads the same photo; Not now leaves it on the review with Try again */
+  function readSession(pending) {
+    openSheet(`${chSheetHead('Your session ended')}
+      <p class="rp-sheet__sub">Sign in again to read the license. The photo is kept.</p>
+      ${primary('id="scSignIn"', 'Sign in again')}
+      <button type="button" class="rp-link ch-hit" id="scNotNow">Not now</button>`, (sheet, close) => {
+      $('#scSignIn', sheet).onclick = () => { RIDE_PRICE_SERVICES.signIn(); close(); if (st.pendingCapture === pending) readPending(pending, true); };
+      $('#scNotNow', sheet).onclick = () => close();
+    });
   }
   function acceptCapture(pending) {
     if (!pending || pending !== st.pendingCapture || !pending.attachable || pending.checking || pending.replacing || pending.committing) return;
@@ -4160,6 +5032,7 @@ function openScanFlow(opts) {
       return;
     }
     st.pendingCapture = null;
+    st.fileProblem = null;   /* the photo used: its refusal is done with */
     st.captureGen += 1;
     if (st.frontDone && st.backImage && scannerHasReviewablePersona(st.persona)) renderPairReview();
     else renderScan(st.frontDone ? 'back' : 'front');
@@ -4176,6 +5049,7 @@ function openScanFlow(opts) {
       </div>
       ${primary(`id="mnGo"`, "Search")}
       <div id="mnOut"></div>`, (sheet, close) => {
+      sheetOff = () => setTimeout(backFromManual, 0);
       const clearResults = () => { $("#mnOut", sheet).innerHTML = ""; };
       $("#mnNum", sheet).oninput = clearResults;
       $("#mnState", sheet).oninput = clearResults;
@@ -4187,7 +5061,7 @@ function openScanFlow(opts) {
         const number = norm(st.manNum), state = norm(st.manState), missing = [];
         if (!number) missing.push({ el: $("#mnNum", sheet), msg: "Required" });
         if (!state) missing.push({ el: $("#mnState", sheet), msg: "Required" });
-        if (markMissing(sheet, missing)) return;
+        if (scanMissing(sheet, missing)) return;
         const hits = Store.s.customers.filter(x => {
           const savedNumber = norm(x.license?.number), savedState = norm(x.license?.state);
           return savedNumber && savedState && savedNumber === number && savedState === state;
@@ -4229,18 +5103,41 @@ function openScanFlow(opts) {
 
   function renderPairReview() {
     st.stage = 'review';
-    screen(`${hero('Review both sides')}
+    /* phase 2 · the customer search behind Continue is one of the pretend
+       servers (the tester's "Customer search" switch). Its states sit here,
+       where the advisor asked, with the comparison kept: searching (the
+       button says so), still searching, didn't answer (never "no match"),
+       waiting for a connection, and after Not now on an ended session */
+    const s = st.search || {};
+    const problem = s.state === 'failed' ? `<div class="rp-alert" role="alert" id="scSearchProblem"><div class="rp-alert__title">Customer search didn’t answer</div><div class="rp-alert__body">No one was matched and nothing was created. Try again in a moment.</div></div>` : '';
+    const go = (attrs, label) => primary(`id="scPairContinue"${attrs}`, label);
+    const dock = s.state === 'busy' ? chGateDock(s.slow ? 'Still searching. Customer search usually answers within a minute.' : '', go(' aria-busy="true" aria-disabled="true"', 'Searching customers…'))
+      : s.state === 'offline' ? chGateDock('It searches by itself when you are back online.', go(' disabled', 'Waiting for a connection'))
+      : chDock(go('', s.state === 'failed' ? 'Try again' : 'Continue'));
+    screen(`${hero('Review both sides')}${problem}
       <p class="rp-sheet__sub">Compare the name and license number on the front with the barcode details. The demo does not compare them automatically.</p>
       <img src="${esc(st.frontImage)}" alt="Saved front photo for identity comparison" style="width:100%;border-radius:14px">
       <div class="rp-kv">${kvRow(st.corrected ? 'Reviewed name' : 'Name from barcode', esc(fullName(st.persona)))}${kvRow(st.corrected ? 'Reviewed license' : 'License from barcode', esc(licLine(st.persona.license)))}</div>
-      <label class="rp-check"><input type="checkbox" id="scPairMatch"><span>I checked the name and license number. Both sides belong to the same person.</span></label>
-      ${link('id="scPairMismatch"', 'These sides do not match')}`, chDock(primary('id="scPairContinue"', 'Continue')));
+      <label class="rp-check"><input type="checkbox" id="scPairMatch"${st.pairReviewed && s.state ? ' checked' : ''}><span>I checked the name and license number. Both sides belong to the same person.</span></label>
+      ${link('id="scPairMismatch"', 'These sides do not match')}`, dock, !s.state);
     $('#scPairContinue', body).onclick = () => {
-      if (!$('#scPairMatch', body).checked) return toast('Compare both sides and confirm the match before continuing.');
+      if (st.matching) return;
+      if (!$('#scPairMatch', body).checked) return scanNote('scPairNote', $('#scPairMatch', body).closest('label'), 'afterend', 'Check the name and license number on both sides, then tick the box to go on.');
       st.pairReviewed = true; afterRecognize();
     };
-    $('#scPairMismatch', body).onclick = () => { if (persistDraft(true)) { resetGuest(); renderScan('front'); toast('Capture both sides of the same license. No customer record was changed.'); } };
+    $('#scPairMismatch', body).onclick = () => { if (persistDraft(true)) { resetGuest(); st.restarted = true; renderScan('front'); } };
     wire(renderPairReview);
+  }
+  /* the session ended while searching (the owner's picture E): sign in
+     again searches; Not now keeps the comparison on the review */
+  function searchSession(p) {
+    openSheet(`${chSheetHead('Your session ended')}
+      <p class="rp-sheet__sub">Sign in again to search for ${esc(fullName(p))}. The scan is kept.</p>
+      ${primary('id="scSignIn"', 'Sign in again')}
+      <button type="button" class="rp-link ch-hit" id="scNotNow">Not now</button>`, (sheet, close) => {
+      $('#scSignIn', sheet).onclick = () => { RIDE_PRICE_SERVICES.signIn(); close(); if (st.persona === p && st.pairReviewed) afterRecognize(); };
+      $('#scNotNow', sheet).onclick = () => close();
+    });
   }
   function validDraft(draft) {
     const expectedMission = o.mission || null, savedMission = draft?.mission || null;
@@ -4257,7 +5154,7 @@ function openScanFlow(opts) {
     const hasSubject = Object.prototype.hasOwnProperty.call(draft, 'subjectCustomerId');
     let savedId = hasSubject
       ? typeof draft.subjectCustomerId === 'string' && draft.subjectCustomerId ? draft.subjectCustomerId : draft.subjectCustomerId === null ? null : undefined
-      : draftKey.startsWith('customer:') ? draftKey.slice('customer:'.length) : draftKey === 'unassigned' ? null : undefined;
+      : draftKey.startsWith('customer:') ? draftKey.slice('customer:'.length) : draftKey === 'unassigned' || draftKey.startsWith('walkin:') ? null : undefined;
     const currentId = draftSubjectCustomerId;
     const savedCustomer = typeof savedId === 'string' ? Store.customer(savedId) : null;
     const currentCustomer = typeof currentId === 'string' ? Store.customer(currentId) : null;
@@ -4295,7 +5192,8 @@ function openScanFlow(opts) {
         wire(renderResume); return;
       }
       st.saved = true;
-      renderDone(Store.customer(draft.completion.customerId), draft.completion.wasExisting, draft.completion.source);
+      st.alsoWhose = typeof draft.completion.phoneWhose === 'string' ? draft.completion.phoneWhose : null;
+      renderDone(Store.customer(draft.completion.customerId), draft.completion.wasExisting, draft.completion.source, typeof draft.completion.phoneWarning === 'string' ? draft.completion.phoneWarning : null);
       return;
     }
     if (!validDraft(draft)) {
@@ -4359,8 +5257,16 @@ function openScanFlow(opts) {
        after discard/close/navigation follows the same rule. */
     const gen = ++st.matchGen;
     st.matching = true;
+    /* phase 2 · the search is one of the pretend servers: the button says it
+       is searching, a line says it still is after three seconds, and a search
+       that did not answer is never "no match" — nothing is matched or created */
+    const searching = () => live() && st.matchGen === gen && st.persona === p && st.pairReviewed;
+    const waited = st.search && st.search.state;
+    st.search = { state: 'busy', slow: false };
+    if (waited) renderPairReview();
     const continueButton = $('#scPairContinue', body);
-    if (continueButton) { continueButton.disabled = true; continueButton.setAttribute('aria-disabled', 'true'); }
+    if (continueButton) { continueButton.textContent = 'Searching customers…'; continueButton.setAttribute('aria-busy', 'true'); continueButton.setAttribute('aria-disabled', 'true'); }
+    const slowSearch = setTimeout(() => { if (searching() && st.matching) { st.search = { state: 'busy', slow: true }; renderPairReview(); } }, 3000);
     let m;
     const currentCustomer = customer => !!(customer && typeof customer.id === 'string' && Store.customer(customer.id) === customer);
     const relationship = customer => {
@@ -4390,17 +5296,22 @@ function openScanFlow(opts) {
       return { type: value.type, customer: value.customer, ask: candidates ? 'candidate' : conflict ? 'conflict' : prompts[value.type], conflict, candidates };
     };
     try {
-      m = normalizeResult(await Promise.resolve(findLicenseMatch(p)));
+      m = normalizeResult(await RIDE_PRICE_SERVICES.call('search', () => findLicenseMatch(p)));
       if (!m) throw new Error('Invalid customer-search result');
     } catch (error) {
-      if (!live() || st.matchGen !== gen || st.persona !== p || !st.pairReviewed) return;
+      clearTimeout(slowSearch);
+      if (!searching()) return;
       st.matching = false;
-      const retry = $('#scPairContinue', body);
-      if (retry) { retry.disabled = false; retry.removeAttribute('aria-disabled'); }
-      return toast('Customer search unavailable. Try again.');
+      const kind = error && error.name === 'ServiceError' ? error.kind : 'failed';
+      st.search = { state: kind === 'session' ? 'paused' : kind };
+      renderPairReview();
+      if (kind === 'session') searchSession(p);
+      return;
     }
-    if (!live() || st.matchGen !== gen || st.persona !== p || !st.pairReviewed) return;
+    clearTimeout(slowSearch);
+    if (!searching()) return;
     st.matching = false;
+    st.search = null;
     if (o.mode === "cobuyer" && m.customer && !m.ask) {
       if (m.customer.id === o.deal.customerId) return renderBlock();
       if (!coBuyerAllowed(m.customer)) return;
@@ -4416,9 +5327,12 @@ function openScanFlow(opts) {
     renderNewCustomer();
   }
 
+  /* phase 3c · LS-044: two records can share a name and a birthday; the
+     phone's last four digits are what the advisor can ask about out loud */
+  const phoneEnding = (phone) => { const d = normalizeCustomerPhone(phone); return d.length >= 4 ? "phone ending " + d.slice(-4) : ""; };
   function renderCandidates(m) {
     st.stage = "confirm";
-    screen(`${hero("Choose customer")}<div class="rp-group">${m.candidates.map((c, i) => `<button type="button" class="rp-row" data-candidate="${i}"><span class="rp-row__body"><span class="rp-row__title">${esc(fullName(c))}</span><span class="rp-row__sub">${esc([c.dob ? dateUS(c.dob) : "", c.license?.number || ""].filter(Boolean).join(" · "))}</span></span></button>`).join("")}</div>`, chDock(primary('data-new-guest', 'Different guest')));
+    screen(`${hero("Choose customer")}<div class="rp-group">${m.candidates.map((c, i) => `<button type="button" class="rp-row" data-candidate="${i}"><span class="rp-row__body"><span class="rp-row__title">${esc(fullName(c))}</span><span class="rp-row__sub">${esc([c.dob ? dateUS(c.dob) : "", c.license?.number || "", phoneEnding(c.phone)].filter(Boolean).join(" · "))}</span></span></button>`).join("")}</div>`, chDock(primary('data-new-guest', 'Different guest')));
     $$('[data-candidate]', body).forEach(b => b.onclick = () => {
       const customer = m.candidates[Number(b.dataset.candidate)];
       st.sv = null; st.addressChoice = null; st.pick = null;
@@ -4449,7 +5363,7 @@ function openScanFlow(opts) {
   }
 
   /* one label per type findLicenseMatch() can return — the tag states the
-     REAL basis, never an invented confidence (CodeRabbit, PR #49); the short
+     REAL basis, never an invented confidence (the review on PR #49); the short
      form sits on the Identity matched row */
   const BASIS = {
     "license number": "License match",
@@ -4467,7 +5381,7 @@ function openScanFlow(opts) {
       first: p.first, middle: typeof p.middle === 'string' && p.middle.trim() ? p.middle : ex?.middle || "", last: p.last,
       dob: p.dob || "", address: p.address, city: p.city, state: p.state, zip: p.zip,
       email: ex ? ex.email : st.editContacts?.email || "", phone: ex ? ex.phone : st.editContacts?.phone || "",
-      license: { number: p.license.number, state: p.license.state, expires: p.license.expires || "" }
+      license: licenseRecordOf(p)
     };
   }
   const svVals = () => ({
@@ -4475,7 +5389,7 @@ function openScanFlow(opts) {
     dob: st.sv.dob, address: st.sv.address, city: st.sv.city,
     state: st.sv.state, zip: st.sv.zip,
     email: st.sv.email, phone: st.sv.phone,
-    license: { number: st.sv.license.number, state: st.sv.license.state, expires: st.sv.license.expires }
+    license: Object.assign({ number: st.sv.license.number, state: st.sv.license.state, expires: st.sv.license.expires }, st.sv.license.kind ? { kind: st.sv.license.kind } : {})
   });
   const normPhone = normalizeCustomerPhone;
 
@@ -4511,8 +5425,28 @@ function openScanFlow(opts) {
     const addsDob = !!(p.dob && !ex.dob);
     const currentAddressComplete = scannerHasCompleteAddress(ex);
     const addressChanged = scannerHasCompleteAddress(sv) && (!currentAddressComplete || ["address", "city", "state", "zip"].some(k => String(ex[k] || "").trim().toLowerCase() !== String(sv[k] || "").trim().toLowerCase()));
+    /* LS-045 / LS-046: the Team Lead's question, in three states. To ask; asked, and waiting; answered with the record
+       kept. Answered with the license, the record agrees and this is the ordinary match. One request waits per
+       customer and kind: while it waits, another license's is already asked, and nothing more is written (claude-c's
+       spec, §4) */
+    const idKind = m.conflict ? scannerReviewKind(m, ex, p) : null;
+    const idOpen = idKind ? (ex.identityReviews || []).find((r) => r.kind === idKind && !r.answer) || null : null;
+    const idReview = idKind ? idOpen || scannerReviewOf(ex, idKind, p) : null;
+    const idState = !idKind ? null : !idReview || (idReview.answer && idReview.answer.pick !== "onFile") ? "ask" : !idReview.answer ? "asked" : "kept";
+    const idAlready = idState === "asked" && idOpen !== scannerReviewOf(ex, idKind, p);
+    const idWhat = idKind === "birthday" ? "birthday" : "license";
+    const idSide = (who) => idKind === "birthday" ? { dob: who.dob } : { license: who.license };
+    const idNotice = !idKind ? "" : idState === "asked"
+      ? `<div class="rp-notice rp-notice--working" role="status" id="scIdentityConflict"><strong>${idAlready ? "Already asked" : "Asked a Team Lead"}</strong>${esc(ex.first)}’s ${idWhat} waits for the answer. Nothing has changed.</div>`
+      : idState === "kept"
+        ? `<div class="rp-notice rp-notice--conflict" role="alert" id="scIdentityConflict"><strong>${esc(idReview.answer.by)} kept the ${idWhat} on file</strong>This license can’t be added to ${esc(ex.first)}’s record.</div>`
+        : `<div class="rp-notice rp-notice--conflict" role="alert" id="scIdentityConflict"><strong>The ${idKind === "birthday" ? "birthday" : "license number"} doesn’t match</strong>On file: <span style="white-space:nowrap">${esc(identityReviewValue(idKind, idSide(ex)))}</span> · on this license: <span style="white-space:nowrap">${esc(identityReviewValue(idKind, idSide(p)))}</span>. ${idKind === "birthday" ? "A Team Lead confirms which is right." : "A Team Lead confirms which license is current."} Nothing changes until then.</div>`;
+    const idDock = idState === "asked" ? chDock(primary('id="scAskedDone"', "Done"), walkin ? link('id="scScanAnother"', "Scan another license") : "")
+      : idState === "kept" ? chDock(primary('id="scRescan"', "Scan a different license"), link('id="scDiscardScan"', "Discard this scan"))
+        : chDock(primary('id="scAskLead"', isTeamLead() ? "Confirm which is right" : "Ask a Team Lead"), link('id="scRescan"', "Scan a different license"));
     screen(`${hero("Confirm customer")}
-      ${m.conflict ? '<p id="scIdentityConflict" role="alert">These identity details conflict. The existing customer has not been changed.</p>' : ''}
+      ${idKind ? idNotice : m.conflict ? '<p id="scIdentityConflict" role="alert">These identity details conflict. The existing customer has not been changed.</p>' : ''}
+      ${licenseLimitNotice(p)}
       <div class="rp-match">
         <div class="rp-match__head">
           <span class="rp-row__body"><span class="rp-row__title">${esc(fullName(ex))}</span><span class="rp-row__sub">Existing customer${last4 ? " · license ending " + esc(last4) : ""}${onDeal ? " · already on this deal" : o.mode === "cobuyer" ? (ex.id === coTarget ? " · current co-buyer" : " · will be attached as the co-buyer") : ""}</span></span>
@@ -4528,18 +5462,22 @@ function openScanFlow(opts) {
       : chg.length ? `<div class="rp-kv"><div class="rp-kv__head">Updates from this license · ${chg.length}</div>
         ${chg.map(c2 => kvRow(esc(c2.label), esc(c2.isDate ? dateUS(c2.newV) : c2.newV))).join("")}</div>` : ""}
       ${addressChanged ? `<fieldset class="rp-kv" id="scAddressChoice"><legend class="rp-kv__head">Registration address</legend>${currentAddressComplete ? `<label class="rp-check"><input type="radio" name="scAddress" value="current" ${st.addressChoice === 'current' ? 'checked' : ''}><span>Keep current address<br>${esc(fmtAddr(ex))}</span></label>` : ''}<label class="rp-check"><input type="radio" name="scAddress" value="license" ${st.addressChoice === 'license' ? 'checked' : ''}><span>Use license address<br>${esc(fmtAddr(sv))}</span></label></fieldset>` : ''}
-      ${link('id="scEditLicense"', 'Edit license details')}
+      ${idState === "asked" || idState === "kept" ? "" : link('id="scEditLicense"', 'Edit license details')}
       ${needContact ? `${needPhone ? field("svPhone", "Mobile phone", "tel", sv.phone, "(718) 555-5555") : ""}${needEmail ? field("svEmail", "Email", "email", sv.email, "name@testing.com") : ""}` : ""}
-      ${ask ? option("same", onDeal ? "Same person — already on this deal" : `Same person — update ${esc(ex.first)}&rsquo;s record`, onDeal ? "Cannot be added as another buyer" : `Adds the license${addsDob ? " and date of birth" : ""} to the profile`, true)
+      ${ask && !idKind ? option("same", onDeal ? "Same person — already on this deal" : `Same person — update ${esc(ex.first)}&rsquo;s record`, onDeal ? "Cannot be added as another buyer" : `Adds the license${addsDob ? " and date of birth" : ""} to the profile`, true)
         + option("new", "Different guest — create new", "Starts a new customer from the license", false) : ""}`,
-      ask ? chDock(primary("data-save", "Continue"))
+      idKind ? idDock : ask ? chDock(primary("data-save", "Continue"))
           : chDock(primary("data-save", "Confirm &amp; continue"), link("data-notme", `This isn&rsquo;t ${esc(ex.first)}`)));
-    if (ask) wireOptions(body, null);
-    $('#scEditLicense', body).onclick = () => editLicense();
+    if (ask && !idKind) wireOptions(body, null);
+    /* LS-045: while a Team Lead's answer waits, or after the record was kept, the scan can't be edited into a match
+       that finishes without the answer; before anything is asked, an edit is how a misread is put right (claude-c
+       on the branch) */
+    const editBtn = $('#scEditLicense', body); if (editBtn) editBtn.onclick = () => editLicense();
     $$('[name="scAddress"]', body).forEach(input => input.onchange = () => { st.addressChoice = input.value; });
     const toCreate = () => { st.match = { type: null, customer: null }; st.sv = null; st.addressChoice = null; renderNewCustomer(); };
-    $("[data-save]", body).onclick = () => {
-      if (ask && !st.pick) return toast("Choose the customer identity before continuing");
+    const saveBtn = $("[data-save]", body);
+    if (saveBtn) saveBtn.onclick = () => {
+      if (ask && !st.pick) return scanNote('scPickNote', $('[data-opt]', body), 'beforebegin', 'Choose Same person or Different guest to go on.');
       if (ask && st.pick === "new") return toCreate();
       if (scannerIdentityConflict(ex, svVals())) return identityConflictNotice();
       if (needContact) {
@@ -4548,30 +5486,59 @@ function openScanFlow(opts) {
         const bad = [];
         if (needPhone && !validCustomerPhone(sv.phone)) bad.push({ el: $("#svPhone", body), msg: sv.phone ? "Enter a 10-digit phone" : "Required" });
         if (needEmail && !validCustomerEmail(sv.email)) bad.push({ el: $("#svEmail", body), msg: sv.email ? "Enter a valid email" : "Required" });
-        if (markMissing(body, bad)) return toast("Check the errors beside each field");
+        if (scanMissing(body, bad)) return;
       }
-      if (addressChanged && (!st.addressChoice || (st.addressChoice === 'current' && !currentAddressComplete))) return toast('Choose a complete registration address before continuing');
+      if (addressChanged && (!st.addressChoice || (st.addressChoice === 'current' && !currentAddressComplete))) return scanNote('scAddressNote', $('#scAddressChoice .rp-kv__head', body), 'afterend', 'Choose the registration address to keep.');
       const values = svVals();
       if (addressChanged && st.addressChoice === 'current') ['address', 'city', 'state', 'zip'].forEach(k => values[k] = ex[k] || '');
       saveFrom(values, ex);
     };
     const notme = $("[data-notme]", body); if (notme) notme.onclick = toCreate;
+    if (idKind) {
+      /* the scan leaves the way it came. Scan a different license lets this one go; Scan another license keeps it
+         waiting in the unfinished scans (LS-084) and starts clean; Done closes, the scan kept */
+      const rescan = $('#scRescan', body); if (rescan) rescan.onclick = () => { if (persistDraft(true)) { resetGuest(); renderScan('front'); } };
+      const another = $('#scScanAnother', body); if (another) another.onclick = () => { if (walkin) draftKey = newWalkinKey(); seenDraft = JSON.stringify(draftOf() ?? null); resetGuest(); renderScan('front'); };
+      const doneBtn = $('#scAskedDone', body); if (doneBtn) doneBtn.onclick = () => done();
+      const discard = $('#scDiscardScan', body); if (discard) discard.onclick = () => { if (persistDraft(true)) done(); };
+      const askBtn = $('#scAskLead', body); if (askBtn) askBtn.onclick = () => {
+        const r = { id: uid("ir"), kind: idKind, askedAt: new Date().toISOString(), askedBy: roleName(), askedByRole: isTeamLead() ? "teamlead" : "advisor",
+          dealId: o.deal ? o.deal.id : o.mission ? o.mission.dealId : null,
+          onFile: idKind === "birthday" ? { dob: ex.dob } : { license: ex.license ? { ...ex.license } : null },
+          scanned: idKind === "birthday" ? { dob: p.dob } : { license: licenseRecordOf(p) }, draftKey, answer: null };
+        if (isTeamLead()) {
+          /* the Team Lead scanning confirms here, in the scanner's own sheet: nobody asks themselves. The request
+             joins the record only with its answer, so a sheet closed or replaced without one leaves nothing behind
+             (CodeRabbit on #206) */
+          openSheet(identityReviewHtml(ex, r), (sheet, close) => {
+            wireIdentityReview(sheet, ex, r, () => { close(); afterRecognize(); });
+          });
+          return;
+        }
+        const had = ex.identityReviews;
+        ex.identityReviews = (had || []).concat(r);
+        const unask = () => { if (had === undefined) delete ex.identityReviews; else ex.identityReviews = had; };
+        /* one save: the request on the record, and this scan kept under its own key until the answer (LS-084) */
+        if (!persistDraft()) { unask(); return; }
+        renderConfirm(m);
+      };
+    }
     wire(() => renderConfirm(m));
   }
 
-  function editLicense() {
+  function editLicense(missing = false) {
     const source = structuredClone(st.persona);
     if ($('#svPhone', body)) st.sv.phone = $('#svPhone', body).value.trim();
     if ($('#svEmail', body)) st.sv.email = $('#svEmail', body).value.trim();
     const fields = [['First','First name',source.first],['Last','Last name',source.last],['Dob','Date of birth',source.dob],['Number','License number',source.license.number],['Issuer','Issuing state',source.license.state],['Expires','Expiration date',source.license.expires],['Address','Street address',source.address],['City','City',source.city],['State','State',source.state],['Zip','ZIP code',source.zip]];
-    openSheet(`${chSheetHead('Edit license details')}${fields.map(([id,label,value]) => field('scEdit'+id, label, ['Dob','Expires'].includes(id) ? 'date' : 'text', value, '')).join('')}${primary('id="scEditSave"','Review changes')}`, sheet => {
+    openSheet(`${chSheetHead('Edit license details')}${missing ? '<div class="rp-alert" role="alert" id="scEditMissing"><div class="rp-alert__title">Some license details are missing</div><div class="rp-alert__body">Fill in the empty ones, then Review changes. Nothing is saved until then.</div></div>' : ''}${fields.map(([id,label,value]) => field('scEdit'+id, label, ['Dob','Expires'].includes(id) ? 'date' : 'text', value, '')).join('')}${primary('id="scEditSave"','Review changes')}`, sheet => {
       $('#scEditSave', sheet).onclick = () => {
         const values = {}, bad = [];
         fields.forEach(([id]) => { const el = $('#scEdit'+id, sheet); values[id] = el.value.trim(); if (!['Dob', 'Expires'].includes(id) && (!values[id] || !el.checkValidity())) bad.push({el,msg:'Enter a valid value'}); });
         for (const id of ['Dob', 'Expires']) if (!scannerValidDate(values[id])) bad.push({el: $('#scEdit'+id, sheet), msg: 'Enter a valid date'});
         const today = new Date(), localToday = [today.getFullYear(), String(today.getMonth()+1).padStart(2,'0'), String(today.getDate()).padStart(2,'0')].join('-');
         if (values.Dob > localToday) bad.push({el: $('#scEditDob', sheet), msg: 'Date of birth cannot be in the future'});
-        if (markMissing(sheet, bad)) return;
+        if (scanMissing(sheet, bad)) return;
         const sameIdentity = values.First === source.first && values.Last === source.last && values.Dob === source.dob && values.Number === source.license.number && values.Issuer === source.license.state;
         const previousEdit = { persona: st.persona, corrected: st.corrected, editContacts: st.editContacts };
         st.editContacts = sameIdentity ? {phone: st.sv.phone, email: st.sv.email} : null;
@@ -4585,6 +5552,33 @@ function openScanFlow(opts) {
     });
   }
 
+  /* LS-037 and LS-039 (the owner's answers of 2026-09-24, B, as decision-scanner-expired.png drew it): what the
+     license can and cannot do, said on the spot. An expired license, a learner permit or a non-driver ID still
+     identifies the person, who can be saved; none can take a test drive, and the test drive keeps refusing it */
+  const licenseExpired = (expires) => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(expires || ""), t = new Date(); t.setHours(0, 0, 0, 0);
+    return !!m && new Date(+m[1], +m[2] - 1, +m[3]) < t;
+  };
+  function licenseLimitNotice(p) {
+    if (!p || !p.license) return "";
+    const who = esc(p.first || "The customer"), say = (title, body) => `<div class="rp-notice rp-notice--working" id="scLicenseLimit"><strong>${title}</strong>${body}</div>`;
+    if (p.kind === "permit") return say("Learner permit", `${who} can be identified and saved, but can’t test drive on a permit.`);
+    if (p.kind === "id") return say("Non-driver ID", `${who} can be identified and saved, but can’t test drive on this ID.`);
+    if (licenseExpired(p.license.expires))
+      return say(`License expired ${esc(dateUS(p.license.expires))}`, `${who} can still be identified and saved, but can’t test drive on this license — ask for the current one.`);
+    return "";
+  }
+  /* and the record's own license row says it too, in the kit's amber (the owner's answer: the profile shows the
+     expiry in amber): an expiry past, a permit, a non-driver ID. A <b>, since the kit mutes a key/value row's
+     first span, and portal.css loads before the kit */
+  function licenseLimitTag(lic) {
+    if (!lic) return "";
+    const tag = (words) => ` · <b class="sc-lic-limit">${esc(words)}</b>`;
+    if (lic.kind === "permit") return tag("learner permit");
+    if (lic.kind === "id") return tag("non-driver ID");
+    return licenseExpired(lic.expires) ? tag("expired " + dateUS(lic.expires)) : "";
+  }
+
   /* new customer: identity starts as a summary with an explicit correction sheet — the
      advisor can correct extracted details before confirmation. Contact fields collect what a license cannot
      say: phone and email (both required; owner rule). No credit score is
@@ -4593,6 +5587,7 @@ function openScanFlow(opts) {
     st.stage = "new";
     const sv = seedSv(null);
     screen(`${hero("New customer")}
+      ${licenseLimitNotice(st.persona)}
       <div class="rp-kv">
         ${kvRow("Name", esc(fullName(sv)))}
         ${kvRow("License", esc(licLine(sv.license) + (sv.license.expires ? " · exp " + dateUS(sv.license.expires) : "")))}
@@ -4653,8 +5648,7 @@ function openScanFlow(opts) {
     // An incomplete extraction must be corrected, not erase known dates or
     // mark a document complete using values from an older license.
     if (!scannerHasCompletePersona(completed)) {
-      editLicense();
-      toast('Complete the license details before saving.');
+      editLicense(true);
       return false;
     }
     if (!validCustomerPhone(completed.phone) || !validCustomerEmail(completed.email)) {
@@ -4677,7 +5671,7 @@ function openScanFlow(opts) {
       }
       const now = new Date().toISOString();
       cust.onboard = { ...(cust.onboard || {}), licensePhotoAt: now, secondSide: 'received', licenseSides: { front: true, back: true, reviewedAt: now, method: 'advisor-comparison' }, address: wasExisting && st.addressChoice === 'current' ? { ...(previous.onboard?.address || {}) } : { confirmedAt: now, source: 'license' } };
-      const pending = completionDraft(cust, wasExisting, 'scan');
+      const pending = completionDraft(cust, wasExisting, 'scan', warnMsg);
       if (draftMoved()) throw movedError(); Store.s.licenseDrafts = { ...(previousDrafts || {}) };
       if (pending) Store.s.licenseDrafts[draftKey] = pending; else delete Store.s.licenseDrafts[draftKey];
       if (!wasExisting) Store.s.customers.push(cust);
@@ -4700,14 +5694,13 @@ function openScanFlow(opts) {
       return false;
     }
     if (o.mode === "cobuyer") {
-      done(); toast(warnMsg || (coTarget ? "Co-buyer license updated — " : "Co-buyer added — ") + cust.first + " " + cust.last);
+      done(); toast(warnMsg ? "Saved. " + warnMsg : (coTarget ? "Co-buyer license updated — " : "Co-buyer added — ") + cust.first + " " + cust.last);
       if (o.onDone) o.onDone(cust, st.persona, st.match);
       return true;
     }
     st.saved = true;
     clearTimeout(toastTimer); $('#toast')?.remove();
-    if (warnMsg) toast(warnMsg);
-    renderDone(cust, wasExisting);
+    renderDone(cust, wasExisting, 'scan', warnMsg);
     return true;
   }
 
@@ -4715,7 +5708,7 @@ function openScanFlow(opts) {
      required set and the same marks as Create Customer, on the form underneath */
   function requireContact(vals) {
     const bad = customerMissing(vals, "sv", body);
-    if (markMissing(body, bad)) { toast("Check the errors beside each field"); return false; }
+    if (scanMissing(body, bad)) return false;
     return true;
   }
 
@@ -4723,8 +5716,7 @@ function openScanFlow(opts) {
     // Summary screens have no editable identity fields for markMissing.
     // Route partial extraction to correction before contact or duplicate checks.
     if (!scannerHasCompletePersona(vals)) {
-      editLicense();
-      toast('Complete the license details before saving.');
+      editLicense(true);
       return;
     }
     const phoneDigits = normPhone(vals.phone);
@@ -4736,7 +5728,10 @@ function openScanFlow(opts) {
       /* matched already — a typed phone belonging to someone ELSE is likelier a typo
          or a shared phone than a wrong match: warn, don't switch */
       const other = phoneDigits && Store.s.customers.find(x => x.id !== ex.id && normPhone(x.phone) === phoneDigits);
-      finishSave(ex, true, other ? "Saved — heads up: that phone number is also on file for " + other.first + " " + other.last : null, vals);
+      /* LS-068 (the owner's answer of 2026-09-24, B): here as on the sheet, whose number it is waits for the
+         advisor's Show whose; the words it reveals are the ones this line always had */
+      st.alsoWhose = other ? "That number is also on file for " + other.first + " " + other.last + " — make sure it is " + ex.first + "’s own." : null;
+      finishSave(ex, true, other ? "That number is also on another customer’s profile — make sure it is " + ex.first + "’s own." : null, vals);
     } else {
       /* about to create — the typed phone is the last chance to catch a duplicate */
       const dup = phoneDigits && Store.s.customers.find(x => normPhone(x.phone) === phoneDigits);
@@ -4787,16 +5782,22 @@ function openScanFlow(opts) {
     const isPrimary = o.mode === "cobuyer" && dup.id === o.deal.customerId;
     const canLink = !isPrimary && scannerCanLink(dup, vals);
     const via = dup.createdVia === "link" ? "created from a secure upload link" : "an existing customer";
+    /* LS-068 (the owner's answer of 2026-09-24, B): whose number it is stays off the screen until the advisor
+       asks, since the guest may be looking at the phone, and one tap shows it in the words it always had. The
+       deal's own primary buyer is named at once: that person is already on this deal */
+    const whose = `On ${esc(dup.first + " " + dup.last)}&rsquo;s profile — ${via}, ${dup.license && dup.license.number ? "license on file" : "no license on file"}.`;
     openSheet(`${chSheetHead("This number is already in use")}
-      <div class="rp-notice rp-notice--conflict"><strong>${esc(vals.phone)}</strong>On ${esc(dup.first + " " + dup.last)}&rsquo;s profile — ${via}, ${dup.license && dup.license.number ? "license on file" : "no license on file"}.${isPrimary ? " That&rsquo;s the primary buyer on this deal, so linking isn&rsquo;t available." : ""}</div>
+      <div class="rp-notice rp-notice--conflict" id="scConflictWho"><strong>${esc(vals.phone)}</strong><span id="scWhose">${isPrimary ? whose : "On another customer&rsquo;s profile."}</span>${isPrimary ? " That&rsquo;s the primary buyer on this deal, so linking isn&rsquo;t available." : `<button type="button" class="rp-link" id="scShowWhose">Show whose</button>`}</div>
       ${!canLink ? "" : option("link", "Verify the number and link this license", "The scanned license joins the existing profile", true)}
       ${option("separate", "Keep profiles separate", "Creates a second customer record", isPrimary)}
       <div style="height:8px"></div>
       ${primary("data-continue", "Continue")}
       ${link("data-pfix", "Use a different number")}`, (sheet, close) => {
       wireOptions(sheet, null);
+      const showWhose = $("#scShowWhose", sheet);
+      if (showWhose) showWhose.onclick = () => { $("#scWhose", sheet).innerHTML = whose; showWhose.remove(); };
       $("[data-continue]", sheet).onclick = () => {
-        if (!st.pick) return toast("Choose how to continue");
+        if (!st.pick) return scanNote('scConflictNote', $("[data-continue]", sheet), 'beforebegin', canLink ? 'Choose Verify the number or Keep profiles separate to go on.' : 'Choose Keep profiles separate to go on, or use a different number.');
         if (st.pick === "link" && !scannerCanLink(dup, vals)) return identityConflictNotice();
         close();
         if (st.pick === "link") return renderVerifyCode(dup, vals);
@@ -4821,6 +5822,26 @@ function openScanFlow(opts) {
     if (!v.email) delete v.email;
     return v;
   }
+  /* W-036 (the owner's answer of 2026-09-24): an email typed in the scan never replaces the one on the profile
+     without asking. Linking Marcus's license once wrote the email typed while the number was wrong over
+     malvarez@testing.com, and the done screen said "profile updated". Now the advisor chooses, nothing chosen
+     until then, and the one on file stays unless the typed one is chosen */
+  const replacesEmail = (c, v) => !!(v.email && c.email && String(v.email).trim().toLowerCase() !== String(c.email).trim().toLowerCase());
+  function askEmail(c, v, done) {
+    st.pick = null;
+    openSheet(`${chSheetHead(`Replace ${esc(c.first)}’s email?`)}
+      ${option("keep", `Keep ${esc(c.email)}`, "On the profile now", false)}
+      ${option("replace", `Use ${esc(v.email)}`, "Typed in this scan", false)}
+      <div style="height:8px"></div>
+      ${primary("data-continue", "Continue")}`, (sheet, close) => {
+      wireOptions(sheet, null);
+      $("[data-continue]", sheet).onclick = () => {
+        if (!st.pick) return scanNote('scEmailNote', $("[data-continue]", sheet), 'beforebegin', 'Choose which email to keep to go on.');
+        if (st.pick === "keep") v.email = c.email;
+        close(); done(v);
+      };
+    });
+  }
 
   /* linking overwrites someone's existing record off a TYPED number, so it is
      gated behind a code verification (owner, 2026-08-25): the guest reads
@@ -4834,6 +5855,7 @@ function openScanFlow(opts) {
     let code = mint(), expiresAt = Date.now() + 10 * 60 * 1000, timer = null;
     openSheet(`${chSheetHead("Verify the phone number")}
       <p class="rp-sheet__sub">Enter the six-digit code sent to ${esc(vals.phone)}.</p>
+      <div id="svSendState"></div>
       <div class="rp-code" id="svCode">${Array.from({ length: 6 }, (_, i) => `<div class="rp-code__box${i === 0 ? " rp-code__box--active" : ""}" aria-hidden="true"></div>`).join("")}</div>
       <input class="sr-only" id="svCodeInput" inputmode="numeric" autocomplete="one-time-code" maxlength="6" autofocus aria-label="Six-digit code">
       ${primary("data-verify", "Verify &amp; link")}
@@ -4847,7 +5869,7 @@ function openScanFlow(opts) {
         const raw = inp.value, caret = raw.slice(0, inp.selectionStart ?? raw.length).replace(/\D/g, "").length;
         inp.value = raw.replace(/\D/g, "").slice(0, 6);
         inp.setSelectionRange(Math.min(caret, 6), Math.min(caret, 6));
-        markMissing(sheet, []); paint();
+        scanMissing(sheet, []); paint();
       };
       // Normalize clipboard separators before maxlength can truncate a valid code.
       inp.onpaste = event => {
@@ -4859,7 +5881,7 @@ function openScanFlow(opts) {
         inp.value = (inp.value.slice(0, start) + digits + inp.value.slice(end)).slice(0, 6);
         const caret = Math.min(start + digits.length, inp.value.length);
         inp.setSelectionRange(caret, caret);
-        markMissing(sheet, []); paint();
+        scanMissing(sheet, []); paint();
       };
       inp.onkeyup = inp.onclick = inp.onselect = inp.onfocus = paint;
       $("#svCode", sheet).onclick = event => {
@@ -4874,21 +5896,55 @@ function openScanFlow(opts) {
          (invariant 2) and the code is shown nowhere else. A field the
          advisor has already started is left alone. This is not production
          delivery or proof of phone ownership. */
-      const arrive = () => { clearTimeout(timer); timer = setTimeout(() => { if (document.contains(inp) && !inp.value) { inp.value = code; markMissing(sheet, []); paint(); } }, 1000); };
-      arrive();
+      /* here only while open: the sheet hides when it closes, keeping its field in the page, and a code on its
+         way to a sheet closed to change the number fills nothing (CodeRabbit on #150) */
+      const live = () => document.contains(inp) && !sheet.hidden;
+      const arrive = () => { clearTimeout(timer); timer = setTimeout(() => { if (live() && !inp.value) { inp.value = code; scanMissing(sheet, []); paint(); } }, 1000); };
+      /* phase 2 · the code goes out as a text (the tester's "Text and email
+         links" switch): still sending, didn't go out, waiting for a connection
+         (it goes by itself) and an ended session are said in this sheet;
+         nothing links until the right code is typed */
+      const sendState = $("#svSendState", sheet);
+      let sendGen = 0, sendWait = false;
+      const onBack = () => {
+        if (!live()) { window.removeEventListener("ride-price:switches", onBack); window.removeEventListener("online", onBack); return; }
+        const S = RIDE_PRICE_SERVICES; if (!sendWait || S.reallyOffline() || S.mode("links") === "offline") return;
+        sendWait = false; send();
+      };
+      window.addEventListener("ride-price:switches", onBack); window.addEventListener("online", onBack);
+      sheetOff = () => { window.removeEventListener("ride-price:switches", onBack); window.removeEventListener("online", onBack); };
+      const send = () => {
+        const gen = ++sendGen; sendWait = false;
+        sendState.innerHTML = "";
+        const here = () => gen === sendGen && live();
+        const slow = setTimeout(() => { if (gen === sendGen && live()) sendState.innerHTML = '<p class="rp-gatenote" style="text-align:left">Still sending the code. Texts usually arrive within a minute.</p>'; }, 3000);
+        RIDE_PRICE_SERVICES.call("links").then(() => { clearTimeout(slow); if (!here()) return; sendState.innerHTML = ""; arrive(); }, (error) => {
+          clearTimeout(slow); if (!here()) return;
+          const kind = (error && error.kind) || "failed";
+          const T = kind === "offline" ? ["Waiting for a connection", "The code goes out by itself when you are back online.", ""]
+            : kind === "session" ? ["Your session ended", "Sign in again to send the code. Nothing is lost.", "Sign in again"]
+            : ["The code didn’t go out", `${esc((dup && dup.first) || "The customer")}’s phone wasn’t reached, and nothing was linked. Resend the code, or keep the profiles separate.`, ""];
+          sendWait = kind === "offline";
+          sendState.innerHTML = `<div class="rp-alert" role="alert" id="svSendProblem"><div class="rp-alert__title">${T[0]}</div><div class="rp-alert__body">${T[1]}</div>${T[2] ? `<button type="button" class="rp-alert__action" id="svSignIn">${T[2]}</button>` : ""}</div>`;
+          const si = $("#svSignIn", sheet); if (si) si.onclick = () => { RIDE_PRICE_SERVICES.signIn(); send(); };
+        });
+      };
+      send();
       $("[data-resend]", sheet).onclick = () => {
         const next = mint();
         code = next === code ? String(100000 + (Number(code) - 100000 + 1) % 900000) : next;
         expiresAt = Date.now() + 10 * 60 * 1000;
-        inp.value = ""; markMissing(sheet, []); paint(); arrive();
+        inp.value = ""; scanMissing(sheet, []); paint(); send();
       };
       $("[data-verify]", sheet).onclick = () => {
         if (!scannerCanLink(dup, vals)) return identityConflictNotice();
-        if (Date.now() >= expiresAt) return markMissing(sheet, [{ el: inp, msg: "Code expired. Resend code." }]);
+        if (Date.now() >= expiresAt) return scanMissing(sheet, [{ el: inp, msg: "Code expired. Resend code." }]);
         const typed = inp.value;
-        if (typed !== code) return markMissing(sheet, [{ el: inp, msg: typed ? "Code doesn’t match" : "Required" }]);
+        if (typed !== code) return scanMissing(sheet, [{ el: inp, msg: typed ? "Code doesn’t match" : "Required" }]);
         clearTimeout(timer);
-        finishSave(dup, true, null, linkOnto(dup, vals));
+        const onto = linkOnto(dup, vals);
+        if (replacesEmail(dup, onto)) return askEmail(dup, onto, (v) => finishSave(dup, true, null, v));
+        finishSave(dup, true, null, onto);
       };
     });
   }
@@ -4896,13 +5952,13 @@ function openScanFlow(opts) {
   /* completion is local feedback on the confirm surface — the success
      notice, the customer, and the visit as the dominant next action. "Scan
      another" restarts in place with a clean slate. */
-  function renderDone(cust, wasExisting, source = 'scan') {
+  function renderDone(cust, wasExisting, source = 'scan', heads = null) {
     st.stage = "done";
     const completedDraft = draftOf();
-    screen(`<div class="rp-notice rp-notice--success">${doneMark()}${source === 'lookup' ? 'Customer selected' : `Customer ready · ${wasExisting ? "profile updated" : "new profile created"}`}</div>
+    screen(`<div class="rp-notice rp-notice--success">${doneMark()}${source === 'lookup' ? 'Customer selected' : `Customer ready · ${wasExisting ? "profile updated" : "new profile created"}`}</div>${heads ? `<div class="rp-notice rp-notice--working" role="status" id="scHeadsUp"><strong>Check the phone number</strong><span id="scHeadsText">${esc(heads)}</span>${st.alsoWhose ? `<button type="button" class="rp-link" id="scShowWhoseDone">Show whose</button>` : ""}</div>` : ''}
       ${hero(esc(fullName(cust)))}
       <div class="rp-kv">
-        ${kvRow("License", cust.license && cust.license.number ? esc(licLine(cust.license)) : "—")}
+        ${kvRow("License", cust.license && cust.license.number ? esc(licLine(cust.license)) + licenseLimitTag(cust.license) : "—")}
         ${kvRow("Phone", esc(cust.phone || "—"))}
         ${kvRow("Email", esc(cust.email || "—"))}
         ${kvRow("Address", cust.address && cust.city ? esc(fmtAddr(cust)) : "—")}
@@ -4924,7 +5980,9 @@ function openScanFlow(opts) {
       st.saved = false; st.manNum = ""; st.manState = "NY";
       renderScan("front");
     };
-    wire(() => renderDone(cust, wasExisting, source));
+    const showWhose = $("#scShowWhoseDone", body);
+    if (showWhose) showWhose.onclick = () => { $("#scHeadsText", body).textContent = st.alsoWhose; showWhose.remove(); };
+    wire(() => renderDone(cust, wasExisting, source, heads));
   }
 
   /* Test Drive verifies the customer on this visit. A conflicting card is
@@ -4937,6 +5995,7 @@ function openScanFlow(opts) {
       ${mismatch
         ? `<div class="rp-notice rp-notice--conflict"><strong>${esc(p.first + " " + p.last)}</strong>The license reads a different name from this deal&rsquo;s customer, ${esc(c.first + " " + c.last)}. The name on file won&rsquo;t be changed here.</div>`
         : ""}
+      ${licenseLimitNotice(p)}
       ${field("svDl", "License number", "text", p.license.number)}
       ${field("svDlState", "Issuing state", "text", p.license.state)}
       ${dateField("svDlExp", "Expires", dateUS(p.license.expires))}
@@ -4948,7 +6007,9 @@ function openScanFlow(opts) {
       const expText = $("#svDlExp", body).value.trim(), dobText = $("#svDob", body).value.trim();
       const expires = expText ? dateISO(expText) : "";
       const dob = dobText ? dateISO(dobText) : "";
-      const lic = { number: $("#svDl", body).value.trim(), state: $("#svDlState", body).value.trim(), expires };
+      /* the card stays what it is (LS-039, claude-c on #202): built from the fields alone, a learner permit came
+         back a license, and the drive it was refused unlocked */
+      const lic = Object.assign(licenseRecordOf(p), { number: $("#svDl", body).value.trim(), state: $("#svDlState", body).value.trim(), expires });
       const bad = [];
       if (!lic.number) bad.push({ el: $("#svDl", body), msg: "Required" });
       if (!lic.state) bad.push({ el: $("#svDlState", body), msg: "Required" });
@@ -4957,7 +6018,7 @@ function openScanFlow(opts) {
       if (!dobText) bad.push({ el: $("#svDob", body), msg: "Required" });
       else if (!dob) bad.push({ el: $("#svDob", body), msg: "Enter MM/DD/YYYY" });
       else if (new Date(dob + 'T00:00:00').getTime() > Date.now()) bad.push({ el: $("#svDob", body), msg: "Date of birth cannot be in the future" });
-      if (markMissing(body, bad)) return toast("Check the errors beside each field");
+      if (scanMissing(body, bad)) return;
       if (c && scannerIdentityConflict(c, Object.assign({}, p, { dob, license: lic }))) {
         /* Any rejected completed scan is unsafe to resume for this customer.
            Retire its saved photo even when the printed name happens to match
@@ -4993,7 +6054,55 @@ function openScanFlow(opts) {
     wire(() => renderVerifyTd(p));
   }
 
-  if (draftOf()) renderResume();
+  /* ---- LS-084: the walk-ins' unfinished scans, each under the name its barcode read, newest first. Start a new
+     scan starts clean and leaves the others as they are. No line under the title (the owner's rule of 2026-09-26,
+     and the kit's §5) ---- */
+  function renderUnfinished() {
+    st.stage = 'unfinished';
+    const all = Store.s.licenseDrafts || {}, at = (k) => (typeof all[k]?.savedAt === 'string' ? all[k].savedAt : '');
+    const keys = walkinKeys().sort((a, b) => at(b).localeCompare(at(a)));
+    if (!keys.length) { draftKey = newWalkinKey(); seenDraft = 'null'; resetGuest(); renderScan('front'); return; }
+    const today = new Date().toDateString();
+    const when = (iso) => {
+      const d = new Date(iso); if (!iso || Number.isNaN(d.getTime())) return '';
+      const t = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      return d.toDateString() === today ? t : `${d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}, ${t}`;
+    };
+    /* LS-045: a scan kept for a Team Lead's answer says where it stands. The request names the scan it was asked
+       from; a later scan of the same license takes that one's place (LS-084), so the row reads its request as
+       Confirm customer does: the one waiting on that record, else the latest answer about this very license */
+    const reviewFor = (k, d) => {
+      const t = scannerLicenseToken, same = (a, b) => scannerIdentityToken(a) === scannerIdentityToken(b);
+      const p = validDraftPersona(d.persona) ? d.persona : null, lic = (p && p.license) || {};
+      const about = (c, r) => r.draftKey === k || (!!p && (r.kind === 'birthday'
+        ? !!c.license && t(c.license.number) === t(lic.number) && t(c.license.state) === t(lic.state) && (!r.answer || r.scanned.dob === p.dob)
+        : (!!r.scanned.license && t(r.scanned.license.number) === t(lic.number) && t(r.scanned.license.state) === t(lic.state))
+          || (!r.answer && c.dob === p.dob && same(c.first, p.first) && same(c.last, p.last))));
+      let hit = null;
+      for (const c of Store.s.customers) for (const r of (c.identityReviews || [])) if (about(c, r) && (!hit || String(r.askedAt) > String(hit.askedAt))) hit = r;
+      return hit;
+    };
+    const rows = keys.map((k) => {
+      const d = all[k], ok = validDraft(d), named = ok && validDraftPersona(d.persona);
+      const title = !ok ? 'Saved scan unavailable' : named ? fullName(d.persona) : 'Front saved · name not read yet';
+      const sides = named ? (d.frontImage && d.backImage ? 'Both sides' : d.backImage ? 'Back only' : 'Front only') : '';
+      const rv = ok ? reviewFor(k, d) : null, what = rv && rv.kind === 'birthday' ? 'Birthday' : 'License';
+      const tail = rv && !rv.answer ? 'Waiting for a Team Lead' : rv && rv.answer.pick === 'scanned' ? what + ' confirmed · Resume' : rv && rv.answer.pick === 'onFile' ? what + ' on file kept · Resume' : 'Resume';
+      const sub = !ok ? 'Discard' : [sides, when(d.savedAt), tail].filter(Boolean).join(' · ');
+      return `<button type="button" class="rp-row" data-draft="${esc(k)}"><span class="rp-row__body"><span class="rp-row__title">${esc(title)}</span><span class="rp-row__sub">${esc(sub)}</span></span><span class="rp-row__chevron" aria-hidden="true"></span></button>`;
+    }).join('');
+    screen(`${hero('Unfinished scans')}<div class="rp-group" id="scUnfinished">${rows}</div>`, chDock(primary('id="scStartNew"', 'Start a new scan')));
+    $$('[data-draft]', body).forEach((b) => b.onclick = () => {
+      const k = b.dataset.draft;
+      if (!(Store.s.licenseDrafts || {})[k]) { renderUnfinished(); return; }
+      draftKey = k; seenDraft = JSON.stringify(draftOf() ?? null); resetGuest(); renderResume();
+    });
+    $('#scStartNew', body).onclick = () => { draftKey = newWalkinKey(); seenDraft = 'null'; resetGuest(); renderScan('front'); };
+    wire(renderUnfinished);
+  }
+
+  if (walkin) renderUnfinished();
+  else if (draftOf()) renderResume();
   else renderScan("front");
 }
 
@@ -5027,10 +6136,21 @@ const propField = (l, v) => `<span class="fld">${l}</span>${esc(v)}`;
 
 /* the two faces of a training licence, extracted so the hub can put them in
    a preview sheet and in the print set from one definition */
+/* what each training card is, in its head (LS-037/039: a permit, a non-driver ID and a license from outside the
+   US join the licenses), short enough to sit beside TRAINING SAMPLE */
+const PROP_KIND_HEAD = { license: "NEW YORK &middot; USA", permit: "NY &middot; LEARNER PERMIT", id: "NY &middot; NON-DRIVER ID", foreign: "ONTARIO &middot; CANADA" };
+/* the license record a scan or an upload keeps: its number, issuer and expiry, and, for a learner permit or a
+   non-driver ID, what it is, since neither can take a test drive (LS-037/039). A license keeps no kind, so every
+   record made before these cards reads the same */
+function licenseRecordOf(p) {
+  const r = { number: p.license.number, state: p.license.state, expires: p.license.expires || "" };
+  if (p.kind === "permit" || p.kind === "id") r.kind = p.kind;
+  return r;
+}
 function licPropFront(p) {
   const F = propField;
   return `<div class="prop-card">
-    <div class="prop-head"><span>NEW YORK &middot; USA</span><b>TRAINING SAMPLE</b></div>
+    <div class="prop-head"><span>${PROP_KIND_HEAD[p.kind] || PROP_KIND_HEAD.license}</span><b>TRAINING SAMPLE</b></div>
     <div class="prop-body">
       <div class="prop-photo">${SCAN_SILHOUETTE}</div>
       <div class="prop-fields">
@@ -5046,11 +6166,14 @@ function licPropFront(p) {
   </div>`;
 }
 function licPropBack(p) {
+  /* the Ontario card's barcode is not a US license's: it prints the reader's not-US marker, so the scanner says
+     why it read nothing (LS-039) */
+  const foreign = p.kind === "foreign";
   return `<div class="prop-card">
     <div class="prop-back-top">TRAINING SAMPLE &middot; SCAN THIS SIDE</div>
-    ${RIDE_PRICE_SCAN.barcodeSVG(p.prop, "prop-barcode")}
-    <div class="prop-fine">${esc(p.last.toUpperCase())} &middot; PROP ${esc(p.prop)} OF 5 &middot; This card exists for Ride Price sales
-      training only. The barcode encodes a prop number &mdash; no personal data. It has no value and identifies no one.</div>
+    ${RIDE_PRICE_SCAN.barcodeSVG(foreign ? RIDE_PRICE_SCAN.NOT_US : p.code || p.prop, "prop-barcode")}
+    <div class="prop-fine">${esc(p.last.toUpperCase())} &middot; PROP ${esc(p.prop)} OF ${RIDE_PRICE_DATA.licenseProps.length} &middot; This card exists for Ride Price sales
+      training only. ${foreign ? "Its barcode is not a US license&rsquo;s, so the scanner cannot read it" : "The barcode encodes a prop number &mdash; no personal data"}. It has no value and identifies no one.</div>
     <div class="prop-foot">NOT A GOVERNMENT DOCUMENT</div>
   </div>`;
 }
@@ -5062,6 +6185,8 @@ function trainingPairs() {
     name: `${p.first}${p.middle ? " " + p.middle : ""} ${p.last}`.replace(/\s+/g, " ").trim(),
     person: p,
     reg: RIDE_PRICE_DATA.registrationProps.find(r => r.prop === p.prop) || null,
+    /* a payoff statement exists only for a pair whose title carries a lien */
+    pay: (RIDE_PRICE_DATA.payoffProps || []).find(x => x.prop === p.prop) || null,
   }));
 }
 
@@ -5077,7 +6202,10 @@ function trainingDocsView(tab) {
      stays closed); only the hub and the sheet chrome moved onto the kit. */
 
   const pairs = trainingPairs();
-  let type = /^reg/i.test(tab || "") ? "registration" : "license";
+  let type = /^reg/i.test(tab || "") ? "registration" : /^pay/i.test(tab || "") ? "payoff" : "license";
+  /* the pairs this tab lists: every license; on Registrations the licenses that have one (props 6 to 9 are
+     licenses only, LS-037/039); on Payoffs only the two whose titles carry a lien */
+  const shown = () => type === "payoff" ? pairs.filter(p => p.pay) : type === "registration" ? pairs.filter(p => p.reg) : pairs;
   /* the scale is a function of the sheet's width, so it has to be recomputed
      when that width changes — rotate the phone with a preview open and a
      mount-time scale would let the 112mm card reach past the sheet again */
@@ -5091,7 +6219,7 @@ function trainingDocsView(tab) {
      left. Teardown drops listeners and touches nothing else. */
   const sheets = chSheetOpener("tdocScrim", "tdocSheet", () => {
     if (sheetFit) { window.removeEventListener("resize", sheetFit); sheetFit = null; }
-    if (rearm) setPrintSet(pairs.map(p => p.prop));
+    if (rearm) setPrintSet(shown().map(p => p.prop));
   });
   const teardown = () => { rearm = false; sheets.close(); window.removeEventListener("hashchange", teardown); };
   window.addEventListener("hashchange", teardown);
@@ -5105,14 +6233,16 @@ function trainingDocsView(tab) {
       const pair = pairs.find(x => x.prop === n); if (!pair) return "";
       return type === "license"
         ? `<div class="tdoc-page">${licPropFront(pair.person)}${licPropBack(pair.person)}</div>`
+        : type === "payoff" ? (pair.pay ? `<div class="tdoc-page">${payPropHtml(pair.pay)}</div>` : "")
         : pair.reg ? `<div class="tdoc-page">${regPropHtml(pair.reg)}</div>` : "";
     }).join("");
   }
 
   function rowsHtml() {
-    return pairs.map(p => {
+    return shown().map(p => {
       const meta = type === "license"
         ? `License ${esc(p.person.license.number)}`
+        : type === "payoff" ? `${esc(p.pay.lender)} &middot; ${esc(money(p.pay.amount))}`
         : p.reg ? `Registration ${esc(p.reg.docNo)} &middot; ${esc(p.reg.year)} ${esc(p.reg.make)}`
           : "No registration on file";
       return `<button type="button" class="rp-row" data-pair="${esc(p.prop)}"><span class="rp-tile rp-tile--label">${esc(p.id)}</span><span class="rp-row__body"><span class="rp-row__title">${esc(p.name)}</span><span class="rp-row__sub">${meta}</span></span><span class="rp-row__chevron"></span></button>`;
@@ -5125,9 +6255,9 @@ function trainingDocsView(tab) {
        that disappears */
     view().innerHTML = chShell({ template: "destination", active: "more" }, `
       <div class="rp-eyebrow">Training</div>
-      <div class="rp-title-row"><h1 class="rp-title">Training documents</h1><button type="button" class="rp-pill-primary" id="tdocPrintAll">Print all ${pairs.length}</button></div>
-      <p class="rp-count">${pairs.length} matched pairs</p>
-      <div class="rp-segment">${["license", "registration"].map(t => `<button type="button" class="rp-segment__item${type === t ? " rp-segment__item--on" : ""}" data-type="${t}" aria-pressed="${type === t}">${t === "license" ? "Licenses" : "Registrations"}</button>`).join("")}</div>
+      <div class="rp-title-row"><h1 class="rp-title">Training documents</h1><button type="button" class="rp-pill-primary" id="tdocPrintAll">Print all ${shown().length}</button></div>
+      <p class="rp-count">${type === "payoff" ? `${shown().length} payoff statements` : type === "registration" ? `${shown().length} registrations` : `${shown().length} licenses`}</p>
+      <div class="rp-segment" style="grid-template-columns:repeat(3,1fr)">${["license", "registration", "payoff"].map(t => `<button type="button" class="rp-segment__item${type === t ? " rp-segment__item--on" : ""}" data-type="${t}" aria-pressed="${type === t}">${t === "license" ? "Licenses" : t === "payoff" ? "Payoffs" : "Registrations"}</button>`).join("")}</div>
       <div class="rp-group">${rowsHtml()}</div>`, null, { scrim: "tdocScrim", sheet: "tdocSheet" })
       + `<div class="tdoc-printroot" id="tdocPrint" aria-hidden="true"></div>`;
 
@@ -5139,14 +6269,14 @@ function trainingDocsView(tab) {
       /* his ruling D-PI2 = B (2026-09-17): a tab is a step — pushed, so the phone's
          Back returns to the tab you were on (the router re-renders from the URL);
          it was replaceState, and Back left the screen altogether (PI-006) */
-      history.pushState(null, "", type === "license" ? "#/props" : "#/props/registrations");
+      history.pushState(null, "", type === "license" ? "#/props" : type === "payoff" ? "#/props/payoffs" : "#/props/registrations");
       render();
     });
-    $("#tdocPrintAll").onclick = () => { setPrintSet(pairs.map(p => p.prop)); window.print(); };
+    $("#tdocPrintAll").onclick = () => { setPrintSet(shown().map(p => p.prop)); window.print(); };
     $$("[data-pair]").forEach(b => b.onclick = () => openPair(Number(b.dataset.pair)));
     $("#dqMore").onclick = () => chMoreSheet(sheets);
     chWireRole(sheets, render);
-    setPrintSet(pairs.map(p => p.prop));
+    setPrintSet(shown().map(p => p.prop));
   }
 
   /* RP-UI-012 in one function. These documents are millimetre-sized because
@@ -5157,7 +6287,7 @@ function trainingDocsView(tab) {
      the scaled height, or the transform leaves a hole underneath it. */
   function fitPreview(sh) {
     const wrap = $(".tdoc-preview", sh); if (!wrap) return;
-    const docs = $$(".prop-card, .reg-card", wrap);
+    const docs = $$(".prop-card, .reg-card, .pay-card", wrap);
     if (!docs.length) return;
     const pad = 28; /* the wrapper's own left+right padding */
     const avail = wrap.clientWidth - pad;
@@ -5178,9 +6308,10 @@ function trainingDocsView(tab) {
     const p = pairs.find(x => x.prop === prop); if (!p) return;
     const doc = type === "license"
       ? `<div class="tdoc-preview tdoc-preview--lic">${licPropFront(p.person)}${licPropBack(p.person)}</div>`
+      : type === "payoff" ? (p.pay ? `<div class="tdoc-preview">${payPropHtml(p.pay)}</div>` : `<p class="tdoc-empty">This pair's title carries no lien.</p>`)
       : p.reg ? `<div class="tdoc-preview">${regPropHtml(p.reg)}</div>`
         : `<p class="tdoc-empty">No training registration exists for this pair.</p>`;
-    sheets.open(`${chSheetHead(type === "license" ? "Training license" : "Training registration")}
+    sheets.open(`${chSheetHead(type === "license" ? "Training license" : type === "payoff" ? "Training payoff statement" : "Training registration")}
       <p class="rp-sheet__sub">${esc(p.name)} &middot; Pair ${esc(p.id)}</p>
       ${doc}
       <div style="height:6px"></div>
@@ -5289,6 +6420,39 @@ function regPropHtml(r) {
     </div>
     <div class="reg-legend">TRAINING SAMPLE — NOT A GOVERNMENT DOCUMENT · NOT VALID FOR ANY PURPOSE</div>
     ${regFenceSVG()}
+  </div>`;
+}
+
+/* ---- payoff-statement props (the owner's payoff scanner, 2026-09-26) ----
+   A training prop the portal prints, as the licenses and registrations are: a
+   lender's payoff letter for a training title that carries a lien. Its marker
+   is the deal-document marker (docscan.js) with a code reserved for these
+   props and the prop number as its token, so it names which prop it is and
+   nothing else; the figures come from the prop's record, and the good-through
+   date is its goodDays after today, so a prop is never stale on a demo day. */
+const PAYOFF_PROP_CODE = 60;
+function payoffGoodThrough(pp, from = new Date()) {
+  const d = new Date(from.getFullYear(), from.getMonth(), from.getDate() + (pp.goodDays || 30));
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function payPropHtml(pp) {
+  const p = RIDE_PRICE_DATA.licenseProps.find(x => x.prop === pp.prop);
+  const name = p ? `${p.first}${p.middle ? " " + p.middle : ""} ${p.last}` : "Sample Borrower";
+  return `<div class="pay-card">
+    <div class="pay-head"><b>${esc(pp.lender)}</b><span class="reg-sampletag">TRAINING<br>SAMPLE</span></div>
+    <div class="pay-title">Payoff statement</div>
+    <div class="pay-lines">
+      <div><span>Borrower</span><b>${esc(name)}</b></div>
+      <div><span>Account</span><b>ending ${esc(pp.account)}</b></div>
+      <div><span>Vehicle</span><b>${esc(pp.vehicle)}</b></div>
+      <div><span>VIN</span><b>${esc(pp.vin)}</b></div>
+    </div>
+    <div class="pay-figures">
+      <div><span>Payoff amount</span><b>${esc(money(pp.amount))}</b></div>
+      <div><span>Good through</span><b>${esc(dateUS(payoffGoodThrough(pp)))}</b></div>
+    </div>
+    <div class="pay-legend">TRAINING SAMPLE — NOT A LENDER'S LETTER · PAYS NOTHING</div>
+    <span class="pd-mark">${RIDE_PRICE_DOCSCAN.markerSVG(PAYOFF_PROP_CODE, pp.prop, "pd-mark__bars")}<span class="pd-mark__cap">payoff statement marker</span></span>
   </div>`;
 }
 
@@ -5441,9 +6605,16 @@ route("discovery/:id", ({ id }) => {
     close.onclick = () => { if (save()) navigate("#/deals"); };
     const q = $(".rp-stage__q"); q.id = "dcQuestion"; q.tabIndex = -1; q.setAttribute("role", "heading"); q.setAttribute("aria-level", "1");
     const ai = $(".rp-ai__text"); ai.id = "dcAssistant"; ai.setAttribute("role", "status"); ai.setAttribute("aria-live", "polite");
-    if (state.position === 0 && !state.intro) ai.textContent = redo ? "Sample reply reset. Choose what to keep." : "Sample reply: choose what you would keep.";
-    if (state.position === 4) ai.textContent = state.selections.laneCentering ? "Sample: lane centering would help the commute." : "Lane centering not selected.";
-    if (state.position === 5) ai.textContent = state.selections.reverseBraking ? "Sample: braking, not just warnings, in reverse." : "Reverse braking not selected.";
+    /* the assistant speaks in the kit's own voice, as its other stages already do: what it heard, or, after ×,
+       its question again. No demo words on the screen the customer is looking at (KA-024, §5): the DEMO band
+       says "Sample data only" for the whole screen. */
+    const heard = (labels) => labels.map(l => /^[A-Z][a-z]+(\s|$)/.test(l) ? l[0].toLowerCase() + l.slice(1) : l).join(", ");
+    if (state.position === 0 && !state.intro) {
+      const keeps = ["heatedSeats", "carPlay", "blindSpot", "powerLiftgate", "sunroof"].filter(k => state.selections[k]).map(consultationLabel);
+      ai.textContent = redo ? "What do you have today that you would not give up?" : keeps.length ? `Heard: ${heard(keeps)}.` : "Nothing to keep.";
+    }
+    if (state.position === 4) ai.textContent = state.selections.laneCentering ? "Heard: lane centering would help the commute." : "Lane centering not selected.";
+    if (state.position === 5) ai.textContent = state.selections.reverseBraking ? "Heard: braking, not just warnings, in reverse." : "Reverse braking not selected.";
     const chipKeys = state.position === 0 ? ["heatedSeats", "carPlay", "blindSpot", "powerLiftgate", "sunroof"] : state.position === 2 ? ["secondRow", "thirdRow", "captainsChairs"] : ["laneCentering", "reverseBraking"];
     if (state.position !== TOPICS) $$(".rp-chipf").forEach((chip, i) => {
       const key = chipKeys[i]; if (!key) return;
@@ -5459,7 +6630,7 @@ route("discovery/:id", ({ id }) => {
       const f = filters();
       [...f.must, ...f.keep, ...f.nice].forEach(key => { const chip = document.createElement("span"); chip.className = "rp-chipf rp-chipf--on"; chip.innerHTML = rpGlyph("check") + esc(consultationLabel(key)); labelBox.append(chip); });
       if (f.minSeats) { const chip = document.createElement("span"); chip.className = "rp-chipf rp-chipf--on"; chip.innerHTML = rpGlyph("check") + `Seats ${esc(f.minSeats)}+`; labelBox.append(chip); }
-      ai.textContent = "Does that reflect the sample replies you confirmed?";
+      ai.textContent = "Does that sound right?";   /* the seed's closing question (KA-024) */
     }
     const play = $(".rp-stage__play");
     if (play) { const button = document.createElement("button"); button.type = "button"; button.className = play.className; button.innerHTML = play.innerHTML; button.setAttribute("aria-label", "View sample slide; no video supplied"); play.replaceWith(button); }
@@ -5480,7 +6651,8 @@ route("discovery/:id", ({ id }) => {
       change(() => { delete state.accepted[state.position]; invalidate(); redo = true; });
     });
     const line = $(".rp-voice__label");
-    line.dataset.ready = profile ? "✓ find vehicles · × change something" : "No microphone · ✓ sample reply · × retry";
+    /* the kit's own words for what ✓ and × do on each frame (KA-024): no demo sentence under the question */
+    line.dataset.ready = profile ? "Tap ✓ to see the options" : state.position === 0 && state.intro ? "Tap ✓ when they’re done, × to redo" : "Tap ✓ to keep, × to redo";
     line.textContent = isUnsaved() ? "Not saved · tap ✓ to retry" : line.dataset.ready;
     line.setAttribute("role", "status");
     /* The dots are a static demonstration, never a claim of microphone activity. */
@@ -5714,7 +6886,7 @@ route("vehicles/:id", ({ id }) => {
         <div class="rp-vehicle__name">${esc(vName(v))}</div>
         <div class="rp-vehicle__trim">${esc(v.trim)}</div>
         <div class="rp-vehicle__meta">${esc(vMeta(v))}</div>
-        <div class="rp-vehicle__price"><strong>${money0(v.selling)}</strong>${v.msrp !== v.selling ? `<s>MSRP ${money0(v.msrp)}</s>` : ""}</div>
+        <div class="rp-vehicle__price"><strong>${money0(v.selling)}</strong>${v.msrp !== v.selling ? `<span class="rp-vehicle__msrp">MSRP ${money0(v.msrp)}</span>` : ""}</div>
       </div>`;
     return inSheet ? `<div class="rp-vehicle rp-vehicle--sheet">${body}</div>`
       : `<button type="button" class="rp-vehicle" data-detail="${esc(v.stock)}" aria-label="${esc(vName(v))} details">${body}</button>`;
@@ -5728,11 +6900,14 @@ route("vehicles/:id", ({ id }) => {
     if (sh.kind === "details") {
       const v = Store.vehicle(sh.stock);
       /* one primary, and only inside a visit — browsing has no deal to put
-         the car on, so the sheet simply has no Choose */
+         the car on, so the sheet simply has no Choose. The Interior row says
+         the interior alone: the car's miles are on its card's meta line just
+         above, and folding them in under "Interior" said something the label
+         does not mean (RP-UI-047) */
       return `${chSheetHead("Vehicle details")}
         ${vehicleHtml(v, true)}
         <div class="rp-kv">${kvRow("MSRP", money0(v.msrp))}${kvRow("Selling price", money0(v.selling))}${v.includedOptions ? kvRow("Included options", money0(v.includedOptions)) : ""}</div>
-        <div class="rp-kv">${kvRow("VIN", esc(v.vin))}${kvRow("Engine", esc(v.engine + " · " + v.mpg + " MPG"))}${kvRow("Interior", esc(v.int + " · " + v.miles.toLocaleString() + " mi"))}</div>
+        <div class="rp-kv">${kvRow("VIN", esc(v.vin))}${kvRow("Engine", esc(v.engine + " · " + v.mpg + " MPG"))}${kvRow("Interior", esc(v.int))}</div>
         ${deal ? `<button type="button" class="rp-primary" data-choose="${esc(v.stock)}">Choose this vehicle</button>` : ""}`;
     }
     if (sh.kind === "next") {
@@ -5900,6 +7075,9 @@ route("testdrive/:id", ({ id }) => {
     const lic = c.license;
     if (!lic || !lic.number) return { ok: false, meta: "No license on file", short: "No license on file" };
     if (c.onboard && c.onboard.secondSide === "pending") return { ok: false, meta: "License incomplete · another side or review needed", short: "License review pending" };
+    /* LS-037/039: a learner permit or a non-driver ID identifies the person, and neither can take a test drive */
+    if (lic.kind === "permit") return { ok: false, meta: "Learner permit · can’t test drive on it", short: "Learner permit" };
+    if (lic.kind === "id") return { ok: false, meta: "Non-driver ID · can’t test drive on it", short: "Non-driver ID" };
     /* "unexpired" is a claim about a date: no date, or one that does not
        parse, is not ready either (review find) */
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(lic.expires || "");
@@ -5918,95 +7096,75 @@ route("testdrive/:id", ({ id }) => {
 
   const stateOf = () => td.done ? "done" : td.started ? "active" : licenseState().ok ? "ready" : "attention";
 
-  const tdTop = () => `<div class="dv-top">
-    <button type="button" class="dv-back" id="tdBack" aria-label="Back">‹</button>
-    <div class="dv-brand"><span>Ride</span> PRICE</div>
-    <span class="dv-spacer"></span>
-  </div>`;
-  /* counted on every render: signing files the agreement, and the badge
-     must say so on the very next paint (review find) */
-  const contextRow = () => { const jkc = jacketCounts(deal); return `<div class="dv-context">
-    <button type="button" class="dv-ctxmain" id="tdDeal">
-      <strong>${esc(custName)}</strong>
-      <span>&middot; ${esc(vehName)}</span>
-    </button>
-    <a class="dv-jacket" href="#/jacket/${esc(deal.id)}" aria-label="Deal Jacket — ${esc(jacketChipText(deal))} required documents complete${jkc.missing ? `, ${esc(jkc.missing)} still outstanding` : ""}">
-      <span class="dv-jacket__box">${rpIcon("folder")}<b>${esc(jacketChipText(deal))}</b></span>
-    </a>
+  /* phase 4b · the Test Drive on the kit. The owner's package (V2,
+     2026-09-01) holds rule for rule — the same states, words, ids and
+     behaviour — drawn with the kit's own parts: the task shell, §24's session
+     block, agreement box, check row, signature pad and completed hero, and
+     §35's labelled dock. */
+  /* one context row: who and what, and the jacket's count on the right.
+     Counted on every render: signing files the agreement, and the badge must
+     say so on the very next paint (review find) */
+  const contextRow = () => { const jkc = jacketCounts(deal); return `<div class="rp-filter" id="tdContext">
+    <button type="button" class="ch-hit" id="tdDeal"><b>${esc(custName)}</b> &middot; ${esc(vehName)}</button>
+    <a class="rp-filter__control ch-hit" id="tdJacket" href="#/jacket/${esc(deal.id)}" aria-label="Deal Jacket — ${esc(jacketChipText(deal))} required documents complete${jkc.missing ? `, ${esc(jkc.missing)} still outstanding` : ""}">${rpIconGlyph("folder")}<b>${esc(jacketChipText(deal))}</b></a>
   </div>`; };
 
   /* one row anatomy for every operational fact: icon · title · meta · a
-     status pill or a text action on the right */
-  const row = (icon, title, meta, right) => `<div class="td-row">
-    <span class="td-rowicon">${rpIcon(icon)}</span>
-    <div class="td-rowmain"><div class="td-rowtitle">${title}</div><div class="td-rowmeta">${meta}</div></div>
+     status tag or a text action on the right */
+  const row = (icon, title, meta, right) => `<div class="rp-row">
+    <span class="rp-tile">${rpIconGlyph(icon)}</span>
+    <span class="rp-row__body"><span class="rp-row__title">${title}</span><span class="rp-row__sub">${meta}</span></span>
     ${right}
   </div>`;
-  const status = (kind, label) => `<span class="td-status td-status--${kind}">${label}</span>`;
+  const status = (kind, label) => `<span class="rp-tag ${kind === "ok" ? "rp-tag--match" : "rp-tag--required"}">${label}</span>`;
 
-  let sheetKey = null;
-  const closeSheet = () => {
-    const sc = $("#tdScrim"); if (sc) sc.classList.remove("show");
-    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
-  };
+  /* the kit's sheet: its own scrim, Escape and focus, and it lets go of its
+     listeners with the route */
+  const sheets = chSheetOpener("tdScrim", "tdSheet");
+  const closeSheet = () => sheets.close();
   let timer = null;
   const stopTimer = () => { if (timer) { clearInterval(timer); timer = null; } };
   const teardown = () => { closeSheet(); stopTimer(); window.removeEventListener("hashchange", teardown); };
   window.addEventListener("hashchange", teardown);
-  const openSheet = (html, onMount) => {
-    const sh = $("#tdSheet"); if (!sh) return;
-    sh.innerHTML = `<div class="m-handle"></div>${html}`;
-    $("#tdScrim").classList.add("show");
-    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
-    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
-    document.addEventListener("keydown", sheetKey, true);
-    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
-    if (onMount) onMount(sh);
-  };
-  const sheetHead = (title, sub) => `<div class="m-sheettop"><h2 class="tv-sheettitle td-sheettitle">${title}</h2>
-    <button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>
-    ${sub ? `<p class="td-sheetsub">${sub}</p>` : ""}`;
+  const openSheet = (html, onMount) => sheets.open(html, onMount);
+  const sheetHead = (title, sub) => `${chSheetHead(title)}${sub ? `<p class="rp-sheet__sub">${sub}</p>` : ""}`;
 
   /* ---- the states ---- */
   function readyBody() {
     const lic = licenseState();
-    return `<section class="tv-card td-list">
+    return `<section class="rp-group" aria-label="Before the drive">
       ${row("idcard", "Driver&rsquo;s license", esc(lic.meta), status("ok", "Ready"))}
       ${row("umbrella", "Insurance company", td.insurance ? esc(td.insurance) : "Not on file",
-        `<button type="button" class="td-link" id="tdInsurance">${td.insurance ? "Edit" : "Add"}</button>`)}
+        `<button type="button" class="rp-row__action" id="tdInsurance">${td.insurance ? "Edit" : "Add"}</button>`)}
       ${row("user", "Drivers", esc(driverNames().join(", ")),
-        `<button type="button" class="td-link" id="tdAddDriver">Add driver</button>`)}
+        `<button type="button" class="rp-row__action" id="tdAddDriver">Add driver</button>`)}
     </section>
-    <section class="tv-card">
-      <h2 class="td-cardtitle">Test drive terms</h2>
-      <p class="td-cardsub">Key terms are summarized here. The full agreement is shown before signing.</p>
-      <div class="td-summary">
-        <span class="k">Vehicle</span><span class="v">${esc(vehName)}</span>
-        <span class="k">Maximum distance</span><span class="v">${esc(LIMIT)} miles</span>
-        <span class="k">Return condition</span><span class="v">Return at agreed time</span>
-        <span class="k">Agreement storage</span><span class="v">Deal Jacket</span>
-      </div>
-    </section>`;
+    <section class="rp-kv" aria-label="Test drive terms">
+      <div class="rp-kv__head">Test drive terms</div>
+      <div class="rp-kv__row"><span>Vehicle</span><span>${esc(vehName)}</span></div>
+      <div class="rp-kv__row"><span>Maximum distance</span><span>${esc(LIMIT)} miles</span></div>
+      <div class="rp-kv__row"><span>Return condition</span><span>Return at agreed time</span></div>
+      <div class="rp-kv__row"><span>Agreement storage</span><span>Deal Jacket</span></div>
+    </section>`;   /* no line explaining the summary (KA-023, §5): Review & sign shows the whole agreement */
   }
 
   function attentionBody() {
     const lic = licenseState();
-    return `<section class="tv-card td-list">
+    return `<section class="rp-group" aria-label="Before the drive">
       ${row("idcard", "Driver&rsquo;s license", esc(lic.meta), status("warn", "Incomplete"))}
     </section>
-    <div class="td-callout"><strong>Required before the drive.</strong> A complete, unexpired license on the customer profile. Nothing else about the customer is asked again.</div>`;
+    <div class="rp-notice rp-notice--working"><strong>Required before the drive.</strong> A complete, unexpired license on the customer profile. Nothing else about the customer is asked again.</div>`;
   }
 
   function activeBody() {
-    return `<section class="td-session">
-      <span class="td-live"><i></i>Out on the road</span>
-      <div class="td-art">${mCarSvg(v)}</div>
-      <div class="td-herovehicle">${esc(`${vehName} ${v.trim || ""}`.trim())}</div>
-      <div class="td-meta">Stock ${esc(v.stock)} &middot; agreement signed</div>
-      <div class="td-timer" id="tdTimer" aria-label="Elapsed">${esc(elapsed())}</div>
-      <div class="td-meta">Started odometer ${esc(startOdo.toLocaleString())} mi &middot; up to ${esc(LIMIT)} miles</div>
-    </section>
-    <div class="td-callout"><strong>Deal Jacket updated automatically.</strong> The signed Test Drive Agreement is already attached; there is nothing else to file.</div>`;
+    return `<section class="rp-session" aria-label="Test drive session">
+      <span class="rp-session__pill">Out on the road</span>
+      <div class="rp-session__thumb">${mCarSvg(v, "m-carsvg rp-icon")}</div>
+      <div class="rp-session__name">${esc(`${vehName} ${v.trim || ""}`.trim())}</div>
+      <div class="rp-session__sub">Stock ${esc(v.stock)} &middot; agreement signed</div>
+      <div class="rp-session__clock" id="tdTimer" aria-label="Elapsed">${esc(elapsed())}</div>
+      <div class="rp-session__meta">Started odometer ${esc(startOdo.toLocaleString())} mi &middot; up to ${esc(LIMIT)} miles</div>
+    </section>`;   /* "agreement signed" is the session's own line; the jacket shows it filed, with no sentence saying so (KA-023) */
   }
 
   function doneBody() {
@@ -6018,12 +7176,12 @@ route("testdrive/:id", ({ id }) => {
     const driven = Math.max(0, end - startOdo);
     const over = driven > LIMIT;
     const hasTrade = !!(deal.trade && deal.trade.has);
-    return `<div class="td-doneicon">${rpIcon("check")}</div>
-    <div class="td-center">
-      <div class="td-herovehicle">${esc(custName)} is back</div>
-      <div class="td-meta">${esc(vehName)} &middot; ${esc(startOdo.toLocaleString())} &rarr; ${esc(end.toLocaleString())} mi</div>
+    return `<div class="rp-hero">
+      <div class="rp-hero__mark">${rpGlyph("check")}</div>
+      <div class="rp-hero__title">${esc(custName)} is back</div>
+      <div class="rp-hero__sub">${esc(vehName)} &middot; ${esc(startOdo.toLocaleString())} &rarr; ${esc(end.toLocaleString())} mi</div>
     </div>
-    <section class="tv-card td-list td-list--done">
+    <section class="rp-group" aria-label="The drive">
       ${(() => {
         /* the row states what the record can prove: an e-signature made
            here, a jacket receipt however it arrived, or neither — a drive
@@ -6036,14 +7194,14 @@ route("testdrive/:id", ({ id }) => {
       })()}
       ${row("wheel", "Return odometer", `${esc(end.toLocaleString())} mi &middot; ${esc(driven.toLocaleString())} driven${over ? `, over the ${esc(LIMIT)}-mile limit` : ""}`, over ? status("warn", "Over limit") : status("ok", "Recorded"))}
     </section>
-    <section class="tv-card">
-      <h2 class="td-cardtitle">Next step</h2>
-      <p class="td-cardsub">${hasTrade ? "This deal has a trade to evaluate first." : "No trade on this deal — go straight to the payment."}</p>
+    <section class="rp-card">
+      <div class="rp-card__title">Next step</div>
+      <p class="rp-sheet__sub">${hasTrade ? "This deal has a trade to evaluate first." : "No trade on this deal — go straight to the payment."}</p>
       ${hasTrade
-        ? `<a class="tv-primary" id="tdNext" href="#/trade/${esc(deal.id)}">Start trade evaluation</a>
-           <a class="td-link td-link--wide" id="tdToDesk" href="#/desk/${esc(deal.id)}">Calculate payment instead</a>`
-        : `<a class="tv-primary" id="tdNext" href="#/desk/${esc(deal.id)}">Calculate payment</a>
-           <a class="td-link td-link--wide" id="tdTrade" href="#/trade/${esc(deal.id)}">Customer has a trade</a>`}
+        ? `<a class="rp-primary" id="tdNext" href="#/trade/${esc(deal.id)}">Start trade evaluation</a>
+           <a class="rp-link" id="tdToDesk" href="#/desk/${esc(deal.id)}">Calculate payment instead</a>`
+        : `<a class="rp-primary" id="tdNext" href="#/desk/${esc(deal.id)}">Calculate payment</a>
+           <a class="rp-link" id="tdTrade" href="#/trade/${esc(deal.id)}">Customer has a trade</a>`}
     </section>`;
   }
 
@@ -6058,43 +7216,35 @@ route("testdrive/:id", ({ id }) => {
   function render() {
     const st = stateOf();
     renderChrome("Test Drive Agreement", "", "");
-    document.body.dataset.canvas = "master";
+    document.body.dataset.canvas = "kit";
     document.body.dataset.screen = "testdrive";
     stopTimer();
 
     /* a drive already in progress from before the clock existed: the session
        started when the agreement was signed; start counting from now rather
        than showing nothing */
-    if (st === "active" && !td.startedAt) { td.startedAt = new Date().toISOString(); Store.save(); }
+    if (st === "active" && !td.startedAt) { td.startedAt = new Date().toISOString(); saveSoft(); }
 
     const eyebrow = st === "active" ? "Active session" : "Test drive";
     const title = { ready: "Ready to test drive", attention: "License needs attention", active: "Test drive in progress", done: "Test drive complete" }[st];
     const body = { ready: readyBody, attention: attentionBody, active: activeBody, done: doneBody }[st]();
-    const dock = st === "ready" ? `<div class="tv-dockmeta"><span>Next</span><b>Agreement review</b></div>
-        <button type="button" class="tv-primary tv-dockgo" id="tdSign">Review &amp; sign</button>`
-      : st === "attention" ? `<div class="tv-dockmeta"><span>Required before drive</span><b>${esc(licenseState().short)}</b></div>
-        <button type="button" class="tv-primary tv-dockgo" id="tdFixLicense">Complete license</button>`
-      : st === "active" ? `<div class="tv-dockmeta"><span>Session</span><b>Test drive in progress</b></div>
-        <button type="button" class="tv-primary tv-dockgo" id="tdEnd">End drive</button>`
+    /* the package's dock — what comes next, and the one action — is the kit's
+       labelled dock (§35), the jacket's funding sign-off */
+    const dockOf = (label, state, btnId, text) => `<div class="rp-signoff" id="tdDock"><div><div class="rp-signoff__label">${label}</div><div class="rp-signoff__state">${state}</div></div><button type="button" class="rp-signoff__btn rp-signoff__btn--on" id="${btnId}">${text}</button></div>`;
+    const dock = st === "ready" ? dockOf("Next", "Agreement review", "tdSign", "Review &amp; sign")
+      : st === "attention" ? dockOf("Required before drive", esc(licenseState().short), "tdFixLicense", "Complete license")
+      : st === "active" ? dockOf("Session", "Test drive in progress", "tdEnd", "End drive")
       : "";
 
-    view().innerHTML = `
-      <div class="m-app${dock ? "" : " td-nodock"}">
-        ${tdTop()}
-        <main class="tv-main">
-          <div class="dv-eyebrow">${eyebrow}</div>
-          <h1 class="dv-title">${title}</h1>
-          ${contextRow()}
-          ${body}
-        </main>
-        ${dock ? `<div class="tv-dock">${dock}</div>` : ""}
-      </div>
-      <div class="m-scrim" id="tdScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="tdSheet"></div></div>`;
+    view().innerHTML = chShell({ template: "task", title: custName, closeId: "tdBack", closeLabel: "Close test drive", cls: dock ? "rp-screen--gate" : "" }, `
+        <div class="rp-eyebrow">${eyebrow}</div>
+        <h1 class="rp-title">${title}</h1>
+        ${contextRow()}
+        ${body}`, dock, { scrim: "tdScrim", sheet: "tdSheet" });
+    if (dock) chFitDock(".rp-signoff");
 
     $("#tdBack").onclick = () => history.back();
     $("#tdDeal").onclick = dealSheet;
-    const scrim = $("#tdScrim");
-    scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
 
     const ins = $("#tdInsurance"); if (ins) ins.onclick = insuranceSheet;
     const ad = $("#tdAddDriver"); if (ad) ad.onclick = driverSheet;
@@ -6143,14 +7293,11 @@ route("testdrive/:id", ({ id }) => {
   /* ---- sheets ---- */
   function insuranceSheet() {
     openSheet(`${sheetHead("Insurance company", "One field, carried onto the agreement.")}
-      <label class="tv-field"><span class="tv-label">Company</span>
-        <input type="text" class="tv-input" id="tdInsInput" value="${esc(td.insurance || "")}" placeholder="Ask for the auto insurance company" autocomplete="off"></label>
-      <div class="tv-sheetactions">
-        <button type="button" class="tv-primary" id="tdInsSave">Save</button>
-        <button type="button" class="tv-secondary" data-sheet-close>Cancel</button>
-      </div>`, (sh) => {
+      <div class="rp-field"><label class="rp-field__label" for="tdInsInput">Company</label>
+        <input type="text" class="rp-field__input" id="tdInsInput" value="${esc(td.insurance || "")}" placeholder="Ask for the auto insurance company" autocomplete="off" autofocus></div>
+      <button type="button" class="rp-primary" id="tdInsSave">Save</button>
+      <button type="button" class="rp-link ch-hit" data-sheet-close>Cancel</button>`, (sh) => {
       const inp = $("#tdInsInput", sh);
-      inp.focus();
       const save = () => { td.insurance = inp.value.trim(); Store.save(); closeSheet(); render(); };
       $("#tdInsSave", sh).onclick = save;
       inp.onkeydown = (e) => { if (e.key === "Enter") save(); };
@@ -6161,20 +7308,20 @@ route("testdrive/:id", ({ id }) => {
      number are never typed here */
   function driverSheet() {
     const added = drivers();
-    const door = (icon, title, sub, open) => `<button type="button" class="td-row td-row--go" data-open="${open}">
-      <span class="td-rowicon">${rpIcon(icon)}</span>
-      <div class="td-rowmain"><div class="td-rowtitle">${title}</div><div class="td-rowmeta">${sub}</div></div>
-      <span class="td-chev" aria-hidden="true">&rsaquo;</span>
+    const door = (icon, title, sub, open) => `<button type="button" class="rp-row" data-open="${open}">
+      <span class="rp-tile">${rpIconGlyph(icon)}</span>
+      <span class="rp-row__body"><span class="rp-row__title">${title}</span><span class="rp-row__sub">${sub}</span></span>
+      <span class="rp-row__chevron" aria-hidden="true"></span>
     </button>`;
     openSheet(`${sheetHead("Add another driver", "Identify the driver through the Customer Resolver.")}
-      <section class="tv-card td-list td-list--sheet">
+      <section class="rp-group" aria-label="Add a driver">
         ${door("user", "Find existing customer", "Search by name, phone, email, or license.", "search")}
         ${door("idcard", "Scan physical license", "Scan, then confirm.", "scan")}
         ${door("upload", "Send secure upload link", "The customer uploads directly into Ride Price.", "sendlink")}
       </section>
-      ${added.length ? `<div class="dv-seclab">Added drivers</div>${added.map(d => `<div class="td-row td-row--flat">
-          <div class="td-rowmain"><div class="td-rowtitle">${esc(`${d.first} ${d.last}`)}</div><div class="td-rowmeta">Additional driver</div></div>
-          <button type="button" class="td-link" data-remove="${esc(d.id)}">Remove</button></div>`).join("")}` : ""}`, (sh) => {
+      ${added.length ? `<div class="rp-section">Added drivers</div><section class="rp-group" aria-label="Added drivers">${added.map(d => `<div class="rp-row">
+          <span class="rp-row__body"><span class="rp-row__title">${esc(`${d.first} ${d.last}`)}</span><span class="rp-row__sub">Additional driver</span></span>
+          <button type="button" class="rp-row__action" data-remove="${esc(d.id)}">Remove</button></div>`).join("")}</section>` : ""}`, (sh) => {
       $$("[data-open]", sh).forEach(b => b.onclick = () => {
         const open = b.dataset.open;
         resolverMission = { kind: "driver", dealId: deal.id, back: location.hash, open: open === "search" ? null : open };
@@ -6188,19 +7335,18 @@ route("testdrive/:id", ({ id }) => {
   }
 
   function signSheet() {
-    openSheet(`${sheetHead("Review &amp; sign", "One agreement, one signature, then the drive starts.")}
-      <div class="td-terms"><strong>Test Drive Agreement</strong>
+    /* the subtitle names who and what the sheet is for (KA-023, §18a), not how it works */
+    openSheet(`${sheetHead("Review & sign", `${esc(custName)} &middot; ${esc(vehName)}`)}
+      <div class="rp-agreement"><h4>Test Drive Agreement</h4>
         <p>I have requested that the Dealership permit me to test drive the above-described vehicle for demonstration purposes, subject to the following terms and conditions:</p>
         <ol>${RIDE_PRICE_DATA.testDriveTerms.map(t => `<li>${esc(t)}</li>`).join("")}</ol>
-        <a class="td-link" href="#/print/${esc(deal.id)}/testdrive">View full agreement</a>
+        <a class="rp-link" href="#/print/${esc(deal.id)}/testdrive">View full agreement</a>
       </div>
-      <label class="td-check"><input type="checkbox" id="tdEsign" ${td.authSigned ? "checked" : ""}>
+      <label class="rp-check"><input type="checkbox" id="tdEsign" ${td.authSigned ? "checked" : ""}>
         <span>I agree to use an electronic signature for this Test Drive Agreement.</span></label>
-      <div class="tv-label">Customer signature</div>
-      <div class="td-sig"><span class="td-sigline">${esc(custName)}</span></div>
-      <div class="tv-sheetactions">
-        <button type="button" class="tv-primary" id="tdSignGo">Sign &amp; start test drive</button>
-      </div>`, (sh) => {
+      <div class="rp-field__label">Customer signature</div>
+      <div class="rp-signature" id="tdSig">${esc(custName)}</div>
+      <button type="button" class="rp-primary" id="tdSignGo">Sign &amp; start test drive</button>`, (sh) => {
       /* the authorization is a recorded answer, not a gate that evaporates:
          it persists the moment it is given (review-lessons pattern 2) */
       $("#tdEsign", sh).onchange = (e) => { td.authSigned = e.target.checked; Store.save(); };
@@ -6230,18 +7376,17 @@ route("testdrive/:id", ({ id }) => {
 
   function endSheet() {
     openSheet(`${sheetHead("End test drive", "One final odometer reading closes the session.")}
-      <label class="tv-field"><span class="tv-label">Current odometer reading</span>
-        <input type="number" class="tv-input" id="tdEndOdo" inputmode="numeric" min="${esc(startOdo)}" value="${esc(startOdo + LIMIT)}"></label>
-      <div class="tv-sheetactions">
-        <button type="button" class="tv-primary" id="tdComplete">Complete test drive</button>
-      </div>`, (sh) => {
+      <div class="rp-field"><label class="rp-field__label" for="tdEndOdo">Current odometer reading</label>
+        <input type="number" class="rp-field__input" id="tdEndOdo" inputmode="numeric" min="${esc(startOdo)}" value="${esc(startOdo + LIMIT)}"></div>
+      <button type="button" class="rp-primary" id="tdComplete">Complete test drive</button>`, (sh) => {
       $("#tdComplete", sh).onclick = () => {
         const inp = $("#tdEndOdo", sh);
         const n = parseInt(inp.value, 10);
-        if (isNaN(n) || n < startOdo) {
-          markMissing(sh, [{ el: inp, msg: `At least the starting ${startOdo.toLocaleString()} mi` }]);
-          return toast("Enter the odometer reading");
-        }
+        /* the field says it, in the kit's own error, and is read with it: the
+           cursor goes back into the field, the line its description (W-044).
+           No toast: "Enter the odometer reading" came up over this very line,
+           and said it wrong when a reading was typed below the start (W-045) */
+        if (isNaN(n) || n < startOdo) return void kitMissing(sh, [{ el: inp, msg: `At least the starting ${startOdo.toLocaleString()} mi` }]);
         td.completedMiles = n; td.done = true; td.endedAt = new Date().toISOString();
         Store.save();
         closeSheet();
@@ -6252,12 +7397,13 @@ route("testdrive/:id", ({ id }) => {
 
   /* the context row opens deal details — the one place Deal # belongs */
   function dealSheet() {
-    openSheet(`
-      <h2 class="tv-sheettitle">Deal details</h2>
-      <div class="tv-choice"><div class="tv-detlab">Customer</div><div class="tv-detval">${esc(custName)}</div></div>
-      <div class="tv-choice"><div class="tv-detlab">Vehicle</div><div class="tv-detval">${esc(`${vehName} ${v.trim || ""}`.trim())} &middot; stock ${esc(v.stock)}</div></div>
-      <div class="tv-choice"><div class="tv-detlab">Deal</div><div class="tv-detval">#${esc(deal.dealNo || "—")} &middot; ${esc((STAGES[deal.stage] || {}).label || deal.stage)}</div></div>
-      <div class="tv-sheetactions"><button type="button" class="tv-secondary" data-sheet-close>Done</button></div>`);
+    openSheet(`${chSheetHead("Deal details")}
+      <div class="rp-kv">
+        <div class="rp-kv__row"><span>Customer</span><span>${esc(custName)}</span></div>
+        <div class="rp-kv__row"><span>Vehicle</span><span>${esc(`${vehName} ${v.trim || ""}`.trim())} &middot; stock ${esc(v.stock)}</span></div>
+        <div class="rp-kv__row"><span>Deal</span><span>#${esc(deal.dealNo || "—")} &middot; ${esc((STAGES[deal.stage] || {}).label || deal.stage)}</span></div>
+      </div>
+      <button type="button" class="rp-link ch-hit" data-sheet-close>Done</button>`);
   }
 
   render();
@@ -6296,6 +7442,21 @@ function payoffExpired(iso) {
   return !isNaN(d.getTime()) && d < t;
 }
 
+/* the payoff's own gap, or null. The payoff is the one ownership answer the
+   advisor keeps up to date (owner, 2026-09-26: "A payoff will be editable";
+   KA-001), so an expired or missing one is the advisor's to update, not an
+   item for the Team Lead. Every other gap below stays with the Team Lead. A
+   scanner that fills the payoff from a statement the advisor or the customer
+   adds to the customer's profile is planned (the owner, the same day). */
+function tradePayoffGap(o) {
+  if (!o || o.lienOnTitle !== true || o.paidOff !== false) return null;
+  if (o.payoffReceived === false) return "Lien on the title and the vehicle is not paid off — no valid payoff on file";
+  if (o.payoffReceived !== true) return "Lien on the title and the vehicle is not paid off — not recorded whether a valid payoff was received";
+  if (!o.payoffGoodThrough) return "Payoff on file with no good-through date";
+  if (payoffExpired(o.payoffGoodThrough)) return "Payoff expired " + dateUS(o.payoffGoodThrough) + " — a fresh payoff is needed";
+  return null;
+}
+
 function tradeOwnershipGaps(deal) {
   if (!deal.trade || !deal.trade.has) return [];
   const o = ownOf(deal), gaps = [];
@@ -6313,10 +7474,8 @@ function tradeOwnershipGaps(deal) {
       if (o.lienReleaseReceived === false) gaps.push("Lien on the title and the vehicle is paid off — no lien release on file");
       else if (o.lienReleaseReceived !== true) gaps.push("Lien on the title and the vehicle is paid off — not recorded whether a lien release was received");
     } else if (o.paidOff === false) {
-      if (o.payoffReceived === false) gaps.push("Lien on the title and the vehicle is not paid off — no valid payoff on file");
-      else if (o.payoffReceived !== true) gaps.push("Lien on the title and the vehicle is not paid off — not recorded whether a valid payoff was received");
-      else if (!o.payoffGoodThrough) gaps.push("Payoff on file with no good-through date");
-      else if (payoffExpired(o.payoffGoodThrough)) gaps.push("Payoff expired " + dateUS(o.payoffGoodThrough) + " — a fresh payoff is needed");
+      const p = tradePayoffGap(o);
+      if (p) gaps.push(p);
     } else {
       gaps.push("Lien on the title — not recorded whether the vehicle is paid off");
     }
@@ -6341,60 +7500,54 @@ function requiredTradeForms(deal) {
   if (o.isTitledOwner === false) req.push("poa");
   return req;
 }
-route("trade/:id", ({ id }) => {
+/* #/trade/:id/ownership opens the Trade-In on its ownership answers: the payoff scanner's way on when a statement
+   cannot be read ("Enter the date by hand"). The address becomes the Trade-In's own at once. */
+function tradeView({ id, sheet }) {
+  if (sheet) history.replaceState(null, "", "#/trade/" + id);
   const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const c = Store.customer(deal.customerId);
   const v = deal.stock ? Store.vehicle(deal.stock) : null;
   const jkc = jacketCounts(deal);
   const custName = c ? `${c.first} ${c.last}` : "—";
 
-  const tvTop = () => `<div class="dv-top">
-    <button type="button" class="dv-back" id="tvBack" aria-label="Back">‹</button>
-    <div class="dv-brand"><span>Ride</span> PRICE</div>
-    <span class="dv-spacer"></span>
-    <button type="button" class="dv-role" id="tvRole">${isTeamLead() ? "Team Lead" : "Advisor"}</button>
-  </div>`;
-
+  /* phase 4c · the Trade-In on the kit. The owner's package (V2,
+     2026-09-01) holds rule for rule — the same states, words, ids and
+     behaviour — drawn with the kit's own parts: the task shell (no role
+     control, the owner's ruling W-014: the role lives in Customer
+     Onboarding only), its fields and 4-way choice, §25's value card, card
+     head, status and gap list, the three-way answer, and §35's labelled
+     dock. */
   /* the compact Deal Context Bar. Vehicle selection has already occurred on
      this route, so the selected purchase vehicle may appear (package rule);
      without one the stage label stands in, the Discovery pattern. */
-  const contextRow = () => `<div class="dv-context">
-    <button type="button" class="dv-ctxmain" id="tvDeal">
-      <strong>${esc(custName)}</strong>
-      <span>&middot; ${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Trade-in"}</span>
-    </button>
-    <a class="dv-jacket" href="#/jacket/${esc(deal.id)}" aria-label="Deal Jacket — ${esc(jacketChipText(deal))} required documents complete${jkc.missing ? `, ${esc(jkc.missing)} still outstanding` : ""}">
-      <span class="dv-jacket__box">${rpIcon("folder")}<b>${esc(jacketChipText(deal))}</b></span>
-    </a>
+  const contextRow = () => `<div class="rp-filter" id="tvContext">
+    <button type="button" class="ch-hit" id="tvDeal"><b>${esc(custName)}</b> &middot; ${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Trade-in"}</button>
+    <a class="rp-filter__control ch-hit" id="tvJacket" href="#/jacket/${esc(deal.id)}" aria-label="Deal Jacket — ${esc(jacketChipText(deal))} required documents complete${jkc.missing ? `, ${esc(jkc.missing)} still outstanding` : ""}">${rpIconGlyph("folder")}<b>${esc(jacketChipText(deal))}</b></a>
   </div>`;
 
-  let sheetKey = null;
   /* the payoff date saves on change, but Escape, a scrim tap or Close can
-     land before the field ever blurs — flush it on every close path so the
+     land before the field ever blurs — the kit's sheet runs its close hook
+     on every one of those paths, and the hook flushes the date, so the
      autosave claim is true for the one field that is not a button */
+  /* a payoff change carries who made it and when (KA-001): the advisor may
+     update the payoff, and the Trade-In names whoever last did */
+  /* an answer changed by hand has no statement behind it any more: the source line goes with it (the payoff scanner) */
+  const stampPayoff = (o) => { o.payoffBy = roleName(); o.payoffAt = new Date().toISOString(); delete o.payoffSource; };
+  const setGood = (o, typed) => {
+    const next = typed.trim() ? dateISO(typed.trim()) : "";
+    if (next !== (o.payoffGoodThrough || "")) { o.payoffGoodThrough = next; stampPayoff(o); }
+  };
   const flushDate = () => {
     const g = $("#oGood"); if (!g) return;
     const o = deal.trade.ownership; if (!o) return;
-    o.payoffGoodThrough = g.value.trim() ? dateISO(g.value.trim()) : "";
+    setGood(o, g.value);
     Store.save();
   };
-  const closeSheet = () => {
-    flushDate();
-    const sc = $("#tvScrim"); if (sc) sc.classList.remove("show");
-    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
-  };
+  const sheets = chSheetOpener("tvScrim", "tvSheet", flushDate);
+  const closeSheet = () => sheets.close();
   const teardown = () => { closeSheet(); window.removeEventListener("hashchange", teardown); };
   window.addEventListener("hashchange", teardown);
-  const openSheet = (html, onMount) => {
-    const sh = $("#tvSheet"); if (!sh) return;
-    sh.innerHTML = `<div class="m-handle"></div>${html}`;
-    $("#tvScrim").classList.add("show");
-    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
-    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
-    document.addEventListener("keydown", sheetKey, true);
-    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
-    if (onMount) onMount(sh);
-  };
+  const openSheet = (html, onMount) => sheets.open(html, onMount);
 
   /* the questions currently RELEVANT and unanswered — what the value card
      counts. Distinct from tradeOwnershipGaps, which speaks manager language
@@ -6417,10 +7570,10 @@ route("trade/:id", ({ id }) => {
 
   const heroCard = () => {
     const equity = (deal.trade.value || 0) - (deal.trade.payoff || 0);
-    return `<div class="tv-hero">
-      <span class="tv-hero__lab">Evaluated trade value</span>
-      <div class="tv-hero__amt">${esc(money0(deal.trade.value || 0))}</div>
-      <span class="tv-hero__sub">Payoff ${esc(money0(deal.trade.payoff || 0))} &middot; ${equity >= 0 ? "positive" : "negative"} equity ${esc(money0(Math.abs(equity)))}</span>
+    return `<div class="rp-value" id="tvValue">
+      <div class="rp-value__eyebrow">Evaluated trade value</div>
+      <div class="rp-value__amount">${esc(money0(deal.trade.value || 0))}</div>
+      <div class="rp-value__sub">Payoff ${esc(money0(deal.trade.payoff || 0))} &middot; ${equity >= 0 ? "positive" : "negative"} equity ${esc(money0(Math.abs(equity)))}</div>
     </div>`;
   };
 
@@ -6607,28 +7760,30 @@ route("trade/:id", ({ id }) => {
      Vehicle keeps no ghost at all — its label already reads "year make
      model", so one could only repeat it or name a car that needs retiring the
      next time the prop changes. */
-  const formCard = () => `<section class="tv-card">
-    <h2 class="tv-cardtitle">${esc(fld("desc") || "Trade vehicle")}</h2>
-    ${fld("desc") ? `<div class="tv-cardsub">Trade vehicle</div>` : ""}
-    <label class="tv-field"><span class="tv-label">Vehicle (year make model)</span>
-      <input type="text" class="tv-input" id="tDesc" value="${esc(fld("desc") || "")}"></label>
-    <label class="tv-field"><span class="tv-label">VIN <span class="tv-labnote" id="tVinHint"></span></span>
-      <input type="text" class="tv-input" id="tVin" value="${esc(fld("vin") || "")}" placeholder="17 characters" maxlength="17" autocapitalize="characters" autocomplete="off" spellcheck="false"></label>
-    <div class="tv-grid2">
-      <label class="tv-field"><span class="tv-label">Model year</span>
-        <input type="number" class="tv-input" id="tYear" ${yearBoxAttrs()} placeholder="YYYY" min="${esc(YEAR_MIN)}" max="${esc(YEAR_MAX)}"></label>
-      <label class="tv-field"><span class="tv-label">Mileage</span>
-        <input type="number" class="tv-input" id="tMiles" value="${esc(shown("miles"))}" placeholder="Odometer" min="0"></label>
+  /* the card titles keep the package's heading level: the kit draws its
+     title as a div, and a bare h2 would take the browser's own margin.
+     With a vehicle named, "Trade vehicle" is the kit's small label over its
+     name — the way the value card below labels its figure — rather than the
+     kit's fine print, which centres under a title that sits left. */
+  const formCard = () => `<section class="rp-card" aria-label="Trade vehicle">
+    ${fld("desc") ? `<div class="rp-eyebrow">Trade vehicle</div>` : ""}
+    <div class="rp-card__title" role="heading" aria-level="2">${esc(fld("desc") || "Trade vehicle")}</div>
+    <div class="rp-field"><label class="rp-field__label" for="tDesc">Vehicle (year make model)</label>
+      <input type="text" class="rp-field__input" id="tDesc" value="${esc(fld("desc") || "")}"></div>
+    <div class="rp-field"><label class="rp-field__label" for="tVin">VIN <span id="tVinHint"></span></label>
+      <input type="text" class="rp-field__input" id="tVin" value="${esc(fld("vin") || "")}" placeholder="17 characters" maxlength="17" autocapitalize="characters" autocomplete="off" spellcheck="false"></div>
+    <div class="rp-field"><label class="rp-field__label" for="tYear">Model year</label>
+      <input type="number" class="rp-field__input" id="tYear" ${yearBoxAttrs()} placeholder="YYYY" min="${esc(YEAR_MIN)}" max="${esc(YEAR_MAX)}"></div>
+    <div class="rp-field"><label class="rp-field__label" for="tMiles">Mileage</label>
+      <input type="number" class="rp-field__input" id="tMiles" value="${esc(shown("miles"))}" placeholder="Odometer" min="0"></div>
+    <div class="rp-field"><label class="rp-field__label" for="tPayoff">Payoff amount (if financed)</label>
+      <input type="number" class="rp-field__input" id="tPayoff" value="${esc(shown("payoff"))}" step="100" min="0"></div>
+    <div class="rp-field"><span class="rp-field__label" id="tCondLabel">Condition</span>
+      <div class="rp-pkg" id="tCond" role="group" aria-labelledby="tCondLabel">${["Excellent", "Good", "Fair", "Rough"].map(x =>
+        `<button type="button" data-cond="${x}" class="rp-pkg__item ch-hit${(fld("condition") || "Good") === x ? " rp-pkg__item--on" : ""}" aria-pressed="${(fld("condition") || "Good") === x}">${x}</button>`).join("")}</div>
     </div>
-    <label class="tv-field"><span class="tv-label">Payoff amount (if financed)</span>
-      <input type="number" class="tv-input" id="tPayoff" value="${esc(shown("payoff"))}" step="100" min="0"></label>
-    <div class="tv-field"><span class="tv-label">Condition</span>
-      <div class="tv-seg" id="tCond">${["Excellent", "Good", "Fair", "Rough"].map(x =>
-        `<button type="button" data-cond="${x}" class="${(fld("condition") || "Good") === x ? "on" : ""}">${x}</button>`).join("")}</div>
-    </div>
-    ${deal.trade.has && deal.trade.value && !editing ? heroCard()
-      : `<button type="button" class="tv-primary" id="evalBtn">Run evaluation</button>`}
-  </section>`;
+    ${deal.trade.has && deal.trade.value && !editing ? heroCard() : ""}
+  </section>`;   /* Run evaluation is the dock's, and only the dock's: one primary per screen (KA-028, §7) */
 
   /* which of the three page states this deal is in. `editing` reopens the
      appraisal form from the result state — the golden has no way back into
@@ -6644,80 +7799,78 @@ route("trade/:id", ({ id }) => {
   function render() {
     const st = stateOf();
     renderChrome("Trade-In Evaluation", "", "");
-    document.body.dataset.canvas = "master";
+    document.body.dataset.canvas = "kit";
     document.body.dataset.screen = "trade";
 
     const gaps = tradeOwnershipGaps(deal);
     const openQ = openQuestions();
     const forms = requiredTradeForms(deal)
       .map(fid => (RIDE_PRICE_DATA.dealForms.find(f => f.id === fid) || {}).label).filter(Boolean);
+    /* the package's dock — what it is about, and the one action — is the
+       kit's labelled dock (§35) */
+    const dockOf = (label, state, btn) => `<div class="rp-signoff" id="tvDock"><div><div class="rp-signoff__label">${label}</div><div class="rp-signoff__state">${state}</div></div>${btn}</div>`;
+    const head = (ok, title, sub, statusText) => `<div class="rp-card__head">
+          <span class="rp-tile ${ok ? "rp-tile--ok" : "rp-tile--warn"}">${ok ? rpGlyph("check") : rpIconGlyph("alert")}</span>
+          <span class="rp-row__body"><span class="rp-row__title">${title}</span>${sub ? `<span class="rp-row__sub">${sub}</span>` : ""}</span>
+          <span class="rp-status ${ok ? "rp-status--positive" : "rp-status--warn"}">${statusText}</span>
+        </div>`;
 
     let body = "", dock = "";
     if (st === "details") {
       body = formCard();
-      dock = `<div class="tv-dockmeta"><span>Trade</span><b>${esc(shortTrade())}</b></div>
-        <button type="button" class="tv-primary tv-dockgo" id="evalDock">Run evaluation</button>`;
+      dock = dockOf("Trade", esc(shortTrade()), `<button type="button" class="rp-signoff__btn rp-signoff__btn--on" id="evalDock">Run evaluation</button>`);
     } else if (st === "value") {
       body = formCard() + `
-      <section class="tv-card">
-        <h2 class="tv-cardtitle">Proof of ownership</h2>
-        <div class="tv-ownrow">
-          <span class="tv-sicon tv-sicon--need">!</span>
-          <div class="tv-owncopy">
-            <b>${esc(openQ)} ownership answer${openQ === 1 ? "" : "s"} needed</b>
-            <span>Only relevant follow-ups will be shown.</span>
-          </div>
-          <span class="tv-badge tv-badge--warn">Review</span>
-        </div>
-        <button type="button" class="tv-secondary" id="ownBtn">Review ownership</button>
+      <section class="rp-card" aria-label="Proof of ownership">
+        <div class="rp-card__title" role="heading" aria-level="2">Proof of ownership</div>
+        ${head(false, `${esc(openQ)} ownership answer${openQ === 1 ? "" : "s"} needed`, "Only relevant follow-ups will be shown.", "Review")}
+        <button type="button" class="rp-link" id="ownBtn">Review ownership</button>
       </section>`;
-      dock = `<div class="tv-dockmeta"><span>Evaluated value</span><b>${esc(money0(deal.trade.value))}</b></div>
-        <button type="button" class="tv-primary tv-dockgo" id="ownDock">Review ownership</button>`;
+      dock = dockOf("Evaluated value", esc(money0(deal.trade.value)), `<button type="button" class="rp-signoff__btn rp-signoff__btn--on" id="ownDock">Review ownership</button>`);
     } else {
       const done = gaps.length === 0;
+      /* KA-001: the payoff is the advisor's to update (owner, 2026-09-26), so
+         it is listed apart from the items for the Team Lead and not counted
+         with them; who last changed it, and when, is in the deal's History. The
+         owner, the same day: nothing on a screen that is not needed — so the
+         card says what happened ("Payoff expired 01/01/2025") and offers the
+         one action, with no explanation line */
+      const own = ownOf(deal), payoffGap = tradePayoffGap(own), leadGaps = gaps.filter(g => g !== payoffGap);
+      const payoffWhat = !payoffGap ? "" : own.payoffReceived === false ? "No valid payoff on file" : own.payoffReceived !== true ? "Payoff not recorded"
+        : !own.payoffGoodThrough ? "Payoff has no good-through date" : "Payoff expired " + dateUS(own.payoffGoodThrough);
+      const title = done ? "Ownership review complete" : leadGaps.length ? `${esc(leadGaps.length)} item${leadGaps.length === 1 ? "" : "s"} for Team Lead` : esc(payoffWhat);
+      /* kit §13b: an answer read from a document shows its source — the payoff scanner's statement names its lender and date */
+      const src = own.payoffSource && own.payoffSource.kind === "statement" ? own.payoffSource : null;
+      const sub = done ? (src ? `From payoff statement · ${src.lender} · good through ${dateUS(own.payoffGoodThrough)}` : "No unanswered ownership items.")
+        : leadGaps.length ? "Advisor can continue." : "";
+      const list = (items, id) => `<ul class="rp-gaps"${id ? ` id="${id}"` : ""}>${items.map(g => `<li>${esc(g)}</li>`).join("")}</ul>`;
       body = heroCard() + `
-      <section class="tv-card">
-        <h2 class="tv-cardtitle">Ownership review</h2>
-        <div class="tv-ownrow">
-          <span class="tv-sicon ${done ? "tv-sicon--ok" : "tv-sicon--need"}">${done ? "✓" : "!"}</span>
-          <div class="tv-owncopy">
-            <b>${done ? "Ownership review complete" : `${esc(gaps.length)} item${gaps.length === 1 ? "" : "s"} for Team Lead`}</b>
-            <span>${done ? "No unanswered ownership items." : "Advisor can continue."}</span>
-          </div>
-          <span class="tv-badge ${done ? "tv-badge--good" : "tv-badge--warn"}">${done ? "Complete" : "Sign-off"}</span>
-        </div>
-        ${done ? "" : `<div class="tv-gaps">${gaps.map(g => `<div class="tv-gapitem"><span>&bull;</span><div>${esc(g)}</div></div>`).join("")}</div>`}
-        ${forms.length ? `<p class="tv-formsnote">Required paperwork: <b>${forms.map(esc).join(", ")}</b> — selected and locked on the deal forms step.</p>` : ""}
-        <button type="button" class="tv-link" id="ownEdit">${done ? "View answers" : "Edit ownership answers"}</button>
+      <section class="rp-card" aria-label="Ownership review">
+        <div class="rp-card__title" role="heading" aria-level="2">Ownership review</div>
+        ${head(done, title, sub, done ? "Complete" : leadGaps.length ? "Sign-off" : "Update")}
+        ${leadGaps.length ? list(leadGaps) : ""}
+        ${payoffGap && leadGaps.length ? `<p class="rp-fine" id="tvPayoffLabel">Payoff to update</p>${list([payoffWhat], "tvPayoffGap")}` : ""}
+        ${forms.length ? `<p class="rp-fine">Required paperwork: <b>${forms.map(esc).join(", ")}</b> — selected and locked on the deal forms step.</p>` : ""}
+        <button type="button" class="rp-link" id="ownEdit"${!done && payoffGap && !leadGaps.length ? " data-payoff" : ""}>${done ? "View answers" : payoffGap && !leadGaps.length ? "Update the payoff" : "Edit ownership answers"}</button>
       </section>
-      <button type="button" class="tv-link tv-link--quiet" id="apprEdit">Edit appraisal</button>`;
-      dock = `<div class="tv-dockmeta"><span>Trade saved</span><b>${esc(money0(deal.trade.value))}</b></div>
-        <a class="tv-primary tv-dockgo" id="toDesk2" href="#/desk/${esc(deal.id)}">Calculate payment</a>`;
+      <button type="button" class="rp-link" id="apprEdit">Edit appraisal</button>`;
+      dock = dockOf("Trade saved", esc(money0(deal.trade.value)), `<a class="rp-signoff__btn rp-signoff__btn--on" id="toDesk2" href="#/desk/${esc(deal.id)}">Calculate payment</a>`);
     }
 
-    view().innerHTML = `
-      <div class="m-app">
-        ${tvTop()}
-        <main class="tv-main">
-          <div class="dv-eyebrow">Trade-in</div>
-          <h1 class="dv-title">${st === "details" ? "Evaluate the trade" : st === "value" ? "Trade value" : "Trade ready"}</h1>
-          ${contextRow()}
-          ${body}
-        </main>
-        <div class="tv-dock">${dock}</div>
-      </div>
-      <div class="m-scrim" id="tvScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="tvSheet"></div></div>`;
+    view().innerHTML = chShell({ template: "task", title: custName, closeId: "tvBack", closeLabel: "Close trade-in", cls: "rp-screen--gate" }, `
+        <div class="rp-eyebrow">Trade-in</div>
+        <h1 class="rp-title">${st === "details" ? "Evaluate the trade" : st === "value" ? "Trade value" : "Trade ready"}</h1>
+        ${contextRow()}
+        ${body}`, dock, { scrim: "tvScrim", sheet: "tvSheet" });
+    chFitDock(".rp-signoff");
 
     $("#tvBack").onclick = () => history.back();
-    $("#tvRole").onclick = () => $("#hamburgerBtn").click();
     $("#tvDeal").onclick = dealSheet;
-    const scrim = $("#tvScrim");
-    if (scrim) scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
 
     if (st !== "result") wireForm();
     const ob = $("#ownBtn"); if (ob) ob.onclick = ownershipSheet;
     const od = $("#ownDock"); if (od) od.onclick = ownershipSheet;
-    const oe = $("#ownEdit"); if (oe) oe.onclick = ownershipSheet;
+    const oe = $("#ownEdit"); if (oe) oe.onclick = oe.hasAttribute("data-payoff") ? payoffChoice : ownershipSheet;
     const ed = $("#evalDock"); if (ed) ed.onclick = runEval;
     const ae = $("#apprEdit"); if (ae) ae.onclick = () => { editing = true; render(); };
     const td = $("#toDesk2");
@@ -6730,9 +7883,10 @@ route("trade/:id", ({ id }) => {
     return parts.length >= 2 ? `${parts[0]} ${parts[parts.length - 1]}` : (d || "Not entered");
   }
 
-  /* an edited appraisal invalidates the number on screen: the hero yields to
-     Run evaluation IN PLACE — a re-render here would eat the keystroke that
-     caused it — and the dock follows. Nothing typed is validated-then-dropped
+  /* an edited appraisal invalidates the number on screen: the hero leaves the
+     page IN PLACE — a re-render here would eat the keystroke that caused it —
+     and the dock turns to Run evaluation, the screen's one primary (KA-028:
+     the page drew a second one where the hero was). Nothing typed is validated-then-dropped
      (review-lessons pattern 2): every field is read back by runEval.
      The staleness is ALSO recorded in route state: without `editing = true`,
      any later render (saving the ownership sheet, for one) would paint the
@@ -6750,21 +7904,15 @@ route("trade/:id", ({ id }) => {
          year of the sentence it replaced (see yearRecorded, 2026-09-09). */
       year: yearRecorded(), miles: ($("#tMiles") || {}).value,
       payoff: ($("#tPayoff") || {}).value,
-      condition: ($("#tCond button.on") || { dataset: {} }).dataset.cond,
+      condition: ($("#tCond .rp-pkg__item--on") || { dataset: {} }).dataset.cond,
     };
-    const hero = $(".tv-card .tv-hero");
-    if (hero) {
-      const btn = document.createElement("button");
-      btn.type = "button"; btn.className = "tv-primary"; btn.id = "evalBtn";
-      btn.textContent = "Run evaluation";
-      btn.onclick = runEval;
-      hero.replaceWith(btn);
-    }
+    const hero = $(".rp-card .rp-value");
+    if (hero) hero.remove();
     if (!$("#evalDock")) {
-      const dock = $(".tv-dock");
+      const dock = $("#tvDock");
       if (dock) {
-        dock.innerHTML = `<div class="tv-dockmeta"><span>Trade</span><b>${esc(shortTrade())}</b></div>
-          <button type="button" class="tv-primary tv-dockgo" id="evalDock">Run evaluation</button>`;
+        dock.innerHTML = `<div><div class="rp-signoff__label">Trade</div><div class="rp-signoff__state">${esc(shortTrade())}</div></div>
+          <button type="button" class="rp-signoff__btn rp-signoff__btn--on" id="evalDock">Run evaluation</button>`;
         $("#evalDock").onclick = runEval;
       }
     }
@@ -6785,14 +7933,13 @@ route("trade/:id", ({ id }) => {
     };
     vinHint();
     $$("#tCond button").forEach(b => b.onclick = () => {
-      $$("#tCond button").forEach(x => x.classList.toggle("on", x === b));
+      $$("#tCond button").forEach(x => { x.classList.toggle("rp-pkg__item--on", x === b); x.setAttribute("aria-pressed", String(x === b)); });
       markStale();
     });
-    const eb = $("#evalBtn"); if (eb) eb.onclick = runEval;
     ["tDesc", "tVin", "tYear", "tMiles", "tPayoff"].forEach(fid => {
       const el = $("#" + fid); if (el) el.addEventListener("input", markStale);
     });
-    const dm = $(".tv-dockmeta b");
+    const dm = $("#tvDock .rp-signoff__state");
     const td2 = $("#tDesc");
     if (td2) td2.addEventListener("input", () => {
       if (dm) dm.textContent = shortTrade();
@@ -6812,7 +7959,7 @@ route("trade/:id", ({ id }) => {
     });
   }
 
-  function runEval() {
+  function runEval(ev, confirmed) {
     /* the appraisal is AGE and USE, and it has no other inputs of substance —
        so neither a missing year nor a missing mileage is a field to default.
        The year can still be READ, out of the description the advisor typed
@@ -6915,11 +8062,23 @@ route("trade/:id", ({ id }) => {
       $("#tYear").focus();
       return;
     }
-    const condBtn = $("#tCond button.on");
+    const condBtn = $("#tCond .rp-pkg__item--on");
     const cond = condBtn ? condBtn.dataset.cond : "Good";
     const factor = { Excellent: 1.06, Good: 1.0, Fair: 0.9, Rough: 0.78 }[cond] || 1;
     const base = Math.max(1500, 30000 - (APPRAISAL_YEAR - year) * 2100 - miles * 0.055);
-    const value = Math.round(base * factor / 50) * 50;
+    /* W-038 (the owner's answer of 2026-09-24): the evaluation prices a trade
+       again only when something that prices it has changed — its model year,
+       its mileage or its condition, the formula's only inputs. Run evaluation
+       on a trade nobody touched keeps the value on record, so no number moves
+       unless an input does: John's seeded $15,500 is the demo's equity story,
+       not this formula's answer, and a new payoff alone never re-prices the
+       car. A trade evaluated here records what priced it; one that never was
+       (the seed) is read from its own record, the year out of its description
+       as the form reads it. */
+    const pricedBy = `${year}|${miles}|${cond}`;
+    const was = deal.trade || {};
+    const wasPricedBy = was.pricedBy || (was.has && was.value > 0 ? `${was.year || descYear(was.desc)}|${was.miles}|${was.condition || "Good"}` : "");
+    const value = wasPricedBy === pricedBy && was.value > 0 ? was.value : Math.round(base * factor / 50) * 50;
     /* an empty payoff box is an ANSWER. The label reads "(if financed)", so a
        blank one says the trade is not financed, and the evaluation never asks
        for it — the refusal below fires only on a number it will not take,
@@ -6955,8 +8114,11 @@ route("trade/:id", ({ id }) => {
       toast("Check the payoff — a payoff cannot be negative");
       $("#tPayoff").focus(); return;
     }
+    /* W-110: a trade that would move the payment John signed asks first */
+    const mv = confirmed === true ? null : signedTradeMove(deal, { value, payoff: payoffTyped === "" ? 0 : payoffNum });
+    if (mv) return signedChangeDialog(sheets, deal, mv, () => runEval(null, true));
     deal.trade = Object.assign(deal.trade, {
-      has: true, desc: $("#tDesc").value, vin: $("#tVin").value, miles, condition: cond, value,
+      has: true, desc: $("#tDesc").value, vin: $("#tVin").value, miles, condition: cond, value, pricedBy,
       rebates: deal.trade.rebates || 0, applyTaxCredit: true
     });
     /* both keys are set or DELETED here rather than inside the assign, which
@@ -6976,9 +8138,12 @@ route("trade/:id", ({ id }) => {
        and a leftover year would refuse it. */
     if (typed) deal.trade.year = typed; else delete deal.trade.year;
     if (payoffTyped === "") delete deal.trade.payoff; else deal.trade.payoff = parseFloat(payoffTyped) || 0;
+    const setAside = confirmed === true && setAsideSignature(deal, "trade");
     Store.save();
     editing = false;
     draft = null;
+    /* the signature came off: the pencil is next, and says why */
+    if (setAside) return navigate(`#/desk/${deal.id}`);
     toast("Trade value saved to the deal");
     render();
   }
@@ -6986,14 +8151,27 @@ route("trade/:id", ({ id }) => {
   /* ---- proof of ownership: the contextual sheet ---- */
   /* Yes = true, No = false, Not sure = null (a recorded unknown). Both null
      and never-asked read as "not recorded" in the manager's gap language. */
-  const triBtns = (key, val) => `<div class="tv-tri" data-key="${key}">${[
+  const triBtns = (key, val) => `<div class="rp-tri" data-key="${key}" role="group" aria-labelledby="tq-${key}">${[
     ["yes", "Yes", val === true], ["no", "No", val === false], ["unsure", "Not sure", val === null]]
-    .map(([k, lab, on]) => `<button type="button" data-tri="${k}" class="${on ? "on" : ""}">${lab}</button>`).join("")}</div>`;
+    .map(([k, lab, on]) => `<button type="button" data-tri="${k}" class="rp-tri__opt${on ? " rp-tri__opt--on" : ""}" aria-pressed="${on}">${lab}</button>`).join("")}</div>`;
+
+  /* the owner's payoff scanner (2026-09-26): Update the payoff asks how — the new statement read by the scanner
+     first, and the date by hand as before ("a payoff will be editable") */
+  function payoffChoice() {
+    sheets.open(`${chSheetHead("Update the payoff")}
+      <div class="rp-group">
+        <a class="rp-row" href="#/payoff/${esc(deal.id)}" id="tvPayScan"><span class="rp-tile">${rpGlyph("scan")}</span><span class="rp-row__body"><span class="rp-row__title">Scan the new payoff statement</span><span class="rp-row__sub">The lender, the amount and the date</span></span><span class="rp-row__chevron"></span></a>
+        <button type="button" class="rp-row" id="tvPayHand"><span class="rp-tile">${rpGlyph("document")}</span><span class="rp-row__body"><span class="rp-row__title">Enter the date by hand</span><span class="rp-row__sub">The ownership answers</span></span><span class="rp-row__chevron"></span></button>
+      </div>`, (sh) => { $("#tvPayHand", sh).onclick = () => { sheets.close(); ownershipSheet(); }; });
+  }
 
   function ownershipSheet() {
     const o = deal.trade.ownership = deal.trade.ownership || {};
-    const row = (label, key) => `<div class="tv-choice"><div class="tv-choicelabel">${label}</div>${triBtns(key, o[key])}</div>`;
-    let html = `<h2 class="tv-sheettitle">Proof of ownership</h2>` + row("Title in hand?", "titleInHand");
+    /* each question with its answers is one of the kit's field groups: the
+       group's own margin is the gap between questions and before Save —
+       the kit's primary carries none of its own */
+    const row = (label, key) => `<div class="rp-field"><div class="rp-question" id="tq-${key}">${label}</div>${triBtns(key, o[key])}</div>`;
+    let html = chSheetHead("Proof of ownership") + row("Title in hand?", "titleInHand");
     if (o.titleInHand === false) html += row("Duplicate title process started?", "duplicateStarted");
     html += row("Does the title show a lienholder?", "lienOnTitle");
     if (o.lienOnTitle === true) {
@@ -7001,8 +8179,8 @@ route("trade/:id", ({ id }) => {
       if (o.paidOff === true) html += row("Lien release received?", "lienReleaseReceived");
       if (o.paidOff === false) {
         html += row("Valid payoff received?", "payoffReceived");
-        if (o.payoffReceived === true) html += `<div class="tv-choice"><div class="tv-choicelabel">Payoff good through</div>
-          <input type="text" class="tv-input" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" id="oGood" value="${esc(dateUS(o.payoffGoodThrough || ""))}"></div>`;
+        if (o.payoffReceived === true) html += `<div class="rp-field"><div class="rp-question" id="tq-payoffGoodThrough">Payoff good through</div>
+          <input type="text" class="rp-field__input" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" id="oGood" aria-labelledby="tq-payoffGoodThrough" value="${esc(dateUS(o.payoffGoodThrough || ""))}"></div>`;
       }
     }
     html += row("Is the person trading the titled owner?", "isTitledOwner");
@@ -7011,21 +8189,21 @@ route("trade/:id", ({ id }) => {
        (autosave is how the sheet survives its own re-renders), so this
        button discards nothing — it closes without stamping the review as
        complete. A label must state what the code does. */
-    html += `<div class="tv-sheetactions">
-      <button type="button" class="tv-primary" id="ownSave">Save ownership review</button>
-      <button type="button" class="tv-secondary" data-sheet-close>Close</button>
-    </div>`;
+    html += `<button type="button" class="rp-primary" id="ownSave">Save ownership review</button>
+      <button type="button" class="rp-link ch-hit" data-sheet-close>Close</button>`;
     openSheet(html, (sh) => {
-      $$(".tv-tri button", sh).forEach(b => b.onclick = () => {
-        const key = b.closest(".tv-tri").dataset.key;
-        o[key] = b.dataset.tri === "yes" ? true : b.dataset.tri === "no" ? false : null;
+      $$(".rp-tri button", sh).forEach(b => b.onclick = () => {
+        const key = b.closest(".rp-tri").dataset.key;
+        const val = b.dataset.tri === "yes" ? true : b.dataset.tri === "no" ? false : null;
+        if (key === "payoffReceived" && o[key] !== val) stampPayoff(o);
+        o[key] = val;
         Store.save();
         /* conditional questions appear immediately after the triggering
            answer — the sheet re-renders around the same open state */
         ownershipSheet();
       });
       const g = $("#oGood", sh);
-      if (g) g.onchange = () => { o.payoffGoodThrough = g.value.trim() ? dateISO(g.value.trim()) : ""; Store.save(); };
+      if (g) g.onchange = () => { setGood(o, g.value); Store.save(); };
       $("#ownSave", sh).onclick = () => {
         flushDate();
         deal.trade.ownershipReviewedAt = new Date().toISOString();
@@ -7038,16 +8216,122 @@ route("trade/:id", ({ id }) => {
 
   /* the context row opens deal details — the one place Deal # belongs */
   function dealSheet() {
-    openSheet(`
-      <h2 class="tv-sheettitle">Deal details</h2>
-      <div class="tv-choice"><div class="tv-detlab">Customer</div><div class="tv-detval">${esc(custName)}</div></div>
-      <div class="tv-choice"><div class="tv-detlab">Selected vehicle</div><div class="tv-detval">${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Not selected yet"}</div></div>
-      <div class="tv-choice"><div class="tv-detlab">Deal</div><div class="tv-detval">#${esc(deal.dealNo || "—")} &middot; ${esc((STAGES[deal.stage] || {}).label || deal.stage)}</div></div>
-      <div class="tv-sheetactions"><button type="button" class="tv-secondary" data-sheet-close>Done</button></div>`);
+    openSheet(`${chSheetHead("Deal details")}
+      <div class="rp-kv">
+        <div class="rp-kv__row"><span>Customer</span><span>${esc(custName)}</span></div>
+        <div class="rp-kv__row"><span>Selected vehicle</span><span>${v ? esc(`${v.year} ${v.make} ${v.model}`) : "Not selected yet"}</span></div>
+        <div class="rp-kv__row"><span>Deal</span><span>#${esc(deal.dealNo || "—")} &middot; ${esc((STAGES[deal.stage] || {}).label || deal.stage)}</span></div>
+      </div>
+      <button type="button" class="rp-link ch-hit" data-sheet-close>Done</button>`);
   }
 
   render();
-});
+  /* after the router has put focus on the screen, and only while this Trade-In is still the one on screen */
+  if (sheet === "ownership") setTimeout(() => { if (location.hash === "#/trade/" + deal.id && $("#ownEdit")) ownershipSheet(); }, 0);
+}
+route("trade/:id", tradeView);
+route("trade/:id/:sheet", tradeView);
+
+/* ============================================================
+   VIEW: the payoff scanner (the owner, 2026-09-26: "A payoff will be
+   editable but also we'll implement a scanner that autofill's the
+   information provided by the salesperson or customer in their profile").
+   A Task over the deal's trade: the kit's capture frame; the photo read for
+   the portal's own marker (docscan.js), which a training payoff statement
+   carries under PAYOFF_PROP_CODE with its prop number; what it read, against
+   what the Trade-In has; and Use these, which fills the payoff answers with
+   their source (kit §13b) and files the statement in the Deal Jacket. A photo
+   the reader cannot resolve is said on the screen, with the hand entry as its
+   way on. Nothing is guessed, and no real lender's letter can be read.
+   ============================================================ */
+function payoffScanView({ id }) {
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
+  if (!deal.trade || !deal.trade.has) return redirect(`#/trade/${deal.id}`);
+  const c = Store.customer(deal.customerId);
+  const custName = c ? `${c.first} ${c.last}` : "";
+  const here = `#/payoff/${deal.id}`;
+  const live = () => location.hash === here;
+  /* capture → reading → read, or failed; the photo is the one just taken, shown in the frame */
+  const st = { stage: "capture", photo: null, prop: null };
+  const drop = () => { if (st.photo) URL.revokeObjectURL(st.photo); st.photo = null; };
+  const leave = () => { drop(); window.removeEventListener("hashchange", leave); };
+  window.addEventListener("hashchange", leave);
+  const sheets = chSheetOpener("chScrim", "chSheet");
+  renderChrome("Payoff statement", "", "");
+
+  function render() {
+    document.body.dataset.canvas = "kit";
+    document.body.dataset.screen = "payoffscan";
+    const frame = st.photo
+      ? `<img class="rp-capture__image" src="${esc(st.photo)}" alt="The payoff statement">`
+      : `<div class="rp-capture__card" aria-hidden="true"><div class="rp-capture__portrait">${rpGlyph("document")}</div><div class="rp-capture__lines"><i></i><i></i><i></i></div></div>`;
+    let content, dock;
+    if (st.stage === "read") {
+      const pp = st.prop, good = payoffGoodThrough(pp);
+      const has = deal.trade.payoff;
+      const differs = has != null && Math.round(has * 100) !== Math.round(pp.amount * 100);
+      content = `<div class="rp-eyebrow">Trade-in</div><h1 class="rp-title">Payoff statement read</h1>
+        <div class="rp-capture"><div class="rp-capture__frame">${frame}</div></div>
+        <div class="rp-kv" id="pyRead"><div class="rp-kv__head">Read from the statement · 3</div>
+          <div class="rp-kv__row"><span>Lienholder</span><span>${esc(pp.lender)}</span></div>
+          <div class="rp-kv__row"><span>Payoff amount</span><span>${esc(money(pp.amount))}${differs ? ` · the Trade-In has ${esc(money(has))}` : ""}</span></div>
+          <div class="rp-kv__row"><span>Good through</span><span>${esc(dateUS(good))}</span></div></div>`;
+      dock = chDock(`<button type="button" class="rp-primary" id="pyUse">Use these</button>`, `<button type="button" class="rp-link" id="pyRetake">Retake</button>`);
+    } else {
+      const reading = st.stage === "reading", failed = st.stage === "failed";
+      content = `<div class="rp-eyebrow">Trade-in</div><h1 class="rp-title">Scan the payoff statement</h1>
+        ${failed ? `<div class="rp-alert" role="alert" id="pyFail"><div class="rp-alert__title">This statement couldn’t be read</div><div class="rp-alert__body">Take the whole letter, flat, or enter the date by hand.</div></div>` : ""}
+        <div class="rp-capture"><div class="rp-capture__frame">${frame}</div><p class="rp-capture__hint">${reading ? "Reading the statement…" : "The whole letter, flat"}</p></div>`;
+      dock = chDock(`<button type="button" class="rp-primary" id="pyCam"${reading ? " disabled" : ""}>Take photo</button>`,
+        failed ? `<button type="button" class="rp-link" id="pyHand">Enter the date by hand</button>`
+          : `<button type="button" class="rp-link" id="pyLib"${reading ? " disabled" : ""}>Choose from library</button>`);
+    }
+    view().innerHTML = chShell({ template: "task", title: custName, closeId: "pyClose", closeLabel: "Back to the Trade-In" }, content, dock)
+      + `<input type="file" accept="image/*" capture="environment" id="pyCamIn" hidden><input type="file" accept="image/*" id="pyLibIn" hidden>`;
+    chFitDock();
+    $("#pyClose").onclick = () => navigate(`#/trade/${deal.id}`);
+    const cam = $("#pyCam"), lib = $("#pyLib"), hand = $("#pyHand"), use = $("#pyUse"), retake = $("#pyRetake");
+    if (cam) cam.onclick = () => $("#pyCamIn").click();
+    if (lib) lib.onclick = () => $("#pyLibIn").click();
+    if (hand) hand.onclick = () => navigate(`#/trade/${deal.id}/ownership`);
+    if (retake) retake.onclick = () => { drop(); st.stage = "capture"; st.prop = null; render(); };
+    if (use) use.onclick = useThese;
+    ["#pyCamIn", "#pyLibIn"].forEach(sel => { const i = $(sel); i.onchange = () => { const file = i.files && i.files[0]; i.value = ""; if (file) readPhoto(file); }; });
+  }
+
+  async function readPhoto(file) {
+    drop();
+    st.photo = URL.createObjectURL(file); st.stage = "reading"; st.prop = null;
+    render();
+    const got = await RIDE_PRICE_DOCSCAN.readMarkerFile(file);
+    if (!live()) return;
+    const pp = got && got.found && got.code === PAYOFF_PROP_CODE ? (RIDE_PRICE_DATA.payoffProps || []).find(p => p.prop === got.token) : null;
+    st.stage = pp ? "read" : "failed"; st.prop = pp || null;
+    render();
+  }
+
+  /* Use these: the answers the statement gives, with their source; an amount that differs becomes the Trade-In's
+     (HOMEWORK: the pencil prices from it); the statement filed in the Deal Jacket; then back to the Trade-In */
+  function useThese(ev, confirmed) {
+    const pp = st.prop; if (!pp) return;
+    /* W-110: a statement that would move the payment John signed asks first, as the evaluation does */
+    const mv = confirmed === true ? null : signedTradeMove(deal, { payoff: pp.amount });
+    if (mv) return signedChangeDialog(sheets, deal, mv, () => useThese(null, true));
+    const t = deal.trade, o = t.ownership = t.ownership || {};
+    o.lienOnTitle = true; o.paidOff = false; o.payoffReceived = true;
+    o.payoffGoodThrough = payoffGoodThrough(pp);
+    o.payoffBy = roleName(); o.payoffAt = new Date().toISOString();
+    o.payoffSource = { kind: "statement", lender: pp.lender, account: pp.account, prop: pp.prop };
+    if (t.payoff == null || Math.round(t.payoff * 100) !== Math.round(pp.amount * 100)) t.payoff = pp.amount;
+    jacketReceive(deal, "form-payoff", "scan", `Read from the payoff statement, ${pp.lender}`, false);
+    const setAside = confirmed === true && setAsideSignature(deal, "trade");
+    Store.save();
+    navigate(setAside ? `#/desk/${deal.id}` : `#/trade/${deal.id}`);
+  }
+
+  render();
+}
+route("payoff/:id", payoffScanView);
 
 /* ============================================================
    VIEW: Desking — Calculate Payments
@@ -7083,12 +8367,12 @@ route("desk/:id", ({ id }) => {
   if (!deal.stock) { toast("Pick a vehicle first"); return redirect(`#/vehicles/${deal.id}`); }
   const v = Store.vehicle(deal.stock);
   const c = Store.customer(deal.customerId);
-  if (["discovery", "vehicle", "testdrive"].includes(deal.stage)) { deal.stage = "desking"; Store.save(); }
+  if (["discovery", "vehicle", "testdrive"].includes(deal.stage)) { deal.stage = "desking"; saveSoft(); }
 
   /* huddle backfill: deals already past the pencil don't re-huddle */
   if (!deal.huddle) deal.huddle = { done: false };
   if (!deal.huddle.done && ((deal.basePayment && deal.basePayment.signedAt) || ["signed", "credit", "menu", "forms", "complete"].includes(deal.stage))) {
-    deal.huddle.done = true; deal.huddle.backfilled = true; Store.save();
+    deal.huddle.done = true; deal.huddle.backfilled = true; saveSoft();
   }
 
   renderChrome("Calculate Payments", "", "");
@@ -7122,12 +8406,24 @@ route("desk/:id", ({ id }) => {
     open: { price: true, residual: false, trade: false, rebates: false, accessories: false, feetax: false },
     sheet: null,
     sel: null,     /* the cell the customer is looking at in present mode */
-    note: "", noteErr: false   /* the Team Lead's send-back note, kept while the sheet is up (W-004) */
+    note: "", noteErr: false,   /* the Team Lead's send-back note, kept while the sheet is up (W-004) */
+    termsDraft: {}, termsErr: {},   /* Change terms: what was typed, and why Save refused it (MR-15) */
+    buyersAt: null   /* the Buyers sheet's state to open on, once: a removal asked for (W-005) */
   };
-  /* the floor's Review lands here with the approval sheet up (W-004) */
-  if (deskOpenSheet && deskOpenSheet.id === deal.id && ui.mode === "pencil") ui.sheet = deskOpenSheet.sheet;
+  /* the floor's Review lands here with the approval sheet up (W-004), or with
+     the Buyers sheet on the removal an advisor asked for (W-005) */
+  if (deskOpenSheet && deskOpenSheet.id === deal.id && ui.mode === "pencil") { ui.sheet = deskOpenSheet.sheet; ui.buyersAt = deskOpenSheet.buyers || null; }
   deskOpenSheet = null;
-  const sheets = chSheetOpener("dkScrim", "dkSheet", () => { ui.sheet = null; });
+  const sheets = chSheetOpener("dkScrim", "dkSheet", () => { ui.sheet = null; ui.termsDraft = {}; ui.termsErr = {}; });
+  /* W-113: a change here that would move the payment John signed asks first, as a changed trade does (W-110).
+     Keep the signed payment changes nothing, and goes back to the sheet it came from; the gradient makes the
+     change, then sets the signature aside, so the pencil says what moved and the History says why */
+  function signedChange(apply, words, why, after = draw) {
+    const mv = signedDeskMove(deal, apply);
+    const go = () => { apply(deal); if (mv) setAsideSignature(deal, why); Store.save(); after(); };
+    if (!mv) return go();
+    signedChangeDialog(sheets, deal, mv, go, words, ui.sheet ? () => draw() : undefined);
+  }
 
   /* ---------- the numbers ---------- */
   /* every grid cell is the real calculator run on a clone of this deal, so a
@@ -7147,9 +8443,11 @@ route("desk/:id", ({ id }) => {
      a month" is $700. Absent or unparseable is null, and the grid then
      recommends the structure the deal already carries. */
   function namedPayment() {
-    const raw = String((deal.huddle && deal.huddle.namedPayment) || "");
-    const n = parseFloat(raw.replace(/[^0-9.]/g, ""));
-    return isFinite(n) && n > 0 ? n : null;
+    /* every figure in John's words, "1.2k" as $1,200; a range ("600 to 700") anchors on its top end. Taking the
+       digits together read "600 to 700" as $600,700 and "about 1.2k" as $1.20 (Desking's DK-032, DK-033) */
+    const raw = String((deal.huddle && deal.huddle.namedPayment) || "").toLowerCase().replace(/,/g, "");
+    const said = [...raw.matchAll(/(\d+(?:\.\d+)?)\s*(k\b)?/g)].map((m) => parseFloat(m[1]) * (m[2] ? 1000 : 1)).filter((n) => isFinite(n) && n > 0);
+    return said.length ? Math.max(...said) : null;
   }
   /* The recommended cell is the option NEAREST the payment the customer
      named, shorter term winning a tie. The package's prompt says "the
@@ -7177,8 +8475,10 @@ route("desk/:id", ({ id }) => {
      lose a customer's trust (§15) */
   const aprLine = () => {
     const apr = `${deal.desk.apr}% APR`;
-    return incentive && deal.desk.apr === incentive.apr
-      ? `${apr} through ${new Date(incentive.through + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+    const ends = incentive && new Date(incentive.through + "T00:00:00"), today = new Date(); today.setHours(0, 0, 0, 0);
+    /* and never a date already past: the line then states the rate alone (DK-040) */
+    return incentive && deal.desk.apr === incentive.apr && ends >= today
+      ? `${apr} through ${ends.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
       : apr;
   };
   const heroFigure = (r) => isCash() ? r.totalDue : deal.dealType === "onepay" ? r.onePayTotal : r.payment;
@@ -7239,8 +8539,15 @@ route("desk/:id", ({ id }) => {
      states which — and a purchase names the base it is taken on, because a
      tax figure with no stated base cannot be checked (§19b) */
   const taxRow = (r) => isLease()
-    ? r.taxes.rows.map(t => kvRow(esc(t.label), money(t.amount))).join("")
+    ? r.taxes.rows.map(t => kvRow(esc(t.label), `${money(t.amount)} / mo`)).join("")
     : kvRow(`Sales tax · ${RIDE_PRICE_CALC.taxPct(RIDE_PRICE_CALC.totalTaxRate())}% on ${money(RIDE_PRICE_CALC.taxableBase(deal, v))}`, money(r.taxes.total));
+  /* KA-007 (chrome rule §15): "Included" names its own total, and a tap itemizes it. A purchase's is the
+     accessories, the fees and the sales tax; a lease's is the accessories, the fees and the acquisition fee, the
+     charges its price carries. A lease's tax is paid with each payment, so the itemization says it a month and
+     the total does not add it (MR-12) */
+  const includedTotal = (r) => r.accessories + r.fees + (isLease() ? RIDE_PRICE_DATA.leaseFees.acquisition : r.taxes.total);
+  const includedRow = (r) => `<div class="rp-kv" id="dkIncluded"><div class="rp-kv__row rp-kv__row--src"><span>Included</span><span>${money(includedTotal(r))}</span>
+      <span class="rp-kv__src"><button type="button" class="rp-row__action" id="dkItemize" style="padding:0">${isLease() ? "accessories, four fee lines and the acquisition fee" : "accessories, tax and four fee lines"} — tap to itemize</button></span></div></div>`;
   /* the two fees a lease carries that a purchase does not. The disposition fee
      is charged at lease END, so it never enters the payment and the row says
      so — disclosed on the pencil, exactly as the app has always disclosed it. */
@@ -7271,7 +8578,7 @@ route("desk/:id", ({ id }) => {
         ? deal.desk.accessories.map(a2 => { const x = RIDE_PRICE_DATA.accessories.find(y => y.id === a2); return x ? kvRow(esc(x.name), money(x.price)) : ""; }).join("")
         : kvRow("None selected", money(0)))
       + `<div class="rp-kv__row"><span>Change accessories</span><span><button type="button" class="rp-row__action" data-sheet-open="accessories">Edit</button></span></div>`);
-    const feetax = acc("feetax", "Fees & tax", money(r.fees + r.taxes.total), feeRows() + leaseFeeRows() + taxRow(r));
+    const feetax = acc("feetax", "Fees & tax", feesAndTaxLine(r), feeRows() + leaseFeeRows() + taxRow(r));
     const residual = isLease() ? acc("residual", "Residual", money(r.residual),
       kvRow("Residual value", money(r.residual)) + kvRow("Percent of MSRP", (r.residualPct * 100).toFixed(1) + "%")) : "";
     return price + residual + trade + rebates + accessories + feetax;
@@ -7392,7 +8699,7 @@ route("desk/:id", ({ id }) => {
 
   /* ---------- 02 / 06 / 07 / 08 · the pencil ---------- */
   function pencilScreen() {
-    if (settleDeskChoice(deal)) Store.save();
+    if (settleDeskChoice(deal)) saveSoft();
     const r = RIDE_PRICE_CALC.calc(deal, v);
     const chose = deal.desk.customerChose;
     const asked = deal.desk.approvalRequestedAt;
@@ -7404,15 +8711,19 @@ route("desk/:id", ({ id }) => {
        because the numbers moved (W-004) */
     const approvalNotice = () => {
       const k = deal.desk, mark = `<span class="rp-step__mark rp-step__mark--done">${rpGlyph("check")}</span>`;
-      if (approved) return `<div class="rp-notice rp-notice--success" id="dkApproval">${mark}Approved by ${esc(k.approvedBy || leadName)} · ${esc(timeUS(k.approvedAt))}</div>`;
+      if (approved) return `<div class="rp-notice rp-notice--success" id="dkApproval">${mark}Approved</div>`;
       if (chose && asked) return `<div class="rp-notice" id="dkApproval">${mark}${lead
-        ? `${esc(k.approvalRequestedBy || dealAdvisor(deal))} asked for your approval · ${esc(timeUS(asked))}`
-        : `Sent to ${esc(leadName)} for approval · ${esc(timeUS(asked))} — the agreement opens when ${esc(leadFirst)} approves`}</div>`;
+        ? `${esc(k.approvalRequestedBy || dealAdvisor(deal))} asks for your approval`
+        : `Sent to ${esc(leadName)} for approval`}</div>`;
       if (!chose && k.sentBack) return `<div class="rp-notice rp-notice--working" id="dkSentBack">${lead
         ? `Sent back to ${esc(k.sentBack.to || dealAdvisor(deal))}` : `Sent back by ${esc(k.sentBack.by || leadName)}`}: &ldquo;${esc(k.sentBack.note)}&rdquo;</div>`;
       if (!chose && k.choiceCleared) {
         const cc = k.choiceCleared;
-        return `<div class="rp-notice rp-notice--working" id="dkChoiceCleared"><strong>The numbers changed after ${esc(c.first)} chose</strong>${esc(deskChoiceLine(cc.was, cc.dealType))} is no longer on the pencil${cc.had === "approved" ? `, and ${esc(leadName)}&rsquo;s approval came off with it` : cc.had === "asked" ? `, and the request to ${esc(leadName)} was withdrawn` : ""}. Present the new payment.</div>`;
+        const lost = cc.had === "approved" ? `, and ${esc(leadName)}&rsquo;s approval came off with it` : cc.had === "asked" ? `, and the request to ${esc(leadName)} was withdrawn` : "";
+        /* the payment can survive a change under it to the cent: then the
+           pencil names what moved, and the payment it moved under */
+        if (cc.moved) return `<div class="rp-notice rp-notice--working" id="dkChoiceCleared"><strong>The terms changed after ${esc(c.first)} chose</strong>${esc(cc.moved.charAt(0).toUpperCase() + cc.moved.slice(1))} changed under ${esc(deskChoiceLine(cc.was, cc.dealType))}${lost}. Present the payment again.</div>`;
+        return `<div class="rp-notice rp-notice--working" id="dkChoiceCleared"><strong>The numbers changed after ${esc(c.first)} chose</strong>${esc(deskChoiceLine(cc.was, cc.dealType))} is no longer on the pencil${lost}. Present the new payment.</div>`;
       }
       return "";
     };
@@ -7421,7 +8732,7 @@ route("desk/:id", ({ id }) => {
       ${r.accessories ? kvRow("Accessories", money(r.accessories)) : ""}
       ${kvRow("Taxes and fees", money(r.fees + r.taxes.total))}
       ${deal.trade.rebates ? kvRow("Rebate", `−${money(deal.trade.rebates)}`, "customer cash — applies to a cash purchase, not tied to financing") : ""}
-      ${deal.trade.has ? kvRow("Trade credit", `−${money(r.netTrade)}`) : ""}
+      ${deal.trade.has ? (r.netTrade < 0 ? kvRow("Negative equity", `+${money(-r.netTrade)}`) : kvRow("Trade credit", `−${money(r.netTrade)}`)) : ""}
       <div class="rp-kv__row" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Total due</span><span style="font-weight:760">${money(r.totalDue)}</span></div></div>`;
     /* D-SM5 = B (owner, 2026-09-22: "D-SM5 is B for now"): the trial close the
        huddle wrote down is read back to the advisor here, under the payment,
@@ -7470,11 +8781,19 @@ route("desk/:id", ({ id }) => {
        to is no longer the payment on screen — the choice comes off with it
        rather than sitting over a number they never saw */
     $$("[data-type]").forEach(b => b.onclick = () => {
-      if (deal.dealType !== b.dataset.type) {
-        clearDeskChoice(deal.desk);      /* and the Team Lead's answer with it (W-004) */
-        delete deal.desk.presentedAt;   /* a new deal type is a quote the customer has not seen */
-      }
-      deal.dealType = b.dataset.type; Store.save(); draw();
+      const t = b.dataset.type;
+      signedChange((d) => {
+        if (d.dealType !== t) {
+          /* the pencil says so, as it does when the numbers move: the choice came off without a word before
+             (Desking's DK-049) */
+          const k = d.desk;
+          if (k.customerChose) k.choiceCleared = { at: new Date().toISOString(), was: k.customerChose, dealType: d.dealType,
+            had: k.approvedAt ? "approved" : k.approvalRequestedAt ? "asked" : "", moved: "the deal type" };
+          clearDeskChoice(k);      /* and the Team Lead's answer with it (W-004) */
+          delete k.presentedAt;   /* a new deal type is a quote the customer has not seen */
+        }
+        d.dealType = t;
+      }, { with: `As ${TYPE_AS[t]}`, go: "Change the deal type" }, "type");
     });
     const opts = $("#dkOptions"); if (opts) opts.onclick = () => { ui.mode = "options"; draw(); };
     const hero = $("#dkHeroPresent"); if (hero) hero.onclick = () => goPresent();
@@ -7497,7 +8816,7 @@ route("desk/:id", ({ id }) => {
       /* the agreement opens on an approval that still holds, and on nothing else (W-004) */
       if (settleDeskChoice(deal)) Store.save();
       if (deskApproval(deal) !== "approved") return draw();
-      deal.basePayment = { signedAt: null, snapshot: RIDE_PRICE_CALC.calc(deal, v) };
+      deal.basePayment = { signedAt: null, snapshot: agreementSnapshot(deal, v) };
       if (deal.stage === "desking") deal.stage = "signed";
       Store.save();
       navigate(`#/agreement/${deal.id}`);
@@ -7527,11 +8846,17 @@ route("desk/:id", ({ id }) => {
   function presentScreen() {
     const r = RIDE_PRICE_CALC.calc(deal, v);
     const finance = !isCash() && !isLease();
+    /* KA-007 (chrome rule §15): under the grid, the payment of the cell John is looking at, large, with its
+       terms in one line; then what is included, as one figure a tap itemizes */
+    const cell = finance ? (ui.sel || recommended()) : null;
     const content = `<div class="rp-eyebrow">${finance ? "Three ways to own it" : isCash() ? "Your purchase" : "Your lease"}</div>
-      <h1 class="rp-title">${finance ? "Your payment" : isCash() ? "Your total" : "Your payment"}</h1>
+      <h1 class="rp-title">${finance ? "Your payment" : isCash() || deal.dealType === "onepay" ? "Your total" : "Your payment"}</h1>
       ${presentVehicle()}
       ${wins()}
-      ${finance ? grid(true) : priceHero(r, false)}
+      ${finance ? grid(true) + `<div class="rp-price" id="dkPresentPay"><div class="rp-price__label">Monthly payment</div>
+        <div class="rp-price__amount">${money(cell.payment)}<small>/ mo</small></div>
+        <div class="rp-price__terms">${cell.term} months · ${money0(cell.down)} down</div></div>` : priceHero(r, false)}
+      ${includedRow(r)}
       ${fineLine()}`;
     render(content, chDock(`<button type="button" class="rp-primary" id="dkTake">This one works</button>`), "present");
     $$("[data-cell]").forEach(b => b.onclick = () => {
@@ -7539,6 +8864,7 @@ route("desk/:id", ({ id }) => {
       ui.sel = { down, term, payment: cellPayment(down, term) };
       draw();
     });
+    $("#dkItemize").onclick = () => { ui.sheet = "itemize"; draw(); };
     $("#dkTake").onclick = () => commit();
   }
 
@@ -7575,31 +8901,40 @@ route("desk/:id", ({ id }) => {
     render(content, chDock(`<button type="button" class="rp-primary" id="dkFinance">Finance works</button>`,
       `<button type="button" class="rp-link" id="dkLease">Show the lease</button>`), "present");
     $("#dkItemize").onclick = () => { ui.sheet = "itemize"; draw(); };
-    $("#dkFinance").onclick = () => { deal.dealType = "finance"; Store.save(); commit(); };
-    $("#dkLease").onclick = () => { deal.dealType = "lease"; Store.save(); ui.mode = "present"; draw(); };
+    $("#dkFinance").onclick = () => signedChange((d) => { d.dealType = "finance"; }, { with: `As ${TYPE_AS.finance}`, go: "Change the deal type" }, "type", () => commit());
+    $("#dkLease").onclick = () => signedChange((d) => { d.dealType = "lease"; }, { with: `As ${TYPE_AS.lease}`, go: "Change the deal type" }, "type", () => { ui.mode = "present"; draw(); });
   }
 
   /* the customer's own tap is the trial close: it writes the structure they
      chose onto the deal and hands the phone back to Work (§15) */
-  function commit() {
+  function commit(confirmed) {
+    /* W-113: a new cell chosen after John signed asks first */
+    if (confirmed !== true && !isCash() && !isLease()) {
+      const cell = ui.sel || recommended();
+      const mv = signedDeskMove(deal, (d) => { d.desk.term = cell.term; d.desk.downPayment = cell.down; });
+      if (mv) return signedChangeDialog(sheets, deal, mv, () => { commit(true); },
+        { with: `With ${cell.term} months and ${money0(cell.down)} down`, go: "Change the payment" }, () => draw());
+    }
+    const signedBefore = confirmed === true && !!(deal.basePayment && deal.basePayment.signedAt);
     const prev = deal.desk.customerChose;
     let next;
     if (!isCash() && !isLease()) {
       const cell = ui.sel || recommended();
       deal.desk.term = cell.term;
       deal.desk.downPayment = cell.down;
-      next = { term: cell.term, down: cell.down, payment: cell.payment, at: new Date().toISOString() };
+      next = { term: cell.term, down: cell.down, payment: cell.payment, at: new Date().toISOString(), inputs: deskInputs(deal) };
     } else {
       const r = RIDE_PRICE_CALC.calc(deal, v);
-      next = { term: r.term || 0, down: isCash() ? 0 : deal.desk.dueAtSigning, payment: heroFigure(r), at: new Date().toISOString() };
+      next = { term: r.term || 0, down: isCash() ? 0 : deal.desk.dueAtSigning, payment: heroFigure(r), at: new Date().toISOString(), inputs: deskInputs(deal) };
     }
     /* the same choice keeps its request and its answer; a different one is a
        new question for the Team Lead (W-004). Either answers the Team Lead's
        note and the changed numbers, so both notices come off. */
-    const same = !!prev && prev.term === next.term && prev.down === next.down && Math.round(prev.payment * 100) === Math.round(next.payment * 100);
+    const same = !!prev && prev.term === next.term && prev.down === next.down && Math.round(prev.payment * 100) === Math.round(next.payment * 100) && !deskInputMoved(prev, deal);
     if (!same) clearDeskChoice(deal.desk);
     deal.desk.customerChose = same ? prev : next;
     delete deal.desk.sentBack; delete deal.desk.choiceCleared;
+    if (signedBefore) setAsideSignature(deal, "choice");
     Store.save();
     ui.mode = "pencil"; ui.sel = null; draw();
   }
@@ -7629,7 +8964,7 @@ route("desk/:id", ({ id }) => {
     /* nothing left to answer: the choice came off, or it is answered already */
     if (!k.customerChose || k.approvedAt) return `${chSheetHead(k.approvedAt ? "Already approved" : "Nothing to approve")}
       <p class="rp-sheet__sub">${k.approvedAt
-        ? `Approved by ${esc(k.approvedBy || leadName)} · ${esc(timeUS(k.approvedAt))}. The agreement is open.`
+        ? "Approved. The agreement is open."
         : `${esc(c.first)}&rsquo;s choice is no longer on the pencil, so there is nothing to approve. It comes back to you when the customer chooses again.`}</p>
       <button type="button" class="rp-primary" data-sheet-close>Done</button>`;
     const r = RIDE_PRICE_CALC.calc(deal, v);
@@ -7647,7 +8982,7 @@ route("desk/:id", ({ id }) => {
     ].join("");
     const asked = k.approvalRequestedAt, who = k.approvalRequestedBy || dealAdvisor(deal);
     return `${chSheetHead(`Approve ${c.first}’s deal?`)}
-      <p class="rp-sheet__sub">${asked ? `${esc(who)} asked at ${esc(timeUS(asked))}. The agreement waits for your answer.` : "Nobody has asked yet. Approving opens the agreement."}</p>
+      <p class="rp-sheet__sub">${asked ? `${esc(who)} asks for your approval.` : "Nobody has asked yet. Approving opens the agreement."}</p>
       <div class="rp-group">${rows}</div>
       <button type="button" class="rp-primary" id="dkApprove">Approve</button>
       ${asked ? `<button type="button" class="rp-link ch-hit" id="dkSendBack">Send back with a note</button>` : `<button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>`}`;
@@ -7675,7 +9010,10 @@ route("desk/:id", ({ id }) => {
         <div class="rp-kv">
           ${deal.desk.accessories.map(a2 => { const x = RIDE_PRICE_DATA.accessories.find(y => y.id === a2); return x ? kvRow(esc(x.name), money(x.price)) : ""; }).join("")}
           ${feeRows()}
-          ${taxRow(r)}
+          ${isLease() ? kvRow("Acquisition Fee", money(RIDE_PRICE_DATA.leaseFees.acquisition)) : taxRow(r)}
+          <div class="rp-kv__row" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Included</span><span style="font-weight:760">${money(includedTotal(r))}</span></div>
+          ${isLease() ? r.taxes.rows.map(t => kvRow(esc(t.label), `${money(t.amount)} / mo`, deal.dealType === "onepay" ? "in each payment, paid up front" : "in each payment")).join("")
+            + kvRow("Disposition Fee (at lease end)", money(RIDE_PRICE_DATA.leaseFees.disposition)) : ""}
         </div>
         <button type="button" class="rp-primary" data-sheet-close>Done</button>`;
     }
@@ -7693,17 +9031,22 @@ route("desk/:id", ({ id }) => {
     /* terms: what the advisor actually adjusts on a pencil. Work mode only —
        nothing here is ever drawn while the phone is turned to the customer. */
     const opt = (attr, val, label, on) => `<button type="button" class="rp-segment__item${on ? " rp-segment__item--on" : ""}" data-${attr}="${val}" aria-pressed="${on}">${esc(label)}</button>`;
+    /* a field shows what was typed and, when Save refused it, why, in the kit's field error (MR-15) */
+    const termsField = (id, label, step, value) => {
+      const err = ui.termsErr[id], shown = id in ui.termsDraft ? ui.termsDraft[id] : String(value);
+      return `<div class="rp-field${err ? " rp-field--error" : ""}"><label class="rp-field__label" for="${id}">${esc(label)}</label><input class="rp-field__input" id="${id}" type="number" step="${step}" inputmode="decimal" value="${esc(shown)}"${err ? ` aria-invalid="true" aria-describedby="${id}Err"` : ""}>${err ? `<div class="rp-field__err" id="${id}Err">${esc(err)}</div>` : ""}</div>`;
+    };
     const three = (html) => `<div class="rp-segment" style="grid-template-columns:repeat(3,1fr)">${html}</div>`;
     return `${chSheetHead("Change terms")}
       <p class="rp-sheet__sub">${esc(custName)} · ${esc(vehicleShort)}</p>
       ${isCash() ? "" : isLease()
         ? `<div class="rp-field"><span class="rp-field__label">Term</span>${three(RIDE_PRICE_DATA.leaseTerms.slice(0, 3).map(t => opt("lterm", t, t + " mo", deal.desk.leaseTerm === t)).join(""))}</div>
            <div class="rp-field"><span class="rp-field__label">Miles per year</span>${three(RIDE_PRICE_DATA.milesOptions.map(m2 => opt("miles", m2, (m2 / 1000) + "k", deal.desk.milesPerYear === m2)).join(""))}</div>
-           <div class="rp-field"><label class="rp-field__label" for="dkDas">Due at signing</label><input class="rp-field__input" id="dkDas" type="number" step="100" value="${esc(String(deal.desk.dueAtSigning))}"></div>`
+           ${termsField("dkDas", "Due at signing", "100", deal.desk.dueAtSigning)}`
         : `<div class="rp-field"><span class="rp-field__label">Term</span>${three(GRID_TERMS.map(t => opt("term", t, t + " mo", deal.desk.term === t)).join(""))}</div>
-           <div class="rp-field"><label class="rp-field__label" for="dkApr">APR %</label><input class="rp-field__input" id="dkApr" type="number" step="0.1" value="${esc(String(deal.desk.apr))}"></div>
-           <div class="rp-field"><label class="rp-field__label" for="dkDown">Cash down</label><input class="rp-field__input" id="dkDown" type="number" step="100" value="${esc(String(deal.desk.downPayment))}"></div>`}
-      <div class="rp-field"><label class="rp-field__label" for="dkRebate">Rebate — customer cash</label><input class="rp-field__input" id="dkRebate" type="number" step="100" value="${esc(String(deal.trade.rebates || 0))}"></div>
+           ${termsField("dkApr", "APR %", "0.1", deal.desk.apr)}
+           ${termsField("dkDown", "Cash down", "100", deal.desk.downPayment)}`}
+      ${termsField("dkRebate", "Rebate — customer cash", "100", deal.trade.rebates || 0)}
       <button type="button" class="rp-primary" id="dkTermsSave">Save terms</button>`;
   }
   function wireSheet(sheet) {
@@ -7721,6 +9064,17 @@ route("desk/:id", ({ id }) => {
     if (back) back.onclick = () => { ui.sheet = "sendback"; ui.noteErr = false; draw(); };
     const keep = $("#dkSendBackCancel", sheet);
     if (keep) keep.onclick = () => { ui.note = $("#dkNote", sheet).value; ui.noteErr = false; ui.sheet = "approve"; draw(); };
+    /* the note's limit is said in the field once it is reached: a longer note was cut at 280 without a word (Desking's
+       DK-051). The kit's field error carries it; a "Write a note first" refusal stays as it is */
+    const noteBox = $("#dkNote", sheet);
+    if (noteBox) noteBox.oninput = () => {
+      const field = noteBox.closest(".rp-field"), full = noteBox.value.length >= 280;
+      let err = $("#dkNoteErr", sheet);
+      if (full) {
+        if (!err) { err = document.createElement("div"); err.className = "rp-field__err"; err.id = "dkNoteErr"; noteBox.after(err); }
+        err.textContent = "280 characters at most."; field.classList.add("rp-field--error"); noteBox.setAttribute("aria-describedby", "dkNoteErr");
+      } else if (err && err.textContent === "280 characters at most.") { err.remove(); field.classList.remove("rp-field--error"); noteBox.removeAttribute("aria-describedby"); }
+    };
     const go = $("#dkSendBackGo", sheet);
     if (go) go.onclick = () => {
       const note = $("#dkNote", sheet).value.trim();
@@ -7733,21 +9087,41 @@ route("desk/:id", ({ id }) => {
     };
     $$("[data-acc]", sheet).forEach(b => b.onclick = () => {
       const id2 = b.dataset.acc;
-      const at = deal.desk.accessories.indexOf(id2);
-      if (at >= 0) deal.desk.accessories.splice(at, 1); else deal.desk.accessories.push(id2);
-      Store.save(); draw();
+      signedChange((d) => {
+        const at = d.desk.accessories.indexOf(id2);
+        if (at >= 0) d.desk.accessories.splice(at, 1); else d.desk.accessories.push(id2);
+      }, { with: "With this change", go: "Change the accessories" }, "accessories");
     });
-    $$("[data-term]", sheet).forEach(b => b.onclick = () => { deal.desk.term = parseInt(b.dataset.term, 10); Store.save(); draw(); });
-    $$("[data-lterm]", sheet).forEach(b => b.onclick = () => { deal.desk.leaseTerm = parseInt(b.dataset.lterm, 10); Store.save(); draw(); });
-    $$("[data-miles]", sheet).forEach(b => b.onclick = () => { deal.desk.milesPerYear = parseInt(b.dataset.miles, 10); Store.save(); draw(); });
+    $$("[data-term]", sheet).forEach(b => b.onclick = () => { const n = parseInt(b.dataset.term, 10);
+      signedChange((d) => { d.desk.term = n; }, { with: `With ${n} months`, go: "Change the term" }, "term"); });
+    $$("[data-lterm]", sheet).forEach(b => b.onclick = () => { const n = parseInt(b.dataset.lterm, 10);
+      signedChange((d) => { d.desk.leaseTerm = n; }, { with: `With ${n} months`, go: "Change the term" }, "term"); });
+    $$("[data-miles]", sheet).forEach(b => b.onclick = () => { const n = parseInt(b.dataset.miles, 10);
+      signedChange((d) => { d.desk.milesPerYear = n; }, { with: `With ${n.toLocaleString("en-US")} miles a year`, go: "Change the miles" }, "miles"); });
     const save = $("#dkTermsSave", sheet);
     if (save) save.onclick = () => {
-      const num = (sel, fallback) => { const el = $(sel, sheet); if (!el) return fallback; const n = parseFloat(el.value); return isFinite(n) && n >= 0 ? n : fallback; };
-      deal.desk.apr = num("#dkApr", deal.desk.apr);
-      deal.desk.downPayment = num("#dkDown", deal.desk.downPayment);
-      deal.desk.dueAtSigning = num("#dkDas", deal.desk.dueAtSigning);
-      deal.trade.rebates = num("#dkRebate", deal.trade.rebates || 0);
-      Store.save(); ui.sheet = null; sheets.close(); draw();
+      /* every figure is used as typed, or refused in its own field with the reason, and the sheet stays open.
+         A figure below $0, an emptied one or a fraction of a cent used to be dropped for the old one without a
+         word (MR-15, Desking's DK-029, DK-047, DK-048) */
+      const why = (raw, rate) => raw === "" ? (rate ? "Enter a rate." : "Enter an amount.")
+        : /^-/.test(raw) ? (rate ? "Can't be below 0%." : "Can't be below $0.")
+        : !(rate ? /^\d+(\.\d+)?$/ : /^\d+(\.\d{1,2})?$/).test(raw) ? (rate ? "Enter a rate." : "Dollars and cents only.") : "";
+      const got = {}, draft = {}, errs = {};
+      ["dkApr", "dkDown", "dkDas", "dkRebate"].forEach((id) => {
+        const el = $("#" + id, sheet); if (!el) return;
+        const raw = String(el.value).trim(), w = why(raw, id === "dkApr");
+        draft[id] = raw; if (w) errs[id] = w; else got[id] = parseFloat(raw);
+      });
+      if (Object.keys(errs).length) {
+        ui.termsDraft = draft; ui.termsErr = errs; draw();
+        const f = $("#" + Object.keys(errs)[0]); if (f) f.focus();
+        return;
+      }
+      ui.termsDraft = {}; ui.termsErr = {};
+      const pick = (id, now) => (id in got ? got[id] : now);
+      const apr = pick("dkApr", deal.desk.apr), down = pick("dkDown", deal.desk.downPayment), das = pick("dkDas", deal.desk.dueAtSigning), reb = pick("dkRebate", deal.trade.rebates || 0);
+      signedChange((d) => { d.desk.apr = apr; d.desk.downPayment = down; d.desk.dueAtSigning = das; d.trade.rebates = reb; },
+        { with: "With these terms", go: "Change the terms" }, "terms", () => { ui.sheet = null; sheets.close(); draw(); });
     };
   }
 
@@ -7774,7 +9148,10 @@ route("desk/:id", ({ id }) => {
     $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; if (b.dataset.sheetOpen === "buyers") buyers = null; draw(); });
     /* the buyers sheet is its own module with its own states; the screen keeps
        the handle so a re-render reopens it where it was, not at the top */
-    if (ui.sheet === "buyers") { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, reopen => { if (reopen) ui.sheet = "buyers"; draw(); }); }
+    if (ui.sheet === "buyers") {
+      if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, reopen => { if (reopen) ui.sheet = "buyers"; draw(); });
+      if (ui.buyersAt) { const at = ui.buyersAt; ui.buyersAt = null; buyers.go(at); }
+    }
     else if (ui.sheet) sheets.open(sheetHtml(), wireSheet);
   }
   let buyers = null;
@@ -7805,171 +9182,183 @@ route("agreement/:id", ({ id }) => {
      step is next. A signed agreement, or a deal with no choice on it at all, is
      not stopped. */
   if (!(deal.basePayment && deal.basePayment.signedAt)) {
-    if (settleDeskChoice(deal)) Store.save();
+    if (settleDeskChoice(deal)) saveSoft();
     const k = deal.desk || {};
     if ((k.customerChose && deskApproval(deal) !== "approved") || (k.approvalRequestedAt && !k.approvedAt) || k.sentBack || k.choiceCleared) return redirect(`#/desk/${deal.id}`);
   }
   const v = Store.vehicle(deal.stock);
   const c = Store.customer(deal.customerId);
-  const r = RIDE_PRICE_CALC.calc(deal, v);
-  const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
-  const isCash = deal.dealType === "cash";
-  const signed = deal.basePayment && deal.basePayment.signedAt;
+  const signed = !!(deal.basePayment && deal.basePayment.signedAt);
+  /* BP-010 (the owner's answer of 2026-09-24): once John has signed, the
+     screen shows what John signed, as the printout has since RP-UI-060 — every
+     figure from the snapshot taken at signing, and the inputs frozen with it.
+     An agreement signed before those inputs were frozen reads them from the
+     deal, as its printout does. Only an unsigned agreement prices live; a new
+     structure is a new signature, through Redesk. */
+  const snap = signed && deal.basePayment.snapshot ? deal.basePayment.snapshot : null;
+  const r = snap || RIDE_PRICE_CALC.calc(deal, v);
+  const frozen = (k, live) => (snap && snap[k] != null ? snap[k] : live);
+  /* the deal type John signed is frozen with the snapshot too (CodeRabbit on #198): a signed agreement's
+     labels, rows and next step follow it, never a type changed on the pencil since */
+  const dealType = frozen("dealType", deal.dealType);
+  const isLease = dealType === "lease" || dealType === "onepay";
+  const isCash = dealType === "cash";
+  /* the owner's rule (2026-09-22): the agreement cannot be signed until the
+     Team Lead approves. With no choice on the pencil the page still opens,
+     to be read, but it signs nothing (CodeRabbit on #136) */
+  const leadFirst = RIDE_PRICE_DATA.dealership.teamLead.split(" ")[0];
+  const locked = !signed && deskApproval(deal) !== "approved";
+  /* where a signature leads: the credit application — where an agreement
+     signed again after the lender answered finds its approval saying it was
+     re-presented and agreed, and leading on to the Finance Menu (KA-002) — or,
+     for a cash deal, the Finance Menu itself. BP-012 (RP-UI-059, the owner's
+     answer of 2026-09-24): a cash deal has no credit application, so once
+     signed it goes where an approved finance deal goes. The dock names the
+     step, and Continue opens it */
+  const nextStep = isCash ? "Finance Menu" : "Credit application unlocked";
 
-  renderChrome("Base Payment Agreement", dealTitle(deal), "");
+  renderChrome("Base Payment Agreement", "", "");
   document.body.dataset.screen = "desk";
-  document.body.dataset.canvas = "master";
+  document.body.dataset.canvas = "kit";
 
   /* the figure the deal type actually produces — the unit word is derived,
      never assumed (review lesson 9) */
-  const sumLabel = isCash ? "Estimated total due" : deal.dealType === "onepay" ? "Due at signing — One Pay" : "Base monthly payment";
-  const sumAmt = isCash ? money(r.totalDue) : deal.dealType === "onepay" ? money(r.onePayTotal) : money(r.payment);
+  const sumLabel = isCash ? "Estimated total due" : dealType === "onepay" ? "Due at signing — One Pay" : "Base monthly payment";
+  const sumAmt = isCash ? money(r.totalDue) : dealType === "onepay" ? money(r.onePayTotal) : money(r.payment);
+  const unit = isCash || dealType === "onepay" ? "total" : "/ mo";
   const sumMeta = isCash ? "Cash purchase"
-    : deal.dealType === "onepay" ? `${esc(String(r.term))} months · ${esc(r.miles.toLocaleString())} mi/yr · One-Pay Lease`
+    : dealType === "onepay" ? `${esc(String(r.term))} months · ${esc(r.miles.toLocaleString())} mi/yr · One-Pay Lease`
     : isLease ? `${esc(String(r.term))} months · ${esc(r.miles.toLocaleString())} mi/yr · Lease`
     : `${esc(String(r.term))} months · ${esc(String(r.apr))}% APR · Finance`;
-  const vehMeta = `Your price ${money(r.yourPrice)} · ` + (isCash ? `Total due ${money(r.totalDue)}`
-    : deal.dealType === "onepay" ? `One-pay total ${money(r.onePayTotal)}`
-    : isLease ? `Due at signing ${money0(deal.desk.dueAtSigning)}`
-    : `Total amount financed ${money(r.amountFinanced)}`);
-  const dockUnit = isCash || deal.dealType === "onepay" ? "total" : "/ mo";
-
-  const trow = (label, val, cls) => `<div class="bp-trow${cls ? " " + cls : ""}"><span>${label}</span><strong>${val}</strong></div>`;
-  const sigName = signed ? (deal.basePayment.sigName || c.first + " " + c.last) : c.first + " " + c.last;
+  const custName = c.first + " " + c.last;
+  const sigName = signed ? (deal.basePayment.sigName || custName) : custName;
+  const buyers = 1 + (deal.coBuyerId && Store.customer(deal.coBuyerId) ? 1 : 0);
   const signedWhen = () => {
     const dt = new Date(deal.basePayment.signedAt);
     return dt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) + " · " + dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   };
-  const jk = jacketCounts(deal);
+  /* the kit's parts, as the #158 picture drew them (the owner's answer of
+     2026-09-24): the pencil's price hero, so the figure John signs for looks
+     like the one John chose; the kit's rows for who it is between; its
+     key/value list for the terms; the package's acknowledgment word for word
+     in the kit's agreement box; the typed name in the kit's field and
+     signature box; the completed hero once signed; the kit's gate dock */
+  const kv = (label, val, strong, attrs) => `<div class="rp-kv__row"${attrs ? " " + attrs : ""}><span>${label}</span><span${strong ? ` style="font-weight:760"` : ""}>${val}</span></div>`;
+  const tile = (glyph) => `<span class="rp-tile">${rpIconGlyph(glyph)}</span>`;
+  const script = `font-family:'Brush Script MT','Segoe Script',cursive;font-size:30px;color:var(--rp-ink)`;
+  const status = signed ? ["rp-status--positive", "Signed"] : locked ? ["rp-status--warn", "Needs approval"] : ["", "Ready to sign"];
+  const hero = `<div class="rp-price" id="bpHero"><div class="rp-price__label">${esc(sumLabel)}</div>
+    <div class="rp-price__amount" id="bpAmount">${esc(sumAmt)}<small>${esc(unit)}</small></div>
+    <div class="rp-price__terms">${sumMeta}</div>
+    ${signed ? "" : `<button type="button" class="rp-price__action" id="bpRedesk">Redesk payment</button>`}</div>`;
+  const vehLine = `<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin:-6px 0 16px">
+    <span class="rp-card__line" style="margin:0">${esc(v.year + " " + v.make + " " + v.model)}</span>
+    <span class="rp-status${status[0] ? " " + status[0] : ""}" id="bpStatus">${status[1]}</span></div>`;
+  const parties = `<h2 class="rp-section">Agreement between</h2><div class="rp-group" id="bpParties">
+    <div class="rp-row">${tile("user")}<span class="rp-row__body"><span class="rp-row__title">${esc(custName)}</span>
+      <span class="rp-row__sub">${esc(c.phone)} · ${esc(c.email)}<br>${esc(c.address)}, ${esc(c.city)}, ${esc(c.state)} ${esc(c.zip)}</span></span></div>
+    <div class="rp-row">${tile("bank")}<span class="rp-row__body"><span class="rp-row__title">${esc(Store.s.advisor)} — ${esc(RIDE_PRICE_DATA.dealership.name)}</span>
+      <span class="rp-row__sub">${esc(RIDE_PRICE_DATA.dealership.phone)}<br>${esc(RIDE_PRICE_DATA.dealership.address)} · ${esc(today())}</span></span></div></div>`;
+  /* W-016 (the owner's answer of 2026-09-24): "Your price" is the car, as on
+     the pencil, the presentation and Jordan's review; the total with the
+     accessories says so */
+  const rebates = frozen("rebates", deal.trade.rebates || 0), tradeValue = frozen("tradeValue", deal.trade.value || 0);
+  const payRow = (label, val) => kv(label, val, true, "data-pay");
+  const terms = `<h2 class="rp-section">The terms</h2><div class="rp-kv" id="bpTerms">
+    ${kv("Deal type", esc(DEAL_TYPES[dealType]))}
+    ${!isCash && !isLease ? kv("Term / APR", `${esc(String(r.term))} months / ${esc(String(r.apr))}%`) : ""}
+    ${isLease ? kv("Term / Miles", `${esc(String(r.term))} months / ${esc(r.miles.toLocaleString())} mi-yr`) : ""}
+    ${kv("MSRP", money(frozen("msrp", v.msrp)))}
+    ${kv("Your price", money(frozen("selling", v.selling + v.includedOptions)))}
+    ${kv("Accessories", money(r.accessories))}
+    ${kv("Your price with accessories", money(r.yourPrice), true)}
+    ${rebates ? kv("Rebates", "−" + money(rebates)) : ""}
+    ${tradeValue ? kv("Trade value / payoff", `${money(tradeValue)} / ${money(frozen("tradePayoff", deal.trade.payoff || 0))}`) : ""}
+    ${isLease ? kv("Residual (lease end value)", money(r.residual)) : ""}
+    ${kv("Total taxes &amp; fees", money((r.taxes.total || 0) + (r.fees != null ? r.fees : RIDE_PRICE_CALC.totalFees())))}
+    ${!isCash && !isLease ? kv("Down payment", money(frozen("downPayment", deal.desk.downPayment)))
+      + kv("Total amount financed", money(r.amountFinanced), true)
+      + payRow(`${esc(String(r.term))} monthly payments (inc. taxes)`, money(r.payment)) : ""}
+    ${dealType === "lease" ? kv("Due at signing", money(frozen("dueAtSigning", deal.desk.dueAtSigning)))
+      + payRow(`${esc(String(r.term))} monthly payments (inc. taxes)`, money(r.payment)) : ""}
+    ${dealType === "onepay" ? payRow("One-pay total due at signing", money(r.onePayTotal)) : ""}
+    ${isCash ? payRow("Total due", money(r.totalDue)) : ""}</div>`;
+  const ack = `<div class="rp-agreement" id="bpAck" style="max-height:none">I/We have agreed to an approximate base payment structure per the terms above. I/We understand these payment terms are based on a standard rate and are subject to the dealership's ability to obtain approval of the lending institution — the rate may be higher or lower based on my credit score and other factors lenders use in approving financing. <strong>This is a ballpark structure, not a purchase.</strong></div>`;
+  const sign = signed
+    ? `<div class="rp-hero" id="bpSigned"><div class="rp-hero__mark">${rpGlyph("check")}</div>
+        <div class="rp-hero__title">${esc(custName)} acknowledged the base terms</div>
+        <div class="rp-hero__sub">Signed ${esc(signedWhen())}</div></div>
+      <div class="rp-signature" id="bpSigShown" style="${script}">${esc(sigName)}</div>
+      <div class="rp-group" style="margin-top:14px">
+        <a class="rp-row" id="bpPrintRow" href="#/print/${esc(deal.id)}/agreement">${tile("page")}<span class="rp-row__body"><span class="rp-row__title">Print for deal folder</span><span class="rp-row__sub">Open the printable agreement</span></span><span class="rp-row__chevron"></span></a>
+        <button type="button" class="rp-row" id="bpRedeskRow" style="width:100%">${tile("swap")}<span class="rp-row__body"><span class="rp-row__title">Redesk payment</span><span class="rp-row__sub">Voids this signature and reopens desking</span></span><span class="rp-row__chevron"></span></button>
+      </div>`
+    : `<h2 class="rp-section">Sign agreement</h2>${locked ? `
+      <div class="rp-notice rp-notice--working" id="bpNeedsApproval" role="status"><strong>Needs ${esc(leadFirst)}&rsquo;s approval</strong>${esc(leadFirst)} approves the numbers before ${esc(c.first)} signs. On the pencil, present them to ${esc(c.first)} and submit ${esc(c.first)}&rsquo;s choice.</div>
+      <button type="button" class="rp-link" id="bpToPencil">Open the pencil</button>` : ""}
+      <div class="rp-field" id="bpSigField"><label class="rp-field__label" for="bpSig">Type name to sign</label>
+        <input class="rp-field__input" type="text" id="bpSig" value="${esc(sigName)}" autocomplete="off"${locked ? " disabled" : ""}></div>
+      <div class="rp-signature" id="bpPreview" style="${script}">${esc(sigName)}</div>
+      <p class="rp-fine" style="text-align:left">The typed name is recorded as the acknowledgement signature for this base payment structure.</p>`;
+  const note = signed ? `Next step · ${esc(nextStep)}`
+    : `Base payment · ${esc(sumAmt)} ${esc(unit)} · ${locked ? `Needs ${esc(leadFirst)}&rsquo;s approval` : "Ready for acknowledgement"}`;
+  const dock = chGateDock(note, `<button type="button" class="rp-primary" id="bpDockGo"${locked ? " disabled" : ""}>${signed ? "Continue" : "Sign agreement"}</button>`);
 
-  view().innerHTML = `${deskTop(deal)}
-  <div class="dk-wrap">
-    <div class="dk-eyebrow">DESKING</div>
-    <h1>Base payment agreement</h1>
+  view().innerHTML = chShell({ template: "task", title: custName, closeId: "bpClose", closeLabel: "Back to the pencil", cls: "rp-screen--gate" },
+    `<div class="rp-eyebrow">Desking</div><h1 class="rp-title">Base payment agreement</h1>
+    <div class="rp-chiprow"><button type="button" class="rp-chip" data-buyers="${esc(deal.id)}">${rpGlyph("customers")}Buyers · ${buyers}</button>${chJacketChip(deal)}</div>
+    ${hero}${vehLine}${parties}${terms}${ack}${sign}`, dock, { scrim: "bpScrim", sheet: "bpSheet" });
+  chFitDock(".rp-dock");
+  const sheets = chSheetOpener("bpScrim", "bpSheet");
+  $("#bpClose").onclick = () => navigate(`#/desk/${deal.id}`);
+  const toPencil = $("#bpToPencil");
+  if (toPencil) toPencil.onclick = () => navigate(`#/desk/${deal.id}`);
 
-    <div class="dk-chips" style="margin-top:14px">
-      <button type="button" class="dk-chip" data-buyers="${esc(deal.id)}">${rpIcon("user")} Buyer</button>
-      <a class="dk-chip" href="#/jacket/${esc(deal.id)}">${rpIcon("folder")} Jacket ${esc(jacketChipText(deal))}</a>
-      <button type="button" class="dk-linkbtn" id="bpRedesk">Redesk payment</button>
-    </div>
-
-    <div class="bp-summary" style="margin-top:18px">
-      <div class="bp-sumtop">
-        <div>
-          <div class="bp-sumlabel">${sumLabel}</div>
-          <div class="bp-payment">${esc(sumAmt)}</div>
-          <div class="bp-paymeta">${sumMeta}</div>
-        </div>
-        <div class="bp-status${signed ? " bp-status--signed" : ""}">${signed ? "Signed" : "Ready to sign"}</div>
-      </div>
-      <div class="bp-divider"></div>
-      <div class="bp-vehline">${esc(v.year)} ${esc(v.make)} ${esc(v.model)}</div>
-      <div class="bp-vehmeta">${vehMeta}</div>
-    </div>
-
-    <div class="dk-section" style="border-top:0;padding-bottom:0">
-      <h2 class="bp-h2">Agreement details</h2>
-      <div class="bp-parties">
-        <div class="bp-party"><div class="bp-pname">${esc(c.first)} ${esc(c.last)}</div>
-          <div class="bp-pmeta">${esc(c.phone)}<br>${esc(c.email)}<br>${esc(c.address)}, ${esc(c.city)}, ${esc(c.state)} ${esc(c.zip)}</div></div>
-        <div class="bp-party"><div class="bp-pname">${esc(Store.s.advisor)} — ${esc(RIDE_PRICE_DATA.dealership.name)}</div>
-          <div class="bp-pmeta">${esc(RIDE_PRICE_DATA.dealership.phone)}<br>${esc(RIDE_PRICE_DATA.dealership.address)}<br>Date: ${esc(today())}</div></div>
-      </div>
-    </div>
-
-    <div class="bp-terms" style="margin-top:22px">
-      ${trow("Deal type", esc(DEAL_TYPES[deal.dealType]))}
-      ${!isCash && !isLease ? trow("Term / APR", `${esc(String(r.term))} months / ${esc(String(r.apr))}%`) : ""}
-      ${isLease ? trow("Term / Miles", `${esc(String(r.term))} months / ${esc(r.miles.toLocaleString())} mi-yr`) : ""}
-      ${trow("MSRP", money(v.msrp))}
-      ${trow("Selling price (incl. options)", money(v.selling + v.includedOptions))}
-      ${trow("Accessories", money(r.accessories))}
-      ${trow("Your price", money(r.yourPrice), "bp-trow--total")}
-      ${deal.trade.rebates ? trow("Rebates", "−" + money(deal.trade.rebates)) : ""}
-      ${deal.trade.value ? trow("Trade value / payoff", `${money(deal.trade.value)} / ${money(deal.trade.payoff || 0)}`) : ""}
-      ${isLease ? trow("Residual (lease end value)", money(r.residual)) : ""}
-      ${trow("Total taxes &amp; fees", money((r.taxes.total || 0) + RIDE_PRICE_CALC.totalFees()))}
-      ${!isCash && !isLease ? trow("Down payment", money(deal.desk.downPayment))
-        + trow("Total amount financed", money(r.amountFinanced), "bp-trow--total")
-        + trow(`${esc(String(r.term))} monthly payments (inc. taxes)`, money(r.payment), "bp-trow--pay") : ""}
-      ${deal.dealType === "lease" ? trow("Due at signing", money(deal.desk.dueAtSigning))
-        + trow(`${esc(String(r.term))} monthly payments (inc. taxes)`, money(r.payment), "bp-trow--pay") : ""}
-      ${deal.dealType === "onepay" ? trow("One-pay total due at signing", money(r.onePayTotal), "bp-trow--pay") : ""}
-      ${isCash ? trow("Total due", money(r.totalDue), "bp-trow--pay") : ""}
-    </div>
-
-    <p class="bp-ack" style="margin-top:20px">I/We have agreed to an approximate base payment structure per the terms above. I/We understand these payment terms are based on a standard rate and are subject to the dealership's ability to obtain approval of the lending institution — the rate may be higher or lower based on my credit score and other factors lenders use in approving financing. <strong>This is a ballpark structure, not a purchase.</strong></p>
-
-    ${signed ? `
-    <div class="dk-section" style="border-top:0;padding-bottom:0">
-      <h2 class="bp-h2">Agreement signed</h2>
-      <div class="bp-signed">
-        <div class="bp-signedhead"><div class="bp-check">✓</div>
-          <div style="flex:1"><div class="bp-signedtitle">${esc(c.first)} ${esc(c.last)} acknowledged the base terms</div>
-            <div class="bp-signedtime">Signed ${esc(signedWhen())}</div></div></div>
-        <div class="bp-signedsig">${esc(sigName)}</div>
-      </div>
-      <div class="bp-actions">
-        <a class="bp-actrow" href="#/print/${esc(deal.id)}/agreement"><span class="bp-actcopy"><strong>Print for deal folder</strong><small>Open the printable agreement</small></span><span class="bp-chev">›</span></a>
-        <button type="button" class="bp-actrow" id="bpRedeskRow"><span class="bp-actcopy"><strong>Redesk payment</strong><small>Voids this signature and reopens desking</small></span><span class="bp-chev">›</span></button>
-      </div>
-    </div>` : `
-    <div class="dk-section" style="border-top:0;padding-bottom:0">
-      <h2 class="bp-h2">Sign agreement</h2>
-      <div class="bp-signpanel">
-        <label class="bp-lab" for="bpSig">Type name to sign</label>
-        <input class="bp-nameinput" type="text" id="bpSig" value="${esc(sigName)}" autocomplete="off">
-        <div class="bp-sigpreview" id="bpPreview">${esc(sigName)}</div>
-        <div class="bp-sighelp">The typed name is recorded as the acknowledgement signature for this base payment structure.</div>
-      </div>
-    </div>`}
-
-    <div class="desk-sticky">
-      <div class="desk-sticky__copy"><span>${signed ? "Next step" : "Base payment"}</span>
-        <div class="desk-sticky__val"><b>${esc(sumAmt)}</b><span class="desk-sticky__unit">${dockUnit}</span></div>
-        <span class="desk-sticky__sub">${signed ? "Credit application unlocked" : "Ready for acknowledgement"}</span></div>
-      <button type="button" class="btn btn--grad desk-sticky__go" id="bpDockGo">${signed ? "Continue" : "Sign agreement"}</button>
-    </div>
-  </div>
-  <div class="m-scrim" id="bpScrim"><div class="m-sheet" role="dialog" aria-modal="true" aria-label="Redesk payment">
-    <div class="m-handle"></div>
-    <div class="m-sheettop"><div class="m-sheettitle">${signed ? "Void signature and redesk?" : "Return to desking?"}</div><button type="button" class="m-close" id="bpSheetClose" aria-label="Close">✕</button></div>
-    <div class="bp-sheetcopy">${signed
-      ? `Redesking voids the signed base payment agreement. <b>${esc(c.first)}</b> will need to review and sign the new structure before the credit application can continue.`
-      : "Return to Calculate Payments to change the base structure before the customer signs."}</div>
-    <div class="bp-highlight"><strong>${esc(sumAmt)}${isCash || deal.dealType === "onepay" ? " total" : " / month"}</strong><span>${sumMeta}</span></div>
-    <div class="bp-sheetacts"><button type="button" class="m-ghost" id="bpSheetCancel">Cancel</button><button type="button" class="bp-danger" id="bpRedeskGo">${signed ? "Void &amp; redesk" : "Redesk payment"}</button></div>
-  </div></div>`;
-
-  wireDeskTop();
-
+  /* a name the signature cannot be made from is refused in the field, in the
+     kit's own error (as the kit's fields say it since W-044–W-048), not in a toast */
   const sig = $("#bpSig");
-  if (sig) sig.oninput = (e) => { $("#bpPreview").textContent = e.target.value; };
+  const sigErr = (on) => {
+    const f = $("#bpSigField"); if (!f) return;
+    f.classList.toggle("rp-field--error", on);
+    const e = $("#bpSigErr", f);
+    if (on && !e) f.insertAdjacentHTML("beforeend", `<div class="rp-field__err" id="bpSigErr">Type the name to sign</div>`);
+    if (!on && e) e.remove();
+  };
+  if (sig) sig.oninput = (e) => { $("#bpPreview").textContent = e.target.value; if (e.target.value.trim()) sigErr(false); };
 
   $("#bpDockGo").onclick = () => {
-    if (signed) return navigate(`#/credit/${deal.id}`);
-    const name = $("#bpSig").value.trim();
-    if (!name) { toast("Enter the customer name before signing"); $("#bpSig").focus(); return; }
-    deal.basePayment = { signedAt: new Date().toISOString(), sigName: name, snapshot: r };
-    deal.stage = "credit"; Store.save(); router();
-    toast("Base payment signed — client agreed to the ballpark structure");
+    if (signed) return navigate(isCash ? `#/menu/${deal.id}` : `#/credit/${deal.id}`);
+    if (deskApproval(deal) !== "approved") return;   /* never a signature before the Team Lead's approval */
+    const name = sig.value.trim();
+    if (!name) { sigErr(true); sig.focus(); return; }
+    deal.basePayment = { signedAt: new Date().toISOString(), sigName: name, snapshot: agreementSnapshot(deal, v, r) };
+    /* no toast (KA-017): the screen it lands on says "Agreement signed", and a pill that floated on over the
+       credit application's dock could not be the record of anything (§24) */
+    deal.stage = isCash || creditLive(deal) ? "menu" : "credit"; Store.save(); router();
   };
 
-  /* redesk always confirms in the sheet — signed or not, it never voids on
-     the first tap (the golden's interaction rule) */
-  const scrim = $("#bpScrim");
-  const openSheet2 = () => scrim.classList.add("show");
-  const closeSheet2 = () => scrim.classList.remove("show");
-  $("#bpRedesk").onclick = openSheet2;
-  const row = $("#bpRedeskRow"); if (row) row.onclick = openSheet2;
-  $("#bpSheetClose").onclick = closeSheet2;
-  $("#bpSheetCancel").onclick = closeSheet2;
-  scrim.onclick = (e) => { if (e.target === scrim) closeSheet2(); };
-  $("#bpRedeskGo").onclick = () => {
-    deal.basePayment = null;
-    if (["signed", "credit"].includes(deal.stage)) deal.stage = "desking";
-    Store.save(); navigate(`#/desk/${deal.id}`);
-  };
+  /* redesk always confirms in the kit's sheet — signed or not, it never
+     voids on the first tap (the golden's interaction rule). A signed
+     agreement set aside takes off what was given on it, and the History
+     keeps it, as a changed trade does (W-110) */
+  const redesk = () => sheets.open(`${chSheetHead(signed ? "Void signature and redesk?" : "Return to desking?")}
+    <p class="rp-sheet__sub">${signed
+      ? `Redesking voids the signed base payment agreement. ${esc(c.first)} will need to review and sign the new structure before ${isCash ? "the Finance Menu" : "the credit application"} can continue.`
+      : "Return to Calculate Payments to change the base structure before the customer signs."}</p>
+    <div class="rp-value"><div class="rp-value__eyebrow">${esc(sumLabel)}</div><div class="rp-value__amount">${esc(sumAmt)}</div><div class="rp-value__sub">${sumMeta}</div></div>
+    <button type="button" class="rp-dialog__button rp-dialog__button--destructive" id="bpRedeskGo" style="width:100%;height:52px;border-radius:15px;margin-top:14px">${signed ? "Void &amp; redesk" : "Redesk payment"}</button>
+    <button type="button" class="rp-link ch-hit" id="bpSheetCancel" data-sheet-close>Cancel</button>`, (sh) => {
+    $("#bpRedeskGo", sh).onclick = () => {
+      /* signed: set aside as a changed trade does (W-110); unsigned: the provisional agreement the desk's
+         Continue opened comes off, and the deal leaves the F&I stage it entered with it, as before the kit
+         (CodeRabbit on #198) */
+      if (signed) setAsideSignature(deal, "redesk");
+      else { deal.basePayment = null; if (["signed", "credit"].includes(deal.stage)) deal.stage = "desking"; }
+      Store.save(); navigate(`#/desk/${deal.id}`);
+    };
+  });
+  const redeskBtn = $("#bpRedesk"); if (redeskBtn) redeskBtn.onclick = redesk;
+  const redeskRow = $("#bpRedeskRow"); if (redeskRow) redeskRow.onclick = redesk;
 });
 
 /* ============================================================
@@ -7995,7 +9384,7 @@ route("agreement/:id", ({ id }) => {
    complete fields, verified identity and joint-credit authorization. Internal
    completion is not lender submission, so the primary action names which one
    it is: "Fix John's items" with gaps, "Mark John ready · waiting on Cheri"
-   when only his half is done, and "Review & submit to lenders" only when both
+   when only John's half is done, and "Review & submit to lenders" only when both
    halves exist. One panel per applicant — one person's actionable items are
    never mixed with another's blocked ones.
 
@@ -8081,7 +9470,7 @@ route("credit/:id", ({ id }) => {
   const timeUS = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
 
   const sheets = chSheetOpener("caScrim", "caSheet", () => { ui.sheet = null; });
-  const ui = { sheet: null, recordOpen: false, channel: null, mode: null };
+  const ui = { sheet: null, recordOpen: false, channel: null, mode: null, addrEdit: false };
 
   /* the wizard's working copy — inputs write here and submit validates here,
      so a step that is not in the DOM still validates (the golden's own
@@ -8142,9 +9531,9 @@ route("credit/:id", ({ id }) => {
          read-only, so they cannot be required here — a required item with no
          input to fix it is a dead end, and what is genuinely absent from the
          record is reported by the identity gate above, whose fix is to scan
-         the licence in the resolver. The co-buyer's identity comes from her
-         own record the same way, so it is required only once she is attached
-         and only as far as her record can answer. */
+         the licence in the resolver. The co-buyer's identity comes from the
+         co-buyer's own record the same way, so it is required only once the
+         co-buyer is attached, and only as far as that record can answer. */
       const ks = [["ssn", "Social Security number"]];
       if (F.appType === "joint" && cbRec()) ks.push(["coFirst", "Co-buyer first name"], ["coLast", "Co-buyer last name"]);
       return ks;
@@ -8193,8 +9582,8 @@ route("credit/:id", ({ id }) => {
   const WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine"];
   const countWord = (n) => WORDS[n] || String(n);
 
-  /* the co-buyer's own half, which the advisor cannot fill: her identity, her
-     fields, and the joint-credit authorization only she can give (§19). Absent
+  /* the co-buyer's own half, which the advisor cannot fill: the co-buyer's
+     identity, fields, and the joint-credit authorization only the co-buyer can give (§19). Absent
      is Waiting — never false, and never assumed done. */
   const coState = () => {
     const rec = remoteFor("cobuyer");
@@ -8311,8 +9700,8 @@ route("credit/:id", ({ id }) => {
           <span class="rp-row__body"><span class="rp-row__title">Choose an existing customer</span><span class="rp-row__sub">Already in the CRM</span></span>
           <span class="rp-row__chevron"></span></button>
       </div>`;
-    /* an attached co-buyer is a person on the deal, not a form to fill: her
-       identity comes from her own record and her progress from her own link */
+    /* an attached co-buyer is a person on the deal, not a form to fill: the
+       co-buyer's identity comes from their own record, and the progress from their own link */
     const coAttached = co ? `<div class="rp-section">Co-buyer</div>
       ${applPanel({
         name: `${co.first} ${co.last}`, role: "Co-buyer · joint",
@@ -8320,11 +9709,11 @@ route("credit/:id", ({ id }) => {
         pct: cs.complete ? 100 : cs.identity ? 66 : cs.opened ? 34 : cs.sent ? 18 : 8,
         blocked: !cs.complete,
         items: cs.complete ? [] : [
-          `Identity verification — ${cs.identity ? `verified ${esc(timeUS(cs.rec.identityAt))}` : cs.opened ? `link opened ${esc(timeUS(cs.rec.openedAt))}` : cs.sent ? "waiting on her link" : "no link sent yet"}`,
-          `Her residence, employment and income — ${cs.fields ? "submitted" : "waiting"}`,
+          `Identity verification — ${cs.identity ? "verified" : cs.opened ? "link opened" : cs.sent ? `waiting on ${esc(co.first)}'s link` : "no link sent yet"}`,
+          `${esc(co.first)}'s residence, employment and income — ${cs.fields ? "submitted" : "waiting"}`,
           `Joint credit authorization — ${cs.authorized ? "signed" : "waiting"}`
         ],
-        ctas: cs.complete ? [] : [{ act: "resend", label: `Resend the ${esc(channelWord())} to ${esc(co.first)}` }, { act: "showroom", label: "She is in the showroom" }]
+        ctas: cs.complete ? [] : [{ act: "resend", label: `Resend the ${esc(channelWord())} to ${esc(co.first)}` }, { act: "showroom", label: `${esc(co.first)} is in the showroom` }]
       })}` : coPaths;
 
     return `<div class="rp-section">Application type</div>
@@ -8349,16 +9738,28 @@ route("credit/:id", ({ id }) => {
   }
 
   function residenceStep() {
-    return `<div class="rp-section">Residence</div>
-      ${field("Street address", "address")}
+    /* §18b (claude-b's KA-011, W-116): the address the record holds is shown as read-only rows, not four fields to
+       retype, and the one figure the record does not hold, the rent or mortgage, comes first. "Change the address"
+       opens the fields for a customer who has moved; a refused address field opens them too, so the refusal shows */
+    const ADDR = ["address", "zip", "city", "state"];
+    const fromRecord = !ui.addrEdit && ADDR.every((k) => String(c[k] || "").trim() && String(F[k] || "").trim() === String(c[k] || "").trim())
+      && !ADDR.some((k) => fieldErr(k));
+    const address = fromRecord
+      ? `<div class="rp-kv" id="caAddrRecord"><div class="rp-kv__head">From the record — nothing to retype</div>
+          ${kvRow("Street address", esc(F.address))}
+          ${kvRow("City, state, ZIP", esc(`${F.city}, ${F.state} ${F.zip}`))}</div>
+        <button type="button" class="rp-link" id="caAddrEdit">Change the address</button>`
+      : `${field("Street address", "address")}
       ${field("ZIP code", "zip", { zip: "city,state" })}
       ${field("City", "city")}
-      ${field("State", "state")}
-      <div class="rp-section">Residential status</div>
+      ${field("State", "state")}`;
+    return `<div class="rp-section">Residential status</div>
       ${segment(["Own", "Rent", "Buying", "Parents", "Other"], "housing")}
       ${field("Monthly rent or mortgage", "housePmt", { inputmode: "numeric", placeholder: "1,800" })}
       ${field("Time at address (years)", "resYrs", { inputmode: "decimal" })}
       ${under3(F.resYrs) ? field("Previous full address", "prevAddr", { placeholder: "Street, city, state, ZIP" }) : ""}
+      <div class="rp-section">Residence</div>
+      ${address}
       ${toggleRow("Mailing address is different", "mailDiff")}
       ${F.mailDiff ? `<div style="height:12px"></div>${field("Mailing address", "mailAddr")}${field("ZIP code", "mailZip", { zip: "mailCity,mailState" })}${field("City", "mailCity")}${field("State", "mailState")}` : ""}`;
   }
@@ -8416,7 +9817,7 @@ route("credit/:id", ({ id }) => {
       status: johnComplete() ? "Complete" : probs.length ? `${missing} missing · ${invalid} invalid` : "Signature needed",
       ok: johnComplete(), pct: johnComplete() ? 100 : Math.max(20, Math.round(100 - probs.length * 9)),
       items: johnComplete() ? [] : johnItems,
-      ctas: johnComplete() ? [{ act: "answers-john", label: "View his answers" }] : [{ act: "fix", label: `Fix ${esc(c.first)}'s items` }]
+      ctas: johnComplete() ? [{ act: "answers-john", label: `View ${esc(c.first)}'s answers` }] : [{ act: "fix", label: `Fix ${esc(c.first)}'s items` }]
     });
     const coPanel = co ? applPanel({
       name: `${co.first} ${co.last}`, role: "Co-buyer · joint",
@@ -8424,11 +9825,11 @@ route("credit/:id", ({ id }) => {
       pct: cs.complete ? 100 : cs.identity ? 66 : cs.opened ? 34 : cs.sent ? 18 : 8,
       blocked: !cs.complete,
       items: cs.complete ? [] : [
-        `Identity verification — ${cs.identity ? `verified ${esc(timeUS(cs.rec.identityAt))}` : cs.opened ? `link opened ${esc(timeUS(cs.rec.openedAt))}` : cs.sent ? "waiting on her link" : "no link sent yet"}`,
-        `Her residence, employment and income — ${cs.fields ? "submitted" : "not started"}`,
+        `Identity verification — ${cs.identity ? "verified" : cs.opened ? "link opened" : cs.sent ? `waiting on ${esc(co.first)}'s link` : "no link sent yet"}`,
+        `${esc(co.first)}'s residence, employment and income — ${cs.fields ? "submitted" : "not started"}`,
         `Joint credit authorization — ${cs.authorized ? "signed" : "waiting"}`
       ],
-      ctas: cs.complete ? [{ act: "answers-co", label: "View her answers" }] : [{ act: "resend", label: `Resend the ${esc(channelWord())} to ${esc(co.first)}` }, { act: "showroom", label: "She is in the showroom" }]
+      ctas: cs.complete ? [{ act: "answers-co", label: `View ${esc(co.first)}'s answers` }] : [{ act: "resend", label: `Resend the ${esc(channelWord())} to ${esc(co.first)}` }, { act: "showroom", label: `${esc(co.first)} is in the showroom` }]
     }) : "";
 
     const ready = isJoint() && co && johnComplete() && cs.complete;
@@ -8485,6 +9886,7 @@ route("credit/:id", ({ id }) => {
     $$("[data-seg]").forEach(b => b.onclick = () => { F[b.dataset.seg] = b.dataset.val; draw(); });
     $$("[data-flag]").forEach(b => b.onclick = () => { if (!requireSubjects()) return; F[b.dataset.flag] = !F[b.dataset.flag]; draw(); });
     const rec = $("[data-record]"); if (rec) rec.onclick = () => { ui.recordOpen = !ui.recordOpen; draw(); };
+    const addrEdit = $("#caAddrEdit"); if (addrEdit) addrEdit.onclick = () => { ui.addrEdit = true; draw(); };
     const scan = $("#caCoScan"); if (scan) scan.onclick = () => coScan();
     $$("[data-appl-cta]").forEach(b => b.onclick = () => applAction(b.dataset.applCta));
     const go = $("#caGo");
@@ -8562,8 +9964,8 @@ route("credit/:id", ({ id }) => {
       return `${chSheetHead(toCo ? "Co-buyer link" : "Application link")}
         <p class="rp-sheet__sub">${ctx}</p>
         <div class="rp-steps">
-          ${stepRow(`Link sent by ${rec.channel === "email" ? "email" : "text"}`, `${esc(rec.to || "")} · ${esc(timeUS(rec.sentAt))}`, "Sent", true)}
-          ${stepRow("Opened", rec.openedAt ? `${esc(timeUS(rec.openedAt))}` : "Waiting on the co-buyer", rec.openedAt ? "Opened" : "Waiting", !!rec.openedAt)}
+          ${stepRow(`Link sent by ${rec.channel === "email" ? "email" : "text"}`, rec.to || "", "Sent", true)}
+          ${stepRow("Opened", rec.openedAt ? "" : "Waiting on the co-buyer", rec.openedAt ? "Opened" : "Waiting", !!rec.openedAt)}
           ${stepRow("Identity verified", "Photo against their license", rec.identityAt ? "Verified" : "Waiting", !!rec.identityAt)}
           ${stepRow("Their fields submitted", "Residence, employment, income", rec.fieldsAt ? "Submitted" : "Waiting", !!rec.fieldsAt)}
         </div>
@@ -8683,30 +10085,49 @@ route("credit/:id", ({ id }) => {
     const agreedApr = a.agreedApr != null ? a.agreedApr : deal.desk.apr;
     const approvedApr = a.approvedApr != null ? a.approvedApr : a.qualifiedApr;
     const base = RIDE_PRICE_CALC.calc(deal, v);
-    const agreedPay = a.agreedPayment != null ? a.agreedPayment : base.payment;
+    /* W-111: both payments are today's deal at each rate, so the difference is the rate's alone. A trade or a term
+       changed since the application went in is not the lender's move (W-110 presents it again), and the amount
+       financed is the same in both rows by construction. The payment agreed when it went in stays in the History. */
+    const agreedPay = RIDE_PRICE_CALC.round2(RIDE_PRICE_CALC.amortize(base.amountFinanced, agreedApr, base.term));
     const approvedPay = RIDE_PRICE_CALC.round2(RIDE_PRICE_CALC.amortize(base.amountFinanced, approvedApr, base.term));
     const term = base.term;
     const agreedTotal = RIDE_PRICE_CALC.round2(agreedPay * term);
     const approvedTotal = RIDE_PRICE_CALC.round2(approvedPay * term);
     const diff = RIDE_PRICE_CALC.round2(approvedPay - agreedPay);
     const diffTotal = RIDE_PRICE_CALC.round2(diff * term);
-    const moved = Math.abs(diff) >= 0.01;
+    const moved = agreedApr !== approvedApr && Math.abs(diff) >= 0.01;
+    /* where the new payment stands (KA-002, W-050): not shown to the customer yet; chosen by them and waiting for
+       the Team Lead; agreed and waiting for the signature; agreed and signed. Re-presenting is offered only while
+       nothing is chosen: the customer's choice and the Team Lead's approval are never undone from here. */
+    const m = moved ? rateMove(deal) : null;
+    const lead = deal.desk.approvedBy || RIDE_PRICE_DATA.dealership.teamLead;
+    const state = !m || !m.chose ? "moved" : !m.reagreed ? "chosen" : !m.signed ? "agreed" : "signed";
+    const head = !moved ? "Approved at the agreed rate"
+      : state === "moved" ? "The rate moved — the payment changed"
+      : state === "chosen" ? `${c.first} chose the new payment — waiting for ${lead}'s approval`
+      : "Re-presented and agreed";
+    const newRow = state === "moved" || state === "chosen"
+      ? kvRow(`Approved · ${esc(String(approvedApr))}% APR`, `${money(approvedPay)} / mo`, `total of payments ${term} × ${money(approvedPay)} = ${money(approvedTotal)}`)
+      : kvRow(`Re-presented and agreed · ${esc(String(approvedApr))}% APR`, `${money(approvedPay)} / mo`, m.signed ? "The agreement is signed at it" : "The agreement signs next");
     const content = `<div class="rp-eyebrow">Lending lane</div>
       <h1 class="rp-title" style="font-size:26px">Approved</h1>
       ${subLine()}
       ${chipRow()}
       <div class="rp-approval" style="padding:12px 16px 10px"><span class="rp-approval__badge">${rpGlyph("check")}Approved by ${esc(a.lender)}</span></div>
       <div class="rp-kv">
-        <div class="rp-kv__head"${moved ? ` style="color:#A54600"` : ""}>${moved ? "The rate moved — the payment changed" : "Approved at the agreed rate"}</div>
-        ${kvRow(`Agreed · ${esc(String(agreedApr))}% APR`, `${money(agreedPay)} / mo`, `total of payments ${term} × ${money(agreedPay)} = ${money(agreedTotal)}`)}
-        ${kvRow(`Approved · ${esc(String(approvedApr))}% APR`, `${money(approvedPay)} / mo`, `total of payments ${term} × ${money(approvedPay)} = ${money(approvedTotal)}`)}
-        ${kvRow("Amount financed", money(base.amountFinanced), "unchanged — only the rate moved")}
-        <div class="rp-kv__row rp-kv__row--src" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Difference</span><span style="font-weight:760">${diff >= 0 ? "+" : "−"}${money(Math.abs(diff))} / mo</span><span class="rp-kv__src">${diff >= 0 ? "+" : "−"}${money(Math.abs(diffTotal))} over the term</span></div>
+        <div class="rp-kv__head"${state === "moved" && moved ? ` style="color:#A54600"` : ""}>${esc(head)}</div>
+        ${kvRow(`${moved && state !== "moved" && state !== "chosen" ? "Originally agreed" : "Agreed"} · ${esc(String(agreedApr))}% APR`, `${money(agreedPay)} / mo`, `total of payments ${term} × ${money(agreedPay)} = ${money(agreedTotal)}`)}
+        ${moved ? newRow : ""}
+        ${kvRow("Amount financed", money(base.amountFinanced), moved ? "unchanged — only the rate moved" : "")}
+        ${moved ? `<div class="rp-kv__row rp-kv__row--src" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Difference</span><span style="font-weight:760">${diff >= 0 ? "+" : "−"}${money(Math.abs(diff))} / mo</span><span class="rp-kv__src">${diff >= 0 ? "+" : "−"}${money(Math.abs(diffTotal))} over the term</span></div>` : ""}
       </div>`;
-    const dock = moved
-      ? chDock(`<button type="button" class="rp-primary" id="caRepresent">Re-present the new payment</button>`,
-        `<a class="rp-link" href="#/menu/${esc(deal.id)}">Manager sign-off</a>`)
-      : chDock(`<a class="rp-primary" style="display:grid;place-items:center" href="#/menu/${esc(deal.id)}">Manager sign-off</a>`);
+    /* the way on: re-present while nothing is chosen (the only one: no link skips it, CB-A9); the pencil while
+       the Team Lead's answer or the signature is outstanding; the Finance Menu once agreed and signed, as when
+       nothing moved */
+    const toMenu = `<a class="rp-primary" style="display:grid;place-items:center" href="#/menu/${esc(deal.id)}">Manager sign-off</a>`;
+    const dock = !moved || state === "signed" ? chDock(toMenu)
+      : state === "moved" ? chDock(`<button type="button" class="rp-primary" id="caRepresent">Re-present the new payment</button>`)
+      : chDock(`<a class="rp-primary" style="display:grid;place-items:center" href="#/desk/${esc(deal.id)}">${state === "chosen" ? "Open the pencil" : "Continue on the pencil"}</a>`);
     paint(content, dock);
     const rp = $("#caRepresent");
     /* re-presenting hands the phone back to desking's present mode on the
@@ -8924,7 +10345,7 @@ function migrateMenuV5(deal) {
   if (!M || M.v5) return;
   if (M.step >= 2) M.step += 1;
   if ((M.maxStep || 1) >= 2) M.maxStep = (M.maxStep || 1) + 1;
-  M.v5 = true; Store.save();
+  M.v5 = true; saveSoft();
 }
 
 /* ============================================================
@@ -8949,7 +10370,7 @@ route("present/:id", ({ id }) => {
   /* this IS step 2 of the menu */
   migrateMenuV5(deal);
   const M2 = deal.menu;
-  M2.step = 2; M2.maxStep = Math.max(M2.maxStep || 1, 2); Store.save();
+  M2.step = 2; M2.maxStep = Math.max(M2.maxStep || 1, 2); saveSoft();
   const toOptions = () => {
     M2.presented = true; M2.step = 3; M2.maxStep = Math.max(M2.maxStep || 1, 3); Store.save();
     navigate(`#/menu/${deal.id}`);
@@ -8958,14 +10379,21 @@ route("present/:id", ({ id }) => {
 
   renderChrome("Product Presentation", dealTitle(deal), "");
   document.body.dataset.screen = "present";
-  document.body.dataset.canvas = "master";
+  /* FP-014 · the presentation on the kit, as the owner's picture drew it (#157,
+     visuals/fi-kit-proposal.png, answered 2026-09-24): the task shell in the
+     kit's present mode (the customer is shown this screen, so no role
+     control), the one context row, the chip rail, the kit's card with the
+     finance menu's ticked rows, and the kit's gate dock with its line over the
+     primary. What happens underneath is as it was: the tiles, the menu's steps
+     2 and 3, the mileage and budget math, Back to the terms. */
+  document.body.dataset.canvas = "kit";
 
   /* rail icons: line icons only (owner ruling) — the presentations' emoji
      never reach an icon slot */
   const PRESENT_ICON = {
     rate: "percent", term: "calendar", vsc10: "shield", vsc7: "shield",
     ppm8: "wrench", ppm3: "wrench", gap: "umbrella", multi: "box",
-    appear: "sparkle", lep: "key", wind: "windshield", roadhaz: "wheel",
+    appear: "sparkle", lep: "key", wind: "windshield", roadhaz: "wheel", tw5: "wheel",
     keyrep: "key", tlp: "carplus", recovery: "radar"
   };
 
@@ -8976,7 +10404,7 @@ route("present/:id", ({ id }) => {
       key,
       label: pres.label || (p ? p.name : key),
       short: pres.short || pres.label || (p ? p.name : key),
-      icon: rpIcon(PRESENT_ICON[key] || "shield"),
+      icon: PRESENT_ICON[key] || "shield",
       headline: pres.headline || "",
       body: pres.body || "",
       benefits: pres.benefits || [],
@@ -9000,106 +10428,86 @@ route("present/:id", ({ id }) => {
     end.setMonth(end.getMonth() + vscMonths);
     return { factoryMonths, vscYears, vscMiles, endLabel: end.toLocaleDateString("en-US", { month: "long", year: "numeric" }) };
   };
+  /* in the picture's words: "up to 7 years or 100,000 miles — through March 2033" */
   const mileCopy = () => {
     const mm = mileageMath();
-    return `At <b>${esc(miles.toLocaleString())} miles a year</b>, the factory comprehensive coverage expires in <b>${mm.factoryMonths} months</b>. This benefit mirrors the manufacturer for up to <b>${mm.vscYears} years / ${mm.vscMiles.toLocaleString()} miles</b> — peace of mind until <b class="mp-good">${esc(mm.endLabel)}</b>.`;
+    return `At <b>${esc(miles.toLocaleString())} miles a year</b>, the factory comprehensive coverage expires in <b>${mm.factoryMonths} months</b>. This benefit mirrors the manufacturer for up to <b>${mm.vscYears} years or ${mm.vscMiles.toLocaleString()} miles</b> — through <b>${esc(mm.endLabel)}</b>.`;
   };
 
-  const benefitHtml = (b) => `<div class="mp-benefit"><span class="mp-check">✓</span><span>${esc(b)}</span></div>`;
+  /* a benefit is the finance menu's ticked product row: a line icon, not a character */
+  const benefitHtml = (b) => `<div class="rp-product" style="padding:6px 0"><span class="rp-product__tick">${rpGlyph("check")}</span><span class="rp-product__name" style="font-weight:600">${esc(b)}</span></div>`;
 
   function rateRows() {
     const q = deal.creditApp || {};
-    if (!q.approved) return `<p class="mp-hint">Submit the credit application to present the qualified rate.</p>`;
-    return `<div class="mp-compare">
-      <div class="mp-cmprow"><span>Agreed rate (structure)</span><strong>${esc(String(deal.desk.apr))}%</strong></div>
-      <div class="mp-cmprow good"><span>Qualified rate (${esc(q.lender)})</span><strong>${esc(String(q.qualifiedApr))}%</strong></div>
-    </div>`;
+    /* live, not merely approved: an application withdrawn with the co-buyer
+       is history, and the card asks what every other screen asks (RP-UI-058) */
+    if (!creditLive(deal)) return `<p class="rp-fine" style="text-align:left">Submit the credit application to present the qualified rate.</p>`;
+    return `<div class="rp-kv"><div class="rp-kv__row"><span>Agreed rate (structure)</span><span>${esc(String(deal.desk.apr))}%</span></div>
+      <div class="rp-kv__row"><span>Qualified rate (${esc(q.lender)})</span><span class="rp-delta">${esc(String(q.approvedApr != null ? q.approvedApr : q.qualifiedApr))}%</span></div></div>`;
   }
 
   function cardHtml(t) {
-    const q = deal.creditApp || {};
-    return `<section class="mp-card">
-      <div class="mp-kicker">${esc(t.label.toUpperCase())}</div>
-      <div class="mp-titlerow"><h2 class="mp-title">${esc(t.headline)}</h2>${t.key === "rate" && q.approved ? `<span class="mp-dot" aria-label="Approved"></span>` : ""}</div>
-      ${t.product ? `<div class="mp-pills"><span class="mp-pill">${esc(t.product.detail)}</span></div>` : ""}
-      <p class="mp-body">${esc(t.body)}</p>
-      ${t.benefits.length ? `<div class="mp-benefits">${t.benefits.map(benefitHtml).join("")}</div>` : ""}
+    const vsc = sel === "vsc10" || sel === "vsc7";
+    return `<section class="rp-card">
+      <div class="rp-eyebrow">${esc(t.label)}</div>
+      <div class="rp-card__title" role="heading" aria-level="2" style="font-size:22px;letter-spacing:-.02em;margin:6px 0 10px">${esc(t.headline)}${t.key === "rate" && creditLive(deal) ? ` <span class="rp-tag rp-tag--match">Approved</span>` : ""}</div>
+      ${t.product ? `<span class="rp-tag" style="background:#ECECF1;display:inline-block;margin-bottom:10px">${esc(t.product.detail)}</span>` : ""}
+      <p class="rp-card__line" style="line-height:1.5">${esc(t.body)}</p>
+      ${t.benefits.length ? `<div style="margin-top:8px">${t.benefits.map(benefitHtml).join("")}</div>` : ""}
       ${t.key === "rate" ? rateRows() : ""}
-      ${sel === "vsc10" || sel === "vsc7" ? `
-      <div class="mp-mileage">
-        <div class="mp-miletop"><div class="mp-miletitle">Your driving changes the warranty timeline</div><div class="mp-milevalue" id="mpMileVal">${esc(miles.toLocaleString())} mi/yr</div></div>
-        <input class="mp-range" id="mpMiles" type="range" min="5000" max="25000" step="2500" value="${esc(String(miles))}" aria-label="Annual mileage">
-        <p class="mp-milecopy" id="mpMileCopy">${mileCopy()}</p>
+      ${vsc ? `<div class="rp-field" style="margin-top:14px">
+        <div class="rp-question" style="display:flex;justify-content:space-between;gap:12px;margin-top:0"><span>Your driving changes the warranty timeline</span><span style="flex:none;white-space:nowrap" id="mpMileVal">${esc(miles.toLocaleString())} mi/yr</span></div>
+        <input class="rp-range" id="mpMiles" type="range" min="5000" max="25000" step="2500" value="${esc(String(miles))}" aria-label="Annual mileage">
+        <p class="rp-card__line" style="color:var(--rp-muted)" id="mpMileCopy">${mileCopy()}</p>
       </div>` : ""}
-      ${t.product ? `<div class="mp-actions">
-        <button type="button" class="mp-ghost" id="mpBudget">Budget impact</button>
-      </div>` : ""}
-      <button type="button" class="mp-textbtn" id="mpMore">${t.key === "rate" ? "See why this rate is credible" : "More product details"}</button>
+      ${t.product ? `<div style="margin-top:14px"><button type="button" class="rp-button-navy" id="mpBudget">Budget impact</button></div>` : ""}
+      <button type="button" class="rp-link" id="mpMore">${t.key === "rate" ? "See why this rate is credible" : "More product details"}</button>
     </section>`;
   }
 
-  const sheetTop = (title) => `<div class="m-sheettop"><div class="m-sheettitle">${esc(title)}</div><button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>`;
-  const openSheet2 = (html) => { $("#mpSheet").innerHTML = `<div class="m-handle"></div>${html}`; $("#mpScrim").classList.add("show"); };
-  const closeSheet2 = () => $("#mpScrim").classList.remove("show");
+  /* one sheet for the screen: Budget impact, More, and the buyers, the kit's
+     buyers sheet the Finance Menu opens (not the master sheet the global
+     data-buyers opens) */
+  let buyers = null, buyersOpen = false;
+  const sheets = chSheetOpener("fpScrim", "fpSheet", () => { buyersOpen = false; });
 
   function render() {
+    /* a redraw closes the sheet it does not reopen, so its focus trap and the
+       page behind it are released, as the Finance Menu does (claude-c) */
+    if (!buyersOpen) sheets.close();
     const t = tileInfo(sel);
     const i = tileKeys.indexOf(sel);
     const last = i === tileKeys.length - 1;
-    view().innerHTML = `
-    <div class="m-app">
-      ${masterTop()}
-      <div class="m-hero">
-        <div class="m-eyebrow">F&amp;I · ${esc(prog.label.toUpperCase())} · PRODUCT PRESENTATION</div>
-        <h1 class="m-h1">Present the protection</h1>
-      </div>
-      <div class="m-context">
-        <div class="m-context-copy">
-          <div class="m-context-name">${esc(c.first + " " + c.last)}</div>
-          <div class="m-context-meta">${deal.dealNo ? `Deal #${esc(deal.dealNo)} · ` : ""}${esc(v.year + " " + v.make + " " + v.model)}</div>
-        </div>
-        <button type="button" class="m-rolepill" data-buyers="${esc(deal.id)}">Buyer</button>
-      </div>
-      <nav class="mp-rail" aria-label="Products">
-        ${tileKeys.map(k => {
-          const ti = tileInfo(k);
-          return `<button type="button" class="mp-tab${k === sel ? " active" : ""}" data-tile="${esc(k)}" aria-pressed="${k === sel}">
-            ${visited.has(k) && k !== sel ? `<span class="mp-seen" aria-label="Presented">✓</span>` : ""}
-            <span class="mp-tabicon">${ti.icon}</span><span>${esc(ti.short)}</span>
-          </button>`;
-        }).join("")}
-      </nav>
-      <div class="mp-content">${cardHtml(t)}</div>
-    </div>
-    <div class="mp-dock">
-      <div class="mp-dockcopy">
-        <div class="mp-docklab">Now presenting · ${visited.size} of ${tileKeys.length}</div>
-        <div class="mp-dockval">${esc(t.label)}</div>
-      </div>
-      <button type="button" class="mp-primary" id="mpNext">${last ? "Done — Repayment Options" : `Next: ${esc(tileInfo(tileKeys[i + 1]).short)}`}</button>
-    </div>
-    <div class="m-scrim" id="mpScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="mpSheet"></div></div>`;
+    const rail = `<div class="rp-chips rp-chips--rail" role="group" aria-label="Products">${tileKeys.map(k => {
+      const ti = tileInfo(k), on = k === sel;
+      return `<button type="button" class="rp-chip${on ? " rp-chip--on" : ""}" data-tile="${esc(k)}" aria-pressed="${on}">${rpIconGlyph(ti.icon)}${esc(ti.short)}${visited.has(k) && !on ? `<span class="fp-seen" style="color:var(--rp-green);display:inline-grid" role="img" aria-label="Presented">${rpGlyph("check")}</span>` : ""}</button>`;
+    }).join("")}</div>`;
+    /* RP-UI-061: the last product's primary names where it goes, the Finance
+       Menu's Choose a protection package, in the dock's own "Next: …" words */
+    const dock = chGateDock(`Now presenting ${visited.size} of ${tileKeys.length} · ${esc(t.label)}`,
+      `<button type="button" class="rp-primary" id="mpNext">${last ? "Next: Choose a package" : `Next: ${esc(tileInfo(tileKeys[i + 1]).short)}`}</button>`);
+    view().innerHTML = chShell({ template: "task", title: c.first + " " + c.last, closeId: "fpClose", closeLabel: "Back to the deal terms", cls: "rp-screen--present rp-screen--gate" },
+      `<div class="rp-eyebrow">F&amp;I · ${esc(prog.label)}</div><h1 class="rp-title">Present the protection</h1>
+      <div class="rp-filter"><span><b>${esc(c.first + " " + c.last)}</b> &middot; ${esc(v.year + " " + v.make + " " + v.model)}</span><button type="button" class="rp-filter__control ch-hit" id="fpBuyers">${rpIconGlyph("user")}<b>Buyer</b></button></div>
+      ${rail}${cardHtml(t)}`, dock, { scrim: "fpScrim", sheet: "fpSheet" });
+    chFitDock(".rp-dock");
 
-    wireMasterTop();
-    $("#mBack").onclick = backToTerms; /* back returns to Purchase Terms, not history */
+    $("#fpClose").onclick = backToTerms; /* back returns to Purchase Terms, not history */
+    $("#fpBuyers").onclick = () => { buyersOpen = true; buyers = null; render(); };
 
     $$("[data-tile]").forEach(b => b.onclick = () => { sel = b.dataset.tile; visited.add(sel); render(); });
     /* render() replaces the rail, which resets scrollLeft to 0 — on a phone
        that leaves the tile you just tapped off-screen. Re-centre it. */
-    const rail = $(".mp-rail"), onTile = $(".mp-tab.active");
-    if (rail && onTile && rail.scrollWidth > rail.clientWidth) {
-      const r = rail.getBoundingClientRect(), tr = onTile.getBoundingClientRect();
-      rail.scrollLeft += (tr.left - r.left) - (r.width - tr.width) / 2;
+    const railEl = $("#view .rp-chips--rail"), onChip = railEl && $(".rp-chip--on", railEl);
+    if (railEl && onChip && railEl.scrollWidth > railEl.clientWidth) {
+      const r = railEl.getBoundingClientRect(), tr = onChip.getBoundingClientRect();
+      railEl.scrollLeft += (tr.left - r.left) - (r.width - tr.width) / 2;
     }
 
     $("#mpNext").onclick = () => {
       if (last) return toOptions();
       sel = tileKeys[i + 1]; visited.add(sel); render();
     };
-
-    /* the sheet shell is re-rendered closed; content is injected on open */
-    const scrim = $("#mpScrim");
-    scrim.onclick = (e) => { if (e.target === scrim || e.target.closest("[data-sheet-close]")) closeSheet2(); };
 
     const mpMiles = $("#mpMiles");
     if (mpMiles) mpMiles.oninput = () => {
@@ -9108,24 +10516,24 @@ route("present/:id", ({ id }) => {
       $("#mpMileCopy").innerHTML = mileCopy();
     };
 
+    /* Budget impact: the two figures, and no line explaining the app (the
+       owner's rule of 2026-09-26) */
     const budgetBtn = $("#mpBudget");
     if (budgetBtn) budgetBtn.onclick = () => {
       const b = mdBudget(t.product);
-      openSheet2(`${sheetTop("Monthly / daily budget")}
-        <p class="mp-body" style="margin-top:0">The impact of ${esc(t.label)} inside the ${esc(String(term))}-month structure — derived from the deal, not typed in.</p>
-        <div class="mp-budget">
-          <div class="mp-stat"><div class="mp-statlab">Monthly</div><div class="mp-statval">${esc(money(b.monthly))}</div></div>
-          <div class="mp-stat"><div class="mp-statlab">Daily</div><div class="mp-statval">${esc(money(b.daily))}</div></div>
-        </div>
-        <p class="mp-sheetnote">≈ ${esc(money(b.daily))} a day over ${esc(String(term))} months.</p>
-        <button type="button" class="mp-primary mp-wide" data-sheet-close>Back to product</button>`);
+      sheets.open(`${chSheetHead("Monthly / daily budget")}
+        <div class="rp-kv"><div class="rp-kv__row"><span>Monthly</span><span>${esc(money(b.monthly))}</span></div><div class="rp-kv__row"><span>Daily</span><span>${esc(money(b.daily))}</span></div></div>
+        <p class="rp-fine">≈ ${esc(money(b.daily))} a day over ${esc(String(term))} months.</p>
+        <button type="button" class="rp-primary" data-sheet-close>Back to product</button>`);
     };
 
-    $("#mpMore").onclick = () => openSheet2(`${sheetTop(t.label)}
-      ${t.product ? `<div class="mp-pills" style="margin-top:0"><span class="mp-pill">${esc(t.product.detail)}</span></div>` : ""}
-      <p class="mp-body">${esc(t.body)}</p>
-      <div class="mp-morelist">${t.benefits.map(b => `<div class="mp-morerow">✓ ${esc(b)}</div>`).join("")}</div>
-      <button type="button" class="mp-primary mp-wide" data-sheet-close>${t.key === "rate" || t.key === "term" ? "Done" : "Back to product"}</button>`);
+    $("#mpMore").onclick = () => sheets.open(`${chSheetHead(t.label)}
+      ${t.product ? `<span class="rp-tag" style="background:#ECECF1;display:inline-block;margin-bottom:10px">${esc(t.product.detail)}</span>` : ""}
+      <p class="rp-card__line" style="line-height:1.5">${esc(t.body)}</p>
+      <div style="margin:8px 0 14px">${t.benefits.map(benefitHtml).join("")}</div>
+      <button type="button" class="rp-primary" data-sheet-close>${t.key === "rate" || t.key === "term" ? "Done" : "Back to product"}</button>`);
+
+    if (buyersOpen) { if (buyers) buyers.open(); else buyers = buyersKitSheet(deal, sheets, reopen => { if (reopen) buyersOpen = true; render(); }); }
   }
 
   render();
@@ -9171,6 +10579,24 @@ route("present/:id", ({ id }) => {
    term, initials selecting a program, a decline being a recorded choice,
    trade-locked forms, the acknowledgment gate, and the DMS push folded into
    Finalize and recorded against the Team Lead who approved the deal. */
+/* phase 2 · the Finance Menu's DMS push, kept per deal outside the screen: a
+   push still out when the screen is left shows on the next visit and answers
+   there, and a deal is never pushed twice. menuEntry is the visit of the
+   Finance Menu that is on screen now. */
+const dmsPushes = new Map();
+let menuEntry = null;
+/* a push waiting for a connection goes by itself once the connection is
+   back, on the Finance Menu or not ("It pushes by itself when you are back
+   online"); a push left over from before a reset is dropped */
+function dmsResume() {
+  if (RIDE_PRICE_SERVICES.reallyOffline() || RIDE_PRICE_SERVICES.mode("dms") === "offline") return;
+  dmsPushes.forEach((p, id) => {
+    if (Store.deal(id) !== p.deal) { dmsPushes.delete(id); return; }
+    if (p.error === "offline" && p.resume) p.resume();
+  });
+}
+window.addEventListener("ride-price:switches", dmsResume);
+window.addEventListener("online", dmsResume);
 route("menu/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal || !deal.stock) return redirect("#/deals");
   const v = Store.vehicle(deal.stock);
@@ -9193,6 +10619,15 @@ route("menu/:id", ({ id }) => {
   document.body.dataset.canvas = "kit";
 
   const ui = { sheet: null, pack: null, packScroll: 0, taxOpen: false };
+  /* phase 2 · this deal's DMS push (the owner's pictures A–F): working, slow,
+     failed, offline or waiting on a sign-in, carried over from an earlier
+     visit when one is still out */
+  const held = dmsPushes.get(deal.id);
+  const push = held && held.deal === deal ? held : { deal, busy: false, slow: false, error: null, pending: null, resume: null };
+  menuEntry = { id: deal.id, ui, draw: () => draw() };
+  /* the visit of this deal's Finance Menu on screen now, if any */
+  const menuNow = () => menuEntry && menuEntry.id === deal.id && location.hash === `#/menu/${deal.id}` ? menuEntry : null;
+  const redraw = () => { const e = menuNow(); if (e) e.draw(); };
   const sheets = chSheetOpener("fmScrim", "fmSheet", () => { ui.sheet = null; });
   let buyers = null;
 
@@ -9201,32 +10636,61 @@ route("menu/:id", ({ id }) => {
      on this deal type resolves to null rather than throwing. */
   const programSpec = (key) => {
     if (key === "custom") {
-      const src = M.customSource === "budget" && progSet.budget ? progSet.budget : null;
-      return { label: "Custom", products: M.custom, termAdj: src ? src.termAdj : 0, aprAdj: src ? src.aprAdj : 0 };
+      /* priced over the deal's own term and rate, as every package is (KA-013) */
+      return { label: "Custom", products: M.custom };
     }
     return progSet[key] || null;
   };
-  /* a snapshot from a different deal type is not this deal's snapshot */
-  const snapshot = () => {
-    const s = deal.basePayment && deal.basePayment.snapshot;
-    return s && s.dealType === deal.dealType ? s : RIDE_PRICE_CALC.calc(deal, v);
-  };
-  if ((M.maxStep || 1) < M.step) { M.maxStep = M.step; Store.save(); }
+  if ((M.maxStep || 1) < M.step) { M.maxStep = M.step; saveSoft(); }
   if (!deal.signoff && deal.stage === "complete") {
-    deal.signoff = { by: lead, at: deal.createdAt, backfilled: true }; Store.save();
+    deal.signoff = { by: lead, at: deal.createdAt, backfilled: true }; saveSoft();
   }
   const STEP_OF = [1, 3, 4, 5];
   const STAGES = ["Terms", "Options", "Forms", "Finalize"];
   const stageOf = (step) => step >= 5 ? 3 : step >= 4 ? 2 : step >= 3 ? 1 : 0;
   /* the agreed payment is the one the customer actually agreed to — the
      re-presented figure when the lender moved the rate (§18), which is why
-     the menu prices at the approved rate and the original is history */
+     the menu prices at the approved rate and the original is history. It is
+     priced as THIS deal is paid (RP-UI-051, RP-UI-052): a lease at the factor
+     its packages are priced at, a one-pay and a cash deal as the total they
+     are. It used to be the finance payment on every deal type, so a lease's
+     terms read an APR and an amount financed, and a package on a cash deal
+     stated its difference from a monthly payment nobody pays. */
   const agreed = () => {
     const a = deal.creditApp;
+    if (isCash) {
+      const r = RIDE_PRICE_CALC.cash(deal, v);
+      return { payment: r.totalDue, isTotal: true, result: r };
+    }
+    if (isLease) {
+      /* the factor exactly as menuColumn takes it, so the agreed figure is
+         the No products column's own; lease() and onePay() fall back to the
+         desk's factor when an approval carries none */
+      const factor = creditLive(deal) ? a.leaseFactor : deal.desk.leaseFactor;
+      if (deal.dealType === "onepay") {
+        const r = RIDE_PRICE_CALC.onePay(deal, v, { factor });
+        return { payment: r.onePayTotal, isTotal: true, term: r.term, result: r };
+      }
+      const r = RIDE_PRICE_CALC.lease(deal, v, { factor });
+      return { payment: r.payment, term: r.term, result: r };
+    }
     const apr = creditLive(deal) && a.approvedApr != null ? a.approvedApr : deal.desk.apr;
     const r = RIDE_PRICE_CALC.finance(deal, v, { apr, term: deal.desk.term });
-    return { apr, payment: r.payment, result: r };
+    return { apr, payment: r.payment, term: deal.desk.term, result: r };
   };
+  /* what this deal pays, in words: a monthly payment, or a total */
+  const payWord = (x) => x.isTotal ? "total" : "payment";
+  const payUnit = (x) => x.isTotal ? " total" : " / mo";
+  /* the agreed terms in the pencil's own words for each deal type */
+  const agreedTerms = (ag) => isCash ? `${esc(v.year + " " + v.model)} · cash, no financing`
+    : deal.dealType === "onepay" ? `${ag.term} months · ${ag.result.miles.toLocaleString()} mi/yr · paid in full at signing`
+    : isLease ? `${ag.term} months · ${ag.result.miles.toLocaleString()} mi/yr · ${money0(ag.result.dueAtSigning)} due at signing`
+    : `${deal.desk.term} months · ${esc(String(ag.apr))}% APR · ${money0(deal.desk.downPayment)} down`;
+  /* a package's terms in the same words, with no APR where there is none */
+  const packageTerms = (col, ag) => isCash ? "cash, no financing"
+    : deal.dealType === "onepay" ? `${col.term} months · paid in full at signing`
+    : isLease ? `${col.term} months · ${col.result.miles.toLocaleString()} mi/yr`
+    : `${col.term || deal.desk.term} months · ${esc(String(col.apr != null ? col.apr : ag.apr))}% APR`;
 
   /* ---------- the kit pieces ---------- */
   const chipRow = () => {
@@ -9271,7 +10735,7 @@ route("menu/:id", ({ id }) => {
       name: "Deal Jacket",
       sub: led.ready
         ? `${led.requiredFiled} of ${led.requiredTotal} · ${led.optionalFiled} optional`
-        : `${led.requiredFiled} of ${led.requiredTotal} · ${led.outstanding.length} outstanding${led.conditionalOutstanding.length ? `, ${led.conditionalOutstanding.length} conditional` : ""}`,
+        : `${led.requiredFiled} of ${led.requiredTotal} · ${ledgerOwed(led)}`,
       status: led.ready ? "Complete" : excused ? "Override" : "Blocked",
       state: led.ready ? "ok" : excused ? "warn" : "blocked"
     };
@@ -9282,50 +10746,75 @@ route("menu/:id", ({ id }) => {
     const led = jacketLedger(deal);
     const jov = jacketRead(deal).override;
     const a = deal.creditApp;
+    /* a rate the lender moved: the approval is Ready only once the customer has the new payment, presented, chosen,
+       approved and signed (§18, KA-002, W-050); until then the credit application's row says which step it waits on.
+       The package's four rows stay four. */
+    const rm = rateMove(deal);
+    const first = c ? c.first : "the customer";
+    const creditReady = creditLive(deal) && (!rm || rm.signed);
+    /* BP-012 (RP-UI-059, the owner's answer of 2026-09-24): a signed cash deal comes on to this sign-off, and a
+       cash purchase has no credit application, so that row says so and holds nothing, as the test drive's row
+       holds nothing. The package's four rows stay four. */
+    const cashDeal = deal.dealType === "cash";
     const rows = [
-      { name: "Base payment agreement", sub: deal.basePayment && deal.basePayment.signedAt ? `Signed ${timeUS(deal.basePayment.signedAt)}` : "Not signed",
+      { name: "Base payment agreement", sub: deal.basePayment && deal.basePayment.signedAt ? "Signed" : "Not signed",
         status: deal.basePayment && deal.basePayment.signedAt ? "Ready" : "Blocked", state: deal.basePayment && deal.basePayment.signedAt ? "ok" : "blocked" },
-      { name: "Credit application",
-        sub: creditLive(deal) ? `Approved · ${a.lender} · ${a.approvedApr != null ? a.approvedApr : a.qualifiedApr}% APR`
-          : a && a.withdrawnAt ? "Withdrawn with the co-buyer" : a ? "Submitted" : "Not submitted",
-        status: creditLive(deal) ? "Ready" : "Blocked", state: creditLive(deal) ? "ok" : "blocked" },
+      cashDeal ? { name: "Credit application", sub: "A cash purchase has none", status: "Not needed", state: "" } : { name: "Credit application",
+        sub: !creditLive(deal) ? (a && a.withdrawnAt ? "Withdrawn with the co-buyer" : a ? "Submitted" : "Not submitted")
+          : !rm ? `Approved · ${a.lender} · ${a.approvedApr != null ? a.approvedApr : a.qualifiedApr}% APR`
+          : rm.signed ? `Approved · ${a.lender} · ${rm.approvedApr}% APR · the new payment, ${money(rm.approvedPay)} / mo, presented and agreed`
+          : rm.reagreed ? `Approved at ${rm.approvedApr}% · the new payment, ${money(rm.approvedPay)} / mo, agreed; the agreement is not signed at it yet`
+          : rm.chose ? `Approved at ${rm.approvedApr}% · ${first} chose the new payment, ${money(rm.approvedPay)} / mo; waiting for ${deal.desk.approvedBy || lead}'s approval on the pencil`
+          : `Approved at ${rm.approvedApr}% · the new payment, ${money(rm.approvedPay)} / mo, is not presented to ${first} yet (agreed ${money(rm.agreedPay)} at ${rm.agreedApr}%)`,
+        status: creditReady ? "Ready" : "Blocked", state: creditReady ? "ok" : "blocked" },
       /* the test drive is recorded and does not block — it is advisory, and
          the word on the row says so rather than a pill that looks like a gate */
       { name: "Test drive", sub: deal.testDrive.done ? `Completed${deal.testDrive.completedMiles ? ` · ${deal.testDrive.completedMiles} miles` : ""}` : "Not completed", status: "Advisory", state: "" },
       jacketRow()
     ];
-    const blockers = rows.filter((r, i) => r.state === "blocked" && i !== 2);
+    const blockers = rows.filter((r) => r.state === "blocked" && r.name !== "Test drive");
     const canApprove = blockers.length === 0 || (blockers.length === 1 && blockers[0].name === "Deal Jacket" && jov);
     const req = M.approvalRequestedAt;
 
     const approvalKv = isTeamLead()
       ? kvBlock("Approval", [
-        kvRow("Requested", req ? `${esc(timeUS(req))} · by the ${esc(M.approvalRequestedBy || "advisor")}` : "Not yet requested"),
+        /* W-043: the name of who asked, as Needs you names it for a desk approval;
+           an ask saved before this change says "advisor", and the deal's advisor stands in */
+        kvRow("Requested", req ? `by ${esc(M.approvalRequestedBy && M.approvalRequestedBy !== "advisor" ? M.approvalRequestedBy : dealAdvisor(deal))}` : "Not yet requested"),
         kvRow("Yours to approve", `${esc(lead)} · Team Lead`)])
       : kvBlock("Approval", [
         kvRow("Yours to approve", "No — Advisor"),
         kvRow("Waiting on", `${esc(lead)} · Team Lead`),
-        ...(req ? [kvRow("Requested", `${esc(timeUS(req))} · by you`)] : [])]);
+        ...(req ? [kvRow("Requested", "by you")] : [])]);
 
     const resolveRow = isTeamLead() && !led.ready && !jov ? `<div class="rp-group">
       <button type="button" class="rp-row" data-sheet-open="override"><span class="rp-tile">${rpGlyph("document")}</span>
         <span class="rp-row__body"><span class="rp-row__title">Resolve the Deal Jacket blocker</span>
           <span class="rp-row__sub">${esc(led.blocking.slice(0, 2).map(d => d.label).join(" · "))}${led.blocking.length > 2 ? ` · and ${led.blocking.length - 2} more` : ""}</span></span>
         <span class="rp-row__chevron"></span></button></div>` : "";
+    /* the advisor's way on while the new payment is not presented: the credit application's own Re-present */
+    const representRow = rm && !rm.chose && !isTeamLead() ? `<div class="rp-group">
+      <a class="rp-row" id="fmRepresent" href="#/credit/${esc(deal.id)}"><span class="rp-tile">${rpGlyph("document")}</span>
+        <span class="rp-row__body"><span class="rp-row__title">Re-present the new payment</span>
+          <span class="rp-row__sub">${esc(money(rm.approvedPay))} / mo at ${esc(String(rm.approvedApr))}%, from the credit application</span></span>
+        <span class="rp-row__chevron"></span></a></div>` : "";
 
     const content = `<div class="rp-eyebrow">Finance handoff</div>
       <h1 class="rp-title" style="font-size:26px">Manager sign-off</h1>
       ${subLine()}${chipRow()}
       ${gateRows(rows)}
       ${approvalKv}
-      ${jov ? doneNotice(`Override recorded ${timeUS(jov.at)} by ${jov.by} — ${jov.reason}`) : ""}
-      ${resolveRow}`;
+      ${jov ? doneNotice("Override recorded") : ""}
+      ${resolveRow}${representRow}`;
 
-    /* §23: the waiting role gets the actions it actually has */
+    /* §23: the waiting role gets the actions it actually has; the note names what holds Approve */
+    const heldBy = creditLive(deal) && rm && !rm.signed && blockers.every((r) => r.name === "Credit application" || (r.name === "Deal Jacket" && jov))
+      ? `Approve waits until ${esc(first)} has the new payment`
+      : "Approve stays unavailable while a required document is outstanding";
     const dock = isTeamLead()
       ? (canApprove
         ? chDock(`<button type="button" class="rp-primary" id="fmApprove">Approve finance menu</button>`)
-        : `<div class="rp-dock"><div class="rp-gatenote">Approve stays unavailable while a required document is outstanding</div>
+        : `<div class="rp-dock"><div class="rp-gatenote">${heldBy}</div>
             <button type="button" class="rp-primary" disabled>Approve finance menu</button></div>`)
       : `<div class="rp-dock"><div class="rp-gatenote">An Advisor cannot approve the finance menu</div>
           <button type="button" class="rp-primary" id="fmAsk">${req ? `${esc(lead)} has been asked` : `Ask ${esc(lead)} to approve`}</button>
@@ -9341,13 +10830,13 @@ route("menu/:id", ({ id }) => {
     const ask = $("#fmAsk");
     if (ask) ask.onclick = () => {
       M.approvalRequestedAt = M.approvalRequestedAt || new Date().toISOString();
-      M.approvalRequestedBy = "advisor";
+      M.approvalRequestedBy = Store.s.advisor;
       Store.save(); draw();
     };
     const park = $("#fmPark");
     if (park) park.onclick = () => {
       M.approvalRequestedAt = M.approvalRequestedAt || new Date().toISOString();
-      M.approvalRequestedBy = "advisor";
+      M.approvalRequestedBy = Store.s.advisor;
       Store.save(); navigate("#/deals");
     };
   }
@@ -9355,32 +10844,37 @@ route("menu/:id", ({ id }) => {
   /* ---------- stage 1 · the terms ---------- */
   function termsScreen() {
     const ag = agreed();
-    const snap = snapshot();
     const a = deal.creditApp || {};
     const r = ag.result;
-    const totalOfPayments = RIDE_PRICE_CALC.round2(ag.payment * deal.desk.term);
-    const historyRows = [];
-    if (creditLive(deal) && a.agreedApr != null && a.agreedApr !== ag.apr && a.agreedPayment != null) {
-      historyRows.push(kvRow("Originally presented", `${money(a.agreedPayment)} / mo · ${esc(String(a.agreedApr))}% APR`));
-      historyRows.push(kvRow("Re-presented and agreed", `${esc(a.submitted ? timeUS(a.submitted) : "")} · ${esc(String(ag.apr))}% APR`));
-    }
+    const totalOfPayments = RIDE_PRICE_CALC.round2(ag.payment * (ag.term || 0));
+    /* a moved rate is a finance deal's: a lease and a cash deal have no APR to re-present. The price
+       says whether the new payment is agreed — only once the customer chose it and the Team Lead approved
+       that choice (W-050); how it got there is the deal's History (the owner, 2026-09-26: no chronological
+       log on the finance screens) */
+    const rm = !isLease && !isCash ? rateMove(deal) : null;
+    /* the structure is the deal's own: what a finance deal finances, what a
+       lease leaves at its end and asks at signing, and nothing at all on a
+       cash deal, which finances nothing (RP-UI-051, RP-UI-052) */
+    const structure = isCash ? ""
+      : deal.dealType === "onepay" ? kvBlock("Structure", [kvRow("Residual (lease end value)", money(r.residual))])
+      : isLease ? kvBlock("Structure", [
+        kvRow("Residual (lease end value)", money(r.residual)),
+        kvRow("Due at signing", money(r.dueAtSigning)),
+        kvRow("Total of payments", money(totalOfPayments))])
+      : kvBlock("Structure", [
+        kvRow("Amount financed", money(r.amountFinanced)),
+        kvRow("Total of payments", money(totalOfPayments))]);
     const content = `<div class="rp-eyebrow">Finance menu</div>
       <h1 class="rp-title" style="font-size:26px">Review the deal terms</h1>
       ${subLine()}${chipRow()}
       ${stageBar(0)}
-      ${priceCard("Agreed payment", isCash ? money(snap.totalDue) : money(ag.payment),
-        isCash ? `${esc(v.year + " " + v.model)} · cash, no financing`
-          : `${deal.desk.term} months · ${esc(String(ag.apr))}% APR · ${money0(deal.desk.downPayment)} down`)}
-      ${historyRows.length ? kvBlock("Rate history", historyRows) : ""}
+      ${priceCard(rm && !rm.reagreed ? `Approved ${payWord(ag)}, not agreed yet` : `Agreed ${payWord(ag)}`, money(ag.payment), agreedTerms(ag))}
       <div class="rp-acc">
         <button type="button" class="rp-acc__head" style="width:100%" data-sheet-open="fees">Taxes &amp; fees
-          <span class="rp-acc__sum">${money(r.fees + r.taxes.total)}</span>${rpGlyph("chevron")}</button>
+          <span class="rp-acc__sum">${feesAndTaxLine(r)}</span>${rpGlyph("chevron")}</button>
       </div>
-      ${kvBlock("Structure", [
-        kvRow("Amount financed", money(r.amountFinanced)),
-        kvRow("Total of payments", money(totalOfPayments))])}`;
+      ${structure}`;
     const dock = `<div class="rp-dock">
-      ${deal.signoff ? `<div class="rp-gatenote">Approved ${esc(timeUS(deal.signoff.at))} by ${esc(deal.signoff.by)}</div>` : ""}
       <button type="button" class="rp-primary" id="fmNext">${M.termsPresented ? "Continue" : "Mark presented"}</button></div>`;
     paint(content, dock, "rp-screen--gate");
     $("#fmNext").onclick = () => {
@@ -9413,9 +10907,10 @@ route("menu/:id", ({ id }) => {
           <div style="height:8px"></div>
           <button type="button" class="rp-button-navy" style="width:100%;height:44px;border-radius:14px" id="fmReveal">Show custom payment</button></div>`
       /* every package payment states its difference from the agreed payment,
-         so a bigger number never appears without the delta beside it (§22b) */
+         so a bigger number never appears without the delta beside it (§22b) —
+         like with like: a lease's against the lease's, a total against a total */
       : priceCard(`${col.label} ${col.isTotal ? "total" : "payment"}`, money(col.payment),
-        `${col.term || deal.desk.term} months · ${esc(String(col.apr != null ? col.apr : ag.apr))}% APR${delta > 0 ? ` · +${money(delta)} over the agreed payment` : delta < 0 ? ` · ${money(delta)} against the agreed payment` : " · the agreed payment"}`);
+        `${packageTerms(col, ag)}${delta > 0 ? ` · +${money(delta)} over the agreed ${payWord(ag)}` : delta < 0 ? ` · ${money(delta)} against the agreed ${payWord(ag)}` : ` · the agreed ${payWord(ag)}`}`);
 
     const products = shownProducts.length
       ? `<div class="rp-group">${shownProducts.map(pid => {
@@ -9428,14 +10923,13 @@ route("menu/:id", ({ id }) => {
             : `<button type="button" class="rp-product__action" data-move="${esc(pid)}" data-src="${esc(col.key)}">&rarr; Custom</button>`}</div>`;
       }).join("")}</div>`
       : `<div class="rp-empty"><strong>${isCustom ? "The custom box is empty" : "Everything moved to Custom"}</strong>${isCustom
-        ? "Send products here from another package. The first product's package sets the rate and term."
+        ? "Send products here from another package."
         : "Every product in this package has been moved across."}</div>`;
 
     const content = `<div class="rp-eyebrow">Finance menu</div>
       <h1 class="rp-title" style="font-size:26px">Choose a protection package</h1>
       ${subLine()}${chipRow()}
       ${stageBar(1)}
-      ${M.termsPresentedAt ? doneNotice(`Terms marked presented ${timeUS(M.termsPresentedAt)}`) : ""}
       ${pkgRow}
       ${payCard}
       ${products}
@@ -9444,8 +10938,8 @@ route("menu/:id", ({ id }) => {
           <span class="rp-row__sub">${M.presented ? "Presented to the customer" : "Before the payment, one at a time"}</span></span>
         <span class="rp-row__chevron"></span></a></div>
       ${M.selectedProgram && M.selectedProgram !== "none"
-        ? doneNotice(`Accepted ${colLabel(M.selectedProgram)} · initials ${M.initials || "—"}${M.acceptedAt ? ` · ${timeUS(M.acceptedAt)}` : ""}`)
-        : M.selectedProgram === "none" ? doneNotice(`Continued without products · initials ${M.initials || "—"}`) : ""}`;
+        ? doneNotice(`Accepted ${colLabel(M.selectedProgram)}`)
+        : M.selectedProgram === "none" ? doneNotice("Continued without products") : ""}`;
 
     const dock = M.selectedProgram
       ? chDock(`<button type="button" class="rp-primary" id="fmGo">Continue</button>`)
@@ -9484,12 +10978,12 @@ route("menu/:id", ({ id }) => {
   function formsScreen() {
     const reqForms = requiredTradeForms(deal);
     reqForms.forEach(fid => { if (!deal.forms.selected.includes(fid)) deal.forms.selected.push(fid); });
-    if (reqForms.length) Store.save();
+    if (reqForms.length) saveSoft();
     const chosen = deal.forms.selected.length;
     /* required and optional are SEPARATE (§22): the acknowledgment blocks
        Continue, additional forms never do */
     const rows = [
-      { name: "Benefits acknowledgment", sub: M.ackSigned ? `Signed${M.ackSignedAt ? ` ${timeUS(M.ackSignedAt)}` : ""} · ${M.ackName || custName}` : "Required · records what was offered and what was refused",
+      { name: "Benefits acknowledgment", sub: M.ackSigned ? "Signed" : "Required · records what was offered and what was refused",
         status: M.ackSigned ? "Complete" : "Not signed", state: M.ackSigned ? "ok" : "blocked" },
       { name: "Additional deal forms", sub: chosen ? `Optional · ${chosen} selected` : "Optional · none selected", status: "Optional", state: "" }
     ];
@@ -9524,31 +11018,44 @@ route("menu/:id", ({ id }) => {
     const led = jacketLedger(deal);
     const ag = agreed();
     const rows = [
-      { name: "Manager sign-off", sub: deal.signoff ? `Approved ${timeUS(deal.signoff.at)} · ${deal.signoff.by}` : "Not approved", status: deal.signoff ? "Complete" : "Blocked", state: deal.signoff ? "ok" : "blocked" },
-      { name: "Terms presented", sub: M.termsPresented ? (M.termsPresentedAt ? `Marked ${timeUS(M.termsPresentedAt)}` : "Marked presented") : "Not presented", status: M.termsPresented ? "Complete" : "Blocked", state: M.termsPresented ? "ok" : "blocked" },
+      { name: "Manager sign-off", sub: deal.signoff ? "Approved" : "Not approved", status: deal.signoff ? "Complete" : "Blocked", state: deal.signoff ? "ok" : "blocked" },
+      { name: "Terms presented", sub: M.termsPresented ? "Marked presented" : "Not presented", status: M.termsPresented ? "Complete" : "Blocked", state: M.termsPresented ? "ok" : "blocked" },
       { name: "Protection decision",
         sub: selKey === "none" ? "Declined — no products"
           : colResult ? `${colLabel(selKey)} · ${money(colResult.payment)}${colResult.isTotal ? "" : " / mo"}`
           : selKey ? `${colLabel(selKey)} — not offered on this deal type; choose again` : "Not chosen",
         status: selKey === "none" || colResult ? "Complete" : "Blocked", state: selKey === "none" || colResult ? "ok" : "blocked" },
-      { name: "Benefits acknowledgment", sub: M.ackSigned ? `Signed${M.ackSignedAt ? ` ${timeUS(M.ackSignedAt)}` : ""}` : "Not signed", status: M.ackSigned ? "Complete" : "Blocked", state: M.ackSigned ? "ok" : "blocked" },
+      { name: "Benefits acknowledgment", sub: M.ackSigned ? "Signed" : "Not signed", status: M.ackSigned ? "Complete" : "Blocked", state: M.ackSigned ? "ok" : "blocked" },
       jacketRow(true)
     ];
     const otherBlockers = rows.slice(0, 4).filter(r => r.state === "blocked");
     const canFinalize = otherBlockers.length === 0 && led.ready;
-    const pay = colResult ? colResult.payment : isCash ? snapshot().totalDue : ag.payment;
-    const totalOfPayments = RIDE_PRICE_CALC.round2(pay * deal.desk.term);
+    const pay = colResult ? colResult.payment : ag.payment;
+    const totalOfPayments = RIDE_PRICE_CALC.round2(pay * (ag.term || 0));
+    /* the repayment as this deal is paid: a cash deal and a one-pay state
+       their total, never multiplied by a finance term they do not have, and
+       a lease its own term with what it asks at signing (RP-UI-051, RP-UI-052) */
+    const repayment = isCash ? kvBlock("Payment · cash, no financing", [kvRow("Total due", money(pay))])
+      : deal.dealType === "onepay" ? kvBlock(`Payment · ${ag.term} months, paid in full at signing`, [kvRow("One-pay total", money(pay))])
+      : isLease ? kvBlock(`Repayment · ${money(pay)} / mo for ${ag.term} months`, [
+        kvRow("Due at signing", money(ag.result.dueAtSigning)),
+        kvRow("Total of payments", money(totalOfPayments))])
+      : kvBlock(`Repayment · ${money(pay)} / mo for ${deal.desk.term} months at ${String(ag.apr)}% APR`,
+        [kvRow("Total of payments", money(totalOfPayments))]);
 
     const content = `<div class="rp-eyebrow">Finance menu</div>
       <h1 class="rp-title" style="font-size:26px">Final review</h1>
       ${subLine()}${chipRow()}
       ${stageBar(3)}
+      ${dmsAlert()}
       ${gateRows(rows)}
       ${canFinalize
-        ? kvBlock(`Repayment · ${money(pay)}${isCash ? " total" : ` / mo for ${deal.desk.term} months at ${String(ag.apr)}% APR`}`,
-          [kvRow("Total of payments", money(totalOfPayments))])
-        : led.ready ? "" : consequences("Finalizing is unavailable",
-          led.blocking.map(d => `${esc(d.label)} — ${esc(d.whyShort || d.why || "still outstanding")}`))}`;
+        ? repayment
+        /* §22: the outstanding items named AND a route to each (KA-020): each is the kit's row, opening that
+           document's own sheet in the Deal Jacket; the box counts them as the gate row does */
+        : led.ready ? "" : `${consequences("Finalizing is unavailable", [`${esc(ledgerOwed(led))} in the Deal Jacket`])}
+          <div class="rp-group" aria-label="Documents outstanding">${led.blocking.map(d => `<a class="rp-row" href="#/jacket/${esc(deal.id)}/${esc(d.id)}" data-owed="${esc(d.id)}">
+            <span class="rp-row__body"><span class="rp-row__title">${esc(d.label)}</span><span class="rp-row__sub">${esc(d.whyShort || d.why || "still outstanding")}</span></span><span class="rp-row__chevron"></span></a>`).join("")}</div>`}`;
 
     /* §22: Finalize is ABSENT while a required document is missing. The only
        way past is an attributed override that says what it will record. */
@@ -9559,31 +11066,84 @@ route("menu/:id", ({ id }) => {
       : otherBlockers.length
         ? `<div class="rp-dock"><div class="rp-gatenote">${esc(otherBlockers[0].name)} is still outstanding</div>
             <button type="button" class="rp-primary" disabled>Finalize deal</button></div>`
-        : `<div class="rp-dock"><div class="rp-gatenote">Override · marked finalized with ${led.blocking.length} document${led.blocking.length === 1 ? "" : "s"} missing</div>
+        : `<div class="rp-dock"><div class="rp-gatenote">Override · finalized with ${esc(ledgerOwed(led))}</div>
             <button type="button" class="rp-primary" id="fmOverrideFinal">Finalize with documents outstanding</button>
             <a class="rp-link" href="#/jacket/${esc(deal.id)}">Open the Deal Jacket</a></div>`;
-    paint(content, dock, "rp-screen--gate");
+    paint(content, dmsDock() || dock, "rp-screen--gate");
 
     const fb = $("#fmFinal");
     if (fb) fb.onclick = () => doFinalize([]);
+    const fa = $("#fmFinalAgain");
+    if (fa) fa.onclick = retryPush;
     const ov = $("#fmOverrideFinal");
     if (ov) ov.onclick = () => { ui.sheet = "finalize-override"; draw(); };
   }
 
   /* the one closeout: the DMS push is folded into Finalize rather than being
      a second action, and it is recorded against the Team Lead who approved
-     the deal (§22c — a closeout says HOW it happened, not only that it did) */
+     the deal (§22c — a closeout says HOW it happened, not only that it did).
+     Phase 2: the push goes through the services layer (the owner's pictures
+     A–F). The deal is marked finalized only once the DMS takes it, so a DMS
+     that does not answer, a dropped connection or an ended session leaves
+     nothing half-done; a phone that will not keep it is said on the closeout,
+     and the deal is never pushed twice. */
   function doFinalize(outstandingIds, reason) {
-    deal.forms.finalized = true; deal.stage = "complete";
-    deal.dms = {
-      at: new Date().toISOString(),
-      by: (deal.signoff && deal.signoff.by) || lead,
-      how: "auto",
-      outstanding: outstandingIds
-    };
-    if (outstandingIds.length) { deal.forms.finalizedOutstanding = true; deal.forms.finalizedReason = reason || ""; }
-    Store.save(); draw();
+    if (push.busy) return;
+    push.busy = true; push.slow = false; push.error = null; push.pending = { outstandingIds, reason };
+    push.resume = retryPush;
+    dmsPushes.set(deal.id, push);
+    redraw();
+    const slow = setTimeout(() => { if (push.busy) { push.slow = true; redraw(); } }, 3000);
+    RIDE_PRICE_SERVICES.call("dms").then(() => {
+      clearTimeout(slow); dmsPushes.delete(deal.id);
+      push.busy = false; push.slow = false; push.pending = null;
+      deal.forms.finalized = true; deal.stage = "complete";
+      deal.dms = {
+        at: new Date().toISOString(),
+        by: (deal.signoff && deal.signoff.by) || lead,
+        how: "auto",
+        outstanding: outstandingIds
+      };
+      if (outstandingIds.length) { deal.forms.finalizedOutstanding = true; deal.forms.finalizedReason = reason || ""; }
+      try { Store.save(); }
+      catch (e) { if (!isStorageError(e)) throw e; redraw(); setTimeout(notSaved, 0); return; }
+      redraw();
+    }, (err) => {
+      clearTimeout(slow);
+      push.busy = false; push.slow = false; push.error = (err && err.kind) || "failed";
+      const e = menuNow();
+      if (!e) return;
+      if (push.error === "session") e.ui.sheet = "dms-session";
+      e.draw();
+    });
   }
+  /* the same push again: Try again, Sign in again, or the connection back */
+  const retryPush = () => {
+    const p = push.pending || { outstandingIds: [], reason: "" };
+    push.error = null; doFinalize(p.outstandingIds, p.reason);
+  };
+  /* the push's own state in the Final review's dock (pictures A–D), with the
+     Print center where it always is; nothing while no push is out */
+  function dmsDock() {
+    const print = `<a class="rp-link" href="#/forms/${esc(deal.id)}">Print center</a>`;
+    if (push.busy) return chGateDock(push.slow ? "Still pushing. The DMS usually answers within a minute." : "Finalizing pushes the deal to the DMS",
+      `<button type="button" class="rp-primary" id="fmPushing" aria-busy="true" aria-disabled="true">Pushing to the DMS…</button>`, print);
+    if (push.error === "offline") return chGateDock("It pushes by itself when you are back online.",
+      `<button type="button" class="rp-primary" disabled>Waiting for a connection</button>`, print);
+    if (push.error === "failed") return chDock(`<button type="button" class="rp-primary" id="fmFinalAgain">Try again</button>`, print);
+    return "";
+  }
+  /* what did not happen, said where the deal is (picture C) */
+  const dmsAlert = () => push.error === "failed"
+    ? `<div class="rp-alert" role="alert" id="fmDmsProblem"><div class="rp-alert__title">The DMS didn’t take the deal</div><div class="rp-alert__body">Nothing was finalized. Try again now, or come back to it later: nothing is lost.</div></div>`
+    : "";
+  /* the closeout counts what was outstanding at finalize as the gate counted it (KA-020): required and
+     conditional apart, never one total that disagrees with the row it came from */
+  const closeoutOwed = (ids) => {
+    const kind = new Map(jacketDocs(deal).map(d => [d.id, d.kind]));
+    const cond = (ids || []).filter(id => kind.get(id) === "conditional").length;
+    return `${(ids || []).length - cond} outstanding${cond ? `, ${cond} conditional` : ""}`;
+  };
 
   function finalizedScreen() {
     const led = jacketLedger(deal);
@@ -9592,12 +11152,13 @@ route("menu/:id", ({ id }) => {
     const selKey = M.selectedProgram;
     const spec = selKey && selKey !== "none" ? programSpec(selKey) : null;
     const colResult = spec ? RIDE_PRICE_CALC.menuColumn(deal, v, selKey, spec) : null;
-    const pay = colResult ? colResult.payment : isCash ? snapshot().totalDue : agreed().payment;
+    const ag = agreed();
+    const pay = colResult ? colResult.payment : ag.payment;
     const content = `<div class="rp-eyebrow">Finance menu</div>
       <h1 class="rp-title" style="font-size:26px">${out.length ? "Deal finalized with documents outstanding" : "Deal finalized"}</h1>
       ${subLine()}${chipRow()}
-      ${doneNotice(`Pushed to the DMS ${dms.at ? timeUS(dms.at) : ""} · ${dms.by || lead}`)}
-      ${out.length ? consequences(`Finalized with ${out.length} document${out.length === 1 ? "" : "s"} outstanding`,
+      ${doneNotice("Pushed to the DMS")}
+      ${out.length ? consequences(`Finalized with ${closeoutOwed(dms.outstanding)}`,
         out.map(l => esc(l)).concat(deal.forms.finalizedReason ? [`Override reason — ${esc(deal.forms.finalizedReason)}`] : [])) : ""}
       ${kvBlock("The push", [
         kvRow("How", "Automatically, on Finalize"),
@@ -9607,7 +11168,7 @@ route("menu/:id", ({ id }) => {
         kvRow("Deal", `#${esc(deal.dealNo)} · closed`),
         kvRow("Queue", "Out of the active Deals list"),
         kvRow("Deal Jacket", `${led.requiredFiled} of ${led.requiredTotal} required · ${led.optionalFiled} optional${led.ready ? " · none outstanding" : ` · ${led.blocking.length} outstanding`}`),
-        kvRow("Payment", `${money(pay)}${isCash ? " total" : ` / mo · ${deal.desk.term} months`}`)])}`;
+        kvRow("Payment", `${money(pay)}${ag.isTotal ? " total" : ` / mo · ${ag.term} months`}`)])}`;
     paint(content, chDock(`<a class="rp-primary" style="display:grid;place-items:center" href="#/deals">Return to Deals</a>`,
       `<a class="rp-link" href="#/forms/${esc(deal.id)}">Print center</a>`));
   }
@@ -9615,14 +11176,27 @@ route("menu/:id", ({ id }) => {
   /* ---------- the sheets ---------- */
   function sheetHtml() {
     const ag = agreed();
+    /* phase 2 · the session ended (picture E): sign in again, nothing lost */
+    if (ui.sheet === "dms-session") return `${chSheetHead("Your session ended")}
+      <p class="rp-sheet__sub">Sign in again to finalize ${esc(c.first)}’s deal. Nothing is lost.</p>
+      <button type="button" class="rp-primary" id="fmSignIn">Sign in again</button>
+      <button type="button" class="rp-link ch-hit" id="fmNotNow">Not now</button>`;
     if (ui.sheet === "fees") {
       const r = ag.result;
       const base = RIDE_PRICE_CALC.taxableBase(deal, v);
+      /* a lease is taxed on its payment, not on the price, and carries the two
+         fees a purchase does not, named as the pencil names them; the foot
+         says where the charges go — financed, or into the total due. A lease
+         has no amount financed, so it has no foot (RP-UI-051, RP-UI-052) */
       return `${chSheetHead("Taxes & fees")}
-        <p class="rp-sheet__sub">New York · price plus accessories plus the documentation fee, less the trade allowance</p>
-        ${kvBlock(`Sales tax on ${money(base)}`, r.taxes.rows.map(t => kvRow(esc(t.label), money(t.amount))), ["Tax subtotal", money(r.taxes.total)])}
+        <p class="rp-sheet__sub">${isLease ? "New York · a lease is taxed on its payments, not on the price" : "New York · price plus accessories plus the documentation fee, less the trade allowance"}</p>
+        ${kvBlock(isLease ? "Sales tax on the payment" : `Sales tax on ${money(base)}`, r.taxes.rows.map(t => kvRow(esc(t.label), money(t.amount) + (isLease ? " / mo" : ""))), ["Tax subtotal", money(r.taxes.total) + (isLease ? " / mo" : "")])}
         ${kvBlock("Fees", RIDE_PRICE_DATA.fees.map(f => kvRow(esc(f.label), money(f.amount))), ["Fee subtotal", money(r.fees)])}
-        ${kvBlock(null, [kvRow("Taxes and fees", money(r.fees + r.taxes.total))], ["Amount financed", money(r.amountFinanced)])}
+        ${isLease ? kvBlock("Lease fees", [
+          kvRow("Acquisition Fee", money(RIDE_PRICE_DATA.leaseFees.acquisition)),
+          kvRow("Disposition Fee (at lease end)", money(RIDE_PRICE_DATA.leaseFees.disposition))]) : ""}
+        ${kvBlock(null, [kvRow("Taxes and fees", feesAndTaxLine(r))],
+          isCash ? ["Total due", money(r.totalDue)] : isLease ? null : ["Amount financed", money(r.amountFinanced)])}
         <button type="button" class="rp-primary" data-sheet-close>Done</button>`;
     }
     if (ui.sheet === "accept" || ui.sheet === "decline") {
@@ -9633,13 +11207,14 @@ route("menu/:id", ({ id }) => {
       const products = (col.products || []).map(pid => RIDE_PRICE_CALC.productById(pid)).filter(Boolean);
       const productsTotal = col.productsTotal != null ? col.productsTotal : products.reduce((s, p) => s + p.price, 0);
       const delta = RIDE_PRICE_CALC.round2(col.payment - ag.payment);
-      const termCost = RIDE_PRICE_CALC.round2(delta * deal.desk.term);
-      const financeCharge = RIDE_PRICE_CALC.round2(termCost - productsTotal);
+      /* a total is paid once; a payment over this deal's own term */
+      const termCost = RIDE_PRICE_CALC.round2(delta * (ag.isTotal ? 1 : ag.term));
+      const charge = RIDE_PRICE_CALC.round2(termCost - productsTotal);
       if (decline) {
         return `${chSheetHead("Continue without products")}
           <p class="rp-sheet__sub">The customer declines every optional product · recorded on the benefits acknowledgment</p>
           <div class="rp-kv">
-            ${kvRow("Payment", `${money(ag.payment)} / mo`, "the agreed payment, unchanged")}
+            ${kvRow(ag.isTotal ? "Total" : "Payment", `${money(ag.payment)}${payUnit(ag)}`, `the agreed ${payWord(ag)}, unchanged`)}
             ${M.custom.length ? kvRow("Custom box", "Cleared", "the products already moved across are removed") : ""}
           </div>
           <div class="rp-field"><label class="rp-field__label" for="fmDecIni">Client initials</label>
@@ -9647,15 +11222,25 @@ route("menu/:id", ({ id }) => {
           <button type="button" class="rp-primary" id="fmDecGo">Continue without products</button>`;
       }
       /* the sheet states what the customer is agreeing to in their own unit
-         AND over the term, with the finance charge separated (§22b) */
+         AND over the term, with the finance charge separated (§22b) — in
+         this deal's own terms: financed at a rate; added to a lease, whose
+         charge is rent and tax; or paid with the car, with its sales tax */
+      const packageHow = isCash ? `${money(productsTotal)} added to the total due`
+        : deal.dealType === "onepay" ? `${money(productsTotal)} added to the lease, paid in full at signing`
+        : isLease ? `${money(productsTotal)} added to the lease over ${ag.term} months`
+        : `${money(productsTotal)} financed over ${deal.desk.term} months at ${esc(String(col.apr != null ? col.apr : ag.apr))}%`;
+      const differenceHow = isCash ? `${money(productsTotal)} of products${charge ? ` and ${money(charge)} of sales tax` : ""}`
+        : deal.dealType === "onepay" ? `${money(productsTotal)} of products and ${money(charge)} of rent charge and tax`
+        : isLease ? `+${money(termCost)} over ${ag.term} months — ${money(productsTotal)} of products and ${money(charge)} of rent charge and tax`
+        : `+${money(termCost)} over ${deal.desk.term} months — ${money(productsTotal)} of products and ${money(charge)} of finance charge`;
       return `${chSheetHead(`Accept ${col.label}`)}
         <p class="rp-sheet__sub">${esc(products.map(p => p.name).join(" · ") || "No products")}</p>
         <div class="rp-kv"><div class="rp-kv__head">What the customer is agreeing to</div>
           ${kvRow("Products added", money(productsTotal), esc(products.map(p => `${p.name} ${money(p.price)}`).join(" + ")))}
-          ${kvRow("Agreed payment", `${money(ag.payment)} / mo`)}
-          ${kvRow(`${esc(col.label)} payment`, `${money(col.payment)} / mo`, `${money(productsTotal)} financed over ${deal.desk.term} months at ${esc(String(col.apr != null ? col.apr : ag.apr))}%`)}
-          <div class="rp-kv__row rp-kv__row--src" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Difference</span><span style="font-weight:760">+${money(delta)} / mo</span>
-            <span class="rp-kv__src">+${money(termCost)} over ${deal.desk.term} months — ${money(productsTotal)} of products and ${money(financeCharge)} of finance charge</span></div>
+          ${kvRow(`Agreed ${payWord(ag)}`, `${money(ag.payment)}${payUnit(ag)}`)}
+          ${kvRow(`${esc(col.label)} ${payWord(ag)}`, `${money(col.payment)}${payUnit(ag)}`, packageHow)}
+          <div class="rp-kv__row rp-kv__row--src" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Difference</span><span style="font-weight:760">+${money(delta)}${payUnit(ag)}</span>
+            <span class="rp-kv__src">${differenceHow}</span></div>
         </div>
         <div class="rp-field"><label class="rp-field__label" for="fmIni">Client initials</label>
           <input class="rp-field__input" id="fmIni" autofocus maxlength="4" placeholder="JS" autocomplete="off"></div>
@@ -9710,30 +11295,54 @@ route("menu/:id", ({ id }) => {
   }
 
   function wireSheet(sheet) {
-    const need = (sel) => { const el = $(sel, sheet); if (!el) return null; const val = (el.value || "").trim(); if (!val) { el.classList.add("rp-field__input"); el.style.borderColor = "var(--rp-danger)"; return null; } return val; };
+    /* a required field left empty says what it needs, in the kit's own field
+       error, with the cursor in it — as the Team Lead's send-back note does
+       (W-004) — where it only turned red and said nothing (W-042). The line
+       goes as soon as something is typed. `why` is built by the caller,
+       escaped there. */
+    const need = (sel, why) => {
+      const el = $(sel, sheet); if (!el) return null;
+      const val = (el.value || "").trim(); if (val) return val;
+      const field = el.closest(".rp-field"), id = el.id + "Err";
+      if (field && !$("#" + id, sheet)) {
+        field.classList.add("rp-field--error");
+        field.insertAdjacentHTML("beforeend", `<div class="rp-field__err" id="${id}">${why}</div>`);
+        el.setAttribute("aria-invalid", "true"); el.setAttribute("aria-describedby", id);
+        el.addEventListener("input", () => {
+          field.classList.remove("rp-field--error"); const line = $("#" + id, sheet); if (line) line.remove();
+          el.removeAttribute("aria-invalid"); el.removeAttribute("aria-describedby");
+        }, { once: true });
+      }
+      el.focus();
+      return null;
+    };
+    const dmsSignIn = $("#fmSignIn", sheet);
+    if (dmsSignIn) dmsSignIn.onclick = () => { RIDE_PRICE_SERVICES.signIn(); ui.sheet = null; sheets.close(); retryPush(); };
+    const dmsNotNow = $("#fmNotNow", sheet);
+    if (dmsNotNow) dmsNotNow.onclick = () => { ui.sheet = null; sheets.close(); push.error = null; draw(); };
     const reason = $("#fmReasonGo", sheet);
     if (reason) reason.onclick = () => {
-      const val = need("#fmReason"); if (!val) return;
+      const val = need("#fmReason", "Write the reason first. It is kept on the deal with your name."); if (!val) return;
       const led = jacketLedger(deal);
       jacketOf(deal).override = { by: lead, at: new Date().toISOString(), reason: val, docs: led.blocking.map(d => d.id) };
       Store.save(); ui.sheet = null; sheets.close(); draw();
     };
     const finGo = $("#fmFinGo", sheet);
     if (finGo) finGo.onclick = () => {
-      const val = need("#fmFinReason"); if (!val) return;
+      const val = need("#fmFinReason", "Write the reason first. It is kept on the deal with your name."); if (!val) return;
       const led = jacketLedger(deal);
       ui.sheet = null; sheets.close();
       doFinalize(led.blocking.map(d => d.id), val);
     };
     const iniGo = $("#fmIniGo", sheet);
     if (iniGo) iniGo.onclick = () => {
-      const val = need("#fmIni"); if (!val) return;
+      const val = need("#fmIni", `Initials first. They record that ${esc(c.first)} accepts this package.`); if (!val) return;
       M.selectedProgram = ui.pack; M.initials = val; M.acceptedAt = new Date().toISOString();
       Store.save(); ui.sheet = null; sheets.close(); go(2);
     };
     const decGo = $("#fmDecGo", sheet);
     if (decGo) decGo.onclick = () => {
-      const val = need("#fmDecIni"); if (!val) return;
+      const val = need("#fmDecIni", `Initials first. They record that ${esc(c.first)} declines the products.`); if (!val) return;
       M.selectedProgram = "none"; M.initials = val; M.acceptedAt = new Date().toISOString();
       M.custom = []; M.customSource = null; M.showCustomPay = false;
       Store.save(); ui.sheet = null; sheets.close(); go(2);
@@ -9883,8 +11492,8 @@ function jacketDocs(deal) {
      owns it, keeps added:true, and that is what lets it be removed again. If
      this shortcut claimed it first the row would lose its Remove. */
   const byHand = jacketRead(deal).extra;
-  const opt = (id, why, whyShort) => {
-    if (jacketState(deal, id) && byHand.indexOf(id) < 0) add(id, why, whyShort, "optional");
+  const opt = (id, why, whyShort, listed) => {
+    if ((listed || jacketState(deal, id)) && byHand.indexOf(id) < 0) add(id, why, whyShort, "optional");
   };
   const isCash = deal.dealType === "cash";
   const isLease = deal.dealType === "lease" || deal.dealType === "onepay";
@@ -9904,7 +11513,7 @@ function jacketDocs(deal) {
   add("form-privacy", "Handed to every client at delivery", "Required at delivery");
   add("form-reg", "Registers and titles the new vehicle in New York", "Title & registration");
   if (!isCash) {
-    add("form-contracts", isLease ? "The lease agreement itself" : "The retail instalment contract itself", isLease ? "Lease contract" : "Retail contract");
+    add("form-contracts", isLease ? "The lease agreement itself" : "The retail installment contract itself", isLease ? "Lease contract" : "Retail contract");
     add("form-creditmatch", "The signed application must match what went to the lender", "Lender match");
     add("form-riskdisc", "Required whenever credit decides the rate", "Credit disclosure");
   }
@@ -9926,7 +11535,9 @@ function jacketDocs(deal) {
   if (hasTrade) requiredTradeForms(deal).forEach(fid => add("form-" + fid, "Required by the trade's own ownership answers", "Trade requirement", "conditional"));
 
   /* --- optional: counted apart, listed once they exist --- */
-  opt("idverify-cobuyer", "The co-buyer's own identity record", "Co-buyer identity");
+  /* listed while the co-buyer's own identity check says no, so the deal asks for the ID in person: out of the count,
+     holding nothing, as the owner's answer of 2026-09-24 flags the primary buyer (claude-c's Q1 on #201, answered A) */
+  opt("idverify-cobuyer", "The co-buyer's own identity record", "Co-buyer identity", !!(cb && cb.onboard && cb.onboard.faceNoMatch));
   opt("approval", "The lender's answer on the terms it approved", "Lender approval");
   opt("agreement", "The base terms the client signed", "Signed base terms");
   opt("testdrive", "Signed before the client drove the car", "Signed pre-drive");
@@ -9989,8 +11600,11 @@ function jacketState(deal, docId) {
   return progress.ready && Array.isArray(filed.subjects) && filed.subjects.length === progress.buyers.length && progress.buyers.every(b => filed.subjects.some(s => s.customerId === b.customerId && s.receiptRevision === b.record.receiptRevision)) ? filed : null;
 }
 
+/* a row listed only to flag (a co-buyer's identity record while the check says no) is not a document owed: it
+   counts once filed, as every optional row did, or when added by hand (claude-c on #203) */
+function jacketOwedDocs(deal) { return jacketDocs(deal).filter(d => d.kind !== "optional" || d.added || jacketState(deal, d.id)); }
 function jacketCounts(deal) {
-  const docs = jacketDocs(deal);
+  const docs = jacketOwedDocs(deal);
   const inJacket = docs.filter(d => jacketState(deal, d.id));
   return { total: docs.length, have: inJacket.length, missing: docs.length - inJacket.length };
 }
@@ -10008,7 +11622,9 @@ function jacketLedger(deal) {
   const docs = jacketDocs(deal);
   const filedIn = (list) => list.filter(d => jacketState(deal, d.id));
   const required = docs.filter(d => d.kind === "required");
-  const optional = docs.filter(d => d.kind === "optional");
+  /* an optional row counts once filed or added by hand: one listed only to flag (a co-buyer's identity record while
+     the check says no) is not one more optional document (CodeRabbit on #203) */
+  const optional = docs.filter(d => d.kind === "optional" && (d.added || jacketState(deal, d.id)));
   const conditional = docs.filter(d => d.kind === "conditional");
   const outstanding = required.filter(d => !jacketState(deal, d.id));
   const conditionalOut = conditional.filter(d => !jacketState(deal, d.id));
@@ -10025,12 +11641,20 @@ function jacketLedger(deal) {
     ready: outstanding.length === 0 && conditionalOut.length === 0
   };
 }
+/* what is owed, said one way wherever it is said (KA-020, §22a): the required documents outstanding, and the
+   conditional ones apart — "10 outstanding, 1 conditional", never "11 missing" beside it */
+function ledgerOwed(led) {
+  return `${led.outstanding.length} outstanding${led.conditionalOutstanding.length ? `, ${led.conditionalOutstanding.length} conditional` : ""}`;
+}
 
 /* THE jacket count, everywhere it is written. A bare number is never
    acceptable (§19a), so one helper owns the format and it cannot drift between
    screens. It tracks REQUIRED only: adding an optional document leaves it
    where it was, and the optional tally is stated separately. */
 function jacketRequired(deal) { return jacketDocs(deal).filter(d => d.kind === "required"); }
+/* a finalized deal's name for itself (KA-012, §22): "Finance complete" only when nothing is owed — one finalized
+   with documents outstanding says so, in the closeout's own words, on Documents and on the printed cover sheet */
+function finalizedLabel(deal, clean = "Finance complete") { return jacketLedger(deal).ready ? clean : "Finalized with documents outstanding"; }
 function jacketChipText(deal) {
   const req = jacketRequired(deal);
   return `${req.filter(d => jacketState(deal, d.id)).length} of ${req.length}`;
@@ -10247,7 +11871,7 @@ function clientQueue(deal) {
   return CLIENT_QUEUE_IDS.filter(id => need.includes(id) && !jacketState(deal, id));
 }
 function jacketLedgers(deal) {
-  const docs = jacketDocs(deal);
+  const docs = jacketOwedDocs(deal);
   const cl = jacketClient(deal);
   const accepted = docs.filter(d => jacketState(deal, d.id)).length;
   const landed = docs.filter(d => !jacketState(deal, d.id) && (d.id === "form-license" ? licenseProgress(deal).received : cl[d.id] && cl[d.id].state !== "requested")).length;
@@ -10283,7 +11907,9 @@ function jacketSendRequest(deal, ids, customerId, options = {}) {
     /* a rejected record keeps its rejection and its preserved pages: the
        reason, and the side already on file, are exactly what the retake
        needs. What every document on the send gets is the send's stamp. */
-    if (!cl[qid] || cl[qid].state === "requested") cl[qid] = { state: "requested" };
+    /* a resend keeps what the customer already answered: "Other income type" is the customer's word, not the
+       request's (W-040, CodeRabbit on #201), as a rejected record keeps its reason */
+    if (!cl[qid] || cl[qid].state === "requested") cl[qid] = Object.assign({ state: "requested" }, cl[qid] && cl[qid].otherIncomeAt ? { otherIncomeAt: cl[qid].otherIncomeAt } : {});
     cl[qid].requestedAt = at;
     if (options.linkSent) cl[qid].linkSentAt = at;
   });
@@ -10399,6 +12025,9 @@ function drAutoVerify(deal, docId, persist = true, customerId = deal.customerId,
     return issue ? { ok: false, issue } : { ok: true, reviewPending: true };
   }
   r.pages = r.pages || 1;
+  /* a page that lands is newer than the customer's "Other income type" answer, and replaces it (W-040, claude-c on
+     #201): the upload is then said as itself, refused or filed, never beside the answer */
+  delete r.otherIncomeAt;
   if (issue) {
     r.state = "rejected";
     r.rejectedReason = issue;
@@ -10513,8 +12142,10 @@ function drAddShots(deal, docId, files, retainReplaced = false, customerId = dea
 }
 
 /* Commit a customer upload, acceptance and side provenance together. Keep
-   prior previews alive until persistence succeeds so a failed retake can retry. */
-function drCommitClientUpload(deal, docId, prepare, provenance, customerId = deal.customerId, context = null) {
+   prior previews alive until persistence succeeds so a failed retake can retry.
+   Phase 2i: a caller that says the phone's refusal where the photo is passes
+   quiet, and gets { refused: true } back instead of the toast. */
+function drCommitClientUpload(deal, docId, prepare, provenance, customerId = deal.customerId, context = null, quiet = false) {
   const previous = deal.jacket === undefined ? undefined : JSON.parse(JSON.stringify(deal.jacket));
   const previousRecord = clientRecord(deal, docId, customerId);
   const previousRecordData = previousRecord ? JSON.parse(JSON.stringify(previousRecord)) : null;
@@ -10547,6 +12178,7 @@ function drCommitClientUpload(deal, docId, prepare, provenance, customerId = dea
     if (previousRecord) { Object.keys(previousRecord).forEach(k => delete previousRecord[k]); Object.assign(previousRecord, previousRecordData); setClientRecord(deal, docId, customerId, previousRecord); }
     if (!prepared?.retainOnFailure) revoke(clientPhotos(deal.id, docId, customerId).filter(url => !priorPhotos.includes(url)));
     clientPhotosSet(deal.id, docId, priorPhotos, customerId);
+    if (quiet && isStorageError(error)) return { refused: true };
     toast('Upload was not saved. Try again.');
     return null;
   }
@@ -10610,7 +12242,9 @@ function dealToken(deal) {
   if (!t) { for (let c = 1; c <= max && !t; c++) if (!used.has(c)) t = c; }
   if (!t) return 0;
   deal.docToken = t;
-  Store.save();
+  /* a token the phone did not keep would print a marker this device cannot
+     read back after a reload: the page prints unmarked instead */
+  if (!saveSoft()) { delete deal.docToken; return 0; }
   return t;
 }
 
@@ -10665,7 +12299,162 @@ const JK_ROW_GLYPH = {
          uploaded signed or marked received — it is never offered the
          customer's upload path, and it never appears in the customer request,
          even though the store hands it over at delivery.                    */
-route("jacket/:id", ({ id }) => {
+/* ---------------- photos kept past the screen that took them (W-084) ---------------- */
+/* A photo that did not go (offline, failing, signed out, the phone's refusal) is kept by the screen that took it —
+   the Deal Jacket, or a document's review page — while that screen is up. Leaving it used to drop the photo,
+   though the notice says an offline one files by itself (CodeRabbit on #149). Now the screen hands it here when it
+   goes: an offline one files by itself when the connection is back, wherever the advisor is, and says so; the
+   screen that took it, drawn again first, takes it back with its way on. While one is kept here it holds the
+   camera for the deal's documents on both screens: one photo at a time. */
+const KEPT_PHOTOS = new Map();
+const keptKey = (p) => `${p.origin}|${p.dealId}|${p.docId}|${p.customerId || ""}`;
+/* a kept photo belongs to the deal it was taken on. Reset demo data puts a new deal under the same id (another
+   tab's change does not: Store.load merges in place), and a photo of the old deal must neither file into the new
+   one nor hold its camera, so it is dropped (CodeRabbit on #186) */
+function keptStale(p) { if (Store.deal(p.dealId) === p.deal) return false; if (KEPT_PHOTOS.get(keptKey(p)) === p) KEPT_PHOTOS.delete(keptKey(p)); return true; }
+function keptAway(dealId) { return [...KEPT_PHOTOS.values()].filter((p) => p.dealId === dealId && !keptStale(p)); }
+/* a screen drawn again on its own address (another tab's change, a refused save, a role switch) replaces its
+   instance with no hashchange: the one being replaced hands its photo to the keeper first, and the new one takes
+   it back, so each photo reaches the keeper once (CodeRabbit on #186) */
+let KEPT_SCREEN = null;
+function keptScreen(handOff) { const was = KEPT_SCREEN; KEPT_SCREEN = handOff; if (was && was !== handOff) was(); }
+function keptChanged(dealId) { window.dispatchEvent(new CustomEvent("ride-price:kept", { detail: { dealId } })); }
+function keepAway(p) { p.busy = false; KEPT_PHOTOS.set(keptKey(p), p); keptChanged(p.dealId); fileKeptAway(); }
+function takeBack(p) { if (KEPT_PHOTOS.get(keptKey(p)) === p) KEPT_PHOTOS.delete(keptKey(p)); }
+function fileKeptAway() {
+  const S = RIDE_PRICE_SERVICES;
+  if (S.reallyOffline() || S.mode("uploads") === "offline") return;
+  for (const p of [...KEPT_PHOTOS.values()]) {
+    if (keptStale(p) || p.kind !== "offline" || p.busy) continue;
+    p.busy = true;
+    S.call("uploads", p.commit).then((result) => {
+      p.busy = false;
+      if (KEPT_PHOTOS.get(keptKey(p)) !== p) return;     /* taken back by its screen meanwhile */
+      if (result && result.refused) { p.kind = "storage"; return keptChanged(p.dealId); }
+      KEPT_PHOTOS.delete(keptKey(p));
+      const deal = Store.deal(p.dealId), c = deal && Store.customer(p.customerId || deal.customerId);
+      if (result && result.ok) toast(p.docId === "form-license"
+        ? `License sides received${c ? ` for ${c.first} ${c.last}` : ""}. Review needed. The photo was kept while you were offline.`
+        : `✓ ${c ? `${c.first} ${c.last}’s ` : ""}${p.label} filed. The photo was kept while you were offline.`);
+      else if (result) toast("Blocked: " + result.issue);
+      keptChanged(p.dealId);
+    }, (error) => {
+      p.busy = false;
+      if (!error || error.name !== "ServiceError") throw error;
+      if (KEPT_PHOTOS.get(keptKey(p)) !== p) return;
+      p.kind = error.kind; keptChanged(p.dealId);
+    });
+  }
+}
+window.addEventListener("ride-price:switches", fileKeptAway); window.addEventListener("online", fileKeptAway);
+/* Reset demo data starts over: every photo kept for the old deals goes with them (W-096) */
+window.addEventListener("ride-price:reset", () => { const ids = new Set([...KEPT_PHOTOS.values()].map((p) => p.dealId)); KEPT_PHOTOS.clear(); ids.forEach(keptChanged); });
+
+/* ============================================================
+   History — who did what, when, on one deal
+   ============================================================
+   The owner, 2026-09-26: "we do not require a chronological log of all
+   events; that information should be moved to a separate section, distinct
+   from the finance and sales user interfaces. It adds unnecessary text to
+   the UI." The sales and finance screens show the state and the next action;
+   this is where the record of each step lives, reached from the Deal Jacket,
+   the deal's own record. Derived from what the deal already stores, so there
+   is one account of each step and nothing new to keep in step with it. */
+function dealHistory(deal) {
+  const ev = [];
+  const add = (at, what, who) => { if (at && !isNaN(Date.parse(at))) ev.push({ at, what, who: who && who !== "advisor" ? who : "" }); };
+  const c = Store.customer(deal.customerId), first = c ? c.first : "The customer";
+  const k = deal.desk || {}, M = deal.menu || {}, a = deal.creditApp || {}, t = deal.trade || {}, o = t.ownership || {}, td = deal.testDrive || {};
+  add(deal.visit && deal.visit.arrivedAt, `${first} arrived`);
+  add(deal.visit && deal.visit.endedAt, "Visit ended", deal.visit && deal.visit.endedBy);
+  add(td.startedAt, "Test drive started");
+  add(td.endedAt, "Test drive ended");
+  add(t.ownershipReviewedAt, "Trade ownership reviewed");
+  /* a payoff read from a statement says so (the payoff scanner); one typed by hand is an update */
+  add(o.payoffAt, o.payoffGoodThrough ? `${o.payoffSource && o.payoffSource.kind === "statement" ? "Payoff read from the statement" : "Payoff updated"}, good through ${dateUS(o.payoffGoodThrough)}` : "Payoff updated", o.payoffBy);
+  if (k.customerChose && k.customerChose.at) add(k.customerChose.at, `${first} chose ${deskChoiceWords(k.customerChose, deal.dealType)}`);
+  add(k.approvalRequestedAt, "Desk approval asked for", k.approvalRequestedBy);
+  add(k.sentBack && k.sentBack.at, k.sentBack && k.sentBack.note ? `Sent back: “${k.sentBack.note}”` : "Sent back", k.sentBack && k.sentBack.by);
+  add(k.approvedAt, "Desk approved", k.approvedBy);
+  /* a rate the lender moved: the new payment re-presented and agreed, at John's own time and at the rate it names —
+     the Finance Menu's rate history said so until #192 moved dated lines here (CodeRabbit on #192) */
+  const rm = rateMove(deal);
+  if (rm && rm.reagreed) add(rm.reagreed.at, `Re-presented and agreed at ${money(rm.reagreed.payment)} / mo · ${rm.approvedApr}% APR`);
+  add(deal.basePayment && deal.basePayment.signedAt, "Base payment agreement signed", deal.basePayment && deal.basePayment.sigName);
+  /* W-110: a signature set aside keeps its place, with every line that came off with it */
+  (deal.setAside || []).forEach((x) => {
+    (x.kept || []).forEach((e) => add(e.at, e.what, e.who));
+    add(x.at, SET_ASIDE_WHY[x.why] ? `Base payment agreement set aside: ${SET_ASIDE_WHY[x.why]}` : "Base payment agreement set aside", x.by);
+  });
+  add(a.submitted, a.agreedPayment != null ? `Credit application submitted at ${money(a.agreedPayment)} / mo${a.agreedApr != null ? ` · ${a.agreedApr}% APR` : ""}` : "Credit application submitted");
+  const lenderApr = a.approvedApr != null ? a.approvedApr : a.qualifiedApr;
+  add(a.approved && a.submitted, `Approved by ${a.lender || "the lender"}${lenderApr != null ? ` at ${lenderApr}% APR` : ""}`);
+  add(a.withdrawnAt, "Credit application withdrawn");
+  const rc = deal.creditRemote && deal.creditRemote.cobuyer;
+  if (rc) {
+    add(rc.sentAt, `Co-buyer's link sent by ${rc.channel === "email" ? "email" : "text"}`);
+    add(rc.openedAt, "Co-buyer's link opened");
+    add(rc.identityAt, "Co-buyer's identity verified");
+    add(rc.fieldsAt, "Co-buyer's details submitted");
+    add(rc.authorizedAt, "Co-buyer's joint-credit authorization signed");
+  }
+  add(deal.coBuyerRemoveRequest && deal.coBuyerRemoveRequest.at, "Co-buyer's removal asked for", deal.coBuyerRemoveRequest && deal.coBuyerRemoveRequest.by);
+  (deal.coBuyerRemovals || []).forEach(r => add(r.at, `Co-buyer removed${r.withdrew && r.withdrew.length ? " · " + r.withdrew.join(" · ") : ""}`, r.by));
+  /* LS-045 / LS-046: a license that disagreed with the record, asked from this deal, and its answer. The request is
+     on the scanned person's record, who may not be on the deal yet (a co-buyer's or driver's errand) */
+  Store.s.customers.forEach(cu => (cu.identityReviews || []).filter(r => r.dealId === deal.id).forEach(r => {
+    const what = r.kind === "birthday" ? "birthday" : "license";
+    add(r.askedAt, `Asked a Team Lead: ${cu.first}’s ${what}`, r.askedBy);
+    if (r.answer && r.answer.pick !== "stale") add(r.answer.at, r.answer.pick === "scanned" ? `${r.kind === "birthday" ? "Birthday" : "License"} confirmed: ${identityReviewValue(r.kind, r.scanned)}` : `${r.kind === "birthday" ? "Birthday" : "License"} on file kept`, r.answer.by);
+  }));
+  add(M.termsPresentedAt, "Finance terms presented");
+  if (M.acceptedAt) {
+    const set = RIDE_PRICE_DATA.programs[deal.dealType === "lease" || deal.dealType === "onepay" ? "lease" : deal.dealType === "cash" ? "cash" : "finance"] || {};
+    /* a decline is said as the menu says it, "Continued without products", never as a package accepted (CodeRabbit on #192) */
+    const pk = M.selectedProgram === "custom" ? "Custom" : (set[M.selectedProgram] || {}).label || "A package";
+    const ini = M.initials ? ` · initials ${M.initials}` : "";
+    add(M.acceptedAt, M.selectedProgram === "none" ? `Continued without products${ini}` : `${pk} accepted${ini}`, c ? `${c.first} ${c.last}` : "");
+  }
+  add(M.approvalRequestedAt, "Finance menu sign-off asked for", M.approvalRequestedBy);
+  const jov = deal.jacket && deal.jacket.override;
+  add(jov && jov.at, jov && jov.reason ? `Deal Jacket override: “${jov.reason}”` : "Deal Jacket override", jov && jov.by);
+  add(deal.signoff && !deal.signoff.backfilled && deal.signoff.at, "Finance menu signed off", deal.signoff && deal.signoff.by);
+  add(M.ackSignedAt, "Benefits acknowledgment signed", M.ackName);
+  add(deal.dms && deal.dms.at, "Pushed to the DMS", deal.dms && deal.dms.by);
+  Object.entries((deal.jacket && deal.jacket.docs) || {}).forEach(([id, d]) => add(d && d.at, `${(docMeta(id) || {}).label || id} filed`, d && d.by));
+  return ev.sort((x, y) => Date.parse(x.at) - Date.parse(y.at));
+}
+
+route("history/:id", ({ id }) => {
+  const deal = Store.deal(id); if (!deal) return redirect("#/deals");
+  const cst = Store.customer(deal.customerId), custName = cst ? `${cst.first} ${cst.last}` : "—";
+  const ev = dealHistory(deal);
+  const now = new Date(), today = now.toDateString();
+  /* a day is its whole calendar date: another year's day says its year, and groups apart (CodeRabbit on #192) */
+  const dayOf = (iso) => { const d = new Date(iso); return d.toDateString() === today ? "Today"
+    : d.toLocaleDateString("en-US", d.getFullYear() === now.getFullYear() ? { month: "short", day: "numeric" } : { month: "short", day: "numeric", year: "numeric" }); };
+  const timeOf = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  /* grouped by day, oldest first: the deal's story in the order it happened */
+  const days = [];
+  ev.forEach(e => { const key = new Date(e.at).toDateString(); if (!days.length || days[days.length - 1].key !== key) days.push({ key, day: dayOf(e.at), rows: [] }); days[days.length - 1].rows.push(e); });
+  const content = `<div class="rp-eyebrow">Deal jacket</div>
+    <h1 class="rp-title">History</h1>
+    ${days.length ? days.map(g => `<div class="rp-section">${esc(g.day)}</div>
+      <div class="rp-group" data-history-day="${esc(g.day)}">${g.rows.map(e => `<div class="rp-row" data-history><span class="rp-row__body">
+        <span class="rp-row__title">${esc(e.what)}</span><span class="rp-row__sub">${esc(timeOf(e.at))}${e.who ? ` · ${esc(e.who)}` : ""}</span></span></div>`).join("")}</div>`).join("")
+      : `<div class="rp-empty"><strong>Nothing recorded yet</strong></div>`}`;
+  renderChrome("History", dealTitle(deal), "");
+  document.body.dataset.canvas = "kit";
+  document.body.dataset.screen = "history";
+  view().innerHTML = chShell({ template: "task", title: custName, closeId: "hsClose", closeLabel: "Close history" }, content, "");
+  $("#hsClose").onclick = () => navigate(`#/jacket/${deal.id}`);
+});
+
+/* #/jacket/:id/:docId opens the jacket on one document's own sheet: the Finance Menu's final review links each
+   missing document here (KA-020, §22: the outstanding items named and a route to each). The address becomes the
+   jacket's own at once, so a reload or Back never opens the sheet again. */
+function jacketView({ id, docId }) {
+  if (docId) history.replaceState(null, "", "#/jacket/" + id);
   const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const cst = Store.customer(deal.customerId);
   const custName = cst ? `${cst.first} ${cst.last}` : "—";
@@ -10683,9 +12472,15 @@ route("jacket/:id", ({ id }) => {
      only to work them */
   /* custOpen null means "follow the work": open while something is waiting,
      collapsed once nothing is, until somebody says otherwise */
-  const ui = { custOpen: null, formsOpen: false, doneOpen: false, sheet: null, justFiled: null };
-  const sheets = chSheetOpener("jkScrim", "jkSheet", () => { ui.sheet = null; buyers = null; });
+  const ui = { custOpen: null, formsOpen: false, doneOpen: false, sheet: null, justFiled: null, filing: null, fileProblem: null, redraw: false };
+  /* phase 2g · the jacket is never drawn under an open sheet — that would
+     leave the page behind it inert and lose what was typed in it — so a photo
+     that lands while one is up is drawn when it closes */
+  const sheets = chSheetOpener("jkScrim", "jkSheet", () => { ui.sheet = null; buyers = null; if (ui.redraw && live()) render(); });
   let camDoc = null;        /* which customer document the camera is filling */
+  let mine = null;          /* the jacket this visit drew last (phase 2g) */
+  const live = () => !!mine && document.contains(mine);
+  const sheetUp = () => { const sh = $("#jkSheet"); return !!sh && !sh.hidden; };
   let sendLock = false;     /* a send is in flight — the sheet may not close */
   let keyGuard = null;      /* the capture listener that enforces that lock */
   let buyers = null;        /* the shared buyers sheet, while it is open */
@@ -10743,6 +12538,13 @@ route("jacket/:id", ({ id }) => {
      back out of the jacket say "Requested" forever (review find). The
      two-sided state outranks it: a licence whose front is in reads Back
      needed whether or not a link went out (§19a). */
+  /* the identity check said no on this buyer's own phone (the owner's answer of 2026-09-24): nothing was blocked,
+     and until the identity record is filed the deal asks for the ID in person */
+  function identityNoMatch(d) {
+    const who = d.id === "idverify-primary" ? Store.customer(deal.customerId)
+      : d.id === "idverify-cobuyer" && deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
+    return who && who.onboard && who.onboard.faceNoMatch && !inJacket(d) ? who : null;
+  }
   function rowState(d) {
     if (inJacket(d)) return { label: "Complete", cls: "rp-doc__state--done" };
     if (d.id === "form-license") {
@@ -10752,7 +12554,10 @@ route("jacket/:id", ({ id }) => {
       return { label: p.buyers.some(b => b.record?.requestedAt) ? "Requested" : "Needed", cls: "" };
     }
     if (licenseHalfIn(d)) return { label: "Back needed", cls: "rp-doc__state--part" };
+    if (identityNoMatch(d)) return { label: "Check in person", cls: "rp-doc__state--part" };
     const r = jacketClient(deal)[d.id];
+    /* W-040: the customer answered "Other income type" on their own phone; the advisor asks for another proof */
+    if (r && r.otherIncomeAt) return { label: "Other proof needed", cls: "rp-doc__state--part" };
     if (r && r.state === "rejected") return { label: "Retake needed", cls: "rp-doc__state--part" };
     if (r && r.state === "requested") return { label: "Requested", cls: "" };
     return { label: "Needed", cls: "" };
@@ -10780,7 +12585,10 @@ route("jacket/:id", ({ id }) => {
       const r = jacketClient(deal)[d.id];
       return r && r.capturedIn ? `Front captured in ${r.capturedIn} · back missing` : "Front captured · back missing";
     }
+    const idNo = identityNoMatch(d);
+    if (idNo) return `${idNo.first}’s photo didn’t match the license · check the ID in person`;
     const r = jacketClient(deal)[d.id];
+    if (r && r.otherIncomeAt) { const c = Store.customer(deal.customerId); return `${c ? c.first : "The customer"} is paid another way · ask for another proof of income`; }
     if (r && r.state === "rejected" && r.rejectedReason) return r.rejectedReason;
     if (d.kind === "conditional") return `Required by this trade · ${d.whyShort}`;
     if (d.kind === "optional") return `Optional · not counted in the required package`;
@@ -10790,7 +12598,10 @@ route("jacket/:id", ({ id }) => {
 
   /* ---------------- the frame ---------------- */
   function render() {
+    adoptKept();       /* W-084 · a photo this jacket kept before it was left comes back with its way on */
     const keep = $(".rp-page") ? $(".rp-page").scrollTop : 0;
+    /* what just filed is said for exactly one drawing (§25) */
+    const justFiled = ui.justFiled; ui.justFiled = null; ui.redraw = false;
     const docs = jacketDocs(deal);
     const jk = jacketRead(deal);
     const led = jacketLedger(deal);
@@ -10828,8 +12639,8 @@ route("jacket/:id", ({ id }) => {
 
     const note = rem === 0
       ? `<b>Jacket complete.</b> All ${total} required items are recorded.${led.optionalFiled ? ` ${led.optionalFiled} optional document${led.optionalFiled === 1 ? "" : "s"} added.` : ""}`
-      : ui.justFiled
-        ? `<b>${esc(ui.justFiled)} filed.</b> ${custWaiting.length} item${custWaiting.length === 1 ? "" : "s"} still need the customer; the other ${formsWaiting.length} ${formsWaiting.length === 1 ? "is a deal form" : "are deal forms"} your team completes.`
+      : justFiled
+        ? `<b>${esc(justFiled)} filed.</b> ${custWaiting.length} item${custWaiting.length === 1 ? "" : "s"} still need the customer; the other ${formsWaiting.length} ${formsWaiting.length === 1 ? "is a deal form" : "are deal forms"} your team completes.`
       : custWaiting.length
         ? `<b>${custWaiting.length} item${custWaiting.length === 1 ? " needs" : "s need"} the customer.</b> The other ${formsWaiting.length} ${formsWaiting.length === 1 ? "is a deal form" : "are deal forms"} your team completes.`
         : `<b>All customer documents are in.</b> The ${formsWaiting.length} remaining ${formsWaiting.length === 1 ? "is a deal form" : "are deal forms"} your team completes.`;
@@ -10856,7 +12667,7 @@ route("jacket/:id", ({ id }) => {
     const docRow = (d) => {
       const st = inJacket(d) ? rowState(d)
         : d.kind === "conditional" ? { label: "Conditional", cls: "rp-doc__state--part" }
-          : d.kind === "optional" ? { label: "Optional", cls: "" }
+          : d.kind === "optional" && !identityNoMatch(d) ? { label: "Optional", cls: "" }
             : rowState(d);
       const sub = inJacket(d) ? receivedLine(d) : whyLine(d);
       return `<button type="button" class="rp-doc" data-open="${esc(d.id)}">
@@ -10907,6 +12718,7 @@ route("jacket/:id", ({ id }) => {
         <div class="rp-ready__bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Deal jacket ${done} of ${total} required documents complete"><i style="width:${pct}%"></i></div>
         <div class="rp-ready__note">${note}${condNote}</div>
       </div>
+      ${fileHtml()}
       ${bucket({ id: "jkCustToggle", title: "Waiting on customer", sub: `${custWaiting.length} document${custWaiting.length === 1 ? "" : "s"}`,
         badge: custWaiting.length ? `${custWaiting.length} needed` : "Complete", badgeCls: custWaiting.length ? "" : "rp-bucket__badge--done",
         open: ui.custOpen === null ? custWaiting.length > 0 : ui.custOpen, body: custBody })}
@@ -10917,6 +12729,8 @@ route("jacket/:id", ({ id }) => {
       ${bucket({ id: "jkDoneToggle", title: "Completed", sub: led.optionalFiled ? `Already in the jacket · ${led.optionalFiled} optional` : "Already in the jacket",
         badge: String(done), badgeCls: "rp-bucket__badge--count", open: ui.doneOpen, body: doneBody })}
       ${ov && !led.ready ? `<div class="rp-notice rp-notice--reserved">Sign-off unlocked by override — ${esc(ov.by)}: “${esc(ov.reason)}”</div>` : ""}
+      ${(() => { const n = dealHistory(deal).length; return `<div class="rp-group"><a class="rp-row" id="jkHistory" href="#/history/${esc(deal.id)}"><span class="rp-tile">${rpIconGlyph("clock")}</span>
+        <span class="rp-row__body"><span class="rp-row__title">History</span><span class="rp-row__sub">${n} event${n === 1 ? "" : "s"}</span></span><span class="rp-row__chevron"></span></a></div>`; })()}
       ${printable ? `<a class="rp-link" href="#/forms/${esc(deal.id)}">Print center</a>`
         : `<p class="rp-count">Printing needs the unit in inventory — this contract's vehicle is on the record only.</p>`}`;
 
@@ -10933,6 +12747,7 @@ route("jacket/:id", ({ id }) => {
       content, dock, { scrim: "jkScrim", sheet: "jkSheet" })
       + `<input type="file" accept="image/*" capture="environment" id="jkCam" hidden>
          <input type="file" accept="image/*" id="jkFile" hidden>`;
+    mine = view().firstElementChild;
 
     $("#jkClose").onclick = () => navigate("#/deals");
     chFitDock(".rp-signoff");
@@ -10959,31 +12774,103 @@ route("jacket/:id", ({ id }) => {
       <div class="rp-group">
         ${waiting.map(d => `<label class="rp-row" style="width:100%"><span class="rp-row__body">
           <span class="rp-row__title">${esc(d.label)}</span>
-          <span class="rp-row__sub">${esc((clientMeta(d.id) || {}).plainReason || d.whyShort)}</span></span>
+          <span class="rp-row__sub">${esc(jacketClient(deal)[d.id]?.otherIncomeAt ? whyLine(d) : (clientMeta(d.id) || {}).plainReason || d.whyShort)}</span></span>
           <input type="checkbox" checked data-pick="${esc(d.id)}" aria-label="${esc(d.label)}"></label>`).join("")}
       </div>
-      <p class="rp-count">Ride Price sends a secure link. The customer uploads directly into Ride Price — document images do not pass through the salesperson's text messages or photo library. Demo: the message is simulated and nothing leaves this device.</p>
+      <div class="rp-gatenote" id="jkPickNote" hidden>Tick at least one document to send</div>
       <button type="button" class="rp-primary" id="jkSend">${reqSent ? "Resend" : "Send"} secure request</button>`,
       (sh) => {
-        $("#jkSend", sh).onclick = () => {
-          const picked = $$("[data-pick]", sh).filter(c => c.checked).map(c => c.dataset.pick);
-          if (!picked.length) return toast("Choose at least one document");
-          sh.innerHTML = `<div class="rp-sheet__grab"></div><div class="rp-sheet__head"><h2 class="rp-sheet__title">Sending the secure link…</h2></div>`;
-          lockSend(true);
-          /* NAVIGATING AWAY mid-send must not let the timer write state and
-             repaint over whatever screen is showing by then */
-          const alive = () => document.contains(sh) && !!$("#jkScrim") && !$("#jkScrim").hidden;
-          setTimeout(() => {
-            if (!alive()) { lockSend(false); return; }
-            jacketSendRequest(deal, picked);
-            lockSend(false);
-            sheets.close();
-            /* no toast: the package puts this feedback in the jacket itself,
-               where it stays readable */
-            render();
-          }, 800);
-        };
+        /* a request for nothing is not sent (RQ-006): with nothing ticked,
+           Send is unavailable and the line above it says why, in the sheet,
+           where the ticks are. It used to be a toast after the tap. */
+        const send = $("#jkSend", sh), note = $("#jkPickNote", sh);
+        const picks = () => $$("[data-pick]", sh).filter(c => c.checked).map(c => c.dataset.pick);
+        const sync = () => { const none = !picks().length; send.disabled = none; note.hidden = !none; };
+        $$("[data-pick]", sh).forEach(c => { c.onchange = sync; });
+        send.onclick = () => { const picked = picks(); if (picked.length) sendRequest(picked); };
       });
+  }
+
+  /* phase 2 · the secure request through the services layer. It goes once; a
+     text that does not go out, a dropped connection, an ended session or a
+     phone that will not save each gets its state in this sheet, with its way
+     on — never a sheet left on "Sending the secure link…", which is what a
+     refused save used to do here (the owner's pictures C–G). */
+  function sendRequest(picked) {
+    const sh = $("#jkSheet"); if (!sh) return;
+    sh.innerHTML = `<div class="rp-sheet__grab"></div><div class="rp-sheet__head"><h2 class="rp-sheet__title">Sending the secure link…</h2></div><div class="rp-gatenote" id="jkSlow" hidden>Still sending. Texts usually arrive within a minute.</div>`;
+    lockSend(true);
+    /* NAVIGATING AWAY mid-send must not let the timer write state and
+       repaint over whatever screen is showing by then */
+    const alive = () => document.contains(sh) && !!$("#jkScrim") && !$("#jkScrim").hidden;
+    const slow = setTimeout(() => { const n = $("#jkSlow", sh); if (n && alive()) n.hidden = false; }, 3000);
+    setTimeout(() => {
+      if (!alive()) { clearTimeout(slow); lockSend(false); return; }
+      RIDE_PRICE_SERVICES.call("links").then(() => {
+        clearTimeout(slow);
+        lockSend(false);
+        if (!alive()) return;
+        recordRequest(picked);
+      }, (err) => {
+        clearTimeout(slow); lockSend(false);
+        if (!alive()) return;
+        requestProblem(picked, (err && err.kind) || "failed");
+      });
+    }, 800);
+  }
+  /* the text has gone: record the request here. A refusal to record comes after the text, so it says the
+     text went — every refusal in the sheet, never left on "Sending…" — and its way on is Try saving again,
+     which records the request without a second text (W-085; CodeRabbit found it in document review, #151) */
+  function recordRequest(picked) {
+    try { jacketSendRequest(deal, picked); }
+    catch (e) { return requestProblem(picked, isStorageError(e) ? "storage" : e && e.name === "DraftConflictError" ? "conflict" : "unsaved"); }
+    sheets.close();
+    /* no toast: the package puts this feedback in the jacket itself,
+       where it stays readable — so the jacket comes to rest with it above
+       the funding sign-off dock, the resend button with it. It used to
+       rest under the dock: the button a sliver, the status hidden
+       (RP-UI-055). The page scrolls only as far as it needs. */
+    render();
+    const line = $("#jkTrack"), page = $(".rp-page"), signoff = $(".rp-signoff");
+    if (line && page && signoff) {
+      const over = line.getBoundingClientRect().bottom - (signoff.getBoundingClientRect().top - 12);
+      if (over > 0) page.scrollTop += over;
+    }
+  }
+  /* what went wrong, said in the sheet, with the documents still picked */
+  function requestProblem(picked, kind) {
+    const sh = $("#jkSheet"); if (!sh) return;
+    const first = cst ? cst.first : "the customer";
+    const head = kind === "session" ? "Your session ended" : "Request documents";
+    /* a refusal to record comes after the text went: say so, never "nothing was sent" */
+    const went = (title, rest) => `<div class="rp-alert" role="alert" id="jkSendProblem"><div class="rp-alert__title">${title}</div><div class="rp-alert__body">${esc(first)} has the link, but the request isn’t marked sent here yet. ${rest}</div></div>`;
+    const alert = kind === "failed"
+      ? `<div class="rp-alert" role="alert" id="jkSendProblem"><div class="rp-alert__title">The text didn’t go out</div><div class="rp-alert__body">${esc(first)}’s phone wasn’t reached, and nothing was sent. The documents are still waiting. Try again.</div></div>`
+      : kind === "storage" ? went("The text went out, but this phone didn’t save it", "Try saving again — the text isn’t sent twice. If it keeps happening, the phone’s storage is full or private browsing is on.")
+      : kind === "conflict" ? went("The text went out, but this deal changed in another tab", "Try saving again — the text isn’t sent twice. If it keeps failing, reload the page.")
+      : kind === "unsaved" ? went("The text went out, but it wasn’t saved here", "Try saving again — the text isn’t sent twice.")
+      : kind === "session" ? `<p class="rp-sheet__sub">Sign in again to send the request. Nothing is lost.</p>` : "";
+    const actions = kind === "offline"
+      ? `<div class="rp-gatenote" id="jkSendWait">It sends by itself when you are back online.</div><button type="button" class="rp-primary" disabled>Waiting for a connection</button><button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>`
+      : kind === "session"
+        ? `<button type="button" class="rp-primary" id="jkSignIn">Sign in again</button><button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>`
+      : kind === "storage" || kind === "conflict" || kind === "unsaved"
+        ? `<button type="button" class="rp-primary" id="jkSaveAgain">Try saving again</button><button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>`
+        : `<button type="button" class="rp-primary" id="jkSendAgain">Try again</button><button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>`;
+    sh.innerHTML = `<div class="rp-sheet__grab"></div>${chSheetHead(head)}${alert}${actions}`;
+    $$("[data-sheet-close]", sh).forEach((b) => b.onclick = () => sheets.close());
+    const again = $("#jkSendAgain", sh); if (again) again.onclick = () => sendRequest(picked);
+    const saveAgain = $("#jkSaveAgain", sh); if (saveAgain) saveAgain.onclick = () => recordRequest(picked);
+    const signIn = $("#jkSignIn", sh); if (signIn) signIn.onclick = () => { RIDE_PRICE_SERVICES.signIn(); sendRequest(picked); };
+    if (kind === "offline") {
+      const back = () => {
+        if (!document.contains(sh) || sh.hidden || !$("#jkSendWait", sh)) return off();
+        if (RIDE_PRICE_SERVICES.reallyOffline() || RIDE_PRICE_SERVICES.mode("links") === "offline") return;
+        off(); sendRequest(picked);
+      };
+      const off = () => { window.removeEventListener("ride-price:switches", back); window.removeEventListener("online", back); };
+      window.addEventListener("ride-price:switches", back); window.addEventListener("online", back);
+    }
   }
 
   /* delivery status, local to the jacket — never its own route */
@@ -10999,13 +12886,15 @@ route("jacket/:id", ({ id }) => {
       ? licenseProgress(deal).buyers.some(b => b.record?.requestedAt || drCustomerTouched(b.record || {}))
       : cl[qid] && (cl[qid].state === "requested" ? cl[qid].via !== "advisor" : drCustomerTouched(cl[qid])));
     const uploaded = asked.filter(qid => qid === "form-license" ? licenseProgress(deal).buyers.some(b => drCustomerTouched(b.record || {})) : cl[qid].state !== "requested");
+    /* an answer on the link ("Other income type", W-040) is the customer opening it, though nothing was uploaded (claude-c on #201) */
+    const answered = CLIENT_QUEUE_IDS.some(qid => cl[qid] && cl[qid].otherIncomeAt);
     const step = (label, value, pending) => `<div class="rp-kv__row"><span>${esc(label)}</span><span>${esc(value)}${pending ? "" : ""}</span></div>`;
     sheets.open(`${chSheetHead("Customer request")}
       <p class="rp-sheet__sub">Sent to ${esc(custName)}${cst && cst.phone ? " · " + esc(cst.phone) : ""}</p>
       <div class="rp-kv">
         ${step("Link sent", jacketStamp(jk.reqSentAt))}
         ${step("Delivered", jacketStamp(jk.reqSentAt))}
-        ${step("Customer opened", uploaded.length ? "Opened" : "Waiting")}
+        ${step("Customer opened", uploaded.length || answered ? "Opened" : "Waiting")}
         ${step("Documents uploaded", `${uploaded.length} of ${asked.length}`)}
       </div>
       <p class="rp-count">The customer's phone is played by this same browser — open it to run the upload side of the demo.</p>
@@ -11040,10 +12929,13 @@ route("jacket/:id", ({ id }) => {
 
     let rows = "", sub = "";
     if (resp === "customer") {
-      sub = (clientMeta(d.id) || {}).plainReason || d.whyShort;
-      rows = row("jkCapture", "scan", d.id === "form-license" ? "Finish license capture" : "Take photo",
+      /* the sheet says what the row says when the customer is paid another way (W-040, claude-c on #201) */
+      sub = jacketClient(deal)[d.id]?.otherIncomeAt ? whyLine(d) : (clientMeta(d.id) || {}).plainReason || d.whyShort;
+      /* phase 2g · one photo files at a time: while one is on its way this
+         sheet says so where the camera was, and gets it back when it lands */
+      rows = (cameraHeld(d) ? "" : row("jkCapture", "scan", d.id === "form-license" ? "Finish license capture" : "Take photo",
         d.id === "form-license" ? "Capture front and back in one session" : "Use this device camera")
-        + row("jkUpload", "upload", "Upload file", "A document already on this device")
+        + row("jkUpload", "upload", "Upload file", "A document already on this device"))
         + row("jkMark", "check", "Mark received", "Record it as in hand without a scan");
     } else if (resp === "form") {
       sub = "Deal form · your team completes it, then hands it over at delivery";
@@ -11067,8 +12959,9 @@ route("jacket/:id", ({ id }) => {
 
     sheets.open(`${chSheetHead(d.label)}
       <p class="rp-sheet__sub">${esc(sub)}</p>
-      <div class="rp-group">${rows}</div>`,
+      ${resp === "customer" && cameraHeld(d) ? oneAtATime(d) : ""}<div class="rp-group">${rows}</div>`,
       (sh) => {
+        keptGo(sh);
         const cap = $("#jkCapture", sh);
         if (cap) cap.onclick = () => {
           sheets.close();
@@ -11079,7 +12972,8 @@ route("jacket/:id", ({ id }) => {
         if (pr) pr.onclick = () => { sheets.close(); navigate(`#/print/${deal.id}/${d.id}`); };
         const gc = $("#jkGoCredit", sh);
         if (gc) gc.onclick = () => { sheets.close(); navigate("#/credit/" + deal.id); };
-        $("#jkUpload", sh).onclick = () => {
+        const upl = $("#jkUpload", sh);
+        if (upl) upl.onclick = () => {
           sheets.close();
           if (resp === "customer") openCam(d.id, false);
           else uploadFlow(d);
@@ -11100,8 +12994,8 @@ route("jacket/:id", ({ id }) => {
         <div class="rp-kv__row rp-kv__row--src"><span>Back</span><span>Required</span>
           <span class="rp-kv__src">the barcode side · the document is not filed until both sides are in${r.capturedIn ? ` · the front came from ${esc(r.capturedIn)}, this visit` : ""}</span></div>
       </div>
-      <button type="button" class="rp-primary" id="jkBack">Capture back</button>`,
-      (sh) => { $("#jkBack", sh).onclick = () => { sheets.close(); openCam(d.id, true); }; });
+      ${cameraHeld(d) ? oneAtATime(d) : `<button type="button" class="rp-primary" id="jkBack">Capture back</button>`}`,
+      (sh) => { keptGo(sh); const back = $("#jkBack", sh); if (back) back.onclick = () => { sheets.close(); openCam(d.id, true); }; });
   }
 
   /* 06 — a manual receipt is exactly that: the jacket records that a person
@@ -11232,8 +13126,142 @@ route("jacket/:id", ({ id }) => {
       });
   }
 
+  /* phase 2g · the jacket's own camera files through "Document uploads". The
+     photo is kept until the server answers: on its way it is said under the
+     count it would move, and one that did not go stays with its way on — Try
+     again, by itself when the connection is back, or Sign in again. Nothing
+     is filed until it lands, and one photo goes at a time. */
+  function fileHtml() {
+    const b = ui.filing, p = ui.fileProblem;
+    if (b) return `<div class="rp-notice rp-notice--working" role="status" id="jkFiling"><strong>Filing the ${esc(b.what)}</strong>${b.slow ? "Still filing. It usually takes less than a minute." : "One moment."}</div>`;
+    if (!p) return "";
+    const what = esc(p.what);
+    const T = p.kind === "offline" ? ["Waiting for a connection", `Your photo of the ${what} is kept. It’s filed by itself when you’re back online.`, ""]
+      : p.kind === "session" ? ["Your session ended", `Sign in again to file it. Your photo of the ${what} is kept.`, "Sign in again"]
+      : p.kind === "storage" ? ["This phone didn’t save the photo", `Your photo of the ${what} is kept, and nothing was filed. Try again — if it keeps happening, the phone’s storage is full or private browsing is on.`, "Try again"]
+      : ["The photo didn’t go through", `Your photo of the ${what} is kept, and nothing was filed. Try again.`, "Try again"];
+    return `<div class="rp-alert" role="alert" id="jkFileProblem" data-up-kind="${p.kind}"><div class="rp-alert__title">${T[0]}</div><div class="rp-alert__body">${T[1]}</div>${T[2] ? `<button type="button" class="rp-alert__action" id="jkFileAgain">${T[2]}</button>` : ""}</div>`;
+  }
+  /* W-084 · a capture's commit reads the deal by its id when it runs, so a photo kept past this screen can file
+     from anywhere; and a kept photo carries what it needs to file, here (again) or once this screen is gone */
+  const jacketCommit = (docId, customerId, context, files) => () => {
+    /* the deal this photo was taken on, or nothing: after a reset the same id is a new deal (CodeRabbit on #186) */
+    const dl = Store.deal(deal.id);
+    if (dl !== deal) return { ok: false, issue: "This deal was reset. Nothing was filed." };
+    return drCommitClientUpload(dl, docId, () => drAddShots(dl, docId, files, true, customerId),
+      from => {
+        /* Stamp advisor capture without rewriting an earlier customer side.
+           Receipt and provenance persist together, or both roll back. */
+        const rec = clientRecord(dl, docId, customerId);
+        if (rec) {
+          if (from === 0) { rec.via = "advisor"; rec.sideVia = []; }
+          drStampSides(dl, docId, drSidesFrom(dl, docId, from, customerId), "advisor", false, customerId);
+        }
+      }, customerId, context, true);
+  };
+  const kept = (p) => Object.assign(p, { origin: "jacket", dealId: deal.id, deal, label: p.what, n: p.files.length, href: "#/jacket/" + deal.id,
+    commit: jacketCommit(p.docId, p.customerId, p.context, p.files),
+    again: () => fileCapture(p.docId, p.customerId, p.context, p.files) });
+  /* an offline photo files by itself once the connection is back while this screen is up; once it is gone, the
+     deal's keeper does it */
+  function watchBack(problem) {
+    const back = () => {
+      if (!live() || ui.fileProblem !== problem) return off();
+      if (RIDE_PRICE_SERVICES.reallyOffline() || RIDE_PRICE_SERVICES.mode("uploads") === "offline") return;
+      off(); problem.again();
+    };
+    const off = () => { window.removeEventListener("ride-price:switches", back); window.removeEventListener("online", back); };
+    window.addEventListener("ride-price:switches", back); window.addEventListener("online", back);
+  }
+  /* leaving hands a kept photo to the deal's keeper; drawing the jacket again takes its own back, with its way on;
+     and a photo the keeper files while the jacket is up is drawn at once */
+  const onKept = (e) => { if (live() && e.detail && e.detail.dealId === deal.id && !ui.filing) show(true); };
+  const leave = () => {
+    if (KEPT_SCREEN === leave) KEPT_SCREEN = null;
+    window.removeEventListener("hashchange", leave); window.removeEventListener("ride-price:kept", onKept);
+    if (ui.fileProblem) { const p = ui.fileProblem; ui.fileProblem = null; keepAway(p); }
+  };
+  window.addEventListener("hashchange", leave); window.addEventListener("ride-price:kept", onKept);
+  keptScreen(leave);
+  function adoptKept() {
+    if (ui.filing || ui.fileProblem) return;
+    const p = keptAway(deal.id).find((x) => x.origin === "jacket" && !x.busy);
+    if (!p) return;
+    takeBack(p); p.again = () => fileCapture(p.docId, p.customerId, p.context, p.files);
+    ui.fileProblem = p;
+    if (p.kind === "offline") watchBack(p);
+  }
+  /* one photo at a time: a photo on its way holds the camera for every document, and so does a photo kept
+     after it did not go (CodeRabbit on #149) — a new one would replace it, and the kept one would never
+     file. Its own document can still retake it. A photo kept by document review, or by this jacket before it
+     was left, holds it for every document of the deal (W-084). */
+  const heldBy = (d) => ui.filing
+    || (ui.fileProblem && ui.fileProblem.docId !== d.id ? ui.fileProblem : null)
+    || keptAway(deal.id).find((p) => p.busy || p.origin !== "jacket" || p.docId !== d.id) || null;
+  const cameraHeld = (d) => !!heldBy(d);
+  /* said where the camera was, while another photo is on its way or kept */
+  const oneAtATime = (d) => { const h = heldBy(d); return `<div class="rp-notice rp-notice--working" id="jkOneAtATime" data-doc="${esc(d.id)}"><strong>One photo at a time</strong>${h === ui.filing
+    ? `The ${esc(ui.filing.what)} is still filing. The camera is back here as soon as it lands.`
+    : `Your photo of the ${esc(h.label)} is kept and not filed yet. The camera is back here once it files.${h !== ui.fileProblem && h.origin !== "jacket" ? `<button type="button" class="rp-link" id="jkKeptGo" data-href="${esc(h.href)}">Open the kept photo</button>` : ""}`}</div>`; };
+  /* a photo kept by document review is filed, or tried again, there: the notice goes to it */
+  const keptGo = (sh) => { const go = $("#jkKeptGo", sh); if (go) go.onclick = () => { sheets.close(); navigate(go.dataset.href); }; };
+  function fileCapture(docId, customerId, context, files) {
+    const what = (docMeta(docId) || {}).label || "document";
+    const busy = ui.filing = { what, slow: false }; ui.fileProblem = null; show();
+    const slow = setTimeout(() => { if (live() && ui.filing === busy) { busy.slow = true; show(); } }, 3000);
+    RIDE_PRICE_SERVICES.call("uploads", jacketCommit(docId, customerId, context, files)).then((result) => {
+      clearTimeout(slow);
+      if (ui.filing !== busy) return;
+      ui.filing = null;
+      /* phase 2i · the phone refused to keep it: said under the count, the
+         photo kept, Try again — never a toast. Off this screen by now, the
+         deal's keeper keeps it (W-084) */
+      if (result && result.refused) {
+        const p = kept({ docId, customerId, context, files, what, kind: "storage" });
+        if (!live()) return keepAway(p);
+        ui.fileProblem = p; return show(docId);
+      }
+      if (!live()) return;      /* it filed while the advisor was elsewhere */
+      /* §25 — the confirmation names the ONE document it resolved, so the
+         screen never implies the capture cleared anything else; the note under
+         the count says it for one drawing, and the next thing the advisor does
+         is not still about this */
+      if (result) {
+        toast(docId === "form-license" && result.ok ? "License sides received. Review needed." : result.ok ? "✓ " + what + " filed. Nothing else moved." : "Blocked: " + result.issue);
+        ui.justFiled = result.ok && docId !== "form-license" ? what : null;
+      }
+      show(docId);
+    }, (error) => {
+      clearTimeout(slow);
+      if (ui.filing !== busy) return;
+      ui.filing = null;
+      if (!error || error.name !== "ServiceError") { if (live()) show(docId); throw error; }
+      const problem = kept({ docId, customerId, context, files, what, kind: error.kind });
+      if (!live()) return keepAway(problem);      /* off this screen: the deal's keeper keeps it (W-084) */
+      ui.fileProblem = problem;
+      if (problem.kind === "offline") watchBack(problem);
+      show(docId);
+    });
+  }
+  /* draw what the filing says now: the whole jacket, or — with a sheet up —
+     the line under the count at once and the jacket when the sheet closes. A
+     sheet that was holding its camera for this photo gets it back; one that
+     was about this very document closes, and the jacket says what happened. */
+  function show(landed) {
+    if (!sheetUp()) return render();
+    ui.redraw = true;
+    const at = $("#jkFiling") || $("#jkFileProblem"), html = fileHtml();
+    if (at) at.outerHTML = html;
+    else if (html) { const ready = $(".rp-ready"); if (ready) ready.insertAdjacentHTML("afterend", html); }
+    const wait = $("#jkOneAtATime");
+    if (!wait || ui.filing || !landed) return;
+    const d = jacketDocs(deal).find((x) => x.id === wait.dataset.doc);
+    if (d && d.id !== landed) docSheet(d); else sheets.close();
+  }
+
   /* the customer documents run the same instant check the secure link runs */
   function openCam(docId, useCamera) {
+    if (cameraHeld({ id: docId })) return;    /* one photo at a time (phase 2g; a kept one too, W-084) */
     const customerId = docId === "form-license" ? deal.customerId : undefined;
     camDoc = { docId, customerId, context: docId === "form-license" ? licenseCaptureContext(deal, customerId) : null };
     const inp = $(useCamera ? "#jkCam" : "#jkFile");
@@ -11260,37 +13288,26 @@ route("jacket/:id", ({ id }) => {
 
     const onPick = (inp) => () => {
       if (!inp.files || !inp.files.length || !camDoc) return;
-      const { docId, customerId, context } = camDoc;
-      const result = drCommitClientUpload(deal, docId,
-        () => drAddShots(deal, docId, inp.files, true, customerId),
-        from => {
-          /* Stamp advisor capture without rewriting an earlier customer side.
-             Receipt and provenance persist together, or both roll back. */
-          const rec = clientRecord(deal, docId, customerId);
-          if (rec) {
-            if (from === 0) { rec.via = "advisor"; rec.sideVia = []; }
-            drStampSides(deal, docId, drSidesFrom(deal, docId, from, customerId), "advisor", false, customerId);
-          }
-        }, customerId, context);
-      inp.value = "";
-      if (!result) return;
-      /* §25 — the confirmation names the ONE document it resolved, so the
-         screen never implies the capture cleared anything else. It is state
-         for exactly one render: the note tells the advisor what changed, and
-         the next thing they do is not still about this. */
-      const label = (docMeta(docId) || {}).label || "The document";
-      toast(docId === "form-license" && result.ok ? "License sides received. Review needed." : result.ok ? "✓ " + label + " filed. Nothing else moved." : "Blocked: " + result.issue);
-      camDoc = null;
-      ui.justFiled = result.ok && docId !== "form-license" ? label : null;
-      render();
-      ui.justFiled = null;
+      /* phase 2g · the photo is kept for a Try again before the input lets go of it */
+      const { docId, customerId, context } = camDoc, files = [...inp.files];
+      inp.value = ""; camDoc = null;
+      fileCapture(docId, customerId, context, files);
     };
     const cam = $("#jkCam"); if (cam) cam.onchange = onPick(cam);
     const file = $("#jkFile"); if (file) file.onchange = onPick(file);
+    const again = $("#jkFileAgain");
+    if (again) again.onclick = () => { const p = ui.fileProblem; if (!p) return; if (p.kind === "session") RIDE_PRICE_SERVICES.signIn(); p.again(); };
   }
 
   render();
-});
+  /* the document the address named, opened as its row's tap would open it; an id this deal does not hold
+     leaves the jacket as it is. After the router has put focus on the screen, so the sheet keeps it, and only
+     while this jacket is still the one on screen. */
+  const named = docId ? jacketDocs(deal).find(d => d.id === docId) : null;
+  if (named) setTimeout(() => { if (live()) docSheet(named); }, 0);
+}
+route("jacket/:id", jacketView);
+route("jacket/:id/:docId", jacketView);
 
 /* ---------------- scanning a document back into the jacket ---------------- */
 
@@ -11364,7 +13381,7 @@ function openDocScanFlow(deal, onDone, opts) {
     const docId = docIdByCode(res.code);
     const meta = docId ? docMeta(docId) : null;
     if (!meta) {
-      return fail("Marker not recognised",
+      return fail("Marker not recognized",
         "That marker is not a document this version of the portal knows about.");
     }
     const owner = dealByToken(res.token);
@@ -11444,6 +13461,8 @@ route("clientlink/:id/:start", ({ id, start }) => drClientLink(id, start));
 
 route("clientlink/:id/:start/:customerId", ({ id, start, customerId }) => drClientLink(id, start, customerId));
 
+/* phase 2e · a client link's upload state, one per link (deal and recipient): see drClientLink */
+const CLIENT_LINKS = new Map();
 function drClientLink(id, startScreen, recipientId) {
   const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const ds = RIDE_PRICE_DATA.dealership;
@@ -11454,6 +13473,72 @@ function drClientLink(id, startScreen, recipientId) {
   const v = Store.vehicle(deal.stock);
   const st = { screen: startScreen === "sms" ? "sms" : "landing", docId: null, badPhoto: false, zoom: 1, page: 0, source: "camera" };
   const drafts = new Map();
+  /* phase 2e · one owner per client link: a photo on its way (st.upBusy) or one
+     that did not go (st.up) belongs to the link, not to the page that sent it.
+     The router can draw the link again without the address changing (the
+     buyers sheet does); the newest page drawn is the only one that draws, and
+     it shows a send already on its way, sends nothing over it, and takes its
+     answer (CodeRabbit on #147). A page's own drafts last until it is first
+     left, and only then can its send commit; a return to the same link after
+     leaving is a new page, and a send the old one left behind files nothing. */
+  const linkKey = `${deal.id}|${customerId}`, page = {};
+  const owner = CLIENT_LINKS.get(linkKey) || {};
+  CLIENT_LINKS.set(linkKey, owner);
+  if (!owner.mine || !owner.mine()) { owner.busy = null; owner.up = null; }
+  let left = false;
+  const pageHash = location.hash;
+  const mine = () => !left && location.hash === pageHash;
+  const live = () => mine() && owner.page === page;
+  owner.page = page; owner.mine = mine; owner.redraw = () => { if (live()) render(); };
+  /* a commit a page drawn over made changes what this page read: its capture context follows it (CodeRabbit on #147) */
+  owner.resync = () => { if (live()) recipientContext = licenseCaptureContext(deal, customerId); };
+  Object.defineProperty(st, "upBusy", { get: () => owner.busy, set: (v) => { owner.busy = v; }, enumerable: true });
+  Object.defineProperty(st, "up", { get: () => owner.up, set: (v) => { owner.up = v; }, enumerable: true });
+  const upBack = () => {
+    if (!st.up || st.up.kind !== "offline" || !live()) return;
+    if (RIDE_PRICE_SERVICES.reallyOffline() || RIDE_PRICE_SERVICES.mode("uploads") === "offline") return;
+    st.up.again();
+  };
+  window.addEventListener("ride-price:switches", upBack); window.addEventListener("online", upBack);
+  window.addEventListener("hashchange", () => { left = true; window.removeEventListener("ride-price:switches", upBack); window.removeEventListener("online", upBack); }, { once: true });
+  function sendUpload(docId, commit, landed) {
+    /* one send at a time: a second would replace the first and lose its answer (CodeRabbit on #147) */
+    if (st.upBusy) return;
+    const busy = st.upBusy = { docId, slow: false }; st.up = null; owner.redraw();
+    const slow = setTimeout(() => { if (st.upBusy === busy) { busy.slow = true; owner.redraw(); } }, 3000);
+    /* the commit itself checks the page was not left, so a late answer files
+       nothing from drafts a departure threw away (CodeRabbit on #147) */
+    RIDE_PRICE_SERVICES.call("uploads", () => (mine() && st.upBusy === busy ? commit() : null)).then((result) => {
+      clearTimeout(slow);
+      if (st.upBusy !== busy) return;
+      st.upBusy = null;
+      /* phase 2i · John's phone refused to keep it: said on John's page — the one drawn now — and kept */
+      if (result && result.refused) { st.up = { docId, kind: "storage", again: () => sendUpload(docId, commit, landed) }; owner.redraw(); return; }
+      /* sent from a page drawn over since: the page showing now shows the result */
+      if (!live()) { if (result) owner.resync(); owner.redraw(); return; }
+      if (!result) { render(); return; }
+      landed(result);
+    }, (error) => {
+      clearTimeout(slow);
+      if (st.upBusy !== busy) return;
+      st.upBusy = null;
+      if (!error || error.name !== "ServiceError") { owner.redraw(); throw error; }
+      st.up = { docId, kind: error.kind, again: () => sendUpload(docId, commit, landed) };
+      owner.redraw();
+    });
+  }
+  /* what the customer reads: the photo is kept, and the way on */
+  function upHtml() {
+    const b = st.upBusy, u = st.up;
+    if (b) return `<div class="rp-notice rp-notice--working" role="status" id="cuSending"><strong>Sending your ${esc(docMeta(b.docId).label)}</strong>${b.slow ? "Still sending. It usually takes less than a minute." : "One moment."}</div>`;
+    if (!u) return "";
+    const label = esc(docMeta(u.docId).label);
+    const T = u.kind === "offline" ? ["You’re offline", `Your photo is kept. Your ${label} is sent as soon as you’re back online.`, ""]
+      : u.kind === "session" ? ["Your secure session ended", "Open the link from your text again to go on. Your photo is kept.", "Open the link again"]
+      : u.kind === "storage" ? [`Your phone didn’t save your ${label}`, "Your photo is kept. Try again — if it keeps happening, your phone’s storage may be full, or private browsing is on.", "Try again"]
+      : [`We couldn’t send your ${label} just now`, "Your photo is kept. Try again in a moment.", "Try again"];
+    return `<div class="rp-alert" role="alert" id="cuUpProblem" data-up-kind="${u.kind}"><div class="rp-alert__title">${T[0]}</div><div class="rp-alert__body">${T[1]}</div>${T[2] ? `<button type="button" class="rp-alert__action" data-up-again>${T[2]}</button>` : ""}</div>`;
+  }
   const photos = docId => drafts.get(docId)?.urls || clientPhotos(deal.id, docId, customerId);
   function draftSet(docId, urls) {
     const draft = drafts.get(docId) || { urls: [], owned: new Set() };
@@ -11486,9 +13571,19 @@ function drClientLink(id, startScreen, recipientId) {
   document.body.dataset.screen = "clientlink";
   document.body.dataset.canvas = "kit";
   const sheets = chSheetOpener("cuScrim", "cuSheet", () => { if (st.screen === "detail") st.screen = "landing"; });
-  const shell = (title, content, actions = "") => chShell({template:"task",title,closeId:"cuClose",closeLabel:"Demo advisor view",hideRole:true,banner:false /* PI-005 (docs/workflows/portal-interaction): a customer's page draws no dealership band; the .dr-demoexit below stays the trainer's marked way back */},content,actions ? `<div class="rp-dock">${actions}</div>` : "",{scrim:"cuScrim",sheet:"cuSheet"});
+  const shell = (title, content, actions = "") => chShell({template:"task",title,closeId:"cuClose",closeLabel:"Demo advisor view",banner:false /* PI-005 (docs/workflows/portal-interaction): a customer's page draws no dealership band; the .dr-demoexit below stays the trainer's marked way back */},content,actions ? `<div class="rp-dock">${actions}</div>` : "",{scrim:"cuScrim",sheet:"cuSheet"});
   const action = (attrs, label, primary = false) => `<button type="button" class="${primary ? "rp-primary" : "rp-link"}" ${attrs}>${label}</button>`;
   const context = () => `<p class="rp-section">${esc(cst.first)} ${esc(cst.last)} · Request #${esc(deal.dealNo || "")}</p>`;
+  /* W-040 (the owner's answer of 2026-09-24, as decision-w040-other-income.png
+     drew it): "Other income type" said "noted" in a toast and recorded nothing,
+     so the customer waited for a request that never came. The answer is kept on
+     the document's record; the sheet says so and what happens next, in the
+     advisor's name; and the Deal Jacket's row tells the advisor */
+  function otherIncomeHtml(r) {
+    const who = deal.advisor ? esc(String(deal.advisor).split(" ")[0]) : "";
+    if (r && r.otherIncomeAt) return `<div class="rp-notice" role="status" id="cuOtherIncome"><strong>${who ? who + " knows" : "Your advisor knows"} you’re paid another way</strong><br>${who || "Your advisor"} will ask you for another proof of income, such as a bank statement or a tax return.</div>`;
+    return (st.otherIncomeFailed ? `<p class="rp-field__err" role="alert" id="cuOtherIncomeErr">Your phone didn’t save that. Try again.</p>` : "") + action('data-other-income','Other income type');
+  }
 
 
   const rec = (docId) => clientRecord(deal, docId, customerId);
@@ -11504,15 +13599,16 @@ function drClientLink(id, startScreen, recipientId) {
 
   function clientRowHtml(docId) {
     const d=docMeta(docId),m=clientMeta(docId),state=stateOf(docId),r=rec(docId);
-    const accepted=state==="accepted",blocked=state==="rejected";
+    /* an answer after a refused page is the newer of the two (W-040, claude-c on #201): the row does not say the refusal */
+    const accepted=state==="accepted",blocked=state==="rejected"&&!(r&&r.otherIncomeAt);
     const status=accepted?(docId==="form-license"?"Reviewed":"Verified"):state==="received"?"Sent — being reviewed":blocked?(r.rejectedReason||"Needs a new photo"):"";
     return `<div class="rp-row">
       <span class="rp-tile" aria-hidden="true">${rpGlyph(docId==="form-license"?"license":"document")}</span>
-      <button type="button" class="rp-row__body customer-upload-open" ${accepted?"disabled":`data-detail="${esc(docId)}"`}>
+      <button type="button" class="rp-row__body customer-upload-open" ${accepted?"disabled":`data-detail="${esc(docId)}"${st.upBusy ? " disabled" : ""}`}>
         <span class="rp-row__title">${esc(d.label)}</span><span class="rp-row__sub">${esc(m.sub||"")}</span>
         ${status?`<span class="rp-row__sub">${esc(status)}</span>`:""}
       </button>
-      ${accepted?`<span class="rp-status rp-status--positive">${docId==="form-license"?"Reviewed":"Verified"}</span>`:`<button type="button" class="rp-row__action ch-hit" data-trigger-upload="${esc(docId)}" aria-controls="drUpl-${esc(docId)}">${blocked?"Retake":state==="received"?"Replace":"Add"}</button><input id="drUpl-${esc(docId)}" type="file" accept="image/*" capture="environment" data-upload-input="${esc(docId)}" hidden>`}
+      ${accepted?`<span class="rp-status rp-status--positive">${docId==="form-license"?"Reviewed":"Verified"}</span>`:`<button type="button" class="rp-row__action ch-hit" data-trigger-upload="${esc(docId)}" aria-controls="drUpl-${esc(docId)}"${st.upBusy ? " disabled" : ""}>${blocked?"Retake":state==="received"?"Replace":"Add"}</button><input id="drUpl-${esc(docId)}" type="file" accept="image/*" capture="environment" data-upload-input="${esc(docId)}" hidden>`}
     </div>`;
   }
 
@@ -11522,7 +13618,7 @@ function drClientLink(id, startScreen, recipientId) {
     const target=st.screen;
     sheets.close(); st.screen=target;
     const host=view();
-    host.innerHTML=st.screen==="sms"?smsScreen():st.screen==="receipt"?receiptScreen():st.screen==="review"?reviewScreen():landingScreen();
+    host.innerHTML=st.screen==="sms"?smsScreen():st.screen==="saved"?savedScreen():st.screen==="receipt"?receiptScreen():st.screen==="review"?reviewScreen():landingScreen();
     if(st.screen==="detail") {
       const opener=$$('[data-detail]',host).find(b=>b.dataset.detail===st.docId);
       opener?.focus();
@@ -11547,13 +13643,17 @@ function drClientLink(id, startScreen, recipientId) {
 
   function detailSheet() {
     const d=docMeta(st.docId),m=clientMeta(st.docId),r=rec(st.docId);
+    /* a refusal is said in the attention colour, never in the green this page
+       gives a document that passed (RP-UI-054), and it says the way on: the
+       ways to send a new one sit right below it */
+    const refusal=(reason)=>`<div class="rp-notice rp-notice--working" role="status">${reason?`<strong>${esc(reason)}</strong>Not accepted — send a new one below.`:`<strong>Not accepted</strong>Send a new one below.`}</div>`;
     const option=(kind,glyph,label,sub)=>`<button type="button" class="rp-row" data-capture="${kind}"><span class="rp-tile" aria-hidden="true">${rpGlyph(glyph)}</span><span class="rp-row__body"><span class="rp-row__title">${label}</span><span class="rp-row__sub">${sub}</span></span><span class="rp-row__chevron" aria-hidden="true"></span></button>`;
     return `<div class="rp-sheet__head"><h2 class="rp-sheet__title">${esc(d.label)}</h2><button type="button" class="rp-sheet__close" data-sheet-close aria-label="Close">${rpGlyph("close")}</button></div>
       <p class="rp-section">${esc(m.sub||"")}</p>
-      ${r?.state==="rejected"?`<div class="rp-notice" role="status">${esc(r.rejectedReason||"")}</div>`:""}
+      ${r?.state==="rejected"&&!r.otherIncomeAt?refusal(r.rejectedReason):""}
       ${m.multiNote?`<p class="rp-section">${esc(m.multiNote.split(".")[0])}.</p>`:""}
       <div class="rp-group">${option("camera","scan","Take a photo","Use your phone camera")}${option("library","upload","Choose from library","Select an existing photo")}${option("pdf","document","Choose a PDF","If you have a file instead")}</div>
-      ${m.altIncome?action('data-other-income','Other income type'):""}
+      ${m.altIncome?otherIncomeHtml(r):""}
       ${action('data-example','See a good example')}
       <label class="rp-check"><input type="checkbox" id="drBad" ${st.badPhoto?"checked":""}><span>Demo only: simulate an unreadable photo.</span></label>
       <input type="file" accept="image/*" capture="environment" id="drCapCam" hidden><input type="file" accept="image/*" multiple id="drCapLib" hidden><input type="file" accept="application/pdf" id="drCapPdf" hidden>`;
@@ -11565,7 +13665,7 @@ function drClientLink(id, startScreen, recipientId) {
   function reviewScreen() {
     const urls=photos(st.docId),pages=Math.max(1,urls.length);st.page=Math.min(st.page,pages-1);const u=urls[st.page];
     const chip=(attrs,label,disabled=false)=>`<button type="button" class="rp-chip" ${attrs} ${disabled?"disabled":""}>${label}</button>`;
-    return shell("Review capture",`${context()}<h1 class="rp-title">${esc(docMeta(st.docId).label)}</h1>
+    return shell("Review capture",`${context()}${upHtml()}<h1 class="rp-title">${esc(docMeta(st.docId).label)}</h1>
       <div class="rp-capture"><div class="customer-upload-preview">${u?`<img class="customer-upload-image" src="${esc(u)}" alt="Captured page ${st.page+1}" style="transform:scale(${st.zoom})">`:`<div class="rp-empty"><strong>Preview unavailable</strong>PDF preview unavailable in this demo.</div>`}</div></div>
       <p class="rp-section">Page ${st.page+1} of ${pages}</p>
       <div class="rp-chiprow" aria-label="Document pages">${chip('data-page="-" aria-label="Previous page"','Previous',st.page===0)}${chip('data-page="+" aria-label="Next page"','Next',st.page>=pages-1)}</div>
@@ -11590,11 +13690,28 @@ function drClientLink(id, startScreen, recipientId) {
   function landingScreen() {
     const sent=doneCount(),all=queueIds().length,pct=all?Math.round(sent/all*100):0;
     const bottom=sent===all&&all?action('data-receipt','Submit documents',true):`${clientQueue(deal).length?action('data-snapall','Add documents',true):""}${sent?action('data-receipt',`Submit what's ready (${sent}/${all})`):""}${action('data-save-later','Save &amp; finish later')}`;
-    return shell("Your documents",`${context()}<h1 class="rp-title">Upload your documents</h1><p class="rp-section">${sent} of ${all} ready</p><div class="rp-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${all}" aria-valuenow="${sent}" aria-label="Documents ready"><div class="rp-progress__bar" style="width:${pct}%"></div></div><h2 class="rp-section">Requested documents</h2><div class="rp-group">${queueIds().map(clientRowHtml).join("")}</div><p class="rp-section">Training demo · files stay on this device.</p>`,bottom);
+    return shell("Your documents",`${context()}<h1 class="rp-title">Upload your documents</h1><p class="rp-section">${sent} of ${all} ready</p><div class="rp-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${all}" aria-valuenow="${sent}" aria-label="Documents ready"><div class="rp-progress__bar" style="width:${pct}%"></div></div>${upHtml()}<h2 class="rp-section">Requested documents</h2><div class="rp-group">${queueIds().map(clientRowHtml).join("")}</div><p class="rp-section">Training demo · files stay on this device.</p>`,bottom);
   }
 
 
 
+  /* phase 2 · Save & finish later saves, and says what is kept. It used to
+     toast "Saved" and save nothing. What the customer sent is already with
+     Ride Price; a photo still being taken lives only on this page, so the
+     screen says so rather than promising it. */
+  function savedScreen() {
+    const ids = queueIds();
+    const sent = ids.filter(q => ["accepted", "received"].includes(stateOf(q)));
+    const missing = ids.filter(q => !["accepted", "received"].includes(stateOf(q)));
+    return shell("Saved for later", `${context()}<h1 class="rp-title">Your progress is saved</h1>
+      <div class="rp-group">
+        <div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${sent.length} of ${ids.length} sent to Ride Price</span><span class="rp-row__sub">${sent.length ? esc(sent.map(q => docMeta(q).label).join(" · ")) : "Nothing sent yet"}</span></span></div>
+        ${missing.length ? `<div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${missing.length} still needed</span><span class="rp-row__sub">${esc(missing.map(q => docMeta(q).label).join(" · "))}</span></span></div>` : ""}
+      </div>
+      ${drafts.size ? `<div class="rp-notice rp-notice--working" id="cuUnkept">The photo you were taking isn’t kept. Take it again when you come back.</div>` : ""}
+      <p class="rp-count">Reopen this same link to finish. You can close this page now.</p>`,
+      action("data-keep-going", "Keep going", true));
+  }
   function receiptScreen() {
     const okIds=queueIds().filter(q=>stateOf(q)==="accepted"),pending=queueIds().filter(q=>stateOf(q)==="received"),missing=queueIds().filter(q=>!["accepted","received"].includes(stateOf(q)));
     return shell("Document receipt",`${context()}<h1 class="rp-title">Your documents</h1>
@@ -11622,33 +13739,46 @@ function drClientLink(id, startScreen, recipientId) {
     st.draftVia = kept.concat(Array.from({ length: n - from }, () => "customer"));
   };
   function useCapture() {
-    const result = drCommitClientUpload(deal, st.docId, () => {
-      const captured = photos(st.docId).slice();
+    /* another document's send is on its way: this one waits, on its review, which says so (CodeRabbit on #147) */
+    if (st.upBusy) { render(); return; }
+    /* phase 2e · the review's pages and their provenance, as they stand now:
+       a Try again later sends these, whatever the page shows by then */
+    const docId = st.docId, via = (st.draftVia || draftSeed()).slice(), context = recipientContext;
+    st.screen = "landing"; st.zoom = 1; st.page = 0;
+    sendUpload(docId, () => drCommitClientUpload(deal, docId, () => {
+      const captured = photos(docId).slice();
       // A later back keeps the original front receipt, including after its
       // session preview expires. Replacing or moving that front is a new receipt.
-      const originalFront = clientPhotos(deal.id, st.docId, customerId)[0] ?? null;
-      const keptFront = st.docId === "form-license" && !!rec(st.docId)?.sides?.front
+      const originalFront = clientPhotos(deal.id, docId, customerId)[0] ?? null;
+      const keptFront = docId === "form-license" && !!rec(docId)?.sides?.front
         && captured.length > 0 && captured[0] === originalFront;
-      clientPhotosSet(deal.id, st.docId, captured, customerId);
+      clientPhotosSet(deal.id, docId, captured, customerId);
       return {from:keptFront ? 1 : 0,retainOnFailure:true};
     }, () => {
-      const r = rec(st.docId);
-      if (r) r.sideVia = (st.draftVia || draftSeed()).slice();
-    }, customerId, recipientContext);
-    if (!result) return;
-    const completedDraft = drafts.get(st.docId);
-    completedDraft?.owned.forEach(u => { if (!clientPhotos(deal.id,st.docId,customerId).includes(u)) { try { URL.revokeObjectURL(u); } catch {} } });
-    drafts.delete(st.docId); recipientContext = licenseCaptureContext(deal, customerId);
-    st.draftVia = null;
-    toast(result.ok ? (result.reviewPending ? "License received — awaiting review." : "✓ Verified instantly and added to the Deal Jacket.") : "Upload blocked: " + result.issue);
-    st.screen = "landing"; st.zoom = 1; st.page = 0; render();
+      const r = rec(docId);
+      if (r) r.sideVia = via.slice();
+    }, customerId, context, true), (result) => {
+      const completedDraft = drafts.get(docId);
+      completedDraft?.owned.forEach(u => { if (!clientPhotos(deal.id,docId,customerId).includes(u)) { try { URL.revokeObjectURL(u); } catch {} } });
+      drafts.delete(docId); recipientContext = licenseCaptureContext(deal, customerId);
+      if (st.docId === docId) st.draftVia = null;
+      toast(result.ok ? (result.reviewPending ? "License received — awaiting review." : "✓ Verified instantly and added to the Deal Jacket.") : "Upload blocked: " + result.issue);
+      render();
+    });
   }
 
   function wire() {
     $$("[data-open-client]").forEach(a => a.onclick = (e) => { e.preventDefault(); st.screen = "landing"; render(); });
     $$("[data-back-landing]").forEach(b => b.onclick = () => { st.screen = "landing"; st.zoom = 1; render(); });
     $$("[data-back-detail]").forEach(b => b.onclick = () => { st.screen = "detail"; st.zoom = 1; render(); });
-    $$("[data-save-later]").forEach(b => b.onclick = () => toast("Saved. Reopen this same link to continue where you left off."));
+    /* phase 2 · Save & finish later saves for real, and a phone that refuses
+       says so (picture F) instead of claiming it saved */
+    $$("[data-save-later]").forEach(b => b.onclick = () => {
+      const saved = () => { st.screen = "saved"; render(); };
+      try { Store.save(); } catch (e) { if (!isStorageError(e)) throw e; notSaved(false, saved); return; }
+      saved();
+    });
+    $$("[data-keep-going]").forEach(b => b.onclick = () => { st.screen = "landing"; render(); });
     $$("[data-receipt]").forEach(b => b.onclick = () => { st.screen = "receipt"; render(); });
     $$("[data-snapall]").forEach(b => b.onclick = () => navigate("#/snapall/" + deal.id + "/client/" + customerId));
     $$("[data-detail]").forEach(b => b.onclick = () => {
@@ -11658,7 +13788,15 @@ function drClientLink(id, startScreen, recipientId) {
       render();
     });
     $$("[data-example]").forEach(b => b.onclick = () => toast("A good photo: all four corners visible, current dates, readable text."));
-    $$("[data-other-income]").forEach(b => b.onclick = () => toast("Other income type noted — your advisor can request the right alternative."));
+    /* W-040: the answer is kept, and the sheet says so; a phone that refuses to save says that, and keeps the way */
+    $$("[data-other-income]").forEach(b => b.onclick = () => {
+      const cl = jacketClientOf(deal), id = st.docId, had = Object.prototype.hasOwnProperty.call(cl, id), before = had ? { ...cl[id] } : null;
+      const r = had ? cl[id] : (cl[id] = { state: "requested" });
+      r.otherIncomeAt = new Date().toISOString();
+      try { Store.save(); st.otherIncomeFailed = false; }
+      catch (error) { if (had) cl[id] = before; else delete cl[id]; st.otherIncomeFailed = true; }
+      render();
+    });
     const bad = $("#drBad");
     if (bad) bad.onchange = () => { st.badPhoto = bad.checked; };
     /* the fast path: the row's own button, straight to the verdict */
@@ -11669,17 +13807,20 @@ function drClientLink(id, startScreen, recipientId) {
     });
     $$("[data-upload-input]").forEach(inp => inp.onchange = () => {
       if (!inp.files || !inp.files.length) return;
-      const docId = inp.dataset.uploadInput;
-      const result = drCommitClientUpload(deal, docId,
-        () => drAddShots(deal, docId, inp.files, true, customerId),
-        from => drStampSides(deal, docId, drSidesFrom(deal, docId, from, customerId), "customer", false, customerId), customerId, recipientContext);
+      /* phase 2e · the photos are kept for a Try again before the input lets go of them */
+      const docId = inp.dataset.uploadInput, files = [...inp.files], context = recipientContext;
       inp.value = '';
-      if (!result) return;
-      discardDraft(docId); if(st.docId === docId) st.draftVia = null;
-      recipientContext = licenseCaptureContext(deal, customerId);
-      toast(result.ok ? (result.reviewPending ? "License received — awaiting review." : "✓ Verified instantly and added to the Deal Jacket.") : "Upload blocked: " + result.issue);
-      render();
+      sendUpload(docId, () => drCommitClientUpload(deal, docId,
+        () => drAddShots(deal, docId, files, true, customerId),
+        from => drStampSides(deal, docId, drSidesFrom(deal, docId, from, customerId), "customer", false, customerId), customerId, context, true), (result) => {
+        discardDraft(docId); if(st.docId === docId) st.draftVia = null;
+        recipientContext = licenseCaptureContext(deal, customerId);
+        toast(result.ok ? (result.reviewPending ? "License received — awaiting review." : "✓ Verified instantly and added to the Deal Jacket.") : "Upload blocked: " + result.issue);
+        render();
+      });
     });
+    const upAgain = $("[data-up-again]");
+    if (upAgain) upAgain.onclick = () => { const u = st.up; if (!u) return; if (u.kind === "session") RIDE_PRICE_SERVICES.signIn(); u.again(); };
     /* the considered path: a capture method, then the review */
     const capIds = { camera: "#drCapCam", library: "#drCapLib", pdf: "#drCapPdf" };
     $$("[data-capture]").forEach(b => b.onclick = () => {
@@ -11808,8 +13949,14 @@ function documentReviewView({ id, docId, customerId }) {
   }
 
   /* the viewer's own state: which side is shown, and whether it is zoomed */
-  const st = { side: 0, zoom: 1, reviewing: false, dead: false };
-  const sheets = chSheetOpener("drvScrim", "drvSheet");
+  const st = { side: 0, zoom: 1, reviewing: false, dead: false, filing: null, fileProblem: null, redraw: false };
+  /* phase 2g · the page is never drawn under an open sheet (the page behind
+     it would stay inert), so a side that lands while one is up is drawn when
+     it closes */
+  const sheets = chSheetOpener("drvScrim", "drvSheet", () => { if (st.redraw && live()) render(); });
+  let mine = null;          /* the page this visit drew last */
+  const live = () => !st.dead && !!mine && document.contains(mine);
+  const sheetUp = () => { const sh = $("#drvSheet"); return !!sh && !sh.hidden; };
 
   const rec = () => clientRecord(deal, docId, subjectId) || null;
   const urls = () => clientPhotos(deal.id, docId, subjectId);
@@ -11840,8 +13987,15 @@ function documentReviewView({ id, docId, customerId }) {
   };
 
   const closeSheet = () => sheets.close();
-  const teardown = () => { st.dead = true; closeSheet(); window.removeEventListener("hashchange", teardown); };
+  const teardown = () => {
+    if (KEPT_SCREEN === teardown) KEPT_SCREEN = null;
+    st.dead = true; lockSheet(false); closeSheet(); window.removeEventListener("hashchange", teardown);
+    /* W-084 · a side kept here goes to the deal's keeper: it files by itself once back online, from anywhere */
+    window.removeEventListener("ride-price:kept", onKept);
+    if (st.fileProblem) { const p = st.fileProblem; st.fileProblem = null; keepAway(p); }
+  };
   window.addEventListener("hashchange", teardown);
+  keptScreen(teardown);
   const openSheet = (html, onMount) => sheets.open(html, onMount);
 
   /* one status, derived once and read by both the card and the dock — the
@@ -11916,6 +14070,8 @@ function documentReviewView({ id, docId, customerId }) {
 
   function render() {
     if (!requireViewerSubject()) return;
+    adoptKept();       /* W-084 · a side this page kept before it was left comes back with its way on */
+    st.redraw = false;
     renderChrome(d.label, "", "");
     document.body.dataset.canvas = "kit";
     document.body.dataset.screen = "docreview";
@@ -11938,16 +14094,23 @@ function documentReviewView({ id, docId, customerId }) {
     const hasDock = miss >= 0 || reviewReady || recapture;
     const reviewContext = license ? licenseCaptureContext(deal, subjectId) : null;
     const waiting = miss >= 0 && !!(r0 && r0.linkSentAt);
+    /* phase 2h · said at the top with the filing lines, where Ashley looks when
+       the link's sheet closes — at the foot of the page it sat below the fold,
+       behind the dock */
     const ctx = [c ? `${c.first} ${c.last}` : null, deal.dealNo ? `Deal #${deal.dealNo}` : null].filter(Boolean).join(" · ");
 
     const detail = (label, valueHtml) => `<div class="rp-kv__row"><span>${esc(label)}</span><span>${valueHtml}</span></div>`;
-    view().innerHTML = chShell({ template: "task", title: d.label, closeId: "drvBack", closeLabel: "Back to Deal Jacket", hideRole: true }, `
+    /* while a photo files the dock's button is greyed: the kit's gate dock is
+       opaque behind it, so the page does not read through it (W-035) */
+    view().innerHTML = chShell({ template: "task", title: d.label, closeId: "drvBack", closeLabel: "Back to Deal Jacket", cls: st.filing ? "rp-screen--gate" : "" }, `
       <div class="rp-section">${esc(ctx)}</div>
       <button type="button" class="rp-link" id="drvMore">Document actions</button>
       ${license && licenseBuyerIds(deal).length > 1 ? `<div class="rp-chiprow" aria-label="License owner">${licenseBuyerIds(deal).map(cid => {
         const buyer = Store.customer(cid);
         return `<button type="button" class="rp-chip${cid === subjectId ? " rp-chip--on" : ""}" aria-pressed="${cid === subjectId}" data-license-buyer="${esc(cid)}">${esc(buyer ? `${buyer.first} ${buyer.last}` : "Unavailable buyer")}</button>`;
       }).join("")}</div>` : ""}
+      ${fileHtml()}
+      ${waiting ? `<div class="rp-notice" id="drvWaiting">Link sent · waiting for customer upload</div>` : ""}
       <div class="rp-capture"><div class="document-review-preview" id="drvViewer">
         ${u ? `<img class="document-review-image" src="${esc(u)}" alt="${esc(d.label)} — ${esc(names[st.side] || "page")}" style="transform:scale(${esc(st.zoom)})">`
           : `<div class="rp-empty"><strong>Preview unavailable</strong>${esc(d.label)} · ${esc(names[st.side] || "page")}<p>Only the receipt record is saved between sessions.</p></div>`}
@@ -11955,7 +14118,7 @@ function documentReviewView({ id, docId, customerId }) {
       <div class="rp-chiprow" aria-label="Document pages">
         ${names.map((n, i) => {
           const need = i >= have;
-          return `<button type="button" class="rp-chip${!need && i === st.side ? " rp-chip--on" : ""}" aria-pressed="${!need && i === st.side}" data-side="${esc(i)}">${esc(n)} · ${need ? "Needed" : "Received"}</button>`;
+          return `<button type="button" class="rp-chip${!need && i === st.side ? " rp-chip--on" : ""}" aria-pressed="${!need && i === st.side}" data-side="${esc(i)}">${esc(n)} · ${need ? (st.filing && st.filing.side === i ? "Filing…" : "Needed") : "Received"}</button>`;
         }).join("")}
       </div>
       <section class="rp-group" aria-label="Document status">
@@ -11965,16 +14128,19 @@ function documentReviewView({ id, docId, customerId }) {
         ${detail("Source", sourceLine())}
         ${reviewed ? detail("Reviewed by", esc(r0.review.by) + " · " + esc(jacketStamp(r0.review.reviewedAt))) : ""}
         ${verificationLine() ? detail("Verification", esc(verificationLine())) : ""}
-      </div>
-      ${waiting ? `<div class="rp-notice">Link sent · waiting for customer upload</div>` : ""}`,
+      </div>`,
       hasDock ? chDock(reviewReady ? `<button type="button" class="rp-primary" id="drvReview"${st.reviewing ? " disabled" : ""}>${st.reviewing ? "Saving review…" : "Mark reviewed"}</button>`
-        : `<button type="button" class="rp-primary" id="drvAdd">${recapture ? "Recapture license" : `${waiting ? "Manage" : "Add"} missing ${esc((names[miss] || "page").toLowerCase())}`}</button>`) : "",
+        : `<button type="button" class="rp-primary" id="drvAdd"${st.filing || heldElsewhere() ? " disabled" : ""}>${recapture ? "Recapture license" : `${waiting ? "Manage" : "Add"} missing ${esc((names[miss] || "page").toLowerCase())}`}</button>`) : "",
       { scrim: "drvScrim", sheet: "drvSheet" });
+    mine = view().firstElementChild;
     chFitDock();
 
     $("#drvBack").onclick = () => navigate("#/jacket/" + deal.id);
     $("#drvMore").onclick = moreSheet;
     const add = $("#drvAdd"); if (add) add.onclick = addSideSheet;
+    const again = $("#drvFileAgain");
+    if (again) again.onclick = () => { const p = st.fileProblem; if (!p) return; if (p.kind === "session") RIDE_PRICE_SERVICES.signIn(); p.again(); };
+    const keptGo = $("#drvKeptGo"); if (keptGo) keptGo.onclick = () => navigate(keptGo.dataset.href);
     $$("[data-license-buyer]").forEach(button => button.onclick = () => navigate(`#/docreview/${deal.id}/${docId}/${button.dataset.licenseBuyer}`));
     const review = $("#drvReview");
     if (review) review.onclick = async () => {
@@ -11988,7 +14154,7 @@ function documentReviewView({ id, docId, customerId }) {
       const i = Number(b.dataset.side);
       /* tapping a side that has not arrived offers the way to get it, rather
          than showing an empty frame */
-      if (i >= captured()) return addSideSheet();
+      if (i >= captured()) { if (!st.filing && !heldElsewhere()) addSideSheet(); return; }
       st.side = i; st.zoom = 1; render();
     });
     /* gesture zoom, as the package asks: double-tap toggles, pinch is
@@ -12001,6 +14167,7 @@ function documentReviewView({ id, docId, customerId }) {
   /* the exception sheet: the two ways this app can actually get a side */
   function addSideSheet() {
     if (!requireViewerSubject()) return;
+    if (st.filing || heldElsewhere()) return;    /* one at a time (phase 2g): the top of the page says it is filing, or kept (W-084) */
     const captureContext = license ? licenseCaptureContext(deal, subjectId) : null;
     const replacing = license && captured() >= 2;
     const names = sideNames();
@@ -12017,42 +14184,213 @@ function documentReviewView({ id, docId, customerId }) {
         ${choice("upload", "Send secure upload link", "Customer uploads directly into Ride Price.", `id="drvLink"`)}
       </section>
       <input id="drvFile" class="drv-file" type="file" accept="image/*" capture="environment"${license ? " multiple" : ""} hidden>
-      <p class="rp-sheet__sub">Uploads go directly into Ride Price &mdash; never through the salesperson&rsquo;s phone.${(rec() || {}).linkSentAt
-        ? ` Link already sent &mdash; demo: <a href="#/clientlink/${esc(deal.id)}/landing/${esc(subjectId)}">open the customer view</a> on this device.` : ""}</p>`, (sh) => {
+      ${(rec() || {}).linkSentAt
+        ? `<p class="rp-sheet__sub">Link already sent &mdash; demo: <a href="#/clientlink/${esc(deal.id)}/landing/${esc(subjectId)}">open the customer view</a> on this device.</p>` : ""}`, (sh) => {
       const file = $("#drvFile", sh);
       $("#drvScan", sh).onclick = () => { file.value = ""; file.click(); };
       file.onchange = () => {
         if (!file.files || !file.files.length) return;
         if (!requireViewerSubject()) { file.value = ""; return; }
-        const result = drCommitClientUpload(deal, docId,
-          () => drAddShots(deal, docId, file.files, true, subjectId),
-          from => {
-            /* This device captured the new side; keep any earlier customer's
-               provenance and pending link intact if persistence fails. */
-            const cr = clientRecord(deal, docId, subjectId);
-            if (cr) {
-              drStampSides(deal, docId, drSidesFrom(deal, docId, from, subjectId), "advisor", false, subjectId);
-              delete cr.linkSentAt;
-            }
-          }, subjectId, captureContext);
+        /* phase 2g · the photos are kept for a Try again before the input lets go of them */
+        const files = [...file.files];
         file.value = "";
-        if (!result) return;
-        /* V3: no success sheet, no toast. The viewer switches to the side
-           that just arrived and the card says what the document now is. */
         closeSheet();
-        st.side = Math.max(0, captured() - 1); st.zoom = 1;
-        render();
+        addSide(files, captureContext, replacing ? "the new license images" : "the " + what, replacing ? -1 : miss);
       };
       $("#drvLink", sh).onclick = () => {
         if (!requireViewerSubject()) return;
         if (license && !licenseContextValid(deal, subjectId, captureContext)) { toast("The license context changed. Reopen the document."); return; }
-        try { jacketSendRequest(deal, [docId], license ? subjectId : undefined, { linkSent: true }); }
-        catch { toast("Request was not saved. Try again."); return; }
-        if ($("#toast")?.textContent === "Request was not saved. Try again.") { clearTimeout(toastTimer); $("#toast").remove(); }
-        /* V3: no confirmation sheet — the card shows the waiting state */
-        closeSheet(); render();
+        sendLink(captureContext);
       };
     });
+  }
+
+  /* phase 2h · the secure link from here goes out as a text through the
+     "links" server, as the jacket's request does (pictures C–G): the sheet
+     says it is sending and cannot be dismissed while it does; a text that did
+     not go out, a dropped connection (it sends by itself), an ended session
+     and a phone that will not save each get their words and their way on in
+     this sheet. Nothing is marked sent until the text goes. */
+  let sendLock = null;
+  function lockSheet(on) {
+    const sc = $("#drvScrim");
+    if (on) {
+      if (sc) sc.onclick = null;
+      sendLock = (e) => { if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); } };
+      document.addEventListener("keydown", sendLock, true);
+    } else {
+      if (sc) sc.onclick = closeSheet;
+      if (sendLock) { document.removeEventListener("keydown", sendLock, true); sendLock = null; }
+    }
+  }
+  function sendLink(captureContext) {
+    const sh = $("#drvSheet"); if (!sh) return;
+    const first = c ? c.first : "the customer";
+    sh.innerHTML = `<div class="rp-sheet__grab"></div><div class="rp-sheet__head"><h2 class="rp-sheet__title">Sending the secure link…</h2></div><div class="rp-gatenote" id="drvSlow" hidden>Still sending. Texts usually arrive within a minute.</div>`;
+    lockSheet(true);
+    const alive = () => live() && document.contains(sh) && !sh.hidden;
+    const slow = setTimeout(() => { const n = $("#drvSlow", sh); if (n && alive()) n.hidden = false; }, 3000);
+    RIDE_PRICE_SERVICES.call("links").then(() => {
+      clearTimeout(slow); lockSheet(false);
+      if (!alive()) return;
+      recordLink(captureContext, first);
+    }, (err) => {
+      clearTimeout(slow); lockSheet(false);
+      if (!alive()) return;
+      linkProblem(captureContext, (err && err.kind) || "failed", first);
+    });
+  }
+  /* the text has gone: record it here. A refusal to record says the text went — and every refusal gets its
+     words in this sheet, never a sheet left on "Sending…" — with Try saving again, which records it without a
+     second text (CodeRabbit on #151) */
+  function recordLink(captureContext, first) {
+    if (license && !licenseContextValid(deal, subjectId, captureContext)) { closeSheet(); toast("The license context changed. Reopen the document."); return; }
+    try { jacketSendRequest(deal, [docId], license ? subjectId : undefined, { linkSent: true }); }
+    catch (e) { return linkProblem(captureContext, isStorageError(e) ? "storage" : e && e.name === "DraftConflictError" ? "conflict" : "unsaved", first); }
+    /* V3: no confirmation sheet — the card shows the waiting state */
+    closeSheet(); render();
+  }
+  /* what went wrong, said in the sheet, with the way on */
+  function linkProblem(captureContext, kind, first) {
+    const sh = $("#drvSheet"); if (!sh) return;
+    const head = kind === "session" ? "Your session ended" : "Send secure upload link";
+    /* a refusal to record comes after the text went: say so, never "nothing was sent" */
+    const went = (title, rest) => `<div class="rp-alert" role="alert" id="drvSendProblem"><div class="rp-alert__title">${title}</div><div class="rp-alert__body">${esc(first)} has the link, but it isn’t marked sent here yet. ${rest}</div></div>`;
+    const alert = kind === "failed"
+      ? `<div class="rp-alert" role="alert" id="drvSendProblem"><div class="rp-alert__title">The text didn’t go out</div><div class="rp-alert__body">${esc(first)}’s phone wasn’t reached, and nothing was sent. Try again.</div></div>`
+      : kind === "storage" ? went("The text went out, but this phone didn’t save it", "Try saving again — the text isn’t sent twice. If it keeps happening, the phone’s storage is full or private browsing is on.")
+      : kind === "conflict" ? went("The text went out, but this deal changed in another tab", "Try saving again — the text isn’t sent twice. If it keeps failing, reload the page.")
+      : kind === "unsaved" ? went("The text went out, but it wasn’t saved here", "Try saving again — the text isn’t sent twice.")
+        : kind === "session" ? `<p class="rp-sheet__sub">Sign in again to send the link. Nothing is lost.</p>` : "";
+    const actions = kind === "offline"
+      ? `<div class="rp-gatenote" id="drvSendWait">It sends by itself when you are back online.</div><button type="button" class="rp-primary" disabled>Waiting for a connection</button><button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>`
+      : kind === "session"
+        ? `<button type="button" class="rp-primary" id="drvSignIn">Sign in again</button><button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>`
+      : kind === "storage" || kind === "conflict" || kind === "unsaved"
+        ? `<button type="button" class="rp-primary" id="drvSaveAgain">Try saving again</button><button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>`
+        : `<button type="button" class="rp-primary" id="drvSendAgain">Try again</button><button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>`;
+    sh.innerHTML = `<div class="rp-sheet__grab"></div><div class="rp-sheet__head"><h2 class="rp-sheet__title">${head}</h2><button type="button" class="rp-sheet__close" data-sheet-close aria-label="Close">${rpGlyph("close")}</button></div>${alert}${actions}`;
+    $$("[data-sheet-close]", sh).forEach((b) => b.onclick = closeSheet);
+    const again = $("#drvSendAgain", sh); if (again) again.onclick = () => sendLink(captureContext);
+    const saveAgain = $("#drvSaveAgain", sh); if (saveAgain) saveAgain.onclick = () => recordLink(captureContext, first);
+    const signIn = $("#drvSignIn", sh); if (signIn) signIn.onclick = () => { RIDE_PRICE_SERVICES.signIn(); sendLink(captureContext); };
+    if (kind === "offline") {
+      const back = () => {
+        if (!live() || !document.contains(sh) || sh.hidden || !$("#drvSendWait", sh)) return off();
+        if (RIDE_PRICE_SERVICES.reallyOffline() || RIDE_PRICE_SERVICES.mode("links") === "offline") return;
+        off(); sendLink(captureContext);
+      };
+      const off = () => { window.removeEventListener("ride-price:switches", back); window.removeEventListener("online", back); };
+      window.addEventListener("ride-price:switches", back); window.addEventListener("online", back);
+    }
+  }
+
+  /* phase 2g · a side added here files through "Document uploads". The photo
+     is kept until the server answers: on its way the top of the page says so
+     (above the viewer, in view — under the card it sat behind the dock) and
+     the side's chip reads Filing…; one that did not go stays with its way
+     on — Try again, by itself when the connection is back, or Sign in
+     again. Nothing is filed until it lands, and one goes at a time. */
+  function fileHtml() {
+    const b = st.filing, p = st.fileProblem;
+    if (b) return `<div class="rp-notice rp-notice--working" role="status" id="drvFiling"><strong>Filing ${esc(b.what)}</strong>${b.slow ? "Still filing. It usually takes less than a minute." : "One moment."}</div>`;
+    if (!p) {
+      /* W-084 · a photo kept elsewhere for this deal holds adding a side here: one photo at a time */
+      const h = heldElsewhere();
+      return h ? `<div class="rp-notice rp-notice--working" id="drvOneAtATime"><strong>One photo at a time</strong>Your photo of the ${esc(h.label)} is kept and not filed yet. Adding a side is back here once it files.<button type="button" class="rp-link" id="drvKeptGo" data-href="${esc(h.href)}">Open the kept photo</button></div>` : "";
+    }
+    const one = p.n === 1, kept = one ? `Your photo of ${esc(p.what)} is kept` : `Your ${p.n} photos are kept`;
+    const T = p.kind === "offline" ? ["Waiting for a connection", `${kept}. ${one ? "It’s filed by itself" : "They’re filed by themselves"} when you’re back online.`, ""]
+      : p.kind === "session" ? ["Your session ended", `Sign in again to file ${one ? "it" : "them"}. ${kept}.`, "Sign in again"]
+      : p.kind === "storage" ? [one ? "This phone didn’t save the photo" : "This phone didn’t save the photos", `${kept}, and nothing was filed. Try again — if it keeps happening, the phone’s storage is full or private browsing is on.`, "Try again"]
+      : [one ? "The photo didn’t go through" : "The photos didn’t go through", `${kept}, and nothing was filed. Try again.`, "Try again"];
+    return `<div class="rp-alert" role="alert" id="drvFileProblem" data-up-kind="${p.kind}"><div class="rp-alert__title">${T[0]}</div><div class="rp-alert__body">${T[1]}</div>${T[2] ? `<button type="button" class="rp-alert__action" id="drvFileAgain">${T[2]}</button>` : ""}</div>`;
+  }
+  /* W-084 · the side's commit reads the deal by its id when it runs, so a photo kept past this page can file from
+     anywhere; and a kept photo carries what it needs to file, here (again) or once this page is gone */
+  const reviewCommit = (files, captureContext) => () => {
+    /* the deal this side was taken on, or nothing: after a reset the same id is a new deal (CodeRabbit on #186) */
+    const dl = Store.deal(deal.id);
+    if (dl !== deal) return { ok: false, issue: "This deal was reset. Nothing was filed." };
+    return drCommitClientUpload(dl, docId,
+      () => drAddShots(dl, docId, files, true, subjectId),
+      from => {
+        /* This device captured the new side; keep any earlier customer's
+           provenance and pending link intact if persistence fails. */
+        const cr = clientRecord(dl, docId, subjectId);
+        if (cr) {
+          drStampSides(dl, docId, drSidesFrom(dl, docId, from, subjectId), "advisor", false, subjectId);
+          delete cr.linkSentAt;
+        }
+      }, subjectId, captureContext, true);
+  };
+  const keptSide = (p) => Object.assign(p, { origin: "review", dealId: deal.id, deal, docId, customerId: subjectId, label: d.label,
+    href: `#/docreview/${deal.id}/${docId}${customerId ? `/${encodeURIComponent(customerId)}` : ""}`,
+    commit: reviewCommit(p.files, p.captureContext),
+    again: () => addSide(p.files, p.captureContext, p.what, p.side) });
+  const mineKept = (p) => p.origin === "review" && p.docId === docId && (p.customerId || "") === (subjectId || "");
+  /* a photo kept for this deal by the jacket, or for another document, holds adding a side here */
+  const heldElsewhere = () => keptAway(deal.id).find((p) => !mineKept(p)) || null;
+  function watchBack(problem) {
+    const back = () => {
+      if (!live() || st.fileProblem !== problem) return off();
+      if (RIDE_PRICE_SERVICES.reallyOffline() || RIDE_PRICE_SERVICES.mode("uploads") === "offline") return;
+      off(); problem.again();
+    };
+    const off = () => { window.removeEventListener("ride-price:switches", back); window.removeEventListener("online", back); };
+    window.addEventListener("ride-price:switches", back); window.addEventListener("online", back);
+  }
+  /* leaving hands a kept side to the deal's keeper (teardown, below); drawing this page again takes its own back;
+     and a photo the keeper files, or keeps, while this page is up is drawn at once */
+  const onKept = (e) => { if (live() && e.detail && e.detail.dealId === deal.id && !st.filing) show(); };
+  window.addEventListener("ride-price:kept", onKept);
+  function adoptKept() {
+    if (st.filing || st.fileProblem) return;
+    const p = keptAway(deal.id).find((x) => mineKept(x) && !x.busy);
+    if (!p) return;
+    takeBack(p); p.again = () => addSide(p.files, p.captureContext, p.what, p.side);
+    st.fileProblem = p;
+    if (p.kind === "offline") watchBack(p);
+  }
+  function addSide(files, captureContext, what, side) {
+    const busy = st.filing = { what, side, slow: false }; st.fileProblem = null; show();
+    const slow = setTimeout(() => { if (live() && st.filing === busy) { busy.slow = true; show(); } }, 3000);
+    RIDE_PRICE_SERVICES.call("uploads", reviewCommit(files, captureContext)).then((result) => {
+      clearTimeout(slow);
+      if (st.filing !== busy) return;
+      st.filing = null;
+      /* phase 2i · the phone refused to keep it: said at the top, kept — or, off this page by now, kept by the
+         deal's keeper (W-084) */
+      if (result && result.refused) {
+        const p = keptSide({ files, captureContext, what, side, n: files.length, kind: "storage" });
+        if (!live()) return keepAway(p);
+        st.fileProblem = p; return show();
+      }
+      if (!live()) return;      /* it filed while the advisor was elsewhere */
+      /* V3: no success sheet, no toast. The viewer switches to the side
+         that just arrived and the card says what the document now is. */
+      if (result) { st.side = Math.max(0, captured() - 1); st.zoom = 1; }
+      show();
+    }, (error) => {
+      clearTimeout(slow);
+      if (st.filing !== busy) return;
+      st.filing = null;
+      if (!error || error.name !== "ServiceError") { if (live()) show(); throw error; }
+      const problem = keptSide({ files, captureContext, what, side, n: files.length, kind: error.kind });
+      if (!live()) return keepAway(problem);      /* off this page: the deal's keeper keeps it (W-084) */
+      st.fileProblem = problem;
+      if (problem.kind === "offline") watchBack(problem);
+      show();
+    });
+  }
+  /* draw what the filing says now: the page, or — with a sheet up — the line
+     above the viewer at once and the page when the sheet closes */
+  function show() {
+    if (!sheetUp()) return render();
+    st.redraw = true;
+    const at = $("#drvFiling") || $("#drvFileProblem") || $("#drvOneAtATime"), html = fileHtml();
+    if (at) at.outerHTML = html;
+    else if (html) { const viewer = $("#view .rp-capture"); if (viewer) viewer.insertAdjacentHTML("beforebegin", html); }
   }
 
   /* the overflow: secondary viewer actions only, never a duplicate of the
@@ -12129,6 +14467,55 @@ function snapAllView({ id, origin, customerId }) {
     window.removeEventListener("hashchange", cleanup);
   }
   window.addEventListener("hashchange", cleanup);
+  /* phase 2f · the batch goes through the "uploads" server (the tester's
+     "Document uploads" switch): nothing is filed until it answers; a batch
+     that did not go stays on the results, every photo kept, with the way
+     on — in the customer's words on the customer's side, the advisor's on
+     the advisor's. Offline, it saves by itself once the connection is back. */
+  st.sending = null; st.upProblem = null;
+  /* a batch saves only from its settled results: never from the capture screen a Take more or a retake opened, whose
+     new photos the results have not sorted yet (CodeRabbit on #148) */
+  const upBack = () => {
+    if (st.dead || st.upProblem !== "offline" || st.screen !== "results" || st.aim) return;
+    if (RIDE_PRICE_SERVICES.reallyOffline() || RIDE_PRICE_SERVICES.mode("uploads") === "offline") return;
+    saveBatch();
+  };
+  window.addEventListener("ride-price:switches", upBack); window.addEventListener("online", upBack);
+  window.addEventListener("hashchange", () => { window.removeEventListener("ride-price:switches", upBack); window.removeEventListener("online", upBack); }, { once: true });
+  /* the screen is live until it is left (cleanup marks it dead) */
+  const live = () => !st.dead;
+  function saveBatch() {
+    if (st.sending || !live() || st.screen !== "results" || st.aim) return;
+    const busy = st.sending = { slow: false }; st.upProblem = null; render();
+    const slow = setTimeout(() => { if (live() && st.sending === busy) { busy.slow = true; render(); } }, 3000);
+    RIDE_PRICE_SERVICES.call("uploads", () => true).then(() => {
+      clearTimeout(slow);
+      if (st.dead || st.sending !== busy) return;
+      /* a commit that refuses (the context changed, the phone would not save) brings the button back (CodeRabbit on #148) */
+      st.sending = null;
+      if (!commit()) render();
+    }, (error) => {
+      clearTimeout(slow);
+      if (st.dead || st.sending !== busy) return;
+      st.sending = null;
+      if (!error || error.name !== "ServiceError") { render(); throw error; }
+      st.upProblem = error.kind; render();
+    });
+  }
+  function upProblemHtml() {
+    const k = st.upProblem; if (!k) return "";
+    const n = st.shots.length, one = n === 1, photos = n + (one ? " photo" : " photos"), are = one ? "is" : "are", they = one ? "It’s" : "They’re";
+    const T = clientSide
+      ? (k === "offline" ? ["You’re offline", `Your ${photos} ${are} kept. ${they} sent as soon as you’re back online.`, ""]
+        : k === "session" ? ["Your secure session ended", `Open the link from your text again to go on. Your ${photos} ${are} kept.`, "Open the link again"]
+        : k === "storage" ? ["Your phone didn’t save your documents", `Your ${photos} ${are} kept. Try again — if it keeps happening, your phone’s storage may be full, or private browsing is on.`, "Try again"]
+        : ["We couldn’t send your documents just now", `Your ${photos} ${are} kept. Try again in a moment.`, "Try again"])
+      : (k === "offline" ? ["Waiting for a connection", `Your ${photos} ${are} kept. The batch saves by itself when you’re back online.`, ""]
+        : k === "session" ? ["Your session ended", `Sign in again to save the batch. Your ${photos} ${are} kept.`, "Sign in again"]
+        : k === "storage" ? ["This phone didn’t save the batch", `Your ${photos} ${are} kept, and nothing was filed. Try again — if it keeps happening, the phone’s storage is full or private browsing is on.`, "Try again"]
+        : ["The batch didn’t go through", `Your ${photos} ${are} kept, and nothing was filed. Try again.`, "Try again"]);
+    return `<div class="rp-alert" role="alert" id="saUpProblem" data-up-kind="${k}"><div class="rp-alert__title">${T[0]}</div><div class="rp-alert__body">${T[1]}</div>${T[2] ? `<button type="button" class="rp-alert__action" id="saUpAgain">${T[2]}</button>` : ""}</div>`;
+  }
 
   /* the kit sizes .rp-tile's glyph itself; everything else on this screen is
      sized on one of our own classes, never by a rule over .rp-icon */
@@ -12204,7 +14591,7 @@ function snapAllView({ id, origin, customerId }) {
   }
 
   function commit() {
-    if (st.dead || !licenseContextValid(deal, subjectId, licenseContext)) { toast("The document context changed. Reopen the batch."); return; }
+    if (st.dead || !licenseContextValid(deal, subjectId, licenseContext)) { toast("The document context changed. Reopen the batch."); return false; }
     const at = new Date().toISOString();
     const previous = deal.jacket === undefined ? undefined : JSON.parse(JSON.stringify(deal.jacket));
     const priorPhotos = new Map(st.results.map(r => [r.id, clientPhotos(deal.id, r.id, subjectId).slice()]));
@@ -12227,6 +14614,9 @@ function snapAllView({ id, origin, customerId }) {
       rec.pages = r.shots.length;
       rec.draftPages = r.shots.length;
       rec.receivedAt = at;
+      /* a page that lands is newer than the customer's "Other income type" answer, and replaces it, as a single
+         upload's does (W-040, claude-c on #203: the batch writes its pages itself) */
+      delete rec.otherIncomeAt;
       /* an advisor-side burst is not customer activity — the jacket's
          delivery tracking must not credit it to the customer's phone */
       if (origin === "advisor") rec.via = "advisor";
@@ -12254,8 +14644,11 @@ function snapAllView({ id, origin, customerId }) {
         setClientRecord(deal, "form-license", subjectId, priorLicense);
       }
       priorPhotos.forEach((urls, docId) => clientPhotosSet(deal.id, docId, urls, subjectId));
+      /* phase 2i · the phone refused to keep the batch: said where the batch
+         is, its photos kept, Try again — never a toast */
+      if (isStorageError(error)) { st.upProblem = "storage"; render(); return; }
       toast("Batch was not saved. Try again.");
-      return;
+      return false;
     }
     priorPhotos.forEach((urls, docId) => urls.forEach(url => {
       if (url && !clientPhotos(deal.id, docId, subjectId).includes(url)) { try { URL.revokeObjectURL(url); } catch {} }
@@ -12269,26 +14662,27 @@ function snapAllView({ id, origin, customerId }) {
     st.shots = []; /* the kept URLs now belong to the documents */
     toast(st.results.some(r => r.id === "form-license" && r.status === "received") ? "Batch saved. License review pending." : "Batch saved.");
     navigate(backHash);
+    return true;
   }
 
   /* ---------------- the three screens ---------------- */
 
-  const contextRow = () => `<div class="rp-listhead">
-    <span class="rp-eyebrow">Deal #${esc(deal.dealNo || "—")}</span>
-    <span class="rp-listhead__meta">${esc(custName)}</span></div>`;
+  /* the page names the work, since the top bar is the customer's name and nothing else (KA-021, §4). It used to
+     carry "Deal #—" before the deal had a number, and the name the top bar now shows. */
+  const workHead = () => `<div class="rp-eyebrow">Snap All</div>`;
 
   function captureScreen() {
     const n = st.shots.length, aim = st.aim;
+    /* the title, the camera and the count (KA-022, §5): no slogan under the title, and in the frame one short
+       hint, not instructions. An aimed capture keeps its line: which document, and what is wrong with it. */
     return `<div class="sa-capture">
-      ${contextRow()}
-      <h1 class="rp-title">${aim ? (aim.kind === "pages" ? "Add the missing page." : "Retake this document.") : "Capture everything."}</h1>
-      <p class="rp-count">${aim ? esc(aim.title + " · " + aim.issue) : "One batch. Every outstanding document."}</p>
+      ${workHead()}
+      <h1 class="rp-title">${aim ? (aim.kind === "pages" ? "Add the missing page." : "Retake this document.") : "Capture documents"}</h1>
+      ${aim ? `<p class="rp-count">${esc(aim.title + " · " + aim.issue)}</p>` : ""}
       <div class="sa-finder">
         <i class="sa-corner sa-corner--tl"></i><i class="sa-corner sa-corner--tr"></i><i class="sa-corner sa-corner--bl"></i><i class="sa-corner sa-corner--br"></i>
-        <span class="sa-finder__label">No live preview</span>
         ${saIcon("camera", "sa-finder__ico")}
-        <b class="sa-finder__title">${aim ? "Frame the page it is missing." : "Paper, card or ID."}</b>
-        <p class="sa-finder__copy">${aim ? "Your other photos stay in the batch." : "Take them one after another. Sort the batch when you are ready."}</p>
+        <b class="sa-finder__title">${aim ? (aim.kind === "pages" ? "Frame the missing page" : "Frame the document") : "Paper, card or ID"}</b>
       </div>
       ${n ? `<div class="sa-thumbs" aria-label="Captured photos">${st.shots.map((s, i) => `
         <span class="sa-thumb">
@@ -12308,7 +14702,6 @@ function snapAllView({ id, origin, customerId }) {
     return `<div class="sa-sorting" id="saSorting">
       <span class="sa-spinner" aria-hidden="true"></span>
       <h1 class="rp-title">Sorting your batch.</h1>
-      <p class="rp-count">Dealing the photos onto the documents this deal still needs.</p>
       <span class="rp-status">${plural(st.shots.length, "photo", "photos")}</span>
     </div>`;
   }
@@ -12327,13 +14720,13 @@ function snapAllView({ id, origin, customerId }) {
                   : r.detail ? `<p class="sa-doc__meta">${esc(r.detail)}</p>` : ""}
         </div></div>
       ${needs ? `<div class="sa-doc__acts">
-          <button type="button" class="sa-act sa-act--fix ch-hit" data-sa-retake="${esc(r.id)}">${saIcon(r.kind === "pages" ? "plus" : "camera", "")}${esc(r.fix || "Retake")}</button>
-          ${r.id === "form-license" ? "" : `<button type="button" class="sa-act ch-hit" data-sa-accept="${esc(r.id)}">Accept anyway</button>`}
+          <button type="button" class="sa-act sa-act--fix ch-hit" data-sa-retake="${esc(r.id)}"${st.sending ? " disabled" : ""}>${saIcon(r.kind === "pages" ? "plus" : "camera", "")}${esc(r.fix || "Retake")}</button>
+          ${r.id === "form-license" ? "" : `<button type="button" class="sa-act ch-hit" data-sa-accept="${esc(r.id)}"${st.sending ? " disabled" : ""}>Accept anyway</button>`}
         </div>`
         : r.status === "received" ? `<div class="sa-doc__status"><span class="rp-status rp-status--warn">Review pending</span></div>`
         : r.status === "verified" ? `<div class="sa-doc__status">
           <span class="rp-status ${r.override ? "rp-status--warn" : "rp-status--positive"}">${r.override ? "Exception accepted" : "Verified"}</span>
-          ${r.override ? `<button type="button" class="sa-act ch-hit" data-sa-undo="${esc(r.id)}">Undo</button>` : ""}
+          ${r.override ? `<button type="button" class="sa-act ch-hit" data-sa-undo="${esc(r.id)}"${st.sending ? " disabled" : ""}>Undo</button>` : ""}
         </div>` : ""}
     </div>`;
   }
@@ -12347,24 +14740,27 @@ function snapAllView({ id, origin, customerId }) {
     const group = (label, rows) => rows.length
       ? `<div class="rp-listhead"><span class="rp-section">${label}</span><span class="rp-listhead__meta">${rows.length}</span></div>
          <div class="rp-group">${rows.map(docRow).join("")}</div>` : "";
-    return `${contextRow()}
-      <h1 class="rp-title">Your batch, sorted.</h1>
+    return `${workHead()}
+      <h1 class="rp-title">Your batch, sorted.</h1>${upProblemHtml()}
       <div class="sa-summary">
         <span>${plural(st.shots.length, "photo", "photos")} · ${landed} of ${st.results.length} documents</span>
-        <button type="button" class="sa-more ch-hit" id="saMore">${saIcon("plus", "")}Take more</button>
+        <button type="button" class="sa-more ch-hit" id="saMore"${st.sending ? " disabled" : ""}>${saIcon("plus", "")}Take more</button>
       </div>
       ${group("Verified", ok)}
       ${group("Review pending", received)}
       ${group("Needs attention", attn)}
-      ${group("Still needed", missing)}
-      <p class="sa-note">${saIcon("lock", "")}<span>Demo — the sorting is simulated. Nothing is read from your photos and they never leave this device.</span></p>`;
+      ${group("Still needed", missing)}`;
   }
 
   /* ---------------- what the dock carries ---------------- */
 
   function dockHtml() {
     if (st.screen === "sorting") return null;
-    if (st.screen === "results") return chDock(`<button type="button" class="rp-primary" id="saSave">Confirm &amp; save</button>`);
+    if (st.screen === "results") return st.sending
+      ? chGateDock(st.sending.slow ? "Still saving. It usually finishes within a minute." : "", `<button type="button" class="rp-primary" id="saSave" disabled aria-disabled="true">Saving…</button>`)
+      : st.upProblem === "offline"
+        ? chGateDock(clientSide ? "It is sent by itself when you are back online." : "It saves by itself when you are back online.", `<button type="button" class="rp-primary" disabled aria-disabled="true">Waiting for a connection</button>`)
+        : chDock(`<button type="button" class="rp-primary" id="saSave">Confirm &amp; save</button>`);
     const n = st.shots.length;
     /* the destination is on show even with nothing to send there — a primary
        that is missing until the batch is non-empty leaves the screen with no
@@ -12407,6 +14803,8 @@ function snapAllView({ id, origin, customerId }) {
      been sorted is protected — the shots are session-only and leaving is what
      discards them. */
   function closeScreen() {
+    /* a save on its way is not left mid-flight: leaving would drop the batch before its commit (CodeRabbit on #148) */
+    if (st.sending) return;
     if (st.aim) { cancelAim(); return; }
     if (!st.shots.length) return navigate(backHash);
     chDialog(sheets, "Leave this capture?",
@@ -12502,19 +14900,19 @@ function snapAllView({ id, origin, customerId }) {
       /* the trainer's way back to the advisor's side rides INSIDE the page:
          the kit's screen is the viewport and clips anything after it */
       + (clientSide ? `<button type="button" class="dr-demoexit" data-dbg="advisor">Demo · advisor view</button>` : "");
-    const step = st.screen === "results" ? "Auto-sort results" : st.screen === "sorting" ? "Auto-sorting" : "Capture documents";
 
     renderChrome("Snap All", dealTitle(deal), "");
     document.body.dataset.canvas = "kit";
     document.body.dataset.screen = "snapall";
+    /* inside a visit the top bar is the customer's name and nothing else (KA-021, §4); the page names the work */
     view().innerHTML = chShell(
-      { template: "task", title: "Snap All", step, closeId: "saClose", closeLabel: "Close capture",
+      { template: "task", title: custName, closeId: "saClose", closeLabel: "Close capture",
         cls: clientSide ? "rp-screen--present" : "", banner: !clientSide /* PI-005: the customer's page has no band */ },
       content, dockHtml(), { scrim: "saScrim", sheet: "saSheet" })
       + `<input type="file" accept="image/*" capture="environment" id="saCam" hidden>
          <input type="file" accept="image/*"${st.aim ? "" : " multiple"} id="saLib" hidden>`;
 
-    $("#saClose").onclick = closeScreen;
+    $("#saClose").onclick = closeScreen; $("#saClose").disabled = !!st.sending;
     chFitDock();
     painted = st.screen;
     if (keep) {
@@ -12528,7 +14926,10 @@ function snapAllView({ id, origin, customerId }) {
     if (st.screen === "sorting") return;
 
     if (st.screen === "results") {
-      $("#saSave").onclick = commit;
+      const save = $("#saSave"); if (save && !save.disabled) save.onclick = saveBatch;
+      const upAgain = $("#saUpAgain"); if (upAgain) upAgain.onclick = () => { if (st.upProblem === "session") RIDE_PRICE_SERVICES.signIn(); saveBatch(); };
+      /* back on the results, a batch that waited for the connection saves by itself if it is back, as its notice says */
+      if (st.upProblem === "offline") setTimeout(upBack, 0);
       $("#saMore").onclick = () => { st.screen = "capture"; render(); };
       $$("[data-sa-retake]").forEach(b => b.onclick = () => {
         const flagged = st.results.find(r => r.id === b.dataset.saRetake);
@@ -12675,7 +15076,7 @@ function printDocs(deal) {
     <div class="line"><br>Date</div>
   </div>`;
 
-  function shell(title, body, docId) {
+  function shell(title, body, docId, typeShown) {
     /* the watermark wraps the body only, never the footer: the marker strip
        lives down there and a camera has to read it off paper. */
     const sample = isGovForm(docId);
@@ -12689,7 +15090,7 @@ function printDocs(deal) {
       <div class="pd-meta">
         <span><b>${esc(c.first)} ${esc(c.last)}</b> · ${esc(c.phone)}</span>
         <span>${v ? `${esc(v.year)} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)} · Stock ${esc(v.stock)} · VIN ${esc(v.vin)}` : "No vehicle selected"}</span>
-        <span>${today()} · ${DEAL_TYPES[deal.dealType]} · Advisor: ${esc(Store.s.advisor)}</span>
+        <span>${today()} · ${DEAL_TYPES[typeShown || deal.dealType]} · Advisor: ${esc(Store.s.advisor)}</span>
       </div>
       ${sample ? `<div class="pd-samplewrap"><div class="pd-watermark" aria-hidden="true"><span>TRAINING SAMPLE</span></div>${body}</div>` : body}
       <footer class="pd-foot"><span>${ds.name} — demo document for training use only · ${sample ? "not a government document" : "not a real contract"}</span>
@@ -12713,7 +15114,7 @@ function printDocs(deal) {
      so that is the file's convention. */
   docs.cover = () => shell("Deal Cover Sheet", `
     <ul class="lines">
-      <li><span>Deal Type / Stage</span><b class="amt">${DEAL_TYPES[deal.dealType]} · ${(STAGES[deal.stage] || {}).label || deal.stage}</b></li>
+      <li><span>Deal Type / Stage</span><b class="amt">${DEAL_TYPES[deal.dealType]} · ${deal.stage === "complete" ? finalizedLabel(deal, STAGES.complete.label) : (STAGES[deal.stage] || {}).label || deal.stage}</b></li>
       ${snap ? `<li><span>${isCash ? "Total Due" : isLease ? "Monthly Payment (lease)" : "Monthly Payment"}</span>
         <b class="amt">${money(isCash ? snap.totalDue : (deal.dealType === "onepay" ? snap.onePayTotal : snap.payment))}</b></li>` : ""}
       <li><span>Trade</span><b class="amt">${deal.trade.has ? `${esc(deal.trade.desc || "documented")} · ${money0(deal.trade.value || 0)} / payoff ${money0(deal.trade.payoff || 0)}` : "None"}</b></li>
@@ -12729,28 +15130,34 @@ function printDocs(deal) {
     <p class="pd-note">This transition is a pivotal point — completed efficiently, it keeps the client experience on time.</p>
     ${sig("", "Client Advisor")}`, "cover");
 
+  /* every line from the snapshot it prints (RP-UI-060); a snapshot made
+     before the inputs were frozen with it reads them from the deal */
+  const frozen = (k, live) => (deal.basePayment && deal.basePayment.snapshot && deal.basePayment.snapshot[k] != null) ? deal.basePayment.snapshot[k] : live;
+  const pRebates = frozen("rebates", deal.trade.rebates || 0), pTradeValue = frozen("tradeValue", deal.trade.value || 0);
+  /* the deal type John signed, as the screen reads it (CodeRabbit on #198) */
+  const pType = frozen("dealType", deal.dealType), pLease = pType === "lease" || pType === "onepay", pCash = pType === "cash";
   docs.agreement = () => shell("Customer Acknowledgement of Basic Terms of Agreement", `
     <ul class="lines">
-      ${!isCash && !isLease && snap ? `<li><span>Term / APR</span><b class="amt">${snap.term} months / ${snap.apr}%</b></li>` : ""}
-      ${isLease && snap ? `<li><span>Term / Miles</span><b class="amt">${snap.term} months / ${snap.miles.toLocaleString()} mi-yr</b></li>` : ""}
-      <li><span>MSRP</span><b class="amt">${money(v.msrp)}</b></li>
-      <li><span>Selling Price (incl. options)</span><b class="amt">${money(v.selling + v.includedOptions)}</b></li>
+      ${!pCash && !pLease && snap ? `<li><span>Term / APR</span><b class="amt">${snap.term} months / ${snap.apr}%</b></li>` : ""}
+      ${pLease && snap ? `<li><span>Term / Miles</span><b class="amt">${snap.term} months / ${snap.miles.toLocaleString()} mi-yr</b></li>` : ""}
+      <li><span>MSRP</span><b class="amt">${money(frozen("msrp", v.msrp))}</b></li>
+      <li><span>Your Price</span><b class="amt">${money(frozen("selling", v.selling + v.includedOptions))}</b></li>
       <li><span>Accessories</span><b class="amt">${money(snap ? snap.accessories : 0)}</b></li>
-      <li><span><b>Your Price</b></span><b class="amt">${money(snap ? snap.yourPrice : 0)}</b></li>
-      ${deal.trade.rebates ? `<li><span>Rebates</span><b class="amt">−${money(deal.trade.rebates)}</b></li>` : ""}
-      ${deal.trade.value ? `<li><span>Trade Value / Payoff</span><b class="amt">${money(deal.trade.value)} / ${money(deal.trade.payoff || 0)}</b></li>` : ""}
-      ${isLease && snap ? `<li><span>Residual (lease end value)</span><b class="amt">${money(snap.residual)}</b></li>` : ""}
+      <li><span><b>Your Price With Accessories</b></span><b class="amt">${money(snap ? snap.yourPrice : 0)}</b></li>
+      ${pRebates ? `<li><span>Rebates</span><b class="amt">−${money(pRebates)}</b></li>` : ""}
+      ${pTradeValue ? `<li><span>Trade Value / Payoff</span><b class="amt">${money(pTradeValue)} / ${money(frozen("tradePayoff", deal.trade.payoff || 0))}</b></li>` : ""}
+      ${pLease && snap ? `<li><span>Residual (lease end value)</span><b class="amt">${money(snap.residual)}</b></li>` : ""}
       ${snap ? `<li><span>Total Taxes &amp; Fees</span><b class="amt">${money((snap.taxes.total || 0) + (snap.fees || 0))}</b></li>` : ""}
-      ${!isCash && !isLease && snap ? `<li><span>Down Payment</span><b class="amt">${money(deal.desk.downPayment)}</b></li>
+      ${!pCash && !pLease && snap ? `<li><span>Down Payment</span><b class="amt">${money(frozen("downPayment", deal.desk.downPayment))}</b></li>
         <li><span>Total Amount Financed</span><b class="amt">${money(snap.amountFinanced)}</b></li>
         <li class="total"><span>${snap.term} Monthly Payments (inc. taxes)</span><b class="amt">${money(snap.payment)}</b></li>` : ""}
-      ${deal.dealType === "lease" && snap ? `<li class="total"><span>${snap.term} Monthly Payments (inc. taxes)</span><b class="amt">${money(snap.payment)}</b></li>` : ""}
-      ${deal.dealType === "onepay" && snap ? `<li class="total"><span>One-Pay Total Due At Signing</span><b class="amt">${money(snap.onePayTotal)}</b></li>` : ""}
-      ${isCash && snap ? `<li class="total"><span>Total Due</span><b class="amt">${money(snap.totalDue)}</b></li>` : ""}
+      ${pType === "lease" && snap ? `<li class="total"><span>${snap.term} Monthly Payments (inc. taxes)</span><b class="amt">${money(snap.payment)}</b></li>` : ""}
+      ${pType === "onepay" && snap ? `<li class="total"><span>One-Pay Total Due At Signing</span><b class="amt">${money(snap.onePayTotal)}</b></li>` : ""}
+      ${pCash && snap ? `<li class="total"><span>Total Due</span><b class="amt">${money(snap.totalDue)}</b></li>` : ""}
     </ul>
     <p class="pd-note">I/We have agreed to an approximate base payment structure per the terms above, subject to lender approval. This is a ballpark structure, not a purchase.</p>
     ${sig(deal.basePayment && deal.basePayment.sigName, "Customer")}
-    ${sig(Store.s.advisor, "Client Advisor — " + ds.name)}`, "agreement");
+    ${sig(Store.s.advisor, "Client Advisor — " + ds.name)}`, "agreement", pType); /* its header names the type John signed, as its lines do (claude-c on main) */
 
   docs.repayment = () => {
     const progSet = RIDE_PRICE_DATA.programs[isLease ? "lease" : isCash ? "cash" : "finance"];
@@ -12979,7 +15386,7 @@ function printCentreDocs(deal) {
     { key: "delivery", icon: "box", label: "Delivery Checklist",
       note: `${deal.forms.selected.length} form${deal.forms.selected.length === 1 ? "" : "s"} selected` }
   ];
-  if (deal.trade.rebates > 0) core.push({ key: "rebates", icon: "dollar", label: "Applied Rebates", note: `${money(deal.trade.rebates)} applied` });
+  if (deal.trade.rebates > 0) core.push({ key: "rebates", icon: "dollar", label: "Applied Rebates", note: `${money(deal.trade.rebates)} customer cash` /* its kind on the row (KA-019, §17b) */ });
   if (deal.quotes && deal.quotes.length) core.push({ key: "quote", icon: "sparkle", label: "Saved Quote", note: `${deal.quotes.length} saved` });
   const selected = deal.forms.selected.map(fid => RIDE_PRICE_DATA.dealForms.find(f => f.id === fid)).filter(Boolean);
   return { core, selected };
@@ -13006,80 +15413,52 @@ route("forms/:id", ({ id }) => {
   const total = core.length + selected.length;
 
   const row = (href, icon, title, note, flag) => `
-    <a class="pc-row" href="${href}">
-      <span class="pc-icon">${rpIcon(icon)}</span>
-      <span class="pc-rowmain">
-        <span class="pc-rowtitle">${esc(title)}</span>
-        ${note ? `<span class="pc-rowmeta">${esc(note)}</span>` : ""}
-      </span>
-      <span class="pc-rowright">
-        ${flag ? `<span class="pc-flag">${esc(flag)}</span>` : ""}
-        <span class="pc-chev" aria-hidden="true">›</span>
-      </span>
+    <a class="rp-row" href="${href}">
+      <span class="rp-tile">${rpIconGlyph(icon)}</span>
+      <span class="rp-row__body"><span class="rp-row__title">${esc(title)}</span>${note ? `<span class="rp-row__sub">${esc(note)}</span>` : ""}</span>
+      ${flag ? `<span class="rp-tag rp-tag--required">${esc(flag)}</span>` : ""}
+      <span class="rp-row__chevron" aria-hidden="true"></span>
     </a>`;
 
-  /* The package forbids a role switch on the print screens, and deskTop()
-     carries one. This bar is the wordmark alone, as the golden draws it. */
-  const pcTop = () => `<div class="m-topbar"><div class="m-dealrow">
-    <div class="m-wordmark"><span class="rideprice">Ride</span><span class="price">PRICE</span></div>
-  </div></div>`;
-
+  /* phase 4a · Documents on the kit, the owner's package kept rule for rule:
+     a task screen with no role control and no chips — the title, the deal in
+     two quiet lines, then the two groups, each one container, every row a
+     link with a chevron and status only as an exception. The one dominant
+     action, Print full packet, is the dock's primary; its focused sheet is
+     the kit's, and the kit's sheet takes its own listeners off with the
+     route. The × goes to the deal's jacket, its record. */
   renderChrome("Documents", dealTitle(deal), "");
-  document.body.dataset.canvas = "master";
+  document.body.dataset.canvas = "kit";
   document.body.dataset.screen = "printcentre";
+  const sheets = chSheetOpener("pcScrim", "pcSheet");
 
-  view().innerHTML = `
-    <div class="m-app">
-      ${pcTop()}
-      <main class="pc-main">
-        <div class="pc-eyebrow">${deal.forms.finalized ? "Finance complete" : "Deal in progress"}</div>
-        <h1 class="pc-title">Documents</h1>
-        <div class="pc-meta">
-          <div class="pc-metaline"><strong>${esc(c.first + " " + c.last)}</strong>${v ? " · " + esc(v.year + " " + v.make + " " + v.model) : ""}</div>
-          <div class="pc-metaline">${deal.dealNo ? "Deal #" + esc(deal.dealNo) + " · " : ""}Jacket ${esc(jacketChipText(deal))}</div>
-        </div>
-        <button type="button" class="pc-hero" id="pcPacket">Print full packet · ${total} doc${total === 1 ? "" : "s"}</button>
+  view().innerHTML = chShell({ template: "task", title: `${c.first} ${c.last}`, closeId: "pcClose", closeLabel: "Back to Deal Jacket" }, `
+      <div class="rp-eyebrow">${deal.forms.finalized ? finalizedLabel(deal) : "Deal in progress"}</div>
+      <h1 class="rp-title">Documents</h1>
+      <div class="rp-count" id="pcContext">
+        <div><b>${esc(c.first + " " + c.last)}</b>${v ? " · " + esc(v.year + " " + v.make + " " + v.model) : ""}</div>
+        <div>${deal.dealNo ? "Deal #" + esc(deal.dealNo) + " · " : ""}Jacket ${esc(jacketChipText(deal))}</div>
+      </div>
+      <h2 class="rp-section">Deal packet · ${core.length}</h2>
+      <div class="rp-group" aria-label="Deal packet">
+        ${core.map(d => row(`#/print/${esc(deal.id)}/${esc(d.key)}`, d.icon, d.label, d.note, d.flag)).join("")}
+      </div>
+      <h2 class="rp-section">Additional forms · ${selected.length}</h2>
+      ${selected.length
+        ? `<div class="rp-group" aria-label="Additional forms">${selected.map(f => row(`#/print/${esc(deal.id)}/form-${esc(f.id)}`, "page", f.label, f.group)).join("")}</div>`
+        /* the empty state is its bold line and its next action, and nothing explaining the app (KA-026, §5). Once the
+           deal is finalized its forms are locked (the Finance Menu opens on its closeout), so there is no action to name */
+        : deal.forms.finalized ? `<div class="rp-empty"><strong>No forms were selected</strong></div>`
+        : `<div class="rp-empty"><strong>No forms selected yet</strong><a class="rp-link" href="#/menu/${esc(deal.id)}" id="pcChooseForms">Choose forms in the Finance Menu</a></div>`}`,
+    chDock(`<button type="button" class="rp-primary" id="pcPacket">Print full packet · ${total} doc${total === 1 ? "" : "s"}</button>`),
+    { scrim: "pcScrim", sheet: "pcSheet" });
+  chFitDock();
 
-        <div class="pc-sechead"><h2>Deal packet</h2><span class="pc-count">· ${core.length}</span></div>
-        <div class="pc-group">
-          ${core.map(d => row(`#/print/${esc(deal.id)}/${esc(d.key)}`, d.icon, d.label, d.note, d.flag)).join("")}
-        </div>
-
-        <div class="pc-sechead"><h2>Additional forms</h2><span class="pc-count">· ${selected.length}</span></div>
-        ${selected.length
-          ? `<div class="pc-group">${selected.map(f => row(`#/print/${esc(deal.id)}/form-${esc(f.id)}`, "page", f.label, f.group)).join("")}</div>`
-          : `<div class="pc-empty">No forms selected yet — choose them on the finance menu&rsquo;s <a href="#/menu/${esc(deal.id)}">Forms</a> stage.</div>`}
-      </main>
-    </div>
-    <div class="m-scrim" id="pcScrim"><div class="m-sheet" role="dialog" aria-modal="true" id="pcSheet"></div></div>`;
-
-  /* one sheet, one listener, torn down with the route */
-  let sheetKey = null;
-  const closeSheet = () => {
-    const sc = $("#pcScrim"); if (sc) sc.classList.remove("show");
-    if (sheetKey) { document.removeEventListener("keydown", sheetKey, true); sheetKey = null; }
-  };
-  const teardown = () => { closeSheet(); window.removeEventListener("hashchange", teardown); };
-  window.addEventListener("hashchange", teardown);
-
-  $("#pcPacket").onclick = () => {
-    const sh = $("#pcSheet");
-    sh.innerHTML = `<div class="m-handle"></div>
-      <div class="m-sheettop"><div><h2>Print full packet</h2>
-        <p class="m-sheetsub">${total} document${total === 1 ? "" : "s"} · page breaks included</p></div>
-        <button type="button" class="m-close" data-sheet-close aria-label="Close">✕</button></div>
-      <div class="pc-actions">
-        <a class="pc-btn pc-btn--primary" href="#/print/${esc(deal.id)}/packet">Open the packet</a>
-        <button type="button" class="pc-btn" data-sheet-close>Cancel</button>
-      </div>`;
-    $("#pcScrim").classList.add("show");
-    if (sheetKey) document.removeEventListener("keydown", sheetKey, true);
-    sheetKey = (e) => { if (e.key === "Escape") { e.preventDefault(); closeSheet(); } };
-    document.addEventListener("keydown", sheetKey, true);
-    $$("[data-sheet-close]", sh).forEach(b => b.onclick = closeSheet);
-  };
-  const scrim = $("#pcScrim");
-  if (scrim) scrim.onclick = (e) => { if (e.target === scrim) closeSheet(); };
+  $("#pcClose").onclick = () => navigate(`#/jacket/${deal.id}`);
+  $("#pcPacket").onclick = () => sheets.open(`${chSheetHead("Print full packet")}
+      <p class="rp-sheet__sub">${total} document${total === 1 ? "" : "s"} · page breaks included</p>
+      <a class="rp-primary" href="#/print/${esc(deal.id)}/packet">Open the packet</a>
+      <button type="button" class="rp-link ch-hit" data-sheet-close>Cancel</button>`);
 });
 
 /* ---------- Print Preview: the paper is the primary object ----------
@@ -13119,19 +15498,30 @@ route("print/:id/:doc", ({ id, doc }) => {
     return redirect(`#/forms/${deal.id}`);
   }
 
+  /* phase 4a · the preview on the kit: its top bar is the one compact bar —
+     × back to Documents and the document's name — the paper is the page, and
+     Print / PDF is the dock's one action, never a second. What prints is the
+     print root beside the screen, as the training documents do: the kit's
+     screen is the viewport and hides its overflow, so in print it is the
+     screen that disappears (portal.css). */
+  const form = doc.startsWith("form-") ? RIDE_PRICE_DATA.dealForms.find(f => f.id === doc.slice(5)) : null;
+  const listed = printCentreDocs(deal).core.find(d => d.key === doc);
+  const title = doc === "packet" ? "Full packet" : form ? form.label : listed ? listed.label : "Print preview";
   renderChrome("Print Preview", dealTitle(deal), "");
-  document.body.dataset.canvas = "master";
+  document.body.dataset.canvas = "kit";
   document.body.dataset.screen = "printpreview";
+  /* inside a visit the top bar is the customer's name and nothing else (KA-021, §4): the document's name moves
+     to the page's eyebrow and title, above the paper */
+  const pc = Store.customer(deal.customerId);
 
-  view().innerHTML = `
-    <div class="m-app">
-      <div class="pc-toolbar">
-        <a class="pc-back" href="#/forms/${esc(deal.id)}">← Documents</a>
-        <span class="pc-toolspacer"></span>
-        <button type="button" class="pc-print" id="printNow">Print / PDF</button>
-      </div>
-      <div class="pc-paperwrap"><div class="print-area">${html}</div></div>
-    </div>`;
+  view().innerHTML = chShell({ template: "task", title: pc ? `${pc.first} ${pc.last}` : "", closeId: "pcBack", closeLabel: "Back to Documents" },
+      `<div class="rp-eyebrow">Print preview</div><h1 class="rp-title" id="ppTitle">${esc(title)}</h1>
+      <div class="print-area">${html}</div>`,
+      chDock(`<button type="button" class="rp-primary" id="printNow">Print / PDF</button>`),
+      { scrim: "ppScrim", sheet: "ppSheet" })
+    + `<div class="pc-printroot" aria-hidden="true"><div class="print-area">${html}</div></div>`;
+  chFitDock();
+  $("#pcBack").onclick = () => navigate(`#/forms/${deal.id}`);
   $("#printNow").onclick = () => window.print();
 });
 
@@ -13151,6 +15541,28 @@ window.addEventListener("storage", (e) => {
   router();
 });
 window.addEventListener("hashchange", router);
+/* phase 2 · the phone refusing to save: wherever a save was not already
+   handled, it is said at the top of the screen with Try again, never lost to
+   the console (the owner's picture F). The handler stopped at its save, before
+   it drew — so the screen is drawn first from what is in the page (the change
+   kept, as it would have shown it), then the refusal is said over it (W-025). */
+function refusedSave() {
+  try { router(); } catch (e) { if (!isStorageError(e)) throw e; }
+  notSaved();
+}
+window.addEventListener("error", (e) => { if (isStorageError(e.error)) { e.preventDefault(); refusedSave(); } });
+window.addEventListener("unhandledrejection", (e) => { if (isStorageError(e.reason)) { e.preventDefault(); refusedSave(); } });
+/* the band follows the tester's switches and the phone's own connection */
+window.addEventListener("ride-price:switches", refreshBand);
+window.addEventListener("online", refreshBand);
+window.addEventListener("offline", refreshBand);
+/* the band's Change opens the switches over whatever screen is up */
+document.addEventListener("click", (e) => {
+  const b = e.target && e.target.closest ? e.target.closest("[data-switches-open]") : null;
+  if (!b) return;
+  e.preventDefault();
+  const sheets = screenSheets(); if (sheets) openSwitches(sheets);
+});
 window.addEventListener("DOMContentLoaded", () => {
   /* the logo hard-refreshes the floor queue: search and pipeline filter
      cleared, list re-pulled (owner spec, 2026-08-20) */
@@ -13218,5 +15630,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   router();
+  /* a save the phone refused while loading is said once the screen is up (phase 2) */
+  if (Store.loadError) setTimeout(notSaved, 0);
   enhanceControls();
 });

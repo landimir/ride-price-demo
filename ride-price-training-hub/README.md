@@ -19,7 +19,7 @@ It's a fully static site — no build step.
 
 - **Quick look:** double-click `index.html` (works straight from the file system).
 - **Local server (recommended):** from this folder run `npx http-server -p 8321` and open <http://localhost:8321>.
-- **Hosting:** drop the folder onto any static host (Netlify, GitHub Pages, SharePoint, etc.).
+- **Hosting:** drop the folder onto any static web host.
 
 ## Notes
 

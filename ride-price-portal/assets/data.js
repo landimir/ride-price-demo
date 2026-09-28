@@ -1,7 +1,22 @@
 /* Ride Price Portal — seed data & catalogs (demo data only) */
 "use strict";
 
+/* the seed's funded contract is 15 days old on whatever day the demo runs
+   (owner, 2026-09-26, KA-031): the Team Lead's "Last 30 days" with funded
+   included must always show it, and a fixed date aged out of that window.
+   11:05 AM on that day, the hour the seed has always named. */
+const SEED_FUNDED_AT = (() => { const d = new Date(); d.setDate(d.getDate() - 15); d.setHours(11, 5, 0, 0); return d.toISOString(); })();
+
+/* the incentive runs through the end of the month the demo runs in (Desking's DK-040), as the funded contract's
+   date rolls (KA-031): your kit's box names Sep 30, 2026, which ages out, and a deadline shown to a customer
+   has to be a real one (chrome rule §15). A local date, so the evening never moves it a day. */
+const INCENTIVE_THROUGH = (() => { const d = new Date(), end = new Date(d.getFullYear(), d.getMonth() + 1, 0), p = (n) => String(n).padStart(2, "0"); return `${end.getFullYear()}-${p(end.getMonth() + 1)}-${p(end.getDate())}`; })();
+
 const RIDE_PRICE_DATA = {
+
+  /* read by the funded contract's own records in app.js, so all of them
+     carry the one instant */
+  seedFundedAt: SEED_FUNDED_AT,
 
   dealership: {
     name: "Ride Price Motors",
@@ -51,7 +66,7 @@ const RIDE_PRICE_DATA = {
      actually ends. A deadline shown to a customer has to be a real one, so the
      date lives here and the screen formats it — never a phrase typed into a
      template (chrome rule §15). */
-  financeIncentive: { apr: 3.5, through: "2026-09-30" },
+  financeIncentive: { apr: 3.5, through: INCENTIVE_THROUGH },
 
   financeTerms: [36, 48, 60, 72, 84],
   leaseTerms: [24, 36, 39, 48],
@@ -75,7 +90,6 @@ const RIDE_PRICE_DATA = {
     { min: 0,   label: "Building", agreedApr: 12.9, qualifiedApr: 10.99, leaseFactor: 0.00340 }
   ],
 
-  lenders: ["Northline Bank", "CUDC Alliant C.U.", "Hyundai Motor Finance", "Ally Financial", "US Bank", "Chase Auto"],
 
   /* The lender's answer in the demo. It is SEEDED rather than derived from the
      customer's credit tier, because a lender's decision is not something this
@@ -83,7 +97,7 @@ const RIDE_PRICE_DATA = {
      that the rate MOVED from the one the customer agreed to (3.5%). A tier
      lookup would answer 2.49% for an Excellent file and quietly contradict the
      seed, the boards, and the finance menu that prices off this figure. */
-  approvalOutcome: { lender: "Northline Bank", apr: 3.9 },
+  approvalOutcome: { lender: "Ride Price Financial", apr: 3.9 },
 
   /* Demo ZIP directory — NYC codes covering the personas plus nearby
      neighborhoods, so typing a ZIP fills city/state. Not a real ZIP database.
@@ -121,6 +135,9 @@ const RIDE_PRICE_DATA = {
     { id: "ppm3", name: "Pre-Paid Maintenance", detail: "3 yr / 36,000 mi", price: 649, types: ["finance", "cash", "lease"] },
     /* the v034 seed names this price: GAP is $895 on the finance menu board */
     { id: "gap", name: "GAP Coverage", detail: "Full loan term", price: 895, types: ["finance"] },
+    /* the kit's seed (v022.25): Tire and Wheel 5 yr, $1,188 — one of the four
+       products its Preferred package holds */
+    { id: "tw5", name: "Tire and Wheel", detail: "5 yr — tires & wheels", price: 1188, types: ["finance"] },
     { id: "multi", name: "Multi-Protect Bundle", detail: "7 yr — tire & wheel, dent, key, windshield", price: 2059, types: ["finance", "cash", "lease"] },
     { id: "appear", name: "Appearance Protection", detail: "5 yr — paint & interior", price: 1295, types: ["finance", "cash", "lease"] },
     { id: "lep", name: "Lease-End Protection", detail: "Waives up to $5,000 excess wear & tear", price: 1095, types: ["lease"] },
@@ -177,6 +194,10 @@ const RIDE_PRICE_DATA = {
       headline: "Chips happen. Bills don't have to.",
       body: "Highway debris doesn't care how new your car is. Windshield protection repairs chips and cracks fast, before they spread into a full replacement.",
       benefits: ["3 years of coverage", "Repairs before cracks spread", "No deductible on covered repairs"] },
+    tw5: { icon: "🛞", label: "Tire and Wheel", short: "Tire & Wheel",
+      headline: "The road doesn't care about your tires.",
+      body: "Potholes, nails, and debris are the most common out-of-pocket surprise a new owner faces, and low-profile tires and alloy wheels make each one more expensive than the last.",
+      benefits: ["5 years of tire and wheel coverage", "Repair or replacement after road hazard damage", "Mounting, balancing, and taxes included"] },
     roadhaz: { icon: "🛞", label: "Road Hazard Protection", short: "Road Hazard",
       headline: "The road doesn't care about your tires.",
       body: "Potholes, nails, and debris are the most common out-of-pocket surprise a new owner faces — and low-profile tires and alloy wheels make each incident more expensive than the last one you remember.",
@@ -198,9 +219,15 @@ const RIDE_PRICE_DATA = {
   /* menu programs by deal type: product ids per column */
   programs: {
     finance: {
-      preferred: { label: "Preferred", products: ["vsc10", "ppm8", "gap", "multi", "appear", "roadhaz", "keyrep"], termAdj: 0, aprAdj: 0 },
-      standard:  { label: "Standard",  products: ["vsc7", "ppm3", "gap", "keyrep", "tlp"], termAdj: 0, aprAdj: 0 },
-      budget:    { label: "Budget",    products: ["vsc10", "ppm8", "multi", "roadhaz"], termAdj: 12, aprAdj: 0.4 }
+      /* the kit's seed (v022.25): Preferred holds its four products, $6,897.00
+         (the seed's box says $7,551.00, which its own four do not add up to;
+         for the kit's next revision). Standard and Budget step down from it,
+         the usual menu ladder: Standard without the tire and wheel, Budget the
+         service contract and GAP. Every package is priced over the deal's
+         own term and rate (§22b, KA-013). */
+      preferred: { label: "Preferred", products: ["vsc7", "ppm8", "tw5", "gap"] },
+      standard:  { label: "Standard",  products: ["vsc7", "ppm8", "gap"] },
+      budget:    { label: "Budget",    products: ["vsc7", "gap"] }
     },
     lease: {
       preferred: { label: "Full Service Lease", products: ["lep", "ppm3", "multi", "appear", "keyrep"] },
@@ -372,8 +399,8 @@ const RIDE_PRICE_DATA = {
      each is recorded honestly as taken in by hand, never as a machine
      check. Empty this array to have the demo start with nothing collected. */
   seedJacket: [
-    { id: "form-tradetitle", note: "read from the title he brought in" },
-    { id: "form-tradereg", note: "read from the registration he brought in" },
+    { id: "form-tradetitle", note: "read from the title John brought in" },
+    { id: "form-tradereg", note: "read from the registration John brought in" },
     { id: "form-payoff", note: "read — expired 01/01/2025, override recorded" },
     { id: "idverify-primary", note: "photo captured against the license, then discarded" },
     { id: "testdrive", note: "signed before the drive — a record, not a funding requirement" }
@@ -407,25 +434,28 @@ const RIDE_PRICE_DATA = {
     { id: "c-demo1", first: "John", last: "Smith", middle: "", email: "jsmithtest@testing.com", phone: "(718) 555-0134",
       address: "31-14 Broadway", city: "Astoria", state: "NY", zip: "11106", creditScore: 740, createdAt: "2026-07-10T16:00:00Z" },
     /* Cheri carries the licence from prop 2 — a customer scanned on an earlier
-       visit. She is what the manual licence-number search and a confident
+       visit. Cheri is what the manual licence-number search and a confident
        LICENSE MATCH have to find; John deliberately has neither licence nor
        date of birth, so a prop-1 scan still exercises the weaker name match
        and its side-by-side comparison. */
     { id: "c-demo2", first: "Cheri", last: "Bridwell", middle: "", email: "cbridwell@testing.com", phone: "(347) 555-1212",
       dob: "1990-11-02", license: { number: "T-0000102", state: "NY", expires: "2028-11-02" },
       address: "1 Grand Army Plaza", city: "Brooklyn", state: "NY", zip: "11238", creditScore: 705, createdAt: "2026-07-08T19:30:00Z" },
-    /* Priya funded a contract on Aug 14 (chrome rule v022 seed): she exists so
-       the Team Lead's history has one funded deal to show behind the date
-       control. Not present on the floor. Her record is COMPLETE — phone and
-       email are both required on every customer record (owner, 2026-08-23),
-       and a contract does not fund without a registration address. All
-       fictional, like every other identity here. */
+    /* Priya Patel funded a contract 15 days ago (chrome rule v022 seed; the
+       contract's date moves with today, KA-031; this record keeps the Aug 14
+       first visit, so New visit's Recent customers keeps its order): Priya
+       exists so the Team Lead's history has one funded deal to show behind
+       the date control. Not present on the
+       floor. The record is COMPLETE — phone and email are both required on
+       every customer record (owner, 2026-08-23), and a contract does not fund
+       without a registration address. All fictional, like every other
+       identity here. */
     { id: "c-demo3", first: "Priya", last: "Patel", middle: "", email: "ppatel@testing.com", phone: "(917) 555-0164",
       address: "41-15 Bell Blvd", city: "Bayside", state: "NY", zip: "11361", creditScore: 720, createdAt: "2026-08-14T15:05:00Z" },
-    /* Marcus exists BEFORE any scan (scan-license seed v023): the profile his
+    /* Marcus exists BEFORE any scan (scan-license seed v023): the profile Marcus's
        secure upload link created — phone and email on record, no licence, no
        date of birth, and no address until a licence supplies one. createdVia
-       says so, and the scanner reads it: his name is claimed, not verified,
+       says so, and the scanner reads it: Marcus's name is claimed, not verified,
        so prop 3 finds no match, the typed number reaches the conflict sheet,
        and the verified code links the scanned licence onto this very record. */
     { id: "c-demo4", first: "Marcus", last: "Alvarez", middle: "", email: "malvarez@testing.com", phone: "(646) 555-0900",
@@ -457,7 +487,30 @@ const RIDE_PRICE_DATA = {
     { prop: 5, first: "Priya", middle: "", last: "Natarajan", dob: "1999-01-27",
       license: { number: "T-0000105", state: "NY", expires: "2031-01-27" },
       address: "77 Bay St", city: "Staten Island", state: "NY", zip: "10301",
-      issued: "2026-01-27", cls: "D", sex: "F", eyes: "BRO", hgt: "5'-05\"" }
+      issued: "2026-01-27", cls: "D", sex: "F", eyes: "BRO", hgt: "5'-05\"" },
+    /* LS-037 and LS-039 (the owner's answers of 2026-09-24, B): four more to train on. An expired license, a
+       learner permit and a non-driver ID each identify the person, and none can take a test drive; the scanner
+       says so on the spot. The Ontario license carries no training barcode, so the scanner cannot read it and
+       the advisor types it. Prop 6 is the owner's approved picture's guest (decision-scanner-expired.png).
+       code: the barcode's number when it is not the prop's own. The reader reads a barcode both ways round, and
+       a payload read backwards is another valid payload (1 reads back as 7, 8 as 14), so a card never carries a
+       code whose reverse is another card's: 7 and 9 stay unprinted, and props 7 and 8 carry codes 8 and 10. */
+    { prop: 6, kind: "license", first: "Nadia", middle: "", last: "R.", dob: "1994-05-06",
+      license: { number: "T-7000001", state: "NY", expires: "2025-05-06" },
+      address: "12 Sample Ave", city: "Astoria", state: "NY", zip: "11106",
+      issued: "2017-05-06", cls: "D", sex: "X", eyes: "BRO", hgt: "5'-06\"" },
+    { prop: 7, code: 8, kind: "permit", first: "Alex", middle: "M", last: "Rivera", dob: "2009-02-17",
+      license: { number: "T-7000002", state: "NY", expires: "2031-02-17" },
+      address: "7 Sample Ave", city: "Astoria", state: "NY", zip: "11106",
+      issued: "2026-02-17", cls: "LP", sex: "X", eyes: "BRO", hgt: "5'-08\"" },
+    { prop: 8, code: 10, kind: "id", first: "Rosa", middle: "E", last: "Delgado", dob: "1951-08-30",
+      license: { number: "T-7000003", state: "NY", expires: "2032-08-30" },
+      address: "30 Sample St", city: "Flushing", state: "NY", zip: "11354",
+      issued: "2024-08-30", cls: "ID", sex: "X", eyes: "BRO", hgt: "5'-03\"" },
+    { prop: 9, kind: "foreign", first: "Morgan", middle: "L", last: "Tremblay", dob: "1988-12-04",
+      license: { number: "T7000-00004-81204", state: "ON", expires: "2030-12-04" },
+      address: "15 Sample Rd", city: "Toronto", state: "ON", zip: "M5V 1A1",
+      issued: "2025-12-04", cls: "G", sex: "X", eyes: "GRN", hgt: "5'-10\"" }
   ],
 
   /* Printable training registrations — the trade-in counterpart to the prop
@@ -468,7 +521,9 @@ const RIDE_PRICE_DATA = {
      the second, higher-fidelity sample set the portrait template); none of
      their DATA is. `prop` points at the licenceProp of the same number, so a
      trainee handed prop 1's licence and prop 1's registration is holding one
-     consistent person — one registration per licence persona, all five.
+     consistent person — one registration per licence persona, props 1 to 5.
+     The four cards added for LS-037/039 (props 6 to 9) carry none: a
+     registration is not what they are there to teach.
      Vehicles are trade-ins, deliberately older than anything in `inventory` —
      a registration is something the customer brings in, not something the
      dealership issues.
@@ -513,5 +568,15 @@ const RIDE_PRICE_DATA = {
       office: "TRN OGTS05",
       issued: "2026-03-05", expires: "2028-03-05",
       region: "NYMA", annualChg: "30.00", amtPaid: "152.25" }
+  ],
+
+  /* payoff-statement props (the owner's payoff scanner, 2026-09-26) — ALL FICTIONAL, printed as training props for
+     the training titles that carry a lien (the kit's 01 Smith, Ride Price Auto Finance, and 03 Alvarez, Ride Price
+     Auto Credit). The marker on each carries a code reserved for them and the prop number, nothing else, and no
+     real lender's letter can ever be read. The good-through date is goodDays after the day the prop is printed or
+     read, so a prop is never stale on the day of a demo. */
+  payoffProps: [
+    { prop: 1, lender: "Ride Price Auto Finance", account: "4417", amount: 10750, vehicle: "2016 Toyota RAV4", vin: "4T1TRAININGSAMP01", goodDays: 30 },
+    { prop: 3, lender: "Ride Price Auto Credit", account: "2208", amount: 14200, vehicle: "2018 Ford", vin: "1FTTRAININGSAMP03", goodDays: 30 }
   ]
 };

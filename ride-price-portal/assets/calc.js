@@ -3,7 +3,11 @@
 
 const RIDE_PRICE_CALC = (function () {
 
-  const round2 = (n) => Math.round((n + Number.EPSILON) * 100) / 100;
+  /* money to the cent, a half cent away from zero: the New York way (the
+     owner, 2026-09-26: "Go with New York style", KA-006). The amount in cents
+     is read to 15 significant digits first, so 1201.545, which a double holds
+     as 1201.5449999999998, still rounds up to 1201.55. */
+  const round2 = (n) => { const s = n < 0 ? -1 : 1; return s * Math.round(Number((Math.abs(n) * 100).toPrecision(15))) / 100; };
 
   function creditTier(score) {
     return RIDE_PRICE_DATA.creditTiers.find(t => score >= t.min) || RIDE_PRICE_DATA.creditTiers[RIDE_PRICE_DATA.creditTiers.length - 1];
@@ -55,9 +59,23 @@ const RIDE_PRICE_CALC = (function () {
     return Math.max(0, price + docFee() - tradeCredit);
   }
 
+  /* New York's way (the owner, 2026-09-26, KA-006): the tax is the combined
+     rate on the whole taxable base, rounded to the cent once, a half cent up.
+     $26,700.00 at 8.875% is $2,369.625, so $2,369.63; the kit's box has
+     $2,369.62, a half cent rounded down, which is for its next revision. The
+     parts show to the cent and always add up to that total: each is its exact
+     share rounded down, and the cents left over go to the parts with the
+     largest remainders — Transit's $100.125 takes the one cent here. */
   function taxBreakdown(base) {
-    const rows = RIDE_PRICE_DATA.taxes.map(t => ({ label: `${t.label} @ ${taxPct(t.rate)}%`, amount: round2(base * t.rate) }));
-    return { rows, total: round2(rows.reduce((s, r) => s + r.amount, 0)) };
+    const taxes = RIDE_PRICE_DATA.taxes;
+    const total = round2(base * totalTaxRate());
+    const exact = taxes.map(t => Number((base * t.rate * 100).toPrecision(15)));
+    const cents = exact.map(x => Math.floor(x));
+    let left = Math.round(total * 100) - cents.reduce((s, x) => s + x, 0);
+    exact.map((x, i) => [x - cents[i], i]).sort((a, b) => b[0] - a[0] || a[1] - b[1])
+      .forEach(([, i]) => { if (left > 0) { cents[i] += 1; left -= 1; } });
+    const rows = taxes.map((t, i) => ({ label: `${t.label} @ ${taxPct(t.rate)}%`, amount: cents[i] / 100 }));
+    return { rows, total };
   }
 
   function amortize(principal, apr, months) {
@@ -101,7 +119,11 @@ const RIDE_PRICE_CALC = (function () {
     const residual = round2(vehicle.msrp * (residualPct + mileAdj));
     const netTrade = (deal.trade.value || 0) - (deal.trade.payoff || 0);
     const capCostReduction = Math.max(0, (o.dueAtSigning || 0)) + Math.max(0, netTrade) + (deal.trade.rebates || 0);
-    const grossCap = yourPrice + prodTotal + RIDE_PRICE_DATA.leaseFees.acquisition + totalFees();
+    /* a trade owed more than it is worth is the customer's to pay: the shortfall is added to the capitalized
+       cost, as trade equity reduces it. Taking only the equity dropped it, so a lease cost the same whatever
+       the trade still owed (MR-07, Desking's DK-020) */
+    const negativeEquity = Math.max(0, -netTrade);
+    const grossCap = yourPrice + prodTotal + RIDE_PRICE_DATA.leaseFees.acquisition + totalFees() + negativeEquity;
     const adjCap = Math.max(residual, grossCap - capCostReduction);
     const depreciation = (adjCap - residual) / o.term;
     const rent = (adjCap + residual) * o.factor;
@@ -116,7 +138,7 @@ const RIDE_PRICE_CALC = (function () {
       basePayment, monthlyTax, payment, capCostReduction: round2(capCostReduction), ccrTax,
       acquisitionFee: RIDE_PRICE_DATA.leaseFees.acquisition, dueAtSigning: o.dueAtSigning || 0,
       taxes: { rows: [{ label: `Sales Tax on Payment @ ${taxPct(taxRate)}%`, amount: monthlyTax }], total: monthlyTax },
-      fees: totalFees(), netTrade: round2(netTrade)
+      fees: totalFees(), netTrade: round2(netTrade), negativeEquity: round2(negativeEquity)
     };
   }
 
@@ -147,7 +169,9 @@ const RIDE_PRICE_CALC = (function () {
     const base = isFinite(o.factor) ? o.factor : deal.desk.leaseFactor || 0.00117;
     const reduced = Math.max(0.00001, base - 0.0004);
     const l = lease(deal, vehicle, Object.assign({}, o, { factor: reduced, dueAtSigning: 0 }));
-    const dueAtSigning = round2(l.payment * l.term + RIDE_PRICE_DATA.leaseFees.acquisition);
+    /* the payments pay the acquisition fee already: it is in the capitalized cost they are priced on, so the
+       total is the payments and nothing more (MR-08, Desking's DK-023: it was added again, $595 twice) */
+    const dueAtSigning = round2(l.payment * l.term);
     return Object.assign({}, l, { dealType: "onepay", dueAtSigning, payment: 0, onePayTotal: dueAtSigning });
   }
 
@@ -185,8 +209,12 @@ const RIDE_PRICE_CALC = (function () {
        v032; `qualifiedApr` is what blobs saved before it carry, and a record
        holding neither must not price the whole menu at NaN */
     const qApr = q ? (q.approvedApr != null ? q.approvedApr : q.qualifiedApr) : null;
-    const apr = (qApr != null ? qApr : deal.desk.apr) + (program.aprAdj || 0);
-    const term = deal.desk.term + (program.termAdj || 0);
+    /* every package is priced over the deal's own term and rate (§22b; the
+       owner, 2026-09-26: "every math needs to be correct always", KA-013). A
+       package that moved the term or the rate — Budget did, to 72 months at
+       4.3% — would be a new structure the lender never approved (§18). */
+    const apr = qApr != null ? qApr : deal.desk.apr;
+    const term = deal.desk.term;
     const r = finance(deal, vehicle, { products: program.products, apr, term });
     /* PRODUCT MONEY IS DERIVED, NEVER ASSERTED (chrome rule §22b): a package
        payment is the agreed payment plus the amortization of the products it

@@ -317,7 +317,8 @@ const RIDE_PRICE_DOCSCAN = (function () {
           " — either scan.js changed its symbology or this check is broken, and every separation result above is meaningless");
       }
     });
-    [[1, 0], [7, 1], [16, 511], [41, 1023], [47, 42], [63, 1023]].forEach(([code, token]) => {
+    /* 60/1 and 60/3: the training payoff statements (app.js PAYOFF_PROP_CODE, the payoff scanner) */
+    [[1, 0], [7, 1], [16, 511], [41, 1023], [47, 42], [60, 1], [60, 3], [63, 1023]].forEach(([code, token]) => {
       const r = toRuns(runWidths(code, token));
       const back = decodeRuns(r);
       if (!back || back.code !== code || back.token !== token) fails.push("marker " + code + "/" + token + " failed to round-trip");
