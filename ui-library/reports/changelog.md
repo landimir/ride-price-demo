@@ -1,5 +1,60 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v045 — 2026-10-02
+
+App commit: bf559e4 · 20 flows · 380 screens · previous: v044
+
+### Added
+- Customer Onboarding — the Customer Resolver · Same name on file — a former name typed
+- Scan Driver's License · Needs you — the signed agreement goes back
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — an old name finds her
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Active floor — a visit not yet assigned
+- Home — Active Floor & Navigation · Visit sheet — Assign to an advisor (Team Lead)
+- Home — Active Floor & Navigation · Assign — one row per advisor
+- Home — Active Floor & Navigation · Active floor — assigned to Ashley
+- Home — Active Floor & Navigation · Visit sheet — the advisor's own (no assign control)
+- Home — Active Floor & Navigation · Test log — off, nothing recorded
+- Home — Active Floor & Navigation · Test log — recording, events on the log
+- Home — Active Floor & Navigation · Clear the test log? — confirm
+- Home — Active Floor & Navigation · Test log — cleared and stopped
+- Scan Driver's License · Verify the phone number (sheet)
+- Scan Driver's License · Unfinished scans
+- Scan Driver's License · Resume license scan
+- Scan Driver's License · Verify the phone number — Email the code instead
+- Scan Driver's License · Needs you — Jordan confirms the name
+- Discovery — the guided consultation · × in the top bar — back to the visits
+- Trade-In Evaluation & Proof of Ownership · Run evaluation — a negative payoff refused
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — the resolver's entries
+- Deal Jacket & Compliance · Optional document — Remove from this deal
+- Deal Jacket & Compliance · Request status — the customer's uploads, not the advisor's
+- Deal Jacket & Compliance · License reviewed and filed — the count moves by one
+- Customer document request (from the jacket) · Customer request — delivery status (waiting)
+- Customer document request (from the jacket) · Customer request — opened, 1 of 3 uploaded
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Documents — Print Center & Printables · Preview — Saved Quote
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+### Read by eye
+- New screens from #246 (2026-10-02), each read in full: Jordan's sheet for a name request on John's own deal, with the row Signed agreement, Goes back to be signed again, after the birthday (LS-047 question 2); Add co-buyer, where Bridwell finds Cheri Smith and her row says Formerly Cheri Bridwell (W-145); and the manual form, where a Cheri Bridwell typed after Cheri became Cheri Smith asks Same name on file instead of making a second Cheri (W-145).
+- The 25 changed screens were each compared with v044 pixel by pixel. Every difference is a live value or a frame of an animation: the clock times on Home's floor, the test log, the visit sheets, the scanner's Unfinished scans, Resume and code sheets, Jordan's Asked by line, the jacket's tracking and receipts, and the Saved Quote's saved time; a spinner frame on Snap All's sorting screen; and a one-pixel text caret in the Trade-In's payoff field and in the Add co-buyer search. Nothing else moved, because #246 changed no existing layout.
+- The library's own steps: the three new steps stand alone and sit at the end of their flows (Onboarding, Scan Driver's License, Buyers). Two of them seed Cheri as Cheri Smith with Bridwell kept as her former name, and the third seeds John as having signed as Jon Smith with a license that reads John Smith, as the checks do.
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v044 — 2026-10-02
 
 App commit: 3e380a4 · 20 flows · 377 screens · previous: v043

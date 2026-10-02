@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-10-02T07:06:19.670Z",
-  "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+  "capturedAt": "2026-10-02T21:54:31.247Z",
+  "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet stands in for authentication, and it opens only in Customer Onboarding (owner ruling B, 2026-09-18) — Home's top bar carries no role control.",
       "entry": null,
-      "capturedAt": "2026-10-02T07:06:19.687Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T21:54:31.266Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -695,7 +695,7 @@
             "overlaps": [
               ".rp-badge Discovery <> .rp-card__name Cheri Bridwell",
               ".rp-card__meta.dq-advisor Not assigned <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
-              ".rp-card__next Next: Discovery Interview In <> .rp-sheet__sub Arrived 03:06 · Discovery · ",
+              ".rp-card__next Next: Discovery Interview In <> .rp-sheet__sub Arrived 17:55 · Discovery · ",
               ".rp-badge Desking <> .rp-card__name John Smith",
               ".rp-badge Desking <> #dqVisitOpen.rp-primary Open deal",
               ".rp-card__name John Smith <> #dqVisitOpen.rp-primary Open deal",
@@ -824,7 +824,7 @@
               ".rp-badge Desking <> .rp-card__name John Smith",
               ".rp-card__meta.dq-ids VIN 5NMS4DAL4NH457995 · STK  <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
               ".rp-card__next Next: Game Plan With the Tea <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
-              ".rp-card__next Next: Game Plan With the Tea <> .rp-sheet__sub Arrived 03:06 · Discovery",
+              ".rp-card__next Next: Game Plan With the Tea <> .rp-sheet__sub Arrived 17:55 · Discovery",
               ".rp-tab.rp-tab--active Deals <> #dqVisitEnd.rp-link.ch-hit Left the showroom",
               ".rp-tab Inventory <> #dqVisitEnd.rp-link.ch-hit Left the showroom",
               ".rp-tab Customers <> #dqVisitEnd.rp-link.ch-hit Left the showroom"
@@ -1004,8 +1004,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-10-02T07:07:17.660Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T21:55:34.823Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -1846,6 +1846,35 @@
           },
           "scrollShot": null,
           "issues": []
+        },
+        {
+          "step": 26,
+          "key": "manual-former-name",
+          "screen": "Same name on file — a former name typed",
+          "screenshot": "current/02-customer-onboarding/26-manual-former-name.png",
+          "hash": "#/visit",
+          "action": "Tap Use Cheri Smith on file",
+          "next": null,
+          "branches": [],
+          "notes": "W-145: the same-name question reads a former name too. Cheri renewed as Cheri Smith, and Bridwell is kept as her former name; typing Cheri Bridwell on the manual form no longer saves a second Cheri without a question. The record shows as Cheri Smith, Formerly Cheri Bridwell, and Ashley says whether it is the same person.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
         }
       ]
     },
@@ -1858,8 +1887,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-10-02T07:08:03.974Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T21:56:21.950Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -2749,10 +2778,10 @@
               " Address <> .rp-sheet__sub Enter the six-digit code sen",
               " 4102 Bell Blvd, Bayside, NY  <> #scSheetTitle.rp-sheet__title Verify the phone number",
               " 4102 Bell Blvd, Bayside, NY  <> .rp-sheet__sub Enter the six-digit code sen",
-              ".rp-kv__head Registration address <> .rp-code__box 3",
-              ".rp-kv__head Registration address <> .rp-code__box 2",
-              ".rp-kv__head Registration address <> .rp-code__box 1",
-              ".rp-kv__head Registration address <> .rp-code__box 0"
+              ".rp-kv__head Registration address <> .rp-code__box 7",
+              ".rp-kv__head Registration address <> .rp-code__box 8",
+              ".rp-kv__head Registration address <> .rp-code__box 5",
+              ".rp-kv__head Registration address <> .rp-code__box 7"
             ]
           },
           "error": null,
@@ -2936,6 +2965,51 @@
           },
           "scrollShot": null,
           "issues": []
+        },
+        {
+          "step": 32,
+          "key": "lead-name-agreement",
+          "screen": "Needs you — the signed agreement goes back",
+          "screenshot": "current/03-license-scan/32-lead-name-agreement.png",
+          "hash": "#/deals",
+          "action": "Choose The license is right, tap Confirm",
+          "next": null,
+          "branches": [],
+          "notes": "LS-047, the owner's answer A to question 2: John signed the agreement as Jon Smith and his license reads John Smith. Jordan's sheet adds the row Signed agreement, Goes back to be signed again, after the birthday that shows it is the same person, because his yes will send John's signed agreement back. A co-buyer's request, which prints on no paper, and a finalized deal's have no such row.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".rp-wordmark Ride Price 116x23",
+              "#dqDateBtn.rp-filter__control Today 58x20",
+              ".rp-chip.dq-chipbtn All 1 54x32",
+              ".rp-chip.dq-chipbtn Desking 0 103x32",
+              ".rp-chip.dq-chipbtn F&I 1 72x32",
+              ".rp-sheet__close  32x32"
+            ],
+            "clipped": [],
+            "overlaps": [
+              "#dqDateSummary Today · active floor <>  On this license",
+              "#dqDateLabel Today <>  John Smith",
+              ".rp-alert__body Jon Smith — Ashley Collins a <>  License",
+              ".rp-alert__body Jon Smith — Ashley Collins a <>  T-0000101 · NY",
+              ".rp-alert__action Review <>  Date of birth",
+              ".rp-section In showroom · 1 <>  Signed agreement",
+              ".rp-section In showroom · 1 <>  Goes back to be signed again",
+              ".rp-row__title Jon Smith <>  Phone"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
         }
       ]
     },
@@ -2948,8 +3022,8 @@
         "from": "home/more-sheet",
         "action": "Training documents"
       },
-      "capturedAt": "2026-10-02T07:10:38.356Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T21:59:00.293Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -3307,15 +3381,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-10-02T07:10:50.446Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T21:59:14.206Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
           "key": "stage-intro",
           "screen": "Stage 1 — the sample slide",
           "screenshot": "current/05-discovery/01-stage-intro.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Tap ✓",
           "next": "stage-question",
           "branches": [
@@ -3365,7 +3439,7 @@
           "key": "stage-question",
           "screen": "Current vehicle — the sample reply as chips",
           "screenshot": "current/05-discovery/02-stage-question.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Tap the Sunroof chip",
           "next": "stage-chip-toggled",
           "branches": [],
@@ -3399,7 +3473,7 @@
           "key": "stage-chip-toggled",
           "screen": "Current vehicle — a chip turned on",
           "screenshot": "current/05-discovery/03-stage-chip-toggled.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Tap ✓",
           "next": "stage-skip",
           "branches": [],
@@ -3433,7 +3507,7 @@
           "key": "stage-skip",
           "screen": "Size & space — Skip this topic",
           "screenshot": "current/05-discovery/04-stage-skip.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Tap Skip this topic",
           "next": "stage-seating",
           "branches": [],
@@ -3463,7 +3537,7 @@
           "key": "stage-seating",
           "screen": "Seating & family",
           "screenshot": "current/05-discovery/05-stage-seating.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Tap ✓",
           "next": "stage-drivetrain",
           "branches": [],
@@ -3497,7 +3571,7 @@
           "key": "stage-drivetrain",
           "screen": "Drivetrain",
           "screenshot": "current/05-discovery/06-stage-drivetrain.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Tap ✓",
           "next": "stage-lane-support",
           "branches": [],
@@ -3525,7 +3599,7 @@
           "key": "stage-lane-support",
           "screen": "Lane support — the shared stage",
           "screenshot": "current/05-discovery/07-stage-lane-support.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Tap ✓",
           "next": "stage-reverse-safety",
           "branches": [],
@@ -3556,7 +3630,7 @@
           "key": "stage-reverse-safety",
           "screen": "Reverse safety — the shared stage, the other way",
           "screenshot": "current/05-discovery/08-stage-reverse-safety.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Tap ✓",
           "next": "profile",
           "branches": [],
@@ -3587,7 +3661,7 @@
           "key": "profile",
           "screen": "The profile — the hand-off",
           "screenshot": "current/05-discovery/09-profile.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Reload the page",
           "next": "profile-reload",
           "branches": [
@@ -3624,7 +3698,7 @@
           "key": "profile-reload",
           "screen": "The profile after a reload",
           "screenshot": "current/05-discovery/10-profile-reload.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Tap ×",
           "next": "profile-change",
           "branches": [],
@@ -3652,7 +3726,7 @@
           "key": "profile-change",
           "screen": "× on the profile — back to the first question",
           "screenshot": "current/05-discovery/11-profile-change.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Tap ✓ through every topic",
           "next": "profile-again",
           "branches": [],
@@ -3686,7 +3760,7 @@
           "key": "profile-again",
           "screen": "Confirmed through — the profile again",
           "screenshot": "current/05-discovery/12-profile-again.png",
-          "hash": "#/discovery/d-o923j0z",
+          "hash": "#/discovery/d-3y179jp",
           "action": "Tap ✓",
           "next": "vehicles/inventory-from-discovery",
           "branches": [],
@@ -3783,8 +3857,8 @@
         "from": "discovery/profile",
         "action": "Tap ✓ on the profile"
       },
-      "capturedAt": "2026-10-02T07:11:10.533Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T21:59:39.243Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -4457,8 +4531,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-10-02T07:11:38.522Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:00:05.781Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -5525,8 +5599,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-10-02T07:12:22.044Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:00:55.824Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -6045,7 +6119,7 @@
           "key": "appraisal-empty",
           "screen": "The appraisal form before anyone has typed",
           "screenshot": "current/08-trade-in/14-appraisal-empty.png",
-          "hash": "#/trade/d-p34um18",
+          "hash": "#/trade/d-5x4w6we",
           "action": "Type the vehicle, the VIN, the mileage and the payoff",
           "next": "appraisal-typed",
           "branches": [],
@@ -6077,7 +6151,7 @@
           "key": "appraisal-typed",
           "screen": "The appraisal form filled in, not yet evaluated",
           "screenshot": "current/08-trade-in/15-appraisal-typed.png",
-          "hash": "#/trade/d-p34um18",
+          "hash": "#/trade/d-5x4w6we",
           "action": "Tap Run evaluation",
           "next": "appraisal-run",
           "branches": [],
@@ -6108,7 +6182,7 @@
           "key": "appraisal-run",
           "screen": "Trade value — the fresh trade evaluated",
           "screenshot": "current/08-trade-in/16-appraisal-run.png",
-          "hash": "#/trade/d-p34um18",
+          "hash": "#/trade/d-5x4w6we",
           "action": "Tap Review ownership",
           "next": "ownership-roots",
           "branches": [],
@@ -6176,8 +6250,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-10-02T07:12:52.899Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:01:23.246Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -7223,8 +7297,8 @@
         "from": "desking/work-chose",
         "action": "Tap Submit for Team Lead approval; the Team Lead approves; then Continue"
       },
-      "capturedAt": "2026-10-02T07:13:48.860Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:02:15.685Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -7649,8 +7723,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-10-02T07:14:20.564Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:02:45.032Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -8379,8 +8453,8 @@
         "from": "credit/joint-remote",
         "action": "Tap the Buyers row"
       },
-      "capturedAt": "2026-10-02T07:15:03.357Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:03:30.185Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -9075,6 +9149,47 @@
               "area": "app.js — the Jacket chip on the buyers sheet after the lending lane"
             }
           ]
+        },
+        {
+          "step": 18,
+          "key": "add-cobuyer-former",
+          "screen": "Add co-buyer — an old name finds her",
+          "screenshot": "current/12-buyers-and-co-buyer/18-add-cobuyer-former.png",
+          "hash": "#/desk/d-demo1",
+          "action": "Tap the CRM match",
+          "next": null,
+          "branches": [],
+          "notes": "W-145: a customer who says Bridwell finds Cheri Smith. The search reads the name now and each former name, and the hit says Formerly Cheri Bridwell, as New visit's rows do. The same search is on the buyers sheet and the co-buyer finder.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".rp-sheet__close  32x32",
+              "#byQ.rp-search__input  220x25"
+            ],
+            "clipped": [],
+            "overlaps": [
+              "#hTrial.rp-textarea If the numbers make sense, w <> #dkSheetTitle.rp-sheet__title Add co-buyer",
+              ".rp-field__label Payment the customer named <> #dkSheetTitle.rp-sheet__title Add co-buyer",
+              ".rp-section How are they paying? <> .rp-section Result",
+              ".rp-option__title Finance <> .rp-buyer__name Cheri Smith",
+              ".rp-option__title Lease <> .rp-buyer__name Cheri Smith",
+              ".rp-row__title Discovery question <> .rp-row__title Scan physical license",
+              "#hTrack.rp-row__sub Is the incentivized rate or  <> .rp-row__sub Same scan and confirm flow",
+              "#hTrade.rp-toggle-row Trade evaluated · $15,500 <> #hConfirm.rp-primary Open the pencil"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
         }
       ]
     },
@@ -9087,8 +9202,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present each product"
       },
-      "capturedAt": "2026-10-02T07:15:26.979Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:03:57.134Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -9759,8 +9874,8 @@
         "from": "credit/approved-agreed-rate",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-10-02T07:15:47.283Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:04:21.564Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -10718,8 +10833,8 @@
         "from": "desking/pencil-finance",
         "action": "Tap the Jacket chip"
       },
-      "capturedAt": "2026-10-02T07:22:06.186Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:05:15.023Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -11426,7 +11541,7 @@
             "overlaps": [
               ".rp-ready__note 3 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 3 needed <>  Oct 2, 3:22 AM",
+              ".rp-bucket__badge 3 needed <>  Oct 2, 6:05 PM",
               ".rp-doc__why John Smith: both sides neede <>  Customer opened",
               ".rp-doc__state Needed <>  Waiting",
               ".rp-doc__name Auto Insurance Card (Binder) <>  Documents uploaded",
@@ -11482,8 +11597,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-10-02T07:17:18.323Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:06:02.774Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -11673,8 +11788,8 @@
               ".rp-doc__name Driver's License <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-doc__why John Smith: both sides neede <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-doc__name Auto Insurance Card (Binder) <>  Link sent",
-              ".rp-doc__name Auto Insurance Card (Binder) <>  Oct 2, 3:17 AM",
-              ".rp-doc__state Requested <>  Oct 2, 3:17 AM",
+              ".rp-doc__name Auto Insurance Card (Binder) <>  Oct 2, 6:06 PM",
+              ".rp-doc__state Requested <>  Oct 2, 6:06 PM",
               ".rp-doc__name Proof of Income (Paystub) <>  Customer opened",
               ".rp-doc__state Requested <>  Waiting",
               "#jkRequest.rp-primary Resend secure request (3) <> .rp-count The customer's phone is play"
@@ -11783,7 +11898,7 @@
             "overlaps": [
               ".rp-ready__note 2 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 2 needed <>  Oct 2, 3:17 AM",
+              ".rp-bucket__badge 2 needed <>  Oct 2, 6:06 PM",
               ".rp-doc__why John Smith: both sides neede <>  Customer opened",
               ".rp-doc__state Requested <>  Opened",
               ".rp-doc__name Proof of Income (Paystub) <>  Documents uploaded",
@@ -11811,8 +11926,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-10-02T07:17:31.966Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:06:16.030Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -12451,8 +12566,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-10-02T07:17:59.652Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:06:41.408Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -12988,8 +13103,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-10-02T07:18:23.499Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:07:03.171Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,
@@ -13338,8 +13453,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print center"
       },
-      "capturedAt": "2026-10-02T07:18:55.779Z",
-      "appCommit": "3e380a4541df4c65adaa6171ab0703ed011c6ae7",
+      "capturedAt": "2026-10-02T22:07:37.704Z",
+      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
       "screens": [
         {
           "step": 1,

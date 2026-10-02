@@ -310,6 +310,14 @@ export const FLOWS = [
       { key: "whose-upload", screen: "Whose upload is this? — another record holds that number", standalone: true, do: async (s) => { await s.reset(); await ev(s, `Store.s.idSession = { id: "s-whose", phone: "(646) 555-0900", email: "", channel: "Text", sentAt: new Date().toISOString(), photoAt: new Date().toISOString(), faceAt: new Date().toISOString(), addressConfirmedAt: new Date().toISOString(), doneAt: new Date().toISOString(), matchId: null, persona: { first: "Dana", middle: "K", last: "Whitfield", dob: "1983-09-08", address: "210 Clinton St", city: "Brooklyn", state: "NY", zip: "11201", license: { number: "T-0000104", state: "NY", expires: "2029-09-08" } }, addressChoice: { address: "210 Clinton St", city: "Brooklyn", state: "NY", zip: "11201" } };`); await s.go("#/visit"); await s.click("#obAttach", { wait: 700 }); },
         action: "Tap Create Dana, or 'It is Marcus — update the record'", next: "discovery/stage-intro",
         notes: "D-OB3: the upload came back on Marcus's number but reads Dana. Nobody's record is overwritten by a shared phone — the advisor says whose it is (OB-002, OB-047)." },
+      { key: "manual-former-name", screen: "Same name on file — a former name typed", standalone: true, do: async (s) => {
+          await s.reset();
+          await ev(s, `const c = Store.customer("c-demo2"); c.last = "Smith"; c.email = "cheri.smith@testing.com"; c.formerNames = [{ first: "Cheri", middle: "", last: "Bridwell", at: "2026-09-30T14:00:00.000Z", by: "Jordan Reyes" }];`);
+          await s.go("#/visit"); await s.type("#obSearch", "Zzz"); await s.click("#searchBtn", { wait: 400 }); await s.click("#obManual", { wait: 300 });
+          await s.type("#obName", "Cheri Bridwell"); await s.type("#obPhone", "(212) 555-0155"); await s.type("#obEmail", "cheri.new@testing.com"); await s.type("#obAddr", "20 Ditmars Blvd, Astoria, NY 11106"); await s.click("#obManualSave", { wait: 500 }); },
+        action: "Tap Use Cheri Smith on file", next: null,
+        expect: async (s) => { const t = await s.text("#view"); return t.includes("Same name") && t.includes("Formerly Cheri Bridwell") ? null : "a Cheri Bridwell typed after Cheri became Cheri Smith should ask Same name on file, with the record as Cheri Smith, Formerly Cheri Bridwell (W-145)"; },
+        notes: "W-145: the same-name question reads a former name too. Cheri renewed as Cheri Smith, and Bridwell is kept as her former name; typing Cheri Bridwell on the manual form no longer saves a second Cheri without a question. The record shows as Cheri Smith, Formerly Cheri Bridwell, and Ashley says whether it is the same person." },
     ] },
 
   /* ------------------------------------------------------------ */  { id: "license-scan", area: "03-license-scan", title: "Scan Driver's License",
@@ -555,6 +563,22 @@ export const FLOWS = [
         action: "Tap the customer", next: "onboarding/customer-found-open-visit",
         expect: async (s) => (await s.text("#view")).includes("Formerly Cheri Bridwell") ? null : "after Jordan confirms, the record keeps Formerly Cheri Bridwell (LS-047)",
         notes: "The license is right: Cheri's record takes the license's name and keeps the old one. Formerly Cheri Bridwell shows on the rows that pick a person, and on no paper and no deal title." },
+      /* ---- the last part of the name change (LS-047, W-145, 2026-10-02): Jordan's sheet says when the signed agreement
+         goes back. John signed as Jon Smith and his license reads John Smith, the case the corrections suite seeds. ---- */
+      { key: "lead-name-agreement", screen: "Needs you — the signed agreement goes back", standalone: true, do: async (s) => {
+          await s.reset();
+          await ev(s, `{ Store.customer("c-demo1").first = "Jon"; } { const cu = Store.customer("c-demo1"); cu.dob = "1987-03-14"; cu.license = { number: "T-0000101", state: "NY", expires: "2029-03-14" }; }
+            { const d = Store.deal("${D}"); d.huddle.done = true; const k = d.desk, v = Store.vehicle(d.stock), r = RIDE_PRICE_CALC.calc(d, v);
+              const AT = (m) => new Date(Date.now() - 180 * 60000 + m * 60000).toISOString();
+              k.customerChose = { term: r.term, down: k.downPayment, payment: r.payment, at: AT(0), inputs: deskInputs(d) };
+              k.approvalRequestedAt = AT(2); k.approvalRequestedBy = "Ashley Collins"; k.approvedAt = AT(5); k.approvedBy = "Jordan Reyes";
+              d.basePayment = { signedAt: AT(10), sigName: "Jon Smith", snapshot: agreementSnapshot(d, v) }; d.stage = "menu"; }
+            { const cu = Store.customer("c-demo1"); (cu.identityReviews = cu.identityReviews || []).push({ id: "ir-name-lib", kind: "name", askedAt: new Date(Date.now() - 15 * 60000).toISOString(), askedBy: "Ashley Collins", askedByRole: "advisor", dealId: "${D}",
+              onFile: { first: cu.first, last: cu.last, dob: cu.dob, license: { number: cu.license.number, state: cu.license.state } }, scanned: { first: "John", middle: "", last: "Smith", dob: "1987-03-14" }, draftKey: "unassigned", answer: null }); }`);
+          await switchRole(s, "teamlead", "#/deals"); await s.click('#dqNeeds [data-review-kind="identity"]', { wait: 600 }); },
+        action: "Choose The license is right, tap Confirm", next: null,
+        expect: async (s) => (await s.text("#dqSheet")).includes("Goes back to be signed again") ? null : "Jordan's sheet for John's name should say the signed agreement goes back (LS-047 question 2)",
+        notes: "LS-047, the owner's answer A to question 2: John signed the agreement as Jon Smith and his license reads John Smith. Jordan's sheet adds the row Signed agreement, Goes back to be signed again, after the birthday that shows it is the same person, because his yes will send John's signed agreement back. A co-buyer's request, which prints on no paper, and a finalized deal's have no such row." },
     ] },
 
   { id: "training", area: "04-training-materials", title: "Training Documents",
@@ -1307,6 +1331,13 @@ export const FLOWS = [
           await s.go(`#/desk/${D}`); await s.click('[data-sheet-open="buyers"]'); await s.click("#byRoles"); },
         action: "Cancel", next: "team-lead-roles",
         notes: "With a submitted joint application the swap lists a third consequence: both applicants stay on the application, but the primary on file with the lender changes. The result is stated before the action." },
+      { key: "add-cobuyer-former", screen: "Add co-buyer — an old name finds her", standalone: true, do: async (s) => {
+          await s.reset();
+          await ev(s, `const c = Store.customer("c-demo2"); c.last = "Smith"; c.formerNames = [{ first: "Cheri", middle: "", last: "Bridwell", at: "2026-09-30T14:00:00.000Z", by: "Jordan Reyes" }];`);
+          await s.go(`#/desk/${D}`); await s.click('[data-sheet-open="buyers"]'); await s.click("#byAdd"); await s.type("#byQ", "Bridwell"); },
+        action: "Tap the CRM match", next: null,
+        expect: async (s) => (await s.text("#dkSheet")).includes("Formerly Cheri Bridwell") ? null : "searching the old name Bridwell should find Cheri Smith, with Formerly Cheri Bridwell on her row (W-145)",
+        notes: "W-145: a customer who says Bridwell finds Cheri Smith. The search reads the name now and each former name, and the hit says Formerly Cheri Bridwell, as New visit's rows do. The same search is on the buyers sheet and the co-buyer finder." },
     ] },
 
   /* ------------------------------------------------------------ */
