@@ -1018,10 +1018,11 @@ const SIGN_AGAIN_FIELDS = ["name", "address"];
 const dealFinalized = (d) => !!(d && d.forms && d.forms.finalized);
 /* what changed on the record since the agreement was signed: the buyer it captured, against the record now. An
    agreement signed before the person was captured, or an unsigned one, has nothing to compare */
-function signedChanges(deal) {
+function signedChanges(deal, record) {
   const bp = deal && deal.basePayment, buyer = bp && bp.signedAt && bp.snapshot && bp.snapshot.buyer;
   if (!buyer || buyer.id !== deal.customerId) return [];
-  const now = partyOf(Store.customer(deal.customerId));
+  /* record: the buyer as he or she would be (LS-047's row on Jordan's sheet reads a name before it is confirmed) */
+  const now = partyOf(record || Store.customer(deal.customerId));
   return partyChanges(buyer, now, PAPER_FIELDS.agreement).map((x) => {
     if (x.key !== "name") return x;
     /* in a sentence the name is said as the person signs it, first and last (§20; the signing field is prefilled with
@@ -1032,9 +1033,17 @@ function signedChanges(deal) {
   });
 }
 /* the corrections that send the signed agreement back (SIGN_AGAIN_FIELDS); none on a finalized deal */
-function mustSignAgain(deal) {
+function mustSignAgain(deal, record) {
   if (dealFinalized(deal)) return [];
-  return signedChanges(deal).filter((x) => SIGN_AGAIN_FIELDS.includes(x.key));
+  return signedChanges(deal, record).filter((x) => SIGN_AGAIN_FIELDS.includes(x.key));
+}
+/* LS-047 (the owner's answer A to question 2, 2026-10-02): will confirming this name send a signed agreement back to be
+   signed again? The test the save will run (mustSignAgain), run first on a copy of the record that has taken the license's
+   name. Only the buyer's agreement carries a name: a co-buyer prints on no paper, a deal that is not signed has nothing to
+   sign again, and a finalized deal is never sent back. Jordan's sheet says it only when it will */
+function nameSignsAgain(c, scanned) {
+  const taken = Object.assign({}, c, { first: scanned.first, last: scanned.last, middle: scanned.middle || c.middle || "" });
+  return Store.s.deals.some((d) => d.customerId === c.id && mustSignAgain(d, taken).some((x) => x.key === "name"));
 }
 /* how a correction reads in a sentence about the agreement to sign again, by field, so that SIGN_AGAIN_FIELDS is the one
    place to change: the name is what the person signed as; any other detail is what the person signed with */
@@ -1212,7 +1221,7 @@ function buyersFind(deal, query) {
   if (!t) return [];
   return Store.s.customers
     .filter(x => x.id !== deal.customerId && x.id !== deal.coBuyerId)
-    .filter(x => (x.first + " " + x.last).toLowerCase().includes(t)
+    .filter(x => customerNameWords(x).some(n => n.includes(t))
       || (td && String(x.phone || "").replace(/[^0-9]/g, "").includes(td))
       || (x.license && x.license.number && x.license.number.toLowerCase().includes(t)))
     .slice(0, 6);
@@ -1282,11 +1291,12 @@ function buyersKitSheet(deal, sheets, onChange) {
   const timeUS = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   const co = () => deal.coBuyerId ? Store.customer(deal.coBuyerId) : null;
 
-  const buyerRow = (c, roleLabel, isCo, attrs, metaLines) => `
+  /* picking: the row is one of a search's hits, which says "Formerly Cheri Bridwell" before the contact, as New visit's rows do (LS-047) */
+  const buyerRow = (c, roleLabel, isCo, attrs, metaLines, picking) => `
     <button type="button" class="rp-buyer"${metaLines ? ` style="align-items:flex-start"` : ""} ${attrs || ""}>
 
       <span class="rp-row__body"><span class="rp-buyer__name">${esc(c.first + " " + c.last)}</span>
-        <span class="rp-buyer__meta">${esc(c.phone || c.email || "no contact on file")}</span>
+        <span class="rp-buyer__meta">${esc(picking ? formerSub(c, c.phone || c.email || "no contact on file") : c.phone || c.email || "no contact on file")}</span>
         ${(metaLines || []).map(m => `<span class="rp-buyer__meta">${esc(m)}</span>`).join("")}</span>
       ${roleLabel ? `<span class="rp-buyer__role${isCo ? " rp-buyer__role--co" : ""}">${esc(roleLabel)}</span>` : ""}
       <span class="rp-row__chevron"></span></button>`;
@@ -1332,7 +1342,7 @@ function buyersKitSheet(deal, sheets, onChange) {
           <button type="button" class="rp-button-navy" id="byQGo">Search</button></div>
         ${ui.q ? (hits.length
           ? `<div class="rp-section">Result${hits.length === 1 ? "" : "s"}</div><div class="rp-group">
-              ${hits.map(x => buyerRow(x, "", false, `data-pick="${esc(x.id)}"`)).join("")}</div>`
+              ${hits.map(x => buyerRow(x, "", false, `data-pick="${esc(x.id)}"`, null, true)).join("")}</div>`
           : `<div class="rp-empty"><strong>No match</strong>Nobody in the CRM matches that.
               <div style="height:12px"></div><button type="button" class="rp-button-navy" id="byCreate">Create a new customer</button></div>`) : ""}
         <div class="rp-section">Identify from a license</div>
@@ -1666,7 +1676,7 @@ function openBuyersSheet(dealId) {
         if (!t) { box.innerHTML = ""; return; }
         /* dedupe at the source: people already on the deal never appear */
         const hits = Store.s.customers.filter(x => x.id !== deal.customerId && x.id !== deal.coBuyerId).filter(x =>
-          (x.first + " " + x.last).toLowerCase().includes(t) ||
+          customerNameWords(x).some(n => n.includes(t)) ||
           (td && digits(x.phone).includes(td)) ||
           (x.license && x.license.number && x.license.number.toLowerCase().includes(t))
         ).slice(0, 6);
@@ -1674,7 +1684,7 @@ function openBuyersSheet(dealId) {
           ? hits.map(x => `<button type="button" class="by2-row" data-pick="${esc(x.id)}">
 
               <span class="by2-rowmain"><span class="by2-rowname">${esc(x.first + " " + x.last)}</span>
-                <span class="by2-rowsub">${esc(x.phone || x.email || "no contact on file")} · Existing customer</span></span>
+                <span class="by2-rowsub">${esc(formerSub(x, (x.phone || x.email || "no contact on file") + " · Existing customer"))}</span></span>
               <span class="by2-go">›</span>
             </button>`).join("")
           : `<button type="button" class="by2-row" id="byCreate">
@@ -1966,6 +1976,13 @@ const formerLine = (c) => {
   return names.length ? "Formerly " + names.reverse().join(", ") : "";
 };
 const formerSub = (c, rest) => [formerLine(c), rest].filter(Boolean).join(" · ");
+/* LS-047 / W-145: every full name a person answers to, lowercased with its spaces collapsed, the name now first and then
+   each former name. The four searches that find a person by name (New visit, Home, the buyers sheet and the co-buyer
+   finder) and D-OB1's same-name test read this, so a customer who says "Bridwell" finds Cheri Smith, and a Cheri Bridwell
+   typed on the manual form is asked about, never made a second Cheri. A name now that is empty is left out */
+const nameWords = (x) => [x && x.first, x && x.last].filter(Boolean).join(" ").toLowerCase().replace(/\s+/g, " ").trim();
+const formerNameWords = (c) => (c && Array.isArray(c.formerNames) ? c.formerNames : []).map(nameWords).filter(Boolean);
+const customerNameWords = (c) => [nameWords(c)].filter(Boolean).concat(formerNameWords(c));
 /* a customer takes a new name (a Team Lead's answer to a changed name, and the upload that is answered "It is …", D-OB3):
    the name it leaves is kept as a former name unless it is the same words, an entry that is the new name is dropped
    (a name changed back is not its own former name), and the middle name stays when the new one has none. The caller
@@ -2796,7 +2813,7 @@ route("deals", () => {
     if (!q) return true;
     const c = Store.customer(d.customerId), { v, snap } = vehicleIds(d);
     const hay = [
-      c ? c.first + " " + c.last : "", c && c.phone ? c.phone : "",
+      c ? c.first + " " + c.last : "", c ? formerNameWords(c).join(" ") : "", c && c.phone ? c.phone : "",
       v ? v.year + " " + v.make + " " + v.model : "", v ? v.stock : "", v && v.vin ? v.vin : "",
       /* the snapshot's WORDS too, not only its numbers: an unstocked deal
          (the funded seed's Telluride) shows a vehicle the catalog does not
@@ -3439,7 +3456,7 @@ route("visit", () => {
       if (ph && digitsOnly(c.phone) === ph) return { c, why: "phone" };
       if (em && String(c.email || "").trim().toLowerCase() === em) return { c, why: "email" };
       if (lic && c.license && String(c.license.number || "").replace(/[^a-z0-9]/gi, "").toLowerCase() === lic) return { c, why: "license" };
-      if (!soft && nm && nameOf(c).toLowerCase() === nm) soft = { c, why: "name" };
+      if (!soft && nm && customerNameWords(c).includes(nm)) soft = { c, why: "name" };
     }
     return soft;
   }
@@ -3923,7 +3940,7 @@ route("visit", () => {
         const digits = dig(raw), typed = digitsOf(raw);
         const lic = norm(q);
         st.results = Store.s.customers.filter(c =>
-          txt([c.first, c.last].filter(Boolean).join(" ")).includes(q) ||
+          customerNameWords(c).some((n) => n.includes(q)) ||
           txt(c.last).includes(q) ||
           /* both ways: stripped, so "+1 (718) 555-0134" finds a ten-digit
              record, and as typed, so a record stored WITH its +1 still answers
@@ -3935,7 +3952,7 @@ route("visit", () => {
           (!!lic && c.license && norm(c.license.number).includes(lic)));
         /* OB-013: the likeliest first — an exact full name, then the newest record */
         st.results.sort((a, b) => {
-          const ea = txt([a.first, a.last].filter(Boolean).join(" ")) === q ? 1 : 0, eb = txt([b.first, b.last].filter(Boolean).join(" ")) === q ? 1 : 0;
+          const ea = customerNameWords(a).includes(q) ? 1 : 0, eb = customerNameWords(b).includes(q) ? 1 : 0;
           return eb - ea || (b.createdAt || "").localeCompare(a.createdAt || "");
         });
         step(); render();
@@ -4866,8 +4883,8 @@ function scannerIdentityConflict(existing, incoming) {
      changed"); which may then be empty, and the notice ends "A Team Lead confirms."
    - kept(ex), optional: the words after "{who} kept the {noun} on file", where "This license can’t be added to
      {first}’s record." is not the fact ("The record stays Cheri Bridwell.")
-   - extra(c), optional: more lines of Jordan's sheet, each [label, value], after its License line (the name's
-     birthday: the proof that it is the same person)
+   - extra(c, r), optional: more lines of Jordan's sheet, each [label, value], after its License line (the name's
+     birthday: the proof that it is the same person; and, only when it will, that the signed agreement goes back)
    - said(side, f), optional: is correction f (partyOf's, with was and now) what this answer itself wrote? By default the
      request's scanned value in words equals f.now; the name's answer may write a middle name its words do not carry
    - field: the key of the correction (partyOf) that this kind's answer also writes, so a deal's History says it once
@@ -4931,7 +4948,7 @@ const IDENTITY_KINDS = (() => {
       stale: (c, r) => !sameWords(c.first, r.onFile.first) || !sameWords(c.last, r.onFile.last) || c.dob !== r.onFile.dob
         || t((c.license || {}).number) !== t((r.onFile.license || {}).number) || t((c.license || {}).state) !== t((r.onFile.license || {}).state),
       proof: (c) => c.license && c.license.number ? c.license.number + " · " + c.license.state : null,
-      extra: (c) => [["Date of birth", dateUS(c.dob)]],
+      extra: (c, r) => [["Date of birth", dateUS(c.dob)]].concat(nameSignsAgain(c, r.scanned) ? [["Signed agreement", "Goes back to be signed again"]] : []),
       kept: (ex) => `The record stays ${customerName(ex)}.`,
       said: (side, f) => { const now = scannerIdentityToken(f.now); return now.startsWith(scannerIdentityToken(side.first)) && now.endsWith(scannerIdentityToken(side.last)); },
       apply: (c, r) => {
@@ -5003,7 +5020,7 @@ function identityReviewHtml(c, r) {
   return `${head}
     <div class="rp-kv" id="idReviewFacts">
       ${row("On file", esc(identityReviewValue(r.kind, r.onFile)))}${row("On this license", esc(identityReviewValue(r.kind, r.scanned)))}
-      ${proof ? row("License", esc(proof)) : ""}${K.extra ? K.extra(c).map(([k, v]) => row(k, esc(v))).join("") : ""}
+      ${proof ? row("License", esc(proof)) : ""}${K.extra ? K.extra(c, r).map(([k, v]) => row(k, esc(v))).join("") : ""}
       ${c.phone ? row("Phone", esc(c.phone)) : ""}
       ${row("Asked by", esc(asker + ", " + at))}
     </div>
