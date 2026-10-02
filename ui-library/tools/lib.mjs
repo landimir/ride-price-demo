@@ -41,7 +41,7 @@ export class Session {
      queue exists (an approved credit app makes the paystub/insurance/licence
      queue meaningful). Nothing here is invented customer data. */
   async reset({ approved = true } = {}) {
-    await this.c.eval(`(() => { Store.reset(); ${approved ? `Store.deal("d-demo1").creditApp = { approved: true, lender: "US Bank" }; Store.save();` : ""} return true; })()`);
+    await this.c.eval(`(() => { Store.reset(); ${approved ? `Store.deal("d-demo1").creditApp = { approved: true, lender: "Ride Price Financial" }; Store.save();` : ""} return true; })()`);
   }
 
   /* navigate to a hash and re-boot so route-entry state (phone/desktop
@@ -87,7 +87,7 @@ export class Session {
      with a fixed bottom bar is captured at the viewport too, plus a secondary
      full-length ".scroll.png" so nothing below the fold is lost. Any other
      page taller than the phone is captured full-length — never cropped. */
-  async shot(path, { maxHeight = 3200, focus = null } = {}) {
+  async shot(path, { maxHeight = 6400, focus = null } = {}) {
     mkdirSync(dirname(path), { recursive: true });
     /* every step here is driven by script, and Chrome paints its focus ring
        for script-moved focus the way it does for a keyboard — so the close
@@ -106,7 +106,8 @@ export class Session {
     const m = await this.c.eval(`(() => {
       const H = ${VIEWPORT.height};
       const vis = (el) => { const r = el.getBoundingClientRect(); const cs = getComputedStyle(el); return r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none"; };
-      const overlay = !!document.querySelector("#modalBack") || !!document.querySelector(".drawer.open");
+      /* a kit sheet is up when its scrim shows */
+      const overlay = !!document.querySelector("#modalBack") || !!document.querySelector(".drawer.open") || [...document.querySelectorAll(".rp-scrim")].some(vis);
       let fixedBar = false;
       for (const el of document.querySelectorAll("body *")) {
         if (!vis(el)) continue;
@@ -117,14 +118,35 @@ export class Session {
         if (r.top < H && r.bottom > 0 && r.height < H * 0.6) { fixedBar = true; break; }
       }
       const height = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight, H);
-      return { overlay, fixedBar, height };
+      /* the kit's screens (v022.25) are one phone-high shell that scrolls inside .rp-page, under a dock drawn over its
+         foot, so the document is never taller than the phone: what .rp-page hides below is measured here */
+      const page = [...document.querySelectorAll(".rp-page")].find((el) => vis(el) && /(auto|scroll)/.test(getComputedStyle(el).overflowY));
+      const inner = page ? Math.max(0, page.scrollHeight - page.clientHeight) : 0;
+      return { overlay, fixedBar, height, inner };
     })()`);
-    const out = { width: VIEWPORT.width, height: VIEWPORT.height, scroll: null, pageHeight: m.height, overlay: m.overlay, fixedBar: m.fixedBar };
+    const out = { width: VIEWPORT.width, height: VIEWPORT.height, scroll: null, pageHeight: m.height + (m.overlay ? 0 : m.inner), overlay: m.overlay, fixedBar: m.fixedBar };
     /* the clip is in document coordinates — a focused (scrolled) viewport shot
        starts at the current scroll offset, so sticky/fixed chrome lands where
        the user sees it */
     const top = focus ? await this.c.eval(`window.scrollY`) : 0;
-    if (m.overlay || m.height <= VIEWPORT.height) {
+    if (!m.overlay && m.inner > 4) {
+      /* a kit screen longer than the phone: the picture is what the phone shows (scrolled to the focus, when a step
+         names one), and a full-length ".scroll.png" shows the rest. The phone is made as tall as the page for it, so
+         the shell lays everything out at once, the dock at its foot; then it goes back to 390 × 844 */
+      await this.c.shot(path, { x: 0, y: 0, width: VIEWPORT.width, height: VIEWPORT.height });
+      const sp = path.slice(0, -4) + ".scroll.png", full = Math.min(VIEWPORT.height + m.inner, maxHeight);
+      const was = await this.c.eval(`(() => { const p = [...document.querySelectorAll(".rp-page")].find((el) => el.getBoundingClientRect().height > 0); if (!p) return 0; const t = p.scrollTop; p.scrollTop = 0; return t; })()`);
+      /* the phone goes back to 390 × 844 and the page to where it was even when the resize or the picture throws,
+         so a failed picture never leaves every screen after it tall (CodeRabbit on #221) */
+      try {
+        await this.c.setViewport(VIEWPORT.width, full); await settle(350);
+        await this.c.shot(sp, { x: 0, y: 0, width: VIEWPORT.width, height: full });
+      } finally {
+        await this.c.setViewport(VIEWPORT.width, VIEWPORT.height); await settle(250);
+        await this.c.eval(`(() => { const p = [...document.querySelectorAll(".rp-page")].find((el) => el.getBoundingClientRect().height > 0); if (p) p.scrollTop = ${Number(was) || 0}; })()`);
+      }
+      out.scroll = sp;
+    } else if (m.overlay || m.height <= VIEWPORT.height) {
       await this.c.shot(path, { x: 0, y: top, width: VIEWPORT.width, height: VIEWPORT.height });
     } else if (m.fixedBar) {
       await this.c.shot(path, { x: 0, y: top, width: VIEWPORT.width, height: VIEWPORT.height });

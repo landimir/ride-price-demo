@@ -109,7 +109,9 @@ const sound = (label, zp) => {
    manifest's screenshots — so a wrong, stale or duplicated image cannot pass
    on its name alone */
 const sha1 = (b) => createHash("sha1").update(b).digest("hex");
-const diskDigests = (flows) => flows.flatMap(f => f.screens.filter(sc => existsSync(join(LIB, sc.screenshot))).map(sc => sha1(readFileSync(join(LIB, sc.screenshot))))).sort();
+/* each screen's picture and its full-length one, when it has one (CodeRabbit on #221) */
+const diskDigests = (flows) => flows.flatMap(f => f.screens.flatMap(sc => [sc.screenshot, sc.scrollShot].filter((p) => p && existsSync(join(LIB, p)))).map(p => sha1(readFileSync(join(LIB, p))))).sort();
+const pictures = (f) => f.screens.reduce((n, sc) => n + 1 + (sc.scrollShot ? 1 : 0), 0);
 const zipDigests = (zp) => zp.entries.filter(e => e.name.endsWith(".png")).map(e => sha1(e.data)).sort();
 const sameList = (a, b) => a.length === b.length && a.every((v, i) => v === b[i]);
 const manifest = JSON.parse(readFileSync(join(LIB, "reports", "flow-manifest.json"), "utf8"));
@@ -119,14 +121,14 @@ const homeFlow = manifest.flows.find(f => f.id === "home");
 const zp = parseZip(readFileSync(join(dl, zipName))); sound(zipName, zp);
 const names = zp.names, pngs = names.filter(n => n.endsWith(".png")).length, readme = names.some(n => n.endsWith("/README.md"));
 console.log(`zip: ${zipName} ${zp.entries.length} entries pngs=${pngs} readme=${readme} crc=ok central=${zp.central} directory=agrees`);
-if (pngs !== homeFlow.screens.length || !readme) { console.log("FAIL: the ZIP does not carry the flow's screenshots plus README.md"); process.exit(1); }
+if (pngs !== pictures(homeFlow) || !readme) { console.log("FAIL: the ZIP does not carry the flow's screenshots plus README.md"); process.exit(1); }
 if (!sameList(zipDigests(zp), diskDigests([homeFlow]))) { console.log("FAIL: the per-flow ZIP's screenshot bytes are not the flow's files"); process.exit(1); }
 /* the whole-library archive: every screenshot on the page, one README per
    flow, a top-level README, the changelog and the version record */
 const allName = readdirSync(dl).find(f => f.startsWith("ride-price-ui-library-") && f.endsWith(".zip"));
 if (!allName) { console.log("FAIL: the whole-library ZIP did not land"); process.exit(1); }
 const ap = parseZip(readFileSync(join(dl, allName))); sound(allName, ap); const an = ap.names;
-const wantShots = manifest.flows.reduce((n, f) => n + f.screens.length, 0), wantFlows = manifest.flows.length;
+const wantShots = manifest.flows.reduce((n, f) => n + pictures(f), 0), wantFlows = manifest.flows.length;
 const root = allName.replace(/\.zip$/, "") + "/";
 const aPngs = an.filter(n => n.endsWith(".png")).length, aReadmes = an.filter(n => /\/README\.md$/.test(n) && n.split("/").length === 3).length;
 const topReadme = an.includes(root + "README.md"), changelog = an.includes(root + "reports/changelog.md"), verRec = an.includes(root + "reports/version.json");

@@ -1,5 +1,175 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v044 — 2026-10-02
+
+App commit: 3e380a4 · 20 flows · 377 screens · previous: v043
+
+### Added
+- Home — Active Floor & Navigation · Customers — every customer on file
+- Scan Driver's License · Verify the phone number — Email the code instead
+- Scan Driver's License · Confirm customer — no phone or email on file
+- Scan Driver's License · Confirm customer — the name changed
+- Scan Driver's License · Confirm customer — asked a Team Lead
+- Scan Driver's License · Needs you — Jordan confirms the name
+- Scan Driver's License · New visit — Formerly Cheri Bridwell
+- Test Drive Agreement · Ready — two drivers, both licensed
+- Deal Jacket & Compliance · A deal with a co-buyer — the co-buyer's identity record
+- Client Document Upload (customer's phone) · Insurance photo too blurry — refused on the row
+- Client Document Upload (customer's phone) · Insurance taken — the row says why it needs attention
+- Snap All — burst capture · Results — the exception declined
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Funded history in range
+- Home — Active Floor & Navigation · Search miss — No deals found
+- Home — Active Floor & Navigation · Active floor — a visit not yet assigned
+- Home — Active Floor & Navigation · Visit sheet — Assign to an advisor (Team Lead)
+- Home — Active Floor & Navigation · Assign — one row per advisor
+- Home — Active Floor & Navigation · Active floor — assigned to Ashley
+- Home — Active Floor & Navigation · Visit sheet — the advisor's own (no assign control)
+- Home — Active Floor & Navigation · Test log — off, nothing recorded
+- Home — Active Floor & Navigation · Test log — recording, events on the log
+- Home — Active Floor & Navigation · Clear the test log? — confirm
+- Home — Active Floor & Navigation · Test log — cleared and stopped
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Scan Driver's License · Phone already in use — no link offered
+- Scan Driver's License · Verify the phone number — wrong code
+- Scan Driver's License · Leave the scan? (sheet)
+- Scan Driver's License · Unfinished scans
+- Scan Driver's License · Resume license scan
+- Training Documents · Print all 5 — registrations on paper
+- Discovery — the guided consultation · × in the top bar — back to the visits
+- Test Drive Agreement · License needs attention — the added driver has no license
+- Test Drive Agreement · Add another driver — the added driver, with Remove
+- Test Drive Agreement · Review & sign
+- Test Drive Agreement · Review & sign — refused without the authorization
+- Test Drive Agreement · Printable Test Drive Agreement
+- Test Drive Agreement · License needs attention
+- Test Drive Agreement · License needs attention — expired, with its date
+- Test Drive Agreement · License needs attention — review pending
+- Test Drive Agreement · License needs attention — no expiration date
+- Test Drive Agreement · Ready — the uploaded driver attached
+- Trade-In Evaluation & Proof of Ownership · Run evaluation — a negative payoff refused
+- Desking — Calculate Payments · Pencil — Finance
+- Desking — Calculate Payments · Payment options — the 3x3 grid
+- Desking — Calculate Payments · Present — Own or lease
+- Desking — Calculate Payments · Back in Work — the customer chose
+- Desking — Calculate Payments · Pencil — Lease
+- Desking — Calculate Payments · Pencil — One Pay
+- Desking — Calculate Payments · Present — Your total (One Pay)
+- Desking — Calculate Payments · Present — Your payment (Lease)
+- Desking — Calculate Payments · Present — Your total (Cash)
+- Desking — Calculate Payments · Back in Work — the customer's own cell
+- Desking — Calculate Payments · Payment options — after the choice
+- Desking — Calculate Payments · Pencil — trade with negative equity
+- Desking — Calculate Payments · Pencil — Rebates and Accessories open
+- Desking — Calculate Payments · Change terms (sheet) — finance
+- Desking — Calculate Payments · Change terms (sheet) — lease
+- Desking — Calculate Payments · Pencil — Lease with Residual and Fees & tax open
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Agreement — signed
+- Base Payment Agreement · Voided — back on the pencil
+- Base Payment Agreement · Agreement — Lease
+- Base Payment Agreement · Agreement — Cash
+- Base Payment Agreement · Agreement — One Pay
+- Base Payment Agreement · Printable — Base Payment Agreement
+- Credit Application (Lending Lane) · Step 1 — Application type & applicant
+- Credit Application (Lending Lane) · Step 2 — Residence
+- Credit Application (Lending Lane) · Step 3 — Employment
+- Credit Application (Lending Lane) · Step 1 — Joint, co-buyer attached and waiting on Cheri's link
+- Credit Application (Lending Lane) · Review — gaps on both sides, Cheri's blocked
+- Credit Application (Lending Lane) · Review — John's half done, waiting on Cheri
+- Credit Application (Lending Lane) · Review — both complete, ready for lenders
+- Credit Application (Lending Lane) · Cheri's answers (sheet)
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — the resolver's entries
+- Buyers on the Deal (Co-Buyer) · Co-buyer attached
+- Buyers on the Deal (Co-Buyer) · Co-buyer — contextual actions
+- Buyers on the Deal (Co-Buyer) · Remove — second tap confirms
+- Buyers on the Deal (Co-Buyer) · After removal — Cheri's Removed row and the audit line
+- Buyers on the Deal (Co-Buyer) · Team Lead — Change roles visible
+- Buyers on the Deal (Co-Buyer) · Change buyer roles? — confirmation
+- Buyers on the Deal (Co-Buyer) · Back on the deal — the new co-buyer attached, the sheet reopened
+- Buyers on the Deal (Co-Buyer) · After the lane — Cheri's sheet names Cheri's state
+- Buyers on the Deal (Co-Buyer) · Advisor — every consequence listed, Ask a Team Lead
+- Buyers on the Deal (Co-Buyer) · Removal requested — pending with a Team Lead
+- Buyers on the Deal (Co-Buyer) · Team Lead — the removal sheet, stamped with who asked
+- Buyers on the Deal (Co-Buyer) · After removal — Cheri's Removed row and the withdrawn audit line
+- Buyers on the Deal (Co-Buyer) · Change roles after the lane — the lender line
+- Finance Menu — Sign-Off Gate and Four Stages · Resolve Deal Jacket blocker
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Accept package — client initials
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Additional deal forms (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Benefits acknowledgment (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Finalize with documents outstanding
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — a lease's terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — packages on a lease
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — a one-pay deal's terms
+- Deal Jacket & Compliance · Optional document — Remove from this deal
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Deal Jacket & Compliance · Driver's License — back still needed
+- Deal Jacket & Compliance · Auto Insurance — Retake needed, with its reason
+- Deal Jacket & Compliance · Request status — the customer's uploads, not the advisor's
+- Deal Jacket & Compliance · License reviewed and filed — the count moves by one
+- Customer document request (from the jacket) · Customer request — delivery status (waiting)
+- Customer document request (from the jacket) · Customer request — opened, 1 of 3 uploaded
+- Client Document Upload (customer's phone) · Receipt — partway through
+- Client Document Upload (customer's phone) · Paystub — second stub still needed
+- Client Document Upload (customer's phone) · Every row ready — the license still awaiting review
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · The license now complete
+- Snap All — burst capture · Results — two documents still needed
+- Document Review (advisor) · Front received, back needed
+- Document Review (advisor) · Add back of driver's license
+- Document Review (advisor) · Both sides received
+- Document Review (advisor) · License reviewed — the dock is gone
+- Document Review (advisor) · Document actions (overflow sheet)
+- Document Review (advisor) · Zoomed in on the document
+- Document Review (advisor) · Requested — nothing received yet
+- Document Review (advisor) · Front received — preview unavailable after a reload
+- Document Review (advisor) · Both sides — the customer's front, the advisor's back
+- Document Review (advisor) · Auto Insurance Card — pages, not sides
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+- Documents — Print Center & Printables · Preview — Deal Cover Sheet
+- Documents — Print Center & Printables · Preview — Test Drive Agreement
+- Documents — Print Center & Printables · Preview — Delivery Checklist
+- Documents — Print Center & Printables · Preview — Applied Rebates
+- Documents — Print Center & Printables · Preview — Privacy Policy (additional form)
+- Documents — Print Center & Printables · Preview — Odometer Disclosure Statement (additional form)
+- Documents — Print Center & Printables · Preview — the full packet
+- Documents — Print Center & Printables · Preview — Saved Quote
+- Documents — Print Center & Printables · Preview — the packet on a cash deal
+
+### Removed
+- Client Document Upload (customer's phone) · Insurance flagged — expires within 45 days
+- Client Document Upload (customer's phone) · Row verified — the green pill
+- Snap All — burst capture · Results — exception accepted
+
+### New issues
+- RP-UI-104 (Observation) — On The name changed, Edit license details is drawn under the dock until the page is scrolled: the scanned address takes two lines, the page grows past the dock, and the first paint shows Ask a Team Lead where the link is. Scrolled to the end, the link sits clear of the dock (its box overlaps the dock's top by 4 px; a tap lands on the link).
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- RP-UI-048 — re-filed against current/06-vehicle-selection/15-vehicle-reserved.png
+- RP-UI-050 — re-filed against current/06-vehicle-selection/03-inventory.png
+- RP-UI-066 — wording corrected
+- RP-UI-090 — re-filed against current/07-test-drive/24-license-expired.png
+- RP-UI-095 — wording corrected
+- RP-UI-099 — re-filed against current/18-snap-all/04-results.png
+
+### Read by eye
+- New screens from the merges since v043: the code sheet's Email the code instead (LS-071, #237); a profile with neither a phone nor an email asking a Team Lead (LS-071's second part, #243); a name changed: The name changed, Asked a Team Lead, Jordan's sheet and Formerly Cheri Bridwell on New visit (LS-047, #242); the co-buyer's identity record in the Deal Jacket (#241); every driver checked on the test drive: John added with no license holds the drive at License needs attention, and it reads Ready once his license is on file (LS-117, #240); the Customers list (KA-008, #231); and the insurance card accepted with its exception, on the customer's phone and in Snap All (KA-003).
+- Read on a sample, the changed screens move with the merges, not with a redesign: the demo's dates and times, the jacket's counts (16 with a co-buyer, whose identity record now counts), the lease tax rolled into the lease on Desking, the agreements and the print previews (DK-054, #228), document review's top bar (W-101, #227), and the code to the phone on file (W-119, #235).
+- Removed: the insurance flagged and the row verified on the customer's phone, and the exception accepted in Snap All, which KA-003's accepted-with-exception screens replace.
+- The library's own steps: the test drive gives John a license before Review & sign (LS-117 made every driver count), the document request takes one insurance photo (KA-003 accepts it with its exception), and the co-buyer's jacket picture opens Deal forms at the co-buyer's identity row.
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v043 — 2026-09-28
 
 App commit: 35497ff · 20 flows · 368 screens · previous: v042

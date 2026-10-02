@@ -199,7 +199,7 @@ const html = `<!DOCTYPE html>
   <main class="main">
     <section class="hero">
       <div><h1>Ride Price Mobile UI Flow Library</h1>
-        <p>Every mobile flow of the working Ride Price portal, captured as a user sees it at 390 × 844, organised as sequential journeys. Read left to right: each arrow names the action that caused the next screen; branches list where else a screen can go; flagged screens carry their UX findings.</p>
+        <p>Every mobile flow of the working Ride Price portal, captured as a user sees it at 390 × 844, organized as sequential journeys. Read left to right: each arrow names the action that caused the next screen; branches list where else a screen can go; flagged screens carry their UX findings.</p>
         <p>The screenshots are untouched captures of the real application. Nothing here was redesigned — problems are documented, not fixed.</p></div>
       <div class="stats"><div class="stat"><b>${manifest.flows.length}</b><span>flows</span></div><div class="stat"><b>${screenCount}</b><span>screens</span></div><div class="stat"><b>${branchCount}</b><span>branches</span></div>
         <div class="stat"><b>${totals.Critical}</b><span>${sevBadge("Critical")}</span></div><div class="stat"><b>${totals.Major}</b><span>${sevBadge("Major")}</span></div><div class="stat"><b>${totals.Minor} / ${totals.Observation}</b><span>${sevBadge("Minor")} ${sevBadge("Observation")}</span></div></div>
@@ -243,7 +243,9 @@ const html = `<!DOCTYPE html>
     }
     const txt = (el) => el ? el.textContent.replace(/[ \\t\\r\\n]+/g, " ").trim() : "";
     const hashEl = scr.querySelector(".hash"); const hash = hashEl ? txt(hashEl).split(" · ")[0] : "";
-    return { src: img.src, file: img.src.split("/").pop(), n: scr.querySelector(".n").textContent, name: txt(scr.querySelector("h3")).replace(/capture-failed$/, "").trim(), act,
+    /* a screen longer than the phone has its full-length picture too, linked under the card (CodeRabbit on #221) */
+    const full = scr.querySelector(".hash a");
+    return { src: img.src, file: img.src.split("/").pop(), scroll: full ? { src: full.href, file: full.href.split("/").pop() } : null, n: scr.querySelector(".n").textContent, name: txt(scr.querySelector("h3")).replace(/capture-failed$/, "").trim(), act,
       /* the card the strip draws no arrow into — the downloads must not draw one either */
       standalone: scr.hasAttribute("data-standalone"), exitTo,
       hash, notes: txt(scr.querySelector(".notes")),
@@ -337,7 +339,7 @@ const html = `<!DOCTYPE html>
     const { title } = flowMeta(sec);
     const shots = flowScreens(sec);
     const files = [];
-    for (const s of shots) { const r = await fetch(s.src); if (!r.ok) throw new Error("could not fetch " + s.src); files.push({ name: slug(title) + "/" + s.file, data: new Uint8Array(await r.arrayBuffer()) }); }
+    for (const s of shots) for (const p of [s, s.scroll].filter(Boolean)) { const r = await fetch(p.src); if (!r.ok) throw new Error("could not fetch " + p.src); files.push({ name: slug(title) + "/" + p.file, data: new Uint8Array(await r.arrayBuffer()) }); }
     /* the comments travel with the screenshots */
     files.push({ name: slug(title) + "/README.md", data: new TextEncoder().encode(flowReadme(sec, shots)) });
     saveBlob(zip(files), "ride-price-" + slug(title) + ".zip");
@@ -356,7 +358,7 @@ const html = `<!DOCTYPE html>
          screen it reaches is not the one beside it. */
       const step = s.exitTo ? "- Exit: " + (s.act ? s.act + " → " : "") + s.exitTo
         : (s.act && i < shots.length - 1 && !shots[i + 1].standalone ? "- Action to next: " + s.act : "");
-      md.push("## " + s.n + " " + s.name, "", "- Screenshot: " + s.file, s.hash ? "- Route: " + s.hash : "", step);
+      md.push("## " + s.n + " " + s.name, "", "- Screenshot: " + s.file, ...(s.scroll ? ["- Full length: " + s.scroll.file] : []), s.hash ? "- Route: " + s.hash : "", step);
       if (s.notes) md.push("- Notes: " + s.notes);
       for (const b of s.branches) md.push("- " + b);
       for (const is of s.issues) { md.push("- **" + is.sev + " " + is.id + "**: " + is.text[0]); for (const t of is.text.slice(1)) md.push("  - " + t); }
@@ -373,15 +375,15 @@ const html = `<!DOCTYPE html>
     const secs = [...document.querySelectorAll(".flow")];
     const ver = (document.querySelector(".appbar .ver") || {}).textContent || "";
     const root = "ride-price-ui-library-" + (ver.match(/v\\d{3}/) || ["current"])[0] + "/";
-    const total = secs.reduce((n, sec) => n + sec.querySelectorAll(".scr").length, 0);
+    const total = secs.reduce((n, sec) => n + sec.querySelectorAll(".scr").length + sec.querySelectorAll(".scr .hash a").length, 0);
     const files = []; let done = 0;
     const top = ["# Ride Price Mobile UI Flow Library", "", ver.trim(), "", "One folder per flow. Each holds that flow's screenshots and a README with the route, the notes, the branch lines and every finding — the same files the per-flow download produces.", "", "## Flows", ""];
     for (const sec of secs) {
       const { title } = flowMeta(sec); const shots = flowScreens(sec); const dir = root + slug(title) + "/";
       top.push("- " + title + " — " + shots.length + " screen" + (shots.length === 1 ? "" : "s") + " (" + slug(title) + "/)");
-      for (const s of shots) {
-        const r = await fetch(s.src); if (!r.ok) throw new Error("could not fetch " + s.src);
-        files.push({ name: dir + s.file, data: new Uint8Array(await r.arrayBuffer()) });
+      for (const s of shots) for (const p of [s, s.scroll].filter(Boolean)) {
+        const r = await fetch(p.src); if (!r.ok) throw new Error("could not fetch " + p.src);
+        files.push({ name: dir + p.file, data: new Uint8Array(await r.arrayBuffer()) });
         done++;
         /* the count is for eyes — a live region rewritten once per screenshot
            would read every number aloud, so the note is busy while it counts

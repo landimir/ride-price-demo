@@ -5,7 +5,7 @@
      master-flow/improvement-view.html   the companion visual page (original screenshot stays the reference)
      reports/ui-improvement-report.md    flow-by-flow report
      reports/opportunity-board.md        the quick-scan summary (top opportunities, repeats, where to start)
-     reports/mobbin-reference-summary.md the pattern lessons, one per reference family
+     reports/reference-summary.md        the pattern lessons, one per reference family
    No dependencies; run with `node ride-price-ui-library/tools/build-improvements.mjs`. */
 "use strict";
 import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
@@ -187,7 +187,7 @@ const recCard = (r) => `<article class="rec rec--${esc(r.priority)}${isOpen(r) ?
   <div class="grid">
     <div><h5>A · What is wrong on the screen</h5><p>${esc(r.issueSummary)}</p>${r.existingComment ? `<p class="also">Builds on <b>${esc(r.existingComment)}</b>${r.commentAssessment ? ` — ${esc(r.commentAssessment)}` : ""}</p>` : ""}</div>
     <div><h5>B · Why it is a problem</h5><p>${esc(r.whyItMatters)}</p></div>
-    <div><h5>C · What better apps do <span style="text-transform:none;letter-spacing:0">(${esc(r.mobbinPatternNeeded)})</span></h5><p>${esc(r.referenceInsight)}</p>${refList(r.references)}</div>
+    <div><h5>C · What better apps do <span style="text-transform:none;letter-spacing:0">(${esc(r.referencePattern)})</span></h5><p>${esc(r.referenceInsight)}</p>${refList(r.references)}</div>
     <div class="adapt"><h5>D · What Ride Price should do</h5><p>${esc(r.ridePriceRecommendation)}</p>${r.whatStays ? `<p><b>Stays:</b> ${esc(r.whatStays)}</p>` : ""}<p class="foot"><b>Fix size:</b> ${esc(r.fixSize)}${r.implementationNote ? ` · <b>Where:</b> ${esc(r.implementationNote)}` : ""}</p></div>
   </div>
   ${r.alsoOn && r.alsoOn.length ? `<p class="also">Same thing on: ${r.alsoOn.map(x => { const m = screenByShot(x); return m ? `<a href="${masterHref(m.f.id, m.s)}">${esc(m.f.title)} · ${pad2(m.s.step)} ${esc(m.s.screen)}</a>` : esc(x); }).join(" · ")}</p>` : ""}
@@ -222,7 +222,7 @@ const areaHtml = (a) => {
 </section>`;
 };
 
-const patternsHtml = (matrix.patterns || []).length ? `<section class="patterns" id="patterns"><h2>Mobbin reference patterns used so far</h2><p class="notes">Each pattern is a family of screens from other apps that solve one problem well. The lesson is what Ride Price takes from it — never the other app's look.</p>
+const patternsHtml = (matrix.patterns || []).length ? `<section class="patterns" id="patterns"><h2>Reference patterns used so far</h2><p class="notes">Each pattern is a family of screens from other apps that solve one problem well. The lesson is what Ride Price takes from it — never the other app's look.</p>
 ${(matrix.patterns || []).filter(p => allRecs.some(r => (r.patterns || []).includes(p.id))).map(p => `<div class="pat" id="${esc(p.id)}"><h3>${esc(p.id)} · ${esc(p.name)}</h3><p><b>Common pattern:</b> ${esc(p.commonPattern)}</p><p><b>Lesson for Ride Price:</b> ${esc(p.lesson)}</p>${refList(p.references)}<p class="used">Used by: ${allRecs.filter(r => (r.patterns || []).includes(p.id)).map(r => `<a href="#${esc(r.id)}">${esc(r.id)}</a>`).join(", ")}</p></div>`).join("")}</section>` : "";
 
 const sideHtml = manifest.flows.map(f => { const a = reviewed.find(x => x.flowId === f.id); return a
@@ -238,13 +238,13 @@ const html = `<!DOCTYPE html>
 <header class="appbar"><div class="brand"><i>Ride</i><span>PRICE</span></div><span class="chip">UI IMPROVEMENT</span><a class="back" href="index.html">← Flow library</a>
   <span class="ver">improvement view ${esc(matrix.version || "")} · on library ${esc(version.version || "")}${version.appCommit ? ` · app ${esc(String(version.appCommit).slice(0, 7))}` : ""} · matrix updated ${esc(stamp)}</span></header>
 <div class="layout">
-  <nav class="side"><h4>Product areas</h4>${sideHtml}<h4>Reports</h4><a href="../reports/ui-improvement-report.md">Improvement report</a><a href="../reports/opportunity-board.md">Opportunity board</a><a href="../reports/mobbin-reference-summary.md">Mobbin reference summary</a><a href="../reports/screen-improvement-matrix.json">Screen matrix (JSON)</a></nav>
+  <nav class="side"><h4>Product areas</h4>${sideHtml}<h4>Reports</h4><a href="../reports/ui-improvement-report.md">Improvement report</a><a href="../reports/opportunity-board.md">Opportunity board</a><a href="../reports/reference-summary.md">Reference summary</a><a href="../reports/screen-improvement-matrix.json">Screen matrix (JSON)</a></nav>
   <main class="main">
     <section class="hero">
       <div><h1>Ride Price Mobile UI — Improvement View</h1>
-        <p>The second layer on the flow library: the same screenshots, their existing comment cards, and — for each — a stronger diagnosis, what better mobile apps do (Mobbin references), and what Ride Price should do next while staying Ride Price: navy foundation, orange-to-pink gradient for the one main action, Poppins, one button radius.</p>
+        <p>The second layer on the flow library: the same screenshots, their existing comment cards, and — for each — a stronger diagnosis, what better mobile apps do (reference screens), and what Ride Price should do next while staying Ride Price: navy foundation, orange-to-pink gradient for the one main action, Poppins, one button radius.</p>
         <p>Reviewed <b>one product area at a time</b>. The original screenshot always stays as the reference point; nothing here is a redesign.</p></div>
-      <div class="stats"><div class="stat"><b>${reviewed.length} / ${manifest.flows.length}</b><span>areas reviewed</span></div><div class="stat"><b>${allRecs.length}</b><span>recommendations · ${openRecs.length} open</span></div><div class="stat"><b>${(matrix.patterns || []).filter(p => allRecs.some(r => (r.patterns || []).includes(p.id))).length}</b><span>Mobbin patterns</span></div>
+      <div class="stats"><div class="stat"><b>${reviewed.length} / ${manifest.flows.length}</b><span>areas reviewed</span></div><div class="stat"><b>${allRecs.length}</b><span>recommendations · ${openRecs.length} open</span></div><div class="stat"><b>${(matrix.patterns || []).filter(p => allRecs.some(r => (r.patterns || []).includes(p.id))).length}</b><span>reference patterns</span></div>
         <div class="stat"><b>${priOpen.High}</b><span>${priBadge("High")} open</span></div><div class="stat"><b>${priOpen.Medium}</b><span>${priBadge("Medium")} open</span></div><div class="stat"><b>${priOpen.Low}</b><span>${priBadge("Low")} open</span></div></div>
     </section>
     <p class="legend"><b>Finding types:</b> ${typeBadge("Existing Comment Expanded")} the library already flagged it, deepened here · ${typeBadge("Newly Detected UI Issue")} found by looking at the screenshot · ${typeBadge("Pattern Opportunity")} nothing broken, a better structure exists · <b>Severity</b> is the audit scale; <b>priority</b> is the order to fix in · <b>Status</b> is where each one stands: ${STATUSES.map(s => `<span class="st st--${s}">${STATUS_LABEL[s]}</span>`).join(" ")} — a closed one stays as the record of what was recommended.</p>
@@ -268,7 +268,7 @@ writeFileSync(join(ROOT, "master-flow", "improvement-view.html"), html);
 /* ============================ the report ============================ */
 const md = [];
 md.push(`# Ride Price Mobile UI — Improvement Report`, "", `Improvement view ${matrix.version || ""} · built on flow library ${version.version || ""} (app ${String(version.appCommit || "").slice(0, 7)}) · matrix updated ${stamp}`, "",
-  `This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (Mobbin references) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.`, "",
+  `This report takes each product area of the Ride Price mobile experience, starts from the comment cards the screenshot library already carries, deepens them, adds what the screenshots themselves show, and attaches what stronger mobile apps do (reference screens) — then translates each lesson back into Ride Price's own vocabulary: navy foundation, the orange-to-pink gradient for the one main forward action, Poppins, one button radius, the existing component families. Nothing here redesigns Ride Price into another brand.`, "",
   `**Areas are reviewed one at a time.** ${reviewed.length} of ${manifest.flows.length} so far; the rest are listed at the end in the order they will be taken.`, "",
   `| | Count |`, `|---|---|`, `| Recommendations | ${allRecs.length} |`, `| Open, including partly built | ${openRecs.length} |`, `| Closed — ${CLOSED_WORDS} | ${closedRecs.length} |`,
   ...TYPES.map(t => `| ${t} | ${typeTotals[t]} |`), ...PRI.map(p => `| ${p} priority | ${priTotals[p]} |`), ...SEV.map(s => `| Severity ${s} | ${sevTotals[s]} |`), "",
@@ -289,7 +289,7 @@ for (const a of reviewed) {
       `- **Type:** ${r.findingType}${r.existingComment ? ` (builds on ${r.existingComment}${r.commentAssessment ? ` — ${r.commentAssessment}` : ""})` : ""} · **Category:** ${r.category} · **Severity:** ${r.severity} · **Priority:** ${r.priority} · **Fix size:** ${r.fixSize}`, "",
       `**A. Current Ride Price screen.** ${r.issueSummary}`, "",
       `**B. Why it is a problem.** ${r.whyItMatters}`, "",
-      `**C. Mobbin reference direction — ${r.mobbinPatternNeeded}.** ${r.referenceInsight}`,
+      `**C. Reference direction — ${r.referencePattern}.** ${r.referenceInsight}`,
       ...(r.references || []).map(x => `- [${x.app}](${x.url}) — ${x.shows}`), "",
       `**D. Ride Price adaptation.** ${r.ridePriceRecommendation}${r.whatStays ? ` **Stays:** ${r.whatStays}` : ""}`, "",
       ...(r.implementationNote ? [`*Implementation note:* ${r.implementationNote}`, ""] : []));
@@ -317,15 +317,15 @@ const board = [`# Ride Price Mobile UI — Opportunity Board`, "", `Updated ${st
   `## Where to start`, "", ...(matrix.board && matrix.board.whereToStart ? matrix.board.whereToStart.map((s, i) => `${i + 1}. ${s}`) : ["_See the top of this board._"]), ""];
 writeFileSync(join(REPORTS, "opportunity-board.md"), board.join("\n"));
 
-/* ============================ the Mobbin reference summary ============================ */
+/* ============================ the reference summary ============================ */
 const pats = (matrix.patterns || []).filter(p => allRecs.some(r => (r.patterns || []).includes(p.id)));
-const refmd = [`# Ride Price — Mobbin Reference Summary`, "", `Updated ${stamp}. One entry per reference family used by the improvement review so far. Each was looked up on Mobbin for a specific Ride Price problem; the screens are listed so they can be opened, and the lesson is what Ride Price takes — structure and clarity, never the other app's brand. Nothing here says "copy X": the adaptation always re-expresses the pattern in Ride Price's navy, gradient, Poppins and existing components.`, ""];
+const refmd = [`# Ride Price — Reference Summary`, "", `Updated ${stamp}. One entry per reference family used by the improvement review so far. Each was looked up in a library of real app screens for a specific Ride Price problem; the screens are listed so they can be opened, and the lesson is what Ride Price takes — structure and clarity, never the other app's brand. Nothing here says "copy X": the adaptation always re-expresses the pattern in Ride Price's navy, gradient, Poppins and existing components.`, ""];
 for (const p of pats) {
   refmd.push(`## ${p.id} · ${p.name}`, "", `**Ride Price problem it was looked up for:** ${p.problem}`, "", `**What was reviewed:**`, ...(p.references || []).map(r => `- [${r.app}](${r.url}) — ${r.shows}`), "",
     `**Common pattern across the references:** ${p.commonPattern}`, "", `**Lesson most relevant to Ride Price:** ${p.lesson}`, "", `**Should influence:** ${p.influence}`, "",
     `Used by: ${allRecs.filter(r => (r.patterns || []).includes(p.id)).map(r => r.id).join(", ")}`, "");
 }
 if (!pats.length) refmd.push("_No patterns recorded yet._", "");
-writeFileSync(join(REPORTS, "mobbin-reference-summary.md"), refmd.join("\n"));
+writeFileSync(join(REPORTS, "reference-summary.md"), refmd.join("\n"));
 
-console.log(`improvement view: ${reviewed.length}/${manifest.flows.length} areas, ${allRecs.length} recommendations (${openRecs.length} open), ${pats.length} patterns → master-flow/improvement-view.html, reports/ui-improvement-report.md, reports/opportunity-board.md, reports/mobbin-reference-summary.md`);
+console.log(`improvement view: ${reviewed.length}/${manifest.flows.length} areas, ${allRecs.length} recommendations (${openRecs.length} open), ${pats.length} patterns → master-flow/improvement-view.html, reports/ui-improvement-report.md, reports/opportunity-board.md, reports/reference-summary.md`);

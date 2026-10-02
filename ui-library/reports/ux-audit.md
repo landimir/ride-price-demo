@@ -1,13 +1,13 @@
-# Ride Price Mobile UI — UX Audit (v043)
+# Ride Price Mobile UI — UX Audit (v044)
 
-Captured 2026-09-28T15:36:50.628Z · viewport 390×844 · app 35497ff836c44402d7bbd22176e864067d26db3d
+Captured 2026-10-02T07:06:19.670Z · viewport 390×844 · app 3e380a4541df4c65adaa6171ab0703ed011c6ae7
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 14 |
 | Minor | 31 |
-| Observation | 8 |
+| Observation | 9 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
 
@@ -55,7 +55,7 @@ _None recorded._
 ### RP-UI-066 — Buyers on the Deal (Co-Buyer) · After removal — Cheri's Removed row and the audit line
 
 - **Screenshot:** `current/12-buyers-and-co-buyer/06-removed-state.png`
-- **Issue:** After a clean removal the sheet says "Tap for Cheri's profile and the withdrawn application — reattaching Cheri starts a new application, it does not reopen that one." The confirmation one screen earlier listed "Credit activity · None yet": there is no application to withdraw or reopen.
+- **Issue:** After a clean removal the sheet says "Tap to see Cheri on Customers — reattaching Cheri starts a new application, it does not reopen that one." (v044; at v043 it read "Tap for Cheri's profile and the withdrawn application — …") The confirmation one screen earlier listed "Credit activity · None yet": there is no application to withdraw or reopen.
 - **Observation:** The lending-lane wording, right on the post-lane removal, shown where no application existed. The line belongs only where one was withdrawn. Found by the v043 audit.
 - **Suggested area to investigate:** app.js — the buyers sheet's Removed row
 
@@ -140,7 +140,7 @@ _None recorded._
 
 ### RP-UI-050 — Vehicle Selection · Inventory — sort and segmented controls
 
-- **Screenshot:** `current/06-vehicle-selection/01-inventory.png`
+- **Screenshot:** `current/06-vehicle-selection/03-inventory.png`
 - **Issue:** Two more kit controls sit under the 40px touch floor at 390px, and neither is covered by RP-UI-031: the inventory sort control (.rp-sort, 117x19) and the segmented control on the training-documents screens (.rp-segment__item, 172x36, on both Licenses and Registrations). The sort control is the smaller breach by far — 19px tall is under half the floor, and it is the only way to reorder the list. RP-UI-031 filed the same class of gap for .rp-wordmark (116x23) and .rp-button-navy (73x36) at library v022 and noted that harness/touchfloor.mjs exits 1 on them deliberately; these two arrived later, with the vehicle-selection and training-documents packages, and were never added. touchfloor now reports five, of which only two were on the list.
 - **Observation:** Reported, not patched: the kit is the owner's design asset and its classes are never restyled in this repo (CLAUDE.md), so this waits for a kit revision alongside RP-UI-031 — two more ::before hit-extension rules would close these two, and with the three RP-UI-031 already asks for (.rp-wordmark, .rp-button-navy and the Team Lead's .rp-filter__control) that is five control types in all. Measured by harness/touchfloor.mjs across 769 painted controls on 22 routes at 390px; the fifth control it reports, .rp-wordmark, is already in RP-UI-031.
 - **Suggested area to investigate:** Touch targets
@@ -149,7 +149,7 @@ _None recorded._
 
 - **Screenshot:** `current/16-document-request/04-request-sent.png`
 - **Issue:** The inline status the send returns is laid under the jacket's sticky funding sign-off dock. After sending, the status line and the View status control sit at the bottom of the customer group and the dock covers them: in the capture the gradient resend button is clipped to a sliver and the status line beneath it is hidden behind the dock's own FUNDING SIGN-OFF heading. The same overlap is visible once the customer has started uploading (current/16-document-request/07-request-progress.png), where only a few characters of the status banner show through from under the dock. The V2 package moved delivery status inline precisely so it would be read without leaving the jacket, and the dock hides it.
-- **Observation:** Surfaced by the coverage work — the sent and in-progress jacket states had never been captured. Scrolling reveals the line, so nothing is lost permanently; it is the resting state that is covered. v043: worse on the in-progress state, where the status banner is now wholly under the sign-off dock; the dock also cuts through "Request 3 documents" on the jacket before any send.
+- **Observation:** Surfaced by the coverage work — the sent and in-progress jacket states had never been captured. Scrolling reveals the line, so nothing is lost permanently; it is the resting state that is covered. v043: worse on the in-progress state, where the status banner is now wholly under the sign-off dock; the dock also cuts through "Request 3 documents" on the jacket before any send. v044: right after the send the jacket now scrolls the status line into view above the dock (04-request-sent), so the sent state reads; once the customer has started uploading it is under the dock again (07-request-progress), and the dock still cuts through "Request 3 documents" before any send.
 - **Suggested area to investigate:** app.js — the deal jacket's customer group and sign-off dock
 
 ### RP-UI-075 — Customer Onboarding — the Customer Resolver · Find customer — the resolver
@@ -259,7 +259,7 @@ _None recorded._
 
 ### RP-UI-090 — Test Drive Agreement · License needs attention — expired, with its date
 
-- **Screenshot:** `current/07-test-drive/23-license-expired.png`
+- **Screenshot:** `current/07-test-drive/24-license-expired.png`
 - **Issue:** The row says "Expired 01/01/2020" and the dock "License expired", but the row's badge says "Incomplete". On the driver mission's third step the top bar reads "New visit" and the "Adding a test-drive driver" notice is gone.
 - **Observation:** The badge should agree with the row, and the mission should keep its own name to the end. Found by the v043 audit.
 - **Suggested area to investigate:** app.js — the test drive's license row and the driver mission's last step
@@ -295,7 +295,7 @@ _None recorded._
 ### RP-UI-095 — Buyers on the Deal (Co-Buyer) · Change roles after the lane — the lender line
 
 - **Screenshot:** `current/12-buyers-and-co-buyer/17-lane-roles-confirm.png`
-- **Issue:** The sheet says the deal has a submitted joint application, yet the chip reads "Jacket · 4 of 15"; the same post-lane deal reads "5 of 15" on the screens before it.
+- **Issue:** The sheet says the deal has a submitted joint application, yet the chip reads "Jacket · 4 of 16"; the same post-lane deal reads "6 of 16" on the screens before it (v044; at v043, 4 of 15 and 5 of 15: the co-buyer's identity record now counts in both).
 - **Observation:** Found by the v043 audit.
 - **Suggested area to investigate:** app.js — the Jacket chip on the buyers sheet after the lending lane
 
@@ -320,9 +320,9 @@ _None recorded._
 - **Observation:** Found by the v043 audit.
 - **Suggested area to investigate:** app.js — the client link's paystub sheet after another income type
 
-### RP-UI-099 — Snap All — burst capture · Results — exception accepted
+### RP-UI-099 — Snap All — burst capture · Auto-sort results
 
-- **Screenshot:** `current/18-snap-all/05-results-accepted.png`
+- **Screenshot:** `current/18-snap-all/04-results.png`
 - **Issue:** The insurance card is filed under the heading "Verified 1" although its row reads "Accepted with exception — Expires within 45 days" with the "Exception accepted" badge.
 - **Observation:** An exception is not a verification. Found by the v043 audit.
 - **Suggested area to investigate:** app.js — Snap All's results groups
@@ -334,7 +334,7 @@ _None recorded._
 - **Observation:** Found by the v043 audit.
 - **Suggested area to investigate:** app.js — the print center's cover sheet and quote
 
-## Observation (8)
+## Observation (9)
 
 ### RP-UI-023 — Home — Deals Queue & Navigation · My Deals (landing — Advisor)
 
@@ -366,7 +366,7 @@ _None recorded._
 
 ### RP-UI-048 — Vehicle Selection · Notification — vehicle reserved
 
-- **Screenshot:** `current/06-vehicle-selection/08-vehicle-reserved.png`
+- **Screenshot:** `current/06-vehicle-selection/15-vehicle-reserved.png`
 - **Issue:** On the reserved alert every load-bearing word is muted grey: the title "Vehicle reserved" samples the kit's ink, but the body that carries the vehicle, the stock number, who signed, at what time and that this deal stays open is `.rp-alert__body` at 12.5px in `--rp-muted` (#6E6E78). The standing rule is that load-bearing text is ink, because the app is used outdoors.
 - **Observation:** The kit defines the component that way and the app uses it as given, so this is the kit's decision to revisit — the same shape as RP-UI-037 on the deal card's VIN line. Worth pairing with that one when the palette is settled.
 - **Suggested area to investigate:** ride-price-mobile.css .rp-alert__body (the owner UI kit) — a kit decision
@@ -391,6 +391,13 @@ _None recorded._
 - **Issue:** Text about John uses they and them: "How are they paying?", "Is the incentivized rate or the rebate better for them?", "Do they trade frequently?", "Send a secure link to their phone", "A co-buyer applies with them."
 - **Observation:** The owner's style is names: "How is John paying?", "Send a secure link to John's phone" (W-088). Found by the v043 audit.
 - **Suggested area to investigate:** app.js — the huddle's tracks and the credit application's lines
+
+### RP-UI-104 — Scan Driver's License · Confirm customer — the name changed
+
+- **Screenshot:** `current/03-license-scan/28-scan-name-changed.png`
+- **Issue:** On The name changed, Edit license details is drawn under the dock until the page is scrolled: the scanned address takes two lines, the page grows past the dock, and the first paint shows Ask a Team Lead where the link is. Scrolled to the end, the link sits clear of the dock (its box overlaps the dock's top by 4 px; a tap lands on the link).
+- **Observation:** The library's overlap check reads it at first paint. Nothing is lost, since the page scrolls, but the one way to put a misread right is out of sight on the case that most needs it. Found by the v044 audit.
+- **Suggested area to investigate:** Confirm customer: the page and its dock
 
 ## Automated checks per screen
 
