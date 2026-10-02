@@ -1381,6 +1381,10 @@ body .rp-field__err { color: #B3261E; }
    slider. The kit has no range control; a native one in the kit's navy, 40px
    tall to the touch (RP-UI-029), the track as the browser draws it */
 .rp-range { display: block; width: 100%; height: 40px; margin: 0; accent-color: var(--rp-navy); }
+/* KA-005 (the owner's answer B, 2026-09-28): a list that follows a gap list, such as the scan that fills the gaps,
+   stands 10px below it, the space the kit gives a spaced group in a sheet (.rp-sheet .rp-group--spaced). The kit's
+   gap list has a top margin only; the credit application's applicant step wrote the 10px inside the screen */
+.rp-gaps + .rp-group { margin-top: 10px; }
 /* the touch floor, 40px for every control (owner, 2026-08-31), on the app's
    own search fields (RP-UI-029): the kit's search field is 46px tall, but
    the input inside it is one line of text, 25px, so a tap on the field
@@ -2204,3 +2208,10 @@ body:not([data-canvas="kit"]) { font-family: var(--app-font); font-feature-setti
    Supporting semantics only; the kit's classes are untouched. The top bar's
    end slot is a spacer the width of the close circle so the title centres. */
 .dc-top-end { display: block; width: 44px; }
+
+/* ---------- Finance Menu — its sheets fit the phone (Desking's DK-054, 2026-09-28) ----------
+   The kit's sheet has no height limit. The Finance Menu's taxes sheet grew with New York's lease tax to 888px on a
+   390 × 844 phone, and a finance deal's was already 830px on a 360 × 780 one: its grab and its title sat above the
+   screen, out of reach. As the scanner's sheets do, a Finance Menu sheet stops 24px short of the phone and scrolls
+   inside it. */
+#fmSheet { max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; }

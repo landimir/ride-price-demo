@@ -68,6 +68,12 @@ const RIDE_PRICE_DATA = {
      template (chrome rule §15). */
   financeIncentive: { apr: 3.5, through: INCENTIVE_THROUGH },
 
+  /* the owner's rules for the desk, 2026-09-28 (Desking's DK-031 and the note on its first question): the highest
+     rate the desk takes, "NY highest interest rate is 24.99%"; and a loan under $10,000 is "subject to bank
+     approval", since "each bank sets a minimum financing amount based on the specific term and total loan value" */
+  maxApr: 24.99,
+  bankApprovalUnder: 10000,
+
   financeTerms: [36, 48, 60, 72, 84],
   leaseTerms: [24, 36, 39, 48],
   milesOptions: [10000, 12000, 15000],
@@ -349,8 +355,9 @@ const RIDE_PRICE_DATA = {
   /* the three documents a client sends through the text-request link (owner's
      prototype, matched element-for-element 2026-08-18). Keyed by the dealForms
      id. The scripted verification beats live here: missingPage fires while the
-     page count is under minPages, firstIssue fires once on the first complete
-     attempt (dates are computed at run time from the +days offsets). `checks`
+     page count is under minPages; exception marks the first complete attempt
+     accepted with its reason said (dates are computed at run time from the
+     +days offsets). `checks`
      are the prototype's per-document review criteria, kept as reference data
      even though the current flow verifies instantly. */
   clientDocs: {
@@ -361,7 +368,11 @@ const RIDE_PRICE_DATA = {
       requirement: "Must show the vehicle by VIN or description, your name, the policy number, effective dates covering today, and comprehensive plus collision coverage. If the card runs to two pages, add both.",
       minPages: 1,
       multiNote: "May be multi-page. If your insurance card or binder has a second page, add both before you finish.",
-      firstIssue: { title: "Expires within 45 days", days: 45, description: "Requires policy renewal or a binder showing active coverage beyond the temporary registration window." },
+      /* the kit's seed (docs/kit/SEED-DATA.md, "Insurance exception"): the card the customer has expires in 12 days,
+         and the page names the reason and still allows sending it. The owner's answer A on KA-003 (2026-09-28): the
+         card is taken the first time, and its row says why it needs attention. The prototype refused it as a scripted
+         beat ("Expires within 45 days") and took the retake. A later card comes clean. */
+      exception: { days: 12, reason: "Coverage must be in force at delivery" },
       checks: ["Vehicle matches or VIN matches", "Customer name and policy number are visible", "Effective dates include today", "Comprehensive and collision coverage are shown", "All pages are present if the card spans two pages"],
       sortDetail: "Active coverage",
       verifiedSummary: "VIN, customer name, and policy dates align with the active deal."
@@ -457,7 +468,11 @@ const RIDE_PRICE_DATA = {
        date of birth, and no address until a licence supplies one. createdVia
        says so, and the scanner reads it: Marcus's name is claimed, not verified,
        so prop 3 finds no match, the typed number reaches the conflict sheet,
-       and the verified code links the scanned licence onto this very record. */
+       and the verified code links the scanned licence onto this very record.
+       Today's link — sent by Text at 11:38, so the Customers list reads Remote
+       (KA-008) — is stamped by the store (fresh() and load(), seedMarcusLink),
+       on the clock like John's arrival. It is not written here: a fixed field
+       would reach load()'s migration without its time and never be stamped. */
     { id: "c-demo4", first: "Marcus", last: "Alvarez", middle: "", email: "malvarez@testing.com", phone: "(646) 555-0900",
       createdVia: "link", creditScore: 700, createdAt: "2026-09-04T15:38:00Z" }
   ],

@@ -85,6 +85,18 @@ const RIDE_PRICE_CALC = (function () {
     return principal * r / (1 - Math.pow(1 + r, -months));
   }
 
+  /* money beyond what the deal can use (the owner's answer C of 2026-09-28, Desking's DK-026 to DK-028, MR-10).
+     `room` is what the deal can still take once the trade and the rebate are applied. Below $0, they come to more
+     than the whole deal, and the rest is John's money, a check the dealership cuts: owedToCustomer. The cash Ashley
+     types (the cash down, or a lease's due at signing) can take the deal to $0 and no further: mostCash is the most
+     it can take, and cashBeyond what was typed over it, which the desk refuses on the screen. Each was floored away
+     without a word before: $60,000 down priced at $0.00 a month, and a $52,000 trade on a cash deal left $10,042.50
+     owed to John shown nowhere */
+  function beyond(room, cash) {
+    const most = Math.max(0, room);
+    return { owedToCustomer: round2(Math.max(0, -room)), mostCash: round2(most), cashBeyond: round2(Math.max(0, cash - most)) };
+  }
+
   /* ---------- FINANCE ---------- */
   function finance(deal, vehicle, opts) {
     const o = Object.assign({ apr: deal.desk.apr, term: deal.desk.term, products: [] }, opts || {});
@@ -96,11 +108,11 @@ const RIDE_PRICE_CALC = (function () {
     const netTrade = (deal.trade.value || 0) - (deal.trade.payoff || 0);
     const amountFinanced = round2(yourPrice + prodTotal + taxes.total + fees - (deal.trade.rebates || 0) - netTrade - (deal.desk.downPayment || 0));
     const payment = round2(amortize(Math.max(0, amountFinanced), o.apr, o.term));
-    return {
+    return Object.assign({
       dealType: "finance", yourPrice: round2(yourPrice), accessories: acc, productsTotal: prodTotal,
       taxes, fees, netTrade: round2(netTrade), amountFinanced: Math.max(0, amountFinanced),
       payment, apr: o.apr, term: o.term, downPayment: deal.desk.downPayment || 0
-    };
+    }, beyond(round2(yourPrice + prodTotal + taxes.total + fees - (deal.trade.rebates || 0) - netTrade), deal.desk.downPayment || 0));
   }
 
   /* ---------- LEASE ---------- */
@@ -124,22 +136,54 @@ const RIDE_PRICE_CALC = (function () {
        the trade still owed (MR-07, Desking's DK-020) */
     const negativeEquity = Math.max(0, -netTrade);
     const grossCap = yourPrice + prodTotal + RIDE_PRICE_DATA.leaseFees.acquisition + totalFees() + negativeEquity;
-    const adjCap = Math.max(residual, grossCap - capCostReduction);
-    const depreciation = (adjCap - residual) / o.term;
-    const rent = (adjCap + residual) * o.factor;
-    const basePayment = round2(depreciation + rent);
+    const adjCap0 = Math.max(residual, grossCap - capCostReduction);
     const taxRate = totalTaxRate();
-    const monthlyTax = round2(basePayment * taxRate);
-    const payment = round2(basePayment + monthlyTax);
-    const ccrTax = round2(capCostReduction * taxRate);
-    return {
+    /* New York collects a lease's sales tax at signing, on all of its payments and the money down, the cash and the
+       rebate (Tax Law § 1111(i); the owner's answer A of 2026-09-28, Desking's DK-054). A trade is not taxed: its
+       equity lowers the payments, and New York leaves a trade taken for resale out of a lease's receipts (Sales and
+       Use Tax Regulations § 527.15(c)(5); TSB-A-96(19)S). Each payment was taxed instead, $29.70 a month on John's
+       lease, and the tax on the money down was worked out and never charged. The payment is the base payment; the
+       tax is the combined rate on its base, rounded once, as a purchase's is (KA-006).
+
+       Paid or rolled in (the other half of answer A): the tax is assessed at signing either way, and John pays it
+       then, or it goes into the lease's capitalized cost and the payments repay it. Rolled in, the payments that
+       repay it are receipts from the lease too, so they are taxed as well: "the additional amounts included in the
+       lease payments to repay the lessor for the tax paid" (Sales and Use Tax Regulations § 527.15(c)(4), Example 5).
+       So the tax is 8.875% of its own base: it is priced into the cost again until it no longer moves, to the cent.
+       Each round is about a tenth of the last, and the tax only climbs, so it settles on the least tax that is the
+       rate on its own base; 60 rounds is a guard, never reached. John's goes $1,202.30, $1,313.49, $1,323.77,
+       $1,324.73, $1,324.83: $372.99 a month, on a base of $14,927.64. The tax goes in after the money down and the
+       residual floor, so the room below, the most due at signing and the money owed back are the same either way.
+       Only a lease rolls it in: a one-pay is paid in full at signing, and rolling the tax in would only tax the
+       tax and charge rent on it (onePay() says so, and so does every other caller that does not ask) */
+    const rolled = o.taxInLease != null ? !!o.taxInLease : (deal.dealType === "lease" && !!(deal.desk && deal.desk.leaseTaxRolled));
+    const cash = Math.max(0, o.dueAtSigning || 0), rebate = deal.trade.rebates || 0;
+    const price = (cap) => {
+      const adjCap = adjCap0 + cap;
+      const depreciation = (adjCap - residual) / o.term;
+      const rent = (adjCap + residual) * o.factor;
+      const basePayment = round2(depreciation + rent);
+      const taxBase = round2(basePayment * o.term + cash + rebate);
+      return { basePayment, taxBase, tax: taxBreakdown(taxBase).total };
+    };
+    let cap = 0, p = price(0);
+    for (let i = 0; rolled && i < 60 && p.tax !== cap; i++) { cap = p.tax; p = price(cap); }
+    const basePayment = p.basePayment, taxBase = p.taxBase, leaseTax = p.tax;
+    const taxAtSigning = rolled ? 0 : leaseTax, taxInLease = rolled ? leaseTax : 0;
+    const payment = basePayment;
+    /* the lease cannot go below its residual: what the trade equity and the rebate leave of that room is the most due
+       at signing it can use */
+    const room = round2(grossCap - residual - Math.max(0, netTrade) - rebate);
+    /* taxes.atSigning stays true either way: New York assesses the tax at signing, and it tells this snapshot from one
+       signed under the old per-payment rule (W-113). inLease says who pays it then: John, or the lease */
+    return Object.assign({
       dealType: "lease", yourPrice: round2(yourPrice), accessories: acc, productsTotal: prodTotal,
       residual, residualPct: residualPct + mileAdj, term: o.term, miles: o.miles, factor: o.factor,
-      basePayment, monthlyTax, payment, capCostReduction: round2(capCostReduction), ccrTax,
+      basePayment, monthlyTax: 0, payment, capCostReduction: round2(capCostReduction), taxBase, taxAtSigning, taxInLease, leaseTax,
       acquisitionFee: RIDE_PRICE_DATA.leaseFees.acquisition, dueAtSigning: o.dueAtSigning || 0,
-      taxes: { rows: [{ label: `Sales Tax on Payment @ ${taxPct(taxRate)}%`, amount: monthlyTax }], total: monthlyTax },
+      taxes: { rows: [{ label: `New York sales tax, ${rolled ? "in the lease" : "at signing"} @ ${taxPct(taxRate)}%`, amount: leaseTax }], total: leaseTax, atSigning: true, inLease: rolled },
       fees: totalFees(), netTrade: round2(netTrade), negativeEquity: round2(negativeEquity)
-    };
+    }, beyond(room, cash));
   }
 
   /* ---------- CASH ---------- */
@@ -152,10 +196,10 @@ const RIDE_PRICE_CALC = (function () {
     const fees = totalFees();
     const netTrade = (deal.trade.value || 0) - (deal.trade.payoff || 0);
     const totalDue = round2(yourPrice + prodTotal + taxes.total + fees - (deal.trade.rebates || 0) - netTrade);
-    return {
+    return Object.assign({
       dealType: "cash", yourPrice: round2(yourPrice), accessories: acc, productsTotal: prodTotal,
       taxes, fees, netTrade: round2(netTrade), totalDue: Math.max(0, totalDue), payment: 0
-    };
+    }, beyond(totalDue, 0));
   }
 
   /* ---------- ONE-PAY LEASE ---------- */
@@ -168,11 +212,14 @@ const RIDE_PRICE_CALC = (function () {
        beside it quoted the qualified one. */
     const base = isFinite(o.factor) ? o.factor : deal.desk.leaseFactor || 0.00117;
     const reduced = Math.max(0.00001, base - 0.0004);
-    const l = lease(deal, vehicle, Object.assign({}, o, { factor: reduced, dueAtSigning: 0 }));
+    /* a one-pay pays its tax at signing, always: it is paid in full then, and rolling the tax into the lease would
+       only tax the tax and charge rent on it, $13,418.64 for John's against $13,271.90 (DK-054, MR-16) */
+    const l = lease(deal, vehicle, Object.assign({}, o, { factor: reduced, dueAtSigning: 0, taxInLease: false }));
     /* the payments pay the acquisition fee already: it is in the capitalized cost they are priced on, so the
-       total is the payments and nothing more (MR-08, Desking's DK-023: it was added again, $595 twice) */
-    const dueAtSigning = round2(l.payment * l.term);
-    return Object.assign({}, l, { dealType: "onepay", dueAtSigning, payment: 0, onePayTotal: dueAtSigning });
+       total is the payments and nothing more (MR-08, Desking's DK-023: it was added again, $595 twice), with New
+       York's tax on them and on the rebate, all at signing; a trade is not taxed (DK-054) */
+    const dueAtSigning = round2(l.payment * l.term + l.taxAtSigning);
+    return Object.assign({}, l, { dealType: "onepay", dueAtSigning, payment: 0, onePayTotal: dueAtSigning, paymentsTotal: round2(l.payment * l.term) });
   }
 
   function calc(deal, vehicle, opts) {
