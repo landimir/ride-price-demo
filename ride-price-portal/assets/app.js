@@ -1052,7 +1052,11 @@ const signedWords = (x) => `Signed ${signedAs(x)}`;
    while a correction sends it back to be signed again, at any stage from signed on and for either role, else the stage's
    own screen. Home's card said "Sign the Agreement Again" and opened the Final review, where nothing could be signed */
 function dealRoute(d) {
-  return mustSignAgain(d).length ? `#/agreement/${d.id}` : (STAGES[d.stage] || STAGES.discovery).route(d);
+  if (mustSignAgain(d).length) return `#/agreement/${d.id}`;
+  /* KA-004 (§29): a moved rate that waits to be presented is answered on the lender's own screen, reached from the deal as well as
+     from the notice: the new payment is there, with Re-present. Until it is chosen the Finance Menu has nothing to sign off */
+  if (d.stage === "menu" && !d.signoff && !openSentChanges(d).length) { const rm = rateMove(d); if (rm && !rm.chose) return `#/credit/${d.id}`; }
+  return (STAGES[d.stage] || STAGES.discovery).route(d);
 }
 /* what went to the lender, each applicant as the application sent them: the working copy's name, birth date, license
    and address, which the Residence step can hold apart from the record, and the record for the rest */
@@ -1160,8 +1164,8 @@ function keepApproval(deal) {
 }
 /* LS-118 · Send it again: a new application to the lender with the corrected details and the rest as sent before,
    the one before it kept (priorApplication) with the times its documents were filed, and the same consent and
-   authorization (a recorded choice). The lender answers as submit's answer does, the demo's outcome (the instant
-   answer §29 forbids, as submit's own, until KA-004). The deal's stage is not touched. A filed Signed Matching Credit
+   authorization (a recorded choice). The lender answers as submit's answer does, the demo's outcome; as at Submit,
+   the caller ends on the board with the answer as a notice (KA-004, §29). The deal's stage is not touched. A filed Signed Matching Credit
    App stays filed (a recorded choice). It saves once, and puts everything back when the phone refuses */
 function resendApplication(deal) {
   const a = deal && deal.creditApp, open = openSentChanges(deal);
@@ -3009,14 +3013,21 @@ route("deals", () => {
        advisor's own open deals — one real action, × dismisses and the
        card's status stays. The Team Lead's floor carries the status on the
        cards and no alert. */
-    $("#dqAlerts").innerHTML = lead ? "" : myAlerts().map(a => `<div class="rp-alert${a.kind === "working" ? " rp-alert--working" : ""}" data-alert="${esc(a.id)}">
+    $("#dqAlerts").innerHTML = lead ? "" : myAlerts().map(a => `<div class="rp-alert${a.kind === "working" || a.kind === "decision" ? " rp-alert--working" : ""}" data-alert="${esc(a.id)}">
       <div class="rp-alert__title">${esc(a.title)}</div><div class="rp-alert__body">${esc(a.body)}</div>
-      <a class="rp-alert__action" href="#/vehicles/${esc(a.dealId)}">Choose another vehicle</a>
+      ${a.kind === "decision" ? `<button type="button" class="rp-alert__action" data-decision="${esc(a.id)}">Review the answer</button>` : `<a class="rp-alert__action" href="#/vehicles/${esc(a.dealId)}">Choose another vehicle</a>`}
       <button type="button" class="rp-alert__close" data-alert-close="${esc(a.id)}" aria-label="Dismiss">${rpGlyph("close")}</button></div>`).join("");
     $$("[data-alert-close]").forEach(b => b.onclick = () => {
       const al = (Store.s.alerts || []).find(x => x.id === b.dataset.alertClose);
       if (al) { al.dismissed = true; Store.save(); }
       paint();
+    });
+    /* KA-004: the lender's answer opens on its own screen, and the notice is read */
+    $$("[data-decision]").forEach(b => b.onclick = () => {
+      const al = (Store.s.alerts || []).find(x => x.id === b.dataset.decision);
+      if (!al) return;
+      al.dismissed = true; Store.save();
+      navigate(`#/credit/${al.dealId}`);
     });
     /* W-004 · what waits on the Team Lead, in the kit's alert (as drawn): one
        per request, oldest first, the count on the first. Not filtered by the
@@ -7849,6 +7860,22 @@ function noteWorking(stock, deal) {
   workingDeals(stock, deal.id).filter(o => dealAdvisor(o) !== dealAdvisor(deal)).forEach(o => pushAlert({ kind: "working", stock, dealId: o.id, advisor: dealAdvisor(o), title: "Also selected",
     body: `${dealAdvisor(deal)} also selected ${vehicleLabel(stock)} · ${stock}, for ${custOf(deal)}. Your deal for ${custOf(o)} stays open.` }));
 }
+/* KA-004 (CHROME-RULE §29, applying is not deciding): the lender's answer is its own event. Submit ends the application and
+   returns the deal to the board; the answer finds the advisor as a notice on Home, whose one action opens the answer on its
+   own screen. The notice says what went out, to whom and when, and what came back. The demo's lender answers at once, so
+   the notice is there when the board draws. A notice an earlier answer left unread on the same deal is replaced, never
+   stacked. An application sent again (LS-118) is answered the same way: the approval stands, and the notice says so */
+function announceDecision(d) {
+  const a = d && d.creditApp, c = d && Store.customer(d.customerId);
+  if (!a || !a.approved || !c) return;
+  (Store.s.alerts || []).forEach(x => { if (x.kind === "decision" && x.dealId === d.id) x.dismissed = true; });
+  const rm = rateMove(d), apr = a.approvedApr != null ? a.approvedApr : a.qualifiedApr, again = !!a.sentAgain;
+  /* a lease or a one-pay has no rate to name, as its answer screen names the terms agreed */
+  const rate = d.dealType === "lease" || d.dealType === "onepay" ? "" : ` at ${apr}% APR`;
+  const moved = rm && !rm.chose ? ` The payment moved${rm.agreedPay != null ? ` from ${money(rm.agreedPay)}` : ""} to ${money(rm.approvedPay)} a month.` : "";
+  pushAlert({ kind: "decision", dealId: d.id, advisor: dealAdvisor(d), title: `${a.lender} answered`,
+    body: `${c.first} ${c.last} · ${again ? "sent again" : "sent"} ${clockLabel(a.submitted)} · ${again ? "still approved" : "approved"}${rate}.${again ? moved : moved || (rate ? " That is the rate agreed." : "")}` });
+}
 /* the alerts for the advisor on this device — undismissed, on deals still on file */
 function myAlerts() { return (Store.s.alerts || []).filter(a => !a.dismissed && a.advisor === Store.s.advisor && Store.deal(a.dealId)); }
 /* the card's status line: Reserved outranks Working; nothing when neither */
@@ -11475,7 +11502,8 @@ route("credit/:id", ({ id }) => {
         "Send it again", () => {
           if (!requireSubjects()) return;
           if (!currentApproval(deal.creditApp)) { toast("The approval changed. Reopen the credit application."); return; }
-          resendApplication(deal); draw();
+          /* KA-004 (§29): sent again, the application ends as it does at Submit: back on the board, the answer a notice */
+          resendApplication(deal); announceDecision(deal); Store.save(); navigate("#/deals");
         }, "Not now");
     };
     const keepIt = $("#caKeepApproval");
@@ -11565,8 +11593,11 @@ route("credit/:id", ({ id }) => {
        lender's approval (§19a) */
     jacketReceive(deal, "creditapp", "app");
     jacketReceive(deal, "approval", "app");
-    deal.stage = "menu"; Store.save();
-    ui.mode = "approved"; draw();
+    deal.stage = "menu";
+    /* KA-004 (§29): applying is not deciding. The application ends here, at Submit: the deal goes back to the board and the
+       lender's answer finds the advisor there, as a notice that opens the answer on its own screen */
+    announceDecision(deal); Store.save();
+    navigate("#/deals");
   }
 
   /* ---------------- the frame ---------------- */
@@ -11574,7 +11605,7 @@ route("credit/:id", ({ id }) => {
     if (!ui.sheet) sheets.close();
     view().innerHTML = chShell({ template: "task", title: custName, closeId: "caClose", cls: cls || "" },
       content, dockHtml, { scrim: "caScrim", sheet: "caSheet" });
-    $("#caClose").onclick = () => navigate(`#/agreement/${deal.id}`);
+    $("#caClose").onclick = () => navigate(ui.mode === "approved" ? "#/deals" : `#/agreement/${deal.id}`);
     chWireRole(sheets, draw);
     $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; ui.channel = null; draw(); });
     $$("[data-buyers-open]").forEach(b => b.onclick = () => { ui.sheet = "buyers"; buyers = null; draw(); });
