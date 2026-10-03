@@ -1850,6 +1850,19 @@ function redirect(hash) {
    that counts entries the fallback itself adds, so a Back that pushed
    #/deals made the next Back believe there was history to pop. */
 let routerPrevHash = null, routerCurHash = null;
+/* D-PI1 (the owner's answer B of 2026-09-28; the kit's CHROME-RULE: a task's Close "closes the task and returns to the launching
+   screen"). The screen each screen was opened from, as the router saw the walk: an open records it, and a way back to the screen
+   that launched this one (its own Close, or the phone's Back) is not an open, so a launcher keeps its own launcher and a Close
+   pressed twice never loops. A screen reached by a reload or a typed address has none and goes where its Close always went.
+   A customer's own page launches nothing: the trainer's pill is a switch of side, and a Close that went back to John's page
+   would leave the advisor between two pages that each leave only by the other. */
+const launchedFrom = Object.create(null);
+const customerPage = (h) => /^#\/(clientlink|idverify)(\/|$)/.test(h) || /^#\/snapall\/[^/]+\/client(\/|$)/.test(h);
+function noteLaunch(from, to) {
+  if (!from || !to || from === to || launchedFrom[from] === to) return;
+  if (customerPage(from)) delete launchedFrom[to]; else launchedFrom[to] = from;
+}
+const launcherOf = (fallback) => launchedFrom[location.hash || "#/deals"] || fallback;
 function router() {
   /* KA-008: an entry New visit pushed for one of its steps while it lived at #/customers (history.state.ob, written by
      New visit's step() alone, which since the move writes it at NEW_VISIT) is New visit's, not the Customers list's:
@@ -1875,7 +1888,7 @@ function router() {
       if (changed) {
         /* arriving BY a redirect: the hash we are leaving was the alias, so
            keep whatever was behind it instead of recording the alias */
-        if (!routerReplacing) routerPrevHash = routerCurHash;
+        if (!routerReplacing) { routerPrevHash = routerCurHash; noteLaunch(routerPrevHash, hash); }
         routerCurHash = hash;
         routerReplacing = false;
       }
@@ -3922,7 +3935,8 @@ route("visit", () => {
          step; a form opened by a mission's door has no entry and resets */
       if (liveStep()) { history.back(); return; }
       if (st.mode === "found" || st.mode === "manual" || st.mode === "dupe" || st.mode === "whose") { stepBack(); return; }
-      const back = (mission && mission.back) || "#/deals";
+      /* the screen that opened it (D-PI1, PI-004); opened by a reload, Home */
+      const back = (mission && mission.back) || launcherOf("#/deals");
       clearMission();
       navigate(back);
     };
@@ -8069,9 +8083,8 @@ route("vehicles/:id", ({ id }) => {
   }
 
   function wire() {
-    /* Close returns to the visit — the discovery screen, whose next steps
-       sent the advisor here */
-    const close = $("#vsClose"); if (close) close.onclick = () => navigate(`#/discovery/${deal.id}`);
+    /* Close returns to the screen that opened it (D-PI1, PI-003); opened by a reload, to the visit's discovery screen */
+    const close = $("#vsClose"); if (close) close.onclick = () => navigate(launcherOf(`#/discovery/${deal.id}`));
     const more = $("#dqMore"); if (more) more.onclick = () => chMoreSheet(sheets);
     chWireRole(sheets, render);
     const search = $("#vsSearch");
@@ -10380,11 +10393,11 @@ route("desk/:id", ({ id }) => {
     /* Close leaves the screen it is on: from present mode it is Done and hands
        the phone back to the advisor, from the option grid it returns to the
        pencil the grid was opened from, and from the pencil itself it leaves
-       the task for the visit. A drill-down that could only go forward would
-       be a dead end (§23). */
+       the task for the screen that opened it (D-PI1, PI-001: Home, the test drive or the trade; opened by a reload, the
+       visit's discovery screen). A drill-down that could only go forward would be a dead end (§23). */
     $("#dkClose").onclick = () => {
       if (present || ui.mode === "options") { ui.mode = "pencil"; ui.sel = null; return draw(); }
-      navigate(`#/discovery/${deal.id}`);
+      navigate(launcherOf(`#/discovery/${deal.id}`));
     };
     chWireRole(sheets, draw);
     $$("[data-acc]").forEach(b => { if (b.dataset.acc && ui.open[b.dataset.acc] !== undefined) b.onclick = () => { ui.open[b.dataset.acc] = !ui.open[b.dataset.acc]; draw(); }; });
@@ -11605,7 +11618,9 @@ route("credit/:id", ({ id }) => {
     if (!ui.sheet) sheets.close();
     view().innerHTML = chShell({ template: "task", title: custName, closeId: "caClose", cls: cls || "" },
       content, dockHtml, { scrim: "caScrim", sheet: "caSheet" });
-    $("#caClose").onclick = () => navigate(ui.mode === "approved" ? "#/deals" : `#/agreement/${deal.id}`);
+    /* the answer is a task screen reached from the board (the notice, the deal's card, Jordan's Needs you) or from the Finance
+       Menu's Re-present row: its Close returns to the one that opened it (D-PI1); the application's own goes to the agreement */
+    $("#caClose").onclick = () => navigate(ui.mode === "approved" ? launcherOf("#/deals") : `#/agreement/${deal.id}`);
     chWireRole(sheets, draw);
     $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; ui.channel = null; draw(); });
     $$("[data-buyers-open]").forEach(b => b.onclick = () => { ui.sheet = "buyers"; buyers = null; draw(); });
@@ -14248,7 +14263,8 @@ function jacketView({ id, docId }) {
          <input type="file" accept="image/*" id="jkFile" hidden>`;
     mine = view().firstElementChild;
 
-    $("#jkClose").onclick = () => navigate("#/deals");
+    /* Close returns to the screen that opened it (D-PI1, PI-002); opened by a reload, to Home */
+    $("#jkClose").onclick = () => navigate(launcherOf("#/deals"));
     chFitDock(".rp-signoff");
     chWireRole(sheets, render);
     wire(custWaiting, addable, docs);
