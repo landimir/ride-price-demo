@@ -16214,7 +16214,7 @@ function snapAllView({ id, origin, customerId }) {
     const n = st.shots.length, aim = st.aim;
     /* the title, the camera and the count (KA-022, §5): no slogan under the title, and in the frame one short
        hint, not instructions. An aimed capture keeps its line: which document, and what is wrong with it. */
-    return `<div class="sa-capture">
+    return `<div class="sa-capture${clientSide ? " sa-capture--pill" : ""}">
       ${head(aim ? (aim.kind === "pages" ? "Add the missing page." : "Retake this document.") : clientSide ? "Add your documents" : "Capture documents", aim ? aim.title + " · " + aim.issue : "")}
       <div class="sa-finder">
         <i class="sa-corner sa-corner--tl"></i><i class="sa-corner sa-corner--tr"></i><i class="sa-corner sa-corner--bl"></i><i class="sa-corner sa-corner--br"></i>

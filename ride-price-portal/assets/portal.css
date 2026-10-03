@@ -1250,6 +1250,9 @@ body[data-screen="clientlink"] { background: #fff; }
    than a letterbox */
 .sa-capture { min-height: 100%; display: flex; flex-direction: column; }
 .sa-capture > * { flex: none; }
+/* John's capture page carries the trainer's pill after the column (40px and its 4px and 24px margins): the column leaves
+   room for it, so at rest the pill sits clear of the dock's note and not under the dock's edge (KA-009, W-080) */
+.sa-capture--pill { min-height: calc(100% - 68px); }
 /* camera chrome, not brand surface — but the dark is the kit's own deep navy
    now, not a near-black of our own (the owner's board) */
 .sa-finder {
