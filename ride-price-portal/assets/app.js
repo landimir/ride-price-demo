@@ -2129,6 +2129,41 @@ function chShell(opts, content, dockHtml, sheetIds) {
     <div class="rp-scrim" id="${ids.scrim}" hidden></div><div class="rp-sheet" id="${ids.sheet}" role="dialog" aria-modal="true" tabindex="-1" hidden></div>
   </div>`;
 }
+/* ============================================================
+   The customer link page: the kit's third template (CHROME-RULE §27, KA-009).
+
+   A secure link opens on the customer's own phone, outside the app. It is
+   neither Destination nor Task: no Close to a parent, no tab bar, no role
+   control, and one job. Its top is a slim bar with the wordmark, the store's
+   name and one Help. It draws no demo band: the owner's standing ruling is
+   that customer-facing pages draw none (RULES.md §3, PI-005), where the kit's
+   own frame of this template draws one that says "Nothing is sent from this
+   preview". That is a recorded departure from the kit, put to the owner as a
+   picture (KA-009). John's request page, his Snap All and his secure ID
+   upload all draw it, and the trainer's one way back, the "Demo · advisor
+   view" pill, stays inside the page.
+   ============================================================ */
+const chLinkBar = () => `<div class="rp-linkbar"><span class="rp-linkbar__mark">Ride Price</span><span class="rp-linkbar__store">${esc(RIDE_PRICE_DATA.dealership.name)}</span><button type="button" class="rp-linkbar__help" id="chLinkHelp">${rpGlyph("customers")}Help</button></div>`;
+/* opts.cls carries a screen modifier the caller owns, as chShell's does */
+function chLinkShell(opts, content, dockHtml, sheetIds) {
+  const ids = sheetIds || { scrim: "chScrim", sheet: "chSheet" };
+  /* a dock that carries a gate note is the kit's gate dock: opaque, so the page does not show through the note (rp-screen--gate) */
+  return `<div class="rp-screen rp-screen--task rp-screen--link${dockHtml ? (/rp-gatenote/.test(dockHtml) ? " rp-screen--gate" : "") : " rp-screen--nodock"}${opts && opts.cls ? " " + opts.cls : ""}">
+    ${chLinkBar()}
+    <main class="rp-page rp-stack">${content}</main>
+    ${dockHtml || ""}
+    <div class="rp-scrim" id="${ids.scrim}" hidden></div><div class="rp-sheet" id="${ids.sheet}" role="dialog" aria-modal="true" tabindex="-1" hidden></div>
+  </div>`;
+}
+/* the one help affordance (§27): who to ask and how to reach them */
+function chLinkHelp(sheets, advisor) {
+  const ds = RIDE_PRICE_DATA.dealership, tel = String(ds.phone).replace(/[^\d+]/g, "");
+  sheets.open(`${chSheetHead("Help")}
+    <div class="rp-group">
+      <div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(advisor || ds.advisor)}</span><span class="rp-row__sub">Client Advisor · ${esc(ds.name)}</span></span></div>
+      <a class="rp-row" href="tel:${esc(tel)}"><span class="rp-row__body"><span class="rp-row__title">Call ${esc(ds.phone)}</span></span><span class="rp-row__chevron" aria-hidden="true"></span></a>
+    </div>`);
+}
 /* one sheet opener for the kit's overlay: grab handle, then the screen's html */
 /* onClose, when given, runs after a sheet that was open is closed — by the
    scrim, Escape, a data-sheet-close control or close() itself — so a screen
@@ -4467,7 +4502,8 @@ route("idverify", () => {
   let surface = null, readGeneration = 0, faceGeneration = 0;
   /* the advisor the customer is told about: a co-buyer's or a driver's link joins a deal, and that deal's own advisor
      sees the customer (claude-c on #201 and #202); a new visit is the floor's advisor's, as finish() stamps */
-  const advisorFirst = () => { const d = s && s.mission ? Store.deal(s.mission.dealId) : null; return String((d ? d.advisor : Store.s.advisor) || "").split(" ")[0]; };
+  const advisorFull = () => { const d = s && s.mission ? Store.deal(s.mission.dealId) : null; return String((d ? d.advisor : Store.s.advisor) || ""); };
+  const advisorFirst = () => advisorFull().split(" ")[0];
   const live = () => location.hash === '#/idverify' && Store.s.idSession === s && surface && document.contains(surface);
   function saveSession(update) {
     if (!live()) return false;
@@ -4486,8 +4522,14 @@ route("idverify", () => {
     return true;
   }
 
-  const shell = (content) => chShell({ template: "task", title: "Identity upload", banner: false /* PI-005 (docs/workflows/portal-interaction): a customer's page draws no dealership band */ }, content);
-  const heroHtml = (eyebrow, title) => `<div><div class="rp-section">${eyebrow}</div><h1 class="rp-title">${title}</h1></div>`;
+  /* KA-009: the customer's secure upload is the kit's customer link page (§27): the identity bar with a Help and no Close; the
+     trainer's one way back is the pill the customer's other pages carry. Its title says where she is, and one counter says how far
+     (the three steps: license, identity photo, address) */
+  const sheets = chSheetOpener("chScrim", "chSheet");
+  const shell = (content) => chLinkShell({}, content);
+  const heroHtml = (eyebrow, title, step) => `<h1 class="rp-lead">${title}</h1><p class="rp-sub">${eyebrow}</p>${step ? `<div class="rp-prog"><div class="rp-prog__bar" role="progressbar" aria-valuemin="0" aria-valuemax="3" aria-valuenow="${Math.min(step - 1, 3)}" aria-label="Steps done"><i style="width:${Math.min(step - 1, 3) * 100 / 3}%"></i></div><span class="rp-prog__label">${step > 3 ? "3 of 3 done" : "Step " + step + " of 3"}</span></div>` : ""}`;
+  /* what the dock says first: nothing is sent until she acts (§27) */
+  const gate = (note) => `<div class="rp-gatenote">${note}</div>`;
   /* phase 2 · the customer's own page answers through the same pretend
      servers (the tester's "License reading" and "Identity check" switches),
      in the customer's words: what happened, that the photo is kept, and the
@@ -4515,15 +4557,17 @@ route("idverify", () => {
   function mount() {
     surface = view().firstElementChild;
     const dock = $('.rp-dock', surface);
-    if (dock) { surface.classList.remove('rp-screen--nodock'); surface.appendChild(dock); }
+    if (dock) { surface.classList.remove('rp-screen--nodock'); surface.classList.toggle('rp-screen--gate', !!$('.rp-gatenote', dock)); surface.appendChild(dock); }
     const change = $('#obChangeLicense', surface);
     if (change && dock) dock.appendChild(change);
-    $('#chClose', surface).onclick = () => navigate(NEW_VISIT);
+    $('#chLinkHelp', surface).onclick = () => chLinkHelp(sheets, advisorFull());
+    $('.rp-page', surface).insertAdjacentHTML('beforeend', `<button type="button" class="dr-demoexit" id="idvExit">Demo · advisor view</button>`);
+    $('#idvExit', surface).onclick = () => navigate(NEW_VISIT);
     chFitDock();
   }
 
   if (s && scannerSecureSessionInvalid(s)) {
-    view().innerHTML = shell(`${heroHtml("Secure identity upload", "Saved upload unavailable", "The saved upload is incomplete. Discard it before starting again.")}
+    view().innerHTML = shell(`${heroHtml("Secure identity upload", "Saved upload unavailable")}
       <div class="rp-dock"><button type="button" class="rp-primary" id="obDiscardInvalidUpload">Discard saved upload</button></div>`);
     $("#obDiscardInvalidUpload").onclick = () => {
       const previous = Store.s.idSession; Store.s.idSession = null;
@@ -4540,8 +4584,8 @@ route("idverify", () => {
   }
 
   if (!s) {
-    view().innerHTML = shell(`${heroHtml("Secure identity upload", "No active session", "Ask the advisor to send a new secure link from the customer resolver.")}
-      <div class="rp-dock"><a class="rp-primary" href="${esc(NEW_VISIT)}">Back to Ride Price</a></div>`);
+    view().innerHTML = shell(`${heroHtml("Secure identity upload", "No active session")}
+      <p class="rp-count">Ask your advisor to send a new link.</p>`);
     mount();
     return;
   }
@@ -4556,7 +4600,7 @@ route("idverify", () => {
 
   function renderUpload() {
     view().innerHTML = shell(`
-      ${heroHtml("Secure identity upload", "Upload your driver&rsquo;s license", "Choose a printed training license photo, or take a new one. This demo reads it on this device.")}
+      ${heroHtml("Secure identity upload", "Upload your driver&rsquo;s license", 1)}
       <div class="rp-capture">
         <div class="rp-capture__frame" aria-hidden="true"><div class="rp-capture__barcode"><i></i></div></div>
         <div class="rp-capture__hint">License photo</div>
@@ -4564,6 +4608,7 @@ route("idverify", () => {
       </div>
       <div class="rp-empty">Training samples only. Photos are read on this device and discarded.</div>
       <div class="rp-dock">
+        ${gate("Nothing is sent until you choose a photo")}
         <button type="button" class="rp-primary" data-upbtn="library">Choose license photo</button>
         <button type="button" class="rp-link" data-upbtn="camera">Take a photo</button>
         <input type="file" accept="image/*" data-upcap data-upsrc="library" hidden>
@@ -4614,10 +4659,11 @@ route("idverify", () => {
   function renderFace() {
     const p = s.persona;
     view().innerHTML = shell(`
-      ${heroHtml("Identity verification", "Confirm it&rsquo;s you", "Take a quick photo so the dealership can confirm you match the license that was uploaded.")}
+      ${heroHtml("Identity verification", "Confirm it&rsquo;s you", 2)}
       <div class="rp-notice">License read · ${esc(p.first + " " + p.last)}</div>
       <div class="rp-empty"><strong>Identity photo</strong>Demo only. The photo is checked on this device and discarded.</div>
       <div class="rp-dock">
+        ${gate("Nothing is sent until you take a photo")}
         <button type="button" class="rp-primary" data-facebtn="camera">Take identity photo</button>
         <button type="button" class="rp-link" data-facebtn="library">Choose a photo</button>
         <input type="file" accept="image/*" capture="user" data-facecap data-facesrc="camera" hidden>
@@ -4687,16 +4733,16 @@ route("idverify", () => {
     const fmt = (a) => `${a.address}, ${a.city}, ${a.state} ${a.zip}`;
     const choose = (a) => { if (!scannerHasCompleteAddress(a)) return; const now = new Date().toISOString(); if (saveSession({ addressChoice: a, addressFrom: crm && a === crm ? "record" : "license", addressConfirmedAt: now, doneAt: now })) { render(); window.scrollTo(0, 0); } };
     view().innerHTML = shell(`
-      ${heroHtml("Registration", "Confirm registration address", "This address is used for vehicle registration and deal calculations — confirming it here means nobody asks you to type it again.")}
+      ${heroHtml("Registration", "Confirm registration address", 3)}
       ${s.faceNoMatch ? noMatchNotice() : ""}
       ${crmComplete && !same ? `
       <div class="rp-notice rp-notice--conflict">The address on the license differs from the one on file.</div>
       <div class="rp-group">
         <button type="button" class="rp-row" data-pick="lic"><span class="rp-row__body"><span class="rp-row__title">${esc(fmt(lic))}</span><span class="rp-row__sub">From the license just uploaded</span></span><span class="rp-row__chevron"></span></button>
         <button type="button" class="rp-row" data-pick="crm"><span class="rp-row__body"><span class="rp-row__title">${esc(fmt(crm))}</span><span class="rp-row__sub">Already on the Ride Price record</span></span><span class="rp-row__chevron"></span></button>
-      </div><div class="rp-dock"></div>` : `
+      </div><div class="rp-dock">${gate("Nothing is sent until you confirm")}</div>` : `
       <div class="rp-kv"><div class="rp-kv__head">Registration address</div><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(fmt(lic))}</span><span class="rp-row__sub">${same ? "Matches record" : "From the uploaded license"}</span></span></div></div>
-      <div class="rp-dock"><button type="button" class="rp-primary" data-pick="lic">Use this address</button></div>`}
+      <div class="rp-dock">${gate("Nothing is sent until you confirm")}<button type="button" class="rp-primary" data-pick="lic">Use this address</button></div>`}
       <button type="button" class="rp-link" id="obChangeLicense">Use a different license photo</button>`);
     $$("[data-pick]").forEach(b => b.onclick = () => choose(b.dataset.pick === "crm" ? crm : lic));
     $("#obChangeLicense").onclick = resetLicenseUpload;
@@ -4704,13 +4750,12 @@ route("idverify", () => {
 
   function renderDoneView() {
     view().innerHTML = shell(`
-      ${heroHtml("Customer identity", "You&rsquo;re all set")}
+      ${heroHtml("Customer identity", "You&rsquo;re all set", 4)}
       <div class="rp-notice rp-notice--success">Training details saved on this device</div>
       ${s.faceNoMatch ? noMatchNotice() : ""}
       <div class="rp-group">
         ${[s.faceNoMatch ? ["Identity photo", "To check in person", false] : ["Identity photo", "Captured", true], ["License photo", "Received", true], ["Second license side", "Pending", false], ["Registration address", "Confirmed", true]].map(([title, state, ready]) => `<div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(title)}</span></span><span class="rp-status${ready ? " rp-status--positive" : ""}">${esc(state)}</span></div>`).join("")}
-      </div>
-      <div class="rp-dock"><a class="rp-primary" href="${esc(NEW_VISIT)}">Return to advisor view</a></div>`);
+      </div>`);
   }
 
   render();
@@ -14884,6 +14929,18 @@ route("clientlink/:id/:start", ({ id, start }) => drClientLink(id, start));
 
 route("clientlink/:id/:start/:customerId", ({ id, start, customerId }) => drClientLink(id, start, customerId));
 
+/* the request's own number (kit §16, §27): a link's request exists before F&I, so it never borrows the deal's. The kit's
+   seed (docs/kit/SEED-DATA.md, "Customer document upload") has John's request at 7731; another deal's, or another buyer's
+   on John's, gets four digits worked out from its ids, so a reload and a second phone read one number and nothing is
+   written to get it */
+function requestNo(deal, customerId) {
+  const id = customerId || deal.customerId;
+  if (deal.id === "d-demo1" && id === deal.customerId) return 7731;
+  let h = 7;
+  for (const ch of `${deal.id}|${id}`) h = (h * 31 + ch.charCodeAt(0)) % 9000;
+  return 1000 + h === 7731 ? 7732 : 1000 + h;
+}
+
 /* phase 2e · a client link's upload state, one per link (deal and recipient): see drClientLink */
 const CLIENT_LINKS = new Map();
 function drClientLink(id, startScreen, recipientId) {
@@ -14994,9 +15051,15 @@ function drClientLink(id, startScreen, recipientId) {
   document.body.dataset.screen = "clientlink";
   document.body.dataset.canvas = "kit";
   const sheets = chSheetOpener("cuScrim", "cuSheet", () => { if (st.screen === "detail") st.screen = "landing"; });
-  const shell = (title, content, actions = "") => chShell({template:"task",title,closeId:"cuClose",closeLabel:"Demo advisor view",banner:false /* PI-005 (docs/workflows/portal-interaction): a customer's page draws no dealership band; the .dr-demoexit below stays the trainer's marked way back */},content,actions ? `<div class="rp-dock">${actions}</div>` : "",{scrim:"cuScrim",sheet:"cuSheet"});
+  /* KA-009: John's pages are the kit's customer link page (§27), not a task with a Close; the trainer's way back is the .dr-demoexit pill below */
+  const shell = (content, actions = "") => chLinkShell({}, content, actions ? `<div class="rp-dock">${actions}</div>` : "", {scrim:"cuScrim",sheet:"cuSheet"});
+  const reqNo = requestNo(deal, customerId);
+  const advisorName = () => String(deal.advisor || Store.s.advisor || ds.advisor || "");
+  /* the page's title says where the customer is, and the request's own number sits under it (§27, §16) */
+  const lead = (title, sub = "") => `<h1 class="rp-lead">${esc(title)}</h1><p class="rp-sub">Request ${reqNo}${sub ? " · " + esc(sub) : ""}</p>`;
+  /* what the button under it is waiting on, the kit's gate note: every screen says plainly when something is sent */
+  const gate = (note, buttons) => `<div class="rp-gatenote">${esc(note)}</div>${buttons}`;
   const action = (attrs, label, primary = false) => `<button type="button" class="${primary ? "rp-primary" : "rp-link"}" ${attrs}>${label}</button>`;
-  const context = () => `<p class="rp-section">${esc(cst.first)} ${esc(cst.last)} · Request #${esc(deal.dealNo || "")}</p>`;
   /* W-040 (the owner's answer of 2026-09-24, as decision-w040-other-income.png
      drew it): "Other income type" said "noted" in a toast and recorded nothing,
      so the customer waited for a request that never came. The answer is kept on
@@ -15020,20 +15083,41 @@ function drClientLink(id, startScreen, recipientId) {
      opens the native capture, the simulated check answers on the spot.
      Legacy "received" records (pre-2026-08-18 saves) still render sanely. */
 
+  /* the pages a two-page document has and still lacks, as the kit's chips (§19a, §27): a license front the store took at
+     the desk is "on file" and the page asks for the back only; a side or a stub the customer added reads "added" */
+  function pageChips(docId, r) {
+    const m = clientMeta(docId);
+    if (!r || r.otherIncomeAt || !(m.minPages > 1)) return "";
+    const n = r.pages || 0, license = docId === "form-license";
+    const have = license ? [!!(r.sides && r.sides.front), !!(r.sides && r.sides.back)] : [n > 0, n > 1];
+    if (!have.some(Boolean)) return "";
+    const names = license ? ["Front", "Back"] : ["Stub 1", "Stub 2"];
+    const onFile = license && r.sides && r.sides.front && r.sides.front.via === "advisor";
+    return `<div class="rp-ask-item__pages">${have.map((on, i) => `<span class="rp-page-chip ${on ? "rp-page-chip--done" : "rp-page-chip--needed"}">${on ? rpGlyph("check") : ""}${names[i]}${on ? (i === 0 && onFile ? " on file" : " added") : " needed"}</span>`).join("")}</div>`;
+  }
+
+  /* KA-009: a document is one of the kit's ask-items (§27): its name and what to bring, one control at its right, the pages it
+     has and lacks as chips, and a reason said in the page's own words. The customer reads "Ready" and "Received for review",
+     never the store's "Verified" or "In the Jacket" */
   function clientRowHtml(docId) {
     const d=docMeta(docId),m=clientMeta(docId),state=stateOf(docId),r=rec(docId);
     /* an answer after a refused page is the newer of the two (W-040, claude-c on #201): the row does not say the refusal */
-    const accepted=state==="accepted",blocked=state==="rejected"&&!(r&&r.otherIncomeAt);
-    /* the insurance card taken with its exception: accepted, in the attention colour, with the reason as its line (KA-003) */
-    const exc=accepted&&r&&r.exception;
-    const status=exc?r.exception:accepted?(docId==="form-license"?"Reviewed":"Verified"):state==="received"?"Sent — being reviewed":blocked?(r.rejectedReason||"Needs a new photo"):"";
-    return `<div class="rp-row">
-      <span class="rp-tile" aria-hidden="true">${rpGlyph(docId==="form-license"?"license":"document")}</span>
-      <button type="button" class="rp-row__body customer-upload-open" ${accepted?"disabled":`data-detail="${esc(docId)}"${st.upBusy ? " disabled" : ""}`}>
-        <span class="rp-row__title">${esc(d.label)}</span><span class="rp-row__sub">${esc(m.sub||"")}</span>
-        ${status?`<span class="rp-row__sub">${esc(status)}</span>`:""}
-      </button>
-      ${accepted?`<span class="rp-status ${exc?"rp-status--warn":"rp-status--positive"}">${exc?"Accepted":docId==="form-license"?"Reviewed":"Verified"}</span>`:`<button type="button" class="rp-row__action ch-hit" data-trigger-upload="${esc(docId)}" aria-controls="drUpl-${esc(docId)}"${st.upBusy ? " disabled" : ""}>${blocked?"Retake":state==="received"?"Replace":"Add"}</button><input id="drUpl-${esc(docId)}" type="file" accept="image/*" capture="environment" data-upload-input="${esc(docId)}" hidden>`}
+    const accepted=state==="accepted",received=state==="received",blocked=state==="rejected"&&!(r&&r.otherIncomeAt);
+    /* a missing page is said by the chips ("Back needed"); any other refusal is said in words */
+    const missingPage=!!(m.missingPage&&r&&r.rejectedReason===m.missingPage.title);
+    const refusal=blocked&&!missingPage?`<div class="rp-alert-inline rp-alert-inline--bad"><strong>${esc((r&&r.rejectedReason)||"Needs a new photo")}</strong>Take a new photo.</div>`:"";
+    /* the insurance card taken with its exception: ready, the reason in the attention colour under it (KA-003) */
+    const exc=accepted&&r&&r.exception?String(r.exception).split(". "):null;
+    const note=exc?`<div class="rp-alert-inline"><strong>${esc(exc.length>1?exc[0]:"Ready with a note")}</strong>${esc(exc.length>1?exc.slice(1).join(". "):exc[0])}</div>`:"";
+    const off=st.upBusy?" disabled":"";
+    return `<div class="rp-ask-item" data-doc="${esc(docId)}">
+      <div class="rp-ask-item__head">
+        <span class="rp-tile" aria-hidden="true">${rpGlyph(docId==="form-license"?"license":"document")}</span>
+        <button type="button" class="rp-row__body customer-upload-open" ${accepted?"disabled":`data-detail="${esc(docId)}"${off}`}>
+          <span class="rp-ask-item__name">${esc(d.label)}</span><span class="rp-ask-item__why">${esc(received?"Received for review":m.sub||"")}</span>
+        </button>
+        ${accepted?`<span class="rp-ask-item__act rp-ask-item__act--done">${rpGlyph("check")}Ready</span>`:`<button type="button" class="rp-ask-item__act" data-trigger-upload="${esc(docId)}" aria-controls="drUpl-${esc(docId)}"${off}>${blocked?"Retake":received?"Replace":"Add"}</button><input id="drUpl-${esc(docId)}" type="file" accept="image/*" capture="environment" data-upload-input="${esc(docId)}" hidden>`}
+      </div>${pageChips(docId,r)}${refusal}${note}
     </div>`;
   }
 
@@ -15053,7 +15137,7 @@ function drClientLink(id, startScreen, recipientId) {
     /* the trainer's one clearly-marked way back rides INSIDE the kit page, as on Snap All (owner prototype 2026-08-26; ui-context: ".dr-demoexit moved inside .rp-page") — the top-bar X alone is an unmarked control on a customer's page */
     $(".rp-page",host)?.insertAdjacentHTML("beforeend",`<button type="button" class="dr-demoexit" data-dbg="advisor">Demo · advisor view</button>`);
     drWireDebug(deal);
-    $("#cuClose").onclick=()=>navigate("#/jacket/"+deal.id);
+    $("#chLinkHelp").onclick=()=>chLinkHelp(sheets,advisorName());
     drPinchZoom($(".customer-upload-preview"),st,render);
     chFitDock();
   }
@@ -15090,7 +15174,7 @@ function drClientLink(id, startScreen, recipientId) {
   function reviewScreen() {
     const urls=photos(st.docId),pages=Math.max(1,urls.length);st.page=Math.min(st.page,pages-1);const u=urls[st.page];
     const chip=(attrs,label,disabled=false)=>`<button type="button" class="rp-chip" ${attrs} ${disabled?"disabled":""}>${label}</button>`;
-    return shell("Review capture",`${context()}${upHtml()}<h1 class="rp-title">${esc(docMeta(st.docId).label)}</h1>
+    return shell(`${lead(docMeta(st.docId).label)}${upHtml()}
       <div class="rp-capture"><div class="customer-upload-preview">${u?`<img class="customer-upload-image" src="${esc(u)}" alt="Captured page ${st.page+1}" style="transform:scale(${st.zoom})">`:`<div class="rp-empty"><strong>Preview unavailable</strong>PDF preview unavailable in this demo.</div>`}</div></div>
       <p class="rp-section">Page ${st.page+1} of ${pages}</p>
       <div class="rp-chiprow" aria-label="Document pages">${chip('data-page="-" aria-label="Previous page"','Previous',st.page===0)}${chip('data-page="+" aria-label="Next page"','Next',st.page>=pages-1)}</div>
@@ -15098,7 +15182,7 @@ function drClientLink(id, startScreen, recipientId) {
       <div class="rp-group"><button type="button" class="rp-row" data-retake><span class="rp-row__title">Retake this page</span></button><button type="button" class="rp-row" data-add-page><span class="rp-row__title">Add page</span></button></div>
       <div class="rp-chiprow" aria-label="Page order">${chip('data-move="-"','Move earlier',st.page===0)}${chip('data-move="+"','Move later',st.page>=pages-1)}</div>
       ${action('data-del-page '+(urls.length<=1?'disabled':''),'Delete this page')}
-      <input type="file" accept="image/*" capture="environment" id="drCapMore" hidden>`,action('data-use',pages>1?`Done (${pages})`:"Use this",true)+action('data-back-detail','Back to documents'));
+      <input type="file" accept="image/*" capture="environment" id="drCapMore" hidden>`,gate("Not sent yet",action('data-use',pages>1?`Done (${pages})`:"Use this",true)+action('data-back-detail','Back to documents')));
   }
 
 
@@ -15106,16 +15190,21 @@ function drClientLink(id, startScreen, recipientId) {
 
 
   function smsScreen() {
-    const first=(Store.s.advisor||"").split(" ")[0],n=queueIds().length;
-    return shell("Document request",`${context()}<h1 class="rp-title">${esc(ds.name)}</h1><div class="rp-group"><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(first)} · Sales Advisor</span><span class="rp-row__sub">${esc(ds.phone)}</span></span></div><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">Your document request</span><span class="rp-row__sub">To finish paperwork on your ${esc(drVehicleShort(v))}, please add your ${n} required item${n===1?"":"s"}.</span></span></div></div>`,action('data-open-client','Open document request',true));
+    const n=queueIds().length;
+    return shell(`${lead("Your document request")}
+      <div class="rp-advisor"><span class="rp-row__body"><span class="rp-advisor__name">${esc(advisorName())}</span><span class="rp-advisor__role">Client Advisor · ${esc(ds.phone)}</span></span></div>
+      <p class="rp-count">To finish paperwork on your ${esc(drVehicleShort(v))}, please add your ${n} required item${n===1?"":"s"}.</p>`,
+      gate("Nothing is sent until you add a photo",action('data-open-client','Open your documents',true)));
   }
 
 
 
   function landingScreen() {
-    const sent=doneCount(),all=queueIds().length,pct=all?Math.round(sent/all*100):0;
+    const ids=queueIds(),sent=doneCount(),all=ids.length,pct=all?Math.round(sent/all*100):0;
     const bottom=sent===all&&all?action('data-receipt','Submit documents',true):`${clientQueue(deal).length?action('data-snapall','Add documents',true):""}${sent?action('data-receipt',`Submit what's ready (${sent}/${all})`):""}${action('data-save-later','Save &amp; finish later')}`;
-    return shell("Your documents",`${context()}<h1 class="rp-title">Upload your documents</h1><p class="rp-section">${sent} of ${all} ready</p><div class="rp-progress" role="progressbar" aria-valuemin="0" aria-valuemax="${all}" aria-valuenow="${sent}" aria-label="Documents ready"><div class="rp-progress__bar" style="width:${pct}%"></div></div>${upHtml()}<h2 class="rp-section">Requested documents</h2><div class="rp-group">${queueIds().map(clientRowHtml).join("")}</div><p class="rp-section">Training demo · files stay on this device.</p>`,bottom);
+    return shell(`${lead("Your documents",all?`${all} item${all===1?"":"s"}`:"")}
+      ${all?`<div class="rp-prog"><div class="rp-prog__bar" role="progressbar" aria-valuemin="0" aria-valuemax="${all}" aria-valuenow="${sent}" aria-label="Documents ready"><i style="width:${pct}%"></i></div><span class="rp-prog__label">${sent} of ${all} ready</span></div>`:`<div class="rp-empty"><strong>Nothing is needed from you</strong>Your advisor will send a new request if that changes.</div>`}
+      ${upHtml()}${ids.map(clientRowHtml).join("")}<p class="rp-section">Training demo · files stay on this device.</p>`,gate("A photo is sent as soon as you add it",bottom));
   }
 
 
@@ -15128,7 +15217,7 @@ function drClientLink(id, startScreen, recipientId) {
     const ids = queueIds();
     const sent = ids.filter(q => ["accepted", "received"].includes(stateOf(q)));
     const missing = ids.filter(q => !["accepted", "received"].includes(stateOf(q)));
-    return shell("Saved for later", `${context()}<h1 class="rp-title">Your progress is saved</h1>
+    return shell(`${lead("Your progress is saved")}
       <div class="rp-group">
         <div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${sent.length} of ${ids.length} sent to Ride Price</span><span class="rp-row__sub">${sent.length ? esc(sent.map(q => docMeta(q).label).join(" · ")) : "Nothing sent yet"}</span></span></div>
         ${missing.length ? `<div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${missing.length} still needed</span><span class="rp-row__sub">${esc(missing.map(q => docMeta(q).label).join(" · "))}</span></span></div>` : ""}
@@ -15137,12 +15226,14 @@ function drClientLink(id, startScreen, recipientId) {
       <p class="rp-count">Reopen this same link to finish. You can close this page now.</p>`,
       action("data-keep-going", "Keep going", true));
   }
+  /* the receipt (§27, the kit's seed): what was received, with its time, and in the kit's own words that received is not
+     approved. The customer's page never says "In the Jacket" or "Verified": those are the store's */
   function receiptScreen() {
-    const okIds=queueIds().filter(q=>stateOf(q)==="accepted"),pending=queueIds().filter(q=>stateOf(q)==="received"),missing=queueIds().filter(q=>!["accepted","received"].includes(stateOf(q)));
-    return shell("Document receipt",`${context()}<h1 class="rp-title">Your documents</h1>
-      ${okIds.length?`<div class="rp-group">${okIds.map(q=>{const jst=jacketState(deal,q);return `<div class="rp-row"><span class="rp-tile" aria-hidden="true">${rpGlyph(q==="form-license"?"license":"document")}</span><span class="rp-row__body"><span class="rp-row__title">${esc(docMeta(q).label)}</span><span class="rp-row__sub">${rec(q)?.exception?"Accepted · "+esc(rec(q).exception):(q==="form-license"?"Reviewed":"Verified")+" · "+esc(drStamp(q==="form-license"?rec(q)?.review?.reviewedAt:jst?.at)||"just now")}</span></span><span class="rp-status rp-status--positive">${jst?"In the Jacket":"Reviewed"}</span></div>`}).join("")}</div>`:`<div class="rp-notice">No documents have been filed yet.</div>`}
-      ${pending.length?`<div class="rp-group"><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${pending.length} awaiting review</span><span class="rp-row__sub">${pending.map(q=>esc(docMeta(q).label)).join(" · ")}</span></span></div></div>`:""}
-      ${missing.length?`<div class="rp-group"><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${missing.length} still needed</span><span class="rp-row__sub">${missing.map(q=>esc(docMeta(q).label)).join(" · ")}</span></span></div></div>`:pending.length?"":`<div class="rp-notice">All ${okIds.length} requested items are reviewed. ${okIds.every(q=>jacketState(deal,q))?"They are already in the Deal Jacket.":"The deal's remaining buyer documents still need review."}</div>`}`,action('data-back-landing',missing.length?"Back to upload":"Back to status",true));
+    const ids=queueIds(),got=ids.filter(q=>["accepted","received"].includes(stateOf(q))),missing=ids.filter(q=>!["accepted","received"].includes(stateOf(q)));
+    const when=q=>drStamp(rec(q)?.receivedAt)||"just now";
+    return shell(`${got.length?`<div class="rp-receipt"><span class="rp-receipt__mark">${rpGlyph("check")}</span><h1 class="rp-receipt__title">Received for review</h1><p class="rp-sub">That is not the same as approved.</p><p class="rp-sub">Request ${reqNo}</p></div>`:`${lead("Nothing sent yet")}`}
+      ${got.length?`<div class="rp-group">${got.map(q=>`<div class="rp-row"><span class="rp-tile" aria-hidden="true">${rpGlyph(q==="form-license"?"license":"document")}</span><span class="rp-row__body"><span class="rp-row__title">${esc(docMeta(q).label)}</span><span class="rp-row__sub">Received · ${esc(when(q))}</span>${rec(q)?.exception?`<span class="rp-row__sub">${esc(rec(q).exception)}</span>`:""}</span></div>`).join("")}</div>`:""}
+      ${missing.length?`<div class="rp-group"><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${missing.length} still needed</span><span class="rp-row__sub">${missing.map(q=>esc(docMeta(q).label)).join(" · ")}</span></span></div></div>`:""}`,action('data-back-landing',missing.length?"Back to upload":"Back to your documents",true));
   }
 
 
@@ -15187,7 +15278,6 @@ function drClientLink(id, startScreen, recipientId) {
       completedDraft?.owned.forEach(u => { if (!clientPhotos(deal.id,docId,customerId).includes(u)) { try { URL.revokeObjectURL(u); } catch {} } });
       drafts.delete(docId); recipientContext = licenseCaptureContext(deal, customerId);
       if (st.docId === docId) st.draftVia = null;
-      toast(result.ok ? (result.reviewPending ? "License received — awaiting review." : result.exception ? "✓ Added to the Deal Jacket." : "✓ Verified instantly and added to the Deal Jacket.") : "Upload blocked: " + result.issue);
       render();
     });
   }
@@ -15240,7 +15330,6 @@ function drClientLink(id, startScreen, recipientId) {
         from => drStampSides(deal, docId, drSidesFrom(deal, docId, from, customerId), "customer", false, customerId), customerId, context, true), (result) => {
         discardDraft(docId); if(st.docId === docId) st.draftVia = null;
         recipientContext = licenseCaptureContext(deal, customerId);
-        toast(result.ok ? (result.reviewPending ? "License received — awaiting review." : result.exception ? "✓ Added to the Deal Jacket." : "✓ Verified instantly and added to the Deal Jacket.") : "Upload blocked: " + result.issue);
         render();
       });
     });
@@ -15260,7 +15349,6 @@ function drClientLink(id, startScreen, recipientId) {
         const rejected = drRejectUnreadable(deal, st.docId, customerId, recipientContext);
         if (!rejected) return;
         recipientContext = licenseCaptureContext(deal, customerId);
-        toast("Upload blocked: " + DR_UNREADABLE);
         st.screen = "landing"; render(); return;
       }
       const inp = $(capIds[st.source]);
@@ -16106,7 +16194,7 @@ function snapAllView({ id, origin, customerId }) {
        leftovers stood here until mutation testing showed nothing could ever
        reach it; snapall2 asserts the invariant instead. */
     st.shots = []; /* the kept URLs now belong to the documents */
-    toast(st.results.some(r => r.id === "form-license" && r.status === "received") ? "Batch saved. License review pending." : "Batch saved.");
+    if (!clientSide) toast(st.results.some(r => r.id === "form-license" && r.status === "received") ? "Batch saved. License review pending." : "Batch saved.");
     navigate(backHash);
     return true;
   }
@@ -16116,15 +16204,18 @@ function snapAllView({ id, origin, customerId }) {
   /* the page names the work, since the top bar is the customer's name and nothing else (KA-021, §4). It used to
      carry "Deal #—" before the deal had a number, and the name the top bar now shows. */
   const workHead = () => `<div class="rp-eyebrow">Snap All</div>`;
+  /* the customer's Snap All is the kit's customer link page (KA-009, §27): its title is the link page's lead and the request's own
+     number sits under it, where the advisor's is the task title under the work's name */
+  const head = (title, sub) => clientSide
+    ? `<h1 class="rp-lead">${esc(title)}</h1><p class="rp-sub">${esc(sub || "Request " + requestNo(deal, subjectId))}</p>`
+    : `${workHead()}<h1 class="rp-title">${esc(title)}</h1>${sub ? `<p class="rp-count">${esc(sub)}</p>` : ""}`;
 
   function captureScreen() {
     const n = st.shots.length, aim = st.aim;
     /* the title, the camera and the count (KA-022, §5): no slogan under the title, and in the frame one short
        hint, not instructions. An aimed capture keeps its line: which document, and what is wrong with it. */
     return `<div class="sa-capture">
-      ${workHead()}
-      <h1 class="rp-title">${aim ? (aim.kind === "pages" ? "Add the missing page." : "Retake this document.") : "Capture documents"}</h1>
-      ${aim ? `<p class="rp-count">${esc(aim.title + " · " + aim.issue)}</p>` : ""}
+      ${head(aim ? (aim.kind === "pages" ? "Add the missing page." : "Retake this document.") : clientSide ? "Add your documents" : "Capture documents", aim ? aim.title + " · " + aim.issue : "")}
       <div class="sa-finder">
         <i class="sa-corner sa-corner--tl"></i><i class="sa-corner sa-corner--tr"></i><i class="sa-corner sa-corner--bl"></i><i class="sa-corner sa-corner--br"></i>
         ${saIcon("camera", "sa-finder__ico")}
@@ -16147,7 +16238,7 @@ function snapAllView({ id, origin, customerId }) {
   function sortingScreen() {
     return `<div class="sa-sorting" id="saSorting">
       <span class="sa-spinner" aria-hidden="true"></span>
-      <h1 class="rp-title">Sorting your batch.</h1>
+      <h1 class="${clientSide ? "rp-lead" : "rp-title"}">Sorting your batch.</h1>
       <span class="rp-status">${plural(st.shots.length, "photo", "photos")}</span>
     </div>`;
   }
@@ -16162,16 +16253,16 @@ function snapAllView({ id, origin, customerId }) {
           <span class="rp-row__title">${esc(r.title)}</span>
           <p class="sa-doc__meta">${esc(meta)}</p>
           ${needs ? `<p class="sa-doc__issue">${saIcon("alert", "")}${esc(r.issue)}</p>`
-                  : r.override ? `<p class="sa-doc__meta">${esc(r.detail)}</p>`
+                  : r.override ? `<p class="sa-doc__meta">${esc(clientSide ? r.issue : r.detail)}</p>`
                   : r.detail ? `<p class="sa-doc__meta">${esc(r.detail)}</p>` : ""}
         </div></div>
       ${needs ? `<div class="sa-doc__acts">
           <button type="button" class="sa-act sa-act--fix ch-hit" data-sa-retake="${esc(r.id)}"${st.sending ? " disabled" : ""}>${saIcon(r.kind === "pages" ? "plus" : "camera", "")}${esc(r.fix || "Retake")}</button>
           ${r.id === "form-license" ? "" : `<button type="button" class="sa-act ch-hit" data-sa-accept="${esc(r.id)}"${st.sending ? " disabled" : ""}>Accept anyway</button>`}
         </div>`
-        : r.status === "received" ? `<div class="sa-doc__status"><span class="rp-status rp-status--warn">Review pending</span></div>`
+        : r.status === "received" ? `<div class="sa-doc__status"><span class="rp-status ${clientSide ? "rp-status--positive" : "rp-status--warn"}">${clientSide ? "Ready" : "Review pending"}</span></div>`
         : r.status === "verified" ? `<div class="sa-doc__status">
-          <span class="rp-status ${r.override ? "rp-status--warn" : "rp-status--positive"}">${r.override ? "Exception accepted" : "Verified"}</span>
+          <span class="rp-status ${r.override ? "rp-status--warn" : "rp-status--positive"}">${r.override ? (clientSide ? "Ready with a note" : "Exception accepted") : clientSide ? "Ready" : "Verified"}</span>
           ${r.override ? `<button type="button" class="sa-act ch-hit" data-sa-undo="${esc(r.id)}"${st.sending ? " disabled" : ""}>Undo</button>` : ""}
         </div>` : ""}
     </div>`;
@@ -16186,14 +16277,13 @@ function snapAllView({ id, origin, customerId }) {
     const group = (label, rows) => rows.length
       ? `<div class="rp-listhead"><span class="rp-section">${label}</span><span class="rp-listhead__meta">${rows.length}</span></div>
          <div class="rp-group">${rows.map(docRow).join("")}</div>` : "";
-    return `${workHead()}
-      <h1 class="rp-title">Your batch, sorted.</h1>${upProblemHtml()}
+    return `${head("Your batch, sorted.")}${upProblemHtml()}
       <div class="sa-summary">
         <span>${plural(st.shots.length, "photo", "photos")} · ${landed} of ${st.results.length} documents</span>
         <button type="button" class="sa-more ch-hit" id="saMore"${st.sending ? " disabled" : ""}>${saIcon("plus", "")}Take more</button>
       </div>
-      ${group("Verified", ok)}
-      ${group("Review pending", received)}
+      ${clientSide ? group("Ready", ok.concat(received)) : `${group("Verified", ok)}
+      ${group("Review pending", received)}`}
       ${group("Needs attention", attn)}
       ${group("Still needed", missing)}`;
   }
@@ -16202,18 +16292,22 @@ function snapAllView({ id, origin, customerId }) {
 
   function dockHtml() {
     if (st.screen === "sorting") return null;
+    /* the customer's way back is a text link under the primary, never a Close in a top bar (KA-009, §27), and each of her docks
+       says when something is sent: nothing, until she confirms. The advisor keeps the Close and the kit's plain dock. */
+    const back = clientSide ? `<button type="button" class="rp-link ch-hit" id="saBack"${st.sending ? " disabled" : ""}>${st.aim ? "Cancel" : "Back to your documents"}</button>` : "";
+    const plain = (primary) => clientSide ? chGateDock("Nothing is sent until you confirm", primary, back) : chDock(primary);
     if (st.screen === "results") return st.sending
-      ? chGateDock(st.sending.slow ? "Still saving. It usually finishes within a minute." : "", `<button type="button" class="rp-primary" id="saSave" disabled aria-disabled="true">Saving…</button>`)
+      ? chGateDock(st.sending.slow ? "Still saving. It usually finishes within a minute." : "", `<button type="button" class="rp-primary" id="saSave" disabled aria-disabled="true">Saving…</button>`, back)
       : st.upProblem === "offline"
-        ? chGateDock(clientSide ? "It is sent by itself when you are back online." : "It saves by itself when you are back online.", `<button type="button" class="rp-primary" disabled aria-disabled="true">Waiting for a connection</button>`)
-        : chDock(`<button type="button" class="rp-primary" id="saSave">Confirm &amp; save</button>`);
+        ? chGateDock(clientSide ? "It is sent by itself when you are back online." : "It saves by itself when you are back online.", `<button type="button" class="rp-primary" disabled aria-disabled="true">Waiting for a connection</button>`, back)
+        : plain(`<button type="button" class="rp-primary" id="saSave">Confirm &amp; save</button>`);
     const n = st.shots.length;
     /* the destination is on show even with nothing to send there — a primary
        that is missing until the batch is non-empty leaves the screen with no
        stated next step (the owner's board supersedes the 2026-08-18 rule that
        hid it) */
-    if (st.aim) return chDock(`<button type="button" class="rp-primary" id="saUseAim"${st.aimShot ? "" : " disabled"}>Use photo &amp; return</button>`);
-    return chDock(`<button type="button" class="rp-primary" id="saProcess"${n ? "" : " disabled"}>${n ? `Process ${plural(n, "photo", "photos")} &amp; auto-sort` : "Process photos"}</button>`);
+    if (st.aim) return plain(`<button type="button" class="rp-primary" id="saUseAim"${st.aimShot ? "" : " disabled"}>Use photo &amp; return</button>`);
+    return plain(`<button type="button" class="rp-primary" id="saProcess"${n ? "" : " disabled"}>${n ? `Process ${plural(n, "photo", "photos")} &amp; auto-sort` : "Process photos"}</button>`);
   }
 
   /* ---------------- the sheets, and what they guard ---------------- */
@@ -16254,7 +16348,7 @@ function snapAllView({ id, origin, customerId }) {
     if (st.aim) { cancelAim(); return; }
     if (!st.shots.length) return navigate(backHash);
     chDialog(sheets, "Leave this capture?",
-      `The ${plural(st.shots.length, "photo", "photos")} in this batch have not been saved to the deal jacket, and leaving clears them.`,
+      `The ${plural(st.shots.length, "photo", "photos")} in this batch have not been ${clientSide ? "sent" : "saved to the deal jacket"}, and leaving clears them.`,
       "Leave capture", () => navigate(backHash), "Keep capturing");
   }
 
@@ -16350,15 +16444,19 @@ function snapAllView({ id, origin, customerId }) {
     renderChrome("Snap All", dealTitle(deal), "");
     document.body.dataset.canvas = "kit";
     document.body.dataset.screen = "snapall";
-    /* inside a visit the top bar is the customer's name and nothing else (KA-021, §4); the page names the work */
-    view().innerHTML = chShell(
-      { template: "task", title: custName, closeId: "saClose", closeLabel: "Close capture",
-        cls: clientSide ? "rp-screen--present" : "", banner: !clientSide /* PI-005: the customer's page has no band */ },
-      content, dockHtml(), { scrim: "saScrim", sheet: "saSheet" })
+    /* inside a visit the top bar is the customer's name and nothing else (KA-021, §4); the page names the work. The customer's
+       own is the kit's customer link page (KA-009, §27): no Close, a Help, a text link back under the primary */
+    const sheetIds = { scrim: "saScrim", sheet: "saSheet" };
+    view().innerHTML = (clientSide
+      ? chLinkShell({}, content, dockHtml(), sheetIds)
+      : chShell({ template: "task", title: custName, closeId: "saClose", closeLabel: "Close capture", banner: true }, content, dockHtml(), sheetIds))
       + `<input type="file" accept="image/*" capture="environment" id="saCam" hidden>
          <input type="file" accept="image/*"${st.aim ? "" : " multiple"} id="saLib" hidden>`;
 
-    $("#saClose").onclick = closeScreen; $("#saClose").disabled = !!st.sending;
+    if (clientSide) {
+      $("#chLinkHelp").onclick = () => chLinkHelp(sheets, String(deal.advisor || Store.s.advisor || RIDE_PRICE_DATA.dealership.advisor || ""));
+      const back = $("#saBack"); if (back) back.onclick = closeScreen;
+    } else { $("#saClose").onclick = closeScreen; $("#saClose").disabled = !!st.sending; }
     chFitDock();
     painted = st.screen;
     if (keep) {
