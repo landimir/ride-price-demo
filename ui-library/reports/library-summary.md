@@ -1,12 +1,12 @@
 # Ride Price Mobile UI Library
 
-Version: v045
-Captured: 2026-10-02T21:54:31.247Z
-App commit: bf559e49a35e76460e8289674a4232cc069a70bd
+Version: v046
+Captured: 2026-10-03T09:41:35.278Z
+App commit: 9c3249fed1ecd488ecf8159c973a618a75111b24
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 380
+Screens documented: 383
 Branches documented: 114
 
 UX Audit:
@@ -20,8 +20,8 @@ UX Audit:
 | # | Flow | Screens | Entry |
 |---|---|---|---|
 | 1 | Home — Active Floor & Navigation | 25 | entry point |
-| 2 | Customer Onboarding — the Customer Resolver | 26 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap New visit |
-| 3 | Scan Driver's License | 32 | Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver — Tap Scan physical license |
+| 2 | Customer Onboarding — the Customer Resolver | 27 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap New visit |
+| 3 | Scan Driver's License | 34 | Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver — Tap Scan physical license |
 | 4 | Training Documents | 8 | Home — Active Floor & Navigation · 02 More sheet — secondary navigation — Training documents |
 | 5 | Discovery — the guided consultation | 14 | Customer Onboarding — the Customer Resolver · 04 Customer found — confirm + registration address — Confirm address & start visit |
 | 6 | Vehicle Selection | 17 | Discovery — the guided consultation · 09 The profile — the hand-off — Tap ✓ on the profile |

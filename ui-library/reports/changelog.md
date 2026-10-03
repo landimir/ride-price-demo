@@ -1,5 +1,106 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v046 — 2026-10-03
+
+App commit: 9c3249f · 20 flows · 383 screens · previous: v045
+
+### Added
+- Customer Onboarding — the Customer Resolver · Manual form — a helper's number
+- Scan Driver's License · New customer — a helper's number
+- Scan Driver's License · Customer ready — a helper's number said to be the helper's
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Funded history in range
+- Home — Active Floor & Navigation · Search miss — No deals found
+- Home — Active Floor & Navigation · Active floor — a visit not yet assigned
+- Home — Active Floor & Navigation · Visit sheet — Assign to an advisor (Team Lead)
+- Home — Active Floor & Navigation · Assign — one row per advisor
+- Home — Active Floor & Navigation · Active floor — assigned to Ashley
+- Home — Active Floor & Navigation · Visit sheet — the advisor's own (no assign control)
+- Home — Active Floor & Navigation · Test log — off, nothing recorded
+- Home — Active Floor & Navigation · Test log — recording, events on the log
+- Home — Active Floor & Navigation · Clear the test log? — confirm
+- Home — Active Floor & Navigation · Test log — cleared and stopped
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Customer Onboarding — the Customer Resolver · No license available — manual fallback
+- Customer Onboarding — the Customer Resolver · Manual form — refused beside each field
+- Customer Onboarding — the Customer Resolver · Already on file — the same phone
+- Scan Driver's License · New customer (prop 3)
+- Scan Driver's License · Verify the phone number (sheet)
+- Scan Driver's License · New customer — contact required
+- Scan Driver's License · Possible duplicate (sheet)
+- Scan Driver's License · Phone already in use — no link offered
+- Scan Driver's License · Verify the phone number — wrong code
+- Scan Driver's License · Unfinished scans
+- Scan Driver's License · Resume license scan
+- Scan Driver's License · Verify the phone number — Email the code instead
+- Scan Driver's License · Confirm customer — no phone or email on file
+- Scan Driver's License · Needs you — Jordan confirms the name
+- Scan Driver's License · Needs you — the signed agreement goes back
+- Discovery — the guided consultation · × in the top bar — back to the visits
+- Test Drive Agreement · Printable Test Drive Agreement
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Agreement — signed
+- Base Payment Agreement · Agreement — Lease
+- Base Payment Agreement · Agreement — Cash
+- Base Payment Agreement · Agreement — One Pay
+- Base Payment Agreement · Printable — Base Payment Agreement
+- Credit Application (Lending Lane) · Step 1 — Individual application, the record row open
+- Credit Application (Lending Lane) · Step 2 — Residence
+- Credit Application (Lending Lane) · Step 3 — Employment
+- Buyers on the Deal (Co-Buyer) · Customer Resolver — manual entry, on the co-buyer mission
+- Deal Jacket & Compliance · Optional document — Remove from this deal
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Deal Jacket & Compliance · Request status — the customer's uploads, not the advisor's
+- Deal Jacket & Compliance · License reviewed and filed — the count moves by one
+- Customer document request (from the jacket) · Customer request — delivery status (waiting)
+- Customer document request (from the jacket) · Customer request — opened, 1 of 3 uploaded
+- Client Document Upload (customer's phone) · Insurance taken — the row says why it needs attention
+- Client Document Upload (customer's phone) · Receipt — partway through
+- Client Document Upload (customer's phone) · Paystub — second stub still needed
+- Client Document Upload (customer's phone) · Every row ready — the license still awaiting review
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — the exception declined
+- Snap All — burst capture · The license now complete
+- Snap All — burst capture · Results — two documents still needed
+- Document Review (advisor) · Auto Insurance Card — pages, not sides
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+- Documents — Print Center & Printables · Preview — Deal Cover Sheet
+- Documents — Print Center & Printables · Preview — Test Drive Agreement
+- Documents — Print Center & Printables · Preview — Delivery Checklist
+- Documents — Print Center & Printables · Preview — Applied Rebates
+- Documents — Print Center & Printables · Preview — Privacy Policy (additional form)
+- Documents — Print Center & Printables · Preview — Odometer Disclosure Statement (additional form)
+- Documents — Print Center & Printables · Preview — the full packet
+- Documents — Print Center & Printables · Preview — Saved Quote
+- Documents — Print Center & Printables · Preview — the packet on a cash deal
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- RP-UI-043 — wording corrected
+
+### Read by eye
+- New screens from #248 (2026-10-03), each read in full: the manual form with a number typed and the box ticked, "This number belongs to someone helping the customer"; Dana Whitfield's New customer with the box ticked, "This number belongs to someone helping Dana"; and her Customer ready screen, where the Phone row reads "(718) 555-0199 · helper’s number" and the Email row "—" (LS-058). The two scan steps use Dana's card, who is not on file: Marcus's card meets Marcus's own profile and asks Possible duplicate on Save.
+- The eight changed screens that show the build, each read in full: the manual form in its four states (the fallback, refused beside each field, the same-phone question, and on the co-buyer's mission) and the scan's New customer, New customer — contact required and Possible duplicate each take one field, "Mobile phone or email", with the box under it, where there were two fields (a refused form marks one miss, "Ten digits", and an empty New customer one miss, "Required"); and Confirm customer — no phone or email on file says "Phone or email needed" where it said "Phone & email needed".
+- Four sheets over the scan (Verify the phone number, its wrong-code state, Email the code instead, and Phone already in use — no link offered) move only where the field behind them changed.
+- The other 56 changed screens were each compared with v045 pixel by pixel. Every difference is a live value: a clock time or a date digit (Home's visit rows, the test log, Unfinished scans, Resume, Jordan's Asked by line, the jacket's tracking and receipts, the print previews' date line, the Saved Quote's saved time and the way its note wraps around it), or a one-pixel text caret. Nothing else moved, because #248 changed no other layout.
+- RP-UI-043's text (the manual fallback's "four bare fields", both channels required) is brought to the one-field form: amended, not new and not resolved.
+- The library's own steps: the three new steps stand alone and sit at the end of their flows (Onboarding, Scan Driver's License). #248 also brought scan-new-customer-required's expectation to the build (one marked field, not two: the old one would have failed this capture) and the notes that said both channels are required.
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v045 — 2026-10-02
 
 App commit: bf559e4 · 20 flows · 380 screens · previous: v044

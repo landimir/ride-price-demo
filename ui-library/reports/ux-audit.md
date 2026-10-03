@@ -1,6 +1,6 @@
-# Ride Price Mobile UI — UX Audit (v045)
+# Ride Price Mobile UI — UX Audit (v046)
 
-Captured 2026-10-02T21:54:31.247Z · viewport 390×844 · app bf559e49a35e76460e8289674a4232cc069a70bd
+Captured 2026-10-03T09:41:35.278Z · viewport 390×844 · app 9c3249fed1ecd488ecf8159c973a618a75111b24
 
 | Severity | Count |
 |---|---|
@@ -353,8 +353,8 @@ _None recorded._
 ### RP-UI-043 — Customer Onboarding — the Customer Resolver · No license available — manual fallback
 
 - **Screenshot:** `current/02-customer-onboarding/08-manual-fallback.png`
-- **Issue:** The manual fallback is now the task title and four bare fields. The note that made it fallback-only (“if a license or license photo becomes available, use it instead”) and the line that both phone and email are required are gone, and no field is marked required until validation says so.
-- **Observation:** The chrome rule removed helper copy from the 19 screens by design; the two rules still hold in validation (customerMissing requires first, last, phone, email, address and ZIP). Whether the fallback-only rule needs a line on the screen is the package's call — filed so the change is on record, since the library's step note used to describe the copy. v043: the four bare fields are what the kit asks for; unless the owner wants the fallback rule on the screen, this closes as by design.
+- **Issue:** The manual fallback is now the task title, three fields (name, mobile phone or email, address) and the box for someone helping. The note that made it fallback-only (“if a license or license photo becomes available, use it instead”) is gone, and no field is marked required until validation says so.
+- **Observation:** The chrome rule removed helper copy from the 19 screens by design; the two rules still hold in validation (the form requires a first and last name, one way to reach the customer, which is a phone or an email, or a helper's number or address with the box ticked (LS-058), and an address with a ZIP). Whether the fallback-only rule needs a line on the screen is the package's call — filed so the change is on record, since the library's step note used to describe the copy. v046: the fields are what the kit asks for; unless the owner wants the fallback rule on the screen, this closes as by design.
 - **Suggested area to investigate:** app.js — the resolver's manual fallback on the kit
 
 ### RP-UI-046 — Training Documents · License preview — both sides

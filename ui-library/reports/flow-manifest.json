@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-10-02T21:54:31.247Z",
-  "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+  "capturedAt": "2026-10-03T09:41:35.278Z",
+  "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet stands in for authentication, and it opens only in Customer Onboarding (owner ruling B, 2026-09-18) — Home's top bar carries no role control.",
       "entry": null,
-      "capturedAt": "2026-10-02T21:54:31.266Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:41:35.296Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -331,7 +331,7 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-badge.rp-badge--positive Funded · Oct 2 <> .rp-card__name John Smith"
+              ".rp-badge.rp-badge--positive Funded · Oct 3 <> .rp-card__name John Smith"
             ]
           },
           "error": null,
@@ -695,7 +695,7 @@
             "overlaps": [
               ".rp-badge Discovery <> .rp-card__name Cheri Bridwell",
               ".rp-card__meta.dq-advisor Not assigned <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
-              ".rp-card__next Next: Discovery Interview In <> .rp-sheet__sub Arrived 17:55 · Discovery · ",
+              ".rp-card__next Next: Discovery Interview In <> .rp-sheet__sub Arrived 05:42 · Discovery · ",
               ".rp-badge Desking <> .rp-card__name John Smith",
               ".rp-badge Desking <> #dqVisitOpen.rp-primary Open deal",
               ".rp-card__name John Smith <> #dqVisitOpen.rp-primary Open deal",
@@ -824,7 +824,7 @@
               ".rp-badge Desking <> .rp-card__name John Smith",
               ".rp-card__meta.dq-ids VIN 5NMS4DAL4NH457995 · STK  <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
               ".rp-card__next Next: Game Plan With the Tea <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
-              ".rp-card__next Next: Game Plan With the Tea <> .rp-sheet__sub Arrived 17:55 · Discovery",
+              ".rp-card__next Next: Game Plan With the Tea <> .rp-sheet__sub Arrived 05:42 · Discovery",
               ".rp-tab.rp-tab--active Deals <> #dqVisitEnd.rp-link.ch-hit Left the showroom",
               ".rp-tab Inventory <> #dqVisitEnd.rp-link.ch-hit Left the showroom",
               ".rp-tab Customers <> #dqVisitEnd.rp-link.ch-hit Left the showroom"
@@ -1004,8 +1004,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-10-02T21:55:34.823Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:42:38.032Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -1257,7 +1257,7 @@
           "screen": "No license available — manual fallback",
           "screenshot": "current/02-customer-onboarding/08-manual-fallback.png",
           "hash": "#/visit",
-          "action": "Fill the four fields, tap Confirm & start visit",
+          "action": "Fill the three fields, tap Confirm & start visit",
           "next": "discovery/stage-intro",
           "branches": [
             {
@@ -1265,7 +1265,7 @@
               "to": "onboarding/manual-refused"
             }
           ],
-          "notes": "The task title and four fields — no helper copy on the kit (chrome rule v022). The two rules hold in validation rather than on the screen: use a license or a license photo if one turns up, and both contact channels are required (RP-UI-043 records the copy that left).",
+          "notes": "The task title and three fields (name, mobile phone or email, address), with the box for someone helping under the contact — no helper copy on the kit (chrome rule v022). The two rules hold in validation rather than on the screen: use a license or a license photo if one turns up, and one way to reach the customer is required (a phone or an email, LS-058; RP-UI-043 records the copy that left).",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -1286,8 +1286,8 @@
             {
               "id": "RP-UI-043",
               "severity": "Observation",
-              "issue": "The manual fallback is now the task title and four bare fields. The note that made it fallback-only (“if a license or license photo becomes available, use it instead”) and the line that both phone and email are required are gone, and no field is marked required until validation says so.",
-              "observation": "The chrome rule removed helper copy from the 19 screens by design; the two rules still hold in validation (customerMissing requires first, last, phone, email, address and ZIP). Whether the fallback-only rule needs a line on the screen is the package's call — filed so the change is on record, since the library's step note used to describe the copy. v043: the four bare fields are what the kit asks for; unless the owner wants the fallback rule on the screen, this closes as by design.",
+              "issue": "The manual fallback is now the task title, three fields (name, mobile phone or email, address) and the box for someone helping. The note that made it fallback-only (“if a license or license photo becomes available, use it instead”) is gone, and no field is marked required until validation says so.",
+              "observation": "The chrome rule removed helper copy from the 19 screens by design; the two rules still hold in validation (the form requires a first and last name, one way to reach the customer, which is a phone or an email, or a helper's number or address with the box ticked (LS-058), and an address with a ZIP). Whether the fallback-only rule needs a line on the screen is the package's call — filed so the change is on record, since the library's step note used to describe the copy. v046: the fields are what the kit asks for; unless the owner wants the fallback rule on the screen, this closes as by design.",
               "area": "app.js — the resolver's manual fallback on the kit"
             }
           ]
@@ -1348,7 +1348,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 915
+            "pageHeight": 868
           },
           "scrollShot": "current/02-customer-onboarding/10-manual-duplicate.scroll.png",
           "issues": []
@@ -1875,6 +1875,35 @@
           },
           "scrollShot": null,
           "issues": []
+        },
+        {
+          "step": 27,
+          "key": "manual-helper",
+          "screen": "Manual form — a helper's number",
+          "screenshot": "current/02-customer-onboarding/27-manual-helper.png",
+          "hash": "#/visit",
+          "action": "Fill the address, tap Confirm & start visit",
+          "next": null,
+          "branches": [],
+          "notes": "LS-058, the owner's answer B (his D-OB6 everywhere): the typed form asks for one thing, a phone or an email, and a guest with neither gives the number of someone helping them. Ticked, the number is kept as the helper's, matches no record, and is never the customer's own.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
         }
       ]
     },
@@ -1882,13 +1911,13 @@
       "id": "license-scan",
       "area": "03-license-scan",
       "title": "Scan Driver's License",
-      "description": "The prop-license scanner on the owner's UI kit (package v023, 2026-09-05): twelve screens as a kit Task inside New visit — Close returns to the resolver, the title carries the two-part step, and the DEMO band is the only environment marker. The advisor still experiences two decisions — capture the license, then confirm the customer — and everything else is automation or an exception sheet in the kit's own sheet. Only the five printed training props can ever be recognized. Prop 1 matches a seed customer by name (ambiguous → the same-person question as two option rows), prop 2 carries a license on file (certain match), 3–5 create new customers. Phone AND email are both required on every record; the scan asks for no credit score.",
+      "description": "The prop-license scanner on the owner's UI kit (package v023, 2026-09-05): twelve screens as a kit Task inside New visit — Close returns to the resolver, the title carries the two-part step, and the DEMO band is the only environment marker. The advisor still experiences two decisions — capture the license, then confirm the customer — and everything else is automation or an exception sheet in the kit's own sheet. Only the five printed training props can ever be recognized. Prop 1 matches a seed customer by name (ambiguous → the same-person question as two option rows), prop 2 carries a license on file (certain match), 3–5 create new customers. One way to reach the customer is required on every record (a phone or an email, or for a guest with neither the number of someone helping, LS-058); the scan asks for no credit score.",
       "entry": {
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-10-02T21:56:21.950Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:43:25.604Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -2166,7 +2195,7 @@
           "action": "Type the number already on file, tap Create customer",
           "next": "scan-conflict",
           "branches": [],
-          "notes": "Identity is a READ-ONLY summary from the license — the advisor never retypes card data. The only asks are what a license cannot say: phone and email. No credit score at the door; the record starts at the neutral default.",
+          "notes": "Identity is a READ-ONLY summary from the license — the advisor never retypes card data. The only ask is what a license cannot say: a way to reach the customer, one field (a phone or an email) with a box for someone helping (LS-058). No credit score at the door; the record starts at the neutral default.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -2215,7 +2244,7 @@
             "clipped": [],
             "overlaps": [
               "#scEditLicense.rp-link Edit license details <>  (646) 555-0900",
-              ".rp-field__label Mobile phone <>  (646) 555-0900",
+              ".rp-field__label Mobile phone or email <>  (646) 555-0900",
               ".rp-primary Create customer <> .rp-primary Continue",
               ".rp-primary Create customer <> .rp-link Use a different number"
             ]
@@ -2250,8 +2279,7 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-field__label Email <> #scSheetTitle.rp-sheet__title Verify the phone number",
-              ".rp-field__label Email <> .rp-sheet__sub Enter the six-digit code sen",
+              "#svHelperText This number belongs to someo <> .rp-sheet__sub Enter the six-digit code sen",
               ".rp-primary Create customer <> .rp-link Resend code"
             ]
           },
@@ -2387,10 +2415,10 @@
           "screen": "New customer — contact required",
           "screenshot": "current/03-license-scan/15-scan-new-customer-required.png",
           "hash": "#/visit",
-          "action": "Fill phone and email, tap Create customer",
+          "action": "Type a phone or an email, tap Create customer",
           "next": "scan-done",
           "branches": [],
-          "notes": "Create customer with nothing typed creates nothing: both contact fields are marked and the record is not written. A phone and an email are the two things a license cannot give.",
+          "notes": "Create customer with nothing typed creates nothing: the one contact field is marked Required and the record is not written. A way to reach the customer is the one thing a license cannot give; a phone or an email is enough, and a guest with neither gives the number of someone helping (LS-058).",
           "status": "ok",
           "standalone": true,
           "reusedFrom": null,
@@ -2469,7 +2497,7 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-field__label Email <>  (917) 555-0164",
+              "#svHelperText This number belongs to someo <>  (917) 555-0164",
               ".rp-primary Create customer <> .rp-primary Continue",
               ".rp-primary Create customer <> .rp-link Use a different number"
             ]
@@ -2505,7 +2533,6 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-field__label Email <> .rp-sheet__sub Enter the six-digit code sen",
               ".rp-primary Create customer <> .rp-link Resend code"
             ]
           },
@@ -2780,8 +2807,8 @@
               " 4102 Bell Blvd, Bayside, NY  <> .rp-sheet__sub Enter the six-digit code sen",
               ".rp-kv__head Registration address <> .rp-code__box 7",
               ".rp-kv__head Registration address <> .rp-code__box 8",
-              ".rp-kv__head Registration address <> .rp-code__box 5",
-              ".rp-kv__head Registration address <> .rp-code__box 7"
+              ".rp-kv__head Registration address <> .rp-code__box 1",
+              ".rp-kv__head Registration address <> .rp-code__box 0"
             ]
           },
           "error": null,
@@ -3010,6 +3037,64 @@
           },
           "scrollShot": null,
           "issues": []
+        },
+        {
+          "step": 33,
+          "key": "scan-new-customer-helper",
+          "screen": "New customer — a helper's number",
+          "screenshot": "current/03-license-scan/33-scan-new-customer-helper.png",
+          "hash": "#/visit",
+          "action": "Tap Create customer",
+          "next": "scan-done-helper",
+          "branches": [],
+          "notes": "LS-058: a guest with neither a phone nor an email gives the number of someone helping them (Dana Whitfield's card, who is not on file). The one contact field says what is typed (an @ makes it an email), and the box under it says whose it is: ticked, the number is kept as the helper's and never as the customer's own.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 34,
+          "key": "scan-done-helper",
+          "screen": "Customer ready — a helper's number said to be the helper's",
+          "screenshot": "current/03-license-scan/34-scan-done-helper.png",
+          "hash": "#/visit",
+          "action": "Tap Continue to visit",
+          "next": "discovery/stage-intro",
+          "branches": [],
+          "notes": "LS-058: the customer is saved with no phone and no email of their own. The Phone row says the number is the helper's, so the advisor does not take it for the customer's, and nothing is sent to it as if it were.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
         }
       ]
     },
@@ -3022,8 +3107,8 @@
         "from": "home/more-sheet",
         "action": "Training documents"
       },
-      "capturedAt": "2026-10-02T21:59:00.293Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:46:13.676Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -3381,15 +3466,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-10-02T21:59:14.206Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:46:24.812Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
           "key": "stage-intro",
           "screen": "Stage 1 — the sample slide",
           "screenshot": "current/05-discovery/01-stage-intro.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Tap ✓",
           "next": "stage-question",
           "branches": [
@@ -3439,7 +3524,7 @@
           "key": "stage-question",
           "screen": "Current vehicle — the sample reply as chips",
           "screenshot": "current/05-discovery/02-stage-question.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Tap the Sunroof chip",
           "next": "stage-chip-toggled",
           "branches": [],
@@ -3473,7 +3558,7 @@
           "key": "stage-chip-toggled",
           "screen": "Current vehicle — a chip turned on",
           "screenshot": "current/05-discovery/03-stage-chip-toggled.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Tap ✓",
           "next": "stage-skip",
           "branches": [],
@@ -3507,7 +3592,7 @@
           "key": "stage-skip",
           "screen": "Size & space — Skip this topic",
           "screenshot": "current/05-discovery/04-stage-skip.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Tap Skip this topic",
           "next": "stage-seating",
           "branches": [],
@@ -3537,7 +3622,7 @@
           "key": "stage-seating",
           "screen": "Seating & family",
           "screenshot": "current/05-discovery/05-stage-seating.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Tap ✓",
           "next": "stage-drivetrain",
           "branches": [],
@@ -3571,7 +3656,7 @@
           "key": "stage-drivetrain",
           "screen": "Drivetrain",
           "screenshot": "current/05-discovery/06-stage-drivetrain.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Tap ✓",
           "next": "stage-lane-support",
           "branches": [],
@@ -3599,7 +3684,7 @@
           "key": "stage-lane-support",
           "screen": "Lane support — the shared stage",
           "screenshot": "current/05-discovery/07-stage-lane-support.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Tap ✓",
           "next": "stage-reverse-safety",
           "branches": [],
@@ -3630,7 +3715,7 @@
           "key": "stage-reverse-safety",
           "screen": "Reverse safety — the shared stage, the other way",
           "screenshot": "current/05-discovery/08-stage-reverse-safety.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Tap ✓",
           "next": "profile",
           "branches": [],
@@ -3661,7 +3746,7 @@
           "key": "profile",
           "screen": "The profile — the hand-off",
           "screenshot": "current/05-discovery/09-profile.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Reload the page",
           "next": "profile-reload",
           "branches": [
@@ -3698,7 +3783,7 @@
           "key": "profile-reload",
           "screen": "The profile after a reload",
           "screenshot": "current/05-discovery/10-profile-reload.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Tap ×",
           "next": "profile-change",
           "branches": [],
@@ -3726,7 +3811,7 @@
           "key": "profile-change",
           "screen": "× on the profile — back to the first question",
           "screenshot": "current/05-discovery/11-profile-change.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Tap ✓ through every topic",
           "next": "profile-again",
           "branches": [],
@@ -3760,7 +3845,7 @@
           "key": "profile-again",
           "screen": "Confirmed through — the profile again",
           "screenshot": "current/05-discovery/12-profile-again.png",
-          "hash": "#/discovery/d-3y179jp",
+          "hash": "#/discovery/d-46i96lm",
           "action": "Tap ✓",
           "next": "vehicles/inventory-from-discovery",
           "branches": [],
@@ -3857,8 +3942,8 @@
         "from": "discovery/profile",
         "action": "Tap ✓ on the profile"
       },
-      "capturedAt": "2026-10-02T21:59:39.243Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:46:44.195Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -4531,8 +4616,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-10-02T22:00:05.781Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:47:10.486Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -5599,8 +5684,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-10-02T22:00:55.824Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:47:52.902Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -6119,7 +6204,7 @@
           "key": "appraisal-empty",
           "screen": "The appraisal form before anyone has typed",
           "screenshot": "current/08-trade-in/14-appraisal-empty.png",
-          "hash": "#/trade/d-5x4w6we",
+          "hash": "#/trade/d-4ag56dy",
           "action": "Type the vehicle, the VIN, the mileage and the payoff",
           "next": "appraisal-typed",
           "branches": [],
@@ -6151,7 +6236,7 @@
           "key": "appraisal-typed",
           "screen": "The appraisal form filled in, not yet evaluated",
           "screenshot": "current/08-trade-in/15-appraisal-typed.png",
-          "hash": "#/trade/d-5x4w6we",
+          "hash": "#/trade/d-4ag56dy",
           "action": "Tap Run evaluation",
           "next": "appraisal-run",
           "branches": [],
@@ -6182,7 +6267,7 @@
           "key": "appraisal-run",
           "screen": "Trade value — the fresh trade evaluated",
           "screenshot": "current/08-trade-in/16-appraisal-run.png",
-          "hash": "#/trade/d-5x4w6we",
+          "hash": "#/trade/d-4ag56dy",
           "action": "Tap Review ownership",
           "next": "ownership-roots",
           "branches": [],
@@ -6250,8 +6335,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-10-02T22:01:23.246Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:48:19.714Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -7297,8 +7382,8 @@
         "from": "desking/work-chose",
         "action": "Tap Submit for Team Lead approval; the Team Lead approves; then Continue"
       },
-      "capturedAt": "2026-10-02T22:02:15.685Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:49:12.512Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -7723,8 +7808,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-10-02T22:02:45.032Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:49:41.859Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -8453,8 +8538,8 @@
         "from": "credit/joint-remote",
         "action": "Tap the Buyers row"
       },
-      "capturedAt": "2026-10-02T22:03:30.185Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:50:21.775Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -9202,8 +9287,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present each product"
       },
-      "capturedAt": "2026-10-02T22:03:57.134Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:50:46.984Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -9874,8 +9959,8 @@
         "from": "credit/approved-agreed-rate",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-10-02T22:04:21.564Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:51:05.428Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -10833,8 +10918,8 @@
         "from": "desking/pencil-finance",
         "action": "Tap the Jacket chip"
       },
-      "capturedAt": "2026-10-02T22:05:15.023Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:51:48.765Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -11541,7 +11626,7 @@
             "overlaps": [
               ".rp-ready__note 3 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 3 needed <>  Oct 2, 6:05 PM",
+              ".rp-bucket__badge 3 needed <>  Oct 3, 5:52 AM",
               ".rp-doc__why John Smith: both sides neede <>  Customer opened",
               ".rp-doc__state Needed <>  Waiting",
               ".rp-doc__name Auto Insurance Card (Binder) <>  Documents uploaded",
@@ -11597,8 +11682,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-10-02T22:06:02.774Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:52:30.590Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -11788,8 +11873,8 @@
               ".rp-doc__name Driver's License <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-doc__why John Smith: both sides neede <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-doc__name Auto Insurance Card (Binder) <>  Link sent",
-              ".rp-doc__name Auto Insurance Card (Binder) <>  Oct 2, 6:06 PM",
-              ".rp-doc__state Requested <>  Oct 2, 6:06 PM",
+              ".rp-doc__name Auto Insurance Card (Binder) <>  Oct 3, 5:52 AM",
+              ".rp-doc__state Requested <>  Oct 3, 5:52 AM",
               ".rp-doc__name Proof of Income (Paystub) <>  Customer opened",
               ".rp-doc__state Requested <>  Waiting",
               "#jkRequest.rp-primary Resend secure request (3) <> .rp-count The customer's phone is play"
@@ -11898,7 +11983,7 @@
             "overlaps": [
               ".rp-ready__note 2 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 2 needed <>  Oct 2, 6:06 PM",
+              ".rp-bucket__badge 2 needed <>  Oct 3, 5:52 AM",
               ".rp-doc__why John Smith: both sides neede <>  Customer opened",
               ".rp-doc__state Requested <>  Opened",
               ".rp-doc__name Proof of Income (Paystub) <>  Documents uploaded",
@@ -11926,8 +12011,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-10-02T22:06:16.030Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:52:44.043Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -12566,8 +12651,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-10-02T22:06:41.408Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:53:08.980Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -13103,8 +13188,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-10-02T22:07:03.171Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:53:30.944Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
@@ -13453,8 +13538,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print center"
       },
-      "capturedAt": "2026-10-02T22:07:37.704Z",
-      "appCommit": "bf559e49a35e76460e8289674a4232cc069a70bd",
+      "capturedAt": "2026-10-03T09:54:01.387Z",
+      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
       "screens": [
         {
           "step": 1,
