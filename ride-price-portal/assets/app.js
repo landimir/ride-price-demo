@@ -5512,14 +5512,15 @@ function openScanFlow(opts) {
   const licLine = (l) => l.number + (l.state ? " · " + l.state : "");
   const primary = (attrs, labelHtml) => `<button type="button" class="rp-primary" ${attrs}>${labelHtml}</button>`;
   const link = (attrs, labelHtml) => `<button type="button" class="rp-link" ${attrs}>${labelHtml}</button>`;
-  const field = (id, label, type, value, placeholder) => `<div class="rp-field"><label class="rp-field__label" for="${id}">${label}</label><input class="rp-field__input" id="${id}" type="${type}"${type === "tel" ? ` inputmode="tel"` : ""} autocomplete="off" placeholder="${esc(placeholder || "")}" value="${esc(value || "")}"></div>`;
+  const field = (id, label, type, value, placeholder, extra = "") => `<div class="rp-field"><label class="rp-field__label" for="${id}">${label}</label><input class="rp-field__input" id="${id}" type="${type}"${type === "tel" ? ` inputmode="tel"` : ""} autocomplete="off"${extra} placeholder="${esc(placeholder || "")}" value="${esc(value || "")}"></div>`;
   const dateField = (id, label, value) => `<div class="rp-field"><label class="rp-field__label" for="${id}">${label}</label><input class="rp-field__input" id="${id}" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(value || "")}"></div>`;
   /* LS-058 (the owner's picture B): the one contact field and the box under it, on Confirm customer and New customer.
      What they hold lives on st.sv as the text and the box, and is filed into the slots a record keeps (contactSlots) only
      when it is saved, so a screen drawn again by Edit license details gives back what was typed */
   const contactBox = (sv, first) => {
     const who = first || "the customer";
-    return `${field("svContact", "Mobile phone or email", "text", sv.contact, "(718) 555-5555 or name@testing.com").replace(' autocomplete="off"', ' autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"')}
+    /* an email keeps its first letter and is not corrected, and the phone's own saved details are not filled in */
+    return `${field("svContact", "Mobile phone or email", "text", sv.contact, "(718) 555-5555 or name@testing.com", ' autocapitalize="off" autocorrect="off" spellcheck="false"')}
       <label class="rp-check"><input type="checkbox" id="svHelper"${sv.helper ? " checked" : ""}><span id="svHelperText" data-who="${esc(who)}">${esc(helperWords(String(sv.contact || "").includes("@"), who))}</span></label>`;
   };
   const wireContact = () => {
@@ -10885,7 +10886,7 @@ route("credit/:id", ({ id }) => {
     const dock = verified
       ? chDock(`<button type="button" class="rp-primary" id="caIdGo">Continue to the application</button>`)
       : chDock(`<label class="rp-primary" style="display:grid;place-items:center">Take photo<input type="file" accept="image/*" capture="user" data-idcap hidden></label>`,
-        `<button type="button" class="rp-link" data-sheet-open="link-applicant">Send a secure link to their phone</button>`);
+        `<button type="button" class="rp-link" data-sheet-open="link-applicant">Send a secure link${c.phone ? " to their phone" : ""}</button>`);
     paint(content, dock);
     $$("[data-idcap]").forEach(inp => inp.onchange = (e) => {
       if (!e.target.files || !e.target.files.length) return; /* a cancelled picker verifies nothing */
@@ -11212,7 +11213,9 @@ route("credit/:id", ({ id }) => {
         <button type="button" class="rp-primary" data-sheet-close>Done</button>
         <button type="button" class="rp-link" id="caResend">Resend the ${rec.channel === "email" ? "email" : "text"} to ${esc(who ? who.first : "them")}</button>`;
     }
-    const channel = ui.channel || "text";
+    /* LS-058: the link goes the way the customer can be reached: by text to a phone, by email for a customer with an email and no phone */
+    if (!ui.channel) ui.channel = who && !who.phone && who.email ? "email" : "text";
+    const channel = ui.channel;
     const to = channel === "email" ? (who && who.email) || "" : (who && who.phone) || "";
     return `${chSheetHead(toCo ? "Send co-buyer link" : "Send application link")}
       <p class="rp-sheet__sub">${ctx}</p>
