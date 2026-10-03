@@ -1888,7 +1888,9 @@ function router() {
       if (changed) {
         /* arriving BY a redirect: the hash we are leaving was the alias, so
            keep whatever was behind it instead of recording the alias */
-        if (!routerReplacing) { routerPrevHash = routerCurHash; noteLaunch(routerPrevHash, hash); }
+        if (!routerReplacing) routerPrevHash = routerCurHash;
+        /* D-PI1: a screen a redirect lands on was opened from what was behind the alias, as the advisor tapped it */
+        noteLaunch(routerPrevHash, hash);
         routerCurHash = hash;
         routerReplacing = false;
       }
