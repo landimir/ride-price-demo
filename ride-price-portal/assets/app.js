@@ -6815,7 +6815,7 @@ function openScanFlow(opts) {
         if (st.pick === "link" && !linkable(dup, vals)) { close(); return refuseLink(dup, vals); }
         close();
         if (st.pick === "link") return renderVerifyCode(dup, vals);
-        if (!requireContact(vals)) return; /* a second record needs its own email */
+        if (!requireContact(vals)) return; /* a second record is complete too: one way to reach the guest (LS-058) */
         finishSave(mkNew(), false);
       };
       /* another number is another sheet: the choice made on this one goes with it (W-118, nothing chosen) */
