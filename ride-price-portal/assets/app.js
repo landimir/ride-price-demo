@@ -750,17 +750,14 @@ function kitMissing(root, bad) {
   return n;
 }
 
-/* the customer record's required set — ONE place for Create Customer and the
-   license-scan verify form: first & last name, email AND phone (both
-   required — owner rule 2026-08-23), address & ZIP. Field ids are
-   prefix + First/Last/Email/Phone/Addr/Zip, looked up inside root. */
+/* the customer record's required set — ONE place for the license-scan form: first & last name, a way to reach them
+   (one of a phone, an email or, for a guest with neither, a helper's number or address: LS-058, the owner's answer B of
+   2026-09-28, his D-OB6 everywhere, which set aside the rule of 2026-08-23 that every record carries phone AND email),
+   address & ZIP. Field ids are prefix + First/Last/Contact/Addr/Zip, looked up inside root. */
 function customerMissing(vals, prefix, root) {
   const bad = [], need = (suffix, okv, msg) => { if (!okv) bad.push({ el: $("#" + prefix + suffix, root), msg }); };
   need("First", vals.first, "Required"); need("Last", vals.last, "Required");
-  /* both contact channels are required (owner rule, 2026-08-23 — supersedes
-     the earlier either/or): every customer record carries phone AND email */
-  need("Email", validCustomerEmail(vals.email), vals.email ? "Enter a valid email" : "Required");
-  need("Phone", validCustomerPhone(vals.phone), vals.phone ? "Enter a 10-digit phone" : "Required");
+  need("Contact", hasContact(vals), contactMessage(vals));
   need("Addr", vals.address, "Required"); need("Zip", vals.zip, "Required");
   return bad;
 }
@@ -1296,7 +1293,7 @@ function buyersKitSheet(deal, sheets, onChange) {
     <button type="button" class="rp-buyer"${metaLines ? ` style="align-items:flex-start"` : ""} ${attrs || ""}>
 
       <span class="rp-row__body"><span class="rp-buyer__name">${esc(c.first + " " + c.last)}</span>
-        <span class="rp-buyer__meta">${esc(picking ? formerSub(c, c.phone || c.email || "no contact on file") : c.phone || c.email || "no contact on file")}</span>
+        <span class="rp-buyer__meta">${esc(picking ? formerSub(c, contactLine(c) || "no contact on file") : contactLine(c) || "no contact on file")}</span>
         ${(metaLines || []).map(m => `<span class="rp-buyer__meta">${esc(m)}</span>`).join("")}</span>
       ${roleLabel ? `<span class="rp-buyer__role${isCo ? " rp-buyer__role--co" : ""}">${esc(roleLabel)}</span>` : ""}
       <span class="rp-row__chevron"></span></button>`;
@@ -1554,7 +1551,7 @@ function openBuyersSheet(dealId) {
     <button type="button" class="by2-row" ${data}>
 
       <span class="by2-rowmain"><span class="by2-rowname">${esc(c.first + " " + c.last)}</span>
-        <span class="by2-rowsub">${esc(c.phone || c.email || "no contact on file")}</span></span>
+        <span class="by2-rowsub">${esc(contactLine(c) || "no contact on file")}</span></span>
       <span class="by2-pill${coMod ? " by2-pill--co" : ""}">${roleLabel}</span>
       <span class="by2-go">›</span>
     </button>`;
@@ -1684,7 +1681,7 @@ function openBuyersSheet(dealId) {
           ? hits.map(x => `<button type="button" class="by2-row" data-pick="${esc(x.id)}">
 
               <span class="by2-rowmain"><span class="by2-rowname">${esc(x.first + " " + x.last)}</span>
-                <span class="by2-rowsub">${esc(formerSub(x, (x.phone || x.email || "no contact on file") + " · Existing customer"))}</span></span>
+                <span class="by2-rowsub">${esc(formerSub(x, (contactLine(x) || "no contact on file") + " · Existing customer"))}</span></span>
               <span class="by2-go">›</span>
             </button>`).join("")
           : `<button type="button" class="by2-row" id="byCreate">
@@ -2444,7 +2441,7 @@ function customerStateLine(c) {
   const d = openDealFor(c.id);
   if (d) return [inShowroom(d) ? "In showroom" : "", stageLabel(d), dealVehicleWords(d)].filter(Boolean).join(" · ");
   if (c.link && c.link.sentAt && !customerOnAnyDeal(c.id) && !customerLinkAnswered(c)) return "Remote · secure link sent " + clockHM(c.link.sentAt);
-  return [formatCustomerPhone(c.phone) || String(c.email || "").trim(), [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
+  return [formatCustomerPhone(c.phone) || String(c.email || "").trim() || helperLine(c), [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
 }
 /* on a deal in any role, now or before (KA-008): the deal's customer, at any stage, the funded one too; its co-buyer,
    or a co-buyer since removed; or a driver on its test drive, or a driver since removed (testDrive.driverRemovals,
@@ -3619,7 +3616,7 @@ route("visit", () => {
        Filtered BEFORE the limit: slicing to five first meant one unusable
        record hid a usable older one instead of taking its own place. rowSub is
        declared above the list because the filter calls it. */
-    const rowSub = (c) => [c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
+    const rowSub = (c) => [contactLine(c), [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ");
     const recent = Store.s.customers.slice()
       .sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""))
       .filter(c => str(c.first) && str(c.last) && rowSub(c))
@@ -3659,7 +3656,7 @@ route("visit", () => {
     const shortNum = /^\D*\d{1,3}\D*$/.test(st.q || "") && !/[a-z]/i.test(st.q || "");
     if (!hits.length) return `<div class="rp-empty"><strong>No matches</strong>${shortNum ? "Type at least four digits of a number." : "Nothing on file matches that search."}${st.sessionResolving ? "" : '<button type="button" class="rp-link" id="obManual">No license available · add manually</button>'}</div>`;
     return `<div class="rp-section">Results (${hits.length})</div><div class="rp-group">
-      ${hits.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc(formerSub(c, [c.phone, [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ")))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
+      ${hits.map(c => `<button type="button" class="rp-row" data-found="${esc(c.id)}"><span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc(formerSub(c, [contactLine(c), [c.city, c.state].filter(Boolean).join(", ")].filter(Boolean).join(" · ")))}</span></span><span class="rp-row__chevron"></span></button>`).join("")}
     </div>`;
   }
 
@@ -3684,8 +3681,8 @@ route("visit", () => {
         <div class="rp-match__head">
           <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc(formerSub(c, "Existing Ride Price customer"))}</span></span>
           <span class="rp-tag rp-tag--match">CRM match</span></div>
-        <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
-        <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
+        <div class="rp-match__kv"><span>Phone</span><span>${esc(phoneShown(c) || "Not on file")}</span></div>
+        <div class="rp-match__kv"><span>Email</span><span>${esc(emailShown(c) || "Not on file")}</span></div>
       </section>
       <div class="rp-notice" id="obOpenVisit"><strong>${inShowroom(od) ? "Already in the showroom" : "Has an open deal"}</strong><br>${arrived && inShowroom(od) ? "Arrived " + esc(arrived) + " · " : ""}${esc(stageLabel(od))} · with ${esc(who)}</div>`, "Step 2 of 3",
         /* the "anyway" is offered only once the visit has ended: while the customer is in the showroom startVisit refuses a second visit (owner's protocol, 2026-09-15), so the link would promise what the app will not do */
@@ -3698,8 +3695,8 @@ route("visit", () => {
         <div class="rp-match__head">
           <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc(formerSub(c, "Existing Ride Price customer"))}</span></span>
           <span class="rp-tag rp-tag--match">CRM match</span></div>
-        <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
-        <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
+        <div class="rp-match__kv"><span>Phone</span><span>${esc(phoneShown(c) || "Not on file")}</span></div>
+        <div class="rp-match__kv"><span>Email</span><span>${esc(emailShown(c) || "Not on file")}</span></div>
         <div class="rp-match__addr">
           <div class="rp-match__addr-head">Registration address<span class="rp-tag rp-tag--required">Required</span></div>
           <div class="rp-match__addr-line">${on ? esc(fmtAddr(a)) : "No address on file"}</div>
@@ -3717,8 +3714,8 @@ route("visit", () => {
         <div class="rp-match__head">
           <span class="rp-row__body"><span class="rp-row__title">${esc(nameOf(c))}</span><span class="rp-row__sub">${esc(formerSub(c, "Existing Ride Price customer"))}</span></span>
           <span class="rp-tag rp-tag--match">${hard ? (why === "phone" ? "Same phone" : why === "email" ? "Same email" : "Same license") : "Same name"}</span></div>
-        <div class="rp-match__kv"><span>Phone</span><span>${c.phone ? esc(c.phone) : "Not on file"}</span></div>
-        <div class="rp-match__kv"><span>Email</span><span>${c.email ? esc(c.email) : "Not on file"}</span></div>
+        <div class="rp-match__kv"><span>Phone</span><span>${esc(phoneShown(c) || "Not on file")}</span></div>
+        <div class="rp-match__kv"><span>Email</span><span>${esc(emailShown(c) || "Not on file")}</span></div>
       </section>`;
     /* W-006 (the owner's answer of 2026-09-24, as decision-w006-typed-name.png
        drew it): when the name typed is not the name on file, one hurried tap on
@@ -3779,8 +3776,8 @@ route("visit", () => {
     return shell(`
       ${heroHtml("Customer onboarding", "No license available")}
       <div class="rp-field"><label class="rp-field__label" for="obName">Full name</label><input class="rp-field__input" id="obName" placeholder="First Last"></div>
-      <div class="rp-field"><label class="rp-field__label" for="obPhone">Mobile phone</label><input class="rp-field__input" id="obPhone" type="tel" placeholder="(555) 555-5555"></div>
-      <div class="rp-field"><label class="rp-field__label" for="obEmail">Email</label><input class="rp-field__input" id="obEmail" type="email" placeholder="name@testing.com"></div>
+      <div class="rp-field"><label class="rp-field__label" for="obContact">Mobile phone or email</label><input class="rp-field__input" id="obContact" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="(555) 555-5555 or name@testing.com"></div>
+      <label class="rp-field ob-helperrow"><input type="checkbox" id="obHelper"> <span id="obHelperText">${helperWords(false, "the customer")}</span></label>
       <div class="rp-field"><label class="rp-field__label" for="obAddr">Registration address</label><input class="rp-field__input" id="obAddr" placeholder="Street, city, ST 12345">
         <div id="obAddrHint"></div></div>`, "Step 2 of 3",
       chDock(primaryBtn("obManualSave", go), linkBtn("obBack", "Back to resolver")));
@@ -4028,7 +4025,7 @@ route("visit", () => {
     };
     /* D-OB1: the two answers on the "already on file" screen */
     const useOn = $("#obUseOnFile"); if (useOn) useOn.onclick = () => { st.found = st.dupe.c; st.mode = "found"; step(); render(); window.scrollTo(0, 0); };
-    const createAnyway = () => { st.forceNew = true; const d = st.dupe.draft; st.forceNewFor = { id: st.dupe.c.id, why: st.dupe.why, name: d.name }; st.mode = "manual"; step(); render(); $("#obName").value = d.name; $("#obPhone").value = d.phone; $("#obEmail").value = d.email; $("#obAddr").value = d.addr; window.scrollTo(0, 0); };
+    const createAnyway = () => { st.forceNew = true; const d = st.dupe.draft; st.forceNewFor = { id: st.dupe.c.id, why: st.dupe.why, name: d.name }; st.mode = "manual"; step(); render(); $("#obName").value = d.name; $("#obContact").value = d.contact ?? (d.phone || d.email || ""); $("#obHelper").checked = !!d.helper; $("#obHelperText").textContent = helperWords(String($("#obContact").value).includes("@"), "the customer"); $("#obAddr").value = d.addr; window.scrollTo(0, 0); };
     const anyway = $("#obCreateAnyway"); if (anyway) anyway.onclick = createAnyway;
     /* W-006: an answer first, said above the two rows when Continue comes without one (as the scanner says it) */
     /* a choice is marked where it stands, as the scanner's wireOptions marks it: a redraw lost the focus (claude-c on #200) */
@@ -4073,14 +4070,14 @@ route("visit", () => {
     if (manualSave) manualSave.onclick = () => {
       const name = $("#obName").value.trim();
       const parts = name.split(/\s+/);
-      const phone = formatCustomerPhone($("#obPhone").value), email = $("#obEmail").value.trim();
+      /* LS-058: one field, a phone or an email, and the box under it for a guest with neither; a helper's number is the
+         helper's, so it matches no record and is never the customer's own (the secure link's rule, OB-047) */
+      const contact = $("#obContact").value.trim(), helper = !!$("#obHelper").checked, slots = contactSlots(contact, helper);
+      const phone = slots.phone || "", email = slots.email || "";
       const parsed = parseAddress($("#obAddr").value);
       const bad = [];
       if (parts.length < 2) bad.push({ el: $("#obName"), msg: name ? "First and last name" : "Required" });
-      if (!phone) bad.push({ el: $("#obPhone"), msg: "Required" });
-      else if (!validCustomerPhone(phone)) bad.push({ el: $("#obPhone"), msg: "Ten digits" });
-      if (!email) bad.push({ el: $("#obEmail"), msg: "Required" });
-      else if (!validCustomerEmail(email)) bad.push({ el: $("#obEmail"), msg: "Needs an @ and a dot" });
+      if (!hasContact(slots)) bad.push({ el: $("#obContact"), msg: contactMessage(slots) });
       if (!parsed) bad.push({ el: $("#obAddr"), msg: $("#obAddr").value.trim() ? "Needs a street, a town and a ZIP — e.g. 20 Ditmars Blvd, Astoria, NY 11106" : "Required" });
       /* on the kit's fields, in the kit's own error (W-044) */
       if (kitMissing(view(), bad)) return;
@@ -4093,11 +4090,11 @@ route("visit", () => {
       const hit = onFile({ phone, email, name });
       const g = st.forceNew ? st.forceNewFor : null, norm = (v) => String(v || "").trim().toLowerCase().replace(/\s+/g, " ");
       const granted = !!(g && hit && g.id === hit.c.id && g.why === hit.why && norm(g.name) === norm(name));
-      if (hit && !granted) { st.dupe = { c: hit.c, why: hit.why, draft: { name, phone, email, addr: $("#obAddr").value } }; st.dupePick = null; st.mode = "dupe"; step(); render(); window.scrollTo(0, 0); return; }
-      const c = {
+      if (hit && !granted) { st.dupe = { c: hit.c, why: hit.why, draft: { name, phone, email, contact, helper, addr: $("#obAddr").value } }; st.dupePick = null; st.mode = "dupe"; step(); render(); window.scrollTo(0, 0); return; }
+      const c = Object.assign({
         id: uid("c"), first: parts.slice(0, -1).join(" "), middle: "", last: parts[parts.length - 1],
         phone, email, creditScore: 700, createdAt: new Date().toISOString()
-      };
+      }, helper ? slots : {});
       const priorDrafts = Store.s.licenseDrafts;
       try {
         /* the unfinished scan handed over is found by what it holds, under whichever key it waits: a walk-in's own
@@ -4127,6 +4124,8 @@ route("visit", () => {
       }
       toast("Customer created");
     };
+    const contactInp = $("#obContact");
+    if (contactInp) contactInp.oninput = () => { const t = $("#obHelperText"); if (t) t.textContent = helperWords(contactInp.value.includes("@"), "the customer"); };
     const addrInp = $("#obAddr");
     if (addrInp) addrInp.oninput = () => {
       const parsed = parseAddress(addrInp.value);
@@ -4224,8 +4223,8 @@ route("visit", () => {
         });
         /* the session's channels fill a gap, never overwrite: the advisor typed
            them into the link sheet, and a record's own email is the customer's */
-        if (s.helper) c.helperPhone = s.phone; else if (!c.phone && s.phone) c.phone = s.phone;
-        if (!c.email && s.email) c.email = s.email;
+        if (s.helper) { if (s.phone) c.helperPhone = s.phone; if (s.email) c.helperEmail = s.email; }
+        else { if (!c.phone && s.phone) c.phone = s.phone; if (!c.email && s.email) c.email = s.email; }
         stampOnboard(c);
       }
       /* the mission guard runs before a NEW record is created, and before the
@@ -4255,10 +4254,10 @@ route("visit", () => {
       if (!c) {
         c = {
           id: uid("c"), first: p.first, middle: p.middle || "", last: p.last, dob: p.dob || "",
-          phone: s.helper ? "" : s.phone, email: s.email, creditScore: 700, createdAt: new Date().toISOString(),
+          phone: s.helper ? "" : s.phone, email: s.helper ? "" : s.email, creditScore: 700, createdAt: new Date().toISOString(),
           license: licenseRecordOf(p)
         };
-        if (s.helper) c.helperPhone = s.phone;
+        if (s.helper) { if (s.phone) c.helperPhone = s.phone; if (s.email) c.helperEmail = s.email; }
         Store.s.customers.push(c);
         stampOnboard(c);
       }
@@ -4362,8 +4361,8 @@ route("visit", () => {
       if (go && !go.disabled) go.onclick = () => {
         /* one channel, the chosen one; the other field is not read (D-OB6).
            The record rule (both channels on every record, v3) is set aside
-           for a link by his ruling: the record made from the upload carries
-           what was provided. The manual form still asks for both (D-OB4). */
+           by his ruling: the record carries what was provided, and since
+           LS-058 the typed form and the scan take one contact too. */
         if (kitMissing(sheet, contactProblems(sheet, channel))) return; /* the kit's own error (W-044) */
         sendLink(values());
       };
@@ -5124,6 +5123,39 @@ function validCustomerPhone(value) {
 function validCustomerEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
+/* LS-058 (the owner's answer B of 2026-09-28, his D-OB6 everywhere): a customer is reached by a phone OR an email, and one
+   is enough. A guest with neither gives the number, or the address, of someone helping them: kept apart as the
+   helper's (helperPhone, helperEmail) and never the customer's own, as OB-047 has it for a secure link. No code goes to
+   it (scannerCodeChannel reads the customer's own two) and no record matches on it */
+function hasOwnContact(c) { return validCustomerPhone(c?.phone) || validCustomerEmail(c?.email); }
+function hasContact(c) { return hasOwnContact(c) || validCustomerPhone(c?.helperPhone) || validCustomerEmail(c?.helperEmail); }
+/* the one contact field holds one thing: an @ makes it an email, no @ a phone, and the box under it (someone helping)
+   makes it a helper's. Filed under the slot a record keeps it in: a phone the way every record shows one
+   (formatCustomerPhone); what is wrong with it left as typed, so the screen can say so (contactMessage) */
+function contactSlots(text, helper) {
+  const t = String(text || "").trim();
+  if (!t) return {};
+  const email = t.includes("@");
+  return { [email ? (helper ? "helperEmail" : "email") : (helper ? "helperPhone" : "phone")]: email || !validCustomerPhone(t) ? t : formatCustomerPhone(t) };
+}
+function contactMessage(slots) {
+  const t = String(slots?.phone || slots?.email || slots?.helperPhone || slots?.helperEmail || "").trim();
+  return !t ? "Required" : t.includes("@") ? (validCustomerEmail(t) ? "" : "Needs an @ and a dot") : validCustomerPhone(t) ? "" : "Ten digits";
+}
+/* the box under the field: whose it is, in the words of the secure link's own sheet (D-OB6) */
+function helperWords(email, who) { return "This " + (email ? "address" : "number") + " belongs to someone helping " + who; }
+/* how a list or a card says a customer is reached: their own phone, then their own email, then a helper's, said to be a
+   helper's; "" when there is nothing. phoneShown and emailShown fill a Phone row and an Email row the same way */
+function helperLine(c) {
+  return c?.helperPhone ? c.helperPhone + " · helper’s number" : c?.helperEmail ? c.helperEmail + " · helper’s address" : "";
+}
+function contactLine(c) { return c?.phone || c?.email || helperLine(c); }
+function phoneShown(c) { return c?.phone || (c?.helperPhone ? c.helperPhone + " · helper’s number" : ""); }
+function emailShown(c) { return c?.email || (c?.helperEmail ? c.helperEmail + " · helper’s address" : ""); }
+function contactOnFile(c) {
+  const p = validCustomerPhone(c?.phone), e = validCustomerEmail(c?.email);
+  return p && e ? "Phone &amp; email on file" : p ? "Phone on file" : e ? "Email on file" : validCustomerPhone(c?.helperPhone) ? "Helper’s number on file" : "Helper’s address on file";
+}
 function findLicenseMatch(p) {
   const norm = scannerIdentityToken, licenseNorm = scannerLicenseToken;
   const cs = Store.s.customers;
@@ -5482,6 +5514,24 @@ function openScanFlow(opts) {
   const link = (attrs, labelHtml) => `<button type="button" class="rp-link" ${attrs}>${labelHtml}</button>`;
   const field = (id, label, type, value, placeholder) => `<div class="rp-field"><label class="rp-field__label" for="${id}">${label}</label><input class="rp-field__input" id="${id}" type="${type}"${type === "tel" ? ` inputmode="tel"` : ""} autocomplete="off" placeholder="${esc(placeholder || "")}" value="${esc(value || "")}"></div>`;
   const dateField = (id, label, value) => `<div class="rp-field"><label class="rp-field__label" for="${id}">${label}</label><input class="rp-field__input" id="${id}" type="text" data-date inputmode="numeric" maxlength="10" placeholder="MM/DD/YYYY" value="${esc(value || "")}"></div>`;
+  /* LS-058 (the owner's picture B): the one contact field and the box under it, on Confirm customer and New customer.
+     What they hold lives on st.sv as the text and the box, and is filed into the slots a record keeps (contactSlots) only
+     when it is saved, so a screen drawn again by Edit license details gives back what was typed */
+  const contactBox = (sv, first) => {
+    const who = first || "the customer";
+    return `${field("svContact", "Mobile phone or email", "text", sv.contact, "(718) 555-5555 or name@testing.com").replace(' autocomplete="off"', ' autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"')}
+      <label class="rp-check"><input type="checkbox" id="svHelper"${sv.helper ? " checked" : ""}><span id="svHelperText" data-who="${esc(who)}">${esc(helperWords(String(sv.contact || "").includes("@"), who))}</span></label>`;
+  };
+  const wireContact = () => {
+    const f = $("#svContact", body), t = $("#svHelperText", body);
+    if (f && t) f.oninput = () => { t.textContent = helperWords(f.value.includes("@"), t.dataset.who); };
+  };
+  const readContact = () => {
+    const f = $("#svContact", body); if (!f) return;
+    st.sv.contact = f.value.trim(); st.sv.helper = !!($("#svHelper", body) && $("#svHelper", body).checked);
+  };
+  /* the contacts typed with a correction come back as the one field holds them: the text, and whether it is a helper's */
+  const heldContact = (e) => e ? e.phone || e.email || e.helperPhone || e.helperEmail || "" : "";
   /* the kit's option row (title, sub, radio) — one on at a time */
   const option = (key, titleHtml, subHtml, on) => `<button type="button" class="rp-option${on ? " rp-option--on" : ""}" data-opt="${key}" aria-pressed="${!!on}"><span><span class="rp-option__title">${titleHtml}</span><span class="rp-option__sub">${subHtml}</span></span><span class="rp-radio${on ? " rp-radio--on" : ""}">${on ? rpGlyph("check") : ""}</span></button>`;
   /* the role control repaints whichever screen is up, so a pick already made
@@ -5859,7 +5909,7 @@ function openScanFlow(opts) {
           const savedNumber = norm(x.license?.number), savedState = norm(x.license?.state);
           return savedNumber && savedState && savedNumber === number && savedState === state;
         });
-        const rows = hits.map(hit => `<div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(hit.first + " " + hit.last)}</span><span class="rp-row__sub">${esc([licLine(hit.license), hit.phone || hit.email || "No contact on file"].join(" · "))}</span></span></div>`).join("");
+        const rows = hits.map(hit => `<div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(hit.first + " " + hit.last)}</span><span class="rp-row__sub">${esc([licLine(hit.license), contactLine(hit) || "No contact on file"].join(" · "))}</span></span></div>`).join("");
         const duplicateReturn = o.mode === "customer" ? "Return to customer search" : "Return to deal";
         $("#mnOut", sheet).innerHTML = hits.length === 1
           ? `<div class="rp-section">Results (1)</div><div class="rp-group"><div class="rp-row"><span class="rp-row__body"><span class="rp-row__title">${esc(hits[0].first + " " + hits[0].last)}</span><span class="rp-row__sub">${esc(licLine(hits[0].license))}</span></span><button type="button" class="rp-button-navy" data-use="0">Use</button></div></div>`
@@ -6077,7 +6127,7 @@ function openScanFlow(opts) {
       st.corrected = draft.corrected === true; st.frontDone = !!st.frontImage;
       /* W-131: what the open scan held besides its photos is saved with it and comes back with Resume: the contacts typed with a
          correction, and the profiles Ashley answered are not this guest (KA-010) */
-      st.editContacts = draft.editContacts && typeof draft.editContacts === 'object' ? { phone: String(draft.editContacts.phone || ''), email: String(draft.editContacts.email || '') } : null;
+      st.editContacts = draft.editContacts && typeof draft.editContacts === 'object' ? { phone: String(draft.editContacts.phone || ''), email: String(draft.editContacts.email || ''), helperPhone: String(draft.editContacts.helperPhone || ''), helperEmail: String(draft.editContacts.helperEmail || '') } : null;
       st.declined = Array.isArray(draft.declined) ? draft.declined.filter((id) => typeof id === 'string') : [];
       if (!st.frontDone) renderScan('front'); else if (st.persona) renderPairReview(); else renderScan('back');
     };
@@ -6242,17 +6292,18 @@ function openScanFlow(opts) {
     return st.sv = st.sv || {
       first: p.first, middle: typeof p.middle === 'string' && p.middle.trim() ? p.middle : ex?.middle || "", last: p.last,
       dob: p.dob || "", address: p.address, city: p.city, state: p.state, zip: p.zip,
-      email: ex ? ex.email : st.editContacts?.email || "", phone: ex ? ex.phone : st.editContacts?.phone || "",
+      email: ex ? ex.email : "", phone: ex ? ex.phone : "",
+      contact: ex ? "" : heldContact(st.editContacts), helper: !ex && !!(st.editContacts?.helperPhone || st.editContacts?.helperEmail),
       license: licenseRecordOf(p)
     };
   }
-  const svVals = () => ({
+  const svVals = () => Object.assign({
     first: st.sv.first, middle: st.sv.middle, last: st.sv.last,
     dob: st.sv.dob, address: st.sv.address, city: st.sv.city,
     state: st.sv.state, zip: st.sv.zip,
     email: st.sv.email, phone: st.sv.phone,
     license: Object.assign({ number: st.sv.license.number, state: st.sv.license.state, expires: st.sv.license.expires }, st.sv.license.kind ? { kind: st.sv.license.kind } : {})
-  });
+  }, contactSlots(st.sv.contact, st.sv.helper));
   const normPhone = normalizeCustomerPhone;
 
   /* what the scanned license changes on the record — delta-only (the board):
@@ -6278,8 +6329,7 @@ function openScanFlow(opts) {
     const p = st.persona, ex = m.customer;
     const sv = seedSv(ex);
     const chg = deltasFor(ex, sv);
-    const needPhone = !validCustomerPhone(ex.phone), needEmail = !validCustomerEmail(ex.email);
-    const needContact = needPhone || needEmail; /* both usable channels required (owner rule) */
+    const needContact = !hasContact(ex); /* LS-058: a phone, an email or a helper's is enough; a profile with none is asked for one */
     const ask = !!m.ask;
     const onDeal = o.mode === "cobuyer" && (ex.id === o.deal.customerId || (ex.id === o.deal.coBuyerId && ex.id !== coTarget));
     const basis = m.conflict ? "Needs review" : BASIS[m.type] || "Match found";
@@ -6317,8 +6367,8 @@ function openScanFlow(opts) {
           <span class="rp-tag ${m.conflict ? "rp-tag--required" : "rp-tag--match"}">${esc(basis)}</span></div>
         ${ask ? "" : `<div class="rp-step">${doneMark()}<div><span class="rp-step__title">Identity matched</span></div><span class="rp-status rp-status--positive">${esc(BASIS_SHORT[m.type] || "Match")}</span></div>`}
         ${needContact
-          ? `<div class="rp-step"><span class="rp-step__mark"></span><div><span class="rp-step__title">Contact incomplete</span></div><span class="rp-status">${needPhone && needEmail ? "Phone & email needed" : needPhone ? "Phone needed" : "Email needed"}</span></div>`
-          : `<div class="rp-step">${doneMark()}<div><span class="rp-step__title">Phone &amp; email on file</span></div><span class="rp-status rp-status--positive">Complete</span></div>`}
+          ? `<div class="rp-step"><span class="rp-step__mark"></span><div><span class="rp-step__title">Contact incomplete</span></div><span class="rp-status">Phone or email needed</span></div>`
+          : `<div class="rp-step">${doneMark()}<div><span class="rp-step__title">${contactOnFile(ex)}</span></div><span class="rp-status rp-status--positive">Complete</span></div>`}
       </div>
       <div style="height:16px"></div>
       ${ask ? `<div class="rp-kv"><div class="rp-kv__head">The license just scanned</div>
@@ -6327,12 +6377,13 @@ function openScanFlow(opts) {
         ${chg.map(c2 => kvRow(esc(c2.label), esc(c2.isDate ? dateUS(c2.newV) : c2.newV))).join("")}</div>` : ""}
       ${addressChanged && !m.askLead ? `<fieldset class="rp-kv" id="scAddressChoice"><legend class="rp-kv__head">Registration address</legend>${currentAddressComplete ? `<label class="rp-check"><input type="radio" name="scAddress" value="current" ${st.addressChoice === 'current' ? 'checked' : ''}><span>Keep current address<br>${esc(fmtAddr(ex))}</span></label>` : ''}<label class="rp-check"><input type="radio" name="scAddress" value="license" ${st.addressChoice === 'license' ? 'checked' : ''}><span>Use license address<br>${esc(fmtAddr(sv))}</span></label></fieldset>` : ''}
       ${idState === "asked" || idState === "kept" ? "" : link('id="scEditLicense"', 'Edit license details')}
-      ${needContact && !m.askLead ? `${needPhone ? field("svPhone", "Mobile phone", "tel", sv.phone, "(718) 555-5555") : ""}${needEmail ? field("svEmail", "Email", "email", sv.email, "name@testing.com") : ""}` : ""}
+      ${needContact && !m.askLead ? contactBox(sv, ex.first) : ""}
       ${ask && !idKind ? option("same", onDeal ? "Same person — already on this deal" : `Same person — update ${esc(ex.first)}&rsquo;s record`, onDeal ? "Cannot be added as another buyer" : `Adds the license${addsDob ? " and date of birth" : ""} to the profile`, true)
         + option("new", "Different guest — create new", "Starts a new customer from the license", false) : ""}`,
       idKind ? idDock : ask ? chDock(primary("data-save", "Continue"))
           : chDock(primary("data-save", "Confirm &amp; continue"), link("data-notme", `This isn&rsquo;t ${esc(ex.first)}`)));
     if (ask && !idKind) wireOptions(body, null);
+    wireContact();
     /* LS-045: while a Team Lead's answer waits, or after the record was kept, the scan can't be edited into a match
        that finishes without the answer; before anything is asked, an edit is how a misread is put right (claude-c
        on the branch) */
@@ -6354,8 +6405,8 @@ function openScanFlow(opts) {
       if (scannerIdentityConflict(ex, svVals())) return identityConflictNotice();
       /* W-119: a profile made from a secure link that holds no license, with no phone and no email on file to send the
          code to (LS-071: with an email it goes by email), takes the license by Same person only after a Team Lead has
-         confirmed it (LS-071, the owner's answer A of 2026-09-28). Asked at once, before the phone and the email this screen
-         asks for are required, since what is typed here is not used until then; once confirmed, they are asked for and the
+         confirmed it (LS-071, the owner's answer A of 2026-09-28). Asked at once, before the contact this screen
+         asks for is required, since what is typed here is not used until then; once confirmed, it is asked for and the
          save joins (saveFrom) */
       if (scannerCodeFirst(ex) && !dealPrimary(ex) && !scannerCodeChannel(ex)) {
         const may = codeMaySend(ex, svVals());
@@ -6363,11 +6414,9 @@ function openScanFlow(opts) {
         if (!may) return;
       }
       if (needContact) {
-        if (needPhone) sv.phone = $("#svPhone", body).value.trim();
-        if (needEmail) sv.email = $("#svEmail", body).value.trim();
-        const bad = [];
-        if (needPhone && !validCustomerPhone(sv.phone)) bad.push({ el: $("#svPhone", body), msg: sv.phone ? "Enter a 10-digit phone" : "Required" });
-        if (needEmail && !validCustomerEmail(sv.email)) bad.push({ el: $("#svEmail", body), msg: sv.email ? "Enter a valid email" : "Required" });
+        readContact();
+        const typed = contactSlots(sv.contact, sv.helper), bad = [];
+        if (!hasContact(typed)) bad.push({ el: $("#svContact", body), msg: contactMessage(typed) });
         if (scanMissing(body, bad)) return;
       }
       if (addressChanged && (!st.addressChoice || (st.addressChoice === 'current' && !currentAddressComplete))) return scanNote('scAddressNote', $('#scAddressChoice .rp-kv__head', body), 'afterend', 'Choose the registration address to keep.');
@@ -6409,8 +6458,7 @@ function openScanFlow(opts) {
 
   function editLicense(missing = false) {
     const source = structuredClone(st.persona);
-    if ($('#svPhone', body)) st.sv.phone = $('#svPhone', body).value.trim();
-    if ($('#svEmail', body)) st.sv.email = $('#svEmail', body).value.trim();
+    readContact();
     const fields = [['First','First name',source.first],['Last','Last name',source.last],['Dob','Date of birth',source.dob],['Number','License number',source.license.number],['Issuer','Issuing state',source.license.state],['Expires','Expiration date',source.license.expires],['Address','Street address',source.address],['City','City',source.city],['State','State',source.state],['Zip','ZIP code',source.zip]];
     openSheet(`${chSheetHead('Edit license details')}${missing ? '<div class="rp-alert" role="alert" id="scEditMissing"><div class="rp-alert__title">Some license details are missing</div><div class="rp-alert__body">Fill in the empty ones, then Review changes. Nothing is saved until then.</div></div>' : ''}${fields.map(([id,label,value]) => field('scEdit'+id, label, ['Dob','Expires'].includes(id) ? 'date' : 'text', value, '')).join('')}${primary('id="scEditSave"','Review changes')}`, sheet => {
       $('#scEditSave', sheet).onclick = () => {
@@ -6422,7 +6470,7 @@ function openScanFlow(opts) {
         if (scanMissing(sheet, bad)) return;
         const sameIdentity = values.First === source.first && values.Last === source.last && values.Dob === source.dob && values.Number === source.license.number && values.Issuer === source.license.state;
         const previousEdit = { persona: st.persona, corrected: st.corrected, editContacts: st.editContacts };
-        st.editContacts = sameIdentity ? {phone: st.sv.phone, email: st.sv.email} : null;
+        st.editContacts = sameIdentity ? Object.assign({ phone: '', email: '', helperPhone: '', helperEmail: '' }, contactSlots(st.sv.contact, st.sv.helper)) : null;
         st.persona = {...source, first:values.First,last:values.Last,dob:values.Dob,address:values.Address,city:values.City,state:values.State,zip:values.Zip,license:{...source.license,number:values.Number,state:values.Issuer,expires:values.Expires}};
         st.corrected = true;
         if (!persistDraft()) { Object.assign(st, previousEdit); return; }
@@ -6461,8 +6509,8 @@ function openScanFlow(opts) {
   }
 
   /* new customer: identity starts as a summary with an explicit correction sheet — the
-     advisor can correct extracted details before confirmation. Contact fields collect what a license cannot
-     say: phone and email (both required; owner rule). No credit score is
+     advisor can correct extracted details before confirmation. The contact field collects what a license cannot
+     say: a phone or an email (LS-058: one is enough; a guest with neither gives a helper's number). No credit score is
      asked (owner, 2026-08-25) — the record starts at the neutral default. */
   function renderNewCustomer() {
     st.stage = "new";
@@ -6476,18 +6524,16 @@ function openScanFlow(opts) {
         ${kvRow("Address", esc(fmtAddr(sv)))}
       </div>
       ${link('id="scEditLicense"', 'Edit license details')}
-      ${field("svPhone", "Mobile phone", "tel", sv.phone, "(718) 555-5555")}
-      ${field("svEmail", "Email", "email", sv.email, "name@testing.com")}`,
+      ${contactBox(sv, sv.first)}`,
       chDock(primary("data-save", o.mode === "cobuyer" ? "Add as co-buyer" : "Create customer")));
     $("[data-save]", body).onclick = () => {
-      sv.phone = $("#svPhone", body).value.trim();
-      sv.email = $("#svEmail", body).value.trim();
-      /* an empty form marks every missing field at once; with a number
-         typed, the number is read first — one already on file opens the
-         conflict sheet, and on the link path the profile's own email
-         completes the record. Every path that CREATES requires both. */
+      readContact();
+      /* an empty form marks the field; with a number typed, the number is read first — one already on file opens the
+         conflict sheet. Every path that CREATES needs one way to reach the guest (LS-058): a phone, an email, or a
+         helper's number */
       saveFrom(svVals(), null);
     };
+    wireContact();
     $("#scEditLicense", body).onclick = () => editLicense();
     wire(renderNewCustomer);
   }
@@ -6541,12 +6587,11 @@ function openScanFlow(opts) {
       editLicense(true);
       return false;
     }
-    if (!validCustomerPhone(completed.phone) || !validCustomerEmail(completed.email)) {
+    if (!hasContact(completed)) {
       sheets.close();
-      const missing = [!validCustomerPhone(completed.phone) ? 'Valid mobile phone' : '', !validCustomerEmail(completed.email) ? 'Valid email' : ''].filter(Boolean);
       let note = $('#scContactRequired', body);
       if (!note) { note = document.createElement('p'); note.id = 'scContactRequired'; note.setAttribute('role', 'alert'); $('.rp-page', body).appendChild(note); }
-      note.textContent = missing.join(' and ') + ' required before saving.';
+      note.textContent = 'A phone or an email is required before saving.';
       return false;
     }
     const previousDrafts = Store.s.licenseDrafts;
@@ -6594,8 +6639,8 @@ function openScanFlow(opts) {
     return true;
   }
 
-  /* every path that writes a NEW record writes a complete one: the same
-     required set and the same marks as Create Customer, on the form underneath */
+  /* every path that writes a NEW record writes a complete one: the same required set (customerMissing) and the same marks,
+     on the form underneath */
   function requireContact(vals) {
     const bad = customerMissing(vals, "sv", body);
     if (scanMissing(body, bad)) return false;
@@ -6654,10 +6699,10 @@ function openScanFlow(opts) {
       const warn = other ? "That number is also on another customer’s profile — make sure it is " + ex.first + "’s own." : null;
       /* W-119 (the owner's answer A of 2026-09-28): Same person onto a profile made from a secure link that holds no
          license sends the code to the phone on file first, or to its email with no phone (LS-071). KA-010's code sheet,
-         with its checks when it opens, at Verify
-         & link and after the Replace email sheet, and the license joins only after the right code. No code goes for a
+         with its checks when it opens and at Verify
+         & link, and the license joins only after the right code. No code goes for a
          save that would be refused (codeMaySend). With neither a phone nor an email, a Team Lead's confirmation stands in
-         for the code (LS-071): the join is this same finishSave, onto what linkOnto keeps, and takes the phone and the email
+         for the code (LS-071): the join is this same finishSave, onto what linkOnto keeps, and takes the contact
          typed here. The deal's own primary buyer keeps its own refusals, below */
       if (scannerCodeFirst(ex) && !dealPrimary(ex)) {
         const may = codeMaySend(ex, vals);
@@ -6698,7 +6743,7 @@ function openScanFlow(opts) {
      (W-119), whatever number was typed here */
   function renderDuplicates(cands, vals, mkNew) {
     openSheet(`${chSheetHead("Possible duplicate")}
-      <div class="rp-group">${cands.map((c2, i) => `<button type="button" class="rp-row" data-pik="${i}"><span class="rp-row__body"><span class="rp-row__title">${esc(fullName(c2))}</span><span class="rp-row__sub">${esc(c2.phone || c2.email || "No contact on file")}</span></span><span class="rp-row__chevron"></span></button>`).join("")}</div>
+      <div class="rp-group">${cands.map((c2, i) => `<button type="button" class="rp-row" data-pik="${i}"><span class="rp-row__body"><span class="rp-row__title">${esc(fullName(c2))}</span><span class="rp-row__sub">${esc(contactLine(c2) || "No contact on file")}</span></span><span class="rp-row__chevron"></span></button>`).join("")}</div>
       <p class="rp-sheet__sub">Creating new adds a second record with this name.</p>
       ${primary("data-none", "Create new customer")}`, (sheet, close) => {
       $$("[data-pik]", sheet).forEach(b => b.onclick = () => {
@@ -6717,7 +6762,7 @@ function openScanFlow(opts) {
      (completionDraft refuses it), so the conflict sheet words that profile as the primary buyer and never links it */
   const dealPrimary = (c) => (o.mode === "cobuyer" && c.id === o.deal.customerId)
     || (!!o.mission && (c.id === missionPrimary || c.id === Store.deal(o.mission.dealId)?.customerId));
-  /* Verify & link is offered, and checked again at Continue, at Verify & link and after the Replace email sheet, on one
+  /* Verify & link is offered, and checked again at Continue and at Verify & link, on one
      rule: never onto the deal's own primary buyer, never onto a profile Ashley has answered this guest is not (KA-010),
      and scannerCanLink. The same checks run on the code a Same person answer sends (W-119), where `chosen` is true:
      Ashley has just answered Same person about that one profile, the newest answer, so an earlier Different guest on it
@@ -6776,8 +6821,8 @@ function openScanFlow(opts) {
       $("[data-pfix]", sheet).onclick = () => {
         close();
         st.pick = null;
-        st.sv.phone = "";
-        const ph = $("#svPhone", body);
+        st.sv.contact = "";
+        const ph = $("#svContact", body);
         if (ph) { ph.value = ""; ph.scrollIntoView({ block: "center" }); ph.focus(); }
       };
     });
@@ -6795,26 +6840,10 @@ function openScanFlow(opts) {
     if (!v.email) delete v.email;
     return v;
   }
-  /* W-036 (the owner's answer of 2026-09-24): an email typed in the scan never replaces the one on the profile
-     without asking. Linking Marcus's license once wrote the email typed while the number was wrong over
-     malvarez@testing.com, and the done screen said "profile updated". Now the advisor chooses, nothing chosen
-     until then, and the one on file stays unless the typed one is chosen */
-  const replacesEmail = (c, v) => !!(v.email && c.email && String(v.email).trim().toLowerCase() !== String(c.email).trim().toLowerCase());
-  function askEmail(c, v, done) {
-    st.pick = null;
-    openSheet(`${chSheetHead(`Replace ${esc(c.first)}’s email?`)}
-      ${option("keep", `Keep ${esc(c.email)}`, "On the profile now", false)}
-      ${option("replace", `Use ${esc(v.email)}`, "Typed in this scan", false)}
-      <div style="height:8px"></div>
-      ${primary("data-continue", "Continue")}`, (sheet, close) => {
-      wireOptions(sheet, null);
-      $("[data-continue]", sheet).onclick = () => {
-        if (!st.pick) return scanNote('scEmailNote', $("[data-continue]", sheet), 'beforebegin', 'Choose which email to keep to go on.');
-        if (st.pick === "keep") v.email = c.email;
-        close(); done(v);
-      };
-    });
-  }
+  /* W-036 (the owner's answer of 2026-09-24): an email typed in the scan never replaces the one on the profile without
+     asking. Linking Marcus's license once wrote the email typed while the number was wrong over malvarez@testing.com, and
+     the done screen said "profile updated". Since LS-058 the scan's form takes one contact, so no email is typed beside the
+     number that finds a profile: there is nothing to ask about, and linkOnto keeps the profile's own phone and email */
 
   /* linking overwrites someone's existing record, so it is gated behind a
      code verification (owner, 2026-08-25): the guest reads back the code sent
@@ -6947,11 +6976,7 @@ function openScanFlow(opts) {
         const typed = inp.value;
         if (typed !== code) return scanMissing(sheet, [{ el: inp, msg: typed ? "Code doesn’t match" : "Required" }]);
         clearTimeout(timer);
-        const onto = linkOnto(dup, vals);
-        /* the record can move again while the Replace email sheet is up: its Continue checks once more, and a check
-           that fails joins nothing, its notice on the page (the sheet has closed) */
-        if (replacesEmail(dup, onto)) return askEmail(dup, onto, (v) => linkable(dup, vals, chosen) ? finishSave(dup, true, warn, v) : refuseLink(dup, vals));
-        finishSave(dup, true, warn, onto);
+        finishSave(dup, true, warn, linkOnto(dup, vals));
       };
     });
   }
@@ -6966,8 +6991,8 @@ function openScanFlow(opts) {
       ${hero(esc(fullName(cust)))}
       <div class="rp-kv">
         ${kvRow("License", cust.license && cust.license.number ? esc(licLine(cust.license)) + licenseLimitTag(cust.license) : "—")}
-        ${kvRow("Phone", esc(cust.phone || "—"))}
-        ${kvRow("Email", esc(cust.email || "—"))}
+        ${kvRow("Phone", esc(phoneShown(cust) || "—"))}
+        ${kvRow("Email", esc(emailShown(cust) || "—"))}
         ${kvRow("Address", cust.address && cust.city ? esc(fmtAddr(cust)) : "—")}
       </div>`,
       chDock(primary("data-go", o.completionLabel || "Continue to visit"), link("data-more", "Scan another license")));
@@ -8035,7 +8060,8 @@ route("vehicles/:id", ({ id }) => {
           summary: deal.dealType === "cash" ? r.totalDue : (deal.dealType === "onepay" ? r.onePayTotal : r.payment)
         });
         Store.save();
-        toast(`Quote saved in Ride Price — structure emailed to ${Store.customer(deal.customerId).email} (demo)`);
+        const quoteTo = Store.customer(deal.customerId);
+        toast(`Quote saved in Ride Price — structure ${quoteTo.email ? "emailed to " + quoteTo.email : "kept on the deal"} (demo)`);
         ui.sheet = { kind: "next", stock };
         render();
       }
@@ -10408,7 +10434,7 @@ route("agreement/:id", ({ id }) => {
   const partyDay = signed ? new Date(deal.basePayment.signedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : today();
   const parties = `<h2 class="rp-section">Agreement between</h2><div class="rp-group" id="bpParties">
     <div class="rp-row">${tile("user")}<span class="rp-row__body"><span class="rp-row__title">${esc(partyName(shown))}</span>
-      <span class="rp-row__sub">${esc(shown.phone)} · ${esc(shown.email)}<br>${esc(shown.address)}, ${esc(shown.city)}, ${esc(shown.state)} ${esc(shown.zip)}</span></span></div>
+      <span class="rp-row__sub">${[shown.phone, shown.email].filter(Boolean).map(esc).join(" · ")}<br>${esc(shown.address)}, ${esc(shown.city)}, ${esc(shown.state)} ${esc(shown.zip)}</span></span></div>
     <div class="rp-row">${tile("bank")}<span class="rp-row__body"><span class="rp-row__title">${esc(Store.s.advisor)} — ${esc(RIDE_PRICE_DATA.dealership.name)}</span>
       <span class="rp-row__sub">${esc(RIDE_PRICE_DATA.dealership.phone)}<br>${esc(RIDE_PRICE_DATA.dealership.address)} · ${esc(partyDay)}</span></span></div></div>`;
   /* LS-119: what changed on the record since John signed, one row per detail, the value now and what John signed
@@ -10835,16 +10861,21 @@ route("credit/:id", ({ id }) => {
      never claims a face was matched. */
   function identityScreen(verified) {
     const lic = c.license && c.license.number;
+    /* LS-058: a customer is reached by a phone, an email or a helper's; the gate lists the ways that are there */
+    const contactRows = (done) => {
+      const p = !!c.phone, e = !!c.email;
+      if (done) return stepRow(p && e ? "Phone and email" : p ? "Phone" : e ? "Email" : "Contact", p && e ? "Both on record" : "On record", "On file", true);
+      return [p ? stepRow("Phone", c.phone, "On file", true) : "", e ? stepRow("Email", c.email, "On file", true) : "", !p && !e ? stepRow("Contact", helperLine(c), "On file", true) : ""].join("");
+    };
     const licSub = lic ? `${esc((c.license.state || "NY"))} · ending ${esc(String(lic).slice(-4))} · scanned` : "Not on file — scan it in the resolver";
     const list = verified
       ? `<div class="rp-steps">
           ${stepRow("Photo captured", "Confirmed on this device, then discarded", "Done", true)}
           ${stepRow("Driver's license", licSub, lic ? "On file" : "Needed", !!lic)}
-          ${stepRow("Phone and email", "Both on record", "On file", true)}</div>`
+          ${contactRows(true)}</div>`
       : `<div class="rp-steps">
           ${stepRow("Driver's license", licSub, lic ? "On file" : "Needed", !!lic)}
-          ${stepRow("Phone", c.phone, "On file", true)}
-          ${stepRow("Email", c.email, "On file", true)}
+          ${contactRows(false)}
           ${stepRow("Photo of the customer", "Confirms the person matches the license", "Needed", false)}</div>`;
     const content = `<div class="rp-eyebrow">Identity verification</div>
       <h1 class="rp-title" style="font-size:26px">${verified ? "Identity verified" : "Verify your identity"}</h1>
@@ -16507,7 +16538,7 @@ function printDocs(deal) {
       ${sample ? `<div class="pd-sample">Training Sample — not a government document</div>` : ""}
       <h1 class="pd-title">${title}</h1>
       <div class="pd-meta">
-        <span><b>${esc(who.first)} ${esc(who.last)}</b> · ${esc(who.phone)}</span>
+        <span><b>${esc(who.first)} ${esc(who.last)}</b>${who.phone ? " · " + esc(who.phone) : ""}</span>
         <span>${v ? `${esc(v.year)} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)} · Stock ${esc(v.stock)} · VIN ${esc(v.vin)}` : "No vehicle selected"}</span>
         <span>${esc(day)} · ${DEAL_TYPES[typeShown || deal.dealType]} · Advisor: ${esc(Store.s.advisor)}</span>
       </div>
@@ -16649,7 +16680,7 @@ function printDocs(deal) {
         <li><span>Deal Type</span><b class="amt">${DEAL_TYPES[q.dealType]}</b></li>
         <li class="total"><span>${q.dealType === "cash" ? "Estimated Total Due" : q.dealType === "onepay" ? "Estimated One-Pay Total" : "Estimated Monthly Payment"}</span><b class="amt">${money(q.summary)}</b></li>
       </ul>
-      <p class="pd-note">Quick quote saved ${new Date(q.at).toLocaleString()} and emailed to ${esc(c.email)}. Quotes are for follow-up only — there is no option to purchase from a quote, and figures are estimates subject to credit approval.</p>`, "quote");
+      <p class="pd-note">Quick quote saved ${new Date(q.at).toLocaleString()} ${c.email ? "and emailed to " + esc(c.email) : "and kept on the deal"}. Quotes are for follow-up only — there is no option to purchase from a quote, and figures are estimates subject to credit approval.</p>`, "quote");
   };
 
   /* The MV-82 recreation (owner, 2026-08-20): the real form's field
