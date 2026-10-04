@@ -1,6 +1,6 @@
-# Ride Price Mobile UI — UX Audit (v046)
+# Ride Price Mobile UI — UX Audit (v047)
 
-Captured 2026-10-03T09:41:35.278Z · viewport 390×844 · app 9c3249fed1ecd488ecf8159c973a618a75111b24
+Captured 2026-10-04T01:50:07.758Z · viewport 390×844 · app 98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a
 
 | Severity | Count |
 |---|---|
@@ -219,7 +219,7 @@ _None recorded._
 
 - **Screenshot:** `current/17-client-document-upload/02-landing.png`
 - **Issue:** Demo sentences on the customer's own pages: "Training demo · files stay on this device.", "PDF preview unavailable in this demo.", and on the advisor's request status "The customer's phone is played by this same browser — open it to run the upload side of the demo."
-- **Observation:** The DEMO band and the "Demo · advisor view" button already mark the demo. The "simulate an unreadable photo" checkbox is a control the training needs, and stays. Found by the v043 audit.
+- **Observation:** The "Demo · advisor view" pill already marks the demo on the customer's own pages, which draw no DEMO band (the owner's ruling, kept by KA-009), and the advisor's pages draw the band. The "simulate an unreadable photo" checkbox is a control the training needs, and stays. Found by the v043 audit; the observation amended by the v047 audit.
 - **Suggested area to investigate:** app.js — the client link's pages and the request status sheet
 
 ### RP-UI-085 — Document Review (advisor) · Document actions (overflow sheet)

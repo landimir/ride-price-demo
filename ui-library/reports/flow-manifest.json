@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-10-03T09:41:35.278Z",
-  "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+  "capturedAt": "2026-10-04T01:50:07.758Z",
+  "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet stands in for authentication, and it opens only in Customer Onboarding (owner ruling B, 2026-09-18) — Home's top bar carries no role control.",
       "entry": null,
-      "capturedAt": "2026-10-03T09:41:35.296Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:50:07.776Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -695,7 +695,7 @@
             "overlaps": [
               ".rp-badge Discovery <> .rp-card__name Cheri Bridwell",
               ".rp-card__meta.dq-advisor Not assigned <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
-              ".rp-card__next Next: Discovery Interview In <> .rp-sheet__sub Arrived 05:42 · Discovery · ",
+              ".rp-card__next Next: Discovery Interview In <> .rp-sheet__sub Arrived 21:50 · Discovery · ",
               ".rp-badge Desking <> .rp-card__name John Smith",
               ".rp-badge Desking <> #dqVisitOpen.rp-primary Open deal",
               ".rp-card__name John Smith <> #dqVisitOpen.rp-primary Open deal",
@@ -824,7 +824,7 @@
               ".rp-badge Desking <> .rp-card__name John Smith",
               ".rp-card__meta.dq-ids VIN 5NMS4DAL4NH457995 · STK  <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
               ".rp-card__next Next: Game Plan With the Tea <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
-              ".rp-card__next Next: Game Plan With the Tea <> .rp-sheet__sub Arrived 05:42 · Discovery",
+              ".rp-card__next Next: Game Plan With the Tea <> .rp-sheet__sub Arrived 21:50 · Discovery",
               ".rp-tab.rp-tab--active Deals <> #dqVisitEnd.rp-link.ch-hit Left the showroom",
               ".rp-tab Inventory <> #dqVisitEnd.rp-link.ch-hit Left the showroom",
               ".rp-tab Customers <> #dqVisitEnd.rp-link.ch-hit Left the showroom"
@@ -1004,8 +1004,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-10-03T09:42:38.032Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:51:10.842Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -1916,8 +1916,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-10-03T09:43:25.604Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:51:59.878Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -2805,10 +2805,10 @@
               " Address <> .rp-sheet__sub Enter the six-digit code sen",
               " 4102 Bell Blvd, Bayside, NY  <> #scSheetTitle.rp-sheet__title Verify the phone number",
               " 4102 Bell Blvd, Bayside, NY  <> .rp-sheet__sub Enter the six-digit code sen",
+              ".rp-kv__head Registration address <> .rp-code__box 3",
+              ".rp-kv__head Registration address <> .rp-code__box 3",
               ".rp-kv__head Registration address <> .rp-code__box 7",
-              ".rp-kv__head Registration address <> .rp-code__box 8",
-              ".rp-kv__head Registration address <> .rp-code__box 1",
-              ".rp-kv__head Registration address <> .rp-code__box 0"
+              ".rp-kv__head Registration address <> .rp-code__box 2"
             ]
           },
           "error": null,
@@ -3107,8 +3107,8 @@
         "from": "home/more-sheet",
         "action": "Training documents"
       },
-      "capturedAt": "2026-10-03T09:46:13.676Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:54:52.433Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -3466,15 +3466,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-10-03T09:46:24.812Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:55:03.523Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
           "key": "stage-intro",
           "screen": "Stage 1 — the sample slide",
           "screenshot": "current/05-discovery/01-stage-intro.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Tap ✓",
           "next": "stage-question",
           "branches": [
@@ -3524,7 +3524,7 @@
           "key": "stage-question",
           "screen": "Current vehicle — the sample reply as chips",
           "screenshot": "current/05-discovery/02-stage-question.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Tap the Sunroof chip",
           "next": "stage-chip-toggled",
           "branches": [],
@@ -3558,7 +3558,7 @@
           "key": "stage-chip-toggled",
           "screen": "Current vehicle — a chip turned on",
           "screenshot": "current/05-discovery/03-stage-chip-toggled.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Tap ✓",
           "next": "stage-skip",
           "branches": [],
@@ -3592,7 +3592,7 @@
           "key": "stage-skip",
           "screen": "Size & space — Skip this topic",
           "screenshot": "current/05-discovery/04-stage-skip.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Tap Skip this topic",
           "next": "stage-seating",
           "branches": [],
@@ -3622,7 +3622,7 @@
           "key": "stage-seating",
           "screen": "Seating & family",
           "screenshot": "current/05-discovery/05-stage-seating.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Tap ✓",
           "next": "stage-drivetrain",
           "branches": [],
@@ -3656,7 +3656,7 @@
           "key": "stage-drivetrain",
           "screen": "Drivetrain",
           "screenshot": "current/05-discovery/06-stage-drivetrain.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Tap ✓",
           "next": "stage-lane-support",
           "branches": [],
@@ -3684,7 +3684,7 @@
           "key": "stage-lane-support",
           "screen": "Lane support — the shared stage",
           "screenshot": "current/05-discovery/07-stage-lane-support.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Tap ✓",
           "next": "stage-reverse-safety",
           "branches": [],
@@ -3715,7 +3715,7 @@
           "key": "stage-reverse-safety",
           "screen": "Reverse safety — the shared stage, the other way",
           "screenshot": "current/05-discovery/08-stage-reverse-safety.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Tap ✓",
           "next": "profile",
           "branches": [],
@@ -3746,7 +3746,7 @@
           "key": "profile",
           "screen": "The profile — the hand-off",
           "screenshot": "current/05-discovery/09-profile.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Reload the page",
           "next": "profile-reload",
           "branches": [
@@ -3783,7 +3783,7 @@
           "key": "profile-reload",
           "screen": "The profile after a reload",
           "screenshot": "current/05-discovery/10-profile-reload.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Tap ×",
           "next": "profile-change",
           "branches": [],
@@ -3811,7 +3811,7 @@
           "key": "profile-change",
           "screen": "× on the profile — back to the first question",
           "screenshot": "current/05-discovery/11-profile-change.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Tap ✓ through every topic",
           "next": "profile-again",
           "branches": [],
@@ -3845,7 +3845,7 @@
           "key": "profile-again",
           "screen": "Confirmed through — the profile again",
           "screenshot": "current/05-discovery/12-profile-again.png",
-          "hash": "#/discovery/d-46i96lm",
+          "hash": "#/discovery/d-7xby8w2",
           "action": "Tap ✓",
           "next": "vehicles/inventory-from-discovery",
           "branches": [],
@@ -3942,8 +3942,8 @@
         "from": "discovery/profile",
         "action": "Tap ✓ on the profile"
       },
-      "capturedAt": "2026-10-03T09:46:44.195Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:55:22.847Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -4616,8 +4616,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-10-03T09:47:10.486Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:55:48.924Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -5684,8 +5684,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-10-03T09:47:52.902Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:56:31.140Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -6204,7 +6204,7 @@
           "key": "appraisal-empty",
           "screen": "The appraisal form before anyone has typed",
           "screenshot": "current/08-trade-in/14-appraisal-empty.png",
-          "hash": "#/trade/d-4ag56dy",
+          "hash": "#/trade/d-yx6913y",
           "action": "Type the vehicle, the VIN, the mileage and the payoff",
           "next": "appraisal-typed",
           "branches": [],
@@ -6236,7 +6236,7 @@
           "key": "appraisal-typed",
           "screen": "The appraisal form filled in, not yet evaluated",
           "screenshot": "current/08-trade-in/15-appraisal-typed.png",
-          "hash": "#/trade/d-4ag56dy",
+          "hash": "#/trade/d-yx6913y",
           "action": "Tap Run evaluation",
           "next": "appraisal-run",
           "branches": [],
@@ -6267,7 +6267,7 @@
           "key": "appraisal-run",
           "screen": "Trade value — the fresh trade evaluated",
           "screenshot": "current/08-trade-in/16-appraisal-run.png",
-          "hash": "#/trade/d-4ag56dy",
+          "hash": "#/trade/d-yx6913y",
           "action": "Tap Review ownership",
           "next": "ownership-roots",
           "branches": [],
@@ -6335,8 +6335,8 @@
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-10-03T09:48:19.714Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:56:58.059Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -7382,8 +7382,8 @@
         "from": "desking/work-chose",
         "action": "Tap Submit for Team Lead approval; the Team Lead approves; then Continue"
       },
-      "capturedAt": "2026-10-03T09:49:12.512Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:57:48.991Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -7808,8 +7808,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-10-03T09:49:41.859Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:58:17.359Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -8231,7 +8231,7 @@
           "action": "Tap Re-present the new payment",
           "next": "desking/present-mode",
           "branches": [],
-          "notes": "The real path ends here: the seeded lender approves at 3.9% against the agreed 3.5%, so the screen states the difference in the customer's unit — the payment — and the forward action is to re-present, never to continue silently.",
+          "notes": "Submit ends the application on the board (§29, KA-004): the lender's answer is a notice on Home, and Review the answer opened it here, on its own screen. The seeded lender approves at 3.9% against the agreed 3.5%, so the screen states the difference in the customer's unit — the payment — and the forward action is to re-present, never to continue silently. Its Close returns to Home.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -8526,6 +8526,39 @@
               "area": "app.js — the credit application's secure-link sheet, the applicant's case"
             }
           ]
+        },
+        {
+          "step": 22,
+          "key": "lender-notice",
+          "screen": "Home — the lender's answer, a notice",
+          "screenshot": "current/11-credit-application/22-lender-notice.png",
+          "hash": "#/deals",
+          "action": "Tap Review the answer",
+          "next": "lender-answer",
+          "branches": [],
+          "notes": "After Review & submit to lenders the deal is back on the board, and the answer is one notice at the top, in the kit's amber alert: whom the application went to, when it was sent, the rate, and the payment's move from the agreed figure to the new one. Its one action opens the answer on its own screen and reads the notice; John's card says what comes next and opens the answer while the new payment waits to be presented.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".rp-wordmark Ride Price 116x23"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".rp-badge Menu <> .rp-card__name John Smith"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
         }
       ]
     },
@@ -8538,8 +8571,8 @@
         "from": "credit/joint-remote",
         "action": "Tap the Buyers row"
       },
-      "capturedAt": "2026-10-03T09:50:21.775Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:58:58.643Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -9287,8 +9320,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present each product"
       },
-      "capturedAt": "2026-10-03T09:50:46.984Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:59:23.251Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -9959,8 +9992,8 @@
         "from": "credit/approved-agreed-rate",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-10-03T09:51:05.428Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T01:59:41.229Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -10918,8 +10951,8 @@
         "from": "desking/pencil-finance",
         "action": "Tap the Jacket chip"
       },
-      "capturedAt": "2026-10-03T09:51:48.765Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T02:00:23.865Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -11626,7 +11659,7 @@
             "overlaps": [
               ".rp-ready__note 3 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 3 needed <>  Oct 3, 5:52 AM",
+              ".rp-bucket__badge 3 needed <>  Oct 3, 10:00 PM",
               ".rp-doc__why John Smith: both sides neede <>  Customer opened",
               ".rp-doc__state Needed <>  Waiting",
               ".rp-doc__name Auto Insurance Card (Binder) <>  Documents uploaded",
@@ -11682,8 +11715,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-10-03T09:52:30.590Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T02:01:04.275Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -11873,8 +11906,8 @@
               ".rp-doc__name Driver's License <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-doc__why John Smith: both sides neede <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-doc__name Auto Insurance Card (Binder) <>  Link sent",
-              ".rp-doc__name Auto Insurance Card (Binder) <>  Oct 3, 5:52 AM",
-              ".rp-doc__state Requested <>  Oct 3, 5:52 AM",
+              ".rp-doc__name Auto Insurance Card (Binder) <>  Oct 3, 10:01 PM",
+              ".rp-doc__state Requested <>  Oct 3, 10:01 PM",
               ".rp-doc__name Proof of Income (Paystub) <>  Customer opened",
               ".rp-doc__state Requested <>  Waiting",
               "#jkRequest.rp-primary Resend secure request (3) <> .rp-count The customer's phone is play"
@@ -11983,7 +12016,7 @@
             "overlaps": [
               ".rp-ready__note 2 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 2 needed <>  Oct 3, 5:52 AM",
+              ".rp-bucket__badge 2 needed <>  Oct 3, 10:01 PM",
               ".rp-doc__why John Smith: both sides neede <>  Customer opened",
               ".rp-doc__state Requested <>  Opened",
               ".rp-doc__name Proof of Income (Paystub) <>  Documents uploaded",
@@ -12011,8 +12044,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-10-03T09:52:44.043Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T02:01:17.512Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -12070,11 +12103,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              ".rp-row__action.ch-hit Add 34x40",
-              ".rp-row__action.ch-hit Add 34x40",
-              ".rp-row__action.ch-hit Add 34x40"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
@@ -12090,7 +12119,7 @@
               "id": "RP-UI-084",
               "severity": "Minor",
               "issue": "Demo sentences on the customer's own pages: \"Training demo · files stay on this device.\", \"PDF preview unavailable in this demo.\", and on the advisor's request status \"The customer's phone is played by this same browser — open it to run the upload side of the demo.\"",
-              "observation": "The DEMO band and the \"Demo · advisor view\" button already mark the demo. The \"simulate an unreadable photo\" checkbox is a control the training needs, and stays. Found by the v043 audit.",
+              "observation": "The \"Demo · advisor view\" pill already marks the demo on the customer's own pages, which draw no DEMO band (the owner's ruling, kept by KA-009), and the advisor's pages draw the band. The \"simulate an unreadable photo\" checkbox is a control the training needs, and stays. Found by the v043 audit; the observation amended by the v047 audit.",
               "area": "app.js — the client link's pages and the request status sheet"
             }
           ]
@@ -12110,10 +12139,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              ".rp-row__action.ch-hit Add 34x40",
-              ".rp-row__action.ch-hit Add 34x40"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
@@ -12129,22 +12155,19 @@
         {
           "step": 4,
           "key": "row-verified",
-          "screen": "License sent — being reviewed",
+          "screen": "License received for review",
           "screenshot": "current/17-client-document-upload/04-row-verified.png",
           "hash": "#/clientlink/d-demo1/sms",
           "action": "Add the insurance card",
           "next": "insurance-blurry",
           "branches": [],
-          "notes": "Both sides are in, so the row counts as ready and the progress line moves — but a license is never called verified by the customer's phone. It reads Sent — being reviewed, with Replace on the row, until an advisor reviews it in the jacket.",
+          "notes": "Both sides are in, so the row counts as ready and the progress line moves — but a license is never called verified by the customer's phone. It reads Received for review, with Replace on the row, until an advisor reviews it in the jacket.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              ".rp-row__action.ch-hit Add 34x40",
-              ".rp-row__action.ch-hit Add 34x40"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
@@ -12172,9 +12195,7 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              ".rp-row__action.ch-hit Add 34x40"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
@@ -12182,7 +12203,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 850
+            "pageHeight": 895
           },
           "scrollShot": "current/17-client-document-upload/05-insurance-blurry.scroll.png",
           "issues": []
@@ -12196,15 +12217,13 @@
           "action": "Tap Submit what's ready (2/3)",
           "next": "receipt-partial",
           "branches": [],
-          "notes": "The card John has expires in 12 days, so it is taken the first time and its row says why it needs attention: Accepted, in the attention colour, \"Expires <date>. Coverage must be in force at delivery.\" The retake replaced the refused photo. Two of three ready: the customer can already send what is done.",
+          "notes": "The card John has expires in 12 days, so it is taken the first time and its row says why it needs attention: Ready, with the date and the reason in the attention colour under it, \"Expires <date>. Coverage must be in force at delivery.\" The retake replaced the refused photo. Two of three ready: the customer can already send what is done.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              ".rp-row__action.ch-hit Add 34x40"
-            ],
+            "tinyTargets": [],
             "clipped": [],
             "overlaps": []
           },
@@ -12212,7 +12231,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 866
+            "pageHeight": 895
           },
           "scrollShot": "current/17-client-document-upload/06-insurance-accepted.scroll.png",
           "issues": []
@@ -12226,7 +12245,7 @@
           "action": "Back to upload",
           "next": "paystub-one-of-two",
           "branches": [],
-          "notes": "Three groups, and only the ones that apply: what is already in the Deal Jacket, what is awaiting the advisor's review, and what is still needed. The button says Back to upload while something is missing.",
+          "notes": "Received for review, and that received is not approved, with each document and its time, and how many are still needed. The button says Back to upload while something is missing.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -12262,13 +12281,16 @@
             "offscreen": [],
             "tinyTargets": [],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".dr-demoexit Demo · advisor view <> .rp-gatenote A photo is sent as soon as y",
+              ".dr-demoexit Demo · advisor view <> .rp-primary Add documents"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 884
+            "pageHeight": 956
           },
           "scrollShot": "current/17-client-document-upload/08-paystub-one-of-two.scroll.png",
           "issues": []
@@ -12282,7 +12304,7 @@
           "action": "Tap Submit documents",
           "next": "receipt",
           "branches": [],
-          "notes": "Only when every row is ready does one submit button replace the add/submit-what's-ready pair. Ready is not the same as verified: the paystub cleared on the spot and the insurance card was taken with its exception, while John Smith's license still reads Sent — being reviewed until an advisor looks at it.",
+          "notes": "Only when every row is ready does one submit button replace the add/submit-what's-ready pair. Ready is not the same as verified: the paystub cleared on the spot and the insurance card was taken with its exception, while John Smith's license still reads Received for review until an advisor looks at it.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -12296,9 +12318,9 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 844
+            "pageHeight": 872
           },
-          "scrollShot": null,
+          "scrollShot": "current/17-client-document-upload/09-all-verified.scroll.png",
           "issues": []
         },
         {
@@ -12310,7 +12332,7 @@
           "action": "Back to status",
           "next": "landing",
           "branches": [],
-          "notes": "What landed, when, and that it is already in the Deal Jacket.",
+          "notes": "What was received and when, in the customer's words: Received for review, and that this is not the same as approved.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -12358,21 +12380,18 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              ".rp-row__action.ch-hit Add 34x40",
-              ".rp-row__action.ch-hit Add 34x40",
-              ".rp-row__action.ch-hit Add 34x40",
               ".rp-sheet__close  32x32"
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-row__title Driver's License <> #cuSheetTitle.rp-sheet__title Proof of Income (Paystub)",
-              ".rp-row__sub Front and back <> #cuSheetTitle.rp-sheet__title Proof of Income (Paystub)",
-              ".rp-row__title Proof of Income (Paystub) <> .rp-section Two recent paystubs",
-              ".rp-row__sub Two recent paystubs <> .rp-section Two paystubs required.",
-              ".rp-row__action.ch-hit Add <> .rp-section Two recent paystubs",
-              ".rp-row__action.ch-hit Add <> .rp-section Two paystubs required.",
-              ".rp-section Training demo · files stay o <> .rp-row__title Take a photo",
-              ".dr-demoexit Demo · advisor view <> .rp-row__sub Use your phone camera"
+              ".rp-ask-item__name Proof of Income (Paystub) <> #cuSheetTitle.rp-sheet__title Proof of Income (Paystub)",
+              ".rp-ask-item__why Two recent paystubs <> .rp-section Two recent paystubs",
+              ".rp-ask-item__act Add <> .rp-section Two recent paystubs",
+              ".dr-demoexit Demo · advisor view <> .rp-row__title Take a photo",
+              ".dr-demoexit Demo · advisor view <> .rp-row__sub Use your phone camera",
+              ".rp-gatenote A photo is sent as soon as y <> .rp-link Other income type",
+              ".rp-primary Add documents <> .rp-link Other income type",
+              ".rp-primary Add documents <> .rp-link See a good example"
             ]
           },
           "error": null,
@@ -12400,21 +12419,18 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              ".rp-row__action.ch-hit Add 34x40",
-              ".rp-row__action.ch-hit Add 34x40",
-              ".rp-row__action.ch-hit Add 34x40",
               ".rp-sheet__close  32x32"
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-row__title Driver's License <> #cuSheetTitle.rp-sheet__title Proof of Income (Paystub)",
-              ".rp-row__sub Front and back <> #cuSheetTitle.rp-sheet__title Proof of Income (Paystub)",
-              ".rp-row__title Proof of Income (Paystub) <> .rp-section Two recent paystubs",
-              ".rp-row__sub Two recent paystubs <> .rp-section Two paystubs required.",
-              ".rp-row__action.ch-hit Add <> .rp-section Two recent paystubs",
-              ".rp-row__action.ch-hit Add <> .rp-section Two paystubs required.",
-              ".rp-section Training demo · files stay o <> .rp-row__title Take a photo",
-              ".dr-demoexit Demo · advisor view <> .rp-row__sub Use your phone camera"
+              ".rp-ask-item__name Proof of Income (Paystub) <> #cuSheetTitle.rp-sheet__title Proof of Income (Paystub)",
+              ".rp-ask-item__why Two recent paystubs <> .rp-section Two recent paystubs",
+              ".rp-ask-item__act Add <> .rp-section Two recent paystubs",
+              ".dr-demoexit Demo · advisor view <> .rp-row__title Take a photo",
+              ".dr-demoexit Demo · advisor view <> .rp-row__sub Use your phone camera",
+              ".rp-gatenote A photo is sent as soon as y <> .rp-link Other income type",
+              ".rp-primary Add documents <> .rp-link Other income type",
+              ".rp-primary Add documents <> .rp-link See a good example"
             ]
           },
           "error": null,
@@ -12442,20 +12458,17 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              ".rp-row__action.ch-hit Add 34x40",
-              ".rp-row__action.ch-hit Add 34x40",
-              ".rp-row__action.ch-hit Add 34x40",
               ".rp-sheet__close  32x32"
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-row__sub Current binder or card <> #cuSheetTitle.rp-sheet__title Proof of Income (Paystub)",
-              ".rp-row__title Driver's License <> .rp-section Two recent paystubs",
-              ".rp-row__action.ch-hit Add <> .rp-section Two recent paystubs",
-              ".rp-row__title Proof of Income (Paystub) <> .rp-row__title Take a photo",
-              ".rp-row__sub Two recent paystubs <> .rp-row__title Take a photo",
-              ".rp-row__action.ch-hit Add <> .rp-row__title Take a photo",
-              ".rp-section Training demo · files stay o <> .rp-row__title Choose from library",
+              ".rp-ask-item__name Driver's License <> #cuSheetTitle.rp-sheet__title Proof of Income (Paystub)",
+              ".rp-ask-item__why Front and back <> #cuSheetTitle.rp-sheet__title Proof of Income (Paystub)",
+              ".rp-ask-item__name Proof of Income (Paystub) <> .rp-section Two paystubs required.",
+              ".rp-ask-item__why Two recent paystubs <> .rp-row__title Take a photo",
+              ".rp-ask-item__act Add <> .rp-section Two paystubs required.",
+              ".rp-section Training demo · files stay o <> .rp-row__sub Use your phone camera",
+              ".dr-demoexit Demo · advisor view <> .rp-row__title Choose from library",
               ".dr-demoexit Demo · advisor view <> .rp-row__sub Select an existing photo"
             ]
           },
@@ -12503,7 +12516,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1134
+            "pageHeight": 1132
           },
           "scrollShot": "current/17-client-document-upload/14-review-capture.scroll.png",
           "issues": []
@@ -12523,17 +12536,17 @@
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
-            "tinyTargets": [
-              ".rp-row__action.ch-hit Add 34x40"
-            ],
+            "tinyTargets": [],
             "clipped": [],
-            "overlaps": []
+            "overlaps": [
+              ".dr-demoexit Demo · advisor view <> .rp-gatenote A photo is sent as soon as y"
+            ]
           },
           "error": null,
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 850
+            "pageHeight": 918
           },
           "scrollShot": "current/17-client-document-upload/15-unreadable-refused.scroll.png",
           "issues": []
@@ -12554,19 +12567,18 @@
             "hOverflow": 0,
             "offscreen": [],
             "tinyTargets": [
-              ".rp-row__action.ch-hit Add 34x40",
               ".rp-sheet__close  32x32"
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-row__sub Current binder or card <> #cuSheetTitle.rp-sheet__title Auto Insurance Card (Binder)",
-              ".rp-row__sub Too blurry to read <> #cuSheetTitle.rp-sheet__title Auto Insurance Card (Binder)",
-              ".rp-row__title Driver's License <> .rp-notice.rp-notice--working Too blurry to readNot accept",
-              ".rp-row__sub Front and back <> .rp-notice.rp-notice--working Too blurry to readNot accept",
-              ".rp-row__sub Front and back <>  Too blurry to read",
-              ".rp-row__action.ch-hit Add <> .rp-notice.rp-notice--working Too blurry to readNot accept",
-              ".rp-row__action.ch-hit Add <>  Too blurry to read",
-              ".rp-row__title Proof of Income (Paystub) <> .rp-notice.rp-notice--working Too blurry to readNot accept"
+              ".rp-alert-inline.rp-alert-inline--bad Too blurry to readTake a new <> #cuSheetTitle.rp-sheet__title Auto Insurance Card (Binder)",
+              ".rp-ask-item__name Driver's License <> .rp-section Current binder or card",
+              ".rp-ask-item__why Front and back <> .rp-notice.rp-notice--working Too blurry to readNot accept",
+              ".rp-ask-item__why Front and back <>  Too blurry to read",
+              ".rp-ask-item__act Add <> .rp-section Current binder or card",
+              ".rp-ask-item__act Add <> .rp-notice.rp-notice--working Too blurry to readNot accept",
+              ".rp-ask-item__name Proof of Income (Paystub) <> .rp-notice.rp-notice--working Too blurry to readNot accept",
+              ".rp-ask-item__name Proof of Income (Paystub) <> .rp-section May be multi-page."
             ]
           },
           "error": null,
@@ -12606,7 +12618,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1134
+            "pageHeight": 1132
           },
           "scrollShot": "current/17-client-document-upload/17-review-pdf.scroll.png",
           "issues": []
@@ -12639,6 +12651,71 @@
           },
           "scrollShot": null,
           "issues": []
+        },
+        {
+          "step": 19,
+          "key": "help-sheet",
+          "screen": "Help — Ashley's name and the number to call",
+          "screenshot": "current/17-client-document-upload/19-help-sheet.png",
+          "hash": "#/clientlink/d-demo1",
+          "action": "Close the sheet, or call",
+          "next": "landing",
+          "branches": [],
+          "notes": "The one help on the customer link page, in its bar: who to ask (Ashley Collins, Client Advisor, Ride Price Motors) and a link to call the store.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".rp-sheet__close  32x32"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".rp-gatenote A photo is sent as soon as y <> .rp-row__title Ashley Collins",
+              ".rp-primary Add documents <> .rp-row__sub Client Advisor · Ride Price ",
+              ".rp-primary Add documents <> .rp-row__title Call (718) 555-0188",
+              ".rp-link Save & finish later <> .rp-row__title Call (718) 555-0188"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 20,
+          "key": "front-on-file",
+          "screen": "The list — the license front the store took, the back still needed",
+          "screenshot": "current/17-client-document-upload/20-front-on-file.png",
+          "hash": "#/clientlink/d-demo1",
+          "action": "Add the back",
+          "next": "landing",
+          "branches": [],
+          "notes": "The front the resolver took at the desk reads Front on file with Back needed beside it, as chips on the license's card, and the card offers Retake, as every missing page does.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
+          "issues": []
         }
       ]
     },
@@ -12651,8 +12728,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-10-03T09:53:08.980Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T02:01:45.679Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -13155,7 +13232,7 @@
           "action": "Shutter, or Gallery",
           "next": null,
           "branches": [],
-          "notes": "The same screen reached from the customer's Add documents: no dealership band and no role control (PI-005), because this is the customer's own page. The marked Demo · advisor view is the trainer's way back; Close returns to the customer's list.",
+          "notes": "The same screen reached from the customer's Add documents: no dealership band and no role control (PI-005), because this is the customer's own page. The marked Demo · advisor view is the trainer's way back; Back to your documents returns to the customer's list.",
           "status": "ok",
           "standalone": true,
           "reusedFrom": null,
@@ -13172,9 +13249,88 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 912
+            "pageHeight": 844
           },
-          "scrollShot": "current/18-snap-all/15-client-capture.scroll.png",
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 16,
+          "key": "client-results",
+          "screen": "John's sorted batch — Ready",
+          "screenshot": "current/18-snap-all/16-client-results.png",
+          "hash": "#/snapall/d-demo1/client/c-demo1",
+          "action": "Back to your documents",
+          "next": "client-leave",
+          "branches": [
+            {
+              "action": "Confirm & save",
+              "to": "client-upload/landing"
+            }
+          ],
+          "notes": "The customer's side of the sort: Ready, and Ready with a note for the insurance card, with its reason under it; never Verified or Exception accepted. The dock says Nothing is sent until you confirm, and the way back is a text link under the primary, never a Close.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".sa-act.ch-hit Undo 34x40"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".sa-act.sa-act--fix Add paystub <> .rp-gatenote Nothing is sent until you co",
+              ".sa-act.ch-hit Accept anyway <> .rp-gatenote Nothing is sent until you co",
+              ".dr-demoexit Demo · advisor view <> #saSave.rp-primary Confirm & save",
+              ".dr-demoexit Demo · advisor view <> #saBack.rp-link.ch-hit Back to your documents"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 996
+          },
+          "scrollShot": "current/18-snap-all/16-client-results.scroll.png",
+          "issues": []
+        },
+        {
+          "step": 17,
+          "key": "client-leave",
+          "screen": "Leaving John's capture — the photos have not been sent",
+          "screenshot": "current/18-snap-all/17-client-leave.png",
+          "hash": "#/snapall/d-demo1/client/c-demo1",
+          "action": "Leave capture, or Keep capturing",
+          "next": null,
+          "branches": [],
+          "notes": "The question says the photos in this batch have not been sent, and leaving clears them; it never says the deal jacket, which is the store's word.",
+          "status": "ok",
+          "standalone": true,
+          "reusedFrom": null,
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [
+              ".sa-thumb__x.ch-hit  24x24",
+              ".sa-thumb__x.ch-hit  24x24",
+              "#saGallery.rp-chip.sa-gallery Gallery 94x32"
+            ],
+            "clipped": [],
+            "overlaps": [
+              ".dr-demoexit Demo · advisor view <> #saSheetTitle.rp-sheet__title Leave this capture?",
+              ".rp-gatenote Nothing is sent until you co <> .ch-confirmcopy The 2 photos in this batch h",
+              "#saProcess.rp-primary Process 2 photos & auto-sort <> #chDialogGo.rp-primary Leave capture",
+              "#saBack.rp-link.ch-hit Back to your documents <> .rp-link.ch-hit Keep capturing"
+            ]
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
           "issues": []
         }
       ]
@@ -13188,8 +13344,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-10-03T09:53:30.944Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T02:02:11.917Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,
@@ -13315,7 +13471,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1005
+            "pageHeight": 1027
           },
           "scrollShot": "current/19-document-review/04-reviewed.scroll.png",
           "issues": []
@@ -13392,7 +13548,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1005
+            "pageHeight": 1027
           },
           "scrollShot": "current/19-document-review/06-zoomed.scroll.png",
           "issues": []
@@ -13538,8 +13694,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print center"
       },
-      "capturedAt": "2026-10-03T09:54:01.387Z",
-      "appCommit": "9c3249fed1ecd488ecf8159c973a618a75111b24",
+      "capturedAt": "2026-10-04T02:02:42.350Z",
+      "appCommit": "98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a",
       "screens": [
         {
           "step": 1,

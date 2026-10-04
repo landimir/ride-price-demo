@@ -1,5 +1,89 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v047 — 2026-10-04
+
+App commit: 98fe1bc · 20 flows · 388 screens · previous: v046
+
+### Added
+- Credit Application (Lending Lane) · Home — the lender's answer, a notice
+- Client Document Upload (customer's phone) · Help — Ashley's name and the number to call
+- Client Document Upload (customer's phone) · The list — the license front the store took, the back still needed
+- Snap All — burst capture · John's sorted batch — Ready
+- Snap All — burst capture · Leaving John's capture — the photos have not been sent
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Active floor — a visit not yet assigned
+- Home — Active Floor & Navigation · Visit sheet — Assign to an advisor (Team Lead)
+- Home — Active Floor & Navigation · Assign — one row per advisor
+- Home — Active Floor & Navigation · Active floor — assigned to Ashley
+- Home — Active Floor & Navigation · Visit sheet — the advisor's own (no assign control)
+- Home — Active Floor & Navigation · Test log — off, nothing recorded
+- Home — Active Floor & Navigation · Test log — recording, events on the log
+- Home — Active Floor & Navigation · Clear the test log? — confirm
+- Home — Active Floor & Navigation · Test log — cleared and stopped
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Scan Driver's License · Unfinished scans
+- Scan Driver's License · Resume license scan
+- Scan Driver's License · Verify the phone number — Email the code instead
+- Scan Driver's License · Needs you — Jordan confirms the name
+- Scan Driver's License · Needs you — the signed agreement goes back
+- Discovery — the guided consultation · × in the top bar — back to the visits
+- Credit Application (Lending Lane) · Step 1 — Individual application, the record row open
+- Credit Application (Lending Lane) · Step 2 — Residence
+- Credit Application (Lending Lane) · Step 3 — Employment
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — the resolver's entries
+- Deal Jacket & Compliance · Optional document — Remove from this deal
+- Deal Jacket & Compliance · Request status — the customer's uploads, not the advisor's
+- Deal Jacket & Compliance · License reviewed and filed — the count moves by one
+- Customer document request (from the jacket) · Customer request — delivery status (waiting)
+- Customer document request (from the jacket) · Customer request — opened, 1 of 3 uploaded
+- Client Document Upload (customer's phone) · Document request — what the link opens
+- Client Document Upload (customer's phone) · Upload your documents
+- Client Document Upload (customer's phone) · Row blocked — back of license missing
+- Client Document Upload (customer's phone) · License received for review
+- Client Document Upload (customer's phone) · Insurance photo too blurry — refused on the row
+- Client Document Upload (customer's phone) · Insurance taken — the row says why it needs attention
+- Client Document Upload (customer's phone) · Receipt — partway through
+- Client Document Upload (customer's phone) · Paystub — second stub still needed
+- Client Document Upload (customer's phone) · Every row ready — the license still awaiting review
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Client Document Upload (customer's phone) · What we need — bottom sheet
+- Client Document Upload (customer's phone) · See a good example — the one-line answer
+- Client Document Upload (customer's phone) · Other income type — noted
+- Client Document Upload (customer's phone) · Review capture — 2 pages
+- Client Document Upload (customer's phone) · Too blurry to read — refused on the row
+- Client Document Upload (customer's phone) · What we need — the refusal carried into the sheet
+- Client Document Upload (customer's phone) · Review capture — a PDF, no preview
+- Client Document Upload (customer's phone) · Save & finish later
+- Snap All — burst capture · Sorting the batch
+- Snap All — burst capture · Snap All from the customer's phone
+- Documents — Print Center & Printables · Preview — Saved Quote
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+
+### Read by eye
+- The five new screens, each read in full: Home with the lender's answer as one amber notice, "Ride Price Financial answered", John Smith, when it was sent, approved at 3.9% APR and the payment's move from $701.79 to $708.72 a month, with Review the answer and a close (KA-004); Help on John's pages, Ashley Collins as Client Advisor and the number to call; John's list with the license front the store took, Front added and Back needed as chips on the card; John's sorted batch under Ready, the insurance card as Ready with a note and its reason under it, and the license and the paystub each a page short; and the question on leaving John's capture, "The 2 photos in this batch have not been sent" (KA-009).
+- The 19 changed pictures that show the build, each read in full on three contact sheets: all 18 changed pictures of the client upload flow and Snap All from the customer's phone. John's pages are the kit's customer link page: the identity bar with Help and no Close, "Your documents" with the request's own number, Request 7731, one counter (0 of 3 ready), a card for each document with one button, chips for the pages a document has and lacks, a gate note on every dock ("A photo is sent as soon as you add it", "Nothing is sent until you confirm", "Not sent yet"), and the receipt that says "Received for review. That is not the same as approved." with each document and its time. None of the store's words (Verified, Accepted, In the Jacket, Deal Jacket, Sales Advisor, a deal number) is on any of them, and no demo band is drawn on a customer's page, only the trainer's pill.
+- Two pictures changed their scroll shots, as a consequence: Snap All from the customer's phone no longer has a scroll shot (its capture column leaves the trainer's pill its room, so the page now fits 390 by 844), and "Every row ready" in the client upload has one (its page is taller than the phone).
+- The credit application's "Approved" picture (lender-answer) is byte for byte the same: the screen is the same, reached now from the notice, which is the new step before it. D-PI1 changed no picture: the steps that press Desking's Close do so inside Present, where it still closes in place, or reach Desking by address, where Close still returns to Discovery (close-to-discovery is byte for byte the same), and Discovery's ×, back to the visits, differs by a clock only.
+- The other 28 changed screens were each compared with v046 pixel by pixel, as one band of rows per difference: every difference is a live value, a clock time (Home's visit rows, the test log, Unfinished scans, Resume, Jordan's Asked by line, the jacket's tracking and receipts, the print preview's date line), a spinner frame (Sorting the batch), or a one-pixel text caret (the credit application's fields, the co-buyer's, the address sheet). Nothing else moved.
+- RP-UI-084's observation is amended, not its text: it said the DEMO band marks the demo on the customer's own pages, which draw no band (the owner's ruling, kept by KA-009); the trainer's pill and the page's own "Training demo" line are what mark it. No issue is new or resolved: the new pictures' automated flags (small targets, overlaps) are the trainer's pill, the sheet over its page and the dock's fade over the last row, which the library already counts as the pattern.
+- The library's own steps: the five new steps stand alone (`standalone`) at the ends of their flows, so no picture was renumbered; the credit flow's lender-answer step taps Review the answer on the notice; the notes that said Verified, Sent — being reviewed or In the Jacket on John's pages say what the pages say now.
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
 ## v046 — 2026-10-03
 
 App commit: 9c3249f · 20 flows · 383 screens · previous: v045

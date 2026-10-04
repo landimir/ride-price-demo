@@ -336,7 +336,7 @@
     "screen": "Upload your documents",
     "screenshot": "current/17-client-document-upload/02-landing.png",
     "issue": "Demo sentences on the customer's own pages: \"Training demo · files stay on this device.\", \"PDF preview unavailable in this demo.\", and on the advisor's request status \"The customer's phone is played by this same browser — open it to run the upload side of the demo.\"",
-    "observation": "The DEMO band and the \"Demo · advisor view\" button already mark the demo. The \"simulate an unreadable photo\" checkbox is a control the training needs, and stays. Found by the v043 audit.",
+    "observation": "The \"Demo · advisor view\" pill already marks the demo on the customer's own pages, which draw no DEMO band (the owner's ruling, kept by KA-009), and the advisor's pages draw the band. The \"simulate an unreadable photo\" checkbox is a control the training needs, and stays. Found by the v043 audit; the observation amended by the v047 audit.",
     "area": "app.js — the client link's pages and the request status sheet"
   },
   {
