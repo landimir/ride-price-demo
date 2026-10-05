@@ -13,7 +13,10 @@
   --rp-canvas: #F2F2F7;
   --rp-surface: #FFFFFF;
   --rp-ink: #12131B;
-  --rp-muted: #6E6E78;
+  /* The owner's ruling, 2026-10-04 (W-152 = B, docs/workflows/redesign/visuals/decision-button-contrast.png): the small grey darkened from #6E6E78 (4.3:1 on the
+     segment's tray) to #6A6A72 (4.5:1 there, its tightest place), and the button gradient below from the bright orange to pink to #B85400 to #D60047 (4.9:1 under white
+     text at its lighter end), the one the scanner's buttons already had. The tab labels read this grey too (they had a grey of their own, 3.9:1). */
+  --rp-muted: #6A6A72;
   --rp-placeholder: #8B8A99;
   --rp-separator: rgba(18, 19, 27, .10);
   --rp-navy: #0B1528;
@@ -31,7 +34,7 @@
   --rp-eyebrow: #705D55;
   --rp-section: #4A4860;
 
-  --rp-gradient: linear-gradient(100deg, var(--rp-orange), var(--rp-pink));
+  --rp-gradient: linear-gradient(100deg, #B85400, #D60047); /* W-152 = B: deeper than --rp-orange to --rp-pink, which stay for the wordmark and the gradient text */
   --rp-gradient-text: linear-gradient(90deg, var(--rp-orange), var(--rp-pink));
   --rp-primary-shadow: 0 7px 18px rgba(229, 50, 107, .22);
 
@@ -269,7 +272,7 @@ svg { display: block; }
   box-shadow: 0 12px 36px rgba(15, 20, 40, .15);
   display: grid; grid-template-columns: repeat(4, 1fr);
 }
-.rp-tab { border-radius: 19px; color: #777986; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 680; }
+.rp-tab { border-radius: 19px; color: var(--rp-muted); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 10px; font-weight: 680; }
 .rp-tab .rp-icon { width: 22px; height: 22px; }
 .rp-tab--active { color: var(--rp-ink); background: var(--rp-surface); box-shadow: 0 3px 12px rgba(20, 24, 42, .08); }
 .rp-screen--task .rp-tabbar { display: none !important; }   /* belt and braces: never on a task */
@@ -836,8 +839,9 @@ svg { display: block; }
 /* ---------- 40. Kept in the app's copy (§0) — the owner's rulings and the scanner's additions ---------- */
 /* Installed from the Master Replication Kit v022.25 (2026-09-24); the file's own
    header still reads v022.21, as the kit ships it. Kept above, in place: --rp-blue
-   at #1D5ED6 (the owner's W-012 ruling, 2026-09-23), and the capture frame's
-   corners drawn over the photo, with .rp-capture__image (the scanner, phase 3).
+   at #1D5ED6 (the owner's W-012 ruling, 2026-09-23), --rp-gradient and --rp-muted
+   deeper, and .rp-tab's grey made --rp-muted (W-152 = B, 2026-10-04), and the capture
+   frame's corners drawn over the photo, with .rp-capture__image (the scanner, phase 3).
    Kept here. Each is listed in docs/kit/README.md and asked in HOMEWORK.md,
    until the master kit carries it or the owner drops it. */
 /* Owner design rule: customer identity uses text, never circular initials. */
@@ -845,10 +849,10 @@ svg { display: block; }
 /* Consistent heading-to-content spacing throughout scanner confirmation. */
 #scanBody .rp-title + .rp-match, #scanBody .rp-title + .rp-kv { margin-top: 18px; }
 
-/* Scanner action labels retain at least 4.5:1 contrast. Its links take the
-   kit's own blue again: --rp-blue now passes everywhere (W-012 = B), so the
-   scanner-only navy (#117) is gone and every link in the app is one colour. */
-#scanBody .rp-primary { background: linear-gradient(100deg, #b85400, #d60047); }
+/* The scanner's links take the kit's own blue again: --rp-blue now passes everywhere
+   (W-012 = B), so the scanner-only navy (#117) is gone and every link in the app is one
+   colour; and its buttons take the kit's own gradient, which is now the darker one
+   everywhere (W-152 = B), so the scanner-only gradient is gone and every button is one look. */
 #scAddressChoice { border: 0; padding: 12px 16px; min-width: 0; }
 #scAddressChoice .rp-check { margin: 12px 0; }
 #scanBody .rp-sheet { max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain; }

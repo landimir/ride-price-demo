@@ -829,7 +829,7 @@ function dealTitle(deal, bare) {
   const catalog = Store.vehicle(deal.stock);
   const snap = vehicleSnapshot(deal); /* the words may be absent on a blob from before 2026-09-04 */
   const v = catalog || (snap && snap.make ? snap : null);
-  const names = `${c ? esc(c.first + " " + c.last) : "—"}${cb ? " + " + esc(cb.first + " " + cb.last) : ""}`;
+  const names = dealBusiness(deal) ? esc(deal.business.name) : `${c ? esc(c.first + " " + c.last) : "—"}${cb ? " + " + esc(cb.first + " " + cb.last) : ""}`; /* LS-115: a business deal is named by the business */
   const jkc = jacketCounts(deal);
   const line = `${deal.dealNo ? `<b class="crumb-no">Deal #${esc(deal.dealNo)}</b> · ` : ""}${names} · ${v ? esc(v.year + " " + v.make + " " + v.model) : "no vehicle yet"}`;
   if (bare) return line; /* the desking screens repeat these chips in flow */
@@ -1981,6 +1981,12 @@ function arrivedLabel(d) {
 /* OB-017: one name everywhere a person is printed — a record missing a half never prints "undefined" (measured on
    a hand-made record). New visit's rule, shared with the Customers list (KA-008). */
 const customerName = (c) => [c && c.first, c && c.last].filter(Boolean).join(" ") || "Unnamed";
+/* LS-115 (the owner's answer B of 2026-10-04): a business is the buyer and a person signs for it. The deal's customer stays the person (their licence, their documents, their identity); the deal also carries
+   `business` { name, signerTitle, entityType, taxId, authority }. A deal is titled by the business when it has one, with the signer named under it; a person's name is still the person's wherever a person
+   is meant (a text to John, the licence, the credit application, the signature). */
+const dealBusiness = (deal) => (deal && deal.business && deal.business.name) ? deal.business : null;
+const buyerName = (deal, c) => { const b = dealBusiness(deal); return b ? b.name : (c ? c.first + " " + c.last : "—"); };
+const signedByLine = (deal, c) => { const b = dealBusiness(deal); return b && c ? "signed by " + c.first + " " + c.last + (b.signerTitle ? ", " + b.signerTitle : "") : ""; };
 /* LS-047 (the owner's answer A, 2026-09-30): a name a Team Lead confirmed is kept on the record as a former name, c.formerNames
    = [{ first, middle, last, at, by }], oldest first; a record that never changed its name has none, and absent means none
    in every reader. The line a row says under the name that picks a person ("Formerly Cheri Bridwell"; two or more read the
@@ -2864,7 +2870,7 @@ route("deals", () => {
     if (!q) return true;
     const c = Store.customer(d.customerId), { v, snap } = vehicleIds(d);
     const hay = [
-      c ? c.first + " " + c.last : "", c ? formerNameWords(c).join(" ") : "", c && c.phone ? c.phone : "",
+      dealBusiness(d) ? dealBusiness(d).name : "", c ? c.first + " " + c.last : "", c ? formerNameWords(c).join(" ") : "", c && c.phone ? c.phone : "",
       v ? v.year + " " + v.make + " " + v.model : "", v ? v.stock : "", v && v.vin ? v.vin : "",
       /* the snapshot's WORDS too, not only its numbers: an unstocked deal
          (the funded seed's Telluride) shows a vehicle the catalog does not
@@ -2884,7 +2890,7 @@ route("deals", () => {
   function dealRow(d, { next = true, advisor = false } = {}) {
     const c = Store.customer(d.customerId);
     const b = dealBucket(d);
-    const name = c ? c.first + " " + c.last : "—";
+    const name = buyerName(d, c);
     const { vin, stock } = vehicleIds(d);
     /* the vehicle line reads the deal's own snapshot when the catalog has
        no such unit (the funded seed) — dealVehicleWords, the rule the
@@ -2916,6 +2922,7 @@ route("deals", () => {
     return `<a class="rp-card dq-row" href="${esc(dealRoute(d))}" aria-label="Open ${esc(name)}'s deal">
       <span class="rp-badge${positive ? " rp-badge--positive" : ""}">${esc(chip)}</span>
       <div class="rp-card__name">${esc(name)}</div>
+      ${signedByLine(d, c) ? `<div class="rp-card__meta dq-signer">${esc(signedByLine(d, c))}</div>` : ""}
       ${advisor ? `<div class="rp-card__meta dq-advisor">${d.advisor ? esc(d.advisor) : "Not assigned"}</div>` : ""}
       ${veh ? `<div class="rp-card__line">${esc(veh)}</div>` : ""}
       ${ids}
@@ -2932,7 +2939,7 @@ route("deals", () => {
      deal's, read alongside, and it never moves the row. */
   function visitRow(d) {
     const c = Store.customer(d.customerId);
-    const name = c ? c.first + " " + c.last : "—";
+    const name = buyerName(d, c);
     const arrived = arrivedLabel(d);
     const body = `
       <span class="rp-row__body"><span class="rp-row__title">${esc(name)}</span>
@@ -2952,7 +2959,7 @@ route("deals", () => {
   function openVisitSheet(id) {
     const d = Store.deal(id); if (!d) return;
     const c = Store.customer(d.customerId), b = dealBucket(d);
-    const name = c ? c.first + " " + c.last : "—", arrived = arrivedLabel(d);
+    const name = buyerName(d, c), arrived = arrivedLabel(d);
     /* owner's protocol 2026-09-15 (OB-056), rehomed 2026-09-22 (D-SM4 = B): the
        Team Lead assigns a visit they registered to a salesperson — a referral —
        from the floor, not from inside the customer's conversation */
@@ -3305,7 +3312,17 @@ route("visit", () => {
      then a physical-license scan or a secure self-upload; manual entry is
      the fallback only. There is no top-level Create Customer any more. */
 
-  const st = { mode: "idle", results: null, found: null, q: "", forceNew: false, dupe: null, whose: null, sessionResolving: false };
+  const st = { mode: "idle", results: null, found: null, q: "", forceNew: false, dupe: null, whose: null, sessionResolving: false,
+    /* LS-115: a business buyer named on this visit; it lives in the store only until the visit starts or the advisor leaves the resolver */
+    business: Store.s.visitBusiness && Store.s.visitBusiness.name ? Store.s.visitBusiness : null };
+  if (st.business) { const away = () => { if (location.hash !== NEW_VISIT) { if (Store.s.visitBusiness) { delete Store.s.visitBusiness; saveSoft(); } window.removeEventListener("hashchange", away); } }; window.addEventListener("hashchange", away); }
+  /* the business goes on a new deal only: a signer taken to a deal of theirs already open is not given it, and the visit
+     says so instead of dropping it unseen (CodeRabbit on #262) */
+  const businessNotAdded = (customerId) => {
+    if (!st.business || !st.business.name) return;
+    const c = Store.customer(customerId);
+    toast(`${st.business.name} was not added: ${[c && c.first, c && c.last].filter(Boolean).join(" ")} already has an open deal`);
+  };
   /* the scan flow's no-match create and the deals-camera hand-off both land
      on the manual fallback now (the flag is consumed exactly once) */
   if (scanWantsCreate) { scanWantsCreate = false; st.mode = "manual"; st.manualDraft = scanManualDraft; }
@@ -3483,10 +3500,11 @@ route("visit", () => {
         restoreMission();
         toast("Changes were not saved. Try again."); return false;
       }
+      businessNotAdded(customerId);
       return true;
     }
     let started;
-    try { started = startVisit(customerId); } catch (error) { restoreMission(); toast("Changes were not saved. Try again."); return false; }
+    try { started = startVisit(customerId, st.business); } catch (error) { restoreMission(); toast("Changes were not saved. Try again."); return false; }
     if (started === false) { restoreMission(); return false; }
     return started;
   }
@@ -3569,7 +3587,8 @@ route("visit", () => {
   /* no lede under a task title (v022 §5) — the title and the eyebrow carry it */
   const heroHtml = (eyebrow, title) => `<div class="rp-eyebrow">${eyebrow}</div><h1 class="rp-title">${title}</h1>`;
   /* the mission is state the advisor needs, not instruction: shown only when there is one */
-  const contextPill = () => missionDeal ? `<div class="rp-notice">${mission.kind === "driver" ? "Adding a test-drive driver" : "Adding a co-buyer to this deal"}</div>` : "";
+  const contextPill = () => missionDeal ? `<div class="rp-notice">${mission.kind === "driver" ? "Adding a test-drive driver" : "Adding a co-buyer to this deal"}</div>`
+    : st.business ? `<div class="rp-notice" id="obBizNotice">Business buyer · ${esc(st.business.name)} · signed by its ${esc(st.business.signerTitle)}</div>` : "";
   const primaryBtn = (id, label, off) => `<button type="button" class="rp-primary" id="${id}"${off ? " disabled" : ""}>${label}</button>`;
   const linkBtn = (id, label) => `<button type="button" class="rp-link" id="${id}">${label}</button>`;
 
@@ -3700,6 +3719,7 @@ route("visit", () => {
       <div class="rp-group">
         <button type="button" class="rp-row" id="scanBtn"><span class="rp-tile">${rpGlyph("license")}</span><span class="rp-row__body"><span class="rp-row__title">Scan physical license</span><span class="rp-row__sub">Best when the customer has the license in the showroom.</span></span><span class="rp-row__chevron"></span></button>
         <button type="button" class="rp-row" id="obSendLink"><span class="rp-tile">${rpGlyph("upload")}</span><span class="rp-row__body"><span class="rp-row__title">Send secure upload link</span><span class="rp-row__sub">Customer has a license photo on their phone. It uploads directly to Ride Price.</span></span><span class="rp-row__chevron"></span></button>
+        ${missionDeal ? "" : `<button type="button" class="rp-row" id="obBusiness"><span class="rp-tile">${rpGlyph("customers")}</span><span class="rp-row__body"><span class="rp-row__title">Business buyer</span><span class="rp-row__sub">A company buys. Its owner or manager signs.</span></span><span class="rp-row__chevron"></span></button>`}
       </div>
       ${st.results ? "" : `
       <div class="rp-section">Recent customers</div><div class="rp-group">
@@ -4059,6 +4079,7 @@ route("visit", () => {
       toast("A secure upload is already open — finish or cancel it first");
       st.mode = s.doneAt ? "remote-ready" : "waiting"; render(); window.scrollTo(0, 0);
     };
+    const biz = $("#obBusiness"); if (biz) biz.onclick = openBusinessSheet;
     const sess = $("#obSession"); if (sess) sess.onclick = () => { st.mode = session().doneAt ? "remote-ready" : "waiting"; step(); render(); };
     const resolveMatch = $("#obResolveMatch"); if (resolveMatch) resolveMatch.onclick = () => { st.sessionResolving = true; st.mode = "idle"; st.results = null; render(); window.scrollTo(0, 0); };
     const backUpload = $("#obBackUpload"); if (backUpload) backUpload.onclick = () => { st.sessionResolving = false; st.mode = "remote-ready"; st.results = null; render(); window.scrollTo(0, 0); };
@@ -4116,7 +4137,7 @@ route("visit", () => {
     const itIs = $("#obItIs"); if (itIs) itIs.onclick = () => { const w = st.whose; st.whose = null; st.mode = "remote-ready"; attachUpload(w.c, true); };
 
     const cont = $("#obContinue");
-    if (cont) cont.onclick = () => { const od = openDealFor(st.found.id); if (od) continueVisit(od); else { st.forceNew = true; render(); } };
+    if (cont) cont.onclick = () => { const od = openDealFor(st.found.id); if (od) { continueVisit(od); businessNotAdded(st.found.id); } else { st.forceNew = true; render(); } };
     const anew = $("#obNewVisit");
     if (anew) anew.onclick = () => { st.forceNew = true; render(); window.scrollTo(0, 0); };
     const confirmBtn = $("#obConfirm");
@@ -4346,6 +4367,28 @@ route("visit", () => {
   /* `v` brings the sheet back as it was — the channel, what was typed, the
      helper box — with `v.problem` saying what went wrong last time (phase 2,
      the owner's picture G): a link that did not go out, a dropped connection */
+  /* LS-115 (the owner's answer B of 2026-10-04): a business is the buyer and a person signs for it. The sheet names the business and the signer’s title; the signer is then found as any
+     customer is (the licence, the search, the link), and the visit that starts carries the business beside them. Tapped again it edits what was named, or removes it. */
+  function openBusinessSheet() {
+    const b = st.business || { name: "", signerTitle: "" };
+    openSheet4(`${sheetHead4("Business buyer")}
+      <div class="rp-field"><label class="rp-field__label" for="obBizName">Business name</label><input class="rp-field__input" id="obBizName" autocomplete="organization" placeholder="Hudson Valley Landscaping LLC" value="${esc(b.name)}"></div>
+      <div class="rp-field"><label class="rp-field__label" for="obBizTitle">Signer’s title</label><input class="rp-field__input" id="obBizTitle" placeholder="Owner" value="${esc(b.signerTitle)}"></div>
+      <button type="button" class="rp-primary" id="obBizSave">Continue</button>
+      ${st.business ? `<button type="button" class="rp-link ch-hit" id="obBizRemove">Remove business buyer</button>` : ""}`, (sheet) => {
+      const name = $("#obBizName", sheet), title = $("#obBizTitle", sheet), save = $("#obBizSave", sheet);
+      const ready = () => name.value.trim().length >= 2 && title.value.trim().length >= 2;
+      const sync = () => { save.disabled = !ready(); };
+      name.oninput = title.oninput = sync; sync();
+      save.onclick = () => {
+        if (!ready()) return;
+        st.business = { name: name.value.trim().replace(/\s+/g, " "), signerTitle: title.value.trim().replace(/\s+/g, " ") };
+        Store.s.visitBusiness = st.business; saveSoft();
+        closeSheet4(); render();
+      };
+      const rm = $("#obBizRemove", sheet); if (rm) rm.onclick = () => { st.business = null; delete Store.s.visitBusiness; saveSoft(); closeSheet4(); render(); };
+    });
+  }
   function openSendSheet(v) {
     v = v || {};
     const ch0 = v.channel === "Email" ? "Email" : "Text";
@@ -4810,7 +4853,7 @@ function continueVisit(deal) {
   Store.save();
   navigate(dealRoute(deal));
 }
-function startVisit(customerId) {
+function startVisit(customerId, business) {
   const cust = Store.customer(customerId);
   if (!cust) { toast("Customer is no longer available. Find the customer again."); return false; }
   /* owner's protocol 2026-09-15: "duplicate customer entries in the showroom
@@ -4822,7 +4865,8 @@ function startVisit(customerId) {
   const already = Store.s.deals.find(d => d.customerId === customerId && inShowroom(d));
   if (already) {
     try { Store.save(); } catch (error) { toast("Changes were not saved. Try again."); return false; }
-    toast([cust.first, cust.last].filter(Boolean).join(" ") + " is already in the showroom"); navigate(`#/discovery/${already.id}`); return true;
+    /* a business named for this visit is not put on the visit already there, and the toast says so (CodeRabbit on #262) */
+    toast([cust.first, cust.last].filter(Boolean).join(" ") + " is already in the showroom" + (business && business.name ? `: ${business.name} was not added` : "")); navigate(`#/discovery/${already.id}`); return true;
   }
   const deal = {
     id: uid("d"), dealNo: Store.mintDealNo(), customerId, stock: null, dealType: "finance", stage: "discovery",
@@ -4848,6 +4892,9 @@ function startVisit(customerId) {
   const tier = RIDE_PRICE_CALC.creditTier(cust.creditScore || 700);
   deal.desk.apr = tier.agreedApr;
   deal.desk.leaseFactor = tier.leaseFactor;
+  /* LS-115: a business is the buyer and this person signs for it. The deal keeps the person as its customer (their licence, their documents, their identity) and carries the business beside them;
+     the record the jacket asks for (entity type, tax ID, the signer's authority) starts empty */
+  if (business && business.name) deal.business = { name: String(business.name).trim(), signerTitle: String(business.signerTitle || "").trim(), entityType: "", taxId: "", authority: false };
   /* check-in (chrome rule v022 §10): finishing the resolver — a confirmed
      customer, a scanned licence, a manual entry — is the advisor bringing
      the customer in. Presence is this stamp, not the deal's stage. Whether a
@@ -4857,11 +4904,14 @@ function startVisit(customerId) {
   /* OB-055: the resolver's steps on the way here are spent (see stepsDone) */
   const hadEpoch = Object.prototype.hasOwnProperty.call(Store.s, "obEpoch"), previousEpoch = Store.s.obEpoch;
   Store.s.obEpoch = (Store.s.obEpoch || 0) + 1;
+  const hadBiz = Object.prototype.hasOwnProperty.call(Store.s, "visitBusiness"), previousBiz = Store.s.visitBusiness;
+  delete Store.s.visitBusiness; /* spent: it is on the deal now */
   Store.s.deals.push(deal);
   try { Store.save(); }
   catch (error) {
     const at = Store.s.deals.indexOf(deal); if (at !== -1) Store.s.deals.splice(at, 1);
     if (hadEpoch) Store.s.obEpoch = previousEpoch; else delete Store.s.obEpoch;
+    if (hadBiz) Store.s.visitBusiness = previousBiz;
     toast("Visit was not saved. Try again.");
     return false;
   }
@@ -8657,7 +8707,7 @@ function tradeView({ id, sheet }) {
   const c = Store.customer(deal.customerId);
   const v = deal.stock ? Store.vehicle(deal.stock) : null;
   const jkc = jacketCounts(deal);
-  const custName = c ? `${c.first} ${c.last}` : "—";
+  const custName = buyerName(deal, c);
 
   /* phase 4c · the Trade-In on the kit. The owner's package (V2,
      2026-09-01) holds rule for rule — the same states, words, ids and
@@ -9553,7 +9603,7 @@ route("desk/:id", ({ id }) => {
   const timeUS = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   const isLease = () => deal.dealType === "lease" || deal.dealType === "onepay";
   const isCash = () => deal.dealType === "cash";
-  const custName = `${c.first} ${c.last}`;
+  const custName = buyerName(deal, c);
   const vehicleFull = `${v.year} ${v.make} ${v.model}${v.trim ? " " + v.trim : ""}`;
   const vehicleShort = `${v.year} ${v.make} ${v.model}`;
   /* the compact row drops the make, as the board does: it is the car already
@@ -10488,7 +10538,7 @@ route("agreement/:id", ({ id }) => {
     : dealType === "onepay" ? `${esc(String(r.term))} months · ${esc(r.miles.toLocaleString())} mi/yr · One-Pay Lease`
     : isLease ? `${esc(String(r.term))} months · ${esc(r.miles.toLocaleString())} mi/yr · Lease`
     : `${esc(String(r.term))} months · ${esc(String(r.apr))}% APR · Finance`;
-  const custName = c.first + " " + c.last;
+  const custName = c.first + " " + c.last, buyerLabel = buyerName(deal, c);
   const sigName = signed ? (deal.basePayment.sigName || custName) : custName;
   /* LS-119 (the owner's answer A of 2026-09-28): once signed, the agreement names John as John signed it, as the
      figures are (BP-010). An agreement signed before the person was captured names the record, as before */
@@ -10521,8 +10571,8 @@ route("agreement/:id", ({ id }) => {
   /* the day beside the dealership is the day it was signed, once signed (LS-119) */
   const partyDay = signed ? new Date(deal.basePayment.signedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : today();
   const parties = `<h2 class="rp-section">Agreement between</h2><div class="rp-group" id="bpParties">
-    <div class="rp-row">${tile("user")}<span class="rp-row__body"><span class="rp-row__title">${esc(partyName(shown))}</span>
-      <span class="rp-row__sub">${[shown.phone, shown.email].filter(Boolean).map(esc).join(" · ")}<br>${esc(shown.address)}, ${esc(shown.city)}, ${esc(shown.state)} ${esc(shown.zip)}</span></span></div>
+    <div class="rp-row">${tile("user")}<span class="rp-row__body"><span class="rp-row__title">${esc(dealBusiness(deal) ? dealBusiness(deal).name : partyName(shown))}</span>
+      <span class="rp-row__sub">${dealBusiness(deal) ? esc(signedByLine(deal, c)) + "<br>" : ""}${[shown.phone, shown.email].filter(Boolean).map(esc).join(" · ")}<br>${esc(shown.address)}, ${esc(shown.city)}, ${esc(shown.state)} ${esc(shown.zip)}</span></span></div>
     <div class="rp-row">${tile("bank")}<span class="rp-row__body"><span class="rp-row__title">${esc(Store.s.advisor)} — ${esc(RIDE_PRICE_DATA.dealership.name)}</span>
       <span class="rp-row__sub">${esc(RIDE_PRICE_DATA.dealership.phone)}<br>${esc(RIDE_PRICE_DATA.dealership.address)} · ${esc(partyDay)}</span></span></div></div>`;
   /* LS-119: what changed on the record since John signed, one row per detail, the value now and what John signed
@@ -10581,7 +10631,7 @@ route("agreement/:id", ({ id }) => {
   const dock = chGateDock(note, signed && again.length ? `<button type="button" class="rp-primary" id="bpSignAgain">Sign again</button>`
     : `<button type="button" class="rp-primary" id="bpDockGo"${locked ? " disabled" : ""}>${signed ? "Continue" : "Sign agreement"}</button>`);
 
-  view().innerHTML = chShell({ template: "task", title: custName, closeId: "bpClose", closeLabel: "Back to the pencil", cls: "rp-screen--gate" },
+  view().innerHTML = chShell({ template: "task", title: buyerLabel, closeId: "bpClose", closeLabel: "Back to the pencil", cls: "rp-screen--gate" },
     `<div class="rp-eyebrow">Desking</div><h1 class="rp-title">Base payment agreement</h1>
     <div class="rp-chiprow"><button type="button" class="rp-chip" data-buyers="${esc(deal.id)}">${rpGlyph("customers")}Buyers · ${buyers}</button>${chJacketChip(deal)}</div>
     ${hero}${vehLine}${changedHtml}${parties}${terms}${ack}${sign}`, dock, { scrim: "bpScrim", sheet: "bpSheet" });
@@ -10805,6 +10855,9 @@ route("credit/:id", ({ id }) => {
      replacing the co-buyer would otherwise reopen the application with the new
      person's name beside the previous person's date of birth, licence and
      address, and submit() would persist it. */
+  /* the one trip that does not end the working copy (W-150): the Deal summary chip opens this deal's desking, and Close there comes back to what was typed. The copy is
+     kept, marked as on a trip, only when the application is re-entered straight from that desking, and dropped here otherwise (or earlier, by the listener in off() below, when the trip reaches a destination), so a later visit starts clean */
+  if (creditWorking && creditWorking.trip && !(creditWorking.id === id && routerPrevHash === `#/desk/${id}`)) creditWorking = null;
   const savedWork = creditWorking?.id === deal.id && creditWorking.customerId === primaryId ? creditWorking : null;
   const savedDraft = app?.draft ? app : null;
   if (savedDraft) Object.assign(F, savedDraft.draft);
@@ -10895,9 +10948,11 @@ route("credit/:id", ({ id }) => {
   const isJoint = () => F.appType === "joint";
 
   /* ---------------- the kit pieces ---------------- */
+  /* W-150 (CHROME-RULE §29, the owner's answer B of 2026-10-04): the Deal summary chip opens desking, where the deal's numbers are made; the application keeps no copy of
+     them, so a summary here cannot disagree with the pencil, and Close in desking returns here (D-PI1) */
   const chipRow = () => `<div class="rp-chiprow">
     <button type="button" class="rp-chip" data-buyers-open>Buyers · ${1 + (cbRec() ? 1 : 0)}</button>
-    ${r ? `<button type="button" class="rp-chip" data-sheet-open="summary">Deal summary</button>` : ""}
+    ${r ? `<a class="rp-chip" href="#/desk/${esc(deal.id)}">Deal summary</a>` : ""}
     ${chJacketChip(deal)}
   </div>`;
 
@@ -11277,7 +11332,6 @@ route("credit/:id", ({ id }) => {
   /* ---------------- the sheets ---------------- */
   function sheetHtml() {
     const co = cbRec(), cs = coState();
-    if (ui.sheet === "summary") return summarySheet();
     if (ui.sheet === "answers-john" || ui.sheet === "answers-co") return answersSheet(ui.sheet === "answers-co");
     /* the link sheet takes ONE channel, chosen on a segment as the resolver's
        does, so the status view can name the channel actually used */
@@ -11345,59 +11399,6 @@ route("credit/:id", ({ id }) => {
       Store.save();
       draw();
     };
-  }
-
-  /* the deal summary that reconciles: every line the total depends on is on
-     the screen, fees itemised, the tax naming its base (§17, §19b) */
-  function summarySheet() {
-    const acc = r.accessories;
-    const equity = (deal.trade.value || 0) - (deal.trade.payoff || 0);
-    const totalOfPayments = RIDE_PRICE_CALC.round2(r.payment * r.term);
-    /* a lease is laid out as a lease, as the Finance Menu's Structure is: its money at signing, its residual and its
-       payments, with no rate and no amount financed. It was laid out as a finance deal, with the finance APR, the
-       finance deal's cash down and "Amount financed $NaN", since a lease finances nothing (DK-054's build). A one-pay
-       is paid in full at signing: its total, and no money down. A finance deal's summary is as it was */
-    const lease = deal.dealType === "lease" || deal.dealType === "onepay";
-    /* a lease's and a one-pay's two lease fees, as the pencil names them: the acquisition fee is in the lease's price,
-       and the disposition fee is charged at lease end, listed and not in the price (DK-054's build; the summary left
-       the $595 out, so its fees did not reconcile with the pencil's) */
-    const leaseFees = lease ? kvRow("Acquisition Fee", money(RIDE_PRICE_DATA.leaseFees.acquisition))
-      + kvRow("Disposition Fee (at lease end)", money(RIDE_PRICE_DATA.leaseFees.disposition)) : "";
-    /* the credits the deal has, each only when it has it: a one-pay with no trade and no rebate has none, and its card
-       is left out, where it drew a heading with nothing under it */
-    const credits = (deal.trade.rebates ? kvRow("Rebate · customer cash", `−${money(deal.trade.rebates)}`) : "")
-      + (deal.trade.has ? kvRow("Trade allowance", `−${money(deal.trade.value || 0)}`) + kvRow("Trade payoff", `+${money(deal.trade.payoff || 0)}`) : "")
-      + (lease ? (deal.dealType === "lease" ? kvRow("Due at signing", `−${money(r.dueAtSigning || 0)}`) : "")
-        : kvRow("Cash down", `−${money(deal.desk.downPayment || 0)}`));
-    const structure = deal.dealType === "onepay" ? `${kvRow("Term", `${esc(String(r.term))} months`)}
-        ${kvRow("Residual (lease end value)", money(r.residual))}
-        ${kvRow("One-pay total", money(r.onePayTotal))}`
-      : lease ? `${kvRow("Term", `${esc(String(r.term))} months`)}
-        ${kvRow("Residual (lease end value)", money(r.residual))}
-        ${kvRow("Payment", `${money(r.payment)} / mo`)}
-        ${kvRow(`Total of payments · ${esc(String(r.term))} × ${money(r.payment)}`, money(totalOfPayments))}`
-      : `${kvRow("Term", `${esc(String(r.term))} months`)}
-        ${kvRow("Rate agreed with the customer", `${esc(String(deal.desk.apr))}% APR`)}
-        ${kvRow("Payment", `${money(r.payment)} / mo`)}
-        ${kvRow(`Total of payments · ${esc(String(r.term))} × ${money(r.payment)}`, money(totalOfPayments))}
-        <div class="rp-kv__row" style="border-top:1px solid var(--rp-ink)"><span style="color:var(--rp-ink);font-weight:740">Amount financed</span><span style="font-weight:760">${money(r.amountFinanced)}</span></div>`;
-    return `${chSheetHead("Deal summary")}
-      <p class="rp-sheet__sub">Deal #${esc(deal.dealNo)}${v ? ` · ${esc(v.year + " " + v.model + (v.trim ? " " + v.trim : ""))}` : ""} · updated from the worksheet</p>
-      <div class="rp-kv"><div class="rp-kv__head">Vehicle</div>
-        ${kvRow("Cash price", money(v.selling + v.includedOptions))}
-        ${acc ? kvRow("Accessories", money(acc)) : ""}
-        ${RIDE_PRICE_DATA.fees.map(f => kvRow(esc(f.label), money(f.amount))).join("")}
-        ${leaseFees}
-        ${r.taxes && r.taxes.atSigning ? ((t) => kvRow(esc(t.label), money(t.amount), esc(leaseTaxWords(r))))(leaseTaxAt(r)) /* a lease's, New York's, at signing or in the lease (DK-054) */
-          : kvRow(`Sales tax · ${RIDE_PRICE_CALC.taxPct(RIDE_PRICE_CALC.totalTaxRate())}% on ${money(RIDE_PRICE_CALC.taxableBase(deal, v))}`, money(r.taxes.total))}
-      </div>
-      ${credits ? `<div class="rp-kv"><div class="rp-kv__head">Credits and payoff</div>
-        ${credits}
-      </div>` : ""}
-      <div class="rp-kv"><div class="rp-kv__head">Structure</div>
-        ${structure}
-      </div>
-      <a class="rp-link" href="#/desk/${esc(deal.id)}">Edit on the pencil</a>`;
   }
 
   /* a read-only review drawer, one per applicant — four steps, no editing */
@@ -11697,7 +11698,19 @@ route("credit/:id", ({ id }) => {
     const el = view(); if (el) el.removeEventListener("input", onCreditInput);
     window.removeEventListener("hashchange", onLeave);
     if (creditInputOff === off) creditInputOff = null;
-    if (leaving && creditWorking && creditWorking.id === deal.id) creditWorking = null;
+    if (leaving && creditWorking && creditWorking.id === deal.id) {
+      if (location.hash === `#/desk/${deal.id}`) {
+        creditWorking.trip = true; /* the Deal summary chip's trip (W-150): Close in desking comes back to it */
+        /* a destination (Home, Inventory, Customers) reached on the way ends the trip, whatever opener the router still remembers for desking; the screens desking itself opens
+           (the trade-in, Present, the agreement) do not. The listener goes when the trip ends or the application is entered again, which replaces the copy */
+        const copy = creditWorking, endTrip = () => {
+          if (creditWorking !== copy) return window.removeEventListener("hashchange", endTrip);
+          if (CH_TABS.some((tab) => tab[1] === (location.hash || "#/deals"))) { creditWorking = null; window.removeEventListener("hashchange", endTrip); }
+        };
+        window.addEventListener("hashchange", endTrip);
+      }
+      else creditWorking = null;
+    }
   };
   const onLeave = () => off(true);
   creditInputOff = off;
@@ -12014,7 +12027,7 @@ route("menu/:id", ({ id }) => {
   const progSet = RIDE_PRICE_DATA.programs[isLease ? "lease" : isCash ? "cash" : "finance"];
   const M = deal.menu;
   migrateMenuV5(deal);
-  const custName = `${c.first} ${c.last}`;
+  const custName = buyerName(deal, c);
   const lead = RIDE_PRICE_DATA.dealership.teamLead;
   const timeUS = (iso) => new Date(iso).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
   const colLabel = (key) => key === "custom" ? "Custom" : key === "none" ? "No products" : (progSet[key] || {}).label || key;
@@ -12836,7 +12849,9 @@ route("menu/:id", ({ id }) => {
     if (!ui.sheet) sheets.close();
     view().innerHTML = chShell({ template: "task", title: custName, closeId: "fmClose", cls: cls || "" },
       content, dockHtml, { scrim: "fmScrim", sheet: "fmSheet" });
-    $("#fmClose").onclick = () => navigate("#/deals");
+    /* D-PI1 reaches the Finance Menu (PI-008, the owner's answer B of 2026-10-04): Close returns to the screen that opened it (Documents, the
+       agreement, the jacket, Vehicle selection's chip, the board's card); opened by a reload or a typed address it has no opener and goes Home, as it did */
+    $("#fmClose").onclick = () => navigate(launcherOf("#/deals"));
     chFitDock();
     chWireRole(sheets, draw);
     $$("[data-sheet-open]").forEach(b => b.onclick = () => { ui.sheet = b.dataset.sheetOpen; if (b.dataset.sheetOpen === "buyers") buyers = null; draw(); });
@@ -12907,6 +12922,8 @@ function jacketRead(deal) {
    key ("agreement"), a deal form is "form-" + its id ("form-title") */
 function docMeta(docId) {
   if (!docId) return null;
+  /* LS-115: the business buyer's record is a row of the jacket and no printed form */
+  if (docId === "business-record") return { id: docId, label: "Business record", group: "Deal", code: "BIZ", origin: "app" };
   if (docId.indexOf("form-") === 0) {
     const f = RIDE_PRICE_DATA.dealForms.find(x => x.id === docId.slice(5));
     return f ? { id: docId, label: f.label, group: f.group, code: f.code,
@@ -12988,6 +13005,9 @@ function jacketDocs(deal) {
      individual deal has no co-buyer, so its package is as it was */
   if (cb) add("idverify-cobuyer", "The co-buyer photographed against the license on file", "Co-buyer identity");
   add("form-license", cb ? "Identity for both buyers on the deal" : "Identity for the buyer", "Identity");
+  /* LS-115 (the owner's answer B of 2026-10-04): a business buyer owes one more thing beside the signer's licence, its record: what kind of business it is, its tax ID, and the signer's title and
+     authority to sign for it. A deal with no business has no such row, so its package is as it was */
+  if (dealBusiness(deal)) add("business-record", "What kind of business it is, its tax ID, and that the signer may sign for it", "Entity type, tax ID, the signer" + "\u2019" + "s authority");
   add("form-insurance", "Coverage has to be proven before the car leaves the lot", "Required for delivery");
   if (!isCash) add("form-paystub", "Income the lender will want to see", "Proof of income");
   add("form-privacy", "Handed to every client at delivery", "Required at delivery");
@@ -13371,6 +13391,8 @@ function jacketSendRequest(deal, ids, customerId, options = {}) {
   const at = new Date().toISOString();
   try {
   j.reqSentAt = at;
+  /* the channel and the address this send went to: the request's own record, so the jacket's words about it name what actually went (KA-027). The document viewer's send is a text */
+  j.reqChannel = options.channel === "email" ? "email" : "text"; j.reqTo = options.to || null;
   ids.forEach(qid => {
     if (qid === "form-license") {
       const recipients = customerId ? [customerId] : licenseBuyerIds(deal);
@@ -13935,7 +13957,7 @@ function dealHistory(deal) {
 
 route("history/:id", ({ id }) => {
   const deal = Store.deal(id); if (!deal) return redirect("#/deals");
-  const cst = Store.customer(deal.customerId), custName = cst ? `${cst.first} ${cst.last}` : "—";
+  const cst = Store.customer(deal.customerId), custName = buyerName(deal, cst);
   const ev = dealHistory(deal);
   const now = new Date(), today = now.toDateString();
   /* a day is its whole calendar date: another year's day says its year, and groups apart (CodeRabbit on #192) */
@@ -13965,7 +13987,7 @@ function jacketView({ id, docId }) {
   if (docId) history.replaceState(null, "", "#/jacket/" + id);
   const deal = Store.deal(id); if (!deal) return redirect("#/deals");
   const cst = Store.customer(deal.customerId);
-  const custName = cst ? `${cst.first} ${cst.last}` : "—";
+  const custName = buyerName(deal, cst), personName = cst ? `${cst.first} ${cst.last}` : "—"; /* the title is the business; a text goes to the person */
   /* catalog first, then the deal's own snapshot while it agrees with the
      deal's stock (or the deal has none): a funded contract carried by its
      snapshot — the seed's Telluride — read "no vehicle yet" on its own jacket */
@@ -13985,6 +14007,15 @@ function jacketView({ id, docId }) {
      leave the page behind it inert and lose what was typed in it — so a photo
      that lands while one is up is drawn when it closes */
   const sheets = chSheetOpener("jkScrim", "jkSheet", () => { ui.sheet = null; buyers = null; if (ui.redraw && live()) render(); });
+  /* KA-027 (the owner's answer B of 2026-10-04, the kit's §19): the request goes by ONE channel, chosen on the kit's Text | Email segment as New visit's link sheet has it, and every
+     action about it names the person and the channel: "Send the text to John", "Resend the email to John". An older request has no channel and reads as the text it was. */
+  const linkWord = (ch) => ch === "email" ? "email" : "text";
+  const linkTo = (ch) => (ch === "email" ? cst && cst.email : cst && cst.phone) || "";
+  const linkFirst = () => cst ? cst.first : "the customer";
+  /* what the request on record went by and to: read from the record itself (jacketRead is shared by every screen and is left alone) */
+  const sentVia = () => { const j = deal.jacket; return j && j.reqSentAt ? (j.reqChannel === "email" ? "email" : "text") : null; };
+  const sentTo = () => (deal.jacket && deal.jacket.reqTo) || "";
+  let sendVia = "text"; /* the channel of the send in hand: the message that goes, the record after it and a retry all use the one the advisor chose */
   let camDoc = null;        /* which customer document the camera is filling */
   let mine = null;          /* the jacket this visit drew last (phase 2g) */
   const live = () => !!mine && document.contains(mine);
@@ -14083,6 +14114,7 @@ function jacketView({ id, docId }) {
     const st = jacketState(deal, d.id); if (!st) return "";
     const exc = jkException(d);
     if (exc) return exc + " · " + jacketStamp(st.at);
+    if (d.id === "business-record" && deal.business) return `${deal.business.entityType} · tax ID ending ${String(deal.business.taxId).replace(/\D/g, "").slice(-4)} · ${deal.business.signerTitle} may sign · ${jacketStamp(st.at)}`;
     if (d.id === "form-license" && st.how === "review") return "Both sides reviewed for each buyer · " + jacketStamp(st.at);
     const how = st.how === "scan" ? "Camera scan · verified"
       : st.how === "client" ? "Customer upload · accepted"
@@ -14096,6 +14128,7 @@ function jacketView({ id, docId }) {
      advisor can tell at a glance whose job it is without opening it (§26) */
   function whyLine(d) {
     if (d.id === "form-license") return licenseProgress(deal).buyers.map(b => `${b.customer ? b.customer.first + " " + b.customer.last : "Buyer unavailable"}: ${b.reviewed ? "reviewed" : b.complete ? "review needed" : b.record?.sides?.front ? "back needed" : b.record?.sides?.back ? "front needed" : "both sides needed"}`).join(" · ");
+    if (d.id === "business-record") { const m = bizMissing(), b = deal.business || {}; return (b.entityType || b.taxId || b.authority) && m.length ? "Still needed: " + m.join(", ") : `Record · ${d.whyShort}`; }
     const st = rowState(d);
     if (st.label === "Back needed" && d.id === "form-license") {
       const r = jacketClient(deal)[d.id];
@@ -14199,7 +14232,7 @@ function jacketView({ id, docId }) {
        store's own paperwork. */
     const custBody = custWaiting.length
       ? custWaiting.map(docRow).join("") + `<div style="padding:12px 16px 14px">
-          <button type="button" class="rp-primary" id="jkRequest">${reqSent ? `Resend secure request (${custWaiting.length})` : `Request ${custWaiting.length} document${custWaiting.length === 1 ? "" : "s"}`}</button>
+          <button type="button" class="rp-primary" id="jkRequest">${reqSent ? `Resend the ${linkWord(sentVia())} to ${esc(linkFirst())} (${custWaiting.length})` : `Request ${custWaiting.length} document${custWaiting.length === 1 ? "" : "s"}`}</button>
           ${custWaiting.length > 1 ? `<button type="button" class="rp-link" id="jkSnapAll">Capture all ${custWaiting.length} here instead</button>` : ""}
           ${reqPending.length ? `<button type="button" class="rp-link" id="jkTrack">Secure request sent · ${reqPending.length} still pending · view status</button>` : ""}
         </div>`
@@ -14286,8 +14319,13 @@ function jacketView({ id, docId }) {
      The advisor stays here: sending and resending never leave the jacket. */
   function requestSheet(waiting) {
     const reqSent = !!jacketRead(deal).reqSentAt;
+    /* LS-058's rule for where a link goes: a text to a phone, an email for a customer with an email and no phone; a resend goes the way the request did (KA-027) */
+    let channel = reqSent ? sentVia() : (cst && !cst.phone && cst.email ? "email" : "text");
+    const toLine = () => `${esc(personName)}${linkTo(channel) ? " · " + esc(linkTo(channel)) : ""}`;
+    const on = (ch) => channel === ch ? " rp-segment__item--on active" : "";
     sheets.open(`${chSheetHead(reqSent ? "Resend documents" : "Request documents")}
-      <p class="rp-sheet__sub">${esc(custName)}${cst && cst.phone ? " · " + esc(cst.phone) : ""}</p>
+      <p class="rp-sheet__sub">${toLine()}</p>
+      <div class="rp-segment" id="jkChannel"><button type="button" class="rp-segment__item${on("text")}" data-ch="text">Text</button><button type="button" class="rp-segment__item${on("email")}" data-ch="email">Email</button></div>
       <div class="rp-group">
         ${waiting.map(d => `<label class="rp-row" style="width:100%"><span class="rp-row__body">
           <span class="rp-row__title">${esc(d.label)}</span>
@@ -14295,16 +14333,27 @@ function jacketView({ id, docId }) {
           <input type="checkbox" checked data-pick="${esc(d.id)}" aria-label="${esc(d.label)}"></label>`).join("")}
       </div>
       <div class="rp-gatenote" id="jkPickNote" hidden>Tick at least one document to send</div>
-      <button type="button" class="rp-primary" id="jkSend">${reqSent ? "Resend" : "Send"} secure request</button>`,
+      <div class="rp-gatenote" id="jkNoAddr" hidden></div>
+      <button type="button" class="rp-primary" id="jkSend">${reqSent ? "Resend" : "Send"} the ${linkWord(channel)} to ${esc(linkFirst())}</button>`,
       (sh) => {
         /* a request for nothing is not sent (RQ-006): with nothing ticked,
            Send is unavailable and the line above it says why, in the sheet,
-           where the ticks are. It used to be a toast after the tap. */
-        const send = $("#jkSend", sh), note = $("#jkPickNote", sh);
+           where the ticks are. It used to be a toast after the tap. The
+           same for a channel the customer has no address for (KA-027). */
+        const send = $("#jkSend", sh), note = $("#jkPickNote", sh), noAddr = $("#jkNoAddr", sh), sub = $(".rp-sheet__sub", sh);
         const picks = () => $$("[data-pick]", sh).filter(c => c.checked).map(c => c.dataset.pick);
-        const sync = () => { const none = !picks().length; send.disabled = none; note.hidden = !none; };
+        const sync = () => {
+          const none = !picks().length, missing = !linkTo(channel);
+          $$("#jkChannel button", sh).forEach(b => { b.classList.toggle("rp-segment__item--on", b.dataset.ch === channel); b.classList.toggle("active", b.dataset.ch === channel); });
+          sub.innerHTML = toLine();
+          send.textContent = `${reqSent ? "Resend" : "Send"} the ${linkWord(channel)} to ${linkFirst()}`;
+          noAddr.textContent = `No ${channel === "email" ? "email address" : "mobile number"} on file for ${linkFirst()}`; noAddr.hidden = !missing;
+          send.disabled = none || missing; note.hidden = !none;
+        };
         $$("[data-pick]", sh).forEach(c => { c.onchange = sync; });
-        send.onclick = () => { const picked = picks(); if (picked.length) sendRequest(picked); };
+        $$("#jkChannel button", sh).forEach(b => { b.onclick = () => { channel = b.dataset.ch; sync(); }; });
+        send.onclick = () => { const picked = picks(); if (picked.length && linkTo(channel)) { sendVia = channel; sendRequest(picked); } };
+        sync();
       });
   }
 
@@ -14315,7 +14364,7 @@ function jacketView({ id, docId }) {
      refused save used to do here (the owner's pictures C–G). */
   function sendRequest(picked) {
     const sh = $("#jkSheet"); if (!sh) return;
-    sh.innerHTML = `<div class="rp-sheet__grab"></div><div class="rp-sheet__head"><h2 class="rp-sheet__title">Sending the secure link…</h2></div><div class="rp-gatenote" id="jkSlow" hidden>Still sending. Texts usually arrive within a minute.</div>`;
+    sh.innerHTML = `<div class="rp-sheet__grab"></div><div class="rp-sheet__head"><h2 class="rp-sheet__title">Sending the secure link…</h2></div><div class="rp-gatenote" id="jkSlow" hidden>Still sending. ${sendVia === "email" ? "Emails" : "Texts"} usually arrive within a minute.</div>`;
     lockSend(true);
     /* NAVIGATING AWAY mid-send must not let the timer write state and
        repaint over whatever screen is showing by then */
@@ -14323,7 +14372,7 @@ function jacketView({ id, docId }) {
     const slow = setTimeout(() => { const n = $("#jkSlow", sh); if (n && alive()) n.hidden = false; }, 3000);
     setTimeout(() => {
       if (!alive()) { clearTimeout(slow); lockSend(false); return; }
-      RIDE_PRICE_SERVICES.call("links").then(() => {
+      RIDE_PRICE_SERVICES.call("links", () => ({ channel: sendVia, to: linkTo(sendVia) })).then(() => {
         clearTimeout(slow);
         lockSend(false);
         if (!alive()) return;
@@ -14339,7 +14388,7 @@ function jacketView({ id, docId }) {
      text went — every refusal in the sheet, never left on "Sending…" — and its way on is Try saving again,
      which records the request without a second text (W-085; CodeRabbit found it in document review, #151) */
   function recordRequest(picked) {
-    try { jacketSendRequest(deal, picked); }
+    try { jacketSendRequest(deal, picked, undefined, { channel: sendVia, to: linkTo(sendVia) }); }
     catch (e) { return requestProblem(picked, isStorageError(e) ? "storage" : e && e.name === "DraftConflictError" ? "conflict" : "unsaved"); }
     sheets.close();
     /* no toast: the package puts this feedback in the jacket itself,
@@ -14358,14 +14407,15 @@ function jacketView({ id, docId }) {
   function requestProblem(picked, kind) {
     const sh = $("#jkSheet"); if (!sh) return;
     const first = cst ? cst.first : "the customer";
+    const w = linkWord(sendVia); /* the problem is told in the channel the send went by (KA-027) */
     const head = kind === "session" ? "Your session ended" : "Request documents";
     /* a refusal to record comes after the text went: say so, never "nothing was sent" */
     const went = (title, rest) => `<div class="rp-alert" role="alert" id="jkSendProblem"><div class="rp-alert__title">${title}</div><div class="rp-alert__body">${esc(first)} has the link, but the request isn’t marked sent here yet. ${rest}</div></div>`;
     const alert = kind === "failed"
-      ? `<div class="rp-alert" role="alert" id="jkSendProblem"><div class="rp-alert__title">The text didn’t go out</div><div class="rp-alert__body">${esc(first)}’s phone wasn’t reached, and nothing was sent. The documents are still waiting. Try again.</div></div>`
-      : kind === "storage" ? went("The text went out, but this phone didn’t save it", "Try saving again — the text isn’t sent twice. If it keeps happening, the phone’s storage is full or private browsing is on.")
-      : kind === "conflict" ? went("The text went out, but this deal changed in another tab", "Try saving again — the text isn’t sent twice. If it keeps failing, reload the page.")
-      : kind === "unsaved" ? went("The text went out, but it wasn’t saved here", "Try saving again — the text isn’t sent twice.")
+      ? `<div class="rp-alert" role="alert" id="jkSendProblem"><div class="rp-alert__title">The ${w} didn’t go out</div><div class="rp-alert__body">${esc(first)}’s ${w === "email" ? "inbox" : "phone"} wasn’t reached, and nothing was sent. The documents are still waiting. Try again.</div></div>`
+      : kind === "storage" ? went(`The ${w} went out, but this phone didn’t save it`, `Try saving again — the ${w} isn’t sent twice. If it keeps happening, the phone’s storage is full or private browsing is on.`)
+      : kind === "conflict" ? went(`The ${w} went out, but this deal changed in another tab`, `Try saving again — the ${w} isn’t sent twice. If it keeps failing, reload the page.`)
+      : kind === "unsaved" ? went(`The ${w} went out, but it wasn’t saved here`, `Try saving again — the ${w} isn’t sent twice.`)
       : kind === "session" ? `<p class="rp-sheet__sub">Sign in again to send the request. Nothing is lost.</p>` : "";
     const actions = kind === "offline"
       ? `<div class="rp-gatenote" id="jkSendWait">It sends by itself when you are back online.</div><button type="button" class="rp-primary" disabled>Waiting for a connection</button><button type="button" class="rp-link ch-hit" data-sheet-close>Not now</button>`
@@ -14407,7 +14457,7 @@ function jacketView({ id, docId }) {
     const answered = CLIENT_QUEUE_IDS.some(qid => cl[qid] && cl[qid].otherIncomeAt);
     const step = (label, value, pending) => `<div class="rp-kv__row"><span>${esc(label)}</span><span>${esc(value)}${pending ? "" : ""}</span></div>`;
     sheets.open(`${chSheetHead("Customer request")}
-      <p class="rp-sheet__sub">Sent to ${esc(custName)}${cst && cst.phone ? " · " + esc(cst.phone) : ""}</p>
+      <p class="rp-sheet__sub">Sent by ${linkWord(sentVia())} to ${esc(personName)}${(sentTo() || linkTo(sentVia())) ? " · " + esc(sentTo() || linkTo(sentVia())) : ""}</p>
       <div class="rp-kv">
         ${step("Link sent", jacketStamp(jk.reqSentAt))}
         ${step("Delivered", jacketStamp(jk.reqSentAt))}
@@ -14416,7 +14466,7 @@ function jacketView({ id, docId }) {
       </div>
       <p class="rp-count">The customer's phone is played by this same browser — open it to run the upload side of the demo.</p>
       <button type="button" class="rp-primary" id="jkOpenPhone">Open the customer's phone</button>
-      <button type="button" class="rp-link" id="jkResend">Resend link</button>`,
+      <button type="button" class="rp-link" id="jkResend">Resend the ${linkWord(sentVia())} to ${esc(linkFirst())}</button>`,
       (sh) => {
         $("#jkResend", sh).onclick = () => requestSheet(waiting);
         $("#jkOpenPhone", sh).onclick = () => { sheets.close(); navigate("#/clientlink/" + deal.id + "/sms"); };
@@ -14427,7 +14477,35 @@ function jacketView({ id, docId }) {
      document rather than how it might arrive (§26). A team form is printed,
      scanned back, uploaded signed or marked received; it is never offered the
      customer's upload path, and the sheet says what it is. */
+  /* LS-115 (the owner's answer B of 2026-10-04): the business buyer's record, entered from the owner's papers and kept on the deal's business. The row files when all four things are in, and goes back to
+     Needed when one is taken out; a half-filled record is kept as typed, and the row says what is still needed. */
+  const ENTITY_TYPES = ["LLC", "Corporation", "Partnership", "Sole proprietor"];
+  const bizMissing = () => { const b = deal.business || {}; return [!b.entityType && "entity type", !/^\d{2}-?\d{7}$/.test(String(b.taxId || "")) && "tax ID", !String(b.signerTitle || "").trim() && "signer’s title", b.authority !== true && "authority to sign"].filter(Boolean); };
+  function businessRecordSheet(d) {
+    const b = deal.business || {}; let type = b.entityType || "";
+    sheets.open(`${chSheetHead(d.label)}
+      <p class="rp-sheet__sub">${esc(b.name || "")} · signed by ${esc(personName)}</p>
+      <div class="rp-field"><span class="rp-field__label" id="bzTypeLabel">Entity type</span><div class="rp-chiprow" id="bzType" role="group" aria-labelledby="bzTypeLabel">${ENTITY_TYPES.map(t => `<button type="button" class="rp-chip${t === type ? " rp-chip--on" : ""}" data-type="${esc(t)}">${esc(t)}</button>`).join("")}</div></div>
+      <div class="rp-field"><label class="rp-field__label" for="bzTax">Tax ID</label><input class="rp-field__input" id="bzTax" inputmode="numeric" autocomplete="off" placeholder="12-3456789" value="${esc(b.taxId || "")}"></div>
+      <div class="rp-field"><label class="rp-field__label" for="bzTitle">Signer’s title</label><input class="rp-field__input" id="bzTitle" autocomplete="off" value="${esc(b.signerTitle || "")}"></div>
+      <label class="rp-row" style="width:100%"><span class="rp-row__body"><span class="rp-row__title">Authorized to sign for the business</span><span class="rp-row__sub">${esc(personName)}</span></span><input type="checkbox" id="bzAuth" aria-label="Authorized to sign for the business"${b.authority ? " checked" : ""}></label>
+      <button type="button" class="rp-primary" id="bzSave">Save</button>`, (sh) => {
+      $$("#bzType [data-type]", sh).forEach(x => x.onclick = () => { type = x.dataset.type; $$("#bzType [data-type]", sh).forEach(y => y.classList.toggle("rp-chip--on", y === x)); });
+      $("#bzSave", sh).onclick = () => {
+        const before = JSON.parse(JSON.stringify({ business: deal.business, jacket: deal.jacket || null }));
+        const digits = $("#bzTax", sh).value.replace(/\D/g, "");
+        deal.business = Object.assign({}, deal.business, { entityType: type, taxId: digits.length === 9 ? digits.slice(0, 2) + "-" + digits.slice(2) : $("#bzTax", sh).value.trim(), signerTitle: $("#bzTitle", sh).value.trim(), authority: $("#bzAuth", sh).checked });
+        try {
+          if (!bizMissing().length) jacketReceive(deal, "business-record", "app", null, false);
+          else if (jacketState(deal, "business-record")) jacketRemove(deal, "business-record");
+          Store.save();
+        } catch (error) { deal.business = before.business; if (before.jacket) deal.jacket = before.jacket; toast("Changes were not saved. Try again."); return; }
+        sheets.close(); render();
+      };
+    });
+  }
   function docSheet(d) {
+    if (d.id === "business-record") return businessRecordSheet(d);
     if (d.id === "form-license" && licenseBuyerIds(deal).length > 1) {
       sheets.open(`${chSheetHead(d.label)}<div class="rp-group">${licenseProgress(deal).buyers.map(b => `<a class="rp-row" href="#/docreview/${esc(deal.id)}/form-license/${encodeURIComponent(b.customerId)}"><span class="rp-row__body"><span class="rp-row__title">${esc(b.customer ? b.customer.first + " " + b.customer.last : "Buyer unavailable")}</span><span class="rp-row__sub">${b.reviewed ? "Reviewed" : b.complete ? "Review needed" : "Capture license sides"}</span></span><span class="rp-row__chevron"></span></a>`).join("")}</div>${inJacket(d) ? '<button type="button" class="rp-link" id="jkUndo">Take back out</button>' : ''}`, sh => {
         const undo = $("#jkUndo", sh); if (undo) undo.onclick = () => takeBackOut(d);
@@ -16688,7 +16766,7 @@ function printDocs(deal) {
       ${sample ? `<div class="pd-sample">Training Sample — not a government document</div>` : ""}
       <h1 class="pd-title">${title}</h1>
       <div class="pd-meta">
-        <span><b>${esc(who.first)} ${esc(who.last)}</b>${who.phone ? " · " + esc(who.phone) : ""}</span>
+        <span><b>${dealBusiness(deal) ? esc(deal.business.name) : esc(who.first) + " " + esc(who.last)}</b>${dealBusiness(deal) ? " · signed by " + esc(who.first) + " " + esc(who.last) + (deal.business.signerTitle ? ", " + esc(deal.business.signerTitle) : "") : ""}${who.phone ? " · " + esc(who.phone) : ""}</span>
         <span>${v ? `${esc(v.year)} ${esc(v.make)} ${esc(v.model)} ${esc(v.trim)} · Stock ${esc(v.stock)} · VIN ${esc(v.vin)}` : "No vehicle selected"}</span>
         <span>${esc(day)} · ${DEAL_TYPES[typeShown || deal.dealType]} · Advisor: ${esc(Store.s.advisor)}</span>
       </div>
