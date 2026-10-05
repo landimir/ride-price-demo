@@ -62,7 +62,7 @@ the action that leads onward, and branch pointers (`flowId/stepKey`). `capture.m
 or open drawer at the viewport only; a page with a fixed bottom bar at the viewport plus a secondary
 full-length `.scroll.png`; any other page taller than the phone full-length, capped at 3,200px —
 never cropped), and runs automated visual checks (horizontal overflow, off-screen elements, clipped
-text, text overlap, small touch targets). Before each picture it clears a keyboard-only focus ring:
+text, text overlap, small touch targets, a sheet that does not fit the screen, text under the WCAG contrast floor, a control a screen reader meets with no name, text that shows a value the page failed to make, one id on two elements, a picture that did not load, and an error the page logged). Before each picture it clears a keyboard-only focus ring:
 the steps are driven by script, which Chrome treats like a keyboard, and a finger tap never draws
 that ring; a focused text field keeps its focus, as it does on a phone. `build.mjs` renders the master page and reports from the
 manifest plus the audited `issues.json`. `update.mjs` wraps it all with versioning and the changelog.

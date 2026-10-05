@@ -1,12 +1,12 @@
 # Ride Price Mobile UI Library
 
-Version: v047
-Captured: 2026-10-04T01:50:07.758Z
-App commit: 98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a
+Version: v048
+Captured: 2026-10-05T10:23:02.868Z
+App commit: d587f3482fe86de23f97161c4a30aeabb831219a
 Viewport: 390 × 844 (long screens captured full-length)
 
 Flows discovered: 20
-Screens documented: 388
+Screens documented: 392
 Branches documented: 115
 
 UX Audit:
@@ -19,8 +19,8 @@ UX Audit:
 
 | # | Flow | Screens | Entry |
 |---|---|---|---|
-| 1 | Home — Active Floor & Navigation | 25 | entry point |
-| 2 | Customer Onboarding — the Customer Resolver | 27 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap New visit |
+| 1 | Home — Active Floor & Navigation | 26 | entry point |
+| 2 | Customer Onboarding — the Customer Resolver | 29 | Home — Active Floor & Navigation · 01 My deals (landing — Advisor) — Tap New visit |
 | 3 | Scan Driver's License | 34 | Customer Onboarding — the Customer Resolver · 01 Find customer — the resolver — Tap Scan physical license |
 | 4 | Training Documents | 8 | Home — Active Floor & Navigation · 02 More sheet — secondary navigation — Training documents |
 | 5 | Discovery — the guided consultation | 14 | Customer Onboarding — the Customer Resolver · 04 Customer found — confirm + registration address — Confirm address & start visit |
@@ -33,7 +33,7 @@ UX Audit:
 | 12 | Buyers on the Deal (Co-Buyer) | 18 | Credit Application (Lending Lane) · 04 Joint — co-buyer needed — Tap the Buyers row |
 | 13 | F&I Product Presentation | 13 | Finance Menu — Sign-Off Gate and Four Stages · 08 Stage 2 — Choose a protection package — Tap Present each product |
 | 14 | Finance Menu — Sign-Off Gate and Four Stages | 28 | Credit Application (Lending Lane) · 14 Approved at the agreed rate — Continue → Manager sign-off |
-| 15 | Deal Jacket & Compliance | 21 | Desking — Calculate Payments · 02 Pencil — Finance — Tap the Jacket chip |
+| 15 | Deal Jacket & Compliance | 22 | Desking — Calculate Payments · 02 Pencil — Finance — Tap the Jacket chip |
 | 16 | Customer document request (from the jacket) | 8 | Deal Jacket & Compliance · 01 Deal Jacket — funding readiness — Tap Request N documents |
 | 17 | Client Document Upload (customer's phone) | 20 | Customer document request (from the jacket) · 05 Customer request — delivery status (waiting) — Open the customer's phone |
 | 18 | Snap All — burst capture | 17 | Deal Jacket & Compliance · 01 Deal Jacket — funding readiness — Tap Capture all here instead |

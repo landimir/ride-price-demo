@@ -1,6 +1,6 @@
-# Ride Price Mobile UI — UX Audit (v047)
+# Ride Price Mobile UI — UX Audit (v048)
 
-Captured 2026-10-04T01:50:07.758Z · viewport 390×844 · app 98fe1bcd34501f9a5e2d35fa2eb7c58a933e1b9a
+Captured 2026-10-05T10:23:02.868Z · viewport 390×844 · app d587f3482fe86de23f97161c4a30aeabb831219a
 
 | Severity | Count |
 |---|---|
@@ -401,4 +401,4 @@ _None recorded._
 
 ## Automated checks per screen
 
-The capture run measures each screen for horizontal overflow, elements beyond the viewport, clipped text, text overlap and small touch targets. Two thresholds are in play and they are not the same: this capture script flags anything under **36px**, while the touch floor itself is **40px for every control** (owner, 2026-08-31 — one number, no small-variant tier). So a target in the 36-39px band is reported only by the eye, and anything under 36px is caught by both. `harness/touchfloor.mjs` is what actually enforces the floor across every route — for pressable controls (`button`, links, `role=button`); native form fields sit outside its selector, and their measured shortfalls are RP-UI-029's finding, not this harness's coverage. These are hints that were reviewed by eye; the findings above are the reviewed result. Raw values live in `flow-manifest.json` under each screen's `checks`.
+The capture run measures each screen for horizontal overflow, elements beyond the viewport, clipped text, text overlap, small touch targets, a sheet that does not fit the screen (its top above the screen with nothing to scroll it, or its Close off the screen), text under the contrast floor (WCAG 2.x: 4.5:1, or 3:1 for large text; text on a gradient is measured under the text itself, text on an image and disabled controls are not), a control a screen reader meets with no name (read from the browser's accessibility tree), text that shows a value the page failed to make (NaN, undefined, null, Infinity, [object Object]), one id on two elements, a picture that did not load, and an error the page logged (an uncaught exception, console.error, a resource that did not load). Two thresholds are in play and they are not the same: this capture script flags anything under **36px**, while the touch floor itself is **40px for every control** (owner, 2026-08-31 — one number, no small-variant tier). So a target in the 36-39px band is reported only by the eye, and anything under 36px is caught by both. `harness/touchfloor.mjs` is what actually enforces the floor across every route — for pressable controls (`button`, links, `role=button`); native form fields sit outside its selector, and their measured shortfalls are RP-UI-029's finding, not this harness's coverage. These are hints that were reviewed by eye; the findings above are the reviewed result. Raw values live in `flow-manifest.json` under each screen's `checks`.

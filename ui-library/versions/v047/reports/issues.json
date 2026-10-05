@@ -1,0 +1,542 @@
+[
+  {
+    "id": "RP-UI-023",
+    "severity": "Observation",
+    "flow": "Home — Deals Queue & Navigation",
+    "screen": "My Deals (landing — Advisor)",
+    "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
+    "issue": "No authentication exists: the portal opens straight on the floor queue, with the Advisor / Team Lead role sheet standing in for identity — opened only in Customer Onboarding since 2026-09-18 (owner ruling B), not from the queue's top bar.",
+    "observation": "By design for a demo/training tool — documented here so the absence of a login flow is not read as missing documentation.",
+    "area": "n/a"
+  },
+  {
+    "id": "RP-UI-029",
+    "severity": "Minor",
+    "flow": "All (app-wide)",
+    "screen": "Desking accessories, search fields, filter sheet",
+    "screenshot": "current/09-desking/02-pencil-finance.png",
+    "issue": "The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measured 14 real shortfalls on 2026-08-31. Still open, as measured then: the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, and the client-link demo option row at 30. Closed since: #mMaxPrice at 38, with the vehicle-selection package (v025), and the eight desking accessory checkbox rows at 20, which are the kit's option cards in v043.",
+    "observation": "Found by widening the audit on 2026-08-31 and measured, not estimated. It was not restyled in that change: the job there was to implement the owner's ruling on the NUMBER, and lifting 14 form controls is a design change across desking, inventory search and the filter sheet that deserves its own review. The harness states the scope boundary at its selector rather than implying coverage it does not have. v043 did not re-measure the fields still open; the next audit with the widened harness will.",
+    "area": "portal.css .switch, .m-search input, #dealSearch, the test-drive delivery rows, the client-link demo option row (the desking rows and #mMaxPrice are closed and listed as history)"
+  },
+  {
+    "id": "RP-UI-031",
+    "severity": "Minor",
+    "flow": "Home — Active Floor & Navigation",
+    "screen": "My deals (landing — Advisor)",
+    "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
+    "issue": "Three gaps in the owner UI kit (v022.2) that the 19 chrome screens inherit: the wordmark (.rp-wordmark, 116x23) and the resolver search action (.rp-button-navy, 73x36) carry no 40px hit extension — and the Team Lead's date control (.rp-filter__control, 58x20), the only way into the date range / funded history sheet, has none either, where v021 drew it as a 40px pill — against the kit comment that every interactive element has one and the 40px floor for everything (owner, 2026-08-31); .rp-page reserves a flat 104px on a destination and 140px on a task beside bars whose height grows with env(safe-area-inset-bottom), masked today only because index.html carries no viewport-fit=cover; and .rp-search__input drops its outline with no :focus-within on the field, so keyboard focus on the search is invisible. harness/touchfloor.mjs exits 1 on the first two, deliberately.",
+    "observation": "Reported, not patched: the kit is the owner design asset and is never restyled in this repo (CLAUDE.md), so these wait for kit v022.3. THREE ::before hit-extension rules (the wordmark, the resolver search action and the Team Lead date control) and one focus ring close four of the five; the fifth, .rp-page's flat 104/140px reservation beside bars that grow with env(safe-area-inset-bottom), is a layout change and is closed by neither — it stays listed here so the remediation cannot read as complete while it is outstanding. The wordmark shows on every Home screen; the search action on the resolver (current/02-customer-onboarding/01-resolver-idle.png). Filed with library v022, the first version captured on the kit. harness/touchfloor.mjs walks its routes as the Advisor, so the Team Lead's date control is outside what it measures; the library's own check flags it on four Home screens.",
+    "area": "ride-price-portal/assets/ride-price-mobile.css (the owner UI kit) — v022.3, never here"
+  },
+  {
+    "id": "RP-UI-032",
+    "severity": "Major",
+    "flow": "Customer Onboarding — the Customer Resolver",
+    "screen": "Waiting for customer — progressive status",
+    "screenshot": "current/02-customer-onboarding/12-waiting-for-customer.png",
+    "issue": "The link path now says the link went out and nothing says the demo did not send anything. The banner reads “Secure link sent · (646) 555-0900 · Text”; the send sheet before it (09) dropped “Demo — no text or email is really sent; the customer view opens on this device”; and the customer-identified screen after it (11) describes a real remote session — “Secure session · Opened on the customer's device”, “License photo · Read from the upload” — where v021 said “Opened on this device (demo)” and “Read from the training prop”. A trainee is told a text was sent and a customer uploaded, and neither happened.",
+    "observation": "The chrome rule (v022) removed lede and helper copy from the 19 screens and made the banner slot the one place DEMO appears; the Advisor banner says “Sample data only”, which covers the data, not the sending. The demo is a training tool with no network (architecture invariant), so a screen that claims a send needs one honest line somewhere on the path — the banner slot is the package's own place for it. Copy decision on package screens, so filed rather than changed. v043: still so. The kit's rule of no demo copy and the owner's 2026-09-28 \"Don't add unnecessary text to the screen\" now weigh against a line on the path, so this is the owner's to rule, not a copy fix.",
+    "area": "app.js — the resolver's link path (obSendGo / waiting status / remote-ready) on the kit; the banner slot"
+  },
+  {
+    "id": "RP-UI-034",
+    "severity": "Minor",
+    "flow": "Scan Driver's License",
+    "screen": "Confirm customer (certain match)",
+    "screenshot": "current/03-license-scan/07-scan-confirm.png",
+    "issue": "The identity column on the customer card is squeezed beside the “License match” pill: the name “Cheri Bridwell” breaks onto two lines and the one-sentence subtitle “Existing customer · license ending 0102” onto four. In v021 both fit on one line each. The kit's Inter is wider than the device face the screen was laid out for, and the card gives the pill its full width first.",
+    "observation": "A layout on a kit screen, not the kit: the pill could wrap under the identity, or take a fixed width and let the column keep the rest. The only one of the eleven scan screens the face change hurt. v043: milder. The name now fits on one line; the subtitle still leaves \"0102\" alone on a second line.",
+    "area": "app.js / portal.css — the scan flow's confirm card (identity column vs. match pill)"
+  },
+  {
+    "id": "RP-UI-037",
+    "severity": "Observation",
+    "flow": "Home — Active Floor & Navigation",
+    "screen": "My deals (landing — Advisor)",
+    "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
+    "issue": "The VIN + STK identifier line is the smallest and lightest text on the deal card — 10.5px in the muted grey (rgb 115,115,125 on white, about 4.7:1, AA by a hair and marginal in sunlight) — while the flow calls VIN and stock two of the four load-bearing identifiers on every row, and the standing rule is that load-bearing text is ink because the app is used outdoors. v021 drew it darker and in mono.",
+    "observation": "The kit's .rp-card__meta draws it this way on purpose (text face, tabular figures, muted) and the kit is the binding artifact, never restyled here — so this is a question for the kit's next revision, not a portal.css change. The flow note that still called the line mono was corrected with v022.",
+    "area": "ride-price-mobile.css .rp-card__meta (the owner UI kit) — a kit decision"
+  },
+  {
+    "id": "RP-UI-043",
+    "severity": "Observation",
+    "flow": "Customer Onboarding — the Customer Resolver",
+    "screen": "No license available — manual fallback",
+    "screenshot": "current/02-customer-onboarding/08-manual-fallback.png",
+    "issue": "The manual fallback is now the task title, three fields (name, mobile phone or email, address) and the box for someone helping. The note that made it fallback-only (“if a license or license photo becomes available, use it instead”) is gone, and no field is marked required until validation says so.",
+    "observation": "The chrome rule removed helper copy from the 19 screens by design; the two rules still hold in validation (the form requires a first and last name, one way to reach the customer, which is a phone or an email, or a helper's number or address with the box ticked (LS-058), and an address with a ZIP). Whether the fallback-only rule needs a line on the screen is the package's call — filed so the change is on record, since the library's step note used to describe the copy. v046: the fields are what the kit asks for; unless the owner wants the fallback rule on the screen, this closes as by design.",
+    "area": "app.js — the resolver's manual fallback on the kit"
+  },
+  {
+    "id": "RP-UI-046",
+    "severity": "Observation",
+    "flow": "Training Documents",
+    "screen": "License preview — both sides",
+    "screenshot": "current/04-training-materials/02-license-preview.png",
+    "issue": "The prop now renders on screen in the kit's Inter while it still PRINTS in the app font, so the preview sheet — a screen whose only job is to show what will come out of the printer — no longer matches the paper. With byte-identical prop data the card reflows between the two: the field line that breaks one way on screen breaks another way in print.",
+    "observation": "Both halves are deliberate and both are right on their own. The hub is a kit screen, so `body[data-canvas=\"kit\"]` gives it Inter; `@media print` forces `--app-font` on paper, which is what keeps every printable byte-identical to main (printcmp, 0 of 11 differ). What nobody decided is that a preview may disagree with its own print. The fix is a decision, not a patch: either the prop artwork pins its own face in both media, or the preview is stated to be indicative.",
+    "area": "portal.css — the prop families (prop-card, reg-card) and the print face"
+  },
+  {
+    "id": "RP-UI-048",
+    "severity": "Observation",
+    "flow": "Vehicle Selection",
+    "screen": "Notification — vehicle reserved",
+    "screenshot": "current/06-vehicle-selection/15-vehicle-reserved.png",
+    "issue": "On the reserved alert every load-bearing word is muted grey: the title \"Vehicle reserved\" samples the kit's ink, but the body that carries the vehicle, the stock number, who signed, at what time and that this deal stays open is `.rp-alert__body` at 12.5px in `--rp-muted` (#6E6E78). The standing rule is that load-bearing text is ink, because the app is used outdoors.",
+    "observation": "The kit defines the component that way and the app uses it as given, so this is the kit's decision to revisit — the same shape as RP-UI-037 on the deal card's VIN line. Worth pairing with that one when the palette is settled.",
+    "area": "ride-price-mobile.css .rp-alert__body (the owner UI kit) — a kit decision"
+  },
+  {
+    "id": "RP-UI-050",
+    "severity": "Minor",
+    "flow": "Vehicle Selection",
+    "screen": "Inventory — sort and segmented controls",
+    "screenshot": "current/06-vehicle-selection/03-inventory.png",
+    "issue": "Two more kit controls sit under the 40px touch floor at 390px, and neither is covered by RP-UI-031: the inventory sort control (.rp-sort, 117x19) and the segmented control on the training-documents screens (.rp-segment__item, 172x36, on both Licenses and Registrations). The sort control is the smaller breach by far — 19px tall is under half the floor, and it is the only way to reorder the list. RP-UI-031 filed the same class of gap for .rp-wordmark (116x23) and .rp-button-navy (73x36) at library v022 and noted that harness/touchfloor.mjs exits 1 on them deliberately; these two arrived later, with the vehicle-selection and training-documents packages, and were never added. touchfloor now reports five, of which only two were on the list.",
+    "observation": "Reported, not patched: the kit is the owner's design asset and its classes are never restyled in this repo (CLAUDE.md), so this waits for a kit revision alongside RP-UI-031 — two more ::before hit-extension rules would close these two, and with the three RP-UI-031 already asks for (.rp-wordmark, .rp-button-navy and the Team Lead's .rp-filter__control) that is five control types in all. Measured by harness/touchfloor.mjs across 769 painted controls on 22 routes at 390px; the fifth control it reports, .rp-wordmark, is already in RP-UI-031.",
+    "area": "Touch targets"
+  },
+  {
+    "id": "RP-UI-055",
+    "severity": "Minor",
+    "flow": "Customer document request (from the jacket)",
+    "screen": "Jacket after sending — Requested",
+    "screenshot": "current/16-document-request/04-request-sent.png",
+    "issue": "The inline status the send returns is laid under the jacket's sticky funding sign-off dock. After sending, the status line and the View status control sit at the bottom of the customer group and the dock covers them: in the capture the gradient resend button is clipped to a sliver and the status line beneath it is hidden behind the dock's own FUNDING SIGN-OFF heading. The same overlap is visible once the customer has started uploading (current/16-document-request/07-request-progress.png), where only a few characters of the status banner show through from under the dock. The V2 package moved delivery status inline precisely so it would be read without leaving the jacket, and the dock hides it.",
+    "observation": "Surfaced by the coverage work — the sent and in-progress jacket states had never been captured. Scrolling reveals the line, so nothing is lost permanently; it is the resting state that is covered. v043: worse on the in-progress state, where the status banner is now wholly under the sign-off dock; the dock also cuts through \"Request 3 documents\" on the jacket before any send. v044: right after the send the jacket now scrolls the status line into view above the dock (04-request-sent), so the sent state reads; once the customer has started uploading it is under the dock again (07-request-progress), and the dock still cuts through \"Request 3 documents\" before any send.",
+    "area": "app.js — the deal jacket's customer group and sign-off dock"
+  },
+  {
+    "id": "RP-UI-062",
+    "severity": "Major",
+    "flow": "Trade-In Evaluation & Proof of Ownership",
+    "screen": "Trade ready — ownership review complete",
+    "screenshot": "current/08-trade-in/07-ownership-complete.png",
+    "issue": "The ownership review is marked complete while its own answers contradict the value card. The recorded answer to \"Does the title show a lienholder?\" is No, yet the card deducts \"Payoff $10,750\" and reads \"Ownership review complete\" and \"No unanswered ownership items.\"",
+    "observation": "A payoff with no lienholder on the title is a contradiction the review should raise, not close: John's equity depends on which answer is true. Found by the v043 audit.",
+    "area": "app.js — the Trade-In's ownership review and value card"
+  },
+  {
+    "id": "RP-UI-063",
+    "severity": "Major",
+    "flow": "Trade-In Evaluation & Proof of Ownership",
+    "screen": "Trade ready — a fresh figure after re-running",
+    "screenshot": "current/08-trade-in/13-appraisal-rerun.png",
+    "issue": "The same 2016 Toyota RAV4 in Good condition is $15,500 at 61,200 miles (the seed) and $5,150 at 70,000 miles after Re-run, turning +$4,750 of equity into −$5,600. A newer 2018 Honda Civic at 61,200 miles and Good is $9,850.",
+    "observation": "These cannot all come from one evaluator: the seeded $15,500 is a stored figure the evaluator does not produce, so re-running John's trade unchanged would move a value he has already been shown, or the mileage step is far too steep. The owner's rule is that the math is always correct. Found by the v043 audit.",
+    "area": "app.js / data.js — the trade evaluator and the seed's trade value"
+  },
+  {
+    "id": "RP-UI-064",
+    "severity": "Major",
+    "flow": "Credit Application (Lending Lane)",
+    "screen": "Identity verified",
+    "screenshot": "current/11-credit-application/02-identity-verified.png",
+    "issue": "The lane contradicts itself about John's license. The gate reads \"Driver's license · Not on file — scan it in the resolver · Needed\" beside a photo row that \"Confirms the person matches the license\"; after the photo it says \"Identity verified\" while the license row still reads Needed. Step 1 then shows \"Driver's license T-0000101\" \"From the record\", \"Verified on the previous step\".",
+    "observation": "The license is either on the record or not. As drawn, the app claims a verification its own checklist says did not happen, with no license to compare the photo against. Either the gate reads the license the application reads, or \"Identity verified\" waits for it. Found by the v043 audit.",
+    "area": "app.js — the credit application's identity gate"
+  },
+  {
+    "id": "RP-UI-065",
+    "severity": "Major",
+    "flow": "Credit Application (Lending Lane)",
+    "screen": "Send a secure link to the applicant (sheet)",
+    "screenshot": "current/11-credit-application/21-identity-link-sheet.png",
+    "issue": "The identity link for John uses the co-buyer's words. The sheet is for \"Deal #48201 · John Smith\" at John's own number, but its steps read \"They verify identity first · Photo against their own license\" and \"Then their own fields only · Nothing about John is shown to them\".",
+    "observation": "Telling the advisor that nothing about John is shown to John is wrong, and they/their for John breaks the owner's rule of names, not pronouns. The applicant's link needs its own words. Found by the v043 audit.",
+    "area": "app.js — the credit application's secure-link sheet, the applicant's case"
+  },
+  {
+    "id": "RP-UI-066",
+    "severity": "Major",
+    "flow": "Buyers on the Deal (Co-Buyer)",
+    "screen": "After removal — Cheri's Removed row and the audit line",
+    "screenshot": "current/12-buyers-and-co-buyer/06-removed-state.png",
+    "issue": "After a clean removal the sheet says \"Tap to see Cheri on Customers — reattaching Cheri starts a new application, it does not reopen that one.\" (v044; at v043 it read \"Tap for Cheri's profile and the withdrawn application — …\") The confirmation one screen earlier listed \"Credit activity · None yet\": there is no application to withdraw or reopen.",
+    "observation": "The lending-lane wording, right on the post-lane removal, shown where no application existed. The line belongs only where one was withdrawn. Found by the v043 audit.",
+    "area": "app.js — the buyers sheet's Removed row"
+  },
+  {
+    "id": "RP-UI-067",
+    "severity": "Major",
+    "flow": "F&I Product Presentation",
+    "screen": "Monthly / daily budget (sheet)",
+    "screenshot": "current/13-fi-presentation/04-budget-impact.png",
+    "issue": "The VSC budget sheet tells John \"Monthly $45.83\" and \"Daily $1.51\" (\"≈ $1.51 a day over 60 months\"): the $2,750 price over 60 months with no finance charge. Financed on the deal, the same VSC adds about $50 a month, and the Finance Menu shows it at that.",
+    "observation": "John sees one monthly figure for the product in the presentation and a larger one a screen later; the smaller is the one that sells it. The budget should be the product financed at the deal's rate and term, as the menu prices it (KA-013: the Finance Menu's math is always correct). Found by the v043 audit.",
+    "area": "app.js — route present/:id, the budget impact sheet"
+  },
+  {
+    "id": "RP-UI-068",
+    "severity": "Major",
+    "flow": "F&I Product Presentation",
+    "screen": "Rate — before the credit approval",
+    "screenshot": "current/13-fi-presentation/11-rate-gated.png",
+    "issue": "With no approval, the Rate card still presents the rate as won: \"A rate you actually qualified for.\", \"The rate on this menu comes from the lender's real approval of your credit application — not an estimate. We submitted to the lender you preferred…\", and three green checks starting \"Based on your actual lender approval\". Only a small grey line says \"Submit the credit application to present the qualified rate.\"",
+    "observation": "The number and the Approved pill are gone, as this capture was meant to prove, but the headline, body and checks still tell John an application was submitted and approved. The unapproved card needs its own words, with no approval claims and no checks. Found by the v043 audit.",
+    "area": "app.js / data.js — the presentation's Rate copy before an approval"
+  },
+  {
+    "id": "RP-UI-069",
+    "severity": "Major",
+    "flow": "Snap All — burst capture",
+    "screen": "Back in the jacket — batch saved",
+    "screenshot": "current/18-snap-all/09-batch-saved.png",
+    "issue": "The license the batch just completed is counted as owed by the customer: under \"Waiting on customer · 2 documents · 2 needed\" the Driver's License row reads \"John Smith: review needed\", and it counts toward \"2 items need the customer\" and \"Request 2 documents\". The screen before said \"Both sides captured · review pending\".",
+    "observation": "A review the advisor owes is filed as a document the customer owes, so the request button would ask John for a license he just handed over. Found by the v043 audit.",
+    "area": "app.js — the Deal Jacket's buckets after Snap All saves a license"
+  },
+  {
+    "id": "RP-UI-070",
+    "severity": "Major",
+    "flow": "Document Review (advisor)",
+    "screen": "Requested — nothing received yet",
+    "screenshot": "current/19-document-review/07-requested.png",
+    "issue": "Nothing has been received (\"Front · Needed\", \"Back · Needed\", \"No license images received.\"), yet the viewer shows the after-reload placeholder \"Preview unavailable · Driver's License · Front · Only the receipt record is saved between sessions.\", as if a front had arrived.",
+    "observation": "The placeholder belongs to a received page whose picture did not survive a reload; with nothing received the viewer should say nothing arrived. Found by the v043 audit.",
+    "area": "app.js — Document review's viewer placeholder"
+  },
+  {
+    "id": "RP-UI-071",
+    "severity": "Major",
+    "flow": "Documents — Print Center & Printables",
+    "screen": "Funded deal whose vehicle left the catalog — lands on the jacket",
+    "screenshot": "current/20-print-center/18-documents-vehicle-gone.png",
+    "issue": "The funded jacket contradicts itself. It is subtitled \"John Smith · no vehicle yet\" under \"FUNDING SIGN-OFF · Signed off by Jordan Reyes\"; its readiness card says the Lien Release Letter \"holds funding sign-off\" beside \"11 items remaining\"; and the insurance row has a check-mark icon beside a \"Needed\" pill.",
+    "observation": "A signed-off, funded deal reads as not ready and without a car. Which lines should hold once sign-off is recorded is the question; the icon should follow the status. Found by the v043 audit.",
+    "area": "app.js — the Deal Jacket after funding, when the vehicle has left the catalog"
+  },
+  {
+    "id": "RP-UI-072",
+    "severity": "Major",
+    "flow": "Training Documents",
+    "screen": "Print all 5 — registrations on paper",
+    "screenshot": "current/04-training-materials/07-print-registrations.png",
+    "issue": "The registrations print at their true 112 mm (about 423 px) inside the 390 px phone: every card runs off the right edge, cutting the stamp (\"TRAINI\"), the expiry (\"Expires 04/18/2\") and the fees (\"32.5\", \"146.7\" where the preview reads 32.50 and 146.75). The library's check measures 33 px of overflow.",
+    "observation": "On a phone the printable page cannot be read in full before printing, and the amounts it shows are wrong by what is cut. The preview scales the same document and fits. Found by the v043 audit.",
+    "area": "portal.css — the registration print layout at phone width"
+  },
+  {
+    "id": "RP-UI-073",
+    "severity": "Major",
+    "flow": "Discovery — the guided consultation",
+    "screen": "Stage 1 — the sample slide",
+    "screenshot": "current/05-discovery/01-stage-intro.png",
+    "issue": "The stage headline runs past the stage's right edge and is cut mid-word: \"Let's start with the SUV you d\", \"How much more room do you\", \"Comfort for everyone on boar\". On Size & space the cut headline is the only place the question appears.",
+    "observation": "Filed on the kit gap the owner ruled on (D-SM3 = A: a second .rp-stage rule clips). The advisor cannot read what is being asked; the headline should wrap. Found by the v043 audit.",
+    "area": "ride-price-mobile.css .rp-stage — the kit gap D-SM3"
+  },
+  {
+    "id": "RP-UI-074",
+    "severity": "Major",
+    "flow": "Base Payment Agreement",
+    "screen": "Agreement — Lease",
+    "screenshot": "current/10-base-payment-agreement/08-agreement-lease.png",
+    "issue": "The lease agreement's \"Total taxes & fees\" reads $462.20: the $432.50 of one-time fees plus $29.70, one month of the tax on the payment. The printout adds them the same way. The pencil stopped mixing the two in #211 (MR-12, Desking's DK-025): its Fees & tax reads \"$1,027.50 + $29.70 / mo\".",
+    "observation": "A figure on the paper John signs adds amounts of two kinds. It goes with the owner's answer on the New York lease tax (DK-054), which moves the lease's tax to signing. Found by the v043 audit, on the full-length capture.",
+    "area": "app.js — the agreement's terms and its printout, a lease's taxes and fees"
+  },
+  {
+    "id": "RP-UI-075",
+    "severity": "Minor",
+    "flow": "Customer Onboarding — the Customer Resolver",
+    "screen": "Find customer — the resolver",
+    "screenshot": "current/02-customer-onboarding/01-resolver-idle.png",
+    "issue": "The resolver's license rows explain themselves: \"Best when the customer has the license in the showroom.\" and \"Customer has a license photo on their phone. It uploads directly to Ride Price.\" The same doors on the co-buyer and driver missions add \"Same scan and confirm flow\", \"Search by name, phone, email, or license.\" and \"Scan, then confirm.\"",
+    "observation": "Helper text, which the kit (no lede, no helper text) and the owner's 2026-09-28 \"Don't add unnecessary text to the screen\" rule out; the titles \"Scan physical license\" and \"Send secure upload link\" stand on their own. Also on the test drive's Add driver and the buyers' Add co-buyer. Found by the v043 audit.",
+    "area": "app.js — the resolver's doors, and the mission doors that reuse them"
+  },
+  {
+    "id": "RP-UI-076",
+    "severity": "Minor",
+    "flow": "Customer Onboarding — the Customer Resolver",
+    "screen": "Customer identified (advisor)",
+    "screenshot": "current/02-customer-onboarding/13-remote-ready.png",
+    "issue": "The remote session's step list changes between the waiting screen and this one (\"Link sent\" becomes \"Secure session\", the photo steps swap places, a \"Second license side\" step appears), and the new step carries a policy line instead of a status: \"Request later only when a workflow needs it\".",
+    "observation": "The advisor follows one session across the two screens, so its steps should keep their names and order, and every step line should be a status. Found by the v043 audit.",
+    "area": "app.js — the resolver's remote session steps"
+  },
+  {
+    "id": "RP-UI-077",
+    "severity": "Minor",
+    "flow": "Scan Driver's License",
+    "screen": "Review both sides (readable pair)",
+    "screenshot": "current/03-license-scan/13-scan-pair-review.png",
+    "issue": "\"Review both sides\" opens with a lede and a demo sentence set tight under the title: \"Compare the name and license number on the front with the barcode details. The demo does not compare them automatically.\" Only one photo is on the screen.",
+    "observation": "The checkbox already carries the instruction, and the DEMO band already marks the demo. The screen asks for a comparison of two sides but shows one. Found by the v043 audit.",
+    "area": "app.js — the scanner's pair review"
+  },
+  {
+    "id": "RP-UI-078",
+    "severity": "Minor",
+    "flow": "Discovery — the guided consultation",
+    "screen": "Stage 1 — the sample slide",
+    "screenshot": "current/05-discovery/01-stage-intro.png",
+    "issue": "Every Discovery stage ends with a line explaining its two controls: \"Tap ✓ when they're done, × to redo\", \"Tap ✓ to keep, × to redo\", \"Tap ✓ to see the options\". The first calls the customer named in the top bar \"they\".",
+    "observation": "Helper text under the owner's rule, and a pronoun where the owner's style is a name. If ✓ and × need names, they belong in the controls' accessible labels. Found by the v043 audit.",
+    "area": "app.js — the Discovery stage's hint line"
+  },
+  {
+    "id": "RP-UI-079",
+    "severity": "Minor",
+    "flow": "Test Drive Agreement",
+    "screen": "Insurance company (sheet)",
+    "screenshot": "current/07-test-drive/03-insurance-sheet.png",
+    "issue": "The test drive's sheets describe themselves: \"One field, carried onto the agreement.\", \"Identify the driver through the Customer Resolver.\", \"One final odometer reading closes the session.\"; the license exception adds \"Nothing else about the customer is asked again.\"",
+    "observation": "Explanations of the app, not labels or statuses; the titles and field labels already say what each sheet is for. Found by the v043 audit.",
+    "area": "app.js — the test drive's sheet subtitles and license exception"
+  },
+  {
+    "id": "RP-UI-080",
+    "severity": "Minor",
+    "flow": "Credit Application (Lending Lane)",
+    "screen": "Step 4 — Review, signature needed",
+    "screenshot": "current/11-credit-application/12-review-step.png",
+    "issue": "The credit application explains itself: \"The only applicant field the record does not hold.\", \"Verified on the previous step · tap to review, nothing to retype\", \"From the record — nothing to retype\"; and the consent ends \"Demo — no real inquiry ever occurs.\"",
+    "observation": "The authorization is a disclosure and stays; the demo sentence and the helper lines are the copy the kit and the owner's rule exclude. \"From the record\" works alone as a label. Found by the v043 audit.",
+    "area": "app.js — the credit application's steps and consent"
+  },
+  {
+    "id": "RP-UI-081",
+    "severity": "Minor",
+    "flow": "Buyers on the Deal (Co-Buyer)",
+    "screen": "Back on the deal — the new co-buyer attached, the sheet reopened",
+    "screenshot": "current/12-buyers-and-co-buyer/11-created-receipt.png",
+    "issue": "The buyers sheet here opens with \"One primary buyer. Add a co-buyer only when the deal needs one.\", and is drawn in an older design: uppercase labels, bordered cards, a purple \"Primary\" pill and no close. The same sheet elsewhere in the flow is the kit's, with neither.",
+    "observation": "One sheet, two designs in one flow, and the older one has no way to close. The receipt should be the kit sheet showing the new co-buyer's row. Found by the v043 audit.",
+    "area": "app.js — the buyers sheet reopened after a co-buyer is created by hand"
+  },
+  {
+    "id": "RP-UI-082",
+    "severity": "Minor",
+    "flow": "Finance Menu — Sign-Off Gate and Four Stages",
+    "screen": "Custom package — figure withheld",
+    "screenshot": "current/14-finance-menu/09-options-custom.png",
+    "issue": "Under the masked \"$●●●.●●\" the card adds \"Reveal it when you are ready to present\" above the \"Show custom payment\" button.",
+    "observation": "The button says what it does; the line only coaches. Found by the v043 audit.",
+    "area": "app.js — the Finance Menu's custom package card"
+  },
+  {
+    "id": "RP-UI-083",
+    "severity": "Minor",
+    "flow": "Deal Jacket & Compliance",
+    "screen": "Add optional document",
+    "screenshot": "current/15-deal-jacket/07-add-optional.png",
+    "issue": "The optional-document sheets explain the counting: \"9 available · counted separately from the required package\", \"unchanged — optional documents are counted separately\", and on Remove \"Taken in by hand. The jacket keeps the record, not the paper. Counted as an optional document — it is not part of the required package.\" The readiness card adds a paragraph after its count.",
+    "observation": "The values already make the point (\"Required package 15 items\", \"After adding 5 of 15 · 2 optional\"). Found by the v043 audit.",
+    "area": "app.js — the Deal Jacket's optional documents and readiness card"
+  },
+  {
+    "id": "RP-UI-084",
+    "severity": "Minor",
+    "flow": "Client Document Upload (customer's phone)",
+    "screen": "Upload your documents",
+    "screenshot": "current/17-client-document-upload/02-landing.png",
+    "issue": "Demo sentences on the customer's own pages: \"Training demo · files stay on this device.\", \"PDF preview unavailable in this demo.\", and on the advisor's request status \"The customer's phone is played by this same browser — open it to run the upload side of the demo.\"",
+    "observation": "The \"Demo · advisor view\" pill already marks the demo on the customer's own pages, which draw no DEMO band (the owner's ruling, kept by KA-009), and the advisor's pages draw the band. The \"simulate an unreadable photo\" checkbox is a control the training needs, and stays. Found by the v043 audit; the observation amended by the v047 audit.",
+    "area": "app.js — the client link's pages and the request status sheet"
+  },
+  {
+    "id": "RP-UI-085",
+    "severity": "Minor",
+    "flow": "Document Review (advisor)",
+    "screen": "Document actions (overflow sheet)",
+    "screenshot": "current/19-document-review/05-document-actions.png",
+    "issue": "Document review explains its gestures and its storage: \"Double-tap or pinch the document\", \"Only the receipt record is saved between sessions.\", \"The client link and the jacket queue both offer the retake.\" \"Replace license images\" has no icon or chevron, so it reads as a label.",
+    "observation": "Found by the v043 audit.",
+    "area": "app.js — Document review's action sheet and viewer"
+  },
+  {
+    "id": "RP-UI-086",
+    "severity": "Minor",
+    "flow": "Documents — Print Center & Printables",
+    "screen": "Preview — MV-82 (training sample)",
+    "screenshot": "current/20-print-center/05-print-mv82.png",
+    "issue": "The printed MV-82 carries a paragraph about the app: \"Recreates the New York vehicle registration / title application for training. A box the portal cannot fill from the deal is printed empty for hand completion — the app never invents a value.\"",
+    "observation": "A form handed to a customer explains the software that printed it. Found by the v043 audit.",
+    "area": "app.js — the print center's MV-82"
+  },
+  {
+    "id": "RP-UI-087",
+    "severity": "Minor",
+    "flow": "Home — Active Floor & Navigation",
+    "screen": "More sheet — secondary navigation",
+    "screenshot": "current/01-home-and-navigation/02-more-sheet.png",
+    "issue": "The More sheet's row reads \"New customer visit — Open the customer resolver\", and the manual form's way back \"Back to resolver\". The screen they name is titled \"New visit\" and \"Find customer\"; \"resolver\" appears nowhere on it.",
+    "observation": "Internal wording; the labels should use the screen's own names. Found by the v043 audit.",
+    "area": "app.js — the More sheet and the manual form's back link"
+  },
+  {
+    "id": "RP-UI-088",
+    "severity": "Minor",
+    "flow": "Home — Active Floor & Navigation",
+    "screen": "Active floor (Team Lead)",
+    "screenshot": "current/01-home-and-navigation/04-team-lead-floor.png",
+    "issue": "The Team Lead's floor counts a Discovery deal as Desking: the chip reads \"Desking 2\" over one Desking card and one Discovery card. With \"All 0\" chosen, the empty state says \"No deals in this stage — Choose another stage or start a new visit.\"; on a search miss, \"No showroom visits\" titles \"None match this search.\"",
+    "observation": "Each count and title should say what is true: a stage's own deals, no active deals, and nothing found for the search. Found by the v043 audit.",
+    "area": "app.js — the Home floor's stage chips and empty states"
+  },
+  {
+    "id": "RP-UI-089",
+    "severity": "Minor",
+    "flow": "Customer Onboarding — the Customer Resolver",
+    "screen": "Waiting for customer — sent to a helper's number",
+    "screenshot": "current/02-customer-onboarding/20-helper-waiting.png",
+    "issue": "The banner says the link went to \"(929) 555-0143 (a helper's number)\", but the Channels card lists the same number as plain \"Mobile · (929) 555-0143\". The cancel confirm reads \"Nothing the customer has not sent yet is lost.\", and the whose-upload subtitle breaks its ISO date mid-way (\"born 1983-09-\" / \"08\").",
+    "observation": "The helper's number reads as the customer's own mobile, the confusion this path exists to prevent; a destructive confirm should say plainly what goes; and the app writes dates as MM/DD/YYYY elsewhere. Found by the v043 audit.",
+    "area": "app.js — the resolver's helper-number path"
+  },
+  {
+    "id": "RP-UI-090",
+    "severity": "Minor",
+    "flow": "Test Drive Agreement",
+    "screen": "License needs attention — expired, with its date",
+    "screenshot": "current/07-test-drive/24-license-expired.png",
+    "issue": "The row says \"Expired 01/01/2020\" and the dock \"License expired\", but the row's badge says \"Incomplete\". On the driver mission's third step the top bar reads \"New visit\" and the \"Adding a test-drive driver\" notice is gone.",
+    "observation": "The badge should agree with the row, and the mission should keep its own name to the end. Found by the v043 audit.",
+    "area": "app.js — the test drive's license row and the driver mission's last step"
+  },
+  {
+    "id": "RP-UI-091",
+    "severity": "Minor",
+    "flow": "Trade-In Evaluation & Proof of Ownership",
+    "screen": "Run evaluation — a negative odometer refused",
+    "screenshot": "current/08-trade-in/10-refused-odometer.png",
+    "issue": "With \"-5\" in Mileage the message reads \"Add the mileage — the evaluation is calculated from it\", as if the box were empty; and with \"2018 Honda Civic\" typed, the card still reads \"Trade vehicle\" while the dock reads \"2018 Civic\".",
+    "observation": "The neighbors name the rule broken (\"a payoff cannot be negative\"); this one should say mileage cannot be negative. Found by the v043 audit.",
+    "area": "app.js — the Trade-In's appraisal refusals and card title"
+  },
+  {
+    "id": "RP-UI-092",
+    "severity": "Minor",
+    "flow": "Desking — Calculate Payments",
+    "screen": "Present — Your total (Cash)",
+    "screenshot": "current/09-desking/12-present-cash.png",
+    "issue": "The cash presentation shows \"Your price $41,431.00\", \"Your trade credit +$4,750.00\", \"Included $3,396.13\" and \"Total due $39,577.13\"; the parts add up to $40,077.13. The $500.00 rebate that closes the gap is not on the screen.",
+    "observation": "A customer adding up the screen gets a total $500 higher than the one shown (chrome rule §17: the column adds up). Compare shows \"Rebate −$500.00\". To build with the owner's answers on Present and Compare (DK-050). Found by the v043 audit.",
+    "area": "app.js — route desk/:id, Present on a cash deal"
+  },
+  {
+    "id": "RP-UI-093",
+    "severity": "Minor",
+    "flow": "Desking — Calculate Payments",
+    "screen": "Pencil — sent for approval",
+    "screenshot": "current/09-desking/14-work-submitted.png",
+    "issue": "The \"Sent to Jordan Reyes for approval\" status row is broken: its check icon sits alone on the first line and the words drop to the next, flush left, under a row laid out correctly.",
+    "observation": "Found by the v043 audit.",
+    "area": "app.js — the pencil's approval notice"
+  },
+  {
+    "id": "RP-UI-094",
+    "severity": "Minor",
+    "flow": "Base Payment Agreement",
+    "screen": "Agreement — ready to sign",
+    "screenshot": "current/10-base-payment-agreement/01-agreement-unsigned.png",
+    "issue": "\"Acknowledgement\" in the dock note (\"Ready for acknowledgement\"), the sign panel's line (\"The typed name is recorded as the acknowledgement signature\", itself helper text) and the printout's title, \"Customer Acknowledgement of Basic Terms of Agreement\"; the Finance Menu's acknowledgment says \"the options initialled\". The US spellings are \"acknowledgment\" and \"initialed\", as the buyers sheets write it.",
+    "observation": "The owner's rule is US spelling everywhere. Found by the v043 audit.",
+    "area": "app.js — the agreement's dock and printout, the Finance Menu's acknowledgment"
+  },
+  {
+    "id": "RP-UI-095",
+    "severity": "Minor",
+    "flow": "Buyers on the Deal (Co-Buyer)",
+    "screen": "Change roles after the lane — the lender line",
+    "screenshot": "current/12-buyers-and-co-buyer/17-lane-roles-confirm.png",
+    "issue": "The sheet says the deal has a submitted joint application, yet the chip reads \"Jacket · 4 of 16\"; the same post-lane deal reads \"6 of 16\" on the screens before it (v044; at v043, 4 of 15 and 5 of 15: the co-buyer's identity record now counts in both).",
+    "observation": "Found by the v043 audit.",
+    "area": "app.js — the Jacket chip on the buyers sheet after the lending lane"
+  },
+  {
+    "id": "RP-UI-096",
+    "severity": "Minor",
+    "flow": "Finance Menu — Sign-Off Gate and Four Stages",
+    "screen": "Stage 1 — a one-pay deal's terms",
+    "screenshot": "current/14-finance-menu/28-terms-onepay.png",
+    "issue": "The one-pay reads \"$12,459.96 total\", \"paid in full at signing\", yet its Taxes & fees row reads \"$1,027.50 + $28.21 / mo\": a monthly amount on a deal with no monthly payments. The lease packages' four pills run into their borders, the last about 2 px from the edge.",
+    "observation": "A one-pay's tax is in its payments, paid up front, as the desk's itemize sheet says. Found by the v043 audit.",
+    "area": "app.js — the Finance Menu's terms row on a one-pay, and the lease package pills"
+  },
+  {
+    "id": "RP-UI-097",
+    "severity": "Minor",
+    "flow": "Deal Jacket & Compliance",
+    "screen": "Deal Jacket — funding readiness",
+    "screenshot": "current/15-deal-jacket/01-jacket-overview.png",
+    "issue": "Count templates read badly at small numbers (\"The other 0 are deal forms your team completes.\", \"Capture all 2 here instead\"); the insurance, delivery and TQI rows use a check-mark icon beside \"Needed\"; toasts land on controls on the customer's phone.",
+    "observation": "Found by the v043 audit.",
+    "area": "app.js — the Deal Jacket's counts and row icons; the client link's toasts"
+  },
+  {
+    "id": "RP-UI-098",
+    "severity": "Minor",
+    "flow": "Client Document Upload (customer's phone)",
+    "screen": "Other income type — noted",
+    "screenshot": "current/17-client-document-upload/13-other-income.png",
+    "issue": "After Other income type, the sheet says \"Ashley knows you're paid another way — Ashley will ask you for another proof of income\", yet still reads as needing two paystubs.",
+    "observation": "Found by the v043 audit.",
+    "area": "app.js — the client link's paystub sheet after another income type"
+  },
+  {
+    "id": "RP-UI-099",
+    "severity": "Minor",
+    "flow": "Snap All — burst capture",
+    "screen": "Auto-sort results",
+    "screenshot": "current/18-snap-all/04-results.png",
+    "issue": "The insurance card is filed under the heading \"Verified 1\" although its row reads \"Accepted with exception — Expires within 45 days\" with the \"Exception accepted\" badge.",
+    "observation": "An exception is not a verification. Found by the v043 audit.",
+    "area": "app.js — Snap All's results groups"
+  },
+  {
+    "id": "RP-UI-100",
+    "severity": "Minor",
+    "flow": "Documents — Print Center & Printables",
+    "screen": "Preview — Deal Cover Sheet",
+    "screenshot": "current/20-print-center/07-print-cover.png",
+    "issue": "The cover sheet prints \"Deal Type / Stage: Finance · Menu\" for a deal the Documents screen calls \"FINALIZED WITH DOCUMENTS OUTSTANDING\". The printed quote's note reads \"Quick quote saved 9/28/2026, 11:46:53 AM\" under a header dated \"Sep 28, 2026\".",
+    "observation": "Found by the v043 audit.",
+    "area": "app.js — the print center's cover sheet and quote"
+  },
+  {
+    "id": "RP-UI-101",
+    "severity": "Observation",
+    "flow": "Desking — Calculate Payments",
+    "screen": "Accessories (sheet)",
+    "screenshot": "current/09-desking/22-accessories-sheet.png",
+    "issue": "Every kit sheet's close is a 32 px circle (the library's check reads \".rp-sheet__close 32x32\" on 60 screens), under the owner's 40 px floor though its ::before reaches 40; the stage chips and the presentation's product chips are 32 px tall; the presentation's \"Buyer\" control is 55 × 20.",
+    "observation": "Kit components, so a kit matter, alongside RP-UI-031 and RP-UI-050. Found by the v043 audit.",
+    "area": "ride-price-mobile.css — .rp-sheet__close, .rp-chip (the owner UI kit)"
+  },
+  {
+    "id": "RP-UI-102",
+    "severity": "Observation",
+    "flow": "Customer Onboarding — the Customer Resolver",
+    "screen": "Customer found — confirm + registration address",
+    "screenshot": "current/02-customer-onboarding/04-customer-found.png",
+    "issue": "The sample emails use testing.com, a registered public domain: \"jsmithtest@testing.com\", \"cbridwell@testing.com\", \"malvarez@testing.com\", and the placeholder \"name@testing.com\".",
+    "observation": "Not a business name on the screen, so outside the rule as written; a reserved domain (example.com) or a Ride Price one would name no one. The owner's to rule. Found by the v043 audit.",
+    "area": "data.js — the seed's emails; app.js — the placeholder"
+  },
+  {
+    "id": "RP-UI-103",
+    "severity": "Observation",
+    "flow": "Desking — Calculate Payments",
+    "screen": "Game plan — the huddle",
+    "screenshot": "current/09-desking/01-huddle-gate.png",
+    "issue": "Text about John uses they and them: \"How are they paying?\", \"Is the incentivized rate or the rebate better for them?\", \"Do they trade frequently?\", \"Send a secure link to their phone\", \"A co-buyer applies with them.\"",
+    "observation": "The owner's style is names: \"How is John paying?\", \"Send a secure link to John's phone\" (W-088). Found by the v043 audit.",
+    "area": "app.js — the huddle's tracks and the credit application's lines"
+  },
+  {
+    "id": "RP-UI-104",
+    "severity": "Observation",
+    "flow": "Scan Driver's License",
+    "screen": "Confirm customer — the name changed",
+    "screenshot": "current/03-license-scan/28-scan-name-changed.png",
+    "issue": "On The name changed, Edit license details is drawn under the dock until the page is scrolled: the scanned address takes two lines, the page grows past the dock, and the first paint shows Ask a Team Lead where the link is. Scrolled to the end, the link sits clear of the dock (its box overlaps the dock's top by 4 px; a tap lands on the link).",
+    "observation": "The library's overlap check reads it at first paint. Nothing is lost, since the page scrolls, but the one way to put a misread right is out of sight on the case that most needs it. Found by the v044 audit.",
+    "area": "Confirm customer: the page and its dock"
+  }
+]
