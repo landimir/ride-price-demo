@@ -151,11 +151,9 @@ const Store = (function () {
         value: 15500, payoff: 10750, rebates: 500, applyTaxCredit: true,
         ownership: seedTradeOwnership(), ownershipReviewedAt: "2026-09-04T13:40:00Z"
       },
-      /* the huddle is still to be run — the advisor confirms it — but the two
-         things the customer already said are on the record, in John's own words,
-         because the desking screens read them back: the trial close is quoted
-         when presenting, and the payment John named picks the recommended cell */
-      huddle: { done: false, trialClose: "If the numbers make sense, we'd take it today.", namedPayment: "Around $700 a month" },
+      /* the huddle is still to be run: the advisor confirms how John is paying (the owner's cut of 2026-10-05 took
+         the trial close, the payment the customer named and the Discovery question off the Game plan) */
+      huddle: { done: false },
       desk: { term: 60, apr: 3.5, downPayment: 1000, leaseTerm: 36, milesPerYear: 12000, leaseFactor: 0.00117, dueAtSigning: 1000, accessories: ["mats", "tint"], daysToFirst: 45 },
       basePayment: null, creditApp: null,
       menu: { step: 1, barsDone: [], custom: [], customSource: null, selectedProgram: null, initials: "", ackSigned: false },
@@ -343,14 +341,6 @@ const Store = (function () {
         delete d.trade.payoff; minted = true;
       }
     });
-    /* the customer's own words, on a huddle nobody has run yet. A huddle that
-       is done, or that already holds either field, is the advisor's own work
-       and is never overwritten. */
-    if (demo && demo.huddle && !demo.huddle.done && !demo.huddle.trialClose && !demo.huddle.namedPayment) {
-      demo.huddle.trialClose = "If the numbers make sense, we'd take it today.";
-      demo.huddle.namedPayment = "Around $700 a month";
-      minted = true;
-    }
     /* and the ownership answers the trade documents produce. Only a trade with
        NO ownership object at all — a single recorded answer is somebody's
        review, and an object emptied back to {} is a real state, the advisor
@@ -9186,12 +9176,9 @@ function tradeView({ id, sheet }) {
        anywhere. parseFloat reads the exponent AND still answers NaN for an
        empty box, which is what keeps the owner's ruling intact; a bare
        Number() would have read the empty box as 0 and appraised a car nobody
-       measured. parseFloat behind isFinite is how the two other number reads
-       in this file are written, but neither is this same test: the huddle's
-       namedPayment takes `> 0`, which would refuse an odometer that genuinely
-       reads 0 — the distinction this box turns on — and the desking terms
-       sheet's `num()` takes `>= 0` but falls back to the stored figure
-       instead of refusing. The line that matches this one exactly is the
+       measured. parseFloat behind isFinite is how the desking terms sheet's
+       `num()` reads too, but it is not this same test: it takes `>= 0` but
+       falls back to the stored figure instead of refusing. The line that matches this one exactly is the
        payoff gate below, added in the same change and for the same reason.
        isFinite also refuses an Infinity, which would clear `>= 0` and
        then JSON.stringify to null, bringing the odometer back out of
@@ -9578,13 +9565,6 @@ route("desk/:id", ({ id }) => {
   document.body.dataset.screen = "desk";
   document.body.dataset.canvas = "kit";
 
-  const PAY_TRACKS = {
-    finance: "Is the incentivized rate or the rebate better for them?",
-    lease: "Do they trade frequently? Are they a low-mileage driver?",
-    cash: "Will they be writing a check or obtaining a cashier's check?",
-    onepay: "Low-mileage driver who would rather not have a monthly payment?"
-  };
-
   /* the board's grid: three terms across, three cash-down rows. Three
      columns, never four — three is a choice, four is a spreadsheet (§15). */
   const GRID_TERMS = [48, 60, 72];
@@ -9617,6 +9597,7 @@ route("desk/:id", ({ id }) => {
     sel: null,     /* the cell the customer is looking at in present mode */
     note: "", noteErr: false,   /* the Team Lead's send-back note, kept while the sheet is up (W-004) */
     termsDraft: {}, termsErr: {},   /* Change terms: what was typed, and why Save refused it (MR-15) */
+    paying: null,   /* the Game plan's pick before Open the pencil: a redraw under it (the Buyers sheet) keeps it (DK-068) */
     buyersAt: null   /* the Buyers sheet's state to open on, once: a removal asked for (W-005) */
   };
   /* the floor's Review lands here with the approval sheet up (W-004), or with
@@ -9652,36 +9633,15 @@ route("desk/:id", ({ id }) => {
       out.push({ down, term, payment: r.payment, beyond: r.cashBeyond > 0, bank: bankApproval(r) }); }));
     return out;
   }
-  /* the payment the customer named in the huddle, as a number — "Around $700
-     a month" is $700. Absent or unparseable is null, and the grid then
-     recommends the structure the deal already carries. */
-  function namedPayment() {
-    /* every figure in John's words, "1.2k" as $1,200; a range ("600 to 700") anchors on its top end. Taking the
-       digits together read "600 to 700" as $600,700 and "about 1.2k" as $1.20 (Desking's DK-032, DK-033) */
-    const raw = String((deal.huddle && deal.huddle.namedPayment) || "").toLowerCase().replace(/,/g, "");
-    const said = [...raw.matchAll(/(\d+(?:\.\d+)?)\s*(k\b)?/g)].map((m) => parseFloat(m[1]) * (m[2] ? 1000 : 1)).filter((n) => isFinite(n) && n > 0);
-    return said.length ? Math.max(...said) : null;
-  }
-  /* The recommended cell is the option NEAREST the payment the customer
-     named, shorter term winning a tie. The package's prompt says "the
-     highest option that sits at or under it", but no cell sits under the
-     $700 John named once the corrected New York base is applied — the
-     board's own recommendation, 60 months at $1,000 down, is $1.79 above it.
-     The board and the seed both name that cell, so nearest is the rule that
-     reproduces them; the divergence is reported to the owner rather than
-     resolved silently. */
+  /* The recommended cell is the one Ashley pencilled, as the kit draws it. It followed the payment the customer
+     named until the owner's cut of 2026-10-05 took that field off the Game plan; the grid's rows already centre on
+     the pencil's cash down (DK-034), so the pencilled cell is always on it unless the deal cannot take its cash */
   function recommended() {
-    const cells = gridCells().filter((x) => !x.beyond), named = namedPayment();
+    const cells = gridCells().filter((x) => !x.beyond);
     /* none left: every row asks more cash than the deal can take, and the pencil says so first */
     if (!cells.length) return null;
-    if (!named) {
-      return cells.find(x => x.down === deal.desk.downPayment && x.term === deal.desk.term)
-        || cells.find(x => x.down === 1000 && x.term === 60) || cells[0];
-    }
-    return cells.reduce((best, x) => {
-      const d = Math.abs(x.payment - named), bd = Math.abs(best.payment - named);
-      return d < bd || (d === bd && x.term < best.term) ? x : best;
-    }, cells[0]);
+    return cells.find(x => x.down === deal.desk.downPayment && x.term === deal.desk.term)
+      || cells.find(x => x.down === 1000 && x.term === 60) || cells[0];
   }
 
   const incentive = RIDE_PRICE_DATA.financeIncentive;
@@ -9866,36 +9826,27 @@ route("desk/:id", ({ id }) => {
   };
 
   /* ---------- 01 · the huddle ---------- */
+  /* how John is paying, and Open the pencil: the owner's cut of 2026-10-05 took the trial close, the payment the
+     customer named and the Discovery question off, and his answer B of 2026-10-06 the two toggles ("Trade
+     evaluated", "Vehicle in stock today"), which were saved but read nowhere */
   function huddleScreen() {
     const h = deal.huddle;
-    const paying = h.paying || deal.dealType;
+    const paying = ui.paying || h.paying || deal.dealType;
     const content = `<div class="rp-eyebrow">First pencil</div>
       <h1 class="rp-title">Game plan</h1>
       ${chipRow()}
       ${vehicleRow()}
-      <div class="rp-field"><label class="rp-field__label" for="hTrial">Trial close — in the customer&rsquo;s words</label>
-        <textarea class="rp-textarea" id="hTrial" placeholder="Word for word, e.g. &ldquo;If it&rsquo;s under $650, we&rsquo;ll sign today.&rdquo;">${esc(h.trialClose || "")}</textarea></div>
-      <div class="rp-field"><label class="rp-field__label" for="hNamed">Payment the customer named</label>
-        <input class="rp-field__input" id="hNamed" value="${esc(h.namedPayment || "")}" placeholder="e.g. under $650 a month"></div>
       <div class="rp-section">How are they paying?</div>
       <div class="rp-choice-grid" id="hPayRow" role="radiogroup" aria-label="How are they paying">
         ${Object.entries(DEAL_TYPES).map(([k, l]) => `<button type="button" class="rp-option${paying === k ? " rp-option--on" : ""}" data-pay="${k}" role="radio" aria-checked="${paying === k}">
           <span><span class="rp-option__title">${esc(l)}</span></span>
           <span class="rp-radio${paying === k ? " rp-radio--on" : ""}">${paying === k ? rpGlyph("check") : ""}</span></button>`).join("")}
-      </div>
-      <div class="rp-group"><div class="rp-row"><span class="rp-row__body">
-        <span class="rp-row__title">Discovery question</span>
-        <span class="rp-row__sub" id="hTrack">${esc(PAY_TRACKS[paying])}</span></span></div></div>
-      <button type="button" class="rp-toggle-row" style="width:100%" id="hTrade" aria-pressed="${h.trade != null ? h.trade : deal.trade.has}">
-        ${deal.trade.has && deal.trade.value ? `Trade evaluated · ${money0(deal.trade.value)}` : "Trade evaluation needed"}
-        <span class="rp-toggle${(h.trade != null ? h.trade : deal.trade.has) ? " rp-toggle--on" : ""}"></span></button>
-      <button type="button" class="rp-toggle-row" style="width:100%" id="hStock" aria-pressed="${h.inStock !== false}">Vehicle in stock today
-        <span class="rp-toggle${h.inStock !== false ? " rp-toggle--on" : ""}"></span></button>`;
+      </div>`;
     render(content, chDock(`<button type="button" class="rp-primary" id="hConfirm">Open the pencil</button>`));
 
-    let payingSel = paying, tradeOn = h.trade != null ? h.trade : deal.trade.has, stockOn = h.inStock !== false;
+    let payingSel = paying;
     $$("#hPayRow [data-pay]").forEach(b => b.onclick = () => {
-      payingSel = b.dataset.pay;
+      payingSel = ui.paying = b.dataset.pay;
       $$("#hPayRow [data-pay]").forEach(x => {
         const on = x === b;
         x.classList.toggle("rp-option--on", on);
@@ -9904,20 +9855,15 @@ route("desk/:id", ({ id }) => {
         radio.classList.toggle("rp-radio--on", on);
         radio.innerHTML = on ? rpGlyph("check") : "";
       });
-      $("#hTrack").textContent = PAY_TRACKS[payingSel];
     });
-    const toggle = (sel, get, set) => { const el = $(sel); el.onclick = () => { set(!get()); el.setAttribute("aria-pressed", String(get())); el.querySelector(".rp-toggle").classList.toggle("rp-toggle--on", get()); }; };
-    toggle("#hTrade", () => tradeOn, (x) => tradeOn = x);
-    toggle("#hStock", () => stockOn, (x) => stockOn = x);
     $("#hConfirm").onclick = () => {
       Object.assign(deal.huddle, {
         done: true, at: new Date().toISOString(),
         by: `${Store.s.advisor} + ${RIDE_PRICE_DATA.dealership.teamLead}`,
-        trialClose: $("#hTrial").value.trim(),
-        namedPayment: $("#hNamed").value.trim(),
-        paying: payingSel, trade: tradeOn, inStock: stockOn
+        paying: payingSel
       });
       deal.dealType = payingSel;
+      ui.paying = null;
       Store.save();
       /* no toast: the deal-type control on the pencil says which it is, and
          nothing that disappears may be the record of anything (§24) */
@@ -9974,17 +9920,7 @@ route("desk/:id", ({ id }) => {
     const beyondCash = r.cashBeyond > 0;
     const beyondNotice = () => beyondCash ? `<div class="rp-notice rp-notice--working" id="dkBeyond"><strong>${isLease()
       ? "More due at signing than the lease can take" : "More cash down than the deal can take"}</strong>The most it can take is ${money(r.mostCash)}.</div>` : "";
-    /* D-SM5 = B (owner, 2026-09-22: "D-SM5 is B for now"): the trial close the
-       huddle wrote down is read back to the advisor here, under the payment,
-       before the phone is turned round — in the customer's own words, in Work
-       only. The presented screen never draws it. The row is the kit's
-       rp-group / rp-row, the shape the option grid already uses to read back
-       the payment the customer named. */
-    const trial = String((deal.huddle && deal.huddle.trialClose) || "").trim();
-    const trialRow = () => trial ? `<div class="rp-group" id="dkTrial"><div class="rp-row"><span class="rp-row__body">
-      <span class="rp-row__title">Trial close — in the customer&rsquo;s words</span>
-      <span class="rp-row__sub">&ldquo;${esc(trial)}&rdquo;</span></span></div></div>` : "";
-
+    /* no trial close row: D-SM5's read-back went with the field, in the owner's cut of 2026-10-05 */
     const content = `<div class="rp-eyebrow">Desking</div>
       <h1 class="rp-title">Calculate payments</h1>
       ${chipRow()}
@@ -9995,7 +9931,6 @@ route("desk/:id", ({ id }) => {
       ${segment()}
       ${priceHero(r, !chose && !beyondCash)}
       ${!isCash() && r.owedToCustomer > 0 ? `<div class="rp-kv">${owedRow()}</div>` : ""}
-      ${trialRow()}
       ${isCash() ? cashColumn() : ""}
       ${isCash() || isLease() || beyondCash ? "" : `<div class="rp-group"><button type="button" class="rp-row" id="dkOptions">
         <span class="rp-row__body"><span class="rp-row__title">Payment options</span>
@@ -10070,17 +10005,12 @@ route("desk/:id", ({ id }) => {
 
   /* ---------- 03 · the option grid ---------- */
   function optionsScreen() {
-    const named = deal.huddle.namedPayment;
-    const rec = recommended();
     const content = `<div class="rp-eyebrow">Desking</div>
       <h1 class="rp-title">Payment options</h1>
       ${chipRow()}
       ${vehicleRow()}
       <div class="rp-section">Finance · ${aprLine()} · rebate and trade credit applied</div>
-      ${grid(false)}
-      ${named && rec ? `<div class="rp-group"><div class="rp-row"><span class="rp-row__body">
-        <span class="rp-row__title">Customer named</span>
-        <span class="rp-row__sub">&ldquo;${esc(named)}&rdquo; — ${rec.term} months · ${downLabel(rec.down)} down is the anchor</span></span></div></div>` : ""}`;
+      ${grid(false)}`;
     render(content, chDock(`<button type="button" class="rp-primary" id="dkPresent">Present to customer</button>`,
       `<button type="button" class="rp-link" id="dkTerms">Change terms</button>`));
     $("#dkPresent").onclick = () => goPresent();
