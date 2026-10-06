@@ -1,6 +1,6 @@
-# Ride Price Mobile UI — UX Audit (v048)
+# Ride Price Mobile UI — UX Audit (v049)
 
-Captured 2026-10-05T10:23:02.868Z · viewport 390×844 · app d587f3482fe86de23f97161c4a30aeabb831219a
+Captured 2026-10-06T07:49:07.056Z · viewport 390×844 · app e19962cf661be840e8dcc964c1e61e1080964f30
 
 | Severity | Count |
 |---|---|
@@ -388,8 +388,8 @@ _None recorded._
 ### RP-UI-103 — Desking — Calculate Payments · Game plan — the huddle
 
 - **Screenshot:** `current/09-desking/01-huddle-gate.png`
-- **Issue:** Text about John uses they and them: "How are they paying?", "Is the incentivized rate or the rebate better for them?", "Do they trade frequently?", "Send a secure link to their phone", "A co-buyer applies with them."
-- **Observation:** The owner's style is names: "How is John paying?", "Send a secure link to John's phone" (W-088). Found by the v043 audit.
+- **Issue:** Text about John uses they and them: "How are they paying?", "Send a secure link to their phone", "A co-buyer applies with them."
+- **Observation:** The owner's style is names: "How is John paying?", "Send a secure link to John's phone" (W-088). Found by the v043 audit. The Game plan's two Discovery questions ("Is the incentivized rate or the rebate better for them?", "Do they trade frequently?") went with the owner's Game plan cut (D-SM6, v049).
 - **Suggested area to investigate:** app.js — the huddle's tracks and the credit application's lines
 
 ### RP-UI-104 — Scan Driver's License · Confirm customer — the name changed

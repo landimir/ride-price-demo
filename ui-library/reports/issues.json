@@ -525,8 +525,8 @@
     "flow": "Desking — Calculate Payments",
     "screen": "Game plan — the huddle",
     "screenshot": "current/09-desking/01-huddle-gate.png",
-    "issue": "Text about John uses they and them: \"How are they paying?\", \"Is the incentivized rate or the rebate better for them?\", \"Do they trade frequently?\", \"Send a secure link to their phone\", \"A co-buyer applies with them.\"",
-    "observation": "The owner's style is names: \"How is John paying?\", \"Send a secure link to John's phone\" (W-088). Found by the v043 audit.",
+    "issue": "Text about John uses they and them: \"How are they paying?\", \"Send a secure link to their phone\", \"A co-buyer applies with them.\"",
+    "observation": "The owner's style is names: \"How is John paying?\", \"Send a secure link to John's phone\" (W-088). Found by the v043 audit. The Game plan's two Discovery questions (\"Is the incentivized rate or the rebate better for them?\", \"Do they trade frequently?\") went with the owner's Game plan cut (D-SM6, v049).",
     "area": "app.js — the huddle's tracks and the credit application's lines"
   },
   {

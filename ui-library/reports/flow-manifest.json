@@ -1,8 +1,8 @@
 {
   "library": "Ride Price Mobile UI Library",
   "viewport": "390x844",
-  "capturedAt": "2026-10-05T10:23:02.868Z",
-  "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+  "capturedAt": "2026-10-06T07:49:07.056Z",
+  "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
   "flows": [
     {
       "id": "home",
@@ -10,8 +10,8 @@
       "title": "Home — Active Floor & Navigation",
       "description": "The portal opens on the queue, rebuilt to the owner's home v3 package (2026-08-28). Showroom visits are their own section — an active visit is not a deal stage — and a visit with no vehicle yet shows only the name and arrival time, never a placeholder (the owner's standing rule, reasserted on the v3 reference). Stage vocabulary is three everywhere: DESKING, F&I, DONE. The Advisor reads My deals with a Next line per row; the Team Lead reads Active floor with All / Desking / F&I chips and a manager-only date control that governs the funded history, never the live floor. Both roles keep the four identifiers on every deal row — name, VIN, stock, stage. There is no login: the role sheet stands in for authentication, and it opens only in Customer Onboarding (owner ruling B, 2026-09-18) — Home's top bar carries no role control.",
       "entry": null,
-      "capturedAt": "2026-10-05T10:23:02.923Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:49:07.088Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -375,7 +375,7 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-badge.rp-badge--positive Funded · Oct 5 <> .rp-card__name John Smith"
+              ".rp-badge.rp-badge--positive Funded · Oct 6 <> .rp-card__name John Smith"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -809,7 +809,7 @@
             "overlaps": [
               ".rp-badge Discovery <> .rp-card__name Cheri Bridwell",
               ".rp-card__meta.dq-advisor Not assigned <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
-              ".rp-card__next Next: Discovery Interview In <> .rp-sheet__sub Arrived 06:23 · Discovery · ",
+              ".rp-card__next Next: Discovery Interview In <> .rp-sheet__sub Arrived 03:49 · Discovery · ",
               ".rp-badge Desking <> .rp-card__name John Smith",
               ".rp-badge Desking <> #dqVisitOpen.rp-primary Open deal",
               ".rp-card__name John Smith <> #dqVisitOpen.rp-primary Open deal",
@@ -959,7 +959,7 @@
               ".rp-badge Desking <> .rp-card__name John Smith",
               ".rp-card__meta.dq-ids VIN 5NMS4DAL4NH457995 · STK  <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
               ".rp-card__next Next: Game Plan With the Tea <> #dqSheetTitle.rp-sheet__title Cheri Bridwell",
-              ".rp-card__next Next: Game Plan With the Tea <> .rp-sheet__sub Arrived 06:23 · Discovery",
+              ".rp-card__next Next: Game Plan With the Tea <> .rp-sheet__sub Arrived 03:49 · Discovery",
               ".rp-tab.rp-tab--active Deals <> #dqVisitEnd.rp-link.ch-hit Left the showroom",
               ".rp-tab Inventory <> #dqVisitEnd.rp-link.ch-hit Left the showroom",
               ".rp-tab Customers <> #dqVisitEnd.rp-link.ch-hit Left the showroom"
@@ -1221,8 +1221,8 @@
         "from": "home/deals-queue",
         "action": "Tap New visit"
       },
-      "capturedAt": "2026-10-05T10:24:10.234Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:50:12.155Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -2403,8 +2403,8 @@
         "from": "onboarding/resolver-idle",
         "action": "Tap Scan physical license"
       },
-      "capturedAt": "2026-10-05T10:25:07.093Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:51:09.835Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -3477,10 +3477,10 @@
               " Address <> .rp-sheet__sub Enter the six-digit code sen",
               " 4102 Bell Blvd, Bayside, NY  <> #scSheetTitle.rp-sheet__title Verify the phone number",
               " 4102 Bell Blvd, Bayside, NY  <> .rp-sheet__sub Enter the six-digit code sen",
-              ".rp-kv__head Registration address <> .rp-code__box 2",
-              ".rp-kv__head Registration address <> .rp-code__box 3",
+              ".rp-kv__head Registration address <> .rp-code__box 6",
               ".rp-kv__head Registration address <> .rp-code__box 8",
-              ".rp-kv__head Registration address <> .rp-code__box 3"
+              ".rp-kv__head Registration address <> .rp-code__box 7",
+              ".rp-kv__head Registration address <> .rp-code__box 5"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -3846,8 +3846,8 @@
         "from": "home/more-sheet",
         "action": "Training documents"
       },
-      "capturedAt": "2026-10-05T10:28:06.637Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:54:02.969Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -4266,15 +4266,15 @@
         "from": "onboarding/customer-found",
         "action": "Confirm address & start visit"
       },
-      "capturedAt": "2026-10-05T10:28:19.893Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:54:14.579Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
           "key": "stage-intro",
           "screen": "Stage 1 — the sample slide",
           "screenshot": "current/05-discovery/01-stage-intro.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Tap ✓",
           "next": "stage-question",
           "branches": [
@@ -4334,7 +4334,7 @@
           "key": "stage-question",
           "screen": "Current vehicle — the sample reply as chips",
           "screenshot": "current/05-discovery/02-stage-question.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Tap the Sunroof chip",
           "next": "stage-chip-toggled",
           "branches": [],
@@ -4377,7 +4377,7 @@
           "key": "stage-chip-toggled",
           "screen": "Current vehicle — a chip turned on",
           "screenshot": "current/05-discovery/03-stage-chip-toggled.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Tap ✓",
           "next": "stage-skip",
           "branches": [],
@@ -4420,7 +4420,7 @@
           "key": "stage-skip",
           "screen": "Size & space — Skip this topic",
           "screenshot": "current/05-discovery/04-stage-skip.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Tap Skip this topic",
           "next": "stage-seating",
           "branches": [],
@@ -4461,7 +4461,7 @@
           "key": "stage-seating",
           "screen": "Seating & family",
           "screenshot": "current/05-discovery/05-stage-seating.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Tap ✓",
           "next": "stage-drivetrain",
           "branches": [],
@@ -4504,7 +4504,7 @@
           "key": "stage-drivetrain",
           "screen": "Drivetrain",
           "screenshot": "current/05-discovery/06-stage-drivetrain.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Tap ✓",
           "next": "stage-lane-support",
           "branches": [],
@@ -4543,7 +4543,7 @@
           "key": "stage-lane-support",
           "screen": "Lane support — the shared stage",
           "screenshot": "current/05-discovery/07-stage-lane-support.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Tap ✓",
           "next": "stage-reverse-safety",
           "branches": [],
@@ -4583,7 +4583,7 @@
           "key": "stage-reverse-safety",
           "screen": "Reverse safety — the shared stage, the other way",
           "screenshot": "current/05-discovery/08-stage-reverse-safety.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Tap ✓",
           "next": "profile",
           "branches": [],
@@ -4623,7 +4623,7 @@
           "key": "profile",
           "screen": "The profile — the hand-off",
           "screenshot": "current/05-discovery/09-profile.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Reload the page",
           "next": "profile-reload",
           "branches": [
@@ -4669,7 +4669,7 @@
           "key": "profile-reload",
           "screen": "The profile after a reload",
           "screenshot": "current/05-discovery/10-profile-reload.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Tap ×",
           "next": "profile-change",
           "branches": [],
@@ -4706,7 +4706,7 @@
           "key": "profile-change",
           "screen": "× on the profile — back to the first question",
           "screenshot": "current/05-discovery/11-profile-change.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Tap ✓ through every topic",
           "next": "profile-again",
           "branches": [],
@@ -4749,7 +4749,7 @@
           "key": "profile-again",
           "screen": "Confirmed through — the profile again",
           "screenshot": "current/05-discovery/12-profile-again.png",
-          "hash": "#/discovery/d-jd4f6z0",
+          "hash": "#/discovery/d-br2zema",
           "action": "Tap ✓",
           "next": "vehicles/inventory-from-discovery",
           "branches": [],
@@ -4872,8 +4872,8 @@
         "from": "discovery/profile",
         "action": "Tap ✓ on the profile"
       },
-      "capturedAt": "2026-10-05T10:28:41.627Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:54:34.059Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -5668,8 +5668,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Test Drive"
       },
-      "capturedAt": "2026-10-05T10:29:11.763Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:55:00.562Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -6955,8 +6955,8 @@
         "from": "vehicles/next-steps",
         "action": "Tap Trade Appraisal"
       },
-      "capturedAt": "2026-10-05T10:29:58.666Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:55:43.154Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -7566,7 +7566,7 @@
           "key": "appraisal-empty",
           "screen": "The appraisal form before anyone has typed",
           "screenshot": "current/08-trade-in/14-appraisal-empty.png",
-          "hash": "#/trade/d-uxp98nj",
+          "hash": "#/trade/d-bw9fyw4",
           "action": "Type the vehicle, the VIN, the mileage and the payoff",
           "next": "appraisal-typed",
           "branches": [],
@@ -7605,7 +7605,7 @@
           "key": "appraisal-typed",
           "screen": "The appraisal form filled in, not yet evaluated",
           "screenshot": "current/08-trade-in/15-appraisal-typed.png",
-          "hash": "#/trade/d-uxp98nj",
+          "hash": "#/trade/d-bw9fyw4",
           "action": "Tap Run evaluation",
           "next": "appraisal-run",
           "branches": [],
@@ -7643,7 +7643,7 @@
           "key": "appraisal-run",
           "screen": "Trade value — the fresh trade evaluated",
           "screenshot": "current/08-trade-in/16-appraisal-run.png",
-          "hash": "#/trade/d-uxp98nj",
+          "hash": "#/trade/d-bw9fyw4",
           "action": "Tap Review ownership",
           "next": "ownership-roots",
           "branches": [],
@@ -7720,13 +7720,13 @@
       "id": "desking",
       "area": "09-desking",
       "title": "Desking — Calculate Payments",
-      "description": "The owner's desking package (v029, 2026-09-04) on the UI kit: eight screens, one route, all of them the kit's Task with the customer's full name in the bar and no deal number — a worked deal has none until the lending lane pushes it to F&I. Two modes, and the difference is who is holding the phone. WORK is the advisor's: the huddle that captures the trial close in the customer's own words and the payment they named, the deal-type control, the payment hero, the accordions, and a 3x3 option grid whose every cell is the real calculator. PRESENT turns the phone around: Close becomes Done, and the customer sees the car, two wins, the grid with one recommended cell, the payment to the cent, one line of fine print with a real incentive date, and one commitment action whose tap writes the structure onto the deal. New York's taxable base is stated on the screen it is taken on, and the four fees are itemised rather than bundled.",
+      "description": "The owner's desking package (v029, 2026-09-04) on the UI kit: eight screens, one route, all of them the kit's Task with the customer's full name in the bar and no deal number — a worked deal has none until the lending lane pushes it to F&I. Two modes, and the difference is who is holding the phone. WORK is the advisor's: the Game plan that asks how the customer is paying, the deal-type control, the payment hero, the accordions, and a 3x3 option grid whose every cell is the real calculator. PRESENT turns the phone around: Close becomes Done, and the customer sees the car, two wins, the grid with one recommended cell, the payment to the cent, one line of fine print with a real incentive date, and one commitment action whose tap writes the structure onto the deal. New York's taxable base is stated on the screen it is taken on, and the four fees are itemised rather than bundled.",
       "entry": {
         "from": "home/deals-queue",
         "action": "Tap the deal card (Continue)"
       },
-      "capturedAt": "2026-10-05T10:30:29.173Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:56:10.161Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -7737,7 +7737,7 @@
           "action": "Confirm how they're paying, tap Open the pencil",
           "next": "pencil-finance",
           "branches": [],
-          "notes": "Advisor-only. The trial close is captured in the customer's words and the payment they named is written down. The named payment is read back on the option grid, where it picks the recommended cell; the trial close is quoted back to the advisor on the pencil, under the payment — never on the customer's screen (D-SM5 = B). No deal number: the deal is not numbered until F&I.",
+          "notes": "Advisor-only, and one question: how the customer is paying. Open the pencil is the one way on. The owner's Game plan cut (D-SM6) took the trial close, the payment the customer named, the Discovery question and the two toggles off. No deal number: the deal is not numbered until F&I.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -7745,10 +7745,7 @@
             "offscreen": [],
             "tinyTargets": [],
             "clipped": [],
-            "overlaps": [
-              "#hTrade.rp-toggle-row Trade evaluated · $15,500 <> #hConfirm.rp-primary Open the pencil",
-              "#hStock.rp-toggle-row Vehicle in stock today <> #hConfirm.rp-primary Open the pencil"
-            ],
+            "overlaps": [],
             "sheetFit": [],
             "lowContrast": [],
             "holes": [],
@@ -7761,15 +7758,15 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 988
+            "pageHeight": 844
           },
-          "scrollShot": "current/09-desking/01-huddle-gate.scroll.png",
+          "scrollShot": null,
           "issues": [
             {
               "id": "RP-UI-103",
               "severity": "Observation",
-              "issue": "Text about John uses they and them: \"How are they paying?\", \"Is the incentivized rate or the rebate better for them?\", \"Do they trade frequently?\", \"Send a secure link to their phone\", \"A co-buyer applies with them.\"",
-              "observation": "The owner's style is names: \"How is John paying?\", \"Send a secure link to John's phone\" (W-088). Found by the v043 audit.",
+              "issue": "Text about John uses they and them: \"How are they paying?\", \"Send a secure link to their phone\", \"A co-buyer applies with them.\"",
+              "observation": "The owner's style is names: \"How is John paying?\", \"Send a secure link to John's phone\" (W-088). Found by the v043 audit. The Game plan's two Discovery questions (\"Is the incentivized rate or the rebate better for them?\", \"Do they trade frequently?\") went with the owner's Game plan cut (D-SM6, v049).",
               "area": "app.js — the huddle's tracks and the credit application's lines"
             }
           ]
@@ -7796,7 +7793,7 @@
               "to": "desking/present-payment"
             }
           ],
-          "notes": "The screen opens on the payment, with the customer's own trial close quoted under it for the advisor (D-SM5 = B). The price accordion runs MSRP → your price → saving; the trade shows equity as a credit; fees and tax are five lines, with the sales-tax row naming the base it is taken on.",
+          "notes": "The screen opens on the payment. The price accordion runs MSRP → your price → saving; the trade shows equity as a credit; fees and tax are five lines, with the sales-tax row naming the base it is taken on.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -7807,11 +7804,10 @@
             "overlaps": [
               ".rp-price__label Monthly payment <> #dkHeroPresent.rp-price__action Present",
               ".rp-price__amount $701.79/ mo <> #dkHeroPresent.rp-price__action Present",
-              ".rp-acc__head Vehicle price$41,431.00 <> #dkPresent.rp-primary Present to customer",
-              " MSRP <> #dkPresent.rp-primary Present to customer",
-              " $42,910.00 <> #dkPresent.rp-primary Present to customer",
-              " Your price <> #dkCompare.rp-link Compare finance and lease",
-              " $41,431.00 <> #dkCompare.rp-link Compare finance and lease"
+              " Saving <> #dkPresent.rp-primary Present to customer",
+              ".rp-delta −$1,479.00 <> #dkPresent.rp-primary Present to customer",
+              ".rp-acc__head Trade+$4,750.00 <> #dkCompare.rp-link Compare finance and lease",
+              ".rp-acc__sum +$4,750.00 <> #dkCompare.rp-link Compare finance and lease"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -7825,7 +7821,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1236
+            "pageHeight": 1154
           },
           "scrollShot": "current/09-desking/02-pencil-finance.scroll.png",
           "issues": [
@@ -7847,7 +7843,7 @@
           "action": "Tap Present to customer",
           "next": "present-payment",
           "branches": [],
-          "notes": "The choice close, built before the phone turns: three terms across, three cash-down rows, one recommended cell — the option nearest the payment the customer named. Three columns, never four; four is a spreadsheet.",
+          "notes": "The choice close, built before the phone turns: three terms across, three cash-down rows, one recommended cell — the one the advisor pencilled. Three columns, never four; four is a spreadsheet.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -7980,10 +7976,11 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".rp-row__sub 48 / 60 / 72 months × $1,000 <> #dkSubmit.rp-primary Submit for Team Lead approva",
               ".rp-acc__head Vehicle price$41,431.00 <> #dkSubmit.rp-primary Submit for Team Lead approva",
-              ".rp-acc__head Vehicle price$41,431.00 <> #dkPresent.rp-link Present again",
-              ".rp-acc__sum $41,431.00 <> #dkPresent.rp-link Present again"
+              " MSRP <> #dkSubmit.rp-primary Submit for Team Lead approva",
+              " $42,910.00 <> #dkSubmit.rp-primary Submit for Team Lead approva",
+              " Your price <> #dkPresent.rp-link Present again",
+              " $41,431.00 <> #dkPresent.rp-link Present again"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -7997,7 +7994,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1314
+            "pageHeight": 1233
           },
           "scrollShot": "current/09-desking/06-work-chose.scroll.png",
           "issues": []
@@ -8022,12 +8019,12 @@
             "overlaps": [
               ".rp-price__label Monthly payment <> #dkHeroPresent.rp-price__action Present",
               ".rp-price__amount $334.64/ mo <> #dkHeroPresent.rp-price__action Present",
-              ".rp-acc__head Vehicle price$41,431.00 <> #dkPresent.rp-primary Present to customer",
-              ".rp-acc__sum $41,431.00 <> #dkPresent.rp-primary Present to customer",
-              " MSRP <> #dkPresent.rp-primary Present to customer",
-              " MSRP <> #dkCompare.rp-link Compare finance and lease",
-              " $42,910.00 <> #dkPresent.rp-primary Present to customer",
-              " $42,910.00 <> #dkCompare.rp-link Compare finance and lease"
+              " Your price <> #dkPresent.rp-primary Present to customer",
+              " $41,431.00 <> #dkPresent.rp-primary Present to customer",
+              " Saving <> #dkPresent.rp-primary Present to customer",
+              " Saving <> #dkCompare.rp-link Compare finance and lease",
+              ".rp-delta −$1,479.00 <> #dkPresent.rp-primary Present to customer",
+              ".rp-delta −$1,479.00 <> #dkCompare.rp-link Compare finance and lease"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -8041,7 +8038,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1314
+            "pageHeight": 1233
           },
           "scrollShot": "current/09-desking/07-pencil-lease.scroll.png",
           "issues": []
@@ -8071,10 +8068,12 @@
             "overlaps": [
               ".rp-price__label Total due <> #dkHeroPresent.rp-price__action Present",
               ".rp-price__amount $39,577.13total <> #dkHeroPresent.rp-price__action Present",
-              " Taxes and fees <> #dkPresent.rp-primary Present to customer",
-              " $2,802.13 <> #dkPresent.rp-primary Present to customer",
-              " Rebate <> #dkCompare.rp-link Compare",
-              " −$500.00 <> #dkCompare.rp-link Compare"
+              " Rebate <> #dkPresent.rp-primary Present to customer",
+              " −$500.00 <> #dkPresent.rp-primary Present to customer",
+              ".rp-kv__src customer cash — applies to a <> #dkPresent.rp-primary Present to customer",
+              ".rp-kv__src customer cash — applies to a <> #dkCompare.rp-link Compare",
+              " Trade credit <> #dkCompare.rp-link Compare",
+              " −$4,750.00 <> #dkCompare.rp-link Compare"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -8088,7 +8087,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1539
+            "pageHeight": 1458
           },
           "scrollShot": "current/09-desking/08-pencil-cash.scroll.png",
           "issues": []
@@ -8113,11 +8112,12 @@
             "overlaps": [
               ".rp-price__label Total due <> #dkHeroPresent.rp-price__action Present",
               ".rp-price__amount $13,271.90total <> #dkHeroPresent.rp-price__action Present",
-              ".rp-acc__head Vehicle price$41,431.00 <> #dkPresent.rp-primary Present to customer",
-              " MSRP <> #dkPresent.rp-primary Present to customer",
-              " $42,910.00 <> #dkPresent.rp-primary Present to customer",
-              " Your price <> #dkCompare.rp-link Compare finance and lease",
-              " $41,431.00 <> #dkCompare.rp-link Compare finance and lease"
+              " Your price <> #dkPresent.rp-primary Present to customer",
+              " $41,431.00 <> #dkPresent.rp-primary Present to customer",
+              " Saving <> #dkPresent.rp-primary Present to customer",
+              ".rp-delta −$1,479.00 <> #dkPresent.rp-primary Present to customer",
+              ".rp-acc__head Residual$27,462.40 <> #dkCompare.rp-link Compare finance and lease",
+              ".rp-acc__sum $27,462.40 <> #dkCompare.rp-link Compare finance and lease"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -8131,7 +8131,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1294
+            "pageHeight": 1213
           },
           "scrollShot": "current/09-desking/09-pencil-onepay.scroll.png",
           "issues": []
@@ -8269,9 +8269,11 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              " Rebate <> #dkSubmit.rp-primary Submit for Team Lead approva",
-              " −$500.00 <> #dkSubmit.rp-primary Submit for Team Lead approva",
-              ".rp-kv__src customer cash — applies to a <> #dkPresent.rp-link Present again"
+              ".rp-kv__src customer cash — applies to a <> #dkSubmit.rp-primary Submit for Team Lead approva",
+              " Trade credit <> #dkSubmit.rp-primary Submit for Team Lead approva",
+              " Trade credit <> #dkPresent.rp-link Present again",
+              " −$4,750.00 <> #dkSubmit.rp-primary Submit for Team Lead approva",
+              " −$4,750.00 <> #dkPresent.rp-link Present again"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -8285,7 +8287,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1495
+            "pageHeight": 1414
           },
           "scrollShot": "current/09-desking/13-work-chose-cash.scroll.png",
           "issues": []
@@ -8308,10 +8310,9 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              " Accessories <> #dkWaiting.rp-primary Waiting for Jordan’s approva",
-              " $594.00 <> #dkWaiting.rp-primary Waiting for Jordan’s approva",
-              " Taxes and fees <> #dkPresent.rp-link Present again",
-              " $2,802.13 <> #dkPresent.rp-link Present again"
+              " Rebate <> #dkWaiting.rp-primary Waiting for Jordan’s approva",
+              " −$500.00 <> #dkWaiting.rp-primary Waiting for Jordan’s approva",
+              ".rp-kv__src customer cash — applies to a <> #dkPresent.rp-link Present again"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -8325,7 +8326,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1586
+            "pageHeight": 1504
           },
           "scrollShot": "current/09-desking/14-work-submitted.scroll.png",
           "issues": [
@@ -8396,10 +8397,11 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".rp-row__sub 48 / 60 / 72 months × $1,000 <> #dkSubmit.rp-primary Submit for Team Lead approva",
               ".rp-acc__head Vehicle price$41,431.00 <> #dkSubmit.rp-primary Submit for Team Lead approva",
-              ".rp-acc__head Vehicle price$41,431.00 <> #dkPresent.rp-link Present again",
-              ".rp-acc__sum $41,431.00 <> #dkPresent.rp-link Present again"
+              " MSRP <> #dkSubmit.rp-primary Submit for Team Lead approva",
+              " $42,910.00 <> #dkSubmit.rp-primary Submit for Team Lead approva",
+              " Your price <> #dkPresent.rp-link Present again",
+              " $41,431.00 <> #dkPresent.rp-link Present again"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -8413,7 +8415,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1314
+            "pageHeight": 1233
           },
           "scrollShot": "current/09-desking/16-work-chose-other.scroll.png",
           "issues": []
@@ -8427,9 +8429,9 @@
           "action": "Close returns to the pencil",
           "next": "desking/work-chose-other",
           "branches": [],
-          "notes": "The grid does not move with the choice: the recommended cell is still the one nearest the payment the customer named in the huddle, so the anchor stays honest even after they picked something else.",
+          "notes": "The recommended cell follows the pencil: once the customer's cell is the deal's, 72 months at $5,000 down, it is the one recommended.",
           "status": "ok",
-          "reusedFrom": "options",
+          "reusedFrom": null,
           "checks": {
             "hOverflow": 0,
             "offscreen": [],
@@ -8494,7 +8496,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1297
+            "pageHeight": 1215
           },
           "scrollShot": "current/09-desking/18-pencil-trade-negative.scroll.png",
           "issues": []
@@ -8517,7 +8519,7 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".rp-price__amount $714.29/ mo <> #dkTake.rp-primary This one works",
+              ".rp-price__amount $842.77/ mo <> #dkTake.rp-primary This one works",
               " / mo <> #dkTake.rp-primary This one works"
             ],
             "sheetFit": [],
@@ -8569,7 +8571,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1321
+            "pageHeight": 1240
           },
           "scrollShot": "current/09-desking/20-pencil-feetax.scroll.png",
           "issues": []
@@ -8595,6 +8597,8 @@
             ],
             "clipped": [],
             "overlaps": [
+              ".rp-price__label Monthly payment <> #dkHeroPresent.rp-price__action Present",
+              ".rp-price__amount $701.79/ mo <> #dkHeroPresent.rp-price__action Present",
               " All-Season Floor Mats <> #dkPresent.rp-primary Present to customer",
               " $195.00 <> #dkPresent.rp-primary Present to customer",
               " Window Tint <> #dkPresent.rp-primary Present to customer",
@@ -8614,7 +8618,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1393
+            "pageHeight": 1311
           },
           "scrollShot": "current/09-desking/21-pencil-rebates-accessories.scroll.png",
           "issues": []
@@ -8809,7 +8813,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1582
+            "pageHeight": 1500
           },
           "scrollShot": "current/09-desking/25-pencil-lease-fees.scroll.png",
           "issues": []
@@ -8869,44 +8873,7 @@
           "action": "Open the pencil",
           "next": "desking/pencil-lease",
           "branches": [],
-          "notes": "Choosing how they are paying changes the discovery question under it — for a lease, whether they trade often and drive few miles. The deal type on the pencil follows this choice.",
-          "status": "ok",
-          "reusedFrom": null,
-          "checks": {
-            "hOverflow": 0,
-            "offscreen": [],
-            "tinyTargets": [],
-            "clipped": [],
-            "overlaps": [
-              "#hTrade.rp-toggle-row Trade evaluated · $15,500 <> #hConfirm.rp-primary Open the pencil"
-            ],
-            "sheetFit": [],
-            "lowContrast": [],
-            "holes": [],
-            "dupIds": [],
-            "brokenImages": [],
-            "unnamed": [],
-            "console": []
-          },
-          "error": null,
-          "size": {
-            "width": 390,
-            "height": 844,
-            "pageHeight": 1004
-          },
-          "scrollShot": "current/09-desking/27-huddle-lease-track.scroll.png",
-          "issues": []
-        },
-        {
-          "step": 28,
-          "key": "huddle-no-trade",
-          "screen": "Game plan — no trade on the deal",
-          "screenshot": "current/09-desking/28-huddle-no-trade.png",
-          "hash": "#/desk/d-demo1",
-          "action": "Open the pencil",
-          "next": "desking/pencil-finance",
-          "branches": [],
-          "notes": "Without an evaluated trade the toggle reads 'Trade evaluation needed' and sits off. The pencil that follows has no Trade accordion and the presentation has no trade win.",
+          "notes": "Lease chosen on the Game plan; the deal type on the pencil follows this choice.",
           "status": "ok",
           "reusedFrom": null,
           "checks": {
@@ -8927,9 +8894,44 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 988
+            "pageHeight": 844
           },
-          "scrollShot": "current/09-desking/28-huddle-no-trade.scroll.png",
+          "scrollShot": null,
+          "issues": []
+        },
+        {
+          "step": 28,
+          "key": "huddle-no-trade",
+          "screen": "Game plan — no trade on the deal",
+          "screenshot": "current/09-desking/28-huddle-no-trade.png",
+          "hash": "#/desk/d-demo1",
+          "action": "Open the pencil",
+          "next": "desking/pencil-finance",
+          "branches": [],
+          "notes": "A deal with no evaluated trade opens the same Game plan: its 'Trade evaluated' row is gone (D-SM6), so nothing says a trade needs evaluating. The pencil that follows has no Trade accordion and the presentation has no trade win.",
+          "status": "ok",
+          "reusedFrom": "huddle-gate",
+          "checks": {
+            "hOverflow": 0,
+            "offscreen": [],
+            "tinyTargets": [],
+            "clipped": [],
+            "overlaps": [],
+            "sheetFit": [],
+            "lowContrast": [],
+            "holes": [],
+            "dupIds": [],
+            "brokenImages": [],
+            "unnamed": [],
+            "console": []
+          },
+          "error": null,
+          "size": {
+            "width": 390,
+            "height": 844,
+            "pageHeight": 844
+          },
+          "scrollShot": null,
           "issues": []
         },
         {
@@ -8985,8 +8987,8 @@
         "from": "desking/work-chose",
         "action": "Tap Submit for Team Lead approval; the Team Lead approves; then Continue"
       },
-      "capturedAt": "2026-10-05T10:31:28.497Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:56:59.376Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -9162,8 +9164,11 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".rp-row__title Payment options <> #dkContinue.rp-primary Continue — base payment agre",
-              ".rp-row__sub 48 / 60 / 72 months × $1,000 <> #dkPresent.rp-link Present again"
+              ".rp-acc__head Vehicle price$41,431.00 <> #dkContinue.rp-primary Continue — base payment agre",
+              ".rp-acc__head Vehicle price$41,431.00 <> #dkPresent.rp-link Present again",
+              ".rp-acc__sum $41,431.00 <> #dkContinue.rp-primary Continue — base payment agre",
+              " MSRP <> #dkPresent.rp-link Present again",
+              " $42,910.00 <> #dkPresent.rp-link Present again"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -9177,7 +9182,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1372
+            "pageHeight": 1291
           },
           "scrollShot": "current/10-base-payment-agreement/04-redesk-voided.scroll.png",
           "issues": []
@@ -9495,8 +9500,8 @@
         "from": "agreement/agreement-signed",
         "action": "Tap Continue"
       },
-      "capturedAt": "2026-10-05T10:32:00.387Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:57:27.618Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -9817,11 +9822,10 @@
             "overlaps": [
               ".rp-price__label Monthly payment <> #dkHeroPresent.rp-price__action Present",
               ".rp-price__amount $701.79/ mo <> #dkHeroPresent.rp-price__action Present",
-              ".rp-acc__head Vehicle price$41,431.00 <> #dkPresent.rp-primary Present to customer",
-              " MSRP <> #dkPresent.rp-primary Present to customer",
-              " $42,910.00 <> #dkPresent.rp-primary Present to customer",
-              " Your price <> #dkCompare.rp-link Compare finance and lease",
-              " $41,431.00 <> #dkCompare.rp-link Compare finance and lease"
+              " Saving <> #dkPresent.rp-primary Present to customer",
+              ".rp-delta −$1,479.00 <> #dkPresent.rp-primary Present to customer",
+              ".rp-acc__head Trade+$4,750.00 <> #dkCompare.rp-link Compare finance and lease",
+              ".rp-acc__sum +$4,750.00 <> #dkCompare.rp-link Compare finance and lease"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -9835,7 +9839,7 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 1236
+            "pageHeight": 1154
           },
           "scrollShot": "current/11-credit-application/08-deal-summary-desking.scroll.png",
           "issues": []
@@ -10415,8 +10419,8 @@
         "from": "credit/joint-remote",
         "action": "Tap the Buyers row"
       },
-      "capturedAt": "2026-10-05T10:32:46.685Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:58:10.329Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -10443,14 +10447,7 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-option__title Cash <> #dkSheetTitle.rp-sheet__title Buyers on this deal",
-              ".rp-row__title Discovery question <> .rp-buyer__name John Smith",
-              "#hTrack.rp-row__sub Is the incentivized rate or  <> .rp-buyer__name John Smith",
-              "#hTrack.rp-row__sub Is the incentivized rate or  <> .rp-buyer__role Primary",
-              "#hTrade.rp-toggle-row Trade evaluated · $15,500 <> #hConfirm.rp-primary Open the pencil",
-              "#hTrade.rp-toggle-row Trade evaluated · $15,500 <> #byAdd.rp-primary Add co-buyer",
-              "#hStock.rp-toggle-row Vehicle in stock today <> #hConfirm.rp-primary Open the pencil",
-              "#hStock.rp-toggle-row Vehicle in stock today <> #byAdd.rp-primary Add co-buyer"
+              "#hConfirm.rp-primary Open the pencil <> #byAdd.rp-primary Add co-buyer"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -10499,14 +10496,9 @@
             ],
             "clipped": [],
             "overlaps": [
-              "#hTrial.rp-textarea If the numbers make sense, w <> #dkSheetTitle.rp-sheet__title Add co-buyer",
-              ".rp-field__label Payment the customer named <> #dkSheetTitle.rp-sheet__title Add co-buyer",
-              ".rp-section How are they paying? <> .rp-section Result",
-              ".rp-option__title Finance <> .rp-buyer__name Cheri Bridwell",
-              ".rp-option__title Lease <> .rp-buyer__name Cheri Bridwell",
-              ".rp-row__title Discovery question <> .rp-row__title Scan physical license",
-              "#hTrack.rp-row__sub Is the incentivized rate or  <> .rp-row__sub Same scan and confirm flow",
-              "#hTrade.rp-toggle-row Trade evaluated · $15,500 <> #hConfirm.rp-primary Open the pencil"
+              ".rp-option__title Cash <> #dkSheetTitle.rp-sheet__title Add co-buyer",
+              "#hConfirm.rp-primary Open the pencil <> .rp-row__title Send secure upload link",
+              "#hConfirm.rp-primary Open the pencil <> .rp-row__sub They upload from their own p"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -10545,14 +10537,9 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-option__title Finance <> #dkSheetTitle.rp-sheet__title Buyers on this deal",
-              ".rp-row__title Discovery question <> .rp-buyer__meta (718) 555-0134",
-              "#hTrack.rp-row__sub Is the incentivized rate or  <> .rp-section Co-buyer",
-              "#hTrade.rp-toggle-row Trade evaluated · $15,500 <> #hConfirm.rp-primary Open the pencil",
-              "#hTrade.rp-toggle-row Trade evaluated · $15,500 <> .rp-buyer__name Cheri Bridwell",
-              "#hTrade.rp-toggle-row Trade evaluated · $15,500 <> .rp-buyer__meta (347) 555-1212",
-              "#hTrade.rp-toggle-row Trade evaluated · $15,500 <> .rp-buyer__role.rp-buyer__role--co Co-buyer",
-              "#hStock.rp-toggle-row Vehicle in stock today <> #hConfirm.rp-primary Open the pencil"
+              "#hConfirm.rp-primary Open the pencil <> .rp-buyer__name Cheri Bridwell",
+              "#hConfirm.rp-primary Open the pencil <> .rp-buyer__meta (347) 555-1212",
+              "#hConfirm.rp-primary Open the pencil <> .rp-buyer__role.rp-buyer__role--co Co-buyer"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -10591,14 +10578,7 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-section How are they paying? <> .rp-sheet__sub Co-buyer on this deal · no c",
-              ".rp-option__title Finance <> .rp-row__title View customer profile",
-              ".rp-option__title Lease <> .rp-row__title View customer profile",
-              ".rp-option__title Cash <> .rp-row__title Scan Cheri's license",
-              ".rp-option__title One Pay <> .rp-row__title Scan Cheri's license",
-              ".rp-row__title Discovery question <> .rp-row__title Send secure upload link",
-              "#hTrack.rp-row__sub Is the incentivized rate or  <> .rp-row__title Send secure upload link",
-              "#hTrack.rp-row__sub Is the incentivized rate or  <> .rp-row__sub On Cheri's own phone"
+              "#hConfirm.rp-primary Open the pencil <> #byRemove.rp-dialog__button.rp-dialog__button--destructive Remove from deal"
             ],
             "sheetFit": [],
             "lowContrast": [
@@ -10639,14 +10619,8 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-option__title Finance <> #dkSheetTitle.rp-sheet__title Remove Cheri from this deal?",
-              ".rp-option__title Lease <> #dkSheetTitle.rp-sheet__title Remove Cheri from this deal?",
-              ".rp-option__title Cash <>  Relationship",
-              ".rp-option__title One Pay <>  Comes off the deal",
-              ".rp-row__title Discovery question <>  Cheri's customer profile",
-              ".rp-row__title Discovery question <>  Kept",
-              "#hTrack.rp-row__sub Is the incentivized rate or  <>  Credit activity",
-              "#hTrack.rp-row__sub Is the incentivized rate or  <>  None yet"
+              "#hConfirm.rp-primary Open the pencil <> .rp-dialog__button.rp-dialog__button--quiet Cancel",
+              "#hConfirm.rp-primary Open the pencil <> .rp-dialog__button.rp-dialog__button--destructive Remove from deal"
             ],
             "sheetFit": [],
             "lowContrast": [
@@ -10687,14 +10661,8 @@
             ],
             "clipped": [],
             "overlaps": [
-              ".rp-field__label Payment the customer named <> #dkSheetTitle.rp-sheet__title Buyers on this deal",
-              ".rp-section How are they paying? <> .rp-buyer__name John Smith",
-              ".rp-option__title Finance <> .rp-buyer__meta (718) 555-0134",
-              ".rp-option__title Lease <> .rp-buyer__meta (718) 555-0134",
-              ".rp-option__title Cash <> .rp-buyer__name Cheri Bridwell",
-              ".rp-option__title One Pay <> .rp-buyer__name Cheri Bridwell",
-              ".rp-option__title One Pay <> .rp-buyer__role.rp-buyer__role--co Removed",
-              ".rp-row__title Discovery question <> .rp-buyer__meta Removed"
+              ".rp-option__title Cash <> #dkSheetTitle.rp-sheet__title Buyers on this deal",
+              "#hConfirm.rp-primary Open the pencil <> #byAdd.rp-primary Add a different co-buyer"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -10743,12 +10711,12 @@
             "overlaps": [
               ".rp-price__label Monthly payment <> #dkHeroPresent.rp-price__action Present",
               ".rp-price__amount $701.79/ mo <> #dkHeroPresent.rp-price__action Present",
-              ".rp-row__title Trial close — in the custome <> #dkSheetTitle.rp-sheet__title Buyers on this deal",
-              ".rp-row__sub “If the numbers make sense,  <> #byRoles.rp-sheet__action Change roles",
-              ".rp-row__sub 48 / 60 / 72 months × $1,000 <> .rp-buyer__name John Smith",
-              ".rp-row__sub 48 / 60 / 72 months × $1,000 <> .rp-buyer__role Primary",
-              ".rp-acc__head Vehicle price$41,431.00 <> #dkPresent.rp-primary Present to customer",
-              ".rp-acc__head Vehicle price$41,431.00 <> .rp-section Co-buyer"
+              ".rp-row__title Payment options <> #dkSheetTitle.rp-sheet__title Buyers on this deal",
+              ".rp-row__sub 48 / 60 / 72 months × $1,000 <> #byRoles.rp-sheet__action Change roles",
+              ".rp-acc__head Vehicle price$41,431.00 <> .rp-section Primary buyer",
+              ".rp-acc__head Vehicle price$41,431.00 <> .rp-buyer__name John Smith",
+              " MSRP <> .rp-buyer__meta (718) 555-0134",
+              " $42,910.00 <> .rp-buyer__role Primary"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -10790,11 +10758,11 @@
               ".rp-price__label Monthly payment <> #dkHeroPresent.rp-price__action Present",
               ".rp-price__amount $701.79/ mo <> #dkHeroPresent.rp-price__action Present",
               ".rp-price__terms 60 months · 3.5% APR through <> #dkSheetTitle.rp-sheet__title Make Cheri the primary buyer",
-              ".rp-row__title Trial close — in the custome <> .rp-sheet__sub Team Lead action · John beco",
-              ".rp-row__sub “If the numbers make sense,  <>  What changes with the swap",
-              ".rp-row__title Payment options <>  Title and registration paper",
-              ".rp-acc__head Vehicle price$41,431.00 <> #dkPresent.rp-primary Present to customer",
-              ".rp-acc__head Vehicle price$41,431.00 <>  Primary"
+              ".rp-row__title Payment options <> .rp-sheet__sub Team Lead action · John beco",
+              ".rp-row__sub 48 / 60 / 72 months × $1,000 <>  What changes with the swap",
+              ".rp-acc__head Vehicle price$41,431.00 <>  Title and registration paper",
+              ".rp-acc__sum $41,431.00 <>  Title and registration paper",
+              " MSRP <>  Primary"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -10835,14 +10803,9 @@
             ],
             "clipped": [],
             "overlaps": [
-              "#hTrial.rp-textarea If the numbers make sense, w <> #dkSheetTitle.rp-sheet__title Add co-buyer",
-              ".rp-field__label Payment the customer named <> #byQGo.rp-button-navy Search",
-              ".rp-section How are they paying? <> .rp-empty No matchNobody in the CRM ma",
-              ".rp-section How are they paying? <>  No match",
-              ".rp-option__title Finance <> .rp-empty No matchNobody in the CRM ma",
-              ".rp-option__title Lease <> .rp-empty No matchNobody in the CRM ma",
-              ".rp-option__title Cash <> .rp-empty No matchNobody in the CRM ma",
-              ".rp-option__title One Pay <> .rp-empty No matchNobody in the CRM ma"
+              ".rp-option__title Cash <> #dkSheetTitle.rp-sheet__title Add co-buyer",
+              "#hConfirm.rp-primary Open the pencil <> .rp-row__title Send secure upload link",
+              "#hConfirm.rp-primary Open the pencil <> .rp-row__sub They upload from their own p"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -10914,14 +10877,7 @@
             "tinyTargets": [],
             "clipped": [],
             "overlaps": [
-              ".rp-section How are they paying? <> .by2-sub One primary buyer. Add a co-",
-              ".rp-option__title Finance <> .by2-seclab Primary buyer",
-              ".rp-option__title Lease <> .by2-seclab Primary buyer",
-              ".rp-option__title Cash <> .by2-rowsub (718) 555-0134",
-              ".rp-option__title One Pay <> .by2-rowsub (718) 555-0134",
-              ".rp-option__title One Pay <> .by2-pill Primary",
-              ".rp-row__title Discovery question <> .by2-seclab Co-buyer",
-              "#hTrack.rp-row__sub Is the incentivized rate or  <> .by2-rowname Dana Whitfield"
+              "#hConfirm.rp-primary Open the pencil <> .by2-banner ✓ Co-buyer attached to this "
             ],
             "sheetFit": [],
             "lowContrast": [
@@ -10937,9 +10893,9 @@
           "size": {
             "width": 390,
             "height": 844,
-            "pageHeight": 988
+            "pageHeight": 844
           },
-          "scrollShot": "current/12-buyers-and-co-buyer/11-created-receipt.scroll.png",
+          "scrollShot": null,
           "issues": [
             {
               "id": "RP-UI-081",
@@ -10974,11 +10930,11 @@
               ".rp-price__label Monthly payment <> #dkHeroPresent.rp-price__action Present",
               ".rp-price__amount $701.79/ mo <> #dkHeroPresent.rp-price__action Present",
               ".rp-price__terms 60 months · 3.5% APR through <> #dkSheetTitle.rp-sheet__title Cheri Bridwell",
-              ".rp-row__sub “If the numbers make sense,  <> .rp-row__title View customer profile",
-              ".rp-row__title Payment options <> .rp-row__title Scan Cheri's license",
-              ".rp-row__sub 48 / 60 / 72 months × $1,000 <> .rp-row__title Scan Cheri's license",
-              ".rp-row__sub 48 / 60 / 72 months × $1,000 <> .rp-row__sub Cheri is here in the showroo",
-              ".rp-acc__head Vehicle price$41,431.00 <> #dkPresent.rp-primary Present to customer"
+              ".rp-row__sub 48 / 60 / 72 months × $1,000 <> .rp-row__title View customer profile",
+              ".rp-acc__head Vehicle price$41,431.00 <> .rp-row__title Scan Cheri's license",
+              ".rp-acc__sum $41,431.00 <> .rp-row__title Scan Cheri's license",
+              " Your price <> .rp-row__title Send secure upload link",
+              " Your price <> .rp-row__sub On Cheri's own phone"
             ],
             "sheetFit": [],
             "lowContrast": [
@@ -11072,7 +11028,7 @@
               ".rp-price__amount $701.79/ mo <> .rp-sheet__sub Co-buyer on this deal · on a",
               " / mo <> .rp-sheet__sub Co-buyer on this deal · on a",
               ".rp-price__terms 60 months · 3.5% APR through <> .rp-row__title View customer profile",
-              ".rp-row__title Trial close — in the custome <> .rp-row__title Scan Cheri's license"
+              ".rp-row__title Payment options <> .rp-row__title Scan Cheri's license"
             ],
             "sheetFit": [],
             "lowContrast": [
@@ -11265,14 +11221,9 @@
             ],
             "clipped": [],
             "overlaps": [
-              "#hTrial.rp-textarea If the numbers make sense, w <> #dkSheetTitle.rp-sheet__title Add co-buyer",
-              ".rp-field__label Payment the customer named <> #dkSheetTitle.rp-sheet__title Add co-buyer",
-              ".rp-section How are they paying? <> .rp-section Result",
-              ".rp-option__title Finance <> .rp-buyer__name Cheri Smith",
-              ".rp-option__title Lease <> .rp-buyer__name Cheri Smith",
-              ".rp-row__title Discovery question <> .rp-row__title Scan physical license",
-              "#hTrack.rp-row__sub Is the incentivized rate or  <> .rp-row__sub Same scan and confirm flow",
-              "#hTrade.rp-toggle-row Trade evaluated · $15,500 <> #hConfirm.rp-primary Open the pencil"
+              ".rp-option__title Cash <> #dkSheetTitle.rp-sheet__title Add co-buyer",
+              "#hConfirm.rp-primary Open the pencil <> .rp-row__title Send secure upload link",
+              "#hConfirm.rp-primary Open the pencil <> .rp-row__sub They upload from their own p"
             ],
             "sheetFit": [],
             "lowContrast": [],
@@ -11302,8 +11253,8 @@
         "from": "finance-menu/options",
         "action": "Tap Present each product"
       },
-      "capturedAt": "2026-10-05T10:33:14.136Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:58:34.387Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -12065,8 +12016,8 @@
         "from": "credit/approved-agreed-rate",
         "action": "Continue → Manager sign-off"
       },
-      "capturedAt": "2026-10-05T10:33:35.010Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:58:52.640Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -13222,8 +13173,8 @@
         "from": "desking/pencil-finance",
         "action": "Tap the Jacket chip"
       },
-      "capturedAt": "2026-10-05T10:34:23.305Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T07:59:35.532Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -14063,7 +14014,7 @@
             "overlaps": [
               ".rp-ready__note 3 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 3 needed <>  Oct 5, 6:35 AM",
+              ".rp-bucket__badge 3 needed <>  Oct 6, 4:00 AM",
               ".rp-doc__why John Smith: both sides neede <>  Customer opened",
               ".rp-doc__state Needed <>  Waiting",
               ".rp-doc__name Auto Insurance Card (Binder) <>  Documents uploaded",
@@ -14182,8 +14133,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Request N documents"
       },
-      "capturedAt": "2026-10-05T10:35:11.253Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T08:00:18.544Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -14401,8 +14352,8 @@
               ".rp-doc__name Driver's License <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-doc__why John Smith: both sides neede <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-doc__name Auto Insurance Card (Binder) <>  Link sent",
-              ".rp-doc__name Auto Insurance Card (Binder) <>  Oct 5, 6:35 AM",
-              ".rp-doc__state Requested <>  Oct 5, 6:35 AM",
+              ".rp-doc__name Auto Insurance Card (Binder) <>  Oct 6, 4:00 AM",
+              ".rp-doc__state Requested <>  Oct 6, 4:00 AM",
               ".rp-doc__name Proof of Income (Paystub) <>  Customer opened",
               ".rp-doc__state Requested <>  Waiting",
               "#jkRequest.rp-primary Resend the text to John (3) <> .rp-count The customer's phone is play"
@@ -14532,7 +14483,7 @@
             "overlaps": [
               ".rp-ready__note 2 items need the customer. T <> #jkSheetTitle.rp-sheet__title Customer request",
               ".rp-bucket__title Waiting on customer <>  Link sent",
-              ".rp-bucket__badge 2 needed <>  Oct 5, 6:35 AM",
+              ".rp-bucket__badge 2 needed <>  Oct 6, 4:00 AM",
               ".rp-doc__why John Smith: both sides neede <>  Customer opened",
               ".rp-doc__state Requested <>  Opened",
               ".rp-doc__name Proof of Income (Paystub) <>  Documents uploaded",
@@ -14567,8 +14518,8 @@
         "from": "document-request/request-tracking",
         "action": "Open the customer's phone"
       },
-      "capturedAt": "2026-10-05T10:35:25.797Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T08:00:31.830Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -15391,8 +15342,8 @@
         "from": "deal-jacket/jacket-overview",
         "action": "Tap Capture all here instead"
       },
-      "capturedAt": "2026-10-05T10:35:57.193Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T08:01:00.055Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -16126,8 +16077,8 @@
         "from": "deal-jacket/completed-bucket",
         "action": "Tap a received customer document, then View"
       },
-      "capturedAt": "2026-10-05T10:36:26.540Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T08:01:26.418Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,
@@ -16546,8 +16497,8 @@
         "from": "finance-menu/final-review",
         "action": "Tap Open on Print center"
       },
-      "capturedAt": "2026-10-05T10:36:59.108Z",
-      "appCommit": "d587f3482fe86de23f97161c4a30aeabb831219a",
+      "capturedAt": "2026-10-06T08:01:57.058Z",
+      "appCommit": "e19962cf661be840e8dcc964c1e61e1080964f30",
       "screens": [
         {
           "step": 1,

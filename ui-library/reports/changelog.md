@@ -1,5 +1,116 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v049 — 2026-10-06
+
+App commit: e19962c · 20 flows · 392 screens · previous: v048
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Funded history in range
+- Home — Active Floor & Navigation · Search miss — No deals found
+- Home — Active Floor & Navigation · Active floor — a visit not yet assigned
+- Home — Active Floor & Navigation · Visit sheet — Assign to an advisor (Team Lead)
+- Home — Active Floor & Navigation · Assign — one row per advisor
+- Home — Active Floor & Navigation · Active floor — assigned to Ashley
+- Home — Active Floor & Navigation · Visit sheet — the advisor's own (no assign control)
+- Home — Active Floor & Navigation · Test log — recording, events on the log
+- Home — Active Floor & Navigation · Clear the test log? — confirm
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Scan Driver's License · Unfinished scans
+- Scan Driver's License · Resume license scan
+- Scan Driver's License · Verify the phone number — Email the code instead
+- Scan Driver's License · Needs you — Jordan confirms the name
+- Scan Driver's License · Needs you — the signed agreement goes back
+- Training Documents · Print all 5 — registrations on paper
+- Discovery — the guided consultation · × in the top bar — back to the visits
+- Test Drive Agreement · Printable Test Drive Agreement
+- Desking — Calculate Payments · Game plan — the huddle
+- Desking — Calculate Payments · Pencil — Finance
+- Desking — Calculate Payments · Payment options — the 3x3 grid
+- Desking — Calculate Payments · Back in Work — the customer chose
+- Desking — Calculate Payments · Pencil — Lease
+- Desking — Calculate Payments · Pencil — Cash
+- Desking — Calculate Payments · Pencil — One Pay
+- Desking — Calculate Payments · Back in Work — the customer chose the cash total
+- Desking — Calculate Payments · Pencil — sent for approval
+- Desking — Calculate Payments · Back in Work — the customer's own cell
+- Desking — Calculate Payments · Payment options — after the choice
+- Desking — Calculate Payments · Pencil — trade with negative equity
+- Desking — Calculate Payments · Present — no trade win when equity is negative
+- Desking — Calculate Payments · Pencil — Fees & tax open
+- Desking — Calculate Payments · Pencil — Rebates and Accessories open
+- Desking — Calculate Payments · Change terms (sheet) — finance
+- Desking — Calculate Payments · Pencil — Lease with Residual and Fees & tax open
+- Desking — Calculate Payments · Game plan — Lease chosen
+- Desking — Calculate Payments · Game plan — no trade on the deal
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Agreement — signed
+- Base Payment Agreement · Voided — back on the pencil
+- Base Payment Agreement · Agreement — Lease
+- Base Payment Agreement · Agreement — Cash
+- Base Payment Agreement · Agreement — One Pay
+- Base Payment Agreement · Printable — Base Payment Agreement
+- Credit Application (Lending Lane) · Deal summary chip — opens desking
+- Credit Application (Lending Lane) · Home — the lender's answer, a notice
+- Buyers on the Deal (Co-Buyer) · Buyers on this deal
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — the resolver's entries
+- Buyers on the Deal (Co-Buyer) · Co-buyer attached
+- Buyers on the Deal (Co-Buyer) · Co-buyer — contextual actions
+- Buyers on the Deal (Co-Buyer) · Remove — second tap confirms
+- Buyers on the Deal (Co-Buyer) · After removal — Cheri's Removed row and the audit line
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — a true no-match offers create
+- Buyers on the Deal (Co-Buyer) · Back on the deal — the new co-buyer attached, the sheet reopened
+- Buyers on the Deal (Co-Buyer) · Add co-buyer — an old name finds her
+- Deal Jacket & Compliance · Optional document — Remove from this deal
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Deal Jacket & Compliance · Request status — the customer's uploads, not the advisor's
+- Deal Jacket & Compliance · License reviewed and filed — the count moves by one
+- Customer document request (from the jacket) · Customer request — delivery status (waiting)
+- Customer document request (from the jacket) · Customer request — opened, 1 of 3 uploaded
+- Client Document Upload (customer's phone) · Insurance taken — the row says why it needs attention
+- Client Document Upload (customer's phone) · Receipt — partway through
+- Client Document Upload (customer's phone) · Paystub — second stub still needed
+- Client Document Upload (customer's phone) · Every row ready — the license still awaiting review
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — the exception declined
+- Snap All — burst capture · The license now complete
+- Snap All — burst capture · Results — two documents still needed
+- Snap All — burst capture · John's sorted batch — Ready
+- Document Review (advisor) · Auto Insurance Card — pages, not sides
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+- Documents — Print Center & Printables · Preview — Deal Cover Sheet
+- Documents — Print Center & Printables · Preview — Test Drive Agreement
+- Documents — Print Center & Printables · Preview — Delivery Checklist
+- Documents — Print Center & Printables · Preview — Applied Rebates
+- Documents — Print Center & Printables · Preview — Privacy Policy (additional form)
+- Documents — Print Center & Printables · Preview — Odometer Disclosure Statement (additional form)
+- Documents — Print Center & Printables · Preview — the full packet
+- Documents — Print Center & Printables · Preview — Saved Quote
+- Documents — Print Center & Printables · Preview — the packet on a cash deal
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- RP-UI-103 — wording corrected
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
+What changed for real: the owner's Game plan cut (#268, D-SM6). The Game plan asks only how John is paying, then Open the pencil: the trial close, the payment the customer named, the Discovery question and the two toggles are gone. That is 30 of the 86: Desking's 19 (the Game plan shorter, the pencil without its trial close row, Payment options and Present recommending the cell pencilled), the Buyers flow's 9 (its sheet opens over the shorter Game plan), the credit application's Deal summary chip and the pencil reopened by Void & redesk (both the pencil without the trial close row). The other 56 differ by the day only, captured on 2026-10-06 instead of 2026-10-05: dates and times on Home, the scanner, the jacket, the printables and Snap All, the sample registrations' printed dates, a verification code and a spinner frame. Each was compared with v048 band by band, and the build's pictures were read by eye. RP-UI-103 no longer quotes the two Discovery questions.
+
 ## v048 — 2026-10-05
 
 App commit: d587f34 · 20 flows · 392 screens · previous: v047

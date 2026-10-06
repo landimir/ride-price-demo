@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ride Price Mobile UI Flow Library — v048</title>
+<title>Ride Price Mobile UI Flow Library — v049</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--chrome:#071b49;--chrome-2:#0b255d;--navy:#262254;--ink:#34314e;--muted:#6f6c88;--bg:#f2f2f8;--line:#e3e1ef;--card:#fff;--radius:14px;
@@ -80,7 +80,7 @@ a{color:inherit}
   <input id="q" type="search" placeholder="Filter screens, flows, issues…" aria-label="Filter">
   <div class="dlwrap dlwrap--all"><button type="button" class="dl dl--all" aria-haspopup="menu" aria-expanded="false" aria-label="All: download the whole library" title="Download the whole library">⬇ All</button>
     <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="all">Whole library (ZIP)</button></div></div>
-  <span class="ver">v048 · captured 2026-10-05 10:23 · viewport 390×844 · app d587f34</span></header>
+  <span class="ver">v049 · captured 2026-10-06 07:49 · viewport 390×844 · app e19962c</span></header>
 <div class="layout">
   <nav class="side"><h4>Product areas</h4><a href="#home">Home — Active Floor &amp; Navigation<small>26</small></a><a href="#onboarding">Customer Onboarding — the Customer Resolver<small>29</small></a><a href="#license-scan">Scan Driver&#39;s License<small>34</small></a><a href="#training">Training Documents<small>8</small></a><a href="#discovery">Discovery — the guided consultation<small>14</small></a><a href="#vehicles">Vehicle Selection<small>17</small></a><a href="#test-drive">Test Drive Agreement<small>30</small></a><a href="#trade">Trade-In Evaluation &amp; Proof of Ownership<small>17</small></a><a href="#desking">Desking — Calculate Payments<small>29</small></a><a href="#agreement">Base Payment Agreement<small>11</small></a><a href="#credit">Credit Application (Lending Lane)<small>22</small></a><a href="#buyers">Buyers on the Deal (Co-Buyer)<small>18</small></a><a href="#presentation">F&amp;I Product Presentation<small>13</small></a><a href="#finance-menu">Finance Menu — Sign-Off Gate and Four Stages<small>28</small></a><a href="#deal-jacket">Deal Jacket &amp; Compliance<small>22</small></a><a href="#document-request">Customer document request (from the jacket)<small>8</small></a><a href="#client-upload">Client Document Upload (customer&#39;s phone)<small>20</small></a><a href="#snap-all">Snap All — burst capture<small>17</small></a><a href="#doc-review">Document Review (advisor)<small>10</small></a><a href="#print-center">Documents — Print Center &amp; Printables<small>19</small></a><h4>Reports</h4><a href="reports/ux-audit.md">UX audit</a><a href="reports/flow-manifest.json">Flow manifest</a><a href="reports/changelog.md">Changelog</a><a href="reports/library-summary.md">Summary</a></nav>
   <main class="main">
@@ -200,7 +200,7 @@ small targets &lt;36px (6): .rp-wordmark Ride Price 116x23; #dqDateBtn.rp-filter
     <p class="notes">Funded contracts appear only behind the date control, labeled with the window they belong to.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (1): .rp-badge.rp-badge--positive Funded · Oct 5 &lt;&gt; .rp-card__name John Smith
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (1): .rp-badge.rp-badge--positive Funded · Oct 6 &lt;&gt; .rp-card__name John Smith
 small targets &lt;36px (5): .rp-wordmark Ride Price 116x23; #dqDateBtn.rp-filter__control Today 58x20; .rp-chip.dq-chipbtn All 0 54x32; .rp-chip.dq-chipbtn Desking 0 103x32; .rp-chip.dq-chipbtn F&amp;I 0 72x32</div></details>
     
     
@@ -347,7 +347,7 @@ small targets &lt;36px (5): .rp-wordmark Ride Price 116x23; #dqDateBtn.rp-filter
     <p class="notes">The Team Lead&#39;s sheet for an unassigned visit: Open deal, Assign to an advisor (it reads Reassign once assigned), and Left the showroom, which checks the customer out (HN-019).</p>
     <ul class="branches"><li>Open deal → <a href="#discovery-stage-intro">Discovery — the guided consultation · 01 Stage 1 — the sample slide</a></li><li>Left the showroom → <a href="#home-team-lead-floor">Home — Active Floor &amp; Navigation · 04 Active floor (Team Lead)</a></li></ul>
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-badge Discovery &lt;&gt; .rp-card__name Cheri Bridwell; .rp-card__meta.dq-advisor Not assigned &lt;&gt; #dqSheetTitle.rp-sheet__title Cheri Bridwell; .rp-card__next Next: Discovery Interview In &lt;&gt; .rp-sheet__sub Arrived 06:23 · Discovery · ; .rp-badge Desking &lt;&gt; .rp-card__name John Smith; .rp-badge Desking &lt;&gt; #dqVisitOpen.rp-primary Open deal; .rp-card__name John Smith &lt;&gt; #dqVisitOpen.rp-primary Open deal; .rp-card__meta.dq-advisor Ashley Collins &lt;&gt; #dqVisitOpen.rp-primary Open deal; .rp-card__meta.dq-advisor Ashley Collins &lt;&gt; #dqAssign.rp-link.ch-hit Assign to an advisor
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-badge Discovery &lt;&gt; .rp-card__name Cheri Bridwell; .rp-card__meta.dq-advisor Not assigned &lt;&gt; #dqSheetTitle.rp-sheet__title Cheri Bridwell; .rp-card__next Next: Discovery Interview In &lt;&gt; .rp-sheet__sub Arrived 03:49 · Discovery · ; .rp-badge Desking &lt;&gt; .rp-card__name John Smith; .rp-badge Desking &lt;&gt; #dqVisitOpen.rp-primary Open deal; .rp-card__name John Smith &lt;&gt; #dqVisitOpen.rp-primary Open deal; .rp-card__meta.dq-advisor Ashley Collins &lt;&gt; #dqVisitOpen.rp-primary Open deal; .rp-card__meta.dq-advisor Ashley Collins &lt;&gt; #dqAssign.rp-link.ch-hit Assign to an advisor
 small targets &lt;36px (6): .rp-wordmark Ride Price 116x23; #dqDateBtn.rp-filter__control Today 58x20; .rp-chip.dq-chipbtn All 2 54x32; .rp-chip.dq-chipbtn Desking 2 103x32; .rp-chip.dq-chipbtn F&amp;I 0 72x32; .rp-sheet__close  32x32</div></details>
     
     
@@ -392,7 +392,7 @@ small targets &lt;36px (5): .rp-wordmark Ride Price 116x23; #dqDateBtn.rp-filter
     <p class="notes">An advisor&#39;s own visit sheet has Open deal and Left the showroom only — assigning is the Team Lead&#39;s act (DS-026 control).</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-badge Discovery &lt;&gt; .rp-card__name Cheri Bridwell; .rp-badge Desking &lt;&gt; .rp-card__name John Smith; .rp-card__meta.dq-ids VIN 5NMS4DAL4NH457995 · STK  &lt;&gt; #dqSheetTitle.rp-sheet__title Cheri Bridwell; .rp-card__next Next: Game Plan With the Tea &lt;&gt; #dqSheetTitle.rp-sheet__title Cheri Bridwell; .rp-card__next Next: Game Plan With the Tea &lt;&gt; .rp-sheet__sub Arrived 06:23 · Discovery; .rp-tab.rp-tab--active Deals &lt;&gt; #dqVisitEnd.rp-link.ch-hit Left the showroom; .rp-tab Inventory &lt;&gt; #dqVisitEnd.rp-link.ch-hit Left the showroom; .rp-tab Customers &lt;&gt; #dqVisitEnd.rp-link.ch-hit Left the showroom
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-badge Discovery &lt;&gt; .rp-card__name Cheri Bridwell; .rp-badge Desking &lt;&gt; .rp-card__name John Smith; .rp-card__meta.dq-ids VIN 5NMS4DAL4NH457995 · STK  &lt;&gt; #dqSheetTitle.rp-sheet__title Cheri Bridwell; .rp-card__next Next: Game Plan With the Tea &lt;&gt; #dqSheetTitle.rp-sheet__title Cheri Bridwell; .rp-card__next Next: Game Plan With the Tea &lt;&gt; .rp-sheet__sub Arrived 03:49 · Discovery; .rp-tab.rp-tab--active Deals &lt;&gt; #dqVisitEnd.rp-link.ch-hit Left the showroom; .rp-tab Inventory &lt;&gt; #dqVisitEnd.rp-link.ch-hit Left the showroom; .rp-tab Customers &lt;&gt; #dqVisitEnd.rp-link.ch-hit Left the showroom
 small targets &lt;36px (2): .rp-wordmark Ride Price 116x23; .rp-sheet__close  32x32</div></details>
     
     
@@ -1282,7 +1282,7 @@ text contrast under the floor (1): .rp-row__title Discard scan | #e0392c on #f2f
     <p class="notes">LS-071, the owner&#39;s answer A of 2026-09-28: a guest who can&#39;t get texts gets the code by email. Marcus picked under Possible duplicate, then Same person: the code goes to the phone on file, and because the profile has an email the sheet also offers Email the code instead, to the email on the profile, never the one typed in this scan. The sheet does not show the address (LS-068).</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8):  Address &lt;&gt; #scSheetTitle.rp-sheet__title Verify the phone number;  Address &lt;&gt; .rp-sheet__sub Enter the six-digit code sen;  4102 Bell Blvd, Bayside, NY  &lt;&gt; #scSheetTitle.rp-sheet__title Verify the phone number;  4102 Bell Blvd, Bayside, NY  &lt;&gt; .rp-sheet__sub Enter the six-digit code sen; .rp-kv__head Registration address &lt;&gt; .rp-code__box 2; .rp-kv__head Registration address &lt;&gt; .rp-code__box 3; .rp-kv__head Registration address &lt;&gt; .rp-code__box 8; .rp-kv__head Registration address &lt;&gt; .rp-code__box 3
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8):  Address &lt;&gt; #scSheetTitle.rp-sheet__title Verify the phone number;  Address &lt;&gt; .rp-sheet__sub Enter the six-digit code sen;  4102 Bell Blvd, Bayside, NY  &lt;&gt; #scSheetTitle.rp-sheet__title Verify the phone number;  4102 Bell Blvd, Bayside, NY  &lt;&gt; .rp-sheet__sub Enter the six-digit code sen; .rp-kv__head Registration address &lt;&gt; .rp-code__box 6; .rp-kv__head Registration address &lt;&gt; .rp-code__box 8; .rp-kv__head Registration address &lt;&gt; .rp-code__box 7; .rp-kv__head Registration address &lt;&gt; .rp-code__box 5
 small targets &lt;36px (2): .rp-sheet__close  32x32; #svCodeInput.sr-only  1x1</div></details>
     
     
@@ -1544,10 +1544,10 @@ text contrast under the floor (1): .rp-row__title Reset demo data | #e0392c on #
     <div class="frame">
       <span class="n">01</span>
       <span class="flags"><span class="sev sev--Major">Major</span></span>
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Stage 1 — the sample slide" data-cap="Discovery — the guided consultation · 01 Stage 1 — the sample slide · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/01-stage-intro.png" alt="Stage 1 — the sample slide"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Stage 1 — the sample slide" data-cap="Discovery — the guided consultation · 01 Stage 1 — the sample slide · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/01-stage-intro.png" alt="Stage 1 — the sample slide"></button>
     </div>
     <h3>Stage 1 — the sample slide</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">Opens here — no session screen, no switches, no Start. The top bar is the customer&#39;s name and the ×; the stage carries the question and Tap to play (a sample slide, no video supplied). The voice bar&#39;s dots are decoration and say so to assistive tech. Kit gap on file (D-SM3 = A): the kit names .rp-stage twice and the second rule clips the question at the edge.</p>
     <ul class="branches"><li>Tap × → <a href="#home-deals-queue">Home — Active Floor &amp; Navigation · 01 My deals (landing — Advisor)</a></li></ul>
     <details open><summary>2 issues</summary><div class="issue issue--Major"><b><span class="sev sev--Major">Major</span> RP-UI-073</b><p>The stage headline runs past the stage&#39;s right edge and is cut mid-word: &quot;Let&#39;s start with the SUV you d&quot;, &quot;How much more room do you&quot;, &quot;Comfort for everyone on boar&quot;. On Size &amp; space the cut headline is the only place the question appears.</p><p><em>Filed on the kit gap the owner ruled on (D-SM3 = A: a second .rp-stage rule clips). The advisor cannot read what is being asked; the headline should wrap. Found by the v043 audit.</em></p></div><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-078</b><p>Every Discovery stage ends with a line explaining its two controls: &quot;Tap ✓ when they&#39;re done, × to redo&quot;, &quot;Tap ✓ to keep, × to redo&quot;, &quot;Tap ✓ to see the options&quot;. The first calls the customer named in the top bar &quot;they&quot;.</p><p><em>Helper text under the owner&#39;s rule, and a pronoun where the owner&#39;s style is a name. If ✓ and × need names, they belong in the controls&#39; accessible labels. Found by the v043 audit.</em></p></div></details>
@@ -1559,10 +1559,10 @@ text contrast under the floor (2): #dcQuestion.rp-stage__q Let’s start with th
     <div class="frame">
       <span class="n">02</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Current vehicle — the sample reply as chips" data-cap="Discovery — the guided consultation · 02 Current vehicle — the sample reply as chips · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/02-stage-question.png" alt="Current vehicle — the sample reply as chips"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Current vehicle — the sample reply as chips" data-cap="Discovery — the guided consultation · 02 Current vehicle — the sample reply as chips · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/02-stage-question.png" alt="Current vehicle — the sample reply as chips"></button>
     </div>
     <h3>Current vehicle — the sample reply as chips</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">The sample reply becomes chips the advisor can toggle with the customer; Skip this topic appears here, not on the intro. Kit gap: the feature chips are 34 px tall against the 40 px touch floor.</p>
     
     
@@ -1574,10 +1574,10 @@ text contrast under the floor (1): #dcQuestion.rp-stage__q What would you keep? 
     <div class="frame">
       <span class="n">03</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Current vehicle — a chip turned on" data-cap="Discovery — the guided consultation · 03 Current vehicle — a chip turned on · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/03-stage-chip-toggled.png" alt="Current vehicle — a chip turned on"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Current vehicle — a chip turned on" data-cap="Discovery — the guided consultation · 03 Current vehicle — a chip turned on · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/03-stage-chip-toggled.png" alt="Current vehicle — a chip turned on"></button>
     </div>
     <h3>Current vehicle — a chip turned on</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">Sunroof is on. The toggle saved the moment it was tapped — this picture is taken after a reload, and the same question comes back with the choice kept. ✓ records the reply (marked simulated) and moves on.</p>
     
     
@@ -1589,10 +1589,10 @@ text contrast under the floor (1): #dcQuestion.rp-stage__q What would you keep? 
     <div class="frame">
       <span class="n">04</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Size &amp; space — Skip this topic" data-cap="Discovery — the guided consultation · 04 Size &amp; space — Skip this topic · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/04-stage-skip.png" alt="Size &amp; space — Skip this topic"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Size &amp; space — Skip this topic" data-cap="Discovery — the guided consultation · 04 Size &amp; space — Skip this topic · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/04-stage-skip.png" alt="Size &amp; space — Skip this topic"></button>
     </div>
     <h3>Size &amp; space — Skip this topic</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">Skip lives on the stage itself: the topic is recorded as skipped, not answered, and nothing from it reaches the profile.</p>
     
     
@@ -1604,10 +1604,10 @@ text contrast under the floor (3): #dcQuestion.rp-stage__q How much more room do
     <div class="frame">
       <span class="n">05</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Seating &amp; family" data-cap="Discovery — the guided consultation · 05 Seating &amp; family · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/05-stage-seating.png" alt="Seating &amp; family"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Seating &amp; family" data-cap="Discovery — the guided consultation · 05 Seating &amp; family · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/05-stage-seating.png" alt="Seating &amp; family"></button>
     </div>
     <h3>Seating &amp; family</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">The chips are labeled words (Second row space, Third row access), never the keys the app stores.</p>
     
     
@@ -1620,10 +1620,10 @@ text contrast under the floor (1): #dcQuestion.rp-stage__q Comfort for everyone 
     <div class="frame">
       <span class="n">06</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Drivetrain" data-cap="Discovery — the guided consultation · 06 Drivetrain · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/06-stage-drivetrain.png" alt="Drivetrain"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Drivetrain" data-cap="Discovery — the guided consultation · 06 Drivetrain · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/06-stage-drivetrain.png" alt="Drivetrain"></button>
     </div>
     <h3>Drivetrain</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">Confirming this topic puts AWD among the musts that Vehicle selection filters by.</p>
     
     
@@ -1634,10 +1634,10 @@ text contrast under the floor (1): #dcQuestion.rp-stage__q Comfort for everyone 
     <div class="frame">
       <span class="n">07</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Lane support — the shared stage" data-cap="Discovery — the guided consultation · 07 Lane support — the shared stage · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/07-stage-lane-support.png" alt="Lane support — the shared stage"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Lane support — the shared stage" data-cap="Discovery — the guided consultation · 07 Lane support — the shared stage · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/07-stage-lane-support.png" alt="Lane support — the shared stage"></button>
     </div>
     <h3>Lane support — the shared stage</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">Lane support and Reverse safety share one stage. Here the Reverse braking chip is disabled — it is not this topic — though the kit draws a disabled chip no differently, so the picture cannot tell the two apart.</p>
     
     
@@ -1649,10 +1649,10 @@ text contrast under the floor (1): #dcQuestion.rp-stage__q Support for the road 
     <div class="frame">
       <span class="n">08</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Reverse safety — the shared stage, the other way" data-cap="Discovery — the guided consultation · 08 Reverse safety — the shared stage, the other way · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/08-stage-reverse-safety.png" alt="Reverse safety — the shared stage, the other way"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Reverse safety — the shared stage, the other way" data-cap="Discovery — the guided consultation · 08 Reverse safety — the shared stage, the other way · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/08-stage-reverse-safety.png" alt="Reverse safety — the shared stage, the other way"></button>
     </div>
     <h3>Reverse safety — the shared stage, the other way</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">The same stage with the roles swapped: now Lane centering is the disabled chip, and only the sample line under the stage tells the two topics apart.</p>
     
     
@@ -1664,10 +1664,10 @@ text contrast under the floor (1): #dcQuestion.rp-stage__q Support for the road 
     <div class="frame">
       <span class="n">09</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: The profile — the hand-off" data-cap="Discovery — the guided consultation · 09 The profile — the hand-off · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/09-profile.png" alt="The profile — the hand-off"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: The profile — the hand-off" data-cap="Discovery — the guided consultation · 09 The profile — the hand-off · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/09-profile.png" alt="The profile — the hand-off"></button>
     </div>
     <h3>The profile — the hand-off</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">Every confirmed preference as a chip — Blind spot warning, AWD, Sunroof, Seats 5+ — and nothing from the skipped topic. No Skip here; the voice label says what ✓ does. The visit is still in discovery until ✓.</p>
     <ul class="branches"><li>Tap ✓ → <a href="#vehicles-inventory-from-discovery">Vehicle Selection · 01 Arrived from Discovery — the musts stated, 1 of 1</a></li><li>Tap × → <a href="#discovery-profile-change">Discovery — the guided consultation · 11 × on the profile — back to the first question</a></li></ul>
     
@@ -1678,10 +1678,10 @@ text contrast under the floor (1): #dcQuestion.rp-stage__q Support for the road 
     <div class="frame">
       <span class="n">10</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: The profile after a reload" data-cap="Discovery — the guided consultation · 10 The profile after a reload · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/10-profile-reload.png" alt="The profile after a reload"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: The profile after a reload" data-cap="Discovery — the guided consultation · 10 The profile after a reload · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/10-profile-reload.png" alt="The profile after a reload"></button>
     </div>
     <h3>The profile after a reload</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">Closing the browser and coming back lands on the profile, not on question one — the consultation is kept until ✓ hands it off.</p>
     
     
@@ -1692,10 +1692,10 @@ text contrast under the floor (1): #dcQuestion.rp-stage__q Support for the road 
     <div class="frame">
       <span class="n">11</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: × on the profile — back to the first question" data-cap="Discovery — the guided consultation · 11 × on the profile — back to the first question · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/11-profile-change.png" alt="× on the profile — back to the first question"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: × on the profile — back to the first question" data-cap="Discovery — the guided consultation · 11 × on the profile — back to the first question · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/11-profile-change.png" alt="× on the profile — back to the first question"></button>
     </div>
     <h3>× on the profile — back to the first question</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">Change something: the first question comes back with every answer kept — Sunroof is still on — so the advisor changes only what the customer wants changed.</p>
     
     
@@ -1707,10 +1707,10 @@ text contrast under the floor (1): #dcQuestion.rp-stage__q What would you keep? 
     <div class="frame">
       <span class="n">12</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Confirmed through — the profile again" data-cap="Discovery — the guided consultation · 12 Confirmed through — the profile again · #/discovery/d-jd4f6z0"><img loading="lazy" src="current/05-discovery/12-profile-again.png" alt="Confirmed through — the profile again"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Confirmed through — the profile again" data-cap="Discovery — the guided consultation · 12 Confirmed through — the profile again · #/discovery/d-br2zema"><img loading="lazy" src="current/05-discovery/12-profile-again.png" alt="Confirmed through — the profile again"></button>
     </div>
     <h3>Confirmed through — the profile again</h3>
-    <div class="hash">#/discovery/d-jd4f6z0</div>
+    <div class="hash">#/discovery/d-br2zema</div>
     <p class="notes">✓ through the topics returns to the same profile. ✓ here moves the visit to the vehicle stage, records discovery done and the filters, and opens Vehicle selection filtered by what was confirmed.</p>
     
     
@@ -2646,10 +2646,10 @@ small targets &lt;36px (3): #tvDeal.ch-hit John Smith · 2022 Hyundai Sa 228x20;
     <div class="frame tall">
       <span class="n">14</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: The appraisal form before anyone has typed" data-cap="Trade-In Evaluation &amp; Proof of Ownership · 14 The appraisal form before anyone has typed · #/trade/d-uxp98nj"><img loading="lazy" src="current/08-trade-in/14-appraisal-empty.png" alt="The appraisal form before anyone has typed"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: The appraisal form before anyone has typed" data-cap="Trade-In Evaluation &amp; Proof of Ownership · 14 The appraisal form before anyone has typed · #/trade/d-bw9fyw4"><img loading="lazy" src="current/08-trade-in/14-appraisal-empty.png" alt="The appraisal form before anyone has typed"></button>
     </div>
     <h3>The appraisal form before anyone has typed</h3>
-    <div class="hash">#/trade/d-uxp98nj · <a href="current/08-trade-in/14-appraisal-empty.scroll.png" target="_blank">full length ↓</a></div>
+    <div class="hash">#/trade/d-bw9fyw4 · <a href="current/08-trade-in/14-appraisal-empty.scroll.png" target="_blank">full length ↓</a></div>
     <p class="notes">A trade nobody has described yet, on a deal that is not the demo&#39;s: the details state, with Run evaluation as the one action and no value anywhere. Every box is empty, and the gray ghost text in them states a SHAPE (YYYY, 17 characters) or names a SOURCE (Odometer) — never an example vehicle, and never the deal&#39;s own values, which at a glance are indistinguishable from a filled box. Vehicle carries no ghost at all: its label already says year make model. Model year and Mileage used to arrive pre-filled with a hard-coded 2018 and 60,000, left over from an older demo vehicle; the year is now read back out of what the advisor types in Vehicle (year make model), the mileage can be read from nothing and so is asked for, and Run evaluation names whatever is still missing rather than appraising a car whose age or use it guessed. The context row carries no vehicle because this visit has not selected one.</p>
     
     
@@ -2660,10 +2660,10 @@ small targets &lt;36px (3): #tvDeal.ch-hit John Smith · 2022 Hyundai Sa 228x20;
     <div class="frame tall">
       <span class="n">15</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: The appraisal form filled in, not yet evaluated" data-cap="Trade-In Evaluation &amp; Proof of Ownership · 15 The appraisal form filled in, not yet evaluated · #/trade/d-uxp98nj"><img loading="lazy" src="current/08-trade-in/15-appraisal-typed.png" alt="The appraisal form filled in, not yet evaluated"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: The appraisal form filled in, not yet evaluated" data-cap="Trade-In Evaluation &amp; Proof of Ownership · 15 The appraisal form filled in, not yet evaluated · #/trade/d-bw9fyw4"><img loading="lazy" src="current/08-trade-in/15-appraisal-typed.png" alt="The appraisal form filled in, not yet evaluated"></button>
     </div>
     <h3>The appraisal form filled in, not yet evaluated</h3>
-    <div class="hash">#/trade/d-uxp98nj · <a href="current/08-trade-in/15-appraisal-typed.scroll.png" target="_blank">full length ↓</a></div>
+    <div class="hash">#/trade/d-bw9fyw4 · <a href="current/08-trade-in/15-appraisal-typed.scroll.png" target="_blank">full length ↓</a></div>
     <p class="notes">The year is read out of what was typed in Vehicle and shown in the Model year box — it is paint, not a record, until someone types a year of their own. The card title follows the description. Still no value: Run evaluation is the one action, in the card and in the dock.</p>
     
     
@@ -2674,10 +2674,10 @@ small targets &lt;36px (3): #tvDeal.ch-hit John Smith · 2022 Hyundai Sa 228x20;
     <div class="frame tall">
       <span class="n">16</span>
       
-      <button type="button" class="zoom" aria-label="Enlarge screenshot: Trade value — the fresh trade evaluated" data-cap="Trade-In Evaluation &amp; Proof of Ownership · 16 Trade value — the fresh trade evaluated · #/trade/d-uxp98nj"><img loading="lazy" src="current/08-trade-in/16-appraisal-run.png" alt="Trade value — the fresh trade evaluated"></button>
+      <button type="button" class="zoom" aria-label="Enlarge screenshot: Trade value — the fresh trade evaluated" data-cap="Trade-In Evaluation &amp; Proof of Ownership · 16 Trade value — the fresh trade evaluated · #/trade/d-bw9fyw4"><img loading="lazy" src="current/08-trade-in/16-appraisal-run.png" alt="Trade value — the fresh trade evaluated"></button>
     </div>
     <h3>Trade value — the fresh trade evaluated</h3>
-    <div class="hash">#/trade/d-uxp98nj · <a href="current/08-trade-in/16-appraisal-run.scroll.png" target="_blank">full length ↓</a></div>
+    <div class="hash">#/trade/d-bw9fyw4 · <a href="current/08-trade-in/16-appraisal-run.scroll.png" target="_blank">full length ↓</a></div>
     <p class="notes">2018, 61,200 miles, Good: $9,850 against a $10,750 payoff — negative equity $900 — computed, never typed. The value card appears with the ownership card under it, and the dock now reads the evaluated value with Review ownership as the action.</p>
     
     
@@ -2704,23 +2704,23 @@ small targets &lt;36px (3): #tvDeal.ch-hit John Smith · 2022 Hyundai Sa 228x20;
   <header><h2>Desking — Calculate Payments<small>29 screens</small></h2>
     <div class="dlwrap"><button type="button" class="dl" aria-haspopup="menu" aria-expanded="false" aria-label="Download this flow" title="Download this flow">⬇</button>
       <div class="dlmenu" role="menu" hidden><button type="button" role="menuitem" data-dl="png">Flow as one image (PNG)</button><button type="button" role="menuitem" data-dl="zip">Screenshots (ZIP)</button></div></div></header>
-  <p class="desc">The owner&#39;s desking package (v029, 2026-09-04) on the UI kit: eight screens, one route, all of them the kit&#39;s Task with the customer&#39;s full name in the bar and no deal number — a worked deal has none until the lending lane pushes it to F&amp;I. Two modes, and the difference is who is holding the phone. WORK is the advisor&#39;s: the huddle that captures the trial close in the customer&#39;s own words and the payment they named, the deal-type control, the payment hero, the accordions, and a 3x3 option grid whose every cell is the real calculator. PRESENT turns the phone around: Close becomes Done, and the customer sees the car, two wins, the grid with one recommended cell, the payment to the cent, one line of fine print with a real incentive date, and one commitment action whose tap writes the structure onto the deal. New York&#39;s taxable base is stated on the screen it is taken on, and the four fees are itemised rather than bundled.</p>
+  <p class="desc">The owner&#39;s desking package (v029, 2026-09-04) on the UI kit: eight screens, one route, all of them the kit&#39;s Task with the customer&#39;s full name in the bar and no deal number — a worked deal has none until the lending lane pushes it to F&amp;I. Two modes, and the difference is who is holding the phone. WORK is the advisor&#39;s: the Game plan that asks how the customer is paying, the deal-type control, the payment hero, the accordions, and a 3x3 option grid whose every cell is the real calculator. PRESENT turns the phone around: Close becomes Done, and the customer sees the car, two wins, the grid with one recommended cell, the payment to the cent, one line of fine print with a real incentive date, and one commitment action whose tap writes the structure onto the deal. New York&#39;s taxable base is stated on the screen it is taken on, and the four fees are itemised rather than bundled.</p>
   <p class="entry">↳ Reached from <a href="#home-deals-queue">Home — Active Floor &amp; Navigation · 01 My deals (landing — Advisor)</a> — <b>Tap the deal card (Continue)</b></p>
-  <div class="strip"><article class="scr" id="desking-huddle-gate" data-search="desking — calculate payments game plan — the huddle advisor-only. the trial close is captured in the customer&#39;s words and the payment they named is written down. the named payment is read back on the option grid, where it picks the recommended cell; the trial close is quoted back to the advisor on the pencil, under the payment — never on the customer&#39;s screen (d-sm5 = b). no deal number: the deal is not numbered until f&amp;i. text about john uses they and them: &quot;how are they paying?&quot;, &quot;is the incentivized rate or the rebate better for them?&quot;, &quot;do they trade frequently?&quot;, &quot;send a secure link to their phone&quot;, &quot;a co-buyer applies with them.&quot;">
-    <div class="frame tall">
+  <div class="strip"><article class="scr" id="desking-huddle-gate" data-search="desking — calculate payments game plan — the huddle advisor-only, and one question: how the customer is paying. open the pencil is the one way on. the owner&#39;s game plan cut (d-sm6) took the trial close, the payment the customer named, the discovery question and the two toggles off. no deal number: the deal is not numbered until f&amp;i. text about john uses they and them: &quot;how are they paying?&quot;, &quot;send a secure link to their phone&quot;, &quot;a co-buyer applies with them.&quot;">
+    <div class="frame">
       <span class="n">01</span>
       <span class="flags"><span class="sev sev--Observation">Observation</span></span>
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Game plan — the huddle" data-cap="Desking — Calculate Payments · 01 Game plan — the huddle · #/desk/d-demo1"><img loading="lazy" src="current/09-desking/01-huddle-gate.png" alt="Game plan — the huddle"></button>
     </div>
     <h3>Game plan — the huddle</h3>
-    <div class="hash">#/desk/d-demo1 · <a href="current/09-desking/01-huddle-gate.scroll.png" target="_blank">full length ↓</a></div>
-    <p class="notes">Advisor-only. The trial close is captured in the customer&#39;s words and the payment they named is written down. The named payment is read back on the option grid, where it picks the recommended cell; the trial close is quoted back to the advisor on the pencil, under the payment — never on the customer&#39;s screen (D-SM5 = B). No deal number: the deal is not numbered until F&amp;I.</p>
+    <div class="hash">#/desk/d-demo1</div>
+    <p class="notes">Advisor-only, and one question: how the customer is paying. Open the pencil is the one way on. The owner&#39;s Game plan cut (D-SM6) took the trial close, the payment the customer named, the Discovery question and the two toggles off. No deal number: the deal is not numbered until F&amp;I.</p>
     
-    <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-103</b><p>Text about John uses they and them: &quot;How are they paying?&quot;, &quot;Is the incentivized rate or the rebate better for them?&quot;, &quot;Do they trade frequently?&quot;, &quot;Send a secure link to their phone&quot;, &quot;A co-buyer applies with them.&quot;</p><p><em>The owner&#39;s style is names: &quot;How is John paying?&quot;, &quot;Send a secure link to John&#39;s phone&quot; (W-088). Found by the v043 audit.</em></p></div></details>
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (2): #hTrade.rp-toggle-row Trade evaluated · $15,500 &lt;&gt; #hConfirm.rp-primary Open the pencil; #hStock.rp-toggle-row Vehicle in stock today &lt;&gt; #hConfirm.rp-primary Open the pencil</div></details>
+    <details open><summary>1 issue</summary><div class="issue issue--Observation"><b><span class="sev sev--Observation">Observation</span> RP-UI-103</b><p>Text about John uses they and them: &quot;How are they paying?&quot;, &quot;Send a secure link to their phone&quot;, &quot;A co-buyer applies with them.&quot;</p><p><em>The owner&#39;s style is names: &quot;How is John paying?&quot;, &quot;Send a secure link to John&#39;s phone&quot; (W-088). Found by the v043 audit. The Game plan&#39;s two Discovery questions (&quot;Is the incentivized rate or the rebate better for them?&quot;, &quot;Do they trade frequently?&quot;) went with the owner&#39;s Game plan cut (D-SM6, v049).</em></p></div></details>
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Confirm how they&#39;re paying, tap Open the pencil</div></div><article class="scr" id="desking-pencil-finance" data-search="desking — calculate payments pencil — finance the screen opens on the payment, with the customer&#39;s own trial close quoted under it for the advisor (d-sm5 = b). the price accordion runs msrp → your price → saving; the trade shows equity as a credit; fees and tax are five lines, with the sales-tax row naming the base it is taken on. the touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. extending it to native form fields measured 14 real shortfalls on 2026-08-31. still open, as measured then: the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, and the client-link demo option row at 30. closed since: #mmaxprice at 38, with the vehicle-selection package (v025), and the eight desking accessory checkbox rows at 20, which are the kit&#39;s option cards in v043.">
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Confirm how they&#39;re paying, tap Open the pencil</div></div><article class="scr" id="desking-pencil-finance" data-search="desking — calculate payments pencil — finance the screen opens on the payment. the price accordion runs msrp → your price → saving; the trade shows equity as a credit; fees and tax are five lines, with the sales-tax row naming the base it is taken on. the touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. extending it to native form fields measured 14 real shortfalls on 2026-08-31. still open, as measured then: the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, and the client-link demo option row at 30. closed since: #mmaxprice at 38, with the vehicle-selection package (v025), and the eight desking accessory checkbox rows at 20, which are the kit&#39;s option cards in v043.">
     <div class="frame tall">
       <span class="n">02</span>
       <span class="flags"><span class="sev sev--Minor">Minor</span></span>
@@ -2728,13 +2728,13 @@ small targets &lt;36px (3): #tvDeal.ch-hit John Smith · 2022 Hyundai Sa 228x20;
     </div>
     <h3>Pencil — Finance</h3>
     <div class="hash">#/desk/d-demo1 · <a href="current/09-desking/02-pencil-finance.scroll.png" target="_blank">full length ↓</a></div>
-    <p class="notes">The screen opens on the payment, with the customer&#39;s own trial close quoted under it for the advisor (D-SM5 = B). The price accordion runs MSRP → your price → saving; the trade shows equity as a credit; fees and tax are five lines, with the sales-tax row naming the base it is taken on.</p>
+    <p class="notes">The screen opens on the payment. The price accordion runs MSRP → your price → saving; the trade shows equity as a credit; fees and tax are five lines, with the sales-tax row naming the base it is taken on.</p>
     <ul class="branches"><li>Compare finance and lease → <a href="#desking-present-compare">Desking — Calculate Payments · 05 Present — Own or lease</a></li><li>Trade evaluation → <a href="#trade-trade-evaluation">Trade-In Evaluation &amp; Proof of Ownership · 01 Trade value — the appraisal first</a></li><li>Present to customer → <a href="#desking-present-payment">Desking — Calculate Payments · 04 Present — Your payment</a></li></ul>
     <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-029</b><p>The touch floor is 40px for every control (owner, 2026-08-31), but harness/touchfloor.mjs audits only pressable controls — button, link, role=button. Extending it to native form fields measured 14 real shortfalls on 2026-08-31. Still open, as measured then: the test-drive delivery-preference rows at 22, the inventory search field at 21 and the deals search field at 25, the .switch control at 46x26, and the client-link demo option row at 30. Closed since: #mMaxPrice at 38, with the vehicle-selection package (v025), and the eight desking accessory checkbox rows at 20, which are the kit&#39;s option cards in v043.</p><p><em>Found by widening the audit on 2026-08-31 and measured, not estimated. It was not restyled in that change: the job there was to implement the owner&#39;s ruling on the NUMBER, and lifting 14 form controls is a design change across desking, inventory search and the filter sheet that deserves its own review. The harness states the scope boundary at its selector rather than implying coverage it does not have. v043 did not re-measure the fields still open; the next audit with the widened harness will.</em></p></div></details>
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (7): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  MSRP &lt;&gt; #dkPresent.rp-primary Present to customer;  $42,910.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  Your price &lt;&gt; #dkCompare.rp-link Compare finance and lease;  $41,431.00 &lt;&gt; #dkCompare.rp-link Compare finance and lease</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (6): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present;  Saving &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-delta −$1,479.00 &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-acc__head Trade+$4,750.00 &lt;&gt; #dkCompare.rp-link Compare finance and lease; .rp-acc__sum +$4,750.00 &lt;&gt; #dkCompare.rp-link Compare finance and lease</div></details>
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Payment options</div></div><article class="scr" id="desking-options" data-search="desking — calculate payments payment options — the 3x3 grid the choice close, built before the phone turns: three terms across, three cash-down rows, one recommended cell — the option nearest the payment the customer named. three columns, never four; four is a spreadsheet. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Payment options</div></div><article class="scr" id="desking-options" data-search="desking — calculate payments payment options — the 3x3 grid the choice close, built before the phone turns: three terms across, three cash-down rows, one recommended cell — the one the advisor pencilled. three columns, never four; four is a spreadsheet. ">
     <div class="frame">
       <span class="n">03</span>
       
@@ -2742,7 +2742,7 @@ small targets &lt;36px (3): #tvDeal.ch-hit John Smith · 2022 Hyundai Sa 228x20;
     </div>
     <h3>Payment options — the 3x3 grid</h3>
     <div class="hash">#/desk/d-demo1</div>
-    <p class="notes">The choice close, built before the phone turns: three terms across, three cash-down rows, one recommended cell — the option nearest the payment the customer named. Three columns, never four; four is a spreadsheet.</p>
+    <p class="notes">The choice close, built before the phone turns: three terms across, three cash-down rows, one recommended cell — the one the advisor pencilled. Three columns, never four; four is a spreadsheet.</p>
     
     
     <details><summary>automated checks (1)</summary><div class="auto">text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a00 | 2.61:1, needs 4.5 | 9px bold</div></details>
@@ -2788,7 +2788,7 @@ text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a0
     <p class="notes">The customer&#39;s own tap is the trial close: the term and cash down are written to the deal and shown as a status row on the pencil — not a toast, because nothing that disappears can be the record of anything.</p>
     <ul class="branches"><li>Submit for Team Lead approval → <a href="#desking-work-submitted">Desking — Calculate Payments · 14 Pencil — sent for approval</a></li></ul>
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (4): .rp-row__sub 48 / 60 / 72 months × $1,000 &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkPresent.rp-link Present again; .rp-acc__sum $41,431.00 &lt;&gt; #dkPresent.rp-link Present again</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (5): .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva;  MSRP &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva;  $42,910.00 &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva;  Your price &lt;&gt; #dkPresent.rp-link Present again;  $41,431.00 &lt;&gt; #dkPresent.rp-link Present again</div></details>
     
     
   </article><div class="arrow"><div class="line"></div><div class="act">Deal type → Lease</div></div><article class="scr" id="desking-pencil-lease" data-search="desking — calculate payments pencil — lease the hero&#39;s terms line is derived from the deal type; the residual has its own accordion, and the two lease-only fees are disclosed with the rest. ">
@@ -2802,7 +2802,7 @@ text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a0
     <p class="notes">The hero&#39;s terms line is derived from the deal type; the residual has its own accordion, and the two lease-only fees are disclosed with the rest.</p>
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $334.64/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-acc__sum $41,431.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  MSRP &lt;&gt; #dkPresent.rp-primary Present to customer;  MSRP &lt;&gt; #dkCompare.rp-link Compare finance and lease;  $42,910.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  $42,910.00 &lt;&gt; #dkCompare.rp-link Compare finance and lease</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $334.64/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present;  Your price &lt;&gt; #dkPresent.rp-primary Present to customer;  $41,431.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  Saving &lt;&gt; #dkPresent.rp-primary Present to customer;  Saving &lt;&gt; #dkCompare.rp-link Compare finance and lease; .rp-delta −$1,479.00 &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-delta −$1,479.00 &lt;&gt; #dkCompare.rp-link Compare finance and lease</div></details>
     
     
   </article><div class="arrow"><div class="line"></div><div class="act">Deal type → Cash</div></div><article class="scr" id="desking-pencil-cash" data-search="desking — calculate payments pencil — cash the label and the unit word are derived from the deal type — &#39;total due&#39; and &#39;total&#39;, never a monthly framing on a cash deal. the column reconciles on the screen rather than behind accordions, and the rebate names its kind: customer cash, so it survives a cash purchase. ">
@@ -2816,7 +2816,7 @@ text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a0
     <p class="notes">The label and the unit word are derived from the deal type — &#39;Total due&#39; and &#39;total&#39;, never a monthly framing on a cash deal. The column reconciles on the screen rather than behind accordions, and the rebate names its kind: customer cash, so it survives a cash purchase.</p>
     <ul class="branches"><li>Tap Present to customer → <a href="#desking-present-cash">Desking — Calculate Payments · 12 Present — Your total (Cash)</a></li></ul>
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (6): .rp-price__label Total due &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $39,577.13total &lt;&gt; #dkHeroPresent.rp-price__action Present;  Taxes and fees &lt;&gt; #dkPresent.rp-primary Present to customer;  $2,802.13 &lt;&gt; #dkPresent.rp-primary Present to customer;  Rebate &lt;&gt; #dkCompare.rp-link Compare;  −$500.00 &lt;&gt; #dkCompare.rp-link Compare</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): .rp-price__label Total due &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $39,577.13total &lt;&gt; #dkHeroPresent.rp-price__action Present;  Rebate &lt;&gt; #dkPresent.rp-primary Present to customer;  −$500.00 &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-kv__src customer cash — applies to a &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-kv__src customer cash — applies to a &lt;&gt; #dkCompare.rp-link Compare;  Trade credit &lt;&gt; #dkCompare.rp-link Compare;  −$4,750.00 &lt;&gt; #dkCompare.rp-link Compare</div></details>
     
     
   </article><div class="arrow"><div class="line"></div><div class="act">Deal type → One Pay</div></div><article class="scr" id="desking-pencil-onepay" data-search="desking — calculate payments pencil — one pay the fourth deal type: one lease payment made in full at signing. the hero reads &#39;total due&#39; with the lease&#39;s term and mileage, and the residual accordion is back because the structure is a lease. ">
@@ -2830,7 +2830,7 @@ text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a0
     <p class="notes">The fourth deal type: one lease payment made in full at signing. The hero reads &#39;Total due&#39; with the lease&#39;s term and mileage, and the residual accordion is back because the structure is a lease.</p>
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (7): .rp-price__label Total due &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $13,271.90total &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  MSRP &lt;&gt; #dkPresent.rp-primary Present to customer;  $42,910.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  Your price &lt;&gt; #dkCompare.rp-link Compare finance and lease;  $41,431.00 &lt;&gt; #dkCompare.rp-link Compare finance and lease</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (8): .rp-price__label Total due &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $13,271.90total &lt;&gt; #dkHeroPresent.rp-price__action Present;  Your price &lt;&gt; #dkPresent.rp-primary Present to customer;  $41,431.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  Saving &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-delta −$1,479.00 &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-acc__head Residual$27,462.40 &lt;&gt; #dkCompare.rp-link Compare finance and lease; .rp-acc__sum $27,462.40 &lt;&gt; #dkCompare.rp-link Compare finance and lease</div></details>
     
     
   </article><div class="arrow"><div class="line"></div><div class="act">Tap Present to customer</div></div><article class="scr" id="desking-present-onepay" data-search="desking — calculate payments present — your total (one pay) present mode on a one-pay lease: no grid, because there is nothing to choose between — the car, the price win, the one total, and the fine print without an apr. ">
@@ -2886,7 +2886,7 @@ text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a0
     <p class="notes">The status row names the total the customer agreed to, in the cash unit. The hero loses its Present button once a choice is recorded; the dock moves on to the Team Lead.</p>
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (3):  Rebate &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva;  −$500.00 &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva; .rp-kv__src customer cash — applies to a &lt;&gt; #dkPresent.rp-link Present again</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (5): .rp-kv__src customer cash — applies to a &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva;  Trade credit &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva;  Trade credit &lt;&gt; #dkPresent.rp-link Present again;  −$4,750.00 &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva;  −$4,750.00 &lt;&gt; #dkPresent.rp-link Present again</div></details>
     
     
   </article><div class="arrow"><div class="line"></div><div class="act">Tap Submit for Team Lead approval</div></div><article class="scr" id="desking-work-submitted" data-search="desking — calculate payments pencil — sent for approval a second status row records who the deal went to and when, and that the agreement opens when jordan approves; the dock waits, its primary disabled on the kit&#39;s gate dock, and present again stays (w-004, the owner&#39;s &quot;build it as drawn&quot;, 2026-09-23). no toast: the request is a row on the screen, not a pill that fades. the &quot;sent to jordan reyes for approval&quot; status row is broken: its check icon sits alone on the first line and the words drop to the next, flush left, under a row laid out correctly.">
@@ -2900,7 +2900,7 @@ text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a0
     <p class="notes">A second status row records who the deal went to and when, and that the agreement opens when Jordan approves; the dock waits, its primary disabled on the kit&#39;s gate dock, and Present again stays (W-004, the owner&#39;s &quot;Build it as drawn&quot;, 2026-09-23). No toast: the request is a row on the screen, not a pill that fades.</p>
     
     <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-093</b><p>The &quot;Sent to Jordan Reyes for approval&quot; status row is broken: its check icon sits alone on the first line and the words drop to the next, flush left, under a row laid out correctly.</p><p><em>Found by the v043 audit.</em></p></div></details>
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (4):  Accessories &lt;&gt; #dkWaiting.rp-primary Waiting for Jordan’s approva;  $594.00 &lt;&gt; #dkWaiting.rp-primary Waiting for Jordan’s approva;  Taxes and fees &lt;&gt; #dkPresent.rp-link Present again;  $2,802.13 &lt;&gt; #dkPresent.rp-link Present again</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (3):  Rebate &lt;&gt; #dkWaiting.rp-primary Waiting for Jordan’s approva;  −$500.00 &lt;&gt; #dkWaiting.rp-primary Waiting for Jordan’s approva; .rp-kv__src customer cash — applies to a &lt;&gt; #dkPresent.rp-link Present again</div></details>
     
     
   </article><div class="arrow"><div class="line"></div><div class="act">The Team Lead approves (Active floor → Needs you → Review → Approve); then Continue — base payment agreement</div></div><article class="scr" id="desking-present-cell-picked" data-search="desking — calculate payments present — the customer taps a different cell the recommended cell keeps its tag; the cell the customer tapped is outlined as the one they are looking at. both are on screen so the customer can compare their pick with the anchor. ">
@@ -2929,10 +2929,10 @@ text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a0
     <p class="notes">The choice row and the hero both carry the cell the customer picked — 72 months at $5,000 down — not the recommended one. The customer&#39;s tap wrote the structure onto the deal.</p>
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (4): .rp-row__sub 48 / 60 / 72 months × $1,000 &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkPresent.rp-link Present again; .rp-acc__sum $41,431.00 &lt;&gt; #dkPresent.rp-link Present again</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (5): .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva;  MSRP &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva;  $42,910.00 &lt;&gt; #dkSubmit.rp-primary Submit for Team Lead approva;  Your price &lt;&gt; #dkPresent.rp-link Present again;  $41,431.00 &lt;&gt; #dkPresent.rp-link Present again</div></details>
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Tap Payment options</div></div><article class="scr" id="desking-options-after-choice" data-search="desking — calculate payments payment options — after the choice the grid does not move with the choice: the recommended cell is still the one nearest the payment the customer named in the huddle, so the anchor stays honest even after they picked something else. ">
+  </article><div class="arrow"><div class="line"></div><div class="act">Tap Payment options</div></div><article class="scr" id="desking-options-after-choice" data-search="desking — calculate payments payment options — after the choice the recommended cell follows the pencil: once the customer&#39;s cell is the deal&#39;s, 72 months at $5,000 down, it is the one recommended. ">
     <div class="frame">
       <span class="n">17</span>
       
@@ -2940,7 +2940,7 @@ text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a0
     </div>
     <h3>Payment options — after the choice</h3>
     <div class="hash">#/desk/d-demo1</div>
-    <p class="notes">The grid does not move with the choice: the recommended cell is still the one nearest the payment the customer named in the huddle, so the anchor stays honest even after they picked something else.</p>
+    <p class="notes">The recommended cell follows the pencil: once the customer&#39;s cell is the deal&#39;s, 72 months at $5,000 down, it is the one recommended.</p>
     
     
     <details><summary>automated checks (1)</summary><div class="auto">text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a00 | 2.61:1, needs 4.5 | 9px bold</div></details>
@@ -2971,7 +2971,7 @@ text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a0
     <p class="notes">Only one win card: the price against MSRP. Negative equity is never dressed as a win, so the trade card is simply absent and the number stays in the payment detail.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (2): .rp-price__amount $714.29/ mo &lt;&gt; #dkTake.rp-primary This one works;  / mo &lt;&gt; #dkTake.rp-primary This one works
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (2): .rp-price__amount $842.77/ mo &lt;&gt; #dkTake.rp-primary This one works;  / mo &lt;&gt; #dkTake.rp-primary This one works
 text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a00 | 2.61:1, needs 4.5 | 9px bold</div></details>
     
     
@@ -3000,7 +3000,7 @@ text contrast under the floor (1): .rp-grid__tag Recommended | #ffffff on #ff7a0
     <p class="notes">The rebate names its kind — customer cash — with a source note saying it applies to any deal type. Accessories list what is on the car with an Edit row; both accordions carry their own Edit.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (6):  All-Season Floor Mats &lt;&gt; #dkPresent.rp-primary Present to customer;  $195.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  Window Tint &lt;&gt; #dkPresent.rp-primary Present to customer;  $399.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  Change accessories &lt;&gt; #dkCompare.rp-link Compare finance and lease; .rp-row__action Edit &lt;&gt; #dkCompare.rp-link Compare finance and lease
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present;  All-Season Floor Mats &lt;&gt; #dkPresent.rp-primary Present to customer;  $195.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  Window Tint &lt;&gt; #dkPresent.rp-primary Present to customer;  $399.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  Change accessories &lt;&gt; #dkCompare.rp-link Compare finance and lease; .rp-row__action Edit &lt;&gt; #dkCompare.rp-link Compare finance and lease
 small targets &lt;36px (2): .rp-row__action Edit 32x40; .rp-row__action Edit 32x40</div></details>
     
     
@@ -3079,29 +3079,29 @@ small targets &lt;36px (1): .rp-row__action Edit 32x40</div></details>
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Done</div></div><article class="scr" id="desking-huddle-lease-track" data-search="desking — calculate payments game plan — lease chosen choosing how they are paying changes the discovery question under it — for a lease, whether they trade often and drive few miles. the deal type on the pencil follows this choice. ">
-    <div class="frame tall">
+  </article><div class="arrow"><div class="line"></div><div class="act">Done</div></div><article class="scr" id="desking-huddle-lease-track" data-search="desking — calculate payments game plan — lease chosen lease chosen on the game plan; the deal type on the pencil follows this choice. ">
+    <div class="frame">
       <span class="n">27</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Game plan — Lease chosen" data-cap="Desking — Calculate Payments · 27 Game plan — Lease chosen · #/desk/d-demo1"><img loading="lazy" src="current/09-desking/27-huddle-lease-track.png" alt="Game plan — Lease chosen"></button>
     </div>
     <h3>Game plan — Lease chosen</h3>
-    <div class="hash">#/desk/d-demo1 · <a href="current/09-desking/27-huddle-lease-track.scroll.png" target="_blank">full length ↓</a></div>
-    <p class="notes">Choosing how they are paying changes the discovery question under it — for a lease, whether they trade often and drive few miles. The deal type on the pencil follows this choice.</p>
+    <div class="hash">#/desk/d-demo1</div>
+    <p class="notes">Lease chosen on the Game plan; the deal type on the pencil follows this choice.</p>
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (1): #hTrade.rp-toggle-row Trade evaluated · $15,500 &lt;&gt; #hConfirm.rp-primary Open the pencil</div></details>
     
     
-  </article><div class="arrow"><div class="line"></div><div class="act">Open the pencil</div></div><article class="scr" id="desking-huddle-no-trade" data-search="desking — calculate payments game plan — no trade on the deal without an evaluated trade the toggle reads &#39;trade evaluation needed&#39; and sits off. the pencil that follows has no trade accordion and the presentation has no trade win. ">
-    <div class="frame tall">
+    
+  </article><div class="arrow"><div class="line"></div><div class="act">Open the pencil</div></div><article class="scr" id="desking-huddle-no-trade" data-search="desking — calculate payments game plan — no trade on the deal a deal with no evaluated trade opens the same game plan: its &#39;trade evaluated&#39; row is gone (d-sm6), so nothing says a trade needs evaluating. the pencil that follows has no trade accordion and the presentation has no trade win. ">
+    <div class="frame">
       <span class="n">28</span>
       
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Game plan — no trade on the deal" data-cap="Desking — Calculate Payments · 28 Game plan — no trade on the deal · #/desk/d-demo1"><img loading="lazy" src="current/09-desking/28-huddle-no-trade.png" alt="Game plan — no trade on the deal"></button>
     </div>
     <h3>Game plan — no trade on the deal</h3>
-    <div class="hash">#/desk/d-demo1 · <a href="current/09-desking/28-huddle-no-trade.scroll.png" target="_blank">full length ↓</a></div>
-    <p class="notes">Without an evaluated trade the toggle reads &#39;Trade evaluation needed&#39; and sits off. The pencil that follows has no Trade accordion and the presentation has no trade win.</p>
+    <div class="hash">#/desk/d-demo1</div>
+    <p class="notes">A deal with no evaluated trade opens the same Game plan: its &#39;Trade evaluated&#39; row is gone (D-SM6), so nothing says a trade needs evaluating. The pencil that follows has no Trade accordion and the presentation has no trade win.</p>
     
     
     
@@ -3184,7 +3184,7 @@ text contrast under the floor (1): #bpRedeskGo.rp-dialog__button.rp-dialog__butt
     <p class="notes">Void &amp; redesk clears the agreement, puts the deal back in Desking and opens the pencil. The customer&#39;s earlier choice and the approval request are still rows on the pencil, so the advisor can see what was agreed before the numbers move.</p>
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (2): .rp-row__title Payment options &lt;&gt; #dkContinue.rp-primary Continue — base payment agre; .rp-row__sub 48 / 60 / 72 months × $1,000 &lt;&gt; #dkPresent.rp-link Present again</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (5): .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkContinue.rp-primary Continue — base payment agre; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkPresent.rp-link Present again; .rp-acc__sum $41,431.00 &lt;&gt; #dkContinue.rp-primary Continue — base payment agre;  MSRP &lt;&gt; #dkPresent.rp-link Present again;  $42,910.00 &lt;&gt; #dkPresent.rp-link Present again</div></details>
     
     
   </article><div class="arrow"><div class="line"></div><div class="act">Continue — base payment agreement</div></div><article class="scr" id="agreement-agreement-typed-name" data-search="base payment agreement sign panel — the typed name paints the signature the customer types their name and the script preview under the field follows every keystroke. the typed name is what gets recorded as the acknowledgement signature. ">
@@ -3408,7 +3408,7 @@ text contrast under the floor (1):  missing | #e0392c on #ffffff | 4.38:1, needs
     <p class="notes">The Deal summary chip opens desking, where the deal&#39;s numbers are made (CHROME-RULE §29, the owner&#39;s answer B of 2026-10-04, W-150): the application keeps no copy of them, so a summary here cannot disagree with the pencil. Close in desking returns to the application on the step it was left on, with what was typed (D-PI1). It replaces the sheet of the deal&#39;s numbers (the owner&#39;s v2, Option A), which on a phone was taller than the screen with its Close above it (W-151).</p>
     
     
-    <details><summary>automated checks (1)</summary><div class="auto">overlap (7): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  MSRP &lt;&gt; #dkPresent.rp-primary Present to customer;  $42,910.00 &lt;&gt; #dkPresent.rp-primary Present to customer;  Your price &lt;&gt; #dkCompare.rp-link Compare finance and lease;  $41,431.00 &lt;&gt; #dkCompare.rp-link Compare finance and lease</div></details>
+    <details><summary>automated checks (1)</summary><div class="auto">overlap (6): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present;  Saving &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-delta −$1,479.00 &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-acc__head Trade+$4,750.00 &lt;&gt; #dkCompare.rp-link Compare finance and lease; .rp-acc__sum +$4,750.00 &lt;&gt; #dkCompare.rp-link Compare finance and lease</div></details>
     
     
   </article><div class="arrow" style="width:28px"></div><article class="scr" id="credit-individual-applicant" data-standalone data-search="credit application (lending lane) step 1 — individual application, the record row open identity is already verified, so the wizard opens straight away. the ssn is the only field to type — it masks itself to 000-00-0000 — and the name, date of birth and license sit in a read-only row that opens on a tap, showing the full legal name as the license reads it. ">
@@ -3630,7 +3630,7 @@ small targets &lt;36px (1): .rp-wordmark Ride Price 116x23</div></details>
     
     <ul class="branches"><li>Tap the primary buyer&#39;s row → <a href="#credit-identity-gate">Credit Application (Lending Lane) · 01 Verify your identity (pre-application gate)</a></li></ul>
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-option__title Cash &lt;&gt; #dkSheetTitle.rp-sheet__title Buyers on this deal; .rp-row__title Discovery question &lt;&gt; .rp-buyer__name John Smith; #hTrack.rp-row__sub Is the incentivized rate or  &lt;&gt; .rp-buyer__name John Smith; #hTrack.rp-row__sub Is the incentivized rate or  &lt;&gt; .rp-buyer__role Primary; #hTrade.rp-toggle-row Trade evaluated · $15,500 &lt;&gt; #hConfirm.rp-primary Open the pencil; #hTrade.rp-toggle-row Trade evaluated · $15,500 &lt;&gt; #byAdd.rp-primary Add co-buyer; #hStock.rp-toggle-row Vehicle in stock today &lt;&gt; #hConfirm.rp-primary Open the pencil; #hStock.rp-toggle-row Vehicle in stock today &lt;&gt; #byAdd.rp-primary Add co-buyer
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (1): #hConfirm.rp-primary Open the pencil &lt;&gt; #byAdd.rp-primary Add co-buyer
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     
@@ -3645,7 +3645,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     <p class="notes">Search dedupes at the source — people already on the deal never appear; manual creation is offered only after a true no-match.</p>
     <ul class="branches"><li>Scan physical license → <a href="#license-scan-scan-front">Scan Driver&#39;s License · 01 Scan — front of license</a></li><li>Send secure upload link → <a href="#onboarding-send-link-sheet">Customer Onboarding — the Customer Resolver · 11 Send secure upload link (sheet)</a></li></ul>
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #hTrial.rp-textarea If the numbers make sense, w &lt;&gt; #dkSheetTitle.rp-sheet__title Add co-buyer; .rp-field__label Payment the customer named &lt;&gt; #dkSheetTitle.rp-sheet__title Add co-buyer; .rp-section How are they paying? &lt;&gt; .rp-section Result; .rp-option__title Finance &lt;&gt; .rp-buyer__name Cheri Bridwell; .rp-option__title Lease &lt;&gt; .rp-buyer__name Cheri Bridwell; .rp-row__title Discovery question &lt;&gt; .rp-row__title Scan physical license; #hTrack.rp-row__sub Is the incentivized rate or  &lt;&gt; .rp-row__sub Same scan and confirm flow; #hTrade.rp-toggle-row Trade evaluated · $15,500 &lt;&gt; #hConfirm.rp-primary Open the pencil
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (3): .rp-option__title Cash &lt;&gt; #dkSheetTitle.rp-sheet__title Add co-buyer; #hConfirm.rp-primary Open the pencil &lt;&gt; .rp-row__title Send secure upload link; #hConfirm.rp-primary Open the pencil &lt;&gt; .rp-row__sub They upload from their own p
 small targets &lt;36px (2): .rp-sheet__close  32x32; #byQ.rp-search__input  220x25</div></details>
     
     
@@ -3660,7 +3660,7 @@ small targets &lt;36px (2): .rp-sheet__close  32x32; #byQ.rp-search__input  220x
     <p class="notes">The second row appearing is the feedback; Add co-buyer disappears. An Advisor still sees no role control.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-option__title Finance &lt;&gt; #dkSheetTitle.rp-sheet__title Buyers on this deal; .rp-row__title Discovery question &lt;&gt; .rp-buyer__meta (718) 555-0134; #hTrack.rp-row__sub Is the incentivized rate or  &lt;&gt; .rp-section Co-buyer; #hTrade.rp-toggle-row Trade evaluated · $15,500 &lt;&gt; #hConfirm.rp-primary Open the pencil; #hTrade.rp-toggle-row Trade evaluated · $15,500 &lt;&gt; .rp-buyer__name Cheri Bridwell; #hTrade.rp-toggle-row Trade evaluated · $15,500 &lt;&gt; .rp-buyer__meta (347) 555-1212; #hTrade.rp-toggle-row Trade evaluated · $15,500 &lt;&gt; .rp-buyer__role.rp-buyer__role--co Co-buyer; #hStock.rp-toggle-row Vehicle in stock today &lt;&gt; #hConfirm.rp-primary Open the pencil
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (3): #hConfirm.rp-primary Open the pencil &lt;&gt; .rp-buyer__name Cheri Bridwell; #hConfirm.rp-primary Open the pencil &lt;&gt; .rp-buyer__meta (347) 555-1212; #hConfirm.rp-primary Open the pencil &lt;&gt; .rp-buyer__role.rp-buyer__role--co Co-buyer
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     
@@ -3675,7 +3675,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     
     
-    <details><summary>automated checks (3)</summary><div class="auto">overlap (8): .rp-section How are they paying? &lt;&gt; .rp-sheet__sub Co-buyer on this deal · no c; .rp-option__title Finance &lt;&gt; .rp-row__title View customer profile; .rp-option__title Lease &lt;&gt; .rp-row__title View customer profile; .rp-option__title Cash &lt;&gt; .rp-row__title Scan Cheri&#39;s license; .rp-option__title One Pay &lt;&gt; .rp-row__title Scan Cheri&#39;s license; .rp-row__title Discovery question &lt;&gt; .rp-row__title Send secure upload link; #hTrack.rp-row__sub Is the incentivized rate or  &lt;&gt; .rp-row__title Send secure upload link; #hTrack.rp-row__sub Is the incentivized rate or  &lt;&gt; .rp-row__sub On Cheri&#39;s own phone
+    <details><summary>automated checks (3)</summary><div class="auto">overlap (1): #hConfirm.rp-primary Open the pencil &lt;&gt; #byRemove.rp-dialog__button.rp-dialog__button--destructive Remove from deal
 small targets &lt;36px (1): .rp-sheet__close  32x32
 text contrast under the floor (1): #byRemove.rp-dialog__button.rp-dialog__button--destructive Remove from deal | #ffffff on #e0392c | 4.38:1, needs 4.5 | 14px bold</div></details>
     
@@ -3691,7 +3691,7 @@ text contrast under the floor (1): #byRemove.rp-dialog__button.rp-dialog__button
     <p class="notes">The clean case: no credit activity, so three data rows and no consequence list — the relationship comes off, Cheri&#39;s profile is kept, and an Advisor may do it.</p>
     
     
-    <details><summary>automated checks (3)</summary><div class="auto">overlap (8): .rp-option__title Finance &lt;&gt; #dkSheetTitle.rp-sheet__title Remove Cheri from this deal?; .rp-option__title Lease &lt;&gt; #dkSheetTitle.rp-sheet__title Remove Cheri from this deal?; .rp-option__title Cash &lt;&gt;  Relationship; .rp-option__title One Pay &lt;&gt;  Comes off the deal; .rp-row__title Discovery question &lt;&gt;  Cheri&#39;s customer profile; .rp-row__title Discovery question &lt;&gt;  Kept; #hTrack.rp-row__sub Is the incentivized rate or  &lt;&gt;  Credit activity; #hTrack.rp-row__sub Is the incentivized rate or  &lt;&gt;  None yet
+    <details><summary>automated checks (3)</summary><div class="auto">overlap (2): #hConfirm.rp-primary Open the pencil &lt;&gt; .rp-dialog__button.rp-dialog__button--quiet Cancel; #hConfirm.rp-primary Open the pencil &lt;&gt; .rp-dialog__button.rp-dialog__button--destructive Remove from deal
 small targets &lt;36px (1): .rp-sheet__close  32x32
 text contrast under the floor (1): .rp-dialog__button.rp-dialog__button--destructive Remove from deal | #ffffff on #e0392c | 4.38:1, needs 4.5 | 14px bold</div></details>
     
@@ -3707,7 +3707,7 @@ text contrast under the floor (1): .rp-dialog__button.rp-dialog__button--destruc
     <p class="notes">Removal returns to a state, not the beginning: Cheri&#39;s row stays under Removed from this deal with the time and who did it, the customer record is never deleted, and the action beside it is unambiguous.</p>
     
     <details open><summary>1 issue</summary><div class="issue issue--Major"><b><span class="sev sev--Major">Major</span> RP-UI-066</b><p>After a clean removal the sheet says &quot;Tap to see Cheri on Customers — reattaching Cheri starts a new application, it does not reopen that one.&quot; (v044; at v043 it read &quot;Tap for Cheri&#39;s profile and the withdrawn application — …&quot;) The confirmation one screen earlier listed &quot;Credit activity · None yet&quot;: there is no application to withdraw or reopen.</p><p><em>The lending-lane wording, right on the post-lane removal, shown where no application existed. The line belongs only where one was withdrawn. Found by the v043 audit.</em></p></div></details>
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-field__label Payment the customer named &lt;&gt; #dkSheetTitle.rp-sheet__title Buyers on this deal; .rp-section How are they paying? &lt;&gt; .rp-buyer__name John Smith; .rp-option__title Finance &lt;&gt; .rp-buyer__meta (718) 555-0134; .rp-option__title Lease &lt;&gt; .rp-buyer__meta (718) 555-0134; .rp-option__title Cash &lt;&gt; .rp-buyer__name Cheri Bridwell; .rp-option__title One Pay &lt;&gt; .rp-buyer__name Cheri Bridwell; .rp-option__title One Pay &lt;&gt; .rp-buyer__role.rp-buyer__role--co Removed; .rp-row__title Discovery question &lt;&gt; .rp-buyer__meta Removed
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (2): .rp-option__title Cash &lt;&gt; #dkSheetTitle.rp-sheet__title Buyers on this deal; #hConfirm.rp-primary Open the pencil &lt;&gt; #byAdd.rp-primary Add a different co-buyer
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     
@@ -3722,7 +3722,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     <p class="notes">The link exists only for a Team Lead and only with two buyers — never a control that ends in a permission toast.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-row__title Trial close — in the custome &lt;&gt; #dkSheetTitle.rp-sheet__title Buyers on this deal; .rp-row__sub “If the numbers make sense,  &lt;&gt; #byRoles.rp-sheet__action Change roles; .rp-row__sub 48 / 60 / 72 months × $1,000 &lt;&gt; .rp-buyer__name John Smith; .rp-row__sub 48 / 60 / 72 months × $1,000 &lt;&gt; .rp-buyer__role Primary; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; .rp-section Co-buyer
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-row__title Payment options &lt;&gt; #dkSheetTitle.rp-sheet__title Buyers on this deal; .rp-row__sub 48 / 60 / 72 months × $1,000 &lt;&gt; #byRoles.rp-sheet__action Change roles; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; .rp-section Primary buyer; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; .rp-buyer__name John Smith;  MSRP &lt;&gt; .rp-buyer__meta (718) 555-0134;  $42,910.00 &lt;&gt; .rp-buyer__role Primary
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     
@@ -3737,7 +3737,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     <p class="notes">Confirms before swapping customerId/coBuyerId (the fields the roles live in); a signed benefits acknowledgement is voided and the sheet says so first.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__terms 60 months · 3.5% APR through &lt;&gt; #dkSheetTitle.rp-sheet__title Make Cheri the primary buyer; .rp-row__title Trial close — in the custome &lt;&gt; .rp-sheet__sub Team Lead action · John beco; .rp-row__sub “If the numbers make sense,  &lt;&gt;  What changes with the swap; .rp-row__title Payment options &lt;&gt;  Title and registration paper; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkPresent.rp-primary Present to customer; .rp-acc__head Vehicle price$41,431.00 &lt;&gt;  Primary
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__terms 60 months · 3.5% APR through &lt;&gt; #dkSheetTitle.rp-sheet__title Make Cheri the primary buyer; .rp-row__title Payment options &lt;&gt; .rp-sheet__sub Team Lead action · John beco; .rp-row__sub 48 / 60 / 72 months × $1,000 &lt;&gt;  What changes with the swap; .rp-acc__head Vehicle price$41,431.00 &lt;&gt;  Title and registration paper; .rp-acc__sum $41,431.00 &lt;&gt;  Title and registration paper;  MSRP &lt;&gt;  Primary
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     
@@ -3752,7 +3752,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     <p class="notes">Create a new customer appears only when nobody in the CRM matches — never beside a list of matches. Scan and secure upload stay available beneath it.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #hTrial.rp-textarea If the numbers make sense, w &lt;&gt; #dkSheetTitle.rp-sheet__title Add co-buyer; .rp-field__label Payment the customer named &lt;&gt; #byQGo.rp-button-navy Search; .rp-section How are they paying? &lt;&gt; .rp-empty No matchNobody in the CRM ma; .rp-section How are they paying? &lt;&gt;  No match; .rp-option__title Finance &lt;&gt; .rp-empty No matchNobody in the CRM ma; .rp-option__title Lease &lt;&gt; .rp-empty No matchNobody in the CRM ma; .rp-option__title Cash &lt;&gt; .rp-empty No matchNobody in the CRM ma; .rp-option__title One Pay &lt;&gt; .rp-empty No matchNobody in the CRM ma
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (3): .rp-option__title Cash &lt;&gt; #dkSheetTitle.rp-sheet__title Add co-buyer; #hConfirm.rp-primary Open the pencil &lt;&gt; .rp-row__title Send secure upload link; #hConfirm.rp-primary Open the pencil &lt;&gt; .rp-row__sub They upload from their own p
 small targets &lt;36px (2): .rp-sheet__close  32x32; #byQ.rp-search__input  220x25</div></details>
     
     
@@ -3771,17 +3771,17 @@ small targets &lt;36px (2): .rp-sheet__close  32x32; #byQ.rp-search__input  220x
     
     
   </article><div class="arrow"><div class="line"></div><div class="act">Fill the four fields, tap Save</div></div><article class="scr" id="buyers-created-receipt" data-search="buyers on the deal (co-buyer) back on the deal — the new co-buyer attached, the sheet reopened saving returns to the screen the advisor left, starts no new visit, and reopens the buyers sheet with the new person in the co-buyer row as the receipt. the buyers sheet here opens with &quot;one primary buyer. add a co-buyer only when the deal needs one.&quot;, and is drawn in an older design: uppercase labels, bordered cards, a purple &quot;primary&quot; pill and no close. the same sheet elsewhere in the flow is the kit&#39;s, with neither.">
-    <div class="frame tall">
+    <div class="frame">
       <span class="n">11</span>
       <span class="flags"><span class="sev sev--Minor">Minor</span></span>
       <button type="button" class="zoom" aria-label="Enlarge screenshot: Back on the deal — the new co-buyer attached, the sheet reopened" data-cap="Buyers on the Deal (Co-Buyer) · 11 Back on the deal — the new co-buyer attached, the sheet reopened · #/desk/d-demo1"><img loading="lazy" src="current/12-buyers-and-co-buyer/11-created-receipt.png" alt="Back on the deal — the new co-buyer attached, the sheet reopened"></button>
     </div>
     <h3>Back on the deal — the new co-buyer attached, the sheet reopened</h3>
-    <div class="hash">#/desk/d-demo1 · <a href="current/12-buyers-and-co-buyer/11-created-receipt.scroll.png" target="_blank">full length ↓</a></div>
+    <div class="hash">#/desk/d-demo1</div>
     <p class="notes">Saving returns to the screen the advisor left, starts no new visit, and reopens the buyers sheet with the new person in the Co-buyer row as the receipt.</p>
     
     <details open><summary>1 issue</summary><div class="issue issue--Minor"><b><span class="sev sev--Minor">Minor</span> RP-UI-081</b><p>The buyers sheet here opens with &quot;One primary buyer. Add a co-buyer only when the deal needs one.&quot;, and is drawn in an older design: uppercase labels, bordered cards, a purple &quot;Primary&quot; pill and no close. The same sheet elsewhere in the flow is the kit&#39;s, with neither.</p><p><em>One sheet, two designs in one flow, and the older one has no way to close. The receipt should be the kit sheet showing the new co-buyer&#39;s row. Found by the v043 audit.</em></p></div></details>
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-section How are they paying? &lt;&gt; .by2-sub One primary buyer. Add a co-; .rp-option__title Finance &lt;&gt; .by2-seclab Primary buyer; .rp-option__title Lease &lt;&gt; .by2-seclab Primary buyer; .rp-option__title Cash &lt;&gt; .by2-rowsub (718) 555-0134; .rp-option__title One Pay &lt;&gt; .by2-rowsub (718) 555-0134; .rp-option__title One Pay &lt;&gt; .by2-pill Primary; .rp-row__title Discovery question &lt;&gt; .by2-seclab Co-buyer; #hTrack.rp-row__sub Is the incentivized rate or  &lt;&gt; .by2-rowname Dana Whitfield
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (1): #hConfirm.rp-primary Open the pencil &lt;&gt; .by2-banner ✓ Co-buyer attached to this 
 text contrast under the floor (1): .by2-banner ✓ Co-buyer attached to this  | #168a62 on #eaf7f2 | 3.94:1, needs 4.5 | 14px bold</div></details>
     
     
@@ -3796,7 +3796,7 @@ text contrast under the floor (1): .by2-banner ✓ Co-buyer attached to this  | 
     <p class="notes">The deal has been through the lending lane: a submitted joint application, both identities filed, the acknowledgment signed. Cheri&#39;s sheet says so before any action is offered.</p>
     
     
-    <details><summary>automated checks (3)</summary><div class="auto">overlap (8): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__terms 60 months · 3.5% APR through &lt;&gt; #dkSheetTitle.rp-sheet__title Cheri Bridwell; .rp-row__sub “If the numbers make sense,  &lt;&gt; .rp-row__title View customer profile; .rp-row__title Payment options &lt;&gt; .rp-row__title Scan Cheri&#39;s license; .rp-row__sub 48 / 60 / 72 months × $1,000 &lt;&gt; .rp-row__title Scan Cheri&#39;s license; .rp-row__sub 48 / 60 / 72 months × $1,000 &lt;&gt; .rp-row__sub Cheri is here in the showroo; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; #dkPresent.rp-primary Present to customer
+    <details><summary>automated checks (3)</summary><div class="auto">overlap (8): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__terms 60 months · 3.5% APR through &lt;&gt; #dkSheetTitle.rp-sheet__title Cheri Bridwell; .rp-row__sub 48 / 60 / 72 months × $1,000 &lt;&gt; .rp-row__title View customer profile; .rp-acc__head Vehicle price$41,431.00 &lt;&gt; .rp-row__title Scan Cheri&#39;s license; .rp-acc__sum $41,431.00 &lt;&gt; .rp-row__title Scan Cheri&#39;s license;  Your price &lt;&gt; .rp-row__title Send secure upload link;  Your price &lt;&gt; .rp-row__sub On Cheri&#39;s own phone
 small targets &lt;36px (1): .rp-sheet__close  32x32
 text contrast under the floor (1): #byRemove.rp-dialog__button.rp-dialog__button--destructive Remove from deal | #ffffff on #e0392c | 4.38:1, needs 4.5 | 14px bold</div></details>
     
@@ -3827,7 +3827,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     <p class="notes">The ask is recorded on the deal and nothing is removed. Cheri&#39;s sheet now carries the pending request, who made it and when — it is the Team Lead&#39;s to approve.</p>
     
     
-    <details><summary>automated checks (3)</summary><div class="auto">overlap (8): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__label Monthly payment &lt;&gt; #dkSheetTitle.rp-sheet__title Cheri Bridwell; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkSheetTitle.rp-sheet__title Cheri Bridwell; .rp-price__amount $701.79/ mo &lt;&gt; .rp-sheet__sub Co-buyer on this deal · on a;  / mo &lt;&gt; .rp-sheet__sub Co-buyer on this deal · on a; .rp-price__terms 60 months · 3.5% APR through &lt;&gt; .rp-row__title View customer profile; .rp-row__title Trial close — in the custome &lt;&gt; .rp-row__title Scan Cheri&#39;s license
+    <details><summary>automated checks (3)</summary><div class="auto">overlap (8): .rp-price__label Monthly payment &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__label Monthly payment &lt;&gt; #dkSheetTitle.rp-sheet__title Cheri Bridwell; .rp-price__amount $701.79/ mo &lt;&gt; #dkHeroPresent.rp-price__action Present; .rp-price__amount $701.79/ mo &lt;&gt; #dkSheetTitle.rp-sheet__title Cheri Bridwell; .rp-price__amount $701.79/ mo &lt;&gt; .rp-sheet__sub Co-buyer on this deal · on a;  / mo &lt;&gt; .rp-sheet__sub Co-buyer on this deal · on a; .rp-price__terms 60 months · 3.5% APR through &lt;&gt; .rp-row__title View customer profile; .rp-row__title Payment options &lt;&gt; .rp-row__title Scan Cheri&#39;s license
 small targets &lt;36px (1): .rp-sheet__close  32x32
 text contrast under the floor (1): #byRemove.rp-dialog__button.rp-dialog__button--destructive Remove from deal | #ffffff on #e0392c | 4.38:1, needs 4.5 | 14px bold</div></details>
     
@@ -3889,7 +3889,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     <p class="notes">W-145: a customer who says Bridwell finds Cheri Smith. The search reads the name now and each former name, and the hit says Formerly Cheri Bridwell, as New visit&#39;s rows do. The same search is on the buyers sheet and the co-buyer finder.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): #hTrial.rp-textarea If the numbers make sense, w &lt;&gt; #dkSheetTitle.rp-sheet__title Add co-buyer; .rp-field__label Payment the customer named &lt;&gt; #dkSheetTitle.rp-sheet__title Add co-buyer; .rp-section How are they paying? &lt;&gt; .rp-section Result; .rp-option__title Finance &lt;&gt; .rp-buyer__name Cheri Smith; .rp-option__title Lease &lt;&gt; .rp-buyer__name Cheri Smith; .rp-row__title Discovery question &lt;&gt; .rp-row__title Scan physical license; #hTrack.rp-row__sub Is the incentivized rate or  &lt;&gt; .rp-row__sub Same scan and confirm flow; #hTrade.rp-toggle-row Trade evaluated · $15,500 &lt;&gt; #hConfirm.rp-primary Open the pencil
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (3): .rp-option__title Cash &lt;&gt; #dkSheetTitle.rp-sheet__title Add co-buyer; #hConfirm.rp-primary Open the pencil &lt;&gt; .rp-row__title Send secure upload link; #hConfirm.rp-primary Open the pencil &lt;&gt; .rp-row__sub They upload from their own p
 small targets &lt;36px (2): .rp-sheet__close  32x32; #byQ.rp-search__input  220x25</div></details>
     
     
@@ -4804,7 +4804,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     <p class="notes">After a request went out and the advisor photographed the insurance card in the showroom, the tracking sheet still reports the customer: Waiting, and 0 uploads — an advisor capture is not the customer opening the link.</p>
     <ul class="branches"><li>Resend the text to John → <a href="#document-request-resend-sheet">Customer document request (from the jacket) · 06 Resend documents</a></li></ul>
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-ready__note 3 items need the customer. T &lt;&gt; #jkSheetTitle.rp-sheet__title Customer request; .rp-bucket__title Waiting on customer &lt;&gt;  Link sent; .rp-bucket__badge 3 needed &lt;&gt;  Oct 5, 6:35 AM; .rp-doc__why John Smith: both sides neede &lt;&gt;  Customer opened; .rp-doc__state Needed &lt;&gt;  Waiting; .rp-doc__name Auto Insurance Card (Binder) &lt;&gt;  Documents uploaded; .rp-doc__why Needed for delivery &lt;&gt; .rp-count The customer&#39;s phone is play; .rp-doc__name Proof of Income (Paystub) &lt;&gt; .rp-count The customer&#39;s phone is play
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-ready__note 3 items need the customer. T &lt;&gt; #jkSheetTitle.rp-sheet__title Customer request; .rp-bucket__title Waiting on customer &lt;&gt;  Link sent; .rp-bucket__badge 3 needed &lt;&gt;  Oct 6, 4:00 AM; .rp-doc__why John Smith: both sides neede &lt;&gt;  Customer opened; .rp-doc__state Needed &lt;&gt;  Waiting; .rp-doc__name Auto Insurance Card (Binder) &lt;&gt;  Documents uploaded; .rp-doc__why Needed for delivery &lt;&gt; .rp-count The customer&#39;s phone is play; .rp-doc__name Proof of Income (Paystub) &lt;&gt; .rp-count The customer&#39;s phone is play
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     
@@ -4915,7 +4915,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     <p class="notes">Four lines: sent, delivered, whether the customer has opened it, and how many of the asked documents came back. Nothing has happened on the customer&#39;s side yet, so it reads Waiting and 0 of 3.</p>
     <ul class="branches"><li>Open the customer&#39;s phone → <a href="#client-upload-sms">Client Document Upload (customer&#39;s phone) · 01 Document request — what the link opens</a></li></ul>
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-doc__name Driver&#39;s License &lt;&gt; #jkSheetTitle.rp-sheet__title Customer request; .rp-doc__why John Smith: both sides neede &lt;&gt; #jkSheetTitle.rp-sheet__title Customer request; .rp-doc__name Auto Insurance Card (Binder) &lt;&gt;  Link sent; .rp-doc__name Auto Insurance Card (Binder) &lt;&gt;  Oct 5, 6:35 AM; .rp-doc__state Requested &lt;&gt;  Oct 5, 6:35 AM; .rp-doc__name Proof of Income (Paystub) &lt;&gt;  Customer opened; .rp-doc__state Requested &lt;&gt;  Waiting; #jkRequest.rp-primary Resend the text to John (3) &lt;&gt; .rp-count The customer&#39;s phone is play
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-doc__name Driver&#39;s License &lt;&gt; #jkSheetTitle.rp-sheet__title Customer request; .rp-doc__why John Smith: both sides neede &lt;&gt; #jkSheetTitle.rp-sheet__title Customer request; .rp-doc__name Auto Insurance Card (Binder) &lt;&gt;  Link sent; .rp-doc__name Auto Insurance Card (Binder) &lt;&gt;  Oct 6, 4:00 AM; .rp-doc__state Requested &lt;&gt;  Oct 6, 4:00 AM; .rp-doc__name Proof of Income (Paystub) &lt;&gt;  Customer opened; .rp-doc__state Requested &lt;&gt;  Waiting; #jkRequest.rp-primary Resend the text to John (3) &lt;&gt; .rp-count The customer&#39;s phone is play
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     
@@ -4959,7 +4959,7 @@ small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     <p class="notes">The same four lines once the customer has acted: Opened, and 1 of 3 — only what the customer sent through the link counts, never a document the advisor captured in the showroom.</p>
     
     
-    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-ready__note 2 items need the customer. T &lt;&gt; #jkSheetTitle.rp-sheet__title Customer request; .rp-bucket__title Waiting on customer &lt;&gt;  Link sent; .rp-bucket__badge 2 needed &lt;&gt;  Oct 5, 6:35 AM; .rp-doc__why John Smith: both sides neede &lt;&gt;  Customer opened; .rp-doc__state Requested &lt;&gt;  Opened; .rp-doc__name Proof of Income (Paystub) &lt;&gt;  Documents uploaded; .rp-doc__why Bank requirement &lt;&gt; .rp-count The customer&#39;s phone is play; #jkRequest.rp-primary Resend the text to John (2) &lt;&gt; .rp-count The customer&#39;s phone is play
+    <details><summary>automated checks (2)</summary><div class="auto">overlap (8): .rp-ready__note 2 items need the customer. T &lt;&gt; #jkSheetTitle.rp-sheet__title Customer request; .rp-bucket__title Waiting on customer &lt;&gt;  Link sent; .rp-bucket__badge 2 needed &lt;&gt;  Oct 6, 4:00 AM; .rp-doc__why John Smith: both sides neede &lt;&gt;  Customer opened; .rp-doc__state Requested &lt;&gt;  Opened; .rp-doc__name Proof of Income (Paystub) &lt;&gt;  Documents uploaded; .rp-doc__why Bank requirement &lt;&gt; .rp-count The customer&#39;s phone is play; #jkRequest.rp-primary Resend the text to John (2) &lt;&gt; .rp-count The customer&#39;s phone is play
 small targets &lt;36px (1): .rp-sheet__close  32x32</div></details>
     
     
