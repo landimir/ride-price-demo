@@ -13,7 +13,8 @@
    Folder names are the product areas. Keep keys stable across versions —
    they are the identity the changelog diffs against. */
 import { VIEWPORT, FIXTURES, join, existsSync } from "./lib.mjs";
-import { statSync } from "node:fs";
+import { statSync, writeFileSync, mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
 
 /* Bump this whenever the way a fixture is CAPTURED changes. A size check
    alone cannot tell a good old fixture from a good new one, and the two are
@@ -40,6 +41,62 @@ const APPROVED = `{ const d = Store.deal("${D}"), v = Store.vehicle(d.stock), r 
   d.huddle.done = true; d.desk.customerChose = { term: r.term || 0, down: d.dealType === "cash" ? 0 : lease ? d.desk.dueAtSigning : d.desk.downPayment, payment: d.dealType === "cash" ? r.totalDue : d.dealType === "onepay" ? r.onePayTotal : r.payment, at: now, inputs: deskInputs(d) };
   d.desk.presentedAt = now; d.desk.approvalRequestedAt = now; d.desk.approvalRequestedBy = "Ashley Collins"; d.desk.approvedAt = now; d.desk.approvedBy = "Jordan Reyes";
   d.basePayment = { signedAt: null, snapshot: agreementSnapshot(d, v) }; d.stage = "signed"; }`;
+/* the same approval, still on the desk: Jordan approved, and Continue has not opened the agreement yet */
+/* John's choice presented and sent to Jordan, still waiting on him (W-004) */
+const ASKED_ON_DESK = `{ const d = Store.deal("${D}"), v = Store.vehicle(d.stock), at = (m) => new Date(Date.now() - m * 60000).toISOString();
+  d.huddle.done = true; d.desk.customerChose = { term: d.desk.term, down: d.desk.downPayment, payment: RIDE_PRICE_CALC.calc(d, v).payment, at: at(20), inputs: deskInputs(d) };
+  d.desk.presentedAt = at(21); d.desk.approvalRequestedAt = at(14); d.desk.approvalRequestedBy = "Ashley Collins"; }`;
+/* Jordan's floor with two kinds of request (the #159 picture's seed): Ashley's ask to remove Cheri from John's deal, and
+   Nadia R.'s pencil for Marcus waiting on his approval */
+const TWO_REQUESTS = `{ const d = Store.deal("${D}"); d.huddle.done = true; d.coBuyerId = "c-demo2";
+  d.identity = { verifiedAt: new Date().toISOString() }; d.coIdentity = { verifiedAt: new Date().toISOString() };
+  d.creditApp = { submitted: new Date().toISOString(), approved: true, status: "approved", lender: "Ride Price Financial", approvedApr: 3.9, agreedApr: 3.5, form: { joint: true } };
+  jacketReceive(d, "idverify-cobuyer", "app"); jacketReceive(d, "creditapp", "app"); jacketReceive(d, "approval", "app");
+  d.coBuyerRemoveRequest = { customerId: "c-demo2", by: "Ashley Collins", byRole: "advisor", at: new Date(Date.now() - 6 * 60000).toISOString() };
+  const e = JSON.parse(JSON.stringify(d)); e.id = "d-tl-marcus"; e.customerId = "c-demo4"; e.advisor = "Nadia R."; e.dealNo = null;
+  delete e.coBuyerId; delete e.coBuyerRemoveRequest; e.creditApp = null; e.coIdentity = null; e.stock = "7H21477";
+  const v = Store.vehicle(e.stock);
+  e.desk.customerChose = { term: e.desk.term, down: e.desk.downPayment, payment: RIDE_PRICE_CALC.calc(e, v).payment, at: new Date(Date.now() - 20 * 60000).toISOString(), inputs: deskInputs(e) };
+  e.desk.approvalRequestedAt = new Date(Date.now() - 14 * 60000).toISOString(); e.desk.approvalRequestedBy = "Nadia R.";
+  Store.s.deals.push(e); }`;
+/* John's deal with every document filed, ready for Final review (harness/services.mjs's ALL_FILED) */
+const ALL_FILED = `{ const d = Store.deal("${D}"); d.huddle.done = true;
+  d.basePayment = { signedAt: new Date().toISOString(), snapshot: RIDE_PRICE_CALC.calc(d, Store.vehicle(d.stock)), sigName: "John Smith" };
+  d.identity = { verifiedAt: new Date().toISOString() };
+  d.creditApp = { submitted: new Date().toISOString(), approved: true, status: "approved", lender: "Ride Price Financial", approvedApr: 3.9, agreedApr: 3.5, agreedPayment: 701.79, form: {} };
+  d.testDrive.done = true; d.signoff = { by: "Jordan Reyes", at: new Date().toISOString() };
+  jacketDocs(d).forEach((doc) => { if (doc.id !== "form-license" && !jacketState(d, doc.id)) jacketReceive(d, doc.id, "hand"); });
+  const at = new Date().toISOString();
+  licenseBuyerIds(d).forEach((customerId) => setClientRecord(d, "form-license", customerId, { customerId, state: "accepted", receiptRevision: 1, pages: 2, sides: { front: { receivedAt: at }, back: { receivedAt: at } }, review: { customerId, receiptRevision: 1, reviewedAt: at, by: "Fixture reviewer" } }));
+  syncLicenseReceipt(d); }`;
+/* John's trade with its ownership reviewed, so the expired payoff offers Update the payoff (harness/payoffscan.mjs) */
+const REVIEWED_TRADE = `{ const t = Store.deal("${D}").trade; t.ownershipReviewedAt = t.ownershipReviewedAt || new Date().toISOString(); }`;
+/* a photo of a training payoff statement, drawn in the page from the prop's own marker on white paper, as a phone's photo
+   would be (harness/payoffscan.mjs); code 0 draws a letter with no marker, which the scanner cannot read */
+const PHOTO_DIR = mkdtempSync(join(tmpdir(), "rp-lib-photos-"));
+const payoffPhoto = async (s, name, code, token) => {
+  const b64 = await s.eval(`(async () => {
+    const svg = ${code ? `RIDE_PRICE_DOCSCAN.markerSVG(${code}, ${token}, "")` : `""`};
+    const cv = document.createElement("canvas"); cv.width = 1400; cv.height = 700;
+    const x = cv.getContext("2d"); x.fillStyle = "#fff"; x.fillRect(0, 0, cv.width, cv.height);
+    x.fillStyle = "#1f3b63"; x.font = "40px Georgia"; x.fillText("Payoff statement", 200, 180);
+    if (svg) { const img = new Image(); img.src = "data:image/svg+xml," + encodeURIComponent(svg.replace("<svg ", '<svg width="1000" height="120" ')); await img.decode(); x.drawImage(img, 200, 290, 1000, 120); }
+    return cv.toDataURL("image/png").split(",")[1]; })()`);
+  const file = join(PHOTO_DIR, name + ".png");
+  writeFileSync(file, Buffer.from(b64, "base64"));
+  return file;
+};
+/* the tester switches (services.js), set on the page that is up: the others back to normal first unless told not to, and
+   how long a pretend server takes, which a reload forgets */
+const svc = (s, on = {}, resetFirst = true, timing = null) => s.eval(`(() => { const S = RIDE_PRICE_SERVICES; ${resetFirst ? "S.reset();" : ""} ${timing ? `S.setTiming(${JSON.stringify(timing)});` : ""} ${Object.entries(on).map(([id, m]) => `S.set(${JSON.stringify(id)}, ${JSON.stringify(m)});`).join(" ")} return true; })()`).then(() => new Promise((r) => setTimeout(r, 300)));
+/* the secure link's sheet, from a search that found nobody: Nadia R.'s number typed (services.mjs's toSendSheet) */
+const toSendSheet = async (s, timing) => {
+  await s.reset(); await s.go("#/visit");
+  if (timing) await svc(s, {}, false, timing);
+  await s.type("#obSearch", "Nadia R."); await s.click("#searchBtn", { wait: 500 });
+  await s.click("#obSendLink", { wait: 600 }); await s.type("#obLinkPhone", "(718) 555-0199");
+};
+const APPROVED_ON_DESK = (() => { const [head, rest] = APPROVED.split("d.basePayment = "); if (!rest) throw new Error("APPROVED changed its shape"); return head + " }"; })();
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
 /* the toast of the step before is not part of this screen: three v022 captures
    had one covering the very line the screen exists to show. toast() recreates
@@ -209,7 +266,7 @@ export const FLOWS = [
       { key: "testlog-clear-confirm", screen: "Clear the test log? — confirm", do: async (s) => { await s.click("#tlClear", { wait: 300 }); },
         action: "Tap Clear the log", next: "testlog-cleared",
         notes: "Clear asks first in the kit's dialog; Keep it is the safe answer (HN-042)." },
-      { key: "testlog-cleared", screen: "Test log — cleared and stopped", do: async (s) => { await s.click("#chDialogGo", { wait: 500 }); },
+      { key: "testlog-cleared", reusedFrom: "testlog-off", screen: "Test log — cleared and stopped", do: async (s) => { await s.click("#chDialogGo", { wait: 500 }); },
         action: "Tap Close", next: "home/deals-queue",
         notes: "Clearing empties the log, stops recording and drops its storage slot; the deal store is untouched (HN-040, HN-042)." },
       /* KA-008 (the owner's answer A, 2026-09-28): the third tab is the Customers list, a destination; New visit,
@@ -219,6 +276,18 @@ export const FLOWS = [
         action: "Tap John Smith's row", next: "desking/huddle-gate",
         branches: [{ action: "New customer visit, in More", to: "onboarding/resolver-idle" }],
         notes: "The third tab is a place, not a task: every customer on file, newest record first, each with where that customer stands. John is in the showroom, desking the Santa Fe; Marcus is remote, a secure link sent at 11:38; Priya and Cheri show how to reach them. John's row opens John's deal where it stands; the other rows wait for the customer's own page, which is not built yet (KA-008; the owner's two questions, both answered A on Sep 28, at 11:25 and 11:26 PM)." },
+      { key: "business-deal-card", screen: "My deals — a business buyer's card", standalone: true, do: async (s) => { await s.reset(); await s.eval(`(() => { const d = Store.deal("d-demo1"); d.business = { name: "Hudson Valley Landscaping LLC", signerTitle: "Owner", entityType: "", taxId: "", authority: false }; Store.save(); return true; })()`); await s.go("#/deals"); },
+        action: null, next: null,
+        notes: "LS-115, the owner's answer B of 2026-10-04: a business is the buyer and a person signs for it. The card carries the business's name with the signer under it, the showroom row names the business too, and the search finds either." },
+      /* ---- the Team Lead's Needs you and the empty and partial lists (the owner, 2026-10-06: every state a flow draws) ---- */
+      { key: "needs-you-approval", screen: "Active floor — Needs you · 1 approval", standalone: true, do: async (s) => { await s.reset(); await ev(s, `Store.s.role = "teamlead"; ${ASKED_ON_DESK}`); await s.go("#/deals"); }, action: "Tap Review", next: "desking/approve-sheet",
+        notes: "Ashley asked Jordan to approve John's 60 months at $1,000 down. Jordan's floor opens on Needs you: who asked, for what, and when, with Review taking him to the approval on the pencil (W-004)." },
+      { key: "needs-you-requests", screen: "Active floor — Needs you · 2 requests", standalone: true, do: async (s) => { await s.reset(); await ev(s, `Store.s.role = "teamlead"; ${TWO_REQUESTS}`); await s.go("#/deals"); }, action: "Tap Review on either", next: "buyers/buyers-sheet",
+        notes: "Two kinds at once: Ashley asks to remove Cheri as John's co-buyer, and Nadia asks for the approval of Marcus's pencil. With a removal among them they read as requests, not approvals (W-005)." },
+      { key: "funded-empty", screen: "Funded — none in the range", standalone: true, do: async (s) => { await s.reset(); await ev(s, `Store.s.role = "teamlead";`); await s.go("#/deals"); await s.click("#dqDateBtn", { wait: 300 }); await s.click("#dqFundedToggle", { wait: 400 }); }, action: "Choose a wider date range", next: "date-history-sheet",
+        notes: "Today has no funded contract: the empty state says so and names the next action, a wider range (KA-025)." },
+      { key: "completed-only-match", screen: "Search — the only match is completed", standalone: true, do: async (s) => { await s.reset(); await ev(s, `const d = Store.deal("${D}"); d.stage = "complete"; d.forms = Object.assign({}, d.forms, { finalized: true });`); await s.go("#/deals"); await s.type("#dealSearch", "john", { wait: 400 }); }, action: null, next: null,
+        notes: "Searching for John while his deal is complete: no deal in progress matches, and the match shows under Completed instead (HN-033)." },
     ] },
 
   /* ------------------------------------------------------------ */
@@ -243,13 +312,13 @@ export const FLOWS = [
         notes: "Owner ruling 2026-09-18 (\"B The codex way\"): the role control appears ONLY here, in Customer Onboarding — never on Home or any other screen, never inside Scan License. Home's band names the Team Lead while acting as one (\"Acting as Jordan Reyes\"); as the Advisor it reads \"Sample data only\"." },
       { key: "no-match", screen: "Search results — no match", do: async (s) => { await s.go("#/visit"); await s.type("#obSearch", "Zzz"); await s.click("#searchBtn", { wait: 400 }); }, action: "Tap 'No license available · add manually'", next: "manual-fallback",
         notes: "A miss names the other paths rather than jumping straight to a create form." },
-      { key: "manual-fallback", screen: "No license available — manual fallback", do: async (s) => { await s.click("#obManual", { wait: 300 }); }, action: "Fill the four fields, tap Confirm & start visit", next: "discovery/stage-intro",
+      { key: "manual-fallback", screen: "No license available — manual fallback", do: async (s) => { await s.click("#obManual", { wait: 300 }); }, action: "Fill the three fields, tap Confirm & start visit", next: "discovery/stage-intro",
         branches: [{ action: "Confirm with a field that will not do", to: "onboarding/manual-refused" }],
-        notes: "The task title and four fields — no helper copy on the kit (chrome rule v022). The two rules hold in validation rather than on the screen: use a license or a license photo if one turns up, and both contact channels are required (RP-UI-043 records the copy that left)." },
-      { key: "manual-refused", screen: "Manual form — refused beside each field", do: async (s) => { await s.type("#obName", "Cheri"); await s.type("#obPhone", "555"); await s.type("#obEmail", "x"); await s.type("#obAddr", "Astoria"); await s.click("#obManualSave", { wait: 300 }); },
+        notes: "The task title and three fields (name, mobile phone or email, address), with the box for someone helping under the contact — no helper copy on the kit (chrome rule v022). The two rules hold in validation rather than on the screen: use a license or a license photo if one turns up, and one way to reach the customer is required (a phone or an email, LS-058; RP-UI-043 records the copy that left)." },
+      { key: "manual-refused", screen: "Manual form — refused beside each field", do: async (s) => { await s.type("#obName", "Cheri"); await s.type("#obContact", "555"); await s.type("#obAddr", "Astoria"); await s.click("#obManualSave", { wait: 300 }); },
         action: "Fix the fields, tap Confirm again", next: "manual-duplicate",
         notes: "Nothing is created from a one-word name, a number that is not ten digits, an email without an @ and a dot, or an address missing its street, town or ZIP — each refusal sits beside its own field (OB-006, OB-008, OB-009, OB-049)." },
-      { key: "manual-duplicate", screen: "Already on file — the same phone", do: async (s) => { await s.type("#obName", "Dana Whitfield"); await s.type("#obPhone", "(718) 555-0134"); await s.type("#obEmail", "dwhitfield@testing.com"); await s.type("#obAddr", "20 Ditmars Blvd, Astoria, NY 11106"); await s.click("#obManualSave", { wait: 400 }); },
+      { key: "manual-duplicate", screen: "Already on file — the same phone", do: async (s) => { await s.type("#obName", "Dana Whitfield"); await s.type("#obContact", "(718) 555-0134"); await s.type("#obAddr", "20 Ditmars Blvd, Astoria, NY 11106"); await s.click("#obManualSave", { wait: 400 }); },
         action: "Tap Use John Smith on file", next: "customer-found",
         branches: [{ action: "Create a new record anyway", to: "discovery/stage-intro" }],
         notes: "D-OB1: a phone, email or license already on file stops the save and names who holds it; creating anyway is a deliberate second tap. A matching name only is asked about, not blocked (OB-001)." },
@@ -314,14 +383,32 @@ export const FLOWS = [
           await s.reset();
           await ev(s, `const c = Store.customer("c-demo2"); c.last = "Smith"; c.email = "cheri.smith@testing.com"; c.formerNames = [{ first: "Cheri", middle: "", last: "Bridwell", at: "2026-09-30T14:00:00.000Z", by: "Jordan Reyes" }];`);
           await s.go("#/visit"); await s.type("#obSearch", "Zzz"); await s.click("#searchBtn", { wait: 400 }); await s.click("#obManual", { wait: 300 });
-          await s.type("#obName", "Cheri Bridwell"); await s.type("#obPhone", "(212) 555-0155"); await s.type("#obEmail", "cheri.new@testing.com"); await s.type("#obAddr", "20 Ditmars Blvd, Astoria, NY 11106"); await s.click("#obManualSave", { wait: 500 }); },
+          await s.type("#obName", "Cheri Bridwell"); await s.type("#obContact", "(212) 555-0155"); await s.type("#obAddr", "20 Ditmars Blvd, Astoria, NY 11106"); await s.click("#obManualSave", { wait: 500 }); },
         action: "Tap Use Cheri Smith on file", next: null,
         expect: async (s) => { const t = await s.text("#view"); return t.includes("Same name") && t.includes("Formerly Cheri Bridwell") ? null : "a Cheri Bridwell typed after Cheri became Cheri Smith should ask Same name on file, with the record as Cheri Smith, Formerly Cheri Bridwell (W-145)"; },
         notes: "W-145: the same-name question reads a former name too. Cheri renewed as Cheri Smith, and Bridwell is kept as her former name; typing Cheri Bridwell on the manual form no longer saves a second Cheri without a question. The record shows as Cheri Smith, Formerly Cheri Bridwell, and Ashley says whether it is the same person." },
+      { key: "manual-helper", screen: "Manual form — a helper's number", standalone: true, do: async (s) => {
+          await s.reset();
+          await s.go("#/visit"); await s.type("#obSearch", "Zzz"); await s.click("#searchBtn", { wait: 400 }); await s.click("#obManual", { wait: 300 });
+          await s.type("#obName", "Nadia Quinn"); await s.type("#obContact", "(718) 555-0199"); await s.click("#obHelper", { wait: 150 }); },
+        action: "Fill the address, tap Confirm & start visit", next: null,
+        expect: async (s) => {
+          const t = await s.text("#view");
+          const on = await s.eval(`!!(document.getElementById("obHelper") || {}).checked`);
+          return t.includes("Mobile phone or email") && t.includes("This number belongs to someone helping the customer") && on ? null : "the typed form should ask for one contact and offer the box for someone helping, ticked";
+        },
+        notes: "LS-058, the owner's answer B (his D-OB6 everywhere): the typed form asks for one thing, a phone or an email, and a guest with neither gives the number of someone helping them. Ticked, the number is kept as the helper's, matches no record, and is never the customer's own." },
+      { key: "business-buyer-sheet", screen: "Business buyer (sheet)", standalone: true, do: async (s) => { await s.reset(); await s.go("#/visit"); await s.click("#obBusiness", { wait: 300 }); },
+        action: "Type the business's name and the signer's title, tap Continue", next: "business-buyer-named",
+        notes: "LS-115, the owner's answer B of 2026-10-04: a company buys and its owner or manager signs. The sheet names the business and the signer's title; the signer is then found like any customer." },
+      { key: "business-buyer-named", screen: "Find customer — a business buyer is named", do: async (s) => { await s.type("#obBizName", "Hudson Valley Landscaping LLC"); await s.type("#obBizTitle", "Owner"); await s.click("#obBizSave", { wait: 400 }); },
+        /* no next: the library's customer-found step leaves New visit first, which drops the business (CodeRabbit on #261) */
+        action: "Find the person who signs, as any customer is found", next: null,
+        notes: "The notice says what the visit is: the business, signed by its Owner. The visit that starts carries the business beside the person; leaving New visit drops it." },
     ] },
 
   /* ------------------------------------------------------------ */  { id: "license-scan", area: "03-license-scan", title: "Scan Driver's License",
-    description: "The prop-license scanner on the owner's UI kit (package v023, 2026-09-05): twelve screens as a kit Task inside New visit — Close returns to the resolver, the title carries the two-part step, and the DEMO band is the only environment marker. The advisor still experiences two decisions — capture the license, then confirm the customer — and everything else is automation or an exception sheet in the kit's own sheet. Only the five printed training props can ever be recognized. Prop 1 matches a seed customer by name (ambiguous → the same-person question as two option rows), prop 2 carries a license on file (certain match), 3–5 create new customers. Phone AND email are both required on every record; the scan asks for no credit score.",
+    description: "The prop-license scanner on the owner's UI kit (package v023, 2026-09-05): twelve screens as a kit Task inside New visit — Close returns to the resolver, the title carries the two-part step, and the DEMO band is the only environment marker. The advisor still experiences two decisions — capture the license, then confirm the customer — and everything else is automation or an exception sheet in the kit's own sheet. Only the five printed training props can ever be recognized. Prop 1 matches a seed customer by name (ambiguous → the same-person question as two option rows), prop 2 carries a license on file (certain match), 3–5 create new customers. One way to reach the customer is required on every record (a phone or an email, or for a guest with neither the number of someone helping, LS-058); the scan asks for no credit score.",
     entry: { from: "onboarding/resolver-idle", action: "Tap Scan physical license" },
     steps: [
       { key: "scan-front", screen: "Scan — front of license", do: async (s) => { await s.reset(); await s.go("#/visit"); await s.click("#scanBtn", { wait: 400 }); }, action: "Take / choose the front photo", next: "scan-review-front",
@@ -372,8 +459,8 @@ export const FLOWS = [
           await s.go("#/visit"); await s.click("#scanBtn", { wait: 300 });
           await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s); },
         action: "Type the number already on file, tap Create customer", next: "scan-conflict",
-        notes: "Identity is a READ-ONLY summary from the license — the advisor never retypes card data. The only asks are what a license cannot say: phone and email. No credit score at the door; the record starts at the neutral default." },
-      { key: "scan-conflict", screen: "Phone already in use (sheet)", do: async (s) => { await s.type("#svPhone", "(646) 555-0900"); await s.click("[data-save]", { wait: 600 }); await s.click('#scSheet [data-opt="link"]', { wait: 200 }); },
+        notes: "Identity is a READ-ONLY summary from the license — the advisor never retypes card data. The only ask is what a license cannot say: a way to reach the customer, one field (a phone or an email) with a box for someone helping (LS-058). No credit score at the door; the record starts at the neutral default." },
+      { key: "scan-conflict", screen: "Phone already in use (sheet)", do: async (s) => { await s.type("#svContact", "(646) 555-0900"); await s.click("[data-save]", { wait: 600 }); await s.click('#scSheet [data-opt="link"]', { wait: 200 }); },
         action: "Choose 'Verify the number and link this license', tap Continue", next: "scan-verify-code",
         branches: [{ action: "Keep profiles separate", to: "license-scan/scan-done" }, { action: "Use a different number", to: "license-scan/scan-new-customer" }],
         expect: async (s) => {
@@ -428,14 +515,14 @@ export const FLOWS = [
           await s.go("#/visit"); await s.click("#scanBtn", { wait: 300 });
           await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s);
           await s.click("[data-save]", { wait: 400 }); },
-        action: "Fill phone and email, tap Create customer", next: "scan-done",
-        expect: async (s) => Number(await s.eval(`document.querySelectorAll("#scanBody .f-err").length`)) >= 2 ? null : "both contact fields should be marked",
-        notes: "Create customer with nothing typed creates nothing: both contact fields are marked and the record is not written. A phone and an email are the two things a license cannot give." },
+        action: "Type a phone or an email, tap Create customer", next: "scan-done",
+        expect: async (s) => Number(await s.eval(`document.querySelectorAll("#scanBody .f-err").length`)) === 1 ? null : "the one contact field should be marked",
+        notes: "Create customer with nothing typed creates nothing: the one contact field is marked Required and the record is not written. A way to reach the customer is the one thing a license cannot give; a phone or an email is enough, and a guest with neither gives the number of someone helping (LS-058)." },
       { key: "scan-duplicate", screen: "Possible duplicate (sheet)", standalone: true, do: async (s, ctx) => {
           await s.reset(); const png = await barcodePng(s, 3);
           await s.go("#/visit"); await s.click("#scanBtn", { wait: 300 });
           await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s);
-          await s.type("#svPhone", "(646) 555-0155"); await s.type("#svEmail", "marcus2@testing.com"); await s.click("[data-save]", { wait: 500 }); },
+          await s.type("#svContact", "(646) 555-0155"); await s.click("[data-save]", { wait: 500 }); },
         action: "Pick Marcus's record: Confirm customer, where Same person sends the code first", next: "scan-verify-code",
         branches: [{ action: "Create new customer", to: "license-scan/scan-done" }],
         expect: async (s) => (await s.text("#scSheet")).includes("Possible duplicate") ? null : "the duplicate sheet should be up",
@@ -444,7 +531,7 @@ export const FLOWS = [
           await s.reset(); const png = await barcodePng(s, 3);
           await s.go("#/visit"); await s.click("#scanBtn", { wait: 300 });
           await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s);
-          await s.type("#svPhone", "(917) 555-0164"); await s.click("[data-save]", { wait: 600 }); },
+          await s.type("#svContact", "(917) 555-0164"); await s.click("[data-save]", { wait: 600 }); },
         action: "Keep profiles separate, or use a different number", next: "scan-done",
         expect: async (s) => (!await s.exists('#scSheet [data-opt="link"]') && await s.exists('#scSheet [data-opt="separate"]')) ? null : "Priya Patel's number on Marcus's license: the sheet must not offer linking to a stranger's profile",
         notes: "The same conflict sheet as above, but the number typed is on Priya Patel's profile, and the license is Marcus's: a profile that is not the license's person is never offered the link (KA-010), so the link option is simply absent and only Keep separate or a different number remain. The sheet still names nobody until Show whose (LS-068)." },
@@ -452,7 +539,7 @@ export const FLOWS = [
           await s.reset(); const png = await barcodePng(s, 3);
           await s.go("#/visit"); await s.click("#scanBtn", { wait: 300 });
           await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s);
-          await s.type("#svPhone", "(646) 555-0900"); await s.click("[data-save]", { wait: 600 }); await s.click('#scSheet [data-opt="link"]', { wait: 200 });
+          await s.type("#svContact", "(646) 555-0900"); await s.click("[data-save]", { wait: 600 }); await s.click('#scSheet [data-opt="link"]', { wait: 200 });
           await s.click("[data-continue]", { wait: 1400 });
           await s.type("#svCodeInput", "000000"); await s.click("[data-verify]", { wait: 500 }); },
         action: "Resend code, or enter the right one", next: "scan-verify-code",
@@ -524,7 +611,7 @@ export const FLOWS = [
           await s.reset(); const png = await barcodePng(s, 3);
           await s.go("#/visit"); await s.click("#scanBtn", { wait: 300 });
           await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s);
-          await s.type("#svPhone", "(646) 555-0155"); await s.type("#svEmail", "marcus2@testing.com"); await s.click("[data-save]", { wait: 600 });
+          await s.type("#svContact", "(646) 555-0155"); await s.click("[data-save]", { wait: 600 });
           await pickOnSheet(s, "Marcus Alvarez"); await samePersonOn(s); await s.click("#scanBody [data-save]", { wait: 1400 }); },
         action: "Tap Email the code instead", next: "scan-done",
         expect: async (s) => (await s.exists("#scSheet [data-email-code]")) ? null : "Marcus's profile has an email, so the code sheet should offer Email the code instead (LS-071)",
@@ -534,7 +621,7 @@ export const FLOWS = [
           await ev(s, `const c = Store.customer("c-demo4"); c.phone = ""; c.email = "";`);
           await s.go("#/visit"); await s.click("#scanBtn", { wait: 300 });
           await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s);
-          await s.type("#svPhone", "(646) 555-0199"); await s.type("#svEmail", "marcus2@testing.com"); await s.click("[data-save]", { wait: 600 });
+          await s.type("#svContact", "(646) 555-0199"); await s.click("[data-save]", { wait: 600 });
           await pickOnSheet(s, "Marcus Alvarez"); await samePersonOn(s); await s.click("#scanBody [data-save]", { wait: 700 }); },
         action: "Tap Ask a Team Lead", next: null,
         expect: async (s) => (await s.text("#scIdentityConflict")).includes("No phone or email on file") ? null : "a profile with neither a phone nor an email should ask a Team Lead (LS-071's second part)",
@@ -579,6 +666,26 @@ export const FLOWS = [
         action: "Choose The license is right, tap Confirm", next: null,
         expect: async (s) => (await s.text("#dqSheet")).includes("Goes back to be signed again") ? null : "Jordan's sheet for John's name should say the signed agreement goes back (LS-047 question 2)",
         notes: "LS-047, the owner's answer A to question 2: John signed the agreement as Jon Smith and his license reads John Smith. Jordan's sheet adds the row Signed agreement, Goes back to be signed again, after the birthday that shows it is the same person, because his yes will send John's signed agreement back. A co-buyer's request, which prints on no paper, and a finalized deal's have no such row." },
+      { key: "scan-new-customer-helper", screen: "New customer — a helper's number", standalone: true, do: async (s, ctx) => {
+          await s.reset(); const png = await barcodePng(s, 4);
+          await s.go("#/visit"); await s.click("#scanBtn", { wait: 300 });
+          await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s);
+          await s.type("#svContact", "(718) 555-0199"); await s.click("#svHelper", { wait: 150 }); },
+        action: "Tap Create customer", next: "scan-done-helper",
+        expect: async (s) => {
+          const t = await s.text("#scanBody");
+          const on = await s.eval(`!!(document.getElementById("svHelper") || {}).checked`);
+          return t.includes("This number belongs to someone helping") && on ? null : "the box for someone helping should be ticked under the contact field";
+        },
+        notes: "LS-058: a guest with neither a phone nor an email gives the number of someone helping them (Dana Whitfield's card, who is not on file). The one contact field says what is typed (an @ makes it an email), and the box under it says whose it is: ticked, the number is kept as the helper's and never as the customer's own." },
+      { key: "scan-done-helper", screen: "Customer ready — a helper's number said to be the helper's", standalone: true, do: async (s, ctx) => {
+          await s.reset(); const png = await barcodePng(s, 4);
+          await s.go("#/visit"); await s.click("#scanBtn", { wait: 300 });
+          await captureBoth(s, ctx.photos[0], png); await confirmPair(s); await clearToast(s);
+          await s.type("#svContact", "(718) 555-0199"); await s.click("#svHelper", { wait: 150 }); await s.click("[data-save]", { wait: 700 }); await clearToast(s); },
+        action: "Tap Continue to visit", next: "discovery/stage-intro",
+        expect: async (s) => (await s.text("#scanBody")).includes("helper’s number") ? null : "the done screen should say the phone is a helper's number",
+        notes: "LS-058: the customer is saved with no phone and no email of their own. The Phone row says the number is the helper's, so the advisor does not take it for the customer's, and nothing is sent to it as if it were." },
     ] },
 
   { id: "training", area: "04-training-materials", title: "Training Documents",
@@ -648,6 +755,11 @@ export const FLOWS = [
         action: "Tap Training documents to close it, or any other row", next: "home/more-sheet",
         expect: async (s) => (await s.exists(".rp-tabbar #dqMore.rp-tab--active") && await s.exists("#dqSheet:not([hidden]), .rp-sheet:not([hidden])")) ? null : "More should reopen its sheet over the hub with the More tab still marked",
         notes: "The hub has no back chevron; the tab bar is the way out. More reopens its sheet over the page it already marks, and tapping the hub's own row simply closes it." },
+
+      { key: "payoffs", screen: "Payoffs — the training payoff statements", standalone: true, do: async (s) => { await s.reset(); await s.go("#/props/payoffs"); }, action: "Tap a statement", next: "payoff-preview",
+        notes: "Training documents' Payoffs tab: a printable payoff statement for each training title that carries a lien. The payoff scanner reads only these." },
+      { key: "payoff-preview", screen: "Training payoff statement — preview", do: async (s) => { await s.click('[data-pair="1"]', { wait: 700 }); }, action: "Close", next: null,
+        notes: "The statement as it prints, with the marker the scanner reads, good through 30 days from today." },
     ] },
 
   /* ------------------------------------------------------------ */
@@ -689,15 +801,15 @@ export const FLOWS = [
         branches: [{ action: "Tap ✓", to: "vehicles/inventory-from-discovery" }, { action: "Tap ×", to: "discovery/profile-change" }],
         expect: async (s) => { const q = (await s.text("#dcQuestion")).trim(); if (q !== "Your profile is ready.") return "the profile should be up, got: " + q; if (await s.exists("#dcSkip")) return "no Skip on the profile"; const c = await s.text(".rp-stage__labels"); if (!/Sunroof/.test(c) || /Cargo room/.test(c)) return "the profile should carry the toggled Sunroof and nothing from the skipped topic, got: " + c; return null; },
         notes: "Every confirmed preference as a chip — Blind spot warning, AWD, Sunroof, Seats 5+ — and nothing from the skipped topic. No Skip here; the voice label says what ✓ does. The visit is still in discovery until ✓." },
-      { key: "profile-reload", screen: "The profile after a reload", do: async (s) => { await s.eval("location.reload()"); await s.settle(700); },
+      { key: "profile-reload", reusedFrom: "profile", screen: "The profile after a reload", do: async (s) => { await s.eval("location.reload()"); await s.settle(700); },
         action: "Tap ×", next: "profile-change",
         expect: async (s) => ((await s.text("#dcQuestion")).trim() === "Your profile is ready.") ? null : "a reload should land on the profile",
         notes: "Closing the browser and coming back lands on the profile, not on question one — the consultation is kept until ✓ hands it off." },
-      { key: "profile-change", screen: "× on the profile — back to the first question", do: async (s) => { await s.click(".rp-voice__cancel", { wait: 450 }); },
+      { key: "profile-change", reusedFrom: "stage-chip-toggled", screen: "× on the profile — back to the first question", do: async (s) => { await s.click(".rp-voice__cancel", { wait: 450 }); },
         action: "Tap ✓ through every topic", next: "profile-again",
         expect: async (s) => { if (!/keep/i.test(await s.text("#dcQuestion"))) return "× should go back to the first question"; if (!await s.eval(`document.querySelector('[data-feature="sunroof"]').getAttribute("aria-pressed") === "true"`)) return "the answers should be kept"; return null; },
         notes: "Change something: the first question comes back with every answer kept — Sunroof is still on — so the advisor changes only what the customer wants changed." },
-      { key: "profile-again", screen: "Confirmed through — the profile again", do: async (s) => { for (let i = 0; i < 8 && (await s.text("#dcQuestion")).trim() !== "Your profile is ready."; i++) await s.click(".rp-voice__accept", { wait: 450 }); },
+      { key: "profile-again", reusedFrom: "profile", screen: "Confirmed through — the profile again", do: async (s) => { for (let i = 0; i < 8 && (await s.text("#dcQuestion")).trim() !== "Your profile is ready."; i++) await s.click(".rp-voice__accept", { wait: 450 }); },
         action: "Tap ✓", next: "vehicles/inventory-from-discovery",
         expect: async (s) => ((await s.text("#dcQuestion")).trim() === "Your profile is ready.") ? null : "confirming through should return to the profile",
         notes: "✓ through the topics returns to the same profile. ✓ here moves the visit to the vehicle stage, records discovery done and the filters, and opens Vehicle selection filtered by what was confirmed." },
@@ -1044,20 +1156,30 @@ export const FLOWS = [
         notes: "2018, 61,200 miles, Good: $9,850 against a $10,750 payoff — negative equity $900 — computed, never typed. The value card appears with the ownership card under it, and the dock now reads the evaluated value with Review ownership as the action." },
       { key: "seed-trade-ready", screen: "Trade ready — the seeded trade, one gap from its documents", scenario: true, do: async (s) => { await s.reset(); await s.go(`#/trade/${D}`); }, action: "Tap Calculate payment", next: "desking/huddle-gate",
         notes: "The demo as it ships: John Smith's 2016 RAV4 valued $15,500 against a $10,750 payoff — $4,750 of equity — with the ownership answered from the documents on file and exactly one item for Team Lead, the payoff statement that expired 01/01/2025." },
+
+      /* ---- the payoff statement's scanner (the owner, 2026-09-26: a payoff editable, and a scanner that fills it in) ---- */
+      { key: "update-payoff-sheet", screen: "Update the payoff (sheet) — scan or by hand", scenario: true, do: async (s) => { await s.reset(); await ev(s, REVIEWED_TRADE); await s.go(`#/trade/${D}`); await s.click("#ownEdit", { wait: 600 }); }, action: "Tap Scan the new payoff statement", next: "payoff-scan",
+        notes: "John's payoff statement has expired. Update the payoff asks how: the scan first, the date typed by hand as before." },
+      { key: "payoff-scan", screen: "Scan the payoff statement", do: async (s) => { await s.go(`#/payoff/${D}`); }, action: "Take or choose a photo of the statement", next: "payoff-read",
+        notes: "A Task with John's name in the bar. The demo reads only the training payoff statements it prints (Training documents, Payoffs)." },
+      { key: "payoff-read", screen: "Payoff statement read", do: async (s) => { await s.upload("#pyLibIn", [await payoffPhoto(s, "statement", 60, 1)], { wait: 2000 }); }, action: "Use these", next: "trade/ownership-complete",
+        notes: "The lienholder, the payoff amount and the good-through date, read off the statement. Use these fills the payoff answers, files the statement in the Deal Jacket, and the History says it was read." },
+      { key: "payoff-unreadable", screen: "Payoff — the statement couldn't be read", scenario: true, do: async (s) => { await s.reset(); await ev(s, REVIEWED_TRADE); await s.go(`#/payoff/${D}`); await s.upload("#pyLibIn", [await payoffPhoto(s, "letter", 0, 0)], { wait: 2000 }); }, action: "Enter the answers by hand", next: null,
+        notes: "A photo it cannot read is said on the screen, and its way on opens the answers by hand." },
     ] },
 
   /* ------------------------------------------------------------ */
   { id: "desking", area: "09-desking", title: "Desking — Calculate Payments",
-    description: "The owner's desking package (v029, 2026-09-04) on the UI kit: eight screens, one route, all of them the kit's Task with the customer's full name in the bar and no deal number — a worked deal has none until the lending lane pushes it to F&I. Two modes, and the difference is who is holding the phone. WORK is the advisor's: the huddle that captures the trial close in the customer's own words and the payment they named, the deal-type control, the payment hero, the accordions, and a 3x3 option grid whose every cell is the real calculator. PRESENT turns the phone around: Close becomes Done, and the customer sees the car, two wins, the grid with one recommended cell, the payment to the cent, one line of fine print with a real incentive date, and one commitment action whose tap writes the structure onto the deal. New York's taxable base is stated on the screen it is taken on, and the four fees are itemised rather than bundled.",
+    description: "The owner's desking package (v029, 2026-09-04) on the UI kit: eight screens, one route, all of them the kit's Task with the customer's full name in the bar and no deal number — a worked deal has none until the lending lane pushes it to F&I. Two modes, and the difference is who is holding the phone. WORK is the advisor's: the Game plan that asks how the customer is paying, the deal-type control, the payment hero, the accordions, and a 3x3 option grid whose every cell is the real calculator. PRESENT turns the phone around: Close becomes Done, and the customer sees the car, two wins, the grid with one recommended cell, the payment to the cent, one line of fine print with a real incentive date, and one commitment action whose tap writes the structure onto the deal. New York's taxable base is stated on the screen it is taken on, and the four fees are itemised rather than bundled.",
     entry: { from: "home/deals-queue", action: "Tap the deal card (Continue)" },
     steps: [
       { key: "huddle-gate", screen: "Game plan — the huddle", do: async (s) => { await s.reset(); await s.go(`#/desk/${D}`); }, action: "Confirm how they're paying, tap Open the pencil", next: "pencil-finance",
-        notes: "Advisor-only. The trial close is captured in the customer's words and the payment they named is written down. The named payment is read back on the option grid, where it picks the recommended cell; the trial close is quoted back to the advisor on the pencil, under the payment — never on the customer's screen (D-SM5 = B). No deal number: the deal is not numbered until F&I." },
+        notes: "Advisor-only, and one question: how the customer is paying. Open the pencil is the one way on. The owner's Game plan cut (D-SM6) took the trial close, the payment the customer named, the Discovery question and the two toggles off. No deal number: the deal is not numbered until F&I." },
       { key: "pencil-finance", screen: "Pencil — Finance", do: async (s) => { await s.click('#hPayRow [data-pay="finance"]'); await s.click("#hConfirm", { wait: 400 }); }, action: "Tap Payment options", next: "options",
         branches: [{ action: "Compare finance and lease", to: "desking/present-compare" }, { action: "Trade evaluation", to: "trade/trade-evaluation" }, { action: "Present to customer", to: "desking/present-payment" }],
-        notes: "The screen opens on the payment, with the customer's own trial close quoted under it for the advisor (D-SM5 = B). The price accordion runs MSRP → your price → saving; the trade shows equity as a credit; fees and tax are five lines, with the sales-tax row naming the base it is taken on." },
+        notes: "The screen opens on the payment. The price accordion runs MSRP → your price → saving; the trade shows equity as a credit; fees and tax are five lines, with the sales-tax row naming the base it is taken on." },
       { key: "options", screen: "Payment options — the 3x3 grid", do: async (s) => { await s.click("#dkOptions", { wait: 350 }); }, action: "Tap Present to customer", next: "present-payment",
-        notes: "The choice close, built before the phone turns: three terms across, three cash-down rows, one recommended cell — the option nearest the payment the customer named. Three columns, never four; four is a spreadsheet." },
+        notes: "The choice close, built before the phone turns: three terms across, three cash-down rows, one recommended cell — the one the advisor pencilled. Three columns, never four; four is a spreadsheet." },
       { key: "present-payment", screen: "Present — Your payment", do: async (s) => { await s.click("#dkPresent", { wait: 400 }); }, action: "Done, then Compare finance and lease", next: "present-compare",
         branches: [{ action: "This one works", to: "desking/work-chose" }],
         notes: "Present mode: Close is a dark Done (neither mode carries a role control — it appears only in Customer Onboarding). The order is deliberate — the car, two wins (price against MSRP, trade credit), the grid with the recommended cell as the anchor, then one line of fine print carrying a real incentive date. Nothing internal is on screen." },
@@ -1089,7 +1211,7 @@ export const FLOWS = [
       { key: "work-chose-other", screen: "Back in Work — the customer's own cell", do: async (s) => { await s.click("#dkTake", { wait: 450 }); }, action: "Tap Payment options", next: "options-after-choice",
         notes: "The choice row and the hero both carry the cell the customer picked — 72 months at $5,000 down — not the recommended one. The customer's tap wrote the structure onto the deal." },
       { key: "options-after-choice", screen: "Payment options — after the choice", do: async (s) => { await s.click("#dkOptions", { wait: 350 }); }, action: "Close returns to the pencil", next: "desking/work-chose-other",
-        notes: "The grid does not move with the choice: the recommended cell is still the one nearest the payment the customer named in the huddle, so the anchor stays honest even after they picked something else." },
+        notes: "The recommended cell follows the pencil: once the customer's cell is the deal's, 72 months at $5,000 down, it is the one recommended." },
       { key: "pencil-trade-negative", screen: "Pencil — trade with negative equity", scenario: true, do: async (s) => { await s.reset(); await ev(s, `const d = Store.deal("${D}"); d.huddle.done = true; d.trade.payoff = 18500;`); await s.go(`#/desk/${D}`); await s.click('[data-acc="price"]', { wait: 250 }); await s.click('[data-acc="trade"]', { wait: 350 }); }, focus: '[data-acc="trade"]', action: "Tap Present to customer", next: "present-trade-negative",
         notes: "The customer owes more than the trade is worth: the accordion summary reads as a minus, the row is labeled 'Negative equity', and it is never colored as a saving. The link to the trade evaluation stays in the accordion." },
       { key: "present-trade-negative", screen: "Present — no trade win when equity is negative", do: async (s) => { await s.click("#dkPresent", { wait: 400 }); }, action: "Done", next: "desking/pencil-trade-negative",
@@ -1109,11 +1231,49 @@ export const FLOWS = [
       { key: "compare-itemize", screen: "What is included (sheet)", do: async (s) => { await s.click('[data-type="finance"]', { wait: 350 }); await s.click("#dkCompare", { wait: 400 }); await s.click("#dkItemize", { wait: 400 }); }, action: "Done", next: "desking/present-compare",
         notes: "The 'Included' row on the comparison opens its own itemization: the accessories, the four fees and the tax with its base. A summary is fine; a label with no figure behind it is not." },
       { key: "huddle-lease-track", screen: "Game plan — Lease chosen", scenario: true, do: async (s) => { await s.reset(); await s.go(`#/desk/${D}`); await s.click('#hPayRow [data-pay="lease"]', { wait: 350 }); }, action: "Open the pencil", next: "desking/pencil-lease",
-        notes: "Choosing how they are paying changes the discovery question under it — for a lease, whether they trade often and drive few miles. The deal type on the pencil follows this choice." },
-      { key: "huddle-no-trade", screen: "Game plan — no trade on the deal", scenario: true, do: async (s) => { await s.reset(); await ev(s, `const d = Store.deal("${D}"); d.trade.has = false; d.trade.value = 0; d.trade.payoff = 0;`); await s.go(`#/desk/${D}`); }, focus: "#hTrade", action: "Open the pencil", next: "desking/pencil-finance",
-        notes: "Without an evaluated trade the toggle reads 'Trade evaluation needed' and sits off. The pencil that follows has no Trade accordion and the presentation has no trade win." },
+        notes: "Lease chosen on the Game plan; the deal type on the pencil follows this choice." },
+      { key: "huddle-no-trade", reusedFrom: "huddle-gate", screen: "Game plan — no trade on the deal", scenario: true, do: async (s) => { await s.reset(); await ev(s, `const d = Store.deal("${D}"); d.trade.has = false; d.trade.value = 0; d.trade.payoff = 0;`); await s.go(`#/desk/${D}`); }, action: "Open the pencil", next: "desking/pencil-finance",
+        notes: "A deal with no evaluated trade opens the same Game plan: its 'Trade evaluated' row is gone (D-SM6), so nothing says a trade needs evaluating. The pencil that follows has no Trade accordion and the presentation has no trade win." },
       { key: "desk-no-vehicle", screen: "Blocked — no vehicle on the deal", scenario: true, do: async (s) => { await s.reset(); await s.go("#/deals"); await ev(s, `const d = Store.deal("${D}"); d.stock = null; d.vehicle = null;`); await s.hash(`#/desk/${D}`); await wait(300); }, action: "Lands on its own vehicle search — no tap", next: "vehicles/inventory",
         notes: "Desking needs a car to price. Opening the pencil on a deal with none says 'Pick a vehicle first' and lands on vehicle selection for that deal instead of drawing an empty pencil." },
+      /* ---- every other state the desk draws (the owner, 2026-10-06: "all the different scenarios that change the UI for that
+         particular flow", so he can see them and start removing things): the Team Lead's approval from both sides (W-004),
+         the notices the numbers leave on the pencil, Change terms refusing a figure, and the money the deal owes John ---- */
+      { key: "lead-asked", screen: "Pencil — the Team Lead's view: approval asked", scenario: true, do: async (s) => { await s.reset(); await ev(s, `Store.deal("${D}").huddle.done = true;`); await s.go(`#/desk/${D}`); await s.click("#dkPresent", { wait: 400 }); await s.click("#dkTake", { wait: 450 }); await s.click("#dkSubmit", { wait: 450 }); await switchRole(s, "teamlead", `#/desk/${D}`); }, action: "Tap Review and approve", next: "approve-sheet",
+        notes: "John chose 60 months at $1,000 down and Ashley submitted it. Jordan, the Team Lead, opens the same pencil: the notice says Ashley asks for his approval, and the dock's primary is Review and approve where Ashley's waits." },
+      { key: "approve-sheet", screen: "Approve John's deal? (sheet)", do: async (s) => { await s.click("#dkReview", { wait: 400 }); }, action: "Tap Send back with a note", next: "sendback-sheet",
+        branches: [{ action: "Approve", to: "desking/approved-advisor" }],
+        notes: "What Jordan approves, row by row: the payment with its term and rate, the cash down, the price and its saving, the trade's equity. Approve opens the agreement; Send back with a note returns it to Ashley." },
+      { key: "sendback-sheet", screen: "Send back to Ashley (sheet)", do: async (s) => { await s.click("#dkSendBack", { wait: 400 }); }, action: "Tap Send back with the note empty", next: "sendback-note-required",
+        notes: "Sending back takes John's choice off the pencil, and the note is what Ashley reads there next." },
+      { key: "sendback-note-required", screen: "Send back — the note is required", do: async (s) => { await s.click("#dkSendBackGo", { wait: 400 }); }, action: "Write the note, tap Send back to Ashley", next: "lead-sent-back",
+        notes: "An empty note is refused in the field, in the kit's error style: the note is the one thing Ashley reads." },
+      { key: "lead-sent-back", screen: "Pencil — sent back (the Team Lead's view)", do: async (s) => { await s.type("#dkNote", "Hold the $1,000 down and show 72 months."); await s.click("#dkSendBackGo", { wait: 500 }); }, action: "Ashley opens the deal", next: "advisor-sent-back",
+        notes: "John's choice is off the pencil, and the notice says to whom it went back and quotes the note." },
+      { key: "advisor-sent-back", screen: "Pencil — sent back by Jordan (the advisor's view)", do: async (s) => { await switchRole(s, "advisor", `#/desk/${D}`); }, action: "Present to customer", next: "desking/present-payment",
+        notes: "Ashley's pencil names who sent it back and quotes the note, and the dock is back to Present to customer." },
+      { key: "approved-advisor", screen: "Pencil — approved", scenario: true, do: async (s) => { await s.reset(); await ev(s, APPROVED_ON_DESK); await s.go(`#/desk/${D}`); }, action: "Tap Continue — base payment agreement", next: "agreement/agreement-unsigned",
+        notes: "Jordan approved: the notice says Approved, and the dock's primary opens the base payment agreement. Present again stays." },
+      { key: "choice-cleared", screen: "Pencil — the numbers changed after John chose", scenario: true, do: async (s) => { await s.reset(); await ev(s, `Store.deal("${D}").huddle.done = true;`); await s.go(`#/desk/${D}`); await s.click("#dkPresent", { wait: 400 }); await s.click("#dkTake", { wait: 450 }); await s.click("#dkSubmit", { wait: 450 }); await setAcc(s, { accessories: true }); await s.click('[data-sheet-open="accessories"]', { wait: 400 }); await s.click('#dkSheet [data-acc="mats"]', { wait: 350 }); await s.click("#dkSheet [data-sheet-close]", { wait: 400 }); }, action: "Present the new payment", next: "desking/present-payment",
+        notes: "John chose and Ashley asked Jordan; then an accessory came off. The payment John agreed to is no longer the pencil's, so his choice comes off, the request to Jordan is withdrawn, and the notice says so." },
+      { key: "choice-cleared-type", screen: "Pencil — the deal type changed after John chose", scenario: true, do: async (s) => { await s.reset(); await ev(s, `Store.deal("${D}").huddle.done = true;`); await s.go(`#/desk/${D}`); await s.click("#dkPresent", { wait: 400 }); await s.click("#dkTake", { wait: 450 }); await s.click("#dkSubmit", { wait: 450 }); await s.click('[data-type="lease"]', { wait: 450 }); }, action: "Present the payment again", next: "desking/present-lease",
+        notes: "A new deal type is a new structure: the notice names what changed under John's choice, and the request to Jordan comes off with it." },
+      { key: "pencil-beyond", screen: "Pencil — more cash down than the deal can take", scenario: true, do: async (s) => { await s.reset(); await ev(s, `const d = Store.deal("${D}"); d.huddle.done = true; d.desk.downPayment = 60000;`); await s.go(`#/desk/${D}`); }, action: "Tap Change terms", next: "terms-refused",
+        notes: "Cash down past what the deal can take: the notice names the most it can take, nothing is offered to present, and the dock's one action is Change terms." },
+      { key: "pencil-beyond-lease", screen: "Pencil — more due at signing than the lease can take", scenario: true, do: async (s) => { await s.reset(); await ev(s, `const d = Store.deal("${D}"); d.huddle.done = true; d.dealType = "lease"; d.huddle.paying = "lease"; d.desk.dueAtSigning = 60000;`); await s.go(`#/desk/${D}`); }, action: "Tap Change terms", next: "desking/terms-sheet-lease",
+        notes: "The same on a lease, in the lease's words: due at signing, not cash down." },
+      { key: "terms-refused", screen: "Change terms — a figure refused", scenario: true, do: async (s) => { await s.reset(); await ev(s, `Store.deal("${D}").huddle.done = true;`); await s.go(`#/desk/${D}`); await s.click("#dkOptions", { wait: 350 }); await s.click("#dkTerms", { wait: 400 }); await s.type("#dkDown", "-500"); await s.click("#dkTermsSave", { wait: 400 }); }, action: "Correct the figure, Save terms", next: "desking/options",
+        notes: "A figure Save cannot take stays in its field with the reason under it; the sheet stays open and nothing on the pencil moves." },
+      { key: "pencil-owed", screen: "Pencil — money owed back to John", scenario: true, do: async (s) => { await s.reset(); await ev(s, `const d = Store.deal("${D}"); d.huddle.done = true; d.trade.value = 48000; d.trade.payoff = 0; d.desk.downPayment = 0;`); await s.go(`#/desk/${D}`); }, action: "Deal type → Cash, Present to customer", next: "present-owed",
+        notes: "A trade worth more than the whole deal, with no cash down: nothing is left to finance, and the pencil carries the difference as Owed to John, a row of its own under the payment." },
+      { key: "present-owed", screen: "Present — Owed to you (Cash)", do: async (s) => { await s.click('[data-type="cash"]', { wait: 400 }); await s.click("#dkPresent", { wait: 400 }); }, action: "Done", next: "pencil-owed",
+        notes: "As a cash purchase the deal can be presented: the customer's screen says the same in his words, Owed to you." },
+      { key: "pencil-no-trade", screen: "Pencil — no trade on the deal", scenario: true, do: async (s) => { await s.reset(); await ev(s, `const d = Store.deal("${D}"); d.huddle.done = true; d.trade.has = false; d.trade.value = 0; d.trade.payoff = 0;`); await s.go(`#/desk/${D}`); }, action: "Tap Present to customer", next: "desking/present-payment",
+        notes: "Without a trade the pencil has no Trade accordion; everything else is the finance pencil." },
+      { key: "compare-cash", screen: "Compare — from the cash pencil", scenario: true, do: async (s) => { await s.reset(); await ev(s, `const d = Store.deal("${D}"); d.huddle.done = true; d.dealType = "cash"; d.huddle.paying = "cash";`); await s.go(`#/desk/${D}`); await s.click("#dkCompare", { wait: 400 }); }, action: "Done", next: "desking/pencil-cash",
+        notes: "Compare opened from a cash deal: the cash pencil's link says Compare, not Compare finance and lease." },
+      { key: "signed-change", screen: "Change after signing — the signed payment would move (sheet)", scenario: true, do: async (s) => { await s.reset(); await ev(s, APPROVED + ` Store.deal("${D}").basePayment.signedAt = new Date().toISOString();`); await s.go(`#/desk/${D}`); await s.click('[data-type="lease"]', { wait: 450 }); }, action: "Keep the signed payment, or change and sign again", next: "desking/pencil-lease",
+        notes: "John has signed the base payment agreement. A change that would move the payment he signed asks first, and keeping the signed payment changes nothing (W-113)." },
     ] },
 
   /* ------------------------------------------------------------ */
@@ -1179,8 +1339,8 @@ export const FLOWS = [
           for (let i = 0; i < 4; i++) await s.click("#caGo", { wait: 350 }); },
         action: "Fix the fields, submit", next: "individual-applicant",
         notes: "Submit with fields missing stays on Review: the summary counts the misses (\"Five missing · zero invalid\") and says nothing has been saved or sent, inline, never a toast over the controls; John's panel lists each missing field, and Fix John's items is its one action." },
-      { key: "deal-summary-sheet", screen: "Deal summary (contextual sheet)", do: async (s) => { await s.click('[data-sheet-open="summary"]', { wait: 400 }); }, action: "Close", next: "individual-applicant",
-        notes: "'Synced from your worksheet' became Deal summary with a subordinate 'Updated from worksheet · time' line (owner v2, Option A). It opens from a header chip so the numbers can be inspected without losing the form position, and appears inline only from Residence onward." },
+      { key: "deal-summary-desking", screen: "Deal summary chip — opens desking", do: async (s) => { await s.click('a.rp-chip[href^="#/desk"]', { wait: 700 }); }, action: "Close", next: "individual-applicant",
+        notes: "The Deal summary chip opens desking, where the deal's numbers are made (CHROME-RULE §29, the owner's answer B of 2026-10-04, W-150): the application keeps no copy of them, so a summary here cannot disagree with the pencil. Close in desking returns to the application on the step it was left on, with what was typed (D-PI1). It replaces the sheet of the deal's numbers (the owner's v2, Option A), which on a phone was taller than the screen with its Close above it (W-151)." },
 
       /* ---- the individual path, every step, ending in a REAL submission
          (harness/creditapp.mjs, the happy path) ---- */
@@ -1202,9 +1362,9 @@ export const FLOWS = [
       { key: "review-step", screen: "Step 4 — Review, signature needed", do: async (s) => { await s.click("#caGo", { wait: 450 }); },
         action: "Accept the electronic signature, then Review & submit", next: "lender-answer",
         notes: "With every field filled the panel reads Signature needed: the electronic signature and credit authorization is its own consent row, never counted among the fields. Submit stays inert until it is accepted." },
-      { key: "lender-answer", screen: "Approved — the lender's answer to a real submission", do: async (s) => { await s.click('[data-flag="consent"]', { wait: 300 }); await s.click("#caGo", { wait: 700 }); },
+      { key: "lender-answer", screen: "Approved — the lender's answer to a real submission", do: async (s) => { await s.click('[data-flag="consent"]', { wait: 300 }); await s.click("#caGo", { wait: 700 }); await s.click("[data-decision]", { wait: 600 }); },
         action: "Tap Re-present the new payment", next: "desking/present-mode",
-        notes: "The real path ends here: the seeded lender approves at 3.9% against the agreed 3.5%, so the screen states the difference in the customer's unit — the payment — and the forward action is to re-present, never to continue silently." },
+        notes: "Submit ends the application on the board (§29, KA-004): the lender's answer is a notice on Home, and Review the answer opened it here, on its own screen. The seeded lender approves at 3.9% against the agreed 3.5%, so the screen states the difference in the customer's unit — the payment — and the forward action is to re-present, never to continue silently. Its Close returns to Home." },
       { key: "approved-agreed-rate", screen: "Approved at the agreed rate", standalone: true, do: async (s) => {
           await s.reset({ approved: false });
           await ev(s, `const d = Store.deal("${D}"); d.huddle.done = true; d.identity = { customerId: d.customerId, verifiedAt: new Date().toISOString() }; d.creditApp = { approved: true, status: "approved", customerId: d.customerId, coBuyerId: null, submitted: new Date().toISOString(), lender: "Ride Price Financial", agreedApr: 3.5, approvedApr: 3.5, employer: "Ride Price", form: { consent: { electronicSignature: true, acceptedAt: new Date().toISOString() } } }; d.stage = "menu";`);
@@ -1255,6 +1415,15 @@ export const FLOWS = [
           await s.click('[data-sheet-open="link-applicant"]', { wait: 400 }); },
         action: "Tap Send", next: "identity-gate",
         notes: "The gate's second path: the customer verifies identity from their own phone. One channel on a segment, one destination field." },
+      /* KA-004 (§29): Submit ends the application, and the answer finds the advisor on the board. At the end of the flow, so no picture is renumbered */
+      { key: "lender-notice", screen: "Home — the lender's answer, a notice", standalone: true, do: async (s) => {
+          await s.reset({ approved: false });
+          await ev(s, `const d = Store.deal("${D}"), v = Store.vehicle(d.stock); d.huddle.done = true; d.identity = { customerId: d.customerId, verifiedAt: new Date().toISOString() };
+            d.creditApp = { approved: true, status: "approved", customerId: d.customerId, coBuyerId: null, submitted: new Date().toISOString(), lender: "Ride Price Financial", agreedApr: 3.5, approvedApr: 3.9, qualifiedApr: 3.9, agreedPayment: RIDE_PRICE_CALC.calc(d, v).payment, employer: "Ride Price", form: { consent: { electronicSignature: true, acceptedAt: new Date().toISOString() } } };
+            d.stage = "menu"; announceDecision(d); Store.save();`);
+          await s.go("#/deals"); },
+        action: "Tap Review the answer", next: "lender-answer",
+        notes: "After Review & submit to lenders the deal is back on the board, and the answer is one notice at the top, in the kit's amber alert: whom the application went to, when it was sent, the rate, and the payment's move from the agreed figure to the new one. Its one action opens the answer on its own screen and reads the notice; John's card says what comes next and opens the answer while the new payment waits to be presented." },
     ] },
 
   /* ------------------------------------------------------------ */
@@ -1293,7 +1462,7 @@ export const FLOWS = [
         action: "Fill the four fields, tap Save", next: "created-receipt",
         notes: "Create hands off to the one Customer Resolver at its manual entry rather than a second form. The mission rides on the session, so a reload still knows this person is being attached, not started as a visit." },
       { key: "created-receipt", screen: "Back on the deal — the new co-buyer attached, the sheet reopened", do: async (s) => {
-          await s.type("#obName", "Dana Whitfield"); await s.type("#obPhone", "(212) 555-0199"); await s.type("#obEmail", "dwhitfield@testing.com"); await s.type("#obAddr", "12 Oak St, Brooklyn, NY 11201");
+          await s.type("#obName", "Dana Whitfield"); await s.type("#obContact", "(212) 555-0199"); await s.type("#obAddr", "12 Oak St, Brooklyn, NY 11201");
           await s.click("#obManualSave", { wait: 900 }); await clearToast(s); },
         action: "Close", next: null,
         notes: "Saving returns to the screen the advisor left, starts no new visit, and reopens the buyers sheet with the new person in the Co-buyer row as the receipt." },
@@ -1531,7 +1700,7 @@ export const FLOWS = [
       { key: "tracking-advisor-capture", screen: "Request status — the customer's uploads, not the advisor's", scenario: true, do: async (s) => {
           await s.reset(); await ev(s, `const d = Store.deal("${D}"); jacketSendRequest(d, ["form-insurance", "form-paystub"]); const cl = jacketClientOf(d); cl["form-insurance"].via = "advisor"; cl["form-insurance"].state = "accepted"; cl["form-insurance"].acceptedAt = new Date().toISOString();`);
           await s.go(`#/jacket/${D}`); await s.click("#jkTrack"); }, action: null, next: null,
-        branches: [{ action: "Resend link", to: "document-request/resend-sheet" }],
+        branches: [{ action: "Resend the text to John", to: "document-request/resend-sheet" }],
         notes: "After a request went out and the advisor photographed the insurance card in the showroom, the tracking sheet still reports the customer: Waiting, and 0 uploads — an advisor capture is not the customer opening the link." },
       { key: "license-reviewed", screen: "License reviewed and filed — the count moves by one", scenario: true, focus: '#jkDoneToggleBody .rp-doc[data-open="form-license"]', do: async (s, ctx) => {
           /* the seed's license front is a legacy record with no buyer on it; bind
@@ -1548,6 +1717,12 @@ export const FLOWS = [
           await s.eval(`(() => { const b = document.getElementById("jkDoneToggle"); if (b.getAttribute("aria-expanded") !== "true") b.click(); return true; })()`); await s.settle(300); },
         action: null, next: null,
         notes: "Receiving both sides alone does not move the count; the explicit review does, by exactly one — 4 of 15 to 5 of 15 — and the license lands in Completed. Nothing else in the ledger changes." },
+      { key: "business-record-sheet", screen: "Business record (sheet)", standalone: true, do: async (s) => { await s.reset(); await s.eval(`(() => { const d = Store.deal("d-demo1"); d.business = { name: "Hudson Valley Landscaping LLC", signerTitle: "Owner", entityType: "", taxId: "", authority: false }; Store.save(); return true; })()`); await s.go(`#/jacket/${D}`); await s.click("#jkFormsToggle"); await s.click('.rp-doc[data-open="business-record"]', { wait: 400 }); },
+        action: "Pick the entity type, type the tax ID, tick the authority, tap Save", next: null,
+        notes: "LS-115, the owner's answer B of 2026-10-04: a business buyer owes one more thing beside the signer's license, its record: the kind of business, its tax ID, and the signer's title and authority to sign for it. The row files when all four are in, and says what is still needed until then." },
+
+      { key: "upload-signed-sheet", screen: "Upload a signed copy (sheet)", scenario: true, do: async (s) => { await s.reset(); await s.go(`#/jacket/${D}`); await s.click("#jkFormsToggle", { wait: 300 }); await s.click('.rp-doc[data-open="form-privacy"]', { wait: 400 }); await s.click("#jkUpload", { wait: 500 }); }, action: "Photograph the document", next: null,
+        notes: "A team form signed on paper: its photo proves it is in hand and is then discarded. The jacket keeps the record, not the picture." },
     ] },
 
   /* ------------------------------------------------------------ */
@@ -1556,12 +1731,12 @@ export const FLOWS = [
     entry: { from: "deal-jacket/jacket-overview", action: "Tap Request N documents" },
     steps: [
       { key: "request-sheet", screen: "Request documents — secure link", do: async (s) => { await s.reset(); await s.go(`#/jacket/${D}`); await s.click("#jkRequest"); }, action: "Untick every document, then tap Send", next: "request-none-picked",
-        branches: [{ action: "Tap Send secure request", to: "document-request/request-sending" }],
+        branches: [{ action: "Tap Send the text to John", to: "document-request/request-sending" }],
         notes: "Every missing document arrives ticked, so the usual tap sends them all. The privacy line is the point: the customer uploads directly into Ride Price, never through the salesperson's texts or photo library." },
       { key: "request-none-picked", screen: "Nothing ticked — the send is refused", do: async (s) => {
           for (let i = 0; i < 3; i++) if (await s.exists(`#jkSheet [data-pick]:checked`)) await s.click("#jkSheet [data-pick]:checked", { wait: 80 });
           await s.click("#jkSend", { wait: 150 }); },
-        action: "Tick them back, tap Send secure request", next: "request-sending",
+        action: "Tick them back, tap Send the text to John", next: "request-sending",
         notes: "An advisor who unticks everything has nothing to send. The sheet stays open and says so — the link is never sent empty." },
       { key: "request-sending", screen: "Sending the secure link", do: async (s) => {
           await clearToast(s);
@@ -1571,10 +1746,10 @@ export const FLOWS = [
         notes: "For under a second the sheet is only the title: nothing to tap while the message goes. Leaving the jacket mid-send cancels it rather than sending behind the advisor's back." },
       { key: "request-sent", screen: "Jacket after sending — Requested", do: async (s) => { for (let i = 0; i < 50 && !await s.exists("#jkTrack"); i++) await s.settle(100); await s.settle(300); }, action: "Tap View status", next: "request-tracking",
         notes: "Rows turn Requested — a license with a side already on file reads Receipt incomplete instead, and names the side still missing. An inline banner carries the status — no toast, and no page change — and the button now offers a Resend." },
-      { key: "request-tracking", screen: "Customer request — delivery status (waiting)", do: async (s) => { await s.click("#jkTrack"); }, action: "Tap Resend link", next: "resend-sheet",
+      { key: "request-tracking", screen: "Customer request — delivery status (waiting)", do: async (s) => { await s.click("#jkTrack"); }, action: "Tap Resend the text to John", next: "resend-sheet",
         branches: [{ action: "Open the customer's phone", to: "client-upload/sms" }],
         notes: "Four lines: sent, delivered, whether the customer has opened it, and how many of the asked documents came back. Nothing has happened on the customer's side yet, so it reads Waiting and 0 of 3." },
-      { key: "resend-sheet", screen: "Resend documents", do: async (s) => { await s.click("#jkResend"); }, action: "Tap Resend secure request", next: "request-sent",
+      { key: "resend-sheet", screen: "Resend documents", do: async (s) => { await s.click("#jkResend"); }, action: "Tap Resend the text to John", next: "request-sent",
         notes: "The same sheet under a Resend title, still listing what is missing — a resend goes out as one link again, never a second thread of texts." },
       { key: "request-progress", screen: "Jacket — the customer has started uploading", standalone: true, do: async (s, ctx) => {
           await s.reset(); await s.go(`#/jacket/${D}`); await s.click("#jkRequest"); await s.click("#jkSend", { wait: 1200 });
@@ -1604,22 +1779,22 @@ export const FLOWS = [
         notes: "The heading runs straight into the progress line — the explanatory paragraph was cut (owner, 2026-08-27): \"0 of 3 ready\" and the submit button already carry the send-when-ready model." },
       { key: "row-blocked", screen: "Row blocked — back of license missing", do: async (s, ctx) => { await s.upload('[data-upload-input="form-license"]', [ctx.photos[0]]); }, action: "Retake Photo (the back)", next: "row-verified",
         notes: "A blocked row keeps its ONE-TAP retake rather than making the whole row the control — the prototype's version cost an extra tap on the screen where the customer is already stuck." },
-      { key: "row-verified", screen: "License sent — being reviewed", do: async (s, ctx) => { await s.upload('[data-upload-input="form-license"]', [ctx.photos[1]]); }, action: "Add the insurance card", next: "insurance-blurry",
-        notes: "Both sides are in, so the row counts as ready and the progress line moves — but a license is never called verified by the customer's phone. It reads Sent — being reviewed, with Replace on the row, until an advisor reviews it in the jacket." },
+      { key: "row-verified", screen: "License received for review", do: async (s, ctx) => { await s.upload('[data-upload-input="form-license"]', [ctx.photos[1]]); }, action: "Add the insurance card", next: "insurance-blurry",
+        notes: "Both sides are in, so the row counts as ready and the progress line moves — but a license is never called verified by the customer's phone. It reads Received for review, with Replace on the row, until an advisor reviews it in the jacket." },
       /* KA-003 (the owner's answer A of 2026-09-28): the card is taken the first time; the prototype's scripted refusal
          ("Expires within 45 days") and its retake are gone. A blurry photo is the refusal the row path still has */
       { key: "insurance-blurry", screen: "Insurance photo too blurry — refused on the row", do: async (s) => { await clearToast(s); await s.click('[data-detail="form-insurance"]'); await s.click("#drBad", { wait: 150 }); await s.click('[data-capture="camera"]'); }, action: "Retake the insurance", next: "insurance-accepted",
         notes: "The refusal names the real reason on the row itself. The toast lifts clear of the sticky action bar, the same way it already did for dialog footers. A refused photo does not spend the card's exception: that goes with the first card taken." },
       { key: "insurance-accepted", screen: "Insurance taken — the row says why it needs attention", do: async (s, ctx) => { await s.upload('[data-upload-input="form-insurance"]', [ctx.photos[2]]); }, action: "Tap Submit what's ready (2/3)", next: "receipt-partial",
-        notes: "The card John has expires in 12 days, so it is taken the first time and its row says why it needs attention: Accepted, in the attention colour, \"Expires <date>. Coverage must be in force at delivery.\" The retake replaced the refused photo. Two of three ready: the customer can already send what is done." },
+        notes: "The card John has expires in 12 days, so it is taken the first time and its row says why it needs attention: Ready, with the date and the reason in the attention colour under it, \"Expires <date>. Coverage must be in force at delivery.\" The retake replaced the refused photo. Two of three ready: the customer can already send what is done." },
       { key: "receipt-partial", screen: "Receipt — partway through", do: async (s) => { await clearToast(s); await s.click("[data-receipt]"); }, action: "Back to upload", next: "paystub-one-of-two",
-        notes: "Three groups, and only the ones that apply: what is already in the Deal Jacket, what is awaiting the advisor's review, and what is still needed. The button says Back to upload while something is missing." },
+        notes: "Received for review, and that received is not approved, with each document and its time, and how many are still needed. The button says Back to upload while something is missing." },
       { key: "paystub-one-of-two", screen: "Paystub — second stub still needed", do: async (s, ctx) => { await s.click("[data-back-landing]"); await s.upload('[data-upload-input="form-paystub"]', [ctx.photos[4]]); }, action: "Add the second stub", next: "all-verified",
         notes: "Two stubs are required, so one is a blocked row like the license's missing side — the row says which page is missing and offers the retake." },
       { key: "all-verified", screen: "Every row ready — the license still awaiting review", do: async (s, ctx) => { await s.upload('[data-upload-input="form-paystub"]', [ctx.photos[2]]); }, action: "Tap Submit documents", next: "receipt",
-        notes: "Only when every row is ready does one submit button replace the add/submit-what's-ready pair. Ready is not the same as verified: the paystub cleared on the spot and the insurance card was taken with its exception, while John Smith's license still reads Sent — being reviewed until an advisor looks at it." },
+        notes: "Only when every row is ready does one submit button replace the add/submit-what's-ready pair. Ready is not the same as verified: the paystub cleared on the spot and the insurance card was taken with its exception, while John Smith's license still reads Received for review until an advisor looks at it." },
       { key: "receipt", screen: "Receipt — your documents", do: async (s) => { await clearToast(s); await s.click("[data-receipt]"); }, action: "Back to status", next: "landing",
-        notes: "What landed, when, and that it is already in the Deal Jacket." },
+        notes: "What was received and when, in the customer's words: Received for review, and that this is not the same as approved." },
       { key: "document-sheet", screen: "What we need — bottom sheet", do: async (s) => { await s.reset(); await s.go(`#/clientlink/${D}`); await s.click('[data-detail="form-paystub"]'); }, action: "Tap See a good example", next: "good-example",
         branches: [{ action: "Choose from library (two files)", to: "client-upload/review-capture" }, { action: "Choose a PDF", to: "client-upload/review-pdf" }, { action: "Simulate an unreadable photo → Take a photo", to: "client-upload/unreadable-refused" }],
         notes: "A sheet OVER the list, not a page that replaces it (owner, 2026-08-27), so the customer never loses their place; it dismisses by tapping the list behind it or by Escape. No requirements list: telling someone what a good photo looks like before they have taken one is text for its own sake — the refusal afterwards is the part that helps." },
@@ -1642,6 +1817,11 @@ export const FLOWS = [
         notes: "Choose a PDF is the third way in, for someone whose insurer emailed the binder. The demo cannot draw a PDF page, and says so in the frame instead of showing a blank — Use this still files it." },
       { key: "save-later", screen: "Save & finish later", standalone: true, do: async (s) => { await s.reset(); await s.go(`#/clientlink/${D}`); await s.click("[data-save-later]", { wait: 250 }); }, action: "Reopen the same link later", next: "landing",
         notes: "Nothing to save: every upload already landed as it was verified. The line tells the customer the same link brings them back to where they stopped." },
+      /* KA-009 (§27): John's pages are the kit's customer link page. At the end of the flow, so no picture is renumbered */
+      { key: "help-sheet", screen: "Help — Ashley's name and the number to call", standalone: true, do: async (s) => { await s.reset(); await s.go(`#/clientlink/${D}`); await s.click("#chLinkHelp", { wait: 450 }); }, action: "Close the sheet, or call", next: "landing",
+        notes: "The one help on the customer link page, in its bar: who to ask (Ashley Collins, Client Advisor, Ride Price Motors) and a link to call the store." },
+      { key: "front-on-file", reusedFrom: "landing", screen: "The list — the license front the store took, the back still needed", standalone: true, do: async (s) => { await s.reset(); await s.go(`#/clientlink/${D}`); }, action: "Add the back", next: "landing",
+        notes: "The front the resolver took at the desk reads Front on file with Back needed beside it, as chips on the license's card, and the card offers Retake, as every missing page does." },
     ] },
 
   { id: "snap-all", area: "18-snap-all", title: "Snap All — burst capture",
@@ -1702,7 +1882,21 @@ export const FLOWS = [
       { key: "client-capture", screen: "Snap All from the customer's phone", standalone: true, do: async (s) => {
           await s.reset(); await s.go(`#/clientlink/${D}`); await s.click("[data-snapall]", { wait: 600 }); },
         action: "Shutter, or Gallery",
-        notes: "The same screen reached from the customer's Add documents: no dealership band and no role control (PI-005), because this is the customer's own page. The marked Demo · advisor view is the trainer's way back; Close returns to the customer's list." },
+        notes: "The same screen reached from the customer's Add documents: no dealership band and no role control (PI-005), because this is the customer's own page. The marked Demo · advisor view is the trainer's way back; Back to your documents returns to the customer's list." },
+      /* KA-009 (§27): John's Snap All on the customer link page. At the end of the flow, so no picture is renumbered */
+      { key: "client-results", screen: "John's sorted batch — Ready", standalone: true, do: async (s, ctx) => {
+          await s.reset(); await s.go(`#/snapall/${D}/client/c-demo1`);
+          await s.upload("#saLib", [ctx.photos[0], ctx.photos[1], ctx.photos[2]]);
+          await s.click("#saProcess", { wait: 60 });
+          for (let i = 0; i < 50 && !await s.exists("#saSave"); i++) await s.settle(100); },
+        action: "Back to your documents", next: "client-leave", branches: [{ action: "Confirm & save", to: "client-upload/landing" }],
+        notes: "The customer's side of the sort: Ready, and Ready with a note for the insurance card, with its reason under it; never Verified or Exception accepted. The dock says Nothing is sent until you confirm, and the way back is a text link under the primary, never a Close." },
+      { key: "client-leave", screen: "Leaving John's capture — the photos have not been sent", standalone: true, do: async (s, ctx) => {
+          await s.reset(); await s.go(`#/snapall/${D}/client/c-demo1`);
+          await s.upload("#saLib", [ctx.photos[0], ctx.photos[1]]);
+          await s.click("#saBack", { wait: 450 }); },
+        action: "Leave capture, or Keep capturing",
+        notes: "The question says the photos in this batch have not been sent, and leaving clears them; it never says the deal jacket, which is the store's word." },
     ] },
 
   /* ------------------------------------------------------------ */
@@ -1871,5 +2065,40 @@ export const FLOWS = [
         expect: async (s) => { const h = await s.eval(`location.hash`); return h.includes("/vehicles/") ? "" : `landed on ${h}`; },
         action: null, next: null,
         notes: "The other half of the rule: a deal still in progress can be repaired, so Documents sends it to pick a vehicle instead of showing an empty list." },
+    ] },
+  /* ------------------------------------------------------------ */
+  /* the pretend servers' states, from the tester switches in More (the owner's rulings of 2026-09-22 and -23; harness/
+     services.mjs holds them). Last in the list on purpose: a switch is kept on the phone, and the library's reset sets
+     every switch back to normal before the next flow's first step. */
+  { id: "services", area: "21-service-states", title: "Service states — the tester switches",
+    description: "Ride Price talks to eight pretend servers (the lender, the text and email links, customer search, license reading, the identity check, document uploads, the DMS, and the phone's own saving). A tester switch in More makes each one slow, failing, offline or signed out, and every screen that waits on one says so in place. These are those states, one example of each kind.",
+    entry: { from: "home/more-sheet", action: "Tap Tester switches" },
+    steps: [
+      { key: "switches-panel", screen: "Tester switches — everything normal", do: async (s) => { await s.reset(); await s.go("#/deals"); await s.click("#dqMore", { wait: 500 }); await s.click("#dqSwitches", { wait: 500 }); }, action: "Tap Lender decision", next: "switch-chooser",
+        notes: "One row per pretend server, each saying how it answers. With everything normal there is nothing to set back." },
+      { key: "switch-chooser", screen: "One server's chooser", do: async (s) => { await s.click('[data-switch="lender"]', { wait: 400 }); }, action: "Tap Failing, then Done", next: "switches-one-on",
+        notes: "Normal, Slow, Failing, Offline or Signed out, each with what it does. The identity check can also say no, and the phone's own saving is only normal or refusing." },
+      { key: "switches-one-on", screen: "Tester switches — the lender failing", do: async (s) => { await s.click('[data-mode="failing"]', { wait: 400 }); await s.click("#swDone", { wait: 400 }); }, action: "Close", next: "band-switch-on",
+        notes: "The list says what is on, and offers Set everything back to normal." },
+      { key: "band-switch-on", screen: "The band names a switch that is on", scenario: true, do: async (s) => { await s.reset(); await s.go("#/deals"); await svc(s, { lender: "failing" }); }, action: "Change opens the switches", next: "switches-panel",
+        notes: "The DEMO band says which switch is on, with Change, on every screen, so nobody mistakes a pretend failure for a real one." },
+      { key: "band-offline", screen: "The band — OFFLINE", scenario: true, do: async (s) => { await s.reset(); await s.go("#/deals"); await svc(s, { links: "offline" }); }, action: null, next: null,
+        notes: "A server offline puts OFFLINE on the band, and says the work is kept on the phone." },
+      { key: "link-slow", screen: "Secure link — still sending", scenario: true, do: async (s) => { await toSendSheet(s, { slowMs: 60000 }); await svc(s, { links: "slow" }, false); await s.click("#obSendGo", { wait: 3800 }); }, action: "It lands when the server answers", next: null,
+        notes: "Slow: the button says what it is doing, and after a few seconds a line says it is still sending." },
+      { key: "link-failing", screen: "Secure link — the text didn't go out", scenario: true, do: async (s) => { await toSendSheet(s, { failMs: 300 }); await svc(s, { links: "failing" }, false); await s.click("#obSendGo", { wait: 1100 }); }, action: "Try again, or Send by email instead", next: null,
+        notes: "Failing: what did not go out is said in the sheet, nothing was sent, the number typed is still there, and the other channel is offered." },
+      { key: "session-ended", screen: "Your session ended (sheet)", scenario: true, do: async (s) => { await toSendSheet(s); await svc(s, { links: "signed-out" }, false); await s.click("#obSendGo", { wait: 600 }); }, action: "Sign in again, or Not now", next: null,
+        notes: "Signed out: the session sheet. Not now keeps what was typed; Sign in again sends." },
+      { key: "link-offline", screen: "Secure link — waiting for a connection", scenario: true, do: async (s) => { await toSendSheet(s); await svc(s, { links: "offline" }, false); await s.click("#obSendGo", { wait: 600 }); }, action: "It sends by itself when back online", next: null,
+        notes: "Offline: the band says OFFLINE, the button waits for a connection, and a line says it will send by itself." },
+      { key: "request-failing", screen: "Deal Jacket — the secure request didn't go out", scenario: true, do: async (s) => { await s.reset(); await s.go(`#/jacket/${D}`); await s.click("#jkRequest", { wait: 500 }); await svc(s, { links: "failing" }, false, { failMs: 300 }); await s.click("#jkSend", { wait: 1500 }); }, action: "Try again, or Not now", next: null,
+        notes: "The jacket's request for John's documents, failing: said in the sheet, the documents still waiting, and the sheet never left locked." },
+      { key: "save-refused", screen: "This phone didn't save that", scenario: true, do: async (s) => { await s.reset(); await ev(s, `Store.deal("${D}").huddle.done = true;`); await s.go(`#/desk/${D}`); await svc(s, { saving: "failing" }, false); await s.click('[data-type="lease"]', { wait: 600 }); }, action: "Try again", next: null,
+        notes: "The phone refusing to save, anywhere: an alert at the top of the screen says so, with Try again; the change stays on the screen." },
+      { key: "dms-failing", screen: "Final review — the DMS didn't take the deal", scenario: true, do: async (s) => { await s.reset(); await ev(s, `Store.s.role = "teamlead"; ${ALL_FILED}`); await s.go(`#/menu/${D}`); await s.click("#fmNext", { wait: 400 }); await s.click("#fmAccept", { wait: 400 }); await s.type("#fmIni", "JS"); await s.click("#fmIniGo", { wait: 400 }); await s.click('[data-sheet-open="ack"]', { wait: 400 }); await s.click("#fmSignGo", { wait: 400 }); await s.go(`#/menu/${D}`); await s.click("#fmNext", { wait: 500 }); await svc(s, { dms: "failing" }, false, { failMs: 300 }); await s.click("#fmFinal", { wait: 1100 }); }, action: "Try again", next: null,
+        notes: "Finalize, with the DMS failing: said on the Final review, nothing finalized, Try again and the Print center." },
+      { key: "upload-read-failing", screen: "John's phone — his license couldn't be read", scenario: true, do: async (s, ctx) => { await s.reset(); await ev(s, `Store.s.idSession = { id: "s-sv", phone: "(718) 555-0199", email: "", channel: "Text", helper: false, sentAt: new Date().toISOString(), photoAt: null, persona: null, matchId: null, faceAt: null, addressChoice: null, addressFrom: null, addressConfirmedAt: null, doneAt: null };`); await s.go("#/idverify"); await s.eval(`(() => { RIDE_PRICE_SCAN.recognizeFile = async () => ({ ok: true, prop: 2, persona: RIDE_PRICE_SCAN.personaFor(2) }); return true; })()`); await svc(s, { reading: "failing" }, false, { failMs: 300 }); await s.upload('input[data-upcap][data-upsrc="library"]', [ctx.photos[0]], { wait: 1200 }); }, action: "Try again", next: null,
+        notes: "The customer's own license read failing, on his phone: said in his words, his photo kept, and no dealership band on the customer's screen." },
     ] },
 ];

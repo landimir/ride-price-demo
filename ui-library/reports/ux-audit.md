@@ -1,13 +1,13 @@
-# Ride Price Mobile UI — UX Audit (v049)
+# Ride Price Mobile UI — UX Audit (v051)
 
-Captured 2026-10-06T07:49:07.056Z · viewport 390×844 · app e19962cf661be840e8dcc964c1e61e1080964f30
+Captured 2026-10-07T04:48:54.848Z · viewport 390×844 · app 567dc8d1201ab9555e749ed857cccd3d667993f8
 
 | Severity | Count |
 |---|---|
 | Critical | 0 |
 | Major | 14 |
 | Minor | 31 |
-| Observation | 9 |
+| Observation | 10 |
 
 Severity scale: **Critical** — the user cannot complete the flow · **Major** — the flow continues but the experience is significantly impaired · **Minor** — polish / consistency · **Observation** — worth reviewing, not necessarily broken.
 
@@ -334,7 +334,7 @@ _None recorded._
 - **Observation:** Found by the v043 audit.
 - **Suggested area to investigate:** app.js — the print center's cover sheet and quote
 
-## Observation (9)
+## Observation (10)
 
 ### RP-UI-023 — Home — Deals Queue & Navigation · My Deals (landing — Advisor)
 
@@ -398,6 +398,13 @@ _None recorded._
 - **Issue:** On The name changed, Edit license details is drawn under the dock until the page is scrolled: the scanned address takes two lines, the page grows past the dock, and the first paint shows Ask a Team Lead where the link is. Scrolled to the end, the link sits clear of the dock (its box overlaps the dock's top by 4 px; a tap lands on the link).
 - **Observation:** The library's overlap check reads it at first paint. Nothing is lost, since the page scrolls, but the one way to put a misread right is out of sight on the case that most needs it. Found by the v044 audit.
 - **Suggested area to investigate:** Confirm customer: the page and its dock
+
+### RP-UI-105 — Home — Active Floor & Navigation · My deals (landing — Advisor)
+
+- **Screenshot:** `current/01-home-and-navigation/01-deals-queue.png`
+- **Issue:** White text on the primary buttons measures 2.6:1 at the orange end of the bright gradient (#FF7A00 to #FF0055), under the 4.5:1 small text needs; the automated contrast check lists it on 341 screens since v051 ("#ffffff on #ff… (gradient, worst under the text)").
+- **Observation:** The owner's choice of 2026-10-06 ("I need the old color back it just looks better … In the future I'll make the correct visual change but for now I want the old color"), which took back W-152's darker gradient; RULES §3 records it and the redesign's LS-122 names it as its remaining gap. Not a defect to fix here: the owner makes that change.
+- **Suggested area to investigate:** ride-price-mobile.css --rp-gradient
 
 ## Automated checks per screen
 

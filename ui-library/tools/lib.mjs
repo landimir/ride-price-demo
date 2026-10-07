@@ -20,14 +20,25 @@ export const FIXTURES = join(LIB, "tools", "fixtures");
 const settle = (ms = 300) => new Promise(r => setTimeout(r, ms));
 
 export class Session {
-  constructor({ http = 8466, cdp = 9366 } = {}) { this.http = http; this.cdp = cdp; this.base = `http://127.0.0.1:${http}/`; }
+  /* root: the portal to serve, the repo's own unless a tool passes a copy (versions.mjs captures a changed copy) */
+  constructor({ http = 8466, cdp = 9366, root = PORTAL } = {}) { this.http = http; this.cdp = cdp; this.root = root; this.base = `http://127.0.0.1:${http}/`; }
 
   async open() {
-    this.srv = await staticServer(PORTAL, this.http);
+    this.srv = await staticServer(this.root, this.http);
     const { proc, ws } = await launchChrome(this.cdp);
     this.proc = proc;
     this.c = new CDP(ws); await this.c.connect();
-    await this.c.openTab(this.base);
+    /* what the page logs as an error, kept for checks() (a favicon the static server does not have is not the app's). It
+       listens before the app's first load, on a blank tab with the browser's log on, so an error the app makes while it
+       starts is the first screen's, not lost (CodeRabbit on #259) */
+    this.errors = [];
+    const note = (s) => { if (!/favicon/.test(s)) this.errors.push(s); };
+    this.c.on("Runtime.exceptionThrown", (p) => note("uncaught: " + String((p.exceptionDetails.exception && p.exceptionDetails.exception.description) || p.exceptionDetails.text).split("\n")[0].slice(0, 160)));
+    this.c.on("Runtime.consoleAPICalled", (p) => { if (p.type === "error" || p.type === "assert") note("console." + p.type + ": " + p.args.map((a) => (a.value !== undefined ? String(a.value) : a.description || a.type)).join(" ").slice(0, 160)); });
+    this.c.on("Log.entryAdded", (p) => { if (p.entry.level === "error") note("log: " + String(p.entry.text).slice(0, 120) + (p.entry.url ? " (" + String(p.entry.url).replace(/^.*\//, "") + ")" : "")); });
+    await this.c.openTab("about:blank");
+    await this.c.send("Log.enable");
+    await this.c.goto(this.base);
     await this.c.setViewport(VIEWPORT.width, VIEWPORT.height);
     await this.c.appReady();
     return this;
@@ -41,7 +52,9 @@ export class Session {
      queue exists (an approved credit app makes the paystub/insurance/licence
      queue meaningful). Nothing here is invented customer data. */
   async reset({ approved = true } = {}) {
-    await this.c.eval(`(() => { Store.reset(); ${approved ? `Store.deal("d-demo1").creditApp = { approved: true, lender: "Ride Price Financial" }; Store.save();` : ""} return true; })()`);
+    /* the tester switches are kept on the phone, apart from the demo data: the service-states flow turns them on, and
+       every reset turns them back to normal so no other screen is captured with a pretend server failing */
+    await this.c.eval(`(() => { if (typeof RIDE_PRICE_SERVICES !== "undefined") RIDE_PRICE_SERVICES.reset(); Store.reset(); ${approved ? `Store.deal("d-demo1").creditApp = { approved: true, lender: "Ride Price Financial" }; Store.save();` : ""} return true; })()`);
   }
 
   /* navigate to a hash and re-boot so route-entry state (phone/desktop
@@ -162,10 +175,10 @@ export class Session {
 
   /* automated visual checks, read from the live DOM at capture time. These are
      hints for the audit, not verdicts — every flagged screen is eyeballed. */
-  checks() {
-    return this.c.eval(`(() => {
+  async checks() {
+    const result = await this.c.eval(`(() => {
       const W = ${VIEWPORT.width}, H = ${VIEWPORT.height};
-      const out = { hOverflow: 0, offscreen: [], tinyTargets: [], clipped: [], overlaps: [] };
+      const out = { hOverflow: 0, offscreen: [], tinyTargets: [], clipped: [], overlaps: [], sheetFit: [], lowContrast: [], holes: [], dupIds: [], brokenImages: [] };
       out.hOverflow = Math.max(0, document.documentElement.scrollWidth - W);
       const drawerOpen = !!document.querySelector(".drawer.open"), modal = document.querySelector("#modalBack");
       const scope = modal ? modal : (drawerOpen ? document.querySelector(".drawer") : document.body);
@@ -210,10 +223,116 @@ export class Session {
         const iy = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
         if (ix > 4 && iy > 4) out.overlaps.push(label(a.el) + " <> " + label(b.el));
       }
-      out.offscreen = out.offscreen.slice(0, 8); out.tinyTargets = out.tinyTargets.slice(0, 12); out.clipped = out.clipped.slice(0, 8); out.overlaps = out.overlaps.slice(0, 8);
+      /* a sheet fits the screen: its top is on the screen, or it scrolls inside itself; and its Close is on the screen. A kit sheet has no height limit,
+         so one taller than the phone clips at the top, where its title and its Close are (W-151) */
+      for (const sh of document.querySelectorAll(".rp-sheet")) {
+        if (sh.hidden || !vis(sh)) continue;
+        const r = sh.getBoundingClientRect(), cs = getComputedStyle(sh), x = sh.querySelector(".rp-sheet__close"), xr = x ? x.getBoundingClientRect() : null;
+        const scrolls = /(auto|scroll)/.test(cs.overflowY) && cs.maxHeight !== "none";
+        if (r.top < -1 && !scrolls) out.sheetFit.push(label(sh) + " top " + Math.round(r.top) + ", height " + Math.round(r.height) + " on a " + H + " screen" + (xr && xr.bottom <= 0 ? ", its Close is above the screen" : ""));
+        else if (xr && (xr.bottom <= 0 || xr.top >= H)) out.sheetFit.push(label(sh) + " its Close is off the screen (" + Math.round(xr.top) + ")");
+      }
+      /* text contrast (WCAG 2.x): each visible text element's colour against the first opaque background behind it, 4.5:1, or 3:1 for large text (24px, or 18.66px bold).
+         Text on a gradient is measured against the colours under the text itself; text on an image is not measured; disabled controls are exempt, as WCAG exempts them. */
+      const rgbOf = (s) => { if (!s || s.indexOf("(") < 0) return null; const p = s.slice(s.indexOf("(") + 1, s.lastIndexOf(")")).split(",").map(x => parseFloat(x)); if (p.length < 3 || p.some(x => Number.isNaN(x))) return null; return { r: p[0], g: p[1], b: p[2], a: p.length > 3 ? p[3] : 1 }; };
+      const lin = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+      const lum = (c) => 0.2126 * lin(c.r) + 0.7152 * lin(c.g) + 0.0722 * lin(c.b);
+      const ratio = (x, y) => { const p = lum(x), q = lum(y); return (Math.max(p, q) + 0.05) / (Math.min(p, q) + 0.05); };
+      const mix = (f, g) => ({ r: f.r * f.a + g.r * (1 - f.a), g: f.g * f.a + g.g * (1 - f.a), b: f.b * f.a + g.b * (1 - f.a), a: 1 });
+      const hex = (c) => "#" + [c.r, c.g, c.b].map(v => Math.round(v).toString(16).padStart(2, "0")).join("");
+      const sheetUp = [...document.querySelectorAll(".rp-sheet")].find(x => !x.hidden && vis(x));
+      const under = (el) => {
+        const layers = [];
+        for (let p = el; p && p !== document.documentElement; p = p.parentElement) {
+          /* a video, a photo or a canvas drawn behind the text: what is under it cannot be read from the page */
+          if ([...p.children].some(ch => /^(VIDEO|IMG|CANVAS|PICTURE)$/i.test(ch.tagName) && ch !== el && !ch.contains(el) && getComputedStyle(ch).position === "absolute")) return null;
+          const cs = getComputedStyle(p), img = cs.backgroundImage;
+          if (img && img !== "none") {
+            if (img.indexOf("gradient(") < 0) return null;
+            const stops = []; let i = 0; while ((i = img.indexOf("rgb", i)) >= 0) { const j = img.indexOf(")", i); const c = rgbOf(img.slice(i, j + 1)); if (c) stops.push(c); i = j; }
+            if (!stops.length || stops.some(s => s.a < 0.98) || layers.length) return null; /* a see-through stop, or a translucent layer over a gradient: not measured */
+            return { stops, box: p.getBoundingClientRect() };
+          }
+          const c = rgbOf(cs.backgroundColor);
+          if (c && c.a > 0.98) { let base = c; for (let k = layers.length - 1; k >= 0; k--) base = mix(layers[k], base); return { color: base }; }
+          if (c && c.a > 0.02) layers.push(c);
+        }
+        let base = { r: 255, g: 255, b: 255, a: 1 }; for (let k = layers.length - 1; k >= 0; k--) base = mix(layers[k], base);
+        return { color: base };
+      };
+      const seenPairs = new Set();
+      for (const el of document.querySelectorAll("body *")) {
+        if (!vis(el) || (sheetUp && !sheetUp.contains(el)) || el.closest(".dr-debug, .sr-only, [aria-hidden=true]") || el.matches(":disabled") || el.closest("[aria-disabled=true]")) continue;
+        if (![...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) continue;
+        const cs = getComputedStyle(el), fg = rgbOf(cs.color); if (!fg || fg.a < 0.2) continue; /* a nearly clear colour is decoration, a watermark */
+        const bg = under(el); if (!bg) continue;
+        const size = parseFloat(cs.fontSize), bold = parseInt(cs.fontWeight, 10) >= 700, large = size >= 24 || (size >= 18.66 && bold), need = large ? 3 : 4.5;
+        let worst = Infinity, where = "";
+        if (bg.color) { worst = ratio(mix(fg, bg.color), bg.color); where = hex(bg.color); }
+        else {
+          const rg = document.createRange(); rg.selectNodeContents(el); const tr = rg.getBoundingClientRect(), w = bg.box.width || 1, n = bg.stops.length;
+          const t0 = Math.min(1, Math.max(0, (tr.left - bg.box.left) / w)), t1 = Math.min(1, Math.max(0, (tr.right - bg.box.left) / w));
+          for (let k = 0; k <= 10; k++) {
+            const u = t0 + (t1 - t0) * k / 10, pos = u * (n - 1), i0 = Math.min(Math.max(n - 2, 0), Math.floor(pos)), f = n > 1 ? pos - i0 : 0, a0 = bg.stops[i0], b0 = bg.stops[Math.min(n - 1, i0 + 1)];
+            const c = { r: a0.r + (b0.r - a0.r) * f, g: a0.g + (b0.g - a0.g) * f, b: a0.b + (b0.b - a0.b) * f, a: 1 }; const r = ratio(mix(fg, c), c); if (r < worst) { worst = r; where = hex(c); }
+          }
+        }
+        if (worst < need) { const key = hex(fg) + ">" + where + ">" + size + bold; if (seenPairs.has(key)) continue; seenPairs.add(key); out.lowContrast.push(label(el) + " | " + hex(fg) + " on " + where + (bg.stops ? " (gradient, worst under the text)" : "") + " | " + worst.toFixed(2) + ":1, needs " + need + " | " + size + "px" + (bold ? " bold" : "")); }
+      }
+      /* a hole in the words: text that shows a value the page failed to make, "$NaN", "undefined", "null", "Infinity", "[object Object]" (DK-054's "Amount financed $NaN" was on a screen
+         for weeks). Whole words only, so "Nullify" is not one. The regex's backslashes are doubled: this is a template literal, and a lone \\b would be a backspace. */
+      const HOLE = /\\b(undefined|NaN|null|Infinity)\\b|\\[object \\w+\\]/;
+      for (const el of document.querySelectorAll("body *")) {
+        if (out.holes.length >= 4) break;
+        if (/^(SCRIPT|STYLE|NOSCRIPT|TEMPLATE)$/.test(el.tagName) || !vis(el)) continue;
+        let s = ""; for (const n of el.childNodes) if (n.nodeType === 3) s += n.textContent + " ";
+        if (/^(INPUT|TEXTAREA)$/.test(el.tagName) && el.type !== "password") s += " " + (el.value || "");
+        const t = s.replace(/\\s+/g, " ").trim(), m = HOLE.exec(t);
+        if (m) out.holes.push(label(el) + " | " + t.slice(Math.max(0, m.index - 24), m.index + 36));
+      }
+      /* two elements with one id: a label points at the wrong field, a link scrolls to the wrong place, and a script's getElementById finds only the first */
+      const idCount = new Map(); for (const el of document.querySelectorAll("[id]")) if (el.id) idCount.set(el.id, (idCount.get(el.id) || 0) + 1);
+      for (const [id, n] of idCount) if (n > 1) out.dupIds.push("#" + id + " x" + n);
+      /* a picture that did not load: the browser's broken-image box, or an img with no source */
+      for (const im of document.querySelectorAll("img")) { if (!vis(im)) continue; if ((im.complete && im.naturalWidth === 0) || !im.getAttribute("src")) out.brokenImages.push(label(im) + " | " + (im.getAttribute("src") || "no src").slice(0, 60)); }
+      out.offscreen = out.offscreen.slice(0, 8); out.tinyTargets = out.tinyTargets.slice(0, 12); out.clipped = out.clipped.slice(0, 8); out.overlaps = out.overlaps.slice(0, 8); out.sheetFit = out.sheetFit.slice(0, 4); out.lowContrast = out.lowContrast.slice(0, 8);
+      out.holes = out.holes.slice(0, 4); out.dupIds = out.dupIds.slice(0, 6); out.brokenImages = out.brokenImages.slice(0, 4);
       return out;
     })()`);
+    result.unnamed = await this.unnamedControls();
+    /* what the page logged as an error since the last screen: an uncaught exception, console.error, a resource that did not load (the browser's own log) */
+    result.console = this.takeErrors();
+    return result;
   }
+
+  /* the errors logged since they were last taken, once each, and the log emptied: by checks() for its screen, and by the
+     capture for a step that failed before its screen was checked, so they are that step's and never the next screen's */
+  takeErrors() {
+    return this.errors ? this.errors.splice(0).filter((e, i, all) => all.indexOf(e) === i).slice(0, 6) : [];
+  }
+  /* a control a screen reader meets with no name (LS-124): a button, link, field or other control the browser's accessibility tree gives no name, on the screen and not in a
+     closed drawer (an open drawer is on the screen, and its controls are audited: CodeRabbit on #260). Read from the tree, not from the markup, so a name from a label, an aria attribute or the text inside all count. */
+  async unnamedControls() {
+    const ROLES = new Set(["button", "link", "textbox", "searchbox", "combobox", "checkbox", "radio", "switch", "tab", "menuitem", "slider", "spinbutton", "listbox", "option"]);
+    await this.c.send("Accessibility.enable");
+    /* a tree the browser cannot give is the audit's failure, not a nameless control: nothing here catches it, so capture.mjs records the screen's step as capture-failed, with the reason */
+    const { nodes } = await this.c.send("Accessibility.getFullAXTree");
+    const out = []; let tried = 0, lost = 0;
+    for (const n of nodes) {
+      if (n.ignored || !n.role || !ROLES.has(n.role.value) || !n.backendDOMNodeId) continue;
+      if (((n.name && n.name.value) || "").trim()) continue;
+      tried++;
+      try {
+        const { object } = await this.c.send("DOM.resolveNode", { backendNodeId: n.backendDOMNodeId });
+        const r = await this.c.send("Runtime.callFunctionOn", { objectId: object.objectId, returnByValue: true, functionDeclaration: "function () { const b = this.getBoundingClientRect(); if (this.closest('.drawer:not(.open), [hidden]') || !(b.width > 0 && b.height > 0)) return null; return this.tagName.toLowerCase() + (this.id ? '#' + this.id : '') + (typeof this.className === 'string' && this.className ? '.' + this.className.trim().split(/\\s+/)[0] : '') + ' (' + n.role + ')'; }".replace("n.role", JSON.stringify(n.role.value)) });
+        if (r.result && r.result.value) out.push(r.result.value);
+      } catch { lost++; } /* one node the browser cannot resolve (detached since the tree was read, or in another frame) costs that node, not the screen's whole list */
+    }
+    /* but every candidate lost is a tool that cannot see the page, not a page with nothing wrong */
+    if (tried && lost === tried) throw new Error(`the accessibility tree named ${tried} control(s) without a name and none could be looked up in the page`);
+    return out.slice(0, 8);
+  }
+
 
   /* fixtures: coloured squares for document uploads (the app's verification
      is simulated and reads nothing from a photo — see architecture invariant 4) */

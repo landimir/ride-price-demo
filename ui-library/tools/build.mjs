@@ -115,6 +115,13 @@ const screenCard = (f, sc) => {
     sc.checks.clipped.length ? `clipped text (${sc.checks.clipped.length}): ${sc.checks.clipped.join("; ")}` : null,
     sc.checks.overlaps.length ? `overlap (${sc.checks.overlaps.length}): ${sc.checks.overlaps.join("; ")}` : null,
     sc.checks.tinyTargets.length ? `small targets <36px (${sc.checks.tinyTargets.length}): ${sc.checks.tinyTargets.join("; ")}` : null,
+    (sc.checks.sheetFit || []).length ? `a sheet does not fit the screen (${sc.checks.sheetFit.length}): ${sc.checks.sheetFit.join("; ")}` : null,
+    (sc.checks.lowContrast || []).length ? `text contrast under the floor (${sc.checks.lowContrast.length}): ${sc.checks.lowContrast.join("; ")}` : null,
+    (sc.checks.unnamed || []).length ? `a control with no name for a screen reader (${sc.checks.unnamed.length}): ${sc.checks.unnamed.join("; ")}` : null,
+    (sc.checks.holes || []).length ? `text that shows a value the page failed to make (${sc.checks.holes.length}): ${sc.checks.holes.join("; ")}` : null,
+    (sc.checks.dupIds || []).length ? `one id on two elements (${sc.checks.dupIds.length}): ${sc.checks.dupIds.join("; ")}` : null,
+    (sc.checks.brokenImages || []).length ? `a picture that did not load (${sc.checks.brokenImages.length}): ${sc.checks.brokenImages.join("; ")}` : null,
+    (sc.checks.console || []).length ? `the page logged an error (${sc.checks.console.length}): ${sc.checks.console.join("; ")}` : null,
   ].filter(Boolean) : [];
   const tall = (sc.size && sc.size.height > 844) || !!sc.scrollShot;
   return `<article class="scr" id="${esc(f.id)}-${esc(sc.key)}"${sc.standalone ? " data-standalone" : ""} data-search="${esc((f.title + " " + sc.screen + " " + (sc.notes || "") + " " + sc.issues.map(i => i.issue).join(" ")).toLowerCase())}">
@@ -130,6 +137,7 @@ const screenCard = (f, sc) => {
     ${sc.issues.length ? `<details open><summary>${sc.issues.length} issue${sc.issues.length > 1 ? "s" : ""}</summary>${sc.issues.map(i => `<div class="issue issue--${i.severity}"><b>${sevBadge(i.severity)} ${esc(i.id)}</b><p>${esc(i.issue)}</p>${i.observation ? `<p><em>${esc(i.observation)}</em></p>` : ""}</div>`).join("")}</details>` : ""}
     ${auto.length ? `<details><summary>automated checks (${auto.length})</summary><div class="auto">${esc(auto.join("\n"))}</div></details>` : ""}
     ${sc.error ? `<p class="notes" style="color:var(--crit)">capture error: ${esc(sc.error)}</p>` : ""}
+    ${(sc.console || []).length ? `<p class="notes" style="color:var(--crit)">the page logged an error while the step failed (${sc.console.length}): ${esc(sc.console.join("; "))}</p>` : ""}
   </article>`;
 };
 const arrow = (sc) => sc.action ? `<div class="arrow"><div class="line"></div><div class="act">${esc(sc.action)}</div></div>` : `<div class="arrow" style="width:28px"></div>`;
@@ -513,7 +521,7 @@ for (const s of SEV) {
     audit.push("");
   }
 }
-audit.push("## Automated checks per screen", "", "The capture run measures each screen for horizontal overflow, elements beyond the viewport, clipped text, text overlap and small touch targets. Two thresholds are in play and they are not the same: this capture script flags anything under **36px**, while the touch floor itself is **40px for every control** (owner, 2026-08-31 — one number, no small-variant tier). So a target in the 36-39px band is reported only by the eye, and anything under 36px is caught by both. `harness/touchfloor.mjs` is what actually enforces the floor across every route — for pressable controls (`button`, links, `role=button`); native form fields sit outside its selector, and their measured shortfalls are RP-UI-029's finding, not this harness's coverage. These are hints that were reviewed by eye; the findings above are the reviewed result. Raw values live in `flow-manifest.json` under each screen's `checks`.", "");
+audit.push("## Automated checks per screen", "", "The capture run measures each screen for horizontal overflow, elements beyond the viewport, clipped text, text overlap, small touch targets, a sheet that does not fit the screen (its top above the screen with nothing to scroll it, or its Close off the screen), text under the contrast floor (WCAG 2.x: 4.5:1, or 3:1 for large text; text on a gradient is measured under the text itself, text on an image and disabled controls are not), a control a screen reader meets with no name (read from the browser's accessibility tree), text that shows a value the page failed to make (NaN, undefined, null, Infinity, [object Object]), one id on two elements, a picture that did not load, and an error the page logged (an uncaught exception, console.error, a resource that did not load). Two thresholds are in play and they are not the same: this capture script flags anything under **36px**, while the touch floor itself is **40px for every control** (owner, 2026-08-31 — one number, no small-variant tier). So a target in the 36-39px band is reported only by the eye, and anything under 36px is caught by both. `harness/touchfloor.mjs` is what actually enforces the floor across every route — for pressable controls (`button`, links, `role=button`); native form fields sit outside its selector, and their measured shortfalls are RP-UI-029's finding, not this harness's coverage. These are hints that were reviewed by eye; the findings above are the reviewed result. Raw values live in `flow-manifest.json` under each screen's `checks`.", "");
 writeFileSync(join(REPORTS, "ux-audit.md"), audit.join("\n"));
 
 /* ---------------- reports/library-summary.md ---------------- */

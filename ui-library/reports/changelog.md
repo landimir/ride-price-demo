@@ -1,5 +1,501 @@
 # Ride Price Mobile UI Library — Changelog
 
+## v051 — 2026-10-07
+
+App commit: 567dc8d · 21 flows · 433 screens · previous: v050
+
+### Added
+- none
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · My deals (landing — Advisor)
+- Home — Active Floor & Navigation · More sheet — secondary navigation
+- Home — Active Floor & Navigation · Reset demo data — confirm
+- Home — Active Floor & Navigation · Active floor (Team Lead)
+- Home — Active Floor & Navigation · Stage filter — no match
+- Home — Active Floor & Navigation · Date range / history sheet
+- Home — Active Floor & Navigation · Funded history in range
+- Home — Active Floor & Navigation · Advisor — completed deal ends the list
+- Home — Active Floor & Navigation · In showroom — an active visit
+- Home — Active Floor & Navigation · Search in use — matches as you type
+- Home — Active Floor & Navigation · Search miss — No deals found
+- Home — Active Floor & Navigation · My deals — nothing in progress
+- Home — Active Floor & Navigation · Active floor — empty (Team Lead)
+- Home — Active Floor & Navigation · My deals — vehicle contention alert
+- Home — Active Floor & Navigation · Custom range — From after To is refused
+- Home — Active Floor & Navigation · Active floor — a visit not yet assigned
+- Home — Active Floor & Navigation · Visit sheet — Assign to an advisor (Team Lead)
+- Home — Active Floor & Navigation · Assign — one row per advisor
+- Home — Active Floor & Navigation · Active floor — assigned to Ashley
+- Home — Active Floor & Navigation · Visit sheet — the advisor's own (no assign control)
+- Home — Active Floor & Navigation · Test log — off, nothing recorded
+- Home — Active Floor & Navigation · Test log — recording, events on the log
+- Home — Active Floor & Navigation · Clear the test log? — confirm
+- Home — Active Floor & Navigation · Test log — cleared and stopped
+- Home — Active Floor & Navigation · My deals — a business buyer's card
+- Home — Active Floor & Navigation · Active floor — Needs you · 1 approval
+- Home — Active Floor & Navigation · Active floor — Needs you · 2 requests
+- Home — Active Floor & Navigation · Funded — none in the range
+- Home — Active Floor & Navigation · Search — the only match is completed
+- Customer Onboarding — the Customer Resolver · Customer found — already in the showroom
+- Customer Onboarding — the Customer Resolver · Customer found — confirm + registration address
+- Customer Onboarding — the Customer Resolver · Use a different address (sheet)
+- Customer Onboarding — the Customer Resolver · No license available — manual fallback
+- Customer Onboarding — the Customer Resolver · Manual form — refused beside each field
+- Customer Onboarding — the Customer Resolver · Already on file — the same phone
+- Customer Onboarding — the Customer Resolver · Send secure upload link (sheet)
+- Customer Onboarding — the Customer Resolver · Waiting for customer — progressive status
+- Customer Onboarding — the Customer Resolver · Customer identified (advisor)
+- Customer Onboarding — the Customer Resolver · Customer found — no registration address yet
+- Customer Onboarding — the Customer Resolver · Co-buyer found — attach, not start
+- Customer Onboarding — the Customer Resolver · Send secure upload link — by email
+- Customer Onboarding — the Customer Resolver · Send secure upload link — a number that cannot receive it
+- Customer Onboarding — the Customer Resolver · Waiting for customer — sent to a helper's number
+- Customer Onboarding — the Customer Resolver · Cancel this secure link? — confirm
+- Customer Onboarding — the Customer Resolver · Customer identified — answered from a helper's number
+- Customer Onboarding — the Customer Resolver · Discard Dana's upload? — confirm
+- Customer Onboarding — the Customer Resolver · Whose upload is this? — another record holds that number
+- Customer Onboarding — the Customer Resolver · Same name on file — a former name typed
+- Customer Onboarding — the Customer Resolver · Manual form — a helper's number
+- Customer Onboarding — the Customer Resolver · Business buyer (sheet)
+- Scan Driver's License · Scan — front of license
+- Scan Driver's License · Review front — the photo waits for Use front
+- Scan Driver's License · Scan — flip to the back
+- Scan Driver's License · Review back — the barcode could not be read
+- Scan Driver's License · Find customer manually (sheet)
+- Scan Driver's License · Manual search — customer found
+- Scan Driver's License · Confirm customer (certain match)
+- Scan Driver's License · Confirm customer (ambiguous — prop 1)
+- Scan Driver's License · New customer (prop 3)
+- Scan Driver's License · Phone already in use (sheet)
+- Scan Driver's License · Verify the phone number (sheet)
+- Scan Driver's License · Customer ready
+- Scan Driver's License · Review both sides (readable pair)
+- Scan Driver's License · Manual search — nothing on file
+- Scan Driver's License · New customer — contact required
+- Scan Driver's License · Possible duplicate (sheet)
+- Scan Driver's License · Phone already in use — no link offered
+- Scan Driver's License · Verify the phone number — wrong code
+- Scan Driver's License · Leave the scan? (sheet)
+- Scan Driver's License · Unfinished scans
+- Scan Driver's License · Resume license scan
+- Scan Driver's License · Review front — more than one license
+- Scan Driver's License · Test drive · license — the name does not match
+- Scan Driver's License · Test drive · license — License read
+- Scan Driver's License · Co-buyer identity — that's the primary buyer
+- Scan Driver's License · Verify the phone number — Email the code instead
+- Scan Driver's License · Confirm customer — no phone or email on file
+- Scan Driver's License · Confirm customer — the name changed
+- Scan Driver's License · Confirm customer — asked a Team Lead
+- Scan Driver's License · Needs you — Jordan confirms the name
+- Scan Driver's License · Needs you — the signed agreement goes back
+- Scan Driver's License · New customer — a helper's number
+- Scan Driver's License · Customer ready — a helper's number said to be the helper's
+- Training Documents · Licenses
+- Training Documents · License preview — both sides
+- Training Documents · Registrations
+- Training Documents · Registration preview
+- Training Documents · More from the hub — the way out
+- Training Documents · Payoffs — the training payoff statements
+- Training Documents · Training payoff statement — preview
+- Discovery — the guided consultation · Stage 1 — the sample slide
+- Discovery — the guided consultation · Current vehicle — the sample reply as chips
+- Discovery — the guided consultation · Current vehicle — a chip turned on
+- Discovery — the guided consultation · Size & space — Skip this topic
+- Discovery — the guided consultation · Seating & family
+- Discovery — the guided consultation · Drivetrain
+- Discovery — the guided consultation · Lane support — the shared stage
+- Discovery — the guided consultation · Reverse safety — the shared stage, the other way
+- Discovery — the guided consultation · The profile — the hand-off
+- Discovery — the guided consultation · The profile after a reload
+- Discovery — the guided consultation · × on the profile — back to the first question
+- Discovery — the guided consultation · Confirmed through — the profile again
+- Discovery — the guided consultation · × in the top bar — back to the visits
+- Discovery — the guided consultation · A visit with a vehicle already chosen
+- Vehicle Selection · Filters — the sheet, counting on the primary
+- Vehicle Selection · Vehicle details — sheet
+- Vehicle Selection · Quote — follow-up only
+- Vehicle Selection · Close — back to the visit in Discovery
+- Vehicle Selection · My deals — the car is also on Nadia's deal
+- Vehicle Selection · Nadia's My deals — Also selected
+- Vehicle Selection · Notification — vehicle reserved
+- Vehicle Selection · Alert dismissed — the card keeps its status
+- Vehicle Selection · Active floor (Team Lead) — the status, no alert
+- Test Drive Agreement · Ready to test drive
+- Test Drive Agreement · Insurance company (sheet)
+- Test Drive Agreement · Ready — the insurance company on its row
+- Test Drive Agreement · Customer found — Confirm address & add driver
+- Test Drive Agreement · License needs attention — the added driver has no license
+- Test Drive Agreement · Ready — two drivers, both licensed
+- Test Drive Agreement · Review & sign
+- Test Drive Agreement · Review & sign — refused without the authorization
+- Test Drive Agreement · Test drive in progress
+- Test Drive Agreement · End test drive — odometer
+- Test Drive Agreement · End test drive — a reading below the start refused
+- Test Drive Agreement · Test drive complete
+- Test Drive Agreement · Test drive complete — no trade on the deal
+- Test Drive Agreement · Test drive complete — returned past the limit
+- Test Drive Agreement · Printable Test Drive Agreement
+- Test Drive Agreement · Test drive complete — a drive recorded before this screen
+- Test Drive Agreement · License needs attention
+- Test Drive Agreement · Scan license — opened from the test drive
+- Test Drive Agreement · Verify — the card reads a different name
+- Test Drive Agreement · License needs attention — expired, with its date
+- Test Drive Agreement · License needs attention — review pending
+- Test Drive Agreement · License needs attention — no expiration date
+- Test Drive Agreement · Customer identified — Add as driver
+- Test Drive Agreement · Ready — the uploaded driver attached
+- Test Drive Agreement · Scan physical license — the resolver's own scanner
+- Test Drive Agreement · Send secure upload link — the resolver's own send sheet
+- Trade-In Evaluation & Proof of Ownership · Trade value — the appraisal first
+- Trade-In Evaluation & Proof of Ownership · Proof of ownership (sheet) — the three root questions
+- Trade-In Evaluation & Proof of Ownership · Proof of ownership — follow-ups revealed mid-way
+- Trade-In Evaluation & Proof of Ownership · Proof of ownership (sheet) — every relevant question answered
+- Trade-In Evaluation & Proof of Ownership · Trade ready — items for Team Lead
+- Trade-In Evaluation & Proof of Ownership · Trade ready — ownership review complete
+- Trade-In Evaluation & Proof of Ownership · View answers (sheet) — the recorded review
+- Trade-In Evaluation & Proof of Ownership · Edit appraisal — the figure withdrawn until it is re-run
+- Trade-In Evaluation & Proof of Ownership · Run evaluation — a negative odometer refused
+- Trade-In Evaluation & Proof of Ownership · Run evaluation — a model year outside 1981–2026 refused
+- Trade-In Evaluation & Proof of Ownership · Run evaluation — a negative payoff refused
+- Trade-In Evaluation & Proof of Ownership · Trade ready — a fresh figure after re-running
+- Trade-In Evaluation & Proof of Ownership · The appraisal form before anyone has typed
+- Trade-In Evaluation & Proof of Ownership · The appraisal form filled in, not yet evaluated
+- Trade-In Evaluation & Proof of Ownership · Trade value — the fresh trade evaluated
+- Trade-In Evaluation & Proof of Ownership · Trade ready — the seeded trade, one gap from its documents
+- Trade-In Evaluation & Proof of Ownership · Scan the payoff statement
+- Trade-In Evaluation & Proof of Ownership · Payoff statement read
+- Trade-In Evaluation & Proof of Ownership · Payoff — the statement couldn't be read
+- Desking — Calculate Payments · Game plan — the huddle
+- Desking — Calculate Payments · Pencil — Finance
+- Desking — Calculate Payments · Payment options — the 3x3 grid
+- Desking — Calculate Payments · Present — Your payment
+- Desking — Calculate Payments · Present — Own or lease
+- Desking — Calculate Payments · Back in Work — the customer chose
+- Desking — Calculate Payments · Pencil — Lease
+- Desking — Calculate Payments · Pencil — Cash
+- Desking — Calculate Payments · Pencil — One Pay
+- Desking — Calculate Payments · Present — Your total (One Pay)
+- Desking — Calculate Payments · Present — Your payment (Lease)
+- Desking — Calculate Payments · Present — Your total (Cash)
+- Desking — Calculate Payments · Back in Work — the customer chose the cash total
+- Desking — Calculate Payments · Pencil — sent for approval
+- Desking — Calculate Payments · Present — the customer taps a different cell
+- Desking — Calculate Payments · Back in Work — the customer's own cell
+- Desking — Calculate Payments · Payment options — after the choice
+- Desking — Calculate Payments · Pencil — trade with negative equity
+- Desking — Calculate Payments · Present — no trade win when equity is negative
+- Desking — Calculate Payments · Pencil — Fees & tax open
+- Desking — Calculate Payments · Pencil — Rebates and Accessories open
+- Desking — Calculate Payments · Accessories (sheet)
+- Desking — Calculate Payments · Change terms (sheet) — finance
+- Desking — Calculate Payments · Change terms (sheet) — lease
+- Desking — Calculate Payments · Pencil — Lease with Residual and Fees & tax open
+- Desking — Calculate Payments · What is included (sheet)
+- Desking — Calculate Payments · Game plan — Lease chosen
+- Desking — Calculate Payments · Game plan — no trade on the deal
+- Desking — Calculate Payments · Pencil — the Team Lead's view: approval asked
+- Desking — Calculate Payments · Approve John's deal? (sheet)
+- Desking — Calculate Payments · Send back to Ashley (sheet)
+- Desking — Calculate Payments · Send back — the note is required
+- Desking — Calculate Payments · Pencil — sent back (the Team Lead's view)
+- Desking — Calculate Payments · Pencil — sent back by Jordan (the advisor's view)
+- Desking — Calculate Payments · Pencil — approved
+- Desking — Calculate Payments · Pencil — the numbers changed after John chose
+- Desking — Calculate Payments · Pencil — the deal type changed after John chose
+- Desking — Calculate Payments · Pencil — more cash down than the deal can take
+- Desking — Calculate Payments · Pencil — more due at signing than the lease can take
+- Desking — Calculate Payments · Change terms — a figure refused
+- Desking — Calculate Payments · Pencil — money owed back to John
+- Desking — Calculate Payments · Present — Owed to you (Cash)
+- Desking — Calculate Payments · Pencil — no trade on the deal
+- Desking — Calculate Payments · Compare — from the cash pencil
+- Desking — Calculate Payments · Change after signing — the signed payment would move (sheet)
+- Base Payment Agreement · Agreement — ready to sign
+- Base Payment Agreement · Agreement — signed
+- Base Payment Agreement · Voided — back on the pencil
+- Base Payment Agreement · Sign panel — the typed name paints the signature
+- Base Payment Agreement · Refused — no name to sign with
+- Base Payment Agreement · Agreement — Lease
+- Base Payment Agreement · Agreement — Cash
+- Base Payment Agreement · Agreement — One Pay
+- Base Payment Agreement · Printable — Base Payment Agreement
+- Credit Application (Lending Lane) · Verify your identity (pre-application gate)
+- Credit Application (Lending Lane) · Identity verified
+- Credit Application (Lending Lane) · Step 1 — Application type & applicant
+- Credit Application (Lending Lane) · Joint — co-buyer needed
+- Credit Application (Lending Lane) · Send co-buyer link (sheet)
+- Credit Application (Lending Lane) · Link sent — persistent status
+- Credit Application (Lending Lane) · Invalid submit — inline summary
+- Credit Application (Lending Lane) · Deal summary chip — opens desking
+- Credit Application (Lending Lane) · Step 1 — Individual application, the record row open
+- Credit Application (Lending Lane) · Step 2 — Residence
+- Credit Application (Lending Lane) · Step 3 — Employment
+- Credit Application (Lending Lane) · Step 4 — Review, signature needed
+- Credit Application (Lending Lane) · Approved — the lender's answer to a real submission
+- Credit Application (Lending Lane) · Approved at the agreed rate
+- Credit Application (Lending Lane) · Step 1 — Joint, co-buyer attached and waiting on Cheri's link
+- Credit Application (Lending Lane) · Review — gaps on both sides, Cheri's blocked
+- Credit Application (Lending Lane) · Review — John's half done, waiting on Cheri
+- Credit Application (Lending Lane) · Review — both complete, ready for lenders
+- Credit Application (Lending Lane) · Cheri's answers (sheet)
+- Credit Application (Lending Lane) · Joint submit with nobody attached
+- Credit Application (Lending Lane) · Send a secure link to the applicant (sheet)
+- Credit Application (Lending Lane) · Home — the lender's answer, a notice
+- Buyers on the Deal (Co-Buyer) · Buyers on this deal
+- Buyers on the Deal (Co-Buyer) · After removal — Cheri's Removed row and the audit line
+- Buyers on the Deal (Co-Buyer) · Change buyer roles? — confirmation
+- Buyers on the Deal (Co-Buyer) · Customer Resolver — manual entry, on the co-buyer mission
+- Buyers on the Deal (Co-Buyer) · Advisor — every consequence listed, Ask a Team Lead
+- Buyers on the Deal (Co-Buyer) · After removal — Cheri's Removed row and the withdrawn audit line
+- Buyers on the Deal (Co-Buyer) · Change roles after the lane — the lender line
+- F&I Product Presentation · Presentation — Rate
+- F&I Product Presentation · Vehicle service contract
+- F&I Product Presentation · Mileage changes the warranty window
+- F&I Product Presentation · Monthly / daily budget (sheet)
+- F&I Product Presentation · More product details (sheet)
+- F&I Product Presentation · Presentation — Term
+- F&I Product Presentation · See why this rate is credible (sheet)
+- F&I Product Presentation · Pre-Paid Maintenance
+- F&I Product Presentation · Tire and Wheel
+- F&I Product Presentation · GAP Coverage — the last product, 6 of 6
+- F&I Product Presentation · Rate — before the credit approval
+- F&I Product Presentation · Lease rail — Lease-End Protection
+- F&I Product Presentation · Cash rail — no Rate or Term tile
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — Advisor view
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — the Team Lead has been asked
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — jacket blocking (Team Lead)
+- Finance Menu — Sign-Off Gate and Four Stages · Resolve Deal Jacket blocker
+- Finance Menu — Sign-Off Gate and Four Stages · Manager sign-off — override recorded, Approve available
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — Review the deal terms
+- Finance Menu — Sign-Off Gate and Four Stages · Taxes & fees (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — Choose a protection package
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — figure withheld
+- Finance Menu — Sign-Off Gate and Four Stages · Custom package — payment revealed
+- Finance Menu — Sign-Off Gate and Four Stages · Accept package — client initials
+- Finance Menu — Sign-Off Gate and Four Stages · Continue without products
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 3 — Disclosures & forms
+- Finance Menu — Sign-Off Gate and Four Stages · Benefits acknowledgment (sheet)
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 3 — acknowledgment signed
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — Final review
+- Finance Menu — Sign-Off Gate and Four Stages · Finalize with documents outstanding
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized
+- Finance Menu — Sign-Off Gate and Four Stages · Park the deal — back on My deals
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — the payment agreed again at the lender's rate
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 4 — nothing outstanding, Finalize deal
+- Finance Menu — Sign-Off Gate and Four Stages · Deal finalized — clean
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — a cash deal's terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — packages on a cash deal
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — a lease's terms
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 2 — packages on a lease
+- Finance Menu — Sign-Off Gate and Four Stages · Stage 1 — a one-pay deal's terms
+- Deal Jacket & Compliance · Deal Jacket — funding readiness
+- Deal Jacket & Compliance · Deal forms — expanded
+- Deal Jacket & Compliance · Document row — contextual actions
+- Deal Jacket & Compliance · Mark received — a person's word
+- Deal Jacket & Compliance · Marked received — the count moved by one
+- Deal Jacket & Compliance · Add optional document
+- Deal Jacket & Compliance · Optional document — Remove from this deal
+- Deal Jacket & Compliance · Completed — already in the jacket
+- Deal Jacket & Compliance · Driver's License — back still needed
+- Deal Jacket & Compliance · Jacket complete — the dock unlocks
+- Deal Jacket & Compliance · Auto Insurance — Retake needed, with its reason
+- Deal Jacket & Compliance · Proof of Income — second paystub missing
+- Deal Jacket & Compliance · A cash deal's jacket — ten required
+- Deal Jacket & Compliance · A lease's jacket — all fifteen
+- Deal Jacket & Compliance · A deal with a co-buyer — the co-buyer's identity record
+- Deal Jacket & Compliance · Sign-off unlocked by a recorded override
+- Deal Jacket & Compliance · Request status — the customer's uploads, not the advisor's
+- Deal Jacket & Compliance · License reviewed and filed — the count moves by one
+- Deal Jacket & Compliance · Business record (sheet)
+- Deal Jacket & Compliance · Upload a signed copy (sheet)
+- Customer document request (from the jacket) · Request documents — secure link
+- Customer document request (from the jacket) · Nothing ticked — the send is refused
+- Customer document request (from the jacket) · Jacket after sending — Requested
+- Customer document request (from the jacket) · Customer request — delivery status (waiting)
+- Customer document request (from the jacket) · Resend documents
+- Customer document request (from the jacket) · Jacket — the customer has started uploading
+- Customer document request (from the jacket) · Customer request — opened, 1 of 3 uploaded
+- Client Document Upload (customer's phone) · Document request — what the link opens
+- Client Document Upload (customer's phone) · Upload your documents
+- Client Document Upload (customer's phone) · Row blocked — back of license missing
+- Client Document Upload (customer's phone) · License received for review
+- Client Document Upload (customer's phone) · Insurance photo too blurry — refused on the row
+- Client Document Upload (customer's phone) · Insurance taken — the row says why it needs attention
+- Client Document Upload (customer's phone) · Receipt — partway through
+- Client Document Upload (customer's phone) · Paystub — second stub still needed
+- Client Document Upload (customer's phone) · Every row ready — the license still awaiting review
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Client Document Upload (customer's phone) · Review capture — 2 pages
+- Client Document Upload (customer's phone) · Too blurry to read — refused on the row
+- Client Document Upload (customer's phone) · Review capture — a PDF, no preview
+- Client Document Upload (customer's phone) · Save & finish later
+- Client Document Upload (customer's phone) · The list — the license front the store took, the back still needed
+- Snap All — burst capture · Snap All — camera
+- Snap All — burst capture · Three photos in the batch
+- Snap All — burst capture · Sorting the batch
+- Snap All — burst capture · Auto-sort results
+- Snap All — burst capture · Results — the exception declined
+- Snap All — burst capture · Capture the missing page
+- Snap All — burst capture · The page is in — the dock wakes
+- Snap All — burst capture · The license now complete
+- Snap All — burst capture · Back in the jacket — batch saved
+- Snap All — burst capture · Results — two documents still needed
+- Snap All — burst capture · Review one photo
+- Snap All — burst capture · Remove this photo?
+- Snap All — burst capture · Leaving an unsorted batch
+- Snap All — burst capture · Not a photo — nothing added
+- Snap All — burst capture · Snap All from the customer's phone
+- Snap All — burst capture · John's sorted batch — Ready
+- Snap All — burst capture · Leaving John's capture — the photos have not been sent
+- Document Review (advisor) · Front received, back needed
+- Document Review (advisor) · Both sides received
+- Document Review (advisor) · Requested — nothing received yet
+- Document Review (advisor) · Front received — preview unavailable after a reload
+- Document Review (advisor) · Both sides — the customer's front, the advisor's back
+- Document Review (advisor) · Auto Insurance Card — pages, not sides
+- Documents — Print Center & Printables · Documents
+- Documents — Print Center & Printables · Print full packet (sheet)
+- Documents — Print Center & Printables · Documents — two documents not ready
+- Documents — Print Center & Printables · Preview — Base Payment Agreement
+- Documents — Print Center & Printables · Preview — MV-82 (training sample)
+- Documents — Print Center & Printables · Preview — Repayment Options
+- Documents — Print Center & Printables · Preview — Deal Cover Sheet
+- Documents — Print Center & Printables · Preview — Test Drive Agreement
+- Documents — Print Center & Printables · Preview — Delivery Checklist
+- Documents — Print Center & Printables · Preview — Applied Rebates
+- Documents — Print Center & Printables · Preview — Privacy Policy (additional form)
+- Documents — Print Center & Printables · Preview — Odometer Disclosure Statement (additional form)
+- Documents — Print Center & Printables · Preview — the full packet
+- Documents — Print Center & Printables · Documents — with a saved quote (10 docs)
+- Documents — Print Center & Printables · Preview — Saved Quote
+- Documents — Print Center & Printables · Documents — no rebates, no forms (5 docs)
+- Documents — Print Center & Printables · Preview — the packet on a cash deal
+- Documents — Print Center & Printables · Funded deal whose vehicle left the catalog — lands on the jacket
+- Service states — the tester switches · Tester switches — everything normal
+- Service states — the tester switches · One server's chooser
+- Service states — the tester switches · The band names a switch that is on
+- Service states — the tester switches · The band — OFFLINE
+- Service states — the tester switches · Secure link — still sending
+- Service states — the tester switches · Secure link — the text didn't go out
+- Service states — the tester switches · Your session ended (sheet)
+- Service states — the tester switches · Secure link — waiting for a connection
+- Service states — the tester switches · Deal Jacket — the secure request didn't go out
+- Service states — the tester switches · This phone didn't save that
+- Service states — the tester switches · Final review — the DMS didn't take the deal
+- Service states — the tester switches · John's phone — his license couldn't be read
+
+### Removed
+- none
+
+### New issues
+- RP-UI-105 (Observation) — White text on the primary buttons measures 2.6:1 at the orange end of the bright gradient (#FF7A00 to #FF0055), under the 4.5:1 small text needs; the automated contrast check lists it on 341 screens since v051 ("#ffffff on #ff… (gradient, worst under the text)").
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
+What changed for real: the owner's old button color back (#271, 2026-10-06: "I need the old color back it just looks better"). Every primary button draws the kit's bright orange to pink again (#FF7A00 to #FF0055) in place of W-152's darker #B85400 to #D60047, one look on every screen, the scanner's included; W-152's darker small grey stays. That is all 376 changed pictures: the automated checks differ only in the contrast check, which now lists white text on the bright gradient on 341 screens (2.6:1 at its orange end, the owner's choice until he makes the visual change: RP-UI-105, an observation), and in seven screens' overlap lists, whose differing pairs are the clock's dates and times. Also merged in this batch, with no picture of its own: the cut board's versions to pick (tools/versions.mjs) and its README.
+
+## v050 — 2026-10-06
+
+App commit: e95e81c · 21 flows · 433 screens · previous: v049
+
+### Added
+- flow added: Service states — the tester switches — its 13 screen(s) are listed below
+- Home — Active Floor & Navigation · Active floor — Needs you · 1 approval
+- Home — Active Floor & Navigation · Active floor — Needs you · 2 requests
+- Home — Active Floor & Navigation · Funded — none in the range
+- Home — Active Floor & Navigation · Search — the only match is completed
+- Training Documents · Payoffs — the training payoff statements
+- Training Documents · Training payoff statement — preview
+- Trade-In Evaluation & Proof of Ownership · Update the payoff (sheet) — scan or by hand
+- Trade-In Evaluation & Proof of Ownership · Scan the payoff statement
+- Trade-In Evaluation & Proof of Ownership · Payoff statement read
+- Trade-In Evaluation & Proof of Ownership · Payoff — the statement couldn't be read
+- Desking — Calculate Payments · Pencil — the Team Lead's view: approval asked
+- Desking — Calculate Payments · Approve John's deal? (sheet)
+- Desking — Calculate Payments · Send back to Ashley (sheet)
+- Desking — Calculate Payments · Send back — the note is required
+- Desking — Calculate Payments · Pencil — sent back (the Team Lead's view)
+- Desking — Calculate Payments · Pencil — sent back by Jordan (the advisor's view)
+- Desking — Calculate Payments · Pencil — approved
+- Desking — Calculate Payments · Pencil — the numbers changed after John chose
+- Desking — Calculate Payments · Pencil — the deal type changed after John chose
+- Desking — Calculate Payments · Pencil — more cash down than the deal can take
+- Desking — Calculate Payments · Pencil — more due at signing than the lease can take
+- Desking — Calculate Payments · Change terms — a figure refused
+- Desking — Calculate Payments · Pencil — money owed back to John
+- Desking — Calculate Payments · Present — Owed to you (Cash)
+- Desking — Calculate Payments · Pencil — no trade on the deal
+- Desking — Calculate Payments · Compare — from the cash pencil
+- Desking — Calculate Payments · Change after signing — the signed payment would move (sheet)
+- Deal Jacket & Compliance · Upload a signed copy (sheet)
+- Service states — the tester switches · Tester switches — everything normal
+- Service states — the tester switches · One server's chooser
+- Service states — the tester switches · Tester switches — the lender failing
+- Service states — the tester switches · The band names a switch that is on
+- Service states — the tester switches · The band — OFFLINE
+- Service states — the tester switches · Secure link — still sending
+- Service states — the tester switches · Secure link — the text didn't go out
+- Service states — the tester switches · Your session ended (sheet)
+- Service states — the tester switches · Secure link — waiting for a connection
+- Service states — the tester switches · Deal Jacket — the secure request didn't go out
+- Service states — the tester switches · This phone didn't save that
+- Service states — the tester switches · Final review — the DMS didn't take the deal
+- Service states — the tester switches · John's phone — his license couldn't be read
+
+### Changed (screenshot bytes differ from the previous version)
+- Home — Active Floor & Navigation · Active floor — a visit not yet assigned
+- Home — Active Floor & Navigation · Visit sheet — Assign to an advisor (Team Lead)
+- Home — Active Floor & Navigation · Assign — one row per advisor
+- Home — Active Floor & Navigation · Active floor — assigned to Ashley
+- Home — Active Floor & Navigation · Visit sheet — the advisor's own (no assign control)
+- Home — Active Floor & Navigation · Test log — off, nothing recorded
+- Home — Active Floor & Navigation · Test log — recording, events on the log
+- Home — Active Floor & Navigation · Clear the test log? — confirm
+- Home — Active Floor & Navigation · Test log — cleared and stopped
+- Scan Driver's License · Verify the phone number (sheet)
+- Scan Driver's License · Unfinished scans
+- Scan Driver's License · Resume license scan
+- Scan Driver's License · Verify the phone number — Email the code instead
+- Scan Driver's License · Needs you — Jordan confirms the name
+- Scan Driver's License · Needs you — the signed agreement goes back
+- Training Documents · Print all 5 — registrations on paper
+- Discovery — the guided consultation · × in the top bar — back to the visits
+- Test Drive Agreement · Insurance company (sheet)
+- Trade-In Evaluation & Proof of Ownership · Edit appraisal — the figure withdrawn until it is re-run
+- Credit Application (Lending Lane) · Home — the lender's answer, a notice
+- Deal Jacket & Compliance · Optional document — Remove from this deal
+- Deal Jacket & Compliance · Request status — the customer's uploads, not the advisor's
+- Deal Jacket & Compliance · License reviewed and filed — the count moves by one
+- Customer document request (from the jacket) · Customer request — delivery status (waiting)
+- Customer document request (from the jacket) · Customer request — opened, 1 of 3 uploaded
+- Client Document Upload (customer's phone) · Receipt — partway through
+- Client Document Upload (customer's phone) · Receipt — your documents
+- Snap All — burst capture · Sorting the batch
+- Documents — Print Center & Printables · Preview — Saved Quote
+
+### Removed
+- none
+
+### New issues
+- none
+
+### Resolved issues
+- none
+
+### Amended issues (kept, but re-filed or reworded)
+- none
+
+_Note: a 'changed' screen means the pixels differ between captures — re-read the two screenshots to say what changed; issues are only new/resolved if reports/issues.json says so._
+
+What changed for real: no app change. The library now shows the states that change a flow's screens, for the owner's cut board (every screen, marked Keep / Change / Remove). Added: Desking's other side of an approval (Jordan asked, the review sheet, sent back with and without a note, approved), the two notices when the numbers or the deal type change after John chose, more cash down than the deal or the lease can take, Change terms refusing a figure, money owed back to John (the pencil and Present), no trade, Compare from the cash pencil, and a change after John signed; Home's Needs you with an approval and with two requests, an empty Funded range and a search whose only match is completed; the payoff statement's scanner on the trade (the sheet, the scan, read, unreadable) and Training documents' Payoffs tab; the jacket's Upload a signed copy sheet; and a new last flow, Service states, showing each tester switch's effect (slow, failing, offline, signed out). Session.reset now puts every switch back to normal first. The 29 changed pictures differ only by the clock (times of day, the test log's event times, dated barcodes on the printed registrations, Snap All's sorting animation).
+
 ## v049 — 2026-10-06
 
 App commit: e19962c · 20 flows · 392 screens · previous: v048

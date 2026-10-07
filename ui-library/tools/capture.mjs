@@ -67,11 +67,20 @@ for (const flow of flows) {
       if (rec.checks.tinyTargets.length) flags.push(`tiny ${rec.checks.tinyTargets.length}`);
       if (rec.checks.clipped.length) flags.push(`clipped ${rec.checks.clipped.length}`);
       if (rec.checks.overlaps.length) flags.push(`overlap ${rec.checks.overlaps.length}`);
+      if ((rec.checks.sheetFit || []).length) flags.push(`sheet ${rec.checks.sheetFit.length}`);
+      if ((rec.checks.lowContrast || []).length) flags.push(`contrast ${rec.checks.lowContrast.length}`);
+      if ((rec.checks.unnamed || []).length) flags.push(`unnamed ${rec.checks.unnamed.length}`);
+      if ((rec.checks.holes || []).length) flags.push(`hole ${rec.checks.holes.length}`);
+      if ((rec.checks.dupIds || []).length) flags.push(`dupid ${rec.checks.dupIds.length}`);
+      if ((rec.checks.brokenImages || []).length) flags.push(`img ${rec.checks.brokenImages.length}`);
+      if ((rec.checks.console || []).length) flags.push(`console ${rec.checks.console.length}`);
       console.log(`  ${pad2(n)} ${step.key.padEnd(34)} ${String(rec.hash).padEnd(30)} ${size.height}px ${flags.join(" · ")}`);
     } catch (e) {
       failed++;
       rec.status = "capture-failed"; rec.error = String(e.message || e).slice(0, 300);
-      console.log(`  ${pad2(n)} ${step.key.padEnd(34)} FAILED: ${rec.error}`);
+      /* what the page logged while this step failed is this step's: taken here, it never reaches the next screen's checks */
+      rec.console = s.takeErrors();
+      console.log(`  ${pad2(n)} ${step.key.padEnd(34)} FAILED: ${rec.error}${rec.console.length ? ` · console ${rec.console.length}` : ""}`);
       try { await s.shot(join(dir, file)); } catch { /* nothing to save */ }
     }
     out.screens.push(rec);

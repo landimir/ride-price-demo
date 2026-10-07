@@ -538,5 +538,15 @@
     "issue": "On The name changed, Edit license details is drawn under the dock until the page is scrolled: the scanned address takes two lines, the page grows past the dock, and the first paint shows Ask a Team Lead where the link is. Scrolled to the end, the link sits clear of the dock (its box overlaps the dock's top by 4 px; a tap lands on the link).",
     "observation": "The library's overlap check reads it at first paint. Nothing is lost, since the page scrolls, but the one way to put a misread right is out of sight on the case that most needs it. Found by the v044 audit.",
     "area": "Confirm customer: the page and its dock"
+  },
+  {
+    "id": "RP-UI-105",
+    "severity": "Observation",
+    "flow": "Home — Active Floor & Navigation",
+    "screen": "My deals (landing — Advisor)",
+    "screenshot": "current/01-home-and-navigation/01-deals-queue.png",
+    "issue": "White text on the primary buttons measures 2.6:1 at the orange end of the bright gradient (#FF7A00 to #FF0055), under the 4.5:1 small text needs; the automated contrast check lists it on 341 screens since v051 (\"#ffffff on #ff… (gradient, worst under the text)\").",
+    "observation": "The owner's choice of 2026-10-06 (\"I need the old color back it just looks better … In the future I'll make the correct visual change but for now I want the old color\"), which took back W-152's darker gradient; RULES §3 records it and the redesign's LS-122 names it as its remaining gap. Not a defect to fix here: the owner makes that change.",
+    "area": "ride-price-mobile.css --rp-gradient"
   }
 ]
